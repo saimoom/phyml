@@ -1,0 +1,7 @@
+#!/bin/bash -x
+
+autoconf -f ./configure_mc.ac > ./configure;
+automake -f ./Makefile_mc;
+./configure;
+make -f ./Makefile_mc clean;
+make -f ./Makefile_mc;
