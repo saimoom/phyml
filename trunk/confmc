@@ -1,6 +1,8 @@
 #!/bin/bash -x
 
+aclocal;
 autoconf -f ./configure_mc.ac > ./configure;
+chmod u+x ./configure;
 automake -f ./Makefile_mc;
 ./configure;
 make -f ./Makefile_mc clean;
