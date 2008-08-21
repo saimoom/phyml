@@ -253,6 +253,7 @@ int MC_main(int argc, char **argv)
 		  printf("\n. EXPONENTIAL lnL_data = %f lnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL);
 		  MCMC(tree);
 		  /***********************************/
+		  Exit("\n");
 
 		  /***********************************/
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct();

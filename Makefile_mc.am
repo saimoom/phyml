@@ -9,7 +9,7 @@ options.o simu.o eigen.o pars.o alrt.o interface.o cl.o spr.o mc.o m4.o draw.o r
 
 # AM_CFLAGS=-mpowerpc
 # AM_CFLAGS=-O3 -fomit-frame-pointer -funroll-loops -Wall -m64
-AM_CFLAGS=-O2 -m64 -Wall
+AM_CFLAGS=-O2 -Wall
 # AM_CFLAGS=-m64
 # AM_CFLAGS=-g -Wall
 

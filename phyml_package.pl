@@ -1,0 +1,70 @@
+#!/usr/bin/perl -w
+use File::Copy;
+use Cwd;
+
+$output_dir = $ARGV[0];
+chdir($output_dir);
+mkdir("./phyml/");
+mkdir("./phyml/src");
+mkdir("./phyml/doc");
+mkdir("./phyml/bin");
+mkdir("./phyml/examples");
+
+$phyml_dir = "/Users/stephane/cvshome/phydev/";
+chdir $phyml_dir;
+
+
+$phyml_files[0]  = "main";
+$phyml_files[1]  = "utilities";
+$phyml_files[2]  = "optimiz";
+$phyml_files[3]  = "lk";
+$phyml_files[4]  = "bionj";
+$phyml_files[5]  = "models";
+$phyml_files[6]  = "free";
+$phyml_files[7]  = "options";
+$phyml_files[8]  = "simu";
+$phyml_files[9]  = "eigen";
+$phyml_files[10] = "pars";
+$phyml_files[11] = "alrt";
+$phyml_files[12] = "interface";
+$phyml_files[13] = "cl";
+$phyml_files[14] = "spr";
+$phyml_files[15] = "mc";
+$phyml_files[16] = "m4";
+$phyml_files[17] = "draw";
+$phyml_files[18] = "rates";
+$phyml_files[19] = "mg";
+$phyml_files[20] = "mpi_boot";
+
+chdir($phyml_dir); 
+opendir(PHYML_DIR,$phyml_dir) || die;
+@phyml_dir_files = readdir(PHYML_DIR);
+closedir(PHYML_DIR);
+
+foreach $filename (@phyml_dir_files)
+  {
+      foreach $source (@phyml_files)
+      {
+	  if($filename =~ m/$source.[c|h]$/)
+	  {
+	      copy $filename,$output_dir."/phyml/src/" || die "Could not copy file $filename.\n";
+	  }
+      }
+  }
+
+copy "Makefile.am",$output_dir."/phyml/src" || die "Could not copy file Makefile.am.\n";
+copy "configure.ac",$output_dir."/phyml/src" || die "Could not copy file configure.ac.\n";
+copy "INSTALL",$output_dir."/phyml/src" || die "Could not copy file INSTALL.\n";
+copy "AUTHORS",$output_dir."/phyml/src" || die "Could not copy file AUTHORS.\n";
+copy "README",$output_dir."/phyml/src" || die "Could not copy file README.\n";
+copy "NEWS",$output_dir."/phyml/src" || die "Could not copy file NEWS.\n";
+copy "COPYING",$output_dir."/phyml/src" || die "Could not copy file COPYING.\n";
+copy "depcomp",$output_dir."/phyml/src" || die "Could not copy file depcomp.\n";
+copy "install-sh",$output_dir."/phyml/src" || die "Could not copy file install-sh.\n";
+copy "missing",$output_dir."/phyml/src" || die "Could not copy file missing.\n";
+copy "ChangeLog",$output_dir."/phyml/src" || die "Could not copy file ChangeLog.\n";
+
+copy "phyml.bat",$output_dir."/phyml/bin" || die "Could not copy file phyml.bat.\n";
+copy("/Users/stephane/latex/phyml/phyml_manual.pdf",$output_dir."/phyml/doc") || die "Could not copy file phyml_manual.pdf.\n";
+copy("/Users/stephane/data/phyml_example/nucleic",$output_dir."/phyml/examples/") || die "Could not copy example file 'nucleic'";
+copy("/Users/stephane/data/phyml_example/proteic",$output_dir."/phyml/examples/") || die "Could not copy example file 'proteic'";

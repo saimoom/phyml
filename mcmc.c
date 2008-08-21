@@ -78,10 +78,10 @@ void MCMC(arbre *tree)
   MCMC_Print_Param(fp,tree);
   MCMC_Print_Param(stdout,tree);
 
-  MCMC_Randomize_Branch_Lengths(tree);
-  MCMC_Randomize_Lexp(tree);
-/*   MCMC_Randomize_Alpha(tree); */
-  MCMC_Randomize_Node_Times(tree);
+/*   MCMC_Randomize_Branch_Lengths(tree); */
+/*   MCMC_Randomize_Lexp(tree); */
+  MCMC_Randomize_Alpha(tree);
+/*   MCMC_Randomize_Node_Times(tree); */
 
 
   RATES_Lk_Rates(tree);
@@ -99,10 +99,10 @@ void MCMC(arbre *tree)
       switch((int)u)
 	{
 	case 0 : { MCMC_Lexp(tree);      break; }
-/* 	case 1 : { MCMC_Alpha(tree);     break; } */
+	case 1 : { MCMC_Alpha(tree);     break; }
  	case 2 : { MCMC_Rates(tree);     break; }
 	case 3 : { MCMC_Times(tree);     break; }
-/* 	case 4 : { MCMC_Nu(tree);        break; } */
+/* /\* 	case 4 : { MCMC_Nu(tree);        break; } *\/ */
 /* 	case 5 : { MCMC_No_Change(tree); break; } */
 	}
 	    
@@ -249,19 +249,21 @@ void MCMC_Alpha(arbre *tree)
   cur_alpha  = tree->rates->alpha;
   
   u =  Uni();
-  new_alpha = u * 3.0 + 1.0;
-  Exit("\n. Wrong move !!!");
+  new_alpha = cur_alpha + (u * 2.*cur_alpha/10. - cur_alpha/10.);
 
-  tree->rates->alpha = new_alpha;
-  new_lnL = RATES_Lk_Rates(tree);      
-  ratio = exp(new_lnL-cur_lnL);
-  alpha = MIN(1.,ratio);
-  u = Uni();
- 
- if(u > alpha) /* Reject */
+  if(new_alpha > 1.0 && new_alpha < 7.0)
     {
-      tree->rates->alpha = cur_alpha;
-      RATES_Lk_Rates(tree);
+      tree->rates->alpha = new_alpha;
+      new_lnL = RATES_Lk_Rates(tree);      
+      ratio = exp(new_lnL-cur_lnL);
+      alpha = MIN(1.,ratio);
+      u = Uni();
+ 
+      if(u > alpha) /* Reject */
+	{
+	  tree->rates->alpha = cur_alpha;
+	  RATES_Lk_Rates(tree);
+	}
     }
 }
 
@@ -1082,6 +1084,7 @@ void MCMC_Print_Param(FILE *fp, arbre *tree)
 	  fprintf(fp,"LnLRate\t");
 	  fprintf(fp,"Lexp\t");
 	  fprintf(fp,"Alpha\t");
+	  fprintf(fp,"Nu\t");
 	  if(fp != stdout) for(i=tree->n_otu;i<2*tree->n_otu-1;i++) fprintf(fp,"T%d\t",i);
 /*  	  if(fp != stdout) For(i,2*tree->n_otu-3) fprintf(fp,"B%d\t",i); */
 /* 	  For(i,5) fprintf(fp,"B%d ",i); */
@@ -1100,8 +1103,8 @@ void MCMC_Print_Param(FILE *fp, arbre *tree)
       fprintf(fp,"%15.2f\t",tree->c_lnL);
       fprintf(fp,"%15.2f\t",tree->rates->c_lnL);
       fprintf(fp,"%15f\t",tree->rates->lexp);
-      fprintf(fp,"%15f\t",tree->rates->nu);
       fprintf(fp,"%4.2f\t",tree->rates->alpha);
+      fprintf(fp,"%15f\t",tree->rates->nu);
       if(fp != stdout) for(i=tree->n_otu;i<2*tree->n_otu-1;i++) fprintf(fp,"%8f\t",tree->rates->t[i]-tree->rates->true_t[i]);
 /*       if(fp != stdout) For(i,2*tree->n_otu-3) fprintf(fp,"%8f\t",tree->t_edges[i]->l); */
 
@@ -1164,11 +1167,14 @@ void MCMC_Randomize_Branch_Lengths(arbre *tree)
 void MCMC_Randomize_Lexp(arbre *tree)
 {
   phydbl u;
+
+  tree->rates->lexp = -1.0;
   do
     {
       u = Uni();
       tree->rates->lexp = -log(u);
-    }while((tree->rates->lexp < 1.E-5) && (tree->rates->lexp > 2.0));
+    }
+  while((tree->rates->lexp < 1.E-5) && (tree->rates->lexp > 2.0));
 }
 
 /*********************************************************/
@@ -1180,7 +1186,8 @@ void MCMC_Randomize_Nu(arbre *tree)
     {
       u = Uni();
       tree->rates->nu = -log(u);
-    }while((tree->rates->nu < 1.E-5) && (tree->rates->nu > 10.0));
+    }
+  while((tree->rates->nu < 1.E-5) && (tree->rates->nu > 10.0));
 }
 
 /*********************************************************/
@@ -1189,12 +1196,8 @@ void MCMC_Randomize_Alpha(arbre *tree)
 {
   phydbl u;
 
-  do
-    {      
-      u = Uni();
-      tree->rates->alpha = -log(u);
-    }
-  while((tree->rates->alpha < 1.0) && (tree->rates->alpha > 5.0));
+  u = Uni();
+  tree->rates->alpha = u*6.0+1.0;
 }
 
 /*********************************************************/

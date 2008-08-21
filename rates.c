@@ -608,7 +608,7 @@ void RATES_Init_Rate_Struct(trate *rates, int n_otu)
   rates->c_lnL         = -INFINITY;
   rates->adjust_rates  = 0;
   rates->use_rates     = 1;
-  rates->lexp          = 0.04;
+  rates->lexp          = 0.02;
   rates->alpha         = 2.0;
   rates->birth_rate    = 0.001;
   rates->max_rate      = 10.;
