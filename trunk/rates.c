@@ -436,6 +436,21 @@ phydbl RATES_Compound_Core(phydbl mu1, phydbl mu2, phydbl dt1, phydbl dt2, phydb
     {
       if(fabs(mu1-mu2) < eps) equ = 1;
     }
+
+
+  if(mu1 < 1.E-10)
+    {
+      printf("\n. mu1 = %f",mu1);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+
+  if(mu2 < 1.E-10)
+    {
+      printf("\n. mu2 = %f",mu2);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
   
   /* No jump */
       if(equ)
@@ -756,6 +771,14 @@ phydbl RATES_Dmu(phydbl mu, phydbl dt, phydbl a, phydbl b, phydbl lexp, int min_
       Warn_And_Exit("");
     }
 
+  if(mu < 1.E-10)
+    {
+      PhyML_Printf("\n. mu=%G",mu);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");      
+    }
+
+
   RATES_Bracket_N_Jumps(&up,&down,lexpdt);
   For(n,MAX(down,min_n)-1) cumpoissprob += Dpois(n,lexpdt);
 
@@ -801,6 +824,13 @@ phydbl RATES_Dmu_One(phydbl mu, phydbl dt, phydbl a, phydbl b, phydbl lexp)
       PhyML_Printf("\n. lexpdt=%G lexp=%G dt=%G",lexpdt,lexp,dt);
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
+    }
+
+  if(mu < 1.E-10)
+    {
+      PhyML_Printf("\n. mu=%G",mu);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");      
     }
   
   RATES_Bracket_N_Jumps(&up,&down,lexpdt);
@@ -1039,146 +1069,6 @@ phydbl RATES_Dmu_Given_Y_Romb(phydbl mu, phydbl y, phydbl dt, phydbl a, phydbl b
 
   return(ss);
 
-}
-
-/*********************************************************/
-
-phydbl RATES_Dy_Given_Mu(phydbl mu, phydbl y, phydbl dt, phydbl a, phydbl b, phydbl lexp)
-{
-  phydbl A,B;
-/*   phydbl C; */
-  A = RATES_Dmu_Given_Y_Romb(mu,y,dt,a,b,lexp);
-  B = Dgamma(y,a,b);
-/*   C = RATES_Dmu(mu,dt,a,b,a,lexp); */
-/*   return(A*B/C); */
-  return(A*B);
-}
-
-/*********************************************************/
-/*
-  0                dt1               dt2+dt1
-  *-----------------|-------------------*
-         mu1        y        mu2
-
-   P(mu2|y) x P(y|mu1) 
-*/
-phydbl RATES_Dmu2_Given_Y_X_Dy_Given_Mu1(phydbl mu1, phydbl mu2, phydbl y, phydbl dt1, phydbl dt2, phydbl a, phydbl b, phydbl lexp)
-{
-  phydbl A,B;
-  B = RATES_Dy_Given_Mu(mu1,y,dt1,a,b,lexp);
-  A = RATES_Dmu_Given_Y(mu2,y,dt2,a,b,lexp);
-  return(A*B);
-}
-
-/*********************************************************/
-
-phydbl RATES_Dmu2_Given_Mu1_Trpz(phydbl mu1, phydbl mu2, phydbl dt1, phydbl dt2, phydbl a, phydbl b, phydbl lexp,
-				 int nsteps, phydbl beg, phydbl end, phydbl prevs)
-{
-  phydbl scurr;
-
-  scurr = -1.E+10;
-  if(nsteps == 1)
-    {
-      scurr = 0.5*(end-beg)*(RATES_Dmu2_Given_Y_X_Dy_Given_Mu1(mu1,mu2,beg,dt1,dt2,a,b,lexp)+
-			     RATES_Dmu2_Given_Y_X_Dy_Given_Mu1(mu1,mu2,end,dt1,dt2,a,b,lexp));
-    }
-  else
-    {
-      phydbl h,x,sum;
-      int i,npoints;
-
-      h = (end - beg)*pow(2,2-nsteps);
-      x = beg+0.5*h;
-      sum = 0.0;
-      npoints = pow(2,nsteps-2); /* actual formula is 2^(n-1) - 2^(n-2) */      
-
-      For(i,npoints)
-	{
-	  sum += RATES_Dmu2_Given_Y_X_Dy_Given_Mu1(mu1,mu2,x,dt1,dt2,a,b,lexp);
-	  x = x+h;
-	}
-      scurr = prevs/2. + sum*(end-beg)/pow(2,nsteps-1);      
-    }
-  return scurr;
-}
-
-/*********************************************************/
-phydbl RATES_Dmu2_Given_Mu1(phydbl mu1, phydbl mu2, phydbl dt1, phydbl dt2, phydbl a, phydbl b, phydbl lexp)
-{
-  phydbl p_no_jump;
-  
-  p_no_jump = Dpois(0,lexp*(dt1+dt2));
-
-/*   Rprintf("p_no_jump dt1+dt2 = %f\n",p_no_jump); */
-/*   if(p_no_jump > 0.99) */
-/*     { */
-/*       if(fabs(mu1-mu2) < 0.01 * MIN(mu1,mu2)) return 1.0; */
-/*       else return 0.0; */
-/*     } */
-/*   else */
-/*     { */
-      return(RATES_Dmu2_Given_Mu1_Romb(mu1,mu2,dt1,dt2,a,b,lexp));
-/*     } */
-}
-/*********************************************************/
-/* P(mu2/mu1) = \int_{y=0}^{y=infty} P(mu2|y) P(y|mu1) */
-phydbl RATES_Dmu2_Given_Mu1_Romb(phydbl mu1, phydbl mu2, phydbl dt1, phydbl dt2, phydbl a, phydbl b, phydbl lexp)
-{
-  phydbl *s,*h;
-  phydbl ss,dss;
-  phydbl beg,end,prevs;
-  int i,K,NMAXITER;
-
-  NMAXITER = 100;
-
-  s = (phydbl *)mCalloc(NMAXITER  ,sizeof(phydbl));
-  h = (phydbl *)mCalloc(NMAXITER+1,sizeof(phydbl));
-
-  K = 5;
-
-  beg = 0.01;
-  end = 10.;
-
-  prevs = 0.0;
-  h[1] = 1.0;
-  for(i=1;i<=NMAXITER;i++)
-    {
-      s[i] = RATES_Dmu2_Given_Mu1_Trpz(mu1,mu2,dt1,dt2,a,b,lexp,i,beg,end,prevs);
-      prevs = s[i];
-      
-/*       Rprintf("%f\n",s[i]); */
-
-      if(i >= K)
-	{
-	  Polint(&h[i-K],&s[i-K],K,0.0,&ss,&dss);
-	  if(fabs(dss) <= 1.E-03*fabs(ss)) 
-	    {
-	      Free(s); 
-	      Free(h);
-	      return(ss/RATES_Dmu(mu1,dt1,a,b,lexp,0));
-	    }
-	}
-      h[i+1] = 0.25*h[i];
-    }
-  
-  Free(s);
-  Free(h);
-
-  return(ss/RATES_Dmu(mu1,dt1,a,b,lexp,0));
-
-}
-
-/*********************************************************/
-
-phydbl RATES_Dmu2_And_Mu1(phydbl mu1, phydbl mu2, phydbl dt1, phydbl dt2, phydbl a, phydbl b, phydbl lexp)
-{
-  phydbl A,B;
-
-  A = RATES_Dmu2_Given_Mu1(mu1,mu2,dt1,dt2,a,b,lexp);
-  B = RATES_Dmu(mu1,dt1,a,b,lexp,0);
-
-  return(A*B);
 }
 
 /*********************************************************/
@@ -1544,6 +1434,20 @@ phydbl RATES_Dmu1_And_Mu2_One_Jump_Two_Intervals(phydbl mu1, phydbl mu2, phydbl 
 /*     (dt1/(dt1+dt2)) * RATES_Dmu1_And_Mu2_One_Jump_One_Interval(mu1,mu2,alpha,beta) + */
 /*     (dt2/(dt1+dt2)) * RATES_Dmu1_And_Mu2_One_Jump_One_Interval(mu2,mu1,alpha,beta) ; */
 
+  if(mu2 < 1.E-10)
+    {
+      printf("\n. mu2=%G",mu2);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+
+  if(mu1 < 1.E-10)
+    {
+      printf("\n. mu2=%G",mu1);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+
   dens =
     ((dt1/(dt1+dt2)) * RATES_Dmu1_Given_V_And_N(mu1,mu2,1,dt1,alpha,beta) * Dgamma(mu2,alpha,beta)) +
     ((dt2/(dt1+dt2)) * RATES_Dmu1_Given_V_And_N(mu2,mu1,1,dt2,alpha,beta) * Dgamma(mu1,alpha,beta));
@@ -1554,34 +1458,6 @@ phydbl RATES_Dmu1_And_Mu2_One_Jump_Two_Intervals(phydbl mu1, phydbl mu2, phydbl 
 /*     Dgamma(mu2,alpha,beta); /\* Jump occurred at the junction *\/ */
 
   return dens;
-}
-
-/*********************************************************/
-
-phydbl RATES_Dmu1_And_Mu2_One_Jump_One_Interval(phydbl mu1, phydbl mu2, phydbl a, phydbl b)
-{
-  phydbl lbda,h,p_unif,x;
-  int n_inter,i;
-
-  n_inter = (int)pow(2,2);
-  p_unif = 1./(phydbl)(n_inter-1);
-  
-  /* Lambda never reaches 1.0  
-  */
-  h = 0;
-  lbda = 0.0;
-  for(i=0;i<n_inter-1;i++) 
-    {
-      lbda += 1./(phydbl)n_inter;
-/*       x = (mu1 - (1.-lbda)*mu2)/lbda; */
-      x = (mu1 - lbda*mu2)/(1.-lbda);
-      if(x > 0.0) h += Dgamma(x,a,b) / (1.-lbda);
-/*       printf("\n. ** lbda=%f dens=%f h=%f x=%f",lbda,Dgamma(x,a,b)/(1.-lbda),h,x); */
-    }
-
-  h *= Dgamma(mu2,a,b);
-
-  return(h*p_unif);
 }
 
 /*********************************************************/
@@ -1613,47 +1489,42 @@ phydbl RATES_Dmu1_Given_V_And_N(phydbl mu1, phydbl v, int n, phydbl dt1, phydbl 
     {
       lbda += h;
       u = (mu1 - lbda*v)/(1.-lbda);
+
+      if(u < 1.E-10)
+	{
+	  printf("\n. u = %G",u);
+	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  Warn_And_Exit("");
+	}
+
       if(u > 0.0) dens += Dgamma_Moments(u,mean,var) / (1.-lbda) * ndb * pow(1.-lbda,n-1);
     }
   dens *= 2.;
 
   lbda = beg;
   u = (mu1 - lbda*v)/(1.-lbda);
+  if(u < 1.E-10)
+    {
+      printf("\n. u = %G",u);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+
   if(u>0.0) dens += Dgamma_Moments(u,mean,var) / (1.-lbda) * ndb * pow(1.-lbda,n-1);
 
   lbda = end;
   u = (mu1 - lbda*v)/(1.-lbda);
+  if(u < 1.E-10)
+    {
+      printf("\n. u = %G",u);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+
   if(u>0.0) dens += Dgamma_Moments(u,mean,var) / (1.-lbda) * ndb * pow(1.-lbda,n-1);
 
   dens *= (h/2.);
   dens *= dt1;
-
-  return(dens);
-}
-
-/*********************************************************/
-
-phydbl RATES_Dmu_Given_V_And_MinN(phydbl mu, phydbl dt, phydbl v, int minn, phydbl a, phydbl b, phydbl lexp)
-{
-  int n,up,down;
-  phydbl dens,cumpoiss,poiss,lexpdt;
-  
-  lexpdt   = lexp*dt;
-  cumpoiss = 0.0;
-  dens     = 0.0;
-  poiss    = 0.0;
-
-  RATES_Bracket_N_Jumps(&up,&down,lexpdt);
-
-  For(n,MAX(down,minn)-1) cumpoiss += Dpois(n,lexpdt);
-
-  for(n=MAX(down,minn);n<up+1;n++) /* Integrate over the possible number of jumps */
-    {
-      poiss     = Dpois(n,lexpdt); 
-      dens     += poiss * RATES_Dmu1_Given_V_And_N(mu, v, n, dt, a, b);
-      cumpoiss += poiss;
-      if(cumpoiss > 1.-1.E-06) break;
-    }
 
   return(dens);
 }
@@ -1685,8 +1556,8 @@ phydbl RATES_Dmu2_And_Mu1_Given_Min_N(phydbl mu1, phydbl mu2, phydbl dt1, phydbl
       poiss = Dpois(i,lexpdt);
       cumpoiss = cumpoiss + poiss;
 
-/*       density = density + poiss * RATES_Dmu2_And_Mu1_Given_N(mu1,mu2,dt1,dt2,i-1,a,b,lexp); */
-      density = density + poiss * RATES_Dmu2_And_Mu1_Given_N_Full(mu1,mu2,dt1,dt2,i,a,b,lexp);
+      density = density + poiss * RATES_Dmu2_And_Mu1_Given_N(mu1,mu2,dt1,dt2,i-1,a,b,lexp);
+/*       density = density + poiss * RATES_Dmu2_And_Mu1_Given_N_Full(mu1,mu2,dt1,dt2,i,a,b,lexp); */
       if(cumpoiss > 1.-1.E-6) break;
     }
 
@@ -1731,97 +1602,28 @@ phydbl RATES_Dmu2_And_Mu1_Given_N(phydbl mu1, phydbl mu2, phydbl dt1, phydbl dt2
         poiss = lognf - LnFact(i) - LnFact(n-i) + i*logdt1 + (n-i)*logdt2 - nlogdt;
 	poiss = exp(poiss);
 	cumpoiss = cumpoiss + poiss;
+
+	if(mu2 < 1.E-10)
+	  {
+	    printf("\n. mu2=%f",mu2);
+	    PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	    Warn_And_Exit("");
+	  }
+
+	if(mu1 < 1.E-10)
+	  {
+	    printf("\n. mu1=%f",mu1);
+	    PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	    Warn_And_Exit("");
+	  }
+
+
 	density = density + poiss * Dgamma_Moments(mu2,ab,2./((n-i)+2.)*abb) * Dgamma_Moments(mu1,ab,2./(i+2.)*abb);
         if(cumpoiss > 1.-1.E-6) break;
       }
 
     return(density);
   }
-
-/*********************************************************/
-
-phydbl RATES_Dmu2_And_Mu1_Given_N_Full(phydbl mu1, phydbl mu2, phydbl dt1, phydbl dt2, int n, phydbl a, phydbl b, phydbl lexp)
-{
-  phydbl dens,dens_i,dens_i_v,poiss,lognf,logdt1,logdt2,nlogdt;
-  phydbl vval[10];
-  int i,j,n_vval;
-
-  /* Quantiles for alpha=2 (beta=1/2) */
-  vval[0] = 0.2659058;
-  vval[1] = 0.4121942;
-  vval[2] = 0.5486746;
-  vval[3] = 0.6882107;
-  vval[4] = 0.8391735;
-  vval[5] = 1.011157;
-  vval[6] = 1.219608;
-  vval[7] = 1.497154;
-  vval[8] = 1.94486;
-  vval[9] = 2.;
-
-/*   vval[0] = 0.2659058; */
-/*   vval[1] = 0.4121942; */
-/*   vval[2] = 0.5486746; */
-/*   vval[1] = 0.6882107; */
-/*   vval[4] = 0.8391735; */
-/*   vval[2] = 1.011157; */
-/*   vval[6] = 1.219608; */
-/*   vval[3] = 1.497154; */
-/*   vval[4] = 1.94486; */
-/*   vval[9] = 10.; */
-
-  dens     = 0.0;
-  poiss    = 0.0;
-  lognf    = LnFact(n);
-  logdt1   = log(dt1);
-  logdt2   = log(dt2);
-  nlogdt   = n*log(dt1+dt2);
-  n_vval    = 10;
-
-
-  n_vval = 1.0; vval[0] = 1.0;
-
-  for(i=1;i<n;i++) /* At least one jump in both intervals */
-    {
-      poiss = lognf - LnFact(i) - LnFact(n-i) + i*logdt1 + (n-i)*logdt2 - nlogdt;
-      poiss = exp(poiss);
-      
-      dens_i = 0.0;
-      for(j=1;j<n_vval-1;j++) /* integrate over v */
-	{
-	  dens_i_v =
-	    RATES_Dmu1_Given_V_And_N(mu1,vval[j],i,dt1,a,b)*    /* integrate over lbda1 */
-	    RATES_Dmu1_Given_V_And_N(mu2,vval[j],n-i,dt2,a,b);  /* integrate over lbda2 */
-
-	  dens_i +=  dens_i_v * Dgamma(vval[j],a,b) * (vval[j+1]-vval[j-1]);
-	}
-
-      dens_i +=
-	RATES_Dmu1_Given_V_And_N(mu1,vval[0],i,dt1,a,b)*
-	RATES_Dmu1_Given_V_And_N(mu2,vval[0],n-i,dt2,a,b) *
-	Dgamma(vval[0],a,b) * (vval[1]-vval[0]);
-
-      dens_i +=
-	RATES_Dmu1_Given_V_And_N(mu1,vval[n_vval-1],i,dt1,a,b)*
-	RATES_Dmu1_Given_V_And_N(mu2,vval[n_vval-1],n-i,dt2,a,b) *
-	Dgamma(vval[n_vval-1],a,b) * (vval[n_vval-1]-vval[n_vval-2]);
-      
-      dens_i /= 2.;
-
-      dens += dens_i * poiss;
-    }
-
-/*   /\* All jumps in the first interval *\/ */
-/*   poiss =  n*logdt1 - nlogdt; */
-/*   poiss = exp(poiss); */
-/*   dens += poiss * RATES_Dmu1_Given_V_And_N(mu1,mu2,n,dt1,a,b) * Dgamma(mu2,a,b); */
-
-/*   /\* All jumps in the second interval *\/ */
-/*   poiss =  n*logdt2 - nlogdt; */
-/*   poiss = exp(poiss); */
-/*   dens += poiss * RATES_Dmu1_Given_V_And_N(mu2,mu1,n,dt2,a,b) * Dgamma(mu1,a,b); */
-
-  return(dens);
-}
 
 /*********************************************************/
 
