@@ -1473,58 +1473,60 @@ phydbl RATES_Dmu1_Given_V_And_N(phydbl mu1, phydbl v, int n, phydbl dt1, phydbl 
   n_points = 100;
 
   end = MIN(mu1/v-0.01,0.99);
-/*   end = 0.99; */
   beg = 0.01;
   
-
-  mean = a*b;
-  var = a*b*b*2./(n+1.);
-  ndb = (phydbl)n/dt1;
-
-  h = (end - beg) / (phydbl)n_points;
-
-  lbda = beg;
   dens = 0.0;
-  For(i,n_points-1) 
+  
+  if(end > beg)
     {
-      lbda += h;
+      mean = a*b;
+      var = a*b*b*2./(n+1.);
+      ndb = (phydbl)n/dt1;
+      
+      h = (end - beg) / (phydbl)n_points;
+      
+      lbda = beg;
+      For(i,n_points-1) 
+	{
+	  lbda += h;
+	  u = (mu1 - lbda*v)/(1.-lbda);
+	  
+	  if(u < 1.E-10)
+	    {
+	      printf("\n. u = %G",u);
+	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	      Warn_And_Exit("");
+	    }
+	  
+	  dens += Dgamma_Moments(u,mean,var) / (1.-lbda) * ndb * pow(1.-lbda,n-1);
+	}
+      dens *= 2.;
+      
+      lbda = beg;
       u = (mu1 - lbda*v)/(1.-lbda);
-
+      if(u < 1.E-10)
+	{
+	  printf("\n. mu1 = %f lambda = %f v = %f u = %G beg = %f end = %f",mu1,lbda,v,u,beg,end);
+	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  Warn_And_Exit("");
+	}
+      
+      dens += Dgamma_Moments(u,mean,var) / (1.-lbda) * ndb * pow(1.-lbda,n-1);
+      
+      lbda = end;
+      u = (mu1 - lbda*v)/(1.-lbda);
       if(u < 1.E-10)
 	{
 	  printf("\n. u = %G",u);
 	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
 	  Warn_And_Exit("");
 	}
-
-      if(u > 0.0) dens += Dgamma_Moments(u,mean,var) / (1.-lbda) * ndb * pow(1.-lbda,n-1);
+      
+      dens += Dgamma_Moments(u,mean,var) / (1.-lbda) * ndb * pow(1.-lbda,n-1);
+      
+      dens *= (h/2.);
+      dens *= dt1;
     }
-  dens *= 2.;
-
-  lbda = beg;
-  u = (mu1 - lbda*v)/(1.-lbda);
-  if(u < 1.E-10)
-    {
-      printf("\n. u = %G",u);
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-      Warn_And_Exit("");
-    }
-
-  if(u>0.0) dens += Dgamma_Moments(u,mean,var) / (1.-lbda) * ndb * pow(1.-lbda,n-1);
-
-  lbda = end;
-  u = (mu1 - lbda*v)/(1.-lbda);
-  if(u < 1.E-10)
-    {
-      printf("\n. u = %G",u);
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-      Warn_And_Exit("");
-    }
-
-  if(u>0.0) dens += Dgamma_Moments(u,mean,var) / (1.-lbda) * ndb * pow(1.-lbda,n-1);
-
-  dens *= (h/2.);
-  dens *= dt1;
 
   return(dens);
 }
