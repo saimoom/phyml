@@ -212,7 +212,6 @@ printf ("task %d, receiving random from task %d done\n", Global_myRank, Stat.MPI
 	    Lk(boot_tree);
 	}
 
-
       Alloc_Bip(boot_tree);
 
       Get_Bip(boot_tree->noeud[0],
@@ -292,18 +291,19 @@ fflush(stdout);
       Free_Model(boot_mod);
 
       //Each process computes the Bip score sum for all its bootstrap trees
-      For(i,2*tree->n_otu-3)
-        score_par[i] += tree->t_edges[i]->bip_score;
+      For(i,2*tree->n_otu-3) score_par[i] = tree->t_edges[i]->bip_score;
+
+      //Each process sends its Bip score sum. The sums are summed.
+      MPI_Reduce(score_par, score_tot, 2*tree->n_otu - 3, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
     }
 
-  //Each process sends its Bip score sum. The sums are summed.
-  MPI_Reduce(score_par, score_tot, 2*tree->n_otu - 3, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
   
-  if (Global_myRank == 0) {
-    For(i,2*tree->n_otu-3)
-      tree->t_edges[i]->bip_score = score_tot[i];
-    Free (score_tot);
-  }
+  if (Global_myRank == 0) 
+    {
+      For(i,2*tree->n_otu-3)
+	tree->t_edges[i]->bip_score = score_tot[i];
+      Free (score_tot);
+    }
   Free (score_par);
 
   if (Global_myRank == 0)
