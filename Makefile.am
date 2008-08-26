@@ -9,13 +9,13 @@ AM_LDFLAGS=-lm
 # the two lines below if you want to use MPI.
 # Comment the two lines below if you don't want to use MPI.
 
-CC=mpicc
-DEFS=-DUNIX -D$(PROG) -DDEBUG -DMPI
+# CC=mpicc
+# DEFS=-DUNIX -D$(PROG) -DDEBUG -DMPI
 
 # Comment the line below if you want to use MPI.
 # Uncomment the line below if you don't want to use MPI.
 
-# DEFS=-DUNIX -D$(PROG) -DDEBUG
+DEFS=-DUNIX -D$(PROG) -DDEBUG
 
 
 bin_PROGRAMS = phyml
