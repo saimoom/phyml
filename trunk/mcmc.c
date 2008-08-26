@@ -68,20 +68,25 @@ void MCMC(arbre *tree)
 	strcpy(filename,"expo");
 	break;
       }
+    case GAMMA :
+      {
+	strcpy(filename,"gamma");
+	break;
+      }
     }
 
   sprintf(filename+strlen(filename),".%d",pid);
   fp = fopen(filename,"w");
   
-  tree->mcmc->sample_interval = 100;
+  tree->mcmc->sample_interval = 300;
 
   MCMC_Print_Param(fp,tree);
   MCMC_Print_Param(stdout,tree);
 
-/*   MCMC_Randomize_Branch_Lengths(tree); */
-/*   MCMC_Randomize_Lexp(tree); */
+  MCMC_Randomize_Branch_Lengths(tree);
+  MCMC_Randomize_Lexp(tree);
   MCMC_Randomize_Alpha(tree);
-/*   MCMC_Randomize_Node_Times(tree); */
+  MCMC_Randomize_Node_Times(tree);
 
 
   RATES_Lk_Rates(tree);
@@ -116,7 +121,7 @@ void MCMC(arbre *tree)
 	  Lk(tree);
 	}
     }
-  while(tree->mcmc->run < 200000);
+  while(tree->mcmc->run < 1000000);
 
   fclose(fp);
   Free(filename);
@@ -239,7 +244,8 @@ void MCMC_Alpha(arbre *tree)
   phydbl u,alpha,ratio;
   
   if((tree->rates->model != COMPOUND_NOCOR) &&
-     (tree->rates->model != COMPOUND_COR)) return;
+     (tree->rates->model != COMPOUND_COR)   &&
+     (tree->rates->model != GAMMA)) return;
 
   cur_lnL = UNLIKELY;
   new_lnL = UNLIKELY;
@@ -560,8 +566,7 @@ void MCMC_No_Change(arbre *tree)
     }
 
   cur_l = b->l;
-  
-      
+        
   dt = fabs(tree->rates->t[b->left->num] - tree->rates->t[b->rght->num]);
   if(dt < MIN_DT) dt = MIN_DT;
   cur_mu = b->l / (dt*tree->rates->clock_r);
@@ -604,21 +609,6 @@ void MCMC_No_Change(arbre *tree)
 
 
   b->l = dt * new_mu * tree->rates->clock_r;
-
-/*   Record_Br_Len(NULL,tree); */
-/*   For(i,2*tree->n_otu-3) */
-/*     { */
-/*       if(tree->t_edges[i] != tree->e_root) */
-/* 	{ */
-/* 	  u = Uni(); */
-/* 	  if(u < 0.3) */
-/* 	    { */
-/* 	      tree->t_edges[i]->l =  */
-/* 		fabs(tree->rates->t[tree->t_edges[i]->left->num] - tree->rates->t[tree->t_edges[i]->rght->num]) * */
-/* 		tree->rates->clock_r; */
-/* 	    } */
-/* 	} */
-/*     } */
 
   new_lnL_rate = RATES_Lk_Rates(tree);
   new_lnL_data = Return_Lk(tree);

@@ -2636,12 +2636,12 @@ void Set_Model_Parameters(model *mod)
   int result, n_iter;
   phydbl scalar;
 
-  DiscreteGamma(mod->gamma_r_proba, mod->gamma_rr, mod->alpha, mod->alpha, mod->n_catg,1);
+  DiscreteGamma(mod->gamma_r_proba, mod->gamma_rr, mod->alpha, mod->alpha, mod->n_catg, mod->gamma_median);
 
   if(mod->n_rr_branch > 0)
     DiscreteGamma(mod->p_rr_branch, mod->rr_branch, 
 		  mod->rr_branch_alpha, mod->rr_branch_alpha, 
-		  mod->n_rr_branch,1);
+		  mod->n_rr_branch, mod->gamma_median);
 
 
   if((mod->datatype == NT) && (mod->s_opt->opt_state_freq))

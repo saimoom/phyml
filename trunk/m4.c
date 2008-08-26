@@ -452,11 +452,10 @@ void M4_Update_Qmat(m4 *m4mod, model *mod)
   n_o = m4mod->n_o;
   n_h = m4mod->n_h;
   
-
   /* Set the relative substitution rates */
   if(mod->m4mod->use_cov_alpha)
     {
-      DiscreteGamma(m4mod->h_fq,m4mod->multipl,m4mod->alpha,m4mod->alpha,m4mod->n_h,1);
+      DiscreteGamma(m4mod->h_fq,m4mod->multipl,m4mod->alpha,m4mod->alpha,m4mod->n_h,m4mod->gamma_median);
     }
   else if(mod->m4mod->use_cov_free)
     {

@@ -46,8 +46,8 @@ phydbl RATES_Lk_Rates(arbre *tree)
   
   RATES_Set_Node_Times(tree);
   RATES_Init_Triplets(tree);
-  if(tree->rates->model == EXPONENTIAL)
-    RATES_Adjust_Clock_Rate(tree);
+/*   if(tree->rates->model == EXPONENTIAL) */
+  RATES_Adjust_Clock_Rate(tree);
 
   dens = UNLIKELY;
   tree->rates->c_lnL = .0;
@@ -86,6 +86,10 @@ phydbl RATES_Lk_Rates(arbre *tree)
   else if(tree->rates->model == EXPONENTIAL)
     {
       dens = Dexp(rate0,tree->rates->nu) * Dexp(rate1,tree->rates->nu);
+    }
+  else if(tree->rates->model == GAMMA)
+    {
+      dens = Dgamma(rate0,tree->rates->alpha,1./tree->rates->alpha) * Dgamma(rate1,tree->rates->alpha,1./tree->rates->alpha);
     }
 
   tree->rates->c_lnL += log(dens);
@@ -394,6 +398,12 @@ phydbl RATES_Lk_Rates_Core(phydbl mu1, phydbl mu2, phydbl dt1, phydbl dt2, arbre
        break;
      }
 
+   case GAMMA :
+     {
+       dens = Dgamma(mu2,tree->rates->alpha,1./tree->rates->alpha);
+       break;
+     }
+
    default : 
      {
        PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
@@ -623,12 +633,12 @@ void RATES_Init_Rate_Struct(trate *rates, int n_otu)
   rates->c_lnL         = -INFINITY;
   rates->adjust_rates  = 0;
   rates->use_rates     = 1;
-  rates->lexp          = 0.02;
+  rates->lexp          = 0.2;
   rates->alpha         = 2.0;
   rates->birth_rate    = 0.001;
   rates->max_rate      = 10.;
   rates->min_rate      = 0.1;
-  rates->step_rate     = 1.E-1;
+  rates->step_rate     = 1.E-2;
   rates->nu            = 1.0;
   rates->approx        = 1;
 

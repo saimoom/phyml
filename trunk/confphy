@@ -2,7 +2,7 @@
 
 aclocal;
 autoconf -f;
-chmod u"x ./configure
+chmod u+x ./configure
 automake -f;
 ./configure;
 make clean;
