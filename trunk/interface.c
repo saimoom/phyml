@@ -568,7 +568,7 @@ void Launch_Interface_Model(option *io)
 
       strcpy(s,(io->mod->gamma_median)?("median"):("mean"));
       
-      PhyML_Printf("                [A] "
+      PhyML_Printf("                [G] "
 	     ".........'Middle' of each rate class (mean/median) "
 	     " %-15s \n",s);
 
@@ -591,6 +591,12 @@ void Launch_Interface_Model(option *io)
 /* 	io->curr_interface++; */
 /* 	break; */
 /*       } */
+
+    case 'G' :
+      {
+	io->mod->gamma_median = (io->mod->gamma_median)?(0):(1);
+	break;
+      }
 
     case 'O' :
       {
