@@ -5499,6 +5499,7 @@ void Set_Defaults_Model(model *mod)
   mod->use_m4mod               = 0;
   mod->n_rr_branch             = 0;
   mod->rr_branch_alpha         = 0.1;
+  mod->gamma_median            = 0;
 }
 
 /*********************************************************/
@@ -8272,6 +8273,10 @@ void Print_Settings(option *io)
     PhyML_Printf("\n                . Gamma distribution parameter : \t\t estimated");
   else
     PhyML_Printf("\n                . Gamma distribution parameter : \t\t %f", io->mod->alpha);
+  
+  if(io->mod->n_catg > 1)
+    PhyML_Printf("\n                . 'Middle' of each rate class  : \t\t %s",(io->mod->gamma_median)?("median"):("mean"));
+    
   
   if(io->mod->datatype == AA)
     PhyML_Printf("\n                . Amino acid equilibrium frequencies : \t\t %s", (io->mod->s_opt->opt_state_freq) ? ("empirical"):("model"));

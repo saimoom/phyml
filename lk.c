@@ -647,7 +647,7 @@ phydbl Lk_Given_Two_Seq(allseq *data, int numseq1, int numseq2, phydbl dist, mod
   phydbl len;
 
   DiscreteGamma(mod->gamma_r_proba, mod->gamma_rr, mod->alpha,
-		mod->alpha,mod->n_catg,1);
+		mod->alpha,mod->n_catg,mod->gamma_median);
 
   seq1 = data->c_seq[numseq1];
   seq2 = data->c_seq[numseq2];

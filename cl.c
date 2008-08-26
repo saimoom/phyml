@@ -80,6 +80,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
       {"pars_thresh",       required_argument,NULL,42},
       {"min_diff_lk_move",  required_argument,NULL,43},
       {"hybrid",            no_argument,NULL,44},
+      {"use_median",        no_argument,NULL,45},
       {0,0,0,0}
     };
 
@@ -90,6 +91,11 @@ void Read_Command_Line(option *io, int argc, char **argv)
       {
 	switch(c)
 	  {
+	  case 45 : 
+	    {
+	      io->mod->gamma_median = 1;
+	      break;
+	    }
 	  case 44 :
 	    {
 	      io->mod->s_opt->hybrid_thresh = 1;

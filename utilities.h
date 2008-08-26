@@ -496,6 +496,8 @@ typedef struct __Model {
   int                n_otu; /* number of taxa */
   int            bootstrap; /* Number of bootstrap replicates (0 : no bootstrap analysis is launched) */
   int            use_m4mod; /* Use a Makrkov modulated Markov model ? */
+  int         gamma_median; /* 1: use the median of each bin in the discrete gamma distribution. 0: the mean is used */
+
 
   phydbl               *pi; /* states frequencies */
   phydbl      *pi_unscaled; /* states frequencies (unscaled) */

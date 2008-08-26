@@ -564,6 +564,15 @@ void Launch_Interface_Model(option *io)
       PhyML_Printf("                [A] "
 	     "... Gamma distribution parameter (fixed/estimated) "
 	     " %-15s \n",s);
+
+
+      strcpy(s,(io->mod->gamma_median)?("median"):("mean"));
+      
+      PhyML_Printf("                [A] "
+	     ".........'Middle' of each rate class (mean/median) "
+	     " %-15s \n",s);
+
+
     }
 
   PhyML_Printf("\n\n. Are these settings correct ? "

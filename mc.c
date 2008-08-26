@@ -177,7 +177,7 @@ int MC_main(int argc, char **argv)
 
 		  int n_otu,i;
 
-		  n_otu = 60;
+		  n_otu = 100;
 
 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1);
 
@@ -253,7 +253,6 @@ int MC_main(int argc, char **argv)
 		  printf("\n. EXPONENTIAL lnL_data = %f lnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL);
 		  MCMC(tree);
 		  /***********************************/
-		  Exit("\n");
 
 		  /***********************************/
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct();
@@ -263,7 +262,7 @@ int MC_main(int argc, char **argv)
 		  Round_Optimize(tree,tree->data);
 		  Lk(tree);
 		  RATES_Lk_Rates(tree);
-		  printf("\n. EXPONENTIAL lnL_data = %f lnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL);
+		  printf("\n. GAMMA lnL_data = %f lnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL);
 		  MCMC(tree);
 		  /***********************************/
 
