@@ -1690,6 +1690,8 @@ void RATES_Adjust_Clock_Rate(arbre *tree)
   tree->rates->clock_r = ratio/(phydbl)(2.*tree->n_otu-2);
 }
 
+/*********************************************************/
+
 
 #endif
 /*********************************************************/
