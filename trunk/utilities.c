@@ -2570,7 +2570,7 @@ int Sort_Phydbl_Decrease(const void *a, const void *b)
 }
 
 /*********************************************************/
-
+/* Sort in increasing order */
 void Qksort(phydbl* A, int ilo, int ihi)
 {
     phydbl pivot;	// pivot value for partitioning array

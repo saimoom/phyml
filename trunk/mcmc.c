@@ -1240,6 +1240,131 @@ void MCMC_Randomize_Node_Times_Pre(node *a, node *d, arbre *tree)
 }
 
 /*********************************************************/
+
+edge *MCMC_Select_Random_Node_Pair(node *a, node *d, phydbl t_sup, arbre *tree)
+{
+  int i,j;
+  node *a, *b;
+  phydbl *t;
+  int n_matches,rand_match_num;
+
+  a = NULL;
+  d = NULL;
+
+  t = tree->rates->t;
+    
+  n_matches = 0;
+  for(i=tree->n_otu;i<2*tree->n_otu-2;i++)
+    {
+      a = tree->noeud[i];
+
+      For(j,3)
+	{
+	  if(a->v[j] != a->anc)
+	    {
+	      d = a->v[j];
+
+	      if(((t[a->num] > t_sup) && (t[d->num] < t_sup)) || ((t[a->num] < t_sup) && (t[d->num] > t_sup)))
+		{
+		  n_matches++;
+		}
+	    }
+	}
+    }
+  
+  if((t[tree->n_root->num] < t_sup) && (t[tree->n_root->v[0]->num] > t_sup)) n_matches++;
+  if((t[tree->n_root->num] < t_sup) && (t[tree->n_root->v[1]->num] > t_sup)) n_matches++;
+
+  rand_match_num = Rand_Int(0,n_matches);
+  
+  n_matches = 0;
+  for(i=tree->n_otu;i<2*tree->n_otu-2;i++)
+    {
+      a = tree->noeud[i];
+      
+      For(j,3)
+	{
+	  if(a->v[j] != a->anc)
+	    {
+	      d = a->v[j];
+	      
+	      if(((t[a->num] > t_sup) && (t[d->num] < t_sup)) || ((t[a->num] < t_sup) && (t[d->num] > t_sup)))
+		{
+		  if(n_matches == rand_branch_num) return;
+		  n_matches++;
+		}
+	    }
+	}
+    }
+
+  a = tree->n_root;
+  d = tree->n_root->v[0];
+  if((t[tree->n_root->num] < t_sup) && (t[tree->n_root->v[0]->num] > t_sup)) 
+    { 
+      if(n_matches == rand_match_num) return;
+      n_matches++;
+    }
+
+  a = tree->n_root;
+  d = tree->n_root->v[1];
+  if((t[tree->n_root->num] < t_sup) && (t[tree->n_root->v[1]->num] > t_sup)) 
+    { 
+      if(n_matches == rand_match_num) return;
+      n_matches++;
+    }
+
+  
+  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+  Warn_And_Exit("");
+
+  return NULL;
+
+}
+
+/*********************************************************/
+
+void MCMC_Modify_Rates(arbre *tree)
+{
+  int n_jumps;
+  int i,j;
+  phydbl *t_jump,*t;
+  phydbl cur_rate, new_rate, dt;
+  edge *b;
+  node *a, *d;
+  phydbl u;
+
+  a = NULL;
+  d = NULL;
+
+  n_jumps = tree->mcmc->n_rate_jumps;
+  t_jumps = tree->mcmc->t_rate_jumps;
+  t       = tree->rates->t;
+
+  /* Generate jump times in the [T,0] interval, where T is the time at the root */
+  For(i,n_jumps)
+    {
+      t_jump[i] = Uni();
+      t_jump[i] *= tree->rates->t[tree->root->num];
+    }
+  
+  /* Sort t_jumps in increasing order */
+  Qksort(t_jumps,0,n_jumps-1);
+
+  For(i,n_jumps)
+    {
+      MCMC_Select_Random_Node_Pair(a,d,t_jump[i],tree);      
+      
+      dt = fabs(t[d->num] - t[a->num]);
+      For(j,3) if(a->v[i] == d) { l = a->b[i]->l; break; }
+      cur_rate = l/(dt*tree->rates->clock_r);
+      u = Uni();
+      new_rate = cur_rate * exp(MCMC_RATES*(u-0.5));
+
+      MCMC_Modify_Subtree_Rate(a,d,new_rate,tree);
+    }
+}
+
+
 /*********************************************************/
 /*********************************************************/
 /*********************************************************/
