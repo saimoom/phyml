@@ -1,4 +1,3 @@
-# AM_CFLAGS=-mpowerpc
 AM_CFLAGS=-O3 -fomit-frame-pointer -funroll-loops -Wall
 # AM_CFLAGS=-g
 
@@ -21,6 +20,7 @@ DEFS=-DUNIX -D$(PROG) -DDEBUG
 bin_PROGRAMS = phyml
 EXTRA_PROGRAMS = m4 mg mc
 PROG = PHYML
+
 
 phyml_SOURCES = main.c utilities.c optimiz.c lk.c bionj.c models.c free.c\
 options.c simu.c eigen.c pars.c alrt.c interface.c cl.c spr.c  draw.c mpi_boot.c

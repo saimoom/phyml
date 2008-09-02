@@ -1060,8 +1060,7 @@ void Print_Tree(FILE *fp, arbre *tree)
 
   s_tree = (char *)Write_Tree(tree);
 
-  if(OUTPUT_TREE_FORMAT == 0)
-    PhyML_Fprintf(fp,"%s\n",s_tree);
+  if(OUTPUT_TREE_FORMAT == 0) PhyML_Fprintf(fp,"%s\n",s_tree);
   else if(OUTPUT_TREE_FORMAT == 1)
     {
       PhyML_Fprintf(fp,"#NEXUS\n");
@@ -2570,8 +2569,8 @@ int Sort_Phydbl_Decrease(const void *a, const void *b)
 }
 
 /*********************************************************/
-/* Sort in increasing order */
-void Qksort(phydbl* A, int ilo, int ihi)
+/* Sort in ascending order. Elements in B (in provided) are also re-ordered according to the ordering of A  */
+void Qksort(phydbl *A, phydbl *B, int ilo, int ihi)
 {
     phydbl pivot;	// pivot value for partitioning array
     int ulo, uhi;	// indices at ends of unpartitioned region
@@ -2597,14 +2596,34 @@ void Qksort(phydbl* A, int ilo, int ihi)
 	    // Here, A[uhi] <= pivot, so swap entries at indices ulo and
 	    // uhi.
 	    tempEntry = A[ulo];
-	    A[ulo] = A[uhi];
-	    A[uhi] = tempEntry;
+	    A[ulo]    = A[uhi];
+	    A[uhi]    = tempEntry;
+
+	    if(B)
+	      {
+		tempEntry = B[ulo];
+		B[ulo]    = B[uhi];
+		B[uhi]    = tempEntry;
+	      }
+
+
+
 	    // After the swap, A[ulo] <= pivot.
 	    if (A[ulo] < pivot) {
 		// Swap entries at indices ieq and ulo.
 		tempEntry = A[ieq];
 		A[ieq] = A[ulo];
 		A[ulo] = tempEntry;
+
+
+		if(B)
+		  {
+		    tempEntry = B[ieq];
+		    B[ieq] = B[ulo];
+		    B[ulo] = tempEntry;
+		  }
+
+
 		// After the swap, A[ieq] < pivot, so we need to change
 		// ieq.
 		ieq++;
@@ -2621,8 +2640,8 @@ void Qksort(phydbl* A, int ilo, int ihi)
     // and all entries from index uhi to ihi + 1 are greater than the
     // pivot.  So we have two regions of the array that can be sorted
     // recursively to put all of the entries in order.
-    Qksort(A, ilo, ieq - 1);
-    Qksort(A, uhi + 1, ihi);
+    Qksort(A, B, ilo, ieq - 1);
+    Qksort(A, B, uhi + 1, ihi);
 }
 
 /********************************************************/
@@ -4097,7 +4116,19 @@ void Print_Fp_Out(FILE *fp_out, time_t t_beg, time_t t_end, arbre *tree, option 
   if(t_end-t_beg > 60)
     PhyML_Fprintf(fp_out,"\n\n. -> %d seconds\n",(int)(t_end-t_beg));
 
-  PhyML_Fprintf(fp_out,"\noooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo\n");
+
+
+
+
+  PhyML_Fprintf(fp_out,"\n");
+  PhyML_Fprintf(fp_out," oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo\n");
+  PhyML_Fprintf(fp_out," Suggested citation:\n\n");
+  PhyML_Fprintf(fp_out," S. Guindon & O. Gascuel\n");
+  PhyML_Fprintf(fp_out," \"A simple, fast, and accurate algorithm to estimate large phylogenies by maximum likelihood\"\n");
+  PhyML_Fprintf(fp_out," Systematic Biology. 2003. 52(5):696-704.\n");
+  PhyML_Fprintf(fp_out," oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo\n");
+
+
 
 }
 
@@ -5483,7 +5514,7 @@ void Set_Defaults_Model(model *mod)
   strcpy(mod->modelname,"HKY85");
   strcpy(mod->custom_mod_string,"000000");
   mod->whichmodel              = HKY85;
-  mod->n_catg                  = 1;
+  mod->n_catg                  = 4;
   mod->kappa                   = 4.0;
   mod->alpha                   = 1.0;
   mod->lambda                  = 1.0;
@@ -5528,7 +5559,7 @@ void Set_Defaults_Optimiz(optimiz *s_opt)
 {
   s_opt->print                = 1;
   s_opt->last_opt             = 1;
-  s_opt->opt_alpha            = 0;
+  s_opt->opt_alpha            = 1;
   s_opt->opt_kappa            = 0;
   s_opt->opt_bl               = 1;
   s_opt->opt_lambda           = 0;
@@ -8876,7 +8907,7 @@ arbre *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
 	t[i] = u / (1.+lambda*rho*(1-u)); /* Equation 17 */
     }
 
-  Qksort(t,0,tree->n_otu-2); /* Node times ordering in increasing order */
+  Qksort(t,NULL,0,tree->n_otu-2); /* Node times ordering in ascending order */
 
   For(i,tree->n_otu-1) tmp[i] =  t[tree->n_otu-2-i];
   For(i,tree->n_otu-1) t[i]   = -tmp[i];

@@ -207,7 +207,7 @@ int MC_main(int argc, char **argv)
 		  /***********************************/
  		  tree->rates->approx = 1;
 		  printf("\n. USING APPROX %d",tree->rates->approx);
-		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct();
+		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
 		  MCMC_Init_MCMC_Struct(tree->mcmc);
 		  tree->both_sides = 1;
 		  tree->rates->model = COMPOUND_COR;
@@ -220,7 +220,7 @@ int MC_main(int argc, char **argv)
 		  /***********************************/
  		  tree->rates->approx = 2;
 		  printf("\n. USING APPROX %d",tree->rates->approx);
-		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct();
+		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
 		  MCMC_Init_MCMC_Struct(tree->mcmc);
 		  tree->both_sides = 1;
 		  tree->rates->model = COMPOUND_COR;
@@ -231,7 +231,7 @@ int MC_main(int argc, char **argv)
 		  /***********************************/
 
 		  /***********************************/
-		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct();
+		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
 		  MCMC_Init_MCMC_Struct(tree->mcmc);
 		  tree->both_sides = 1;
 		  tree->rates->model = COMPOUND_NOCOR;
@@ -243,7 +243,7 @@ int MC_main(int argc, char **argv)
 		  /***********************************/
 
 		  /***********************************/
-		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct();
+		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
 		  MCMC_Init_MCMC_Struct(tree->mcmc);
 		  tree->both_sides = 1;
 		  tree->rates->model = EXPONENTIAL;
@@ -255,7 +255,7 @@ int MC_main(int argc, char **argv)
 		  /***********************************/
 
 		  /***********************************/
-		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct();
+		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
 		  MCMC_Init_MCMC_Struct(tree->mcmc);
 		  tree->both_sides = 1;
 		  tree->rates->model = GAMMA;

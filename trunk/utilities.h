@@ -802,6 +802,12 @@ typedef struct __Tmcmc {
   int acc_rates;
   int acc_times;
   int acc_nu;
+  int n_rate_jumps;
+
+  phydbl *dt_prop;
+  phydbl *t_rate_jumps;
+  int    *t_rank;
+  phydbl *r_path;
 }tmcmc;
 
 /*********************************************************/
@@ -850,7 +856,7 @@ void *mCalloc(int nb,size_t size);
 void *mRealloc(void *p,int nb,size_t size);
 /* arbre *Make_Light_Tree_Struct(int n_otu); */
 int Sort_Phydbl_Decrease(const void *a, const void *b);
-void Qksort(phydbl *A,int ilo,int ihi);
+void Qksort(phydbl *A, phydbl *B, int ilo,int ihi);
 void Print_Site(allseq *alldata,int num,int n_otu,char *sep,int stepsize);
 void Print_Seq(seq **data,int n_otu);
 void Print_CSeq(FILE *fp,allseq *alldata);

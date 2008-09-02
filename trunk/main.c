@@ -89,7 +89,6 @@ int main(int argc, char **argv)
     }
 
   
-
   For(num_data_set,io->n_data_sets)
     {
       n_otu = 0;
@@ -283,84 +282,138 @@ int main(int argc, char **argv)
 {
   arbre *tree1, *tree2;
   FILE *fp_tree1, *fp_tree2;
-  int i,j,rf,n_edges,n_common,bip_size;
-  phydbl thresh;
-  edge *b;
-
+  int i,j;
 
   fp_tree1 = (FILE *)fopen(argv[1],"r");
   fp_tree2 = (FILE *)fopen(argv[2],"r");
-  thresh = (phydbl)atof(argv[3]);
 
   tree1 = Read_Tree_File(fp_tree1);
   tree2 = Read_Tree_File(fp_tree2);
 
-  Get_Rid_Of_Prefix('_',tree1);
 
-/*   Find_Common_Tips(tree1,tree2); */
-
-  Alloc_Bip(tree1);
-  Alloc_Bip(tree2);
-
-  Get_Bip(tree1->noeud[0],tree1->noeud[0]->v[0],tree1);
-  Get_Bip(tree2->noeud[0],tree2->noeud[0]->v[0],tree2);
-  
-/*   PhyML_Printf("\n. rf=%f\n",Compare_Bip_On_Existing_Edges(thresh,tree1,tree2)); */
-  For(i,2*tree1->n_otu-3) tree1->t_edges[i]->bip_score = 0;
-  For(i,2*tree2->n_otu-3) tree2->t_edges[i]->bip_score = 0;
-  
-  rf = 0;
-  n_edges = 0;
-
-  /* First tree */
-  For(i,2*tree1->n_otu-3) 
+  For(i,tree1->n_otu)
     {
-      /* Consider the branch only if the corresponding bipartition has size > 1 */
-      b = tree1->t_edges[i];
-      bip_size = MIN(b->left->bip_size[b->l_r],b->rght->bip_size[b->r_l]);
+      For(j,tree2->n_otu)
+	{
+	  if(!strcmp(tree1->noeud[i]->name,tree2->noeud[j]->name))
+	    {
+	      break;
+	    }
+	}
+
+      if(j == tree2->n_otu)
+	{
+	  Prune_Subtree(tree1->noeud[i]->v[0],tree1->noeud[i],NULL,NULL,tree1);
+	}
+    }
+
+  For(i,tree2->n_otu)
+    {
+      For(j,tree1->n_otu)
+	{
+	  if(!strcmp(tree2->noeud[i]->name,tree1->noeud[j]->name))
+	    {
+	      break;
+	    }
+	}
+
+      if(j == tree1->n_otu)
+	{
+	  Prune_Subtree(tree2->noeud[i]->v[0],tree2->noeud[i],NULL,NULL,tree2);
+	}
+    }
+  
+  printf("%s\n",Write_Tree(tree1));
+  printf("%s\n",Write_Tree(tree2));
+
+
+
+/*   arbre *tree1, *tree2; */
+/*   FILE *fp_tree1, *fp_tree2; */
+/*   int i,j,rf,n_edges,n_common,bip_size; */
+/*   phydbl thresh; */
+/*   edge *b; */
+
+
+/*   fp_tree1 = (FILE *)fopen(argv[1],"r"); */
+/*   fp_tree2 = (FILE *)fopen(argv[2],"r"); */
+/*   thresh = (phydbl)atof(argv[3]); */
+
+/*   tree1 = Read_Tree_File(fp_tree1); */
+/*   tree2 = Read_Tree_File(fp_tree2); */
+
+/*   Get_Rid_Of_Prefix('_',tree1); */
+
+/* /\*   Find_Common_Tips(tree1,tree2); *\/ */
+
+/*   Alloc_Bip(tree1); */
+/*   Alloc_Bip(tree2); */
+
+/*   Get_Bip(tree1->noeud[0],tree1->noeud[0]->v[0],tree1); */
+/*   Get_Bip(tree2->noeud[0],tree2->noeud[0]->v[0],tree2); */
+  
+/* /\*   PhyML_Printf("\n. rf=%f\n",Compare_Bip_On_Existing_Edges(thresh,tree1,tree2)); *\/ */
+/*   For(i,2*tree1->n_otu-3) tree1->t_edges[i]->bip_score = 0; */
+/*   For(i,2*tree2->n_otu-3) tree2->t_edges[i]->bip_score = 0; */
+  
+/*   rf = 0; */
+/*   n_edges = 0; */
+
+/*   /\* First tree *\/ */
+/*   For(i,2*tree1->n_otu-3)  */
+/*     { */
+/*       /\* Consider the branch only if the corresponding bipartition has size > 1 *\/ */
+/*       b = tree1->t_edges[i]; */
+/*       bip_size = MIN(b->left->bip_size[b->l_r],b->rght->bip_size[b->r_l]); */
 	  
-      if(bip_size > 1)
-	{
-	  /* with non-zero length */
-	  if(tree1->t_edges[i]->l > thresh)  
-	    {
-	      n_edges++;
-	      /* This edge is not found in tree2 */
-	      if(!tree1->t_edges[i]->bip_score) rf++; ;
-	    }
-	}
-    }
+/*       if(bip_size > 1) */
+/* 	{ */
+/* 	  /\* with non-zero length *\/ */
+/* 	  if(tree1->t_edges[i]->l > thresh)   */
+/* 	    { */
+/* 	      n_edges++; */
+/* 	      /\* This edge is not found in tree2 *\/ */
+/* 	      if(!tree1->t_edges[i]->bip_score) rf++; ; */
+/* 	    } */
+/* 	} */
+/*     } */
 
 
-  /* Second tree */
-  For(i,2*tree2->n_otu-3) 
-    {
-      b = tree2->t_edges[i];
-      bip_size = MIN(b->left->bip_size[b->l_r],b->rght->bip_size[b->r_l]);
+/*   /\* Second tree *\/ */
+/*   For(i,2*tree2->n_otu-3)  */
+/*     { */
+/*       b = tree2->t_edges[i]; */
+/*       bip_size = MIN(b->left->bip_size[b->l_r],b->rght->bip_size[b->r_l]); */
 
-      if(bip_size > 1)
-	{
-	  if(tree2->t_edges[i]->l > thresh)  
-	    {
-	      n_edges++;
-	      /* This edge is not found in tree1 */
-	      if(!tree2->t_edges[i]->bip_score) rf++; ;
-	    }
-	}
-    }
+/*       if(bip_size > 1) */
+/* 	{ */
+/* 	  if(tree2->t_edges[i]->l > thresh)   */
+/* 	    { */
+/* 	      n_edges++; */
+/* 	      /\* This edge is not found in tree1 *\/ */
+/* 	      if(!tree2->t_edges[i]->bip_score) rf++; ; */
+/* 	    } */
+/* 	} */
+/*     } */
 
-  if(!n_edges)
-    {
-      Exit("\n. No comparable internal edges were found.\n");
-    }
-  else
-    {
-      PhyML_Printf("\n. Robinson and Foulds distance: %f.",(double)rf/(n_edges));
-/*       PhyML_Printf("\n. %d internal edges were processed (%d in the first tree, %d in the second).\n",n_edges,n_edges_t1,n_edges-n_edges_t1); */
-      PhyML_Printf("\n");
-    }
+/*   if(!n_edges) */
+/*     { */
+/*       Exit("\n. No comparable internal edges were found.\n"); */
+/*     } */
+/*   else */
+/*     { */
+/*       PhyML_Printf("\n. Robinson and Foulds distance: %f.",(double)rf/(n_edges)); */
+/* /\*       PhyML_Printf("\n. %d internal edges were processed (%d in the first tree, %d in the second).\n",n_edges,n_edges_t1,n_edges-n_edges_t1); *\/ */
+/*       PhyML_Printf("\n"); */
+/*     } */
 
   return 1;
+}
+
+#elif(TRIMTREE)
+
+int main(int argc, char **argv)
+{
 }
 
 #endif

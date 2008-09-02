@@ -115,12 +115,12 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	  case 42 :
 	    {
 	      io->mod->s_opt->pars_thresh = (int)atoi(optarg);
-	      if(io->mod->s_opt->pars_thresh < 0)
-		{
-		  PhyML_Printf("\n. The parsimony threshold must be an integer greater than 0.\n");
-		  PhyML_Printf("\n. Type any key to exit.\n");
-		  Exit("\n");
-		}
+/* 	      if(io->mod->s_opt->pars_thresh < 0) */
+/* 		{ */
+/* 		  PhyML_Printf("\n. The parsimony threshold must be an integer greater than 0.\n"); */
+/* 		  PhyML_Printf("\n. Type any key to exit.\n"); */
+/* 		  Exit("\n"); */
+/* 		} */
 	      break;
 	    }
 	  case 41 :
@@ -959,12 +959,11 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	    break;
 	  }
 	  
-	default:
-	  Usage();
+	  default:
+	    Usage();
+	  }
       }
-}
-    
-    
+
     if(io->print_site_lnl)
       {
 	strcpy(io->out_lk_file,io->in_seq_file);
