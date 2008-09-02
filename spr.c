@@ -3460,7 +3460,7 @@ void Speed_Spr(arbre *tree)
     }
 
   /* Optimise parameters of the Markov model */
-  Optimiz_All_Free_Param(tree,0);
+/*   Optimiz_All_Free_Param(tree,0); */
 
   tree->both_sides = 1;
   Pars(tree);

@@ -1111,11 +1111,26 @@ void MCMC_Print_Param(FILE *fp, arbre *tree)
 
 /*********************************************************/
 
-tmcmc *MCMC_Make_MCMC_Struct()
+tmcmc *MCMC_Make_MCMC_Struct(arbre *tree)
 {
   tmcmc *mcmc;
-  mcmc = (tmcmc *)mCalloc(1,sizeof(tmcmc));
+  mcmc               = (tmcmc *)mCalloc(1,sizeof(tmcmc));
+  mcmc->dt_prop      = (phydbl *)mCalloc(tree->n_otu-2,sizeof(phydbl));
+  mcmc->t_rate_jumps = (phydbl *)mCalloc(10*tree->n_otu,sizeof(phydbl));
+  mcmc->t_rank       = (int *)mCalloc(tree->n_otu-1,sizeof(int));
+  mcmc->r_path       = (int *)mCalloc(tree->n_otu-2,sizeof(int));
   return(mcmc);
+}
+
+/*********************************************************/
+
+void MCMC_Free_MCMC(tmcmc *mcmc)
+{
+  Free(mcmc->dt_prop);
+  Free(mcmc->t_rate_jumps);
+  Free(mcmc->t_rank);
+  Free(mcmc->r_path);
+  Free(mcmc);
 }
 
 /*********************************************************/
@@ -1129,6 +1144,9 @@ void MCMC_Init_MCMC_Struct(tmcmc *mcmc)
 
   mcmc->run = 0;
   mcmc->sample_interval = 500;
+  
+  mcmc->n_rates_jumps = 0;
+
 }
 
 /*********************************************************/
@@ -1333,6 +1351,14 @@ void MCMC_Modify_Rates(arbre *tree)
   node *a, *d;
   phydbl u;
 
+
+  if(tree->mcmc->n_rate_jumps > 10 * tree->n_otu)
+    {
+      printf("\n. The number of jumps must be smaller than %d",10 * tree->n_otu);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+
   a = NULL;
   d = NULL;
 
@@ -1340,14 +1366,16 @@ void MCMC_Modify_Rates(arbre *tree)
   t_jumps = tree->mcmc->t_rate_jumps;
   t       = tree->rates->t;
 
+  MCMC_Update_Node_Ranks(tree);
+
   /* Generate jump times in the [T,0] interval, where T is the time at the root */
   For(i,n_jumps)
     {
-      t_jump[i] = Uni();
-      t_jump[i] *= tree->rates->t[tree->root->num];
+      t_jumps[i] = Uni();
+      t_jumps[i] *= tree->rates->t[tree->root->num];
     }
   
-  /* Sort t_jumps in increasing order */
+  /* Sort t_jumps in ascending order */
   Qksort(t_jumps,0,n_jumps-1);
 
   For(i,n_jumps)
@@ -1359,15 +1387,122 @@ void MCMC_Modify_Rates(arbre *tree)
       cur_rate = l/(dt*tree->rates->clock_r);
       u = Uni();
       new_rate = cur_rate * exp(MCMC_RATES*(u-0.5));
+      
+      MCMC_Update_Rates_Along_Path(d,tree->mcmc->r_path,tree);
 
-      MCMC_Modify_Subtree_Rate(a,d,new_rate,tree);
+      MCMC_Update_Prob_Jump_Path(tree->mcmc->t_rank[d->num],
+				 tree->mcmc->n_jumps,
+				 tree->n_otu-1, /* Number of time intervals. Will not work with serially sampled data */
+				 tree->mcmc->p_jump_path);
+      
+/*       MCMC_Modify_Subtree_Rate(a,d,new_rate,tree); */
     }
 }
 
+/*********************************************************/
+
+void MCMC_Update_Dt_Vect(arbre *tree)
+{
+  int i;
+  
+  /* TO DO: the dt need to start fromn the tips toward the root 
+   Need to reverse the ordering after the quick sort */ 
+  /* TO DO: determine whether dt_prop includes tips or not.
+     If tips are included (they should if one wants to look
+     at serially sampled data), you need to deal with ties. */
+
+
+  For(i,2*tree->n_otu-2) tree->mcmc->dt_prop[i] = tree->rates->t[i];
+  Qksort(tree->mcmc->dt_prop,NULL,0,tree->n_otu-3);
+  for(i=1;i<tree->n_otu-2;i++) tree->mcmc->dt_prop[i] -= tree->mcmc->dt_prop[i-1];
+  tree->mcmc->dt_prop[0] -= tree->rates->t[tree->n_root->num];
+  For(i,tree->n_otu-2) tree->mcmc->dt_prop[i] /= tree->rates->t[tree->n_root->num];
+}
 
 /*********************************************************/
+
+void MCMC_Update_Node_Ranks(arbre *tree)
+{
+  int i,j;
+
+  For(i,tree->n_otu-1) tree->mcmc->t_rank[i] = 0;
+
+  /* Only look at internal nodes */
+  for(i=tree->n_otu;i<2*tree->n_otu-1;i++)
+    {
+      for(j=i+1;j<2*tree->n_otu-1;j++)
+	{
+	  if(tree->rates->t[i] > tree->rates->t[j])
+	    {
+	      tree->mcmc->t_rank[j-tree->n_otu]++;
+	    }
+	  else
+	    {
+	      tree->mcmc->t_rank[i-tree->n_otu]++;
+	    }
+	}
+    }
+
+}
+
 /*********************************************************/
+
+void MCMC_Update_Prob_Jump_Path(int level, int n_jumps, int size, phydbl *prob)
+{
+  int i,j;
+  phydbl substr;
+
+  For(i,size) prob[i] = 0.0;
+
+  For(i,level+1)
+    {
+      substr = 1.;
+      for(j=i;j<level+1;j++) substr -= tree->mcmc->dt_prop[j]/(j+2.);
+      prob[i] = pow(substr,n_jumps);
+    }
+}
+
 /*********************************************************/
+
+void MCMC_Update_Rates_Along_Path(node *d, phydbl *rate_path, arbre *tree)
+{
+  int i;
+  phydbl br_rate,br_len,dt;
+
+  if(d == tree->n_root) return;
+  else
+    {
+      br_len = -1.0;
+      if(d->anc != tree->n_root)
+	{
+	  For(i,3) if(d->v[i] == d->anc) br_len = d->b[i]->l;
+	}
+      else
+	{
+	  br_len = (d == tree->n_root->v[0])?(tree->n_root->l[0]):(tree->n_root->l[1]);
+	}
+      
+      dt = fabs(tree->rates->t[d->num] - tree->rates->t[d->anc->num]);
+
+      br_rate = br_len / (dt * tree->rates->clock_r);
+      
+      if(br_rate < 0.0) 
+	{
+	  PhyML_Printf("\n. br_rate = %f",br_rate); 
+	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  Warn_And_Exit("");	  
+	}
+      
+      
+      for(i=tree->mcmc->t_rank[d->num];i<=tree->mcmc->t_rank[d->anc->num];i++) rate_path[i] = br_rate;
+      
+      MCMC_Update_Rates_Along_Path(d->anc,rate_path,tree);
+    }
+  return;
+}	       
+
+}
+
 /*********************************************************/
 /*********************************************************/
 /*********************************************************/

@@ -61,8 +61,91 @@ void Launch_Interface(option *io)
 	    break;
 	  }
 	}
-
     }while(!io->ready_to_go);
+
+
+  if(io->print_site_lnl)
+    {
+      strcpy(io->out_lk_file,io->in_seq_file);
+      strcat(io->out_lk_file, "_phyml_lk.txt");
+      io->fp_out_lk = Openfile(io->out_lk_file,1);
+    }
+  
+  if(io->print_trace)
+    {
+      strcpy(io->out_trace_file,io->in_seq_file);
+      strcat(io->out_trace_file,"_phyml_trace.txt");
+      io->fp_out_trace = Openfile(io->out_trace_file,1);
+    }
+  
+  if(io->mod->s_opt->random_input_tree)
+    {
+      strcpy(io->out_trees_file,io->in_seq_file);
+      strcat(io->out_trees_file,"_phyml_trees.txt");
+      io->fp_out_trees = Openfile(io->out_trees_file,1);
+    }
+  
+  if((io->print_boot_trees) && (io->mod->bootstrap > 0))
+    {
+      strcpy(io->out_boot_tree_file,io->in_seq_file);
+      strcat(io->out_boot_tree_file,"_phyml_boot_trees.txt");
+      io->fp_out_boot_tree = Openfile(io->out_boot_tree_file,1);
+      
+      strcpy(io->out_boot_stats_file,io->in_seq_file);
+      strcat(io->out_boot_stats_file,"_phyml_boot_stats.txt");
+      io->fp_out_boot_stats = Openfile(io->out_boot_stats_file,1);
+    }
+      
+  if((io->mod->s_opt->n_rand_starts)           && 
+     (io->mod->s_opt->topo_search == NNI_MOVE) && 
+     (io->mod->s_opt->random_input_tree))
+    {
+      Warn_And_Exit("\n. The random starting tree option is only compatible with SPR based search options.\n"); 
+    }
+  
+  if ((io->mod->datatype == NT) && (io->mod->whichmodel > 10))
+    {
+      char choix;
+      PhyML_Printf("\n. Err: model incompatible with the data type. Please use JC69, K80, F81, HKY, F84, TN93 or GTR\n");
+      PhyML_Printf("\n. Type any key to exit.\n");
+      scanf("%c",&choix);
+      Warn_And_Exit("\n");
+    }
+  else if ((io->mod->datatype == AA) && (io->mod->whichmodel < 11))
+    {
+      char choix;
+      PhyML_Printf("\n. Err: model incompatible with the data type. Please use LG, Dayhoff, JTT, MtREV, WAG, DCMut, RtREV, CpREV, VT, Blosum62, MtMam, MtArt, HIVw or HIVb.\n");
+      PhyML_Printf("\n. Type any key to exit.\n");
+      scanf("%c",&choix);
+      Exit("\n");
+    }
+  
+  if(io->m4_model == YES)
+    {
+#ifdef M4
+      io->mod->ns *= io->mod->m4mod->n_h;
+      io->mod->use_m4mod = 1;
+      M4_Make_Complete(io->mod->m4mod->n_h,
+		       io->mod->m4mod->n_o,
+		       io->mod->m4mod);
+#endif
+    }
+  else
+    {
+      io->mod->s_opt->opt_cov_delta      = 0;
+      io->mod->s_opt->opt_cov_alpha      = 0;
+      io->mod->s_opt->opt_cov_free_rates = 0;
+    }
+  
+  if((io->mod->s_opt->opt_cov_free_rates) && (io->mod->s_opt->opt_cov_alpha))
+    {
+      io->mod->s_opt->opt_cov_free_rates = 0;
+      io->mod->m4mod->use_cov_alpha      = 0;
+      io->mod->m4mod->use_cov_free       = 1;
+    }
+  
+  io->fp_out_tree = Openfile(io->out_tree_file,1);
+  io->fp_out_stats = Openfile(io->out_stats_file,1);
 }
 
 /*********************************************************/
@@ -1245,6 +1328,24 @@ void Launch_Interface_Topo_Search(option *io)
 	 (io->mod->s_opt->opt_topo)?("yes"):("no"));
 
 
+/*   if(!io->mod->s_opt->random_input_tree) */
+/*     { */
+  if(io->mod->s_opt->opt_topo)
+    {
+      PhyML_Printf("                [U] "
+		   ".................. Starting tree (BioNJ/user tree) "
+		   " %-15s \n",
+		   (!io->in_tree)?("BioNJ"):("user tree"));
+    }
+  else
+    {
+      PhyML_Printf("                [U] "
+		   "..................... Input tree (BioNJ/user tree) "
+		   " %-15s \n",
+		   (!io->in_tree)?("BioNJ"):("user tree"));
+    }
+/*     } */
+
   if(io->mod->s_opt->opt_topo)
     {
       char *s;
@@ -1272,7 +1373,7 @@ void Launch_Interface_Topo_Search(option *io)
       if(io->mod->s_opt->topo_search == SPR_MOVE)
 	{
 	  PhyML_Printf("                [R] "
-		 "......................... Use random starting tree "
+		 "........................ Add random starting trees "
 		 " %-15s \n",
 		 (io->mod->s_opt->random_input_tree)?("yes"):("no"));
 
@@ -1292,14 +1393,6 @@ void Launch_Interface_Topo_Search(option *io)
 	     (io->mod->s_opt->opt_bl)?("yes"):("no"));
     }
   
-  if(!io->mod->s_opt->random_input_tree)
-    {
-      PhyML_Printf("                [U] "
-	     "..................... Input tree (BioNJ/user tree) "
-	     " %-15s \n",
-	     (!io->in_tree)?("BioNJ"):("user tree"));
-    }
-
   PhyML_Printf("\n\n. Are these settings correct ? "
 	 "(type '+', '-', 'Y' or other letter for one to change)  ");
 
@@ -1407,7 +1500,7 @@ void Launch_Interface_Topo_Search(option *io)
 	if(io->mod->s_opt->random_input_tree)
 	  {
 	    if(io->fp_in_tree) fclose(io->fp_in_tree);
-	    io->in_tree                   = 0;
+/* 	    io->in_tree                   = 0; */
 	    io->n_trees                   = 1;
 	    io->mod->s_opt->n_rand_starts = 5;
 
@@ -1438,7 +1531,7 @@ void Launch_Interface_Branch_Support(option *io)
   PhyML_Printf("\n\n");
 
   PhyML_Printf("                                  .......................                                          \n");
-  PhyML_Printf("                                   Menu : Branch Support                                         \n");
+  PhyML_Printf("                                   Menu : Branch Support                                           \n");
   PhyML_Printf("                               .............................                                       \n");
 
   PhyML_Printf("\n\n");
@@ -1597,7 +1690,8 @@ void Launch_Interface_Branch_Support(option *io)
 	    }
 	  case 2 :
 	    {
-	      io->ratio_test = 3;
+/* 	      io->ratio_test = 3; */
+	      io->ratio_test = 4;
 	      break;
 	    }
 	  case 3 :

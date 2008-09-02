@@ -297,7 +297,7 @@ void Lk(arbre *tree)
       Site_Lk(tree);
     }
 
-/*   Qksort(tree->c_lnL_sorted,0,n_patterns-1); */
+/*   Qksort(tree->c_lnL_sorted,NULL,0,n_patterns-1); */
 
   tree->c_lnL = .0;
   For(site,n_patterns)
@@ -354,7 +354,7 @@ phydbl Lk_At_Given_Edge(edge *b_fcus, arbre *tree)
       else tree->c_lnL_sorted[tree->curr_site] = 1.; /* WARNING : change cautiously */
     }
 
-/*   Qksort(tree->c_lnL_sorted,0,n_patterns-1); */
+/*   Qksort(tree->c_lnL_sorted,NULL,0,n_patterns-1); */
 
   tree->c_lnL = .0;
   For(tree->curr_site,n_patterns)
