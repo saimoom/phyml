@@ -787,7 +787,9 @@ typedef struct __Trate {
   phydbl min_rate;
   phydbl max_rate;
   phydbl step_rate;
-  
+  phydbl  *cur_r;
+  phydbl  *old_r;
+
   int approx;
   int model; /* Model number */
   phydbl nu; /* Parameter of the Exponential distribution for the corresponding model */
@@ -805,6 +807,7 @@ typedef struct __Tmcmc {
   int n_rate_jumps;
 
   phydbl *dt_prop;
+  phydbl *p_no_jump;
   phydbl *t_rate_jumps;
   int    *t_rank;
   phydbl *r_path;

@@ -1370,7 +1370,7 @@ void Launch_Interface_Topo_Search(option *io)
 
       Free(s);
 
-      if(io->mod->s_opt->topo_search == SPR_MOVE)
+      if(io->mod->s_opt->topo_search != NNI_MOVE)
 	{
 	  PhyML_Printf("                [R] "
 		 "........................ Add random starting trees "
@@ -1431,7 +1431,6 @@ void Launch_Interface_Topo_Search(option *io)
 	else io->in_tree = 0;
 	break;
       }
-
     case 'N' : 
       {	
 	char *n;

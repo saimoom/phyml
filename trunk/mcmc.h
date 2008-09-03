@@ -35,6 +35,10 @@ void MCMC_One_Rate(edge *b, arbre *tree);
 void MCMC_No_Change(arbre *tree);
 void MCMC_Nu(arbre *tree);
 void MCMC_Randomize_Nu(arbre *tree);
+node *MCMC_Select_Random_Node_Pair(phydbl t_sup, arbre *tree);
+void MCMC_Modify_Rates(arbre *tree);
+void MCMC_Modify_Subtree_Rate(node *a, node *d, phydbl new_rate, arbre *tree);
+
 
 
 #endif

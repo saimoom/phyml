@@ -8831,8 +8831,6 @@ void Update_Ancestors(node *a, node *d)
     }
 }
 
-
-
 /*********************************************************/
 /* Generate a random unrooted tree with 'n_otu' OTUs */
 #ifdef MC
@@ -8868,7 +8866,6 @@ arbre *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
   external_nodes  = (node **)mCalloc(tree->n_otu,  sizeof(node *));
   t               = (phydbl *)mCalloc(tree->n_otu-1,sizeof(phydbl ));
   tmp             = (phydbl *)mCalloc(2*tree->n_otu-2,sizeof(phydbl ));
-
 
   n_nonconnected = 2*n_otu-2;
 
