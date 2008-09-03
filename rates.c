@@ -59,8 +59,8 @@ phydbl RATES_Lk_Rates(arbre *tree)
   dt1   = (tree->rates->t[tree->n_root->v[1]->num] - tree->rates->t[tree->n_root->num]);
   if(dt0 < MIN_DT) dt0 = MIN_DT;
   if(dt1 < MIN_DT) dt1 = MIN_DT;
-  rate0 = tree->n_root->l[0] / (tree->rates->clock_r * dt0);
-  rate1 = tree->n_root->l[1] / (tree->rates->clock_r * dt1);
+  rate0 = tree->rates->cur_r[tree->n_root->v[0]->num];
+  rate1 = tree->rates->cur_r[tree->n_root->v[1]->num];
 
   if(dt0 < 0.0 || dt1 < 0.0)
     {
@@ -112,24 +112,12 @@ void RATES_Lk_Rates_Pre(node *a, node *d, edge *b, arbre *tree)
       
       mu1 = -1.;
 
-      if(!b)
-	{
-	  dt1 = tree->rates->t[d->num] - tree->rates->t[tree->n_root->num];
-	  if(dt1 < MIN_DT) dt1 = MIN_DT;
-	  if(d == tree->n_root->v[0]) mu1 = tree->n_root->l[0] / (dt1 * tree->rates->clock_r);
-	  else if(d == tree->n_root->v[1]) mu1 = tree->n_root->l[1] / (dt1 * tree->rates->clock_r);
-	  else
-	    {
-	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-	      Warn_And_Exit("");
-	    }
-	}
-      else
-	{
-	  dt1 = tree->rates->t[d->num] - tree->rates->t[a->num];
-	  if(dt1 < MIN_DT) dt1 = MIN_DT;
-	  mu1 = b->l / (dt1 * tree->rates->clock_r);
-	}
+      dt1 = 
+	tree->rates->t[d->num] - 
+	(!b)?(tree->rates->t[tree->n_root->num]):(tree->rates->t[a->num]);
+
+      if(dt1 < MIN_DT) dt1 = MIN_DT;
+      mu1 = tree->rates->cur_r[d->num];
 
       For(i,3)
 	{
@@ -137,19 +125,11 @@ void RATES_Lk_Rates_Pre(node *a, node *d, edge *b, arbre *tree)
 	    {
 	      dt2 = tree->rates->t[d->v[i]->num] - tree->rates->t[d->num];
 	      if(dt2 < MIN_DT) dt2 = MIN_DT;
-	      mu2 = d->b[i]->l / (dt2 * tree->rates->clock_r);
+	      mu2 = tree->rates->cur_r[d->v[i]->num];
 
 	      dens = RATES_Lk_Rates_Core(mu1,mu2,dt1,dt2,tree);
-
-	      int hit = 0;
-	      if(dens < MDBL_MIN) {hit = 1; dens = 1.E-10;}
-
 	      tree->rates->c_lnL += log(dens);
-
-/* 	      printf("\n. LNL = %G",tree->rates->c_lnL); */
-
-	      tree->rates->triplet[d->num]       += log(dens);
-/* 	      tree->rates->triplet[d->v[i]->num] += log(dens); */
+	      tree->rates->triplet[d->num] += log(dens);
 
 	      RATES_Lk_Rates_Pre(d,d->v[i],d->b[i],tree);
 	    }
@@ -172,9 +152,10 @@ phydbl RATES_Lk_Change_One_Rate(edge *b, phydbl new_rate, arbre *tree)
       
   dt = fabs(tree->rates->t[b->left->num] - tree->rates->t[b->rght->num]);
   if(dt < MIN_DT) dt = MIN_DT;
-  b->l = dt * new_rate * tree->rates->clock_r; 
+  if(b->left->anc == b->rght) tree->rates->cur_r[b->left->num] = new_rate;
+  else                        tree->rates->cur_r[b->rght->num] = new_rate;
+/*   b->l = dt * new_rate * tree->rates->clock_r;  */
   
-
   RATES_Update_Triplet(b->left,tree);
   RATES_Update_Triplet(b->rght,tree);
 
@@ -239,8 +220,8 @@ void RATES_Update_Triplet(node *n, arbre *tree)
     {
       phydbl dens;
 
-      l0 = tree->n_root->l[0];
-      l1 = tree->n_root->l[1];
+/*       l0 = tree->n_root->l[0]; */
+/*       l1 = tree->n_root->l[1]; */
       
       dt0 = tree->rates->t[tree->n_root->v[0]->num] - tree->rates->t[tree->n_root->num];
       dt1 = tree->rates->t[tree->n_root->v[1]->num] - tree->rates->t[tree->n_root->num];
@@ -248,9 +229,10 @@ void RATES_Update_Triplet(node *n, arbre *tree)
       if(dt0 < MIN_DT) dt0 = MIN_DT;
       if(dt1 < MIN_DT) dt1 = MIN_DT;
 
-      mu0 = l0 / (dt0 * tree->rates->clock_r);
-      mu1 = l1 / (dt1 * tree->rates->clock_r);
-
+/*       mu0 = l0 / (dt0 * tree->rates->clock_r); */
+/*       mu1 = l1 / (dt1 * tree->rates->clock_r); */
+      mu0 = tree->rates->cur_r[tree->n_root->v[0]->num];
+      mu1 = tree->rates->cur_r[tree->n_root->v[1]->num];
       
       if((tree->rates->model == COMPOUND_COR) ||
 	 (tree->rates->model == COMPOUND_NOCOR))
@@ -262,7 +244,6 @@ void RATES_Update_Triplet(node *n, arbre *tree)
 	{
 	  dens = Dexp(mu0,tree->rates->nu) * Dexp(mu1,tree->rates->nu);
 	}
-
       new_triplet = log(dens);
     }
   else
@@ -310,9 +291,13 @@ void RATES_Update_Triplet(node *n, arbre *tree)
       if(dt1 < MIN_DT) dt1 = MIN_DT;
       if(dt2 < MIN_DT) dt2 = MIN_DT;
 
-      mu0 = l0 / (dt0 * tree->rates->clock_r);
-      mu1 = l1 / (dt1 * tree->rates->clock_r);
-      mu2 = l2 / (dt2 * tree->rates->clock_r);
+/*       mu0 = l0 / (dt0 * tree->rates->clock_r); */
+/*       mu1 = l1 / (dt1 * tree->rates->clock_r); */
+/*       mu2 = l2 / (dt2 * tree->rates->clock_r); */
+
+      mu0 = tree->rates->cur_r[d->num];
+      mu1 = tree->rates->cur_r[v1->num];
+      mu2 = tree->rates->cur_r[v2->num];
       
       mu1_mu0 = RATES_Lk_Rates_Core(mu0,mu1,dt0,dt1,tree);
       mu2_mu0 = RATES_Lk_Rates_Core(mu0,mu2,dt0,dt2,tree);
@@ -570,39 +555,15 @@ void RATES_Print_Rates_Pre(node *a, node *d, edge *b, arbre *tree)
 phydbl RATES_Check_Mean_Rates(arbre *tree)
 {
   phydbl sum;
-
-  sum = 0.0;
-  RATES_Check_Mean_Rates_Pre(tree->n_root,tree->n_root->v[0],NULL,&sum,tree);
-  RATES_Check_Mean_Rates_Pre(tree->n_root,tree->n_root->v[1],NULL,&sum,tree);
-
-  sum += tree->n_root->l[0] / (fabs(tree->rates->t[tree->n_root->num] - tree->rates->t[tree->n_root->v[0]->num]) * tree->rates->clock_r);
-  sum += tree->n_root->l[1] / (fabs(tree->rates->t[tree->n_root->num] - tree->rates->t[tree->n_root->v[1]->num]) * tree->rates->clock_r);
+  int i;
   
+  sum = 0.0;
+  For(i,2*tree->n_otu-2) sum += tree->rates->cur_r[i];
   return(sum/(phydbl)(2*tree->n_otu-2));
 }
 
 /*********************************************************/
 
-void RATES_Check_Mean_Rates_Pre(node *a, node *d, edge *b, phydbl *sum, arbre *tree)
-{
-  if(b) *sum += b->l / (fabs(tree->rates->t[b->left->num] - tree->rates->t[b->rght->num]) * tree->rates->clock_r);
-
-  if(d->tax) return;
-  else
-    {
-      int i;
-
-      For(i,3) 
-	{
-	  if((d->v[i] != a) && (d->b[i] != tree->e_root))
-	    {
-	      RATES_Check_Mean_Rates_Pre(d,d->v[i],d->b[i],sum,tree);
-	    }
-	}
-    }
-}
-
-/*********************************************************/
 
 trate *RATES_Make_Rate_Struct(int n_otu)
 {
@@ -610,6 +571,8 @@ trate *RATES_Make_Rate_Struct(int n_otu)
   
   rates          = (trate *)mCalloc(1,sizeof(trate));
   rates->br_r    = (phydbl *)mCalloc(2*n_otu-3,sizeof(phydbl));
+  rates->old_r   = (phydbl *)mCalloc(2*n_otu-2,sizeof(phydbl));
+  rates->cur_r   = (phydbl *)mCalloc(2*n_otu-2,sizeof(phydbl));
   rates->mc_mr   = (phydbl **)mCalloc(2*n_otu-1,sizeof(phydbl *));
   rates->t       = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
   rates->true_t  = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
@@ -654,48 +617,6 @@ void RATES_Init_Rate_Struct(trate *rates, int n_otu)
   For(i,2*n_otu-1)
     rates->mc_mr[i] = (phydbl *)mCalloc(rates->n_mc_runs,sizeof(phydbl));
 
-}
-
-/*********************************************************/
-
-void RATES_Fill_Node_Rates(phydbl *node_r, arbre *tree)
-{
-
-  node_r[tree->n_root->v[0]->num] = tree->rates->br_r[tree->e_root->num];
-  node_r[tree->n_root->v[1]->num] = tree->rates->br_r[tree->e_root->num];
-
-  RATES_Fill_Node_Rates_Pre(tree->n_root,tree->n_root->v[0],NULL,node_r,tree);
-  RATES_Fill_Node_Rates_Pre(tree->n_root,tree->n_root->v[1],NULL,node_r,tree);
-}
-
-/*********************************************************/
-
-void RATES_Fill_Node_Rates_Pre(node *a, node *d, edge *b, phydbl *node_r, arbre *tree)
-{
-  if(b) node_r[d->num] = tree->rates->br_r[b->num];
-
-  if(d->tax) return;
-  else
-    {
-      int i;
-      For(i,3)
-	{
-	  if((d->v[i] != a) && (d->b[i] != tree->e_root))
-	    {
-	      RATES_Fill_Node_Rates_Pre(d,d->v[i],d->b[i],node_r,tree);
-	    }
-	}
-    }
-}
-
-/*********************************************************/
-
-phydbl RATES_Exp_Y(phydbl mu1, phydbl mu2, phydbl dt1, phydbl lexp)
-{
-  phydbl prob0jump;
-  prob0jump = Dpois(0,lexp*dt1); /* probability of having 0 jump in dt1 */        
-/*   return prob0jump * mu1 + (1.-prob0jump) * mu2; */
-  return prob0jump * mu1 + (1.-prob0jump) * 1.0;
 }
 
 /*********************************************************/
@@ -858,227 +779,6 @@ phydbl RATES_Dmu_One(phydbl mu, phydbl dt, phydbl a, phydbl b, phydbl lexp)
     }
 
   return(dens);
-}
-
-/*********************************************************/
-/*
-  0     y      t1          x            dt
-  *------------*---*------*------*------*
-
-  * are jumps. t1 is the time of the first jump.
-  r = t1 / dt
-  y is the rate in [0,t1]
-  x is the average rate over [t1,dt]
-  mu is the average rate over [0,dt]
-  This function computes f(mu;r,y) x f(r;lexp,dt) 
-*/ 
-
-phydbl RATES_Dr_X_Dx(phydbl r, phydbl mu, phydbl y, phydbl dt, phydbl a, phydbl b, phydbl lexp)
-{
-  phydbl x,dr,dx;
-
-  if(r > 1.-1.E-10) r = 1.-1.E-10;
-  
-  x = (mu-r*y)/(1-r);
-  
-  if(x < 0.0)
-    {
-      PhyML_Printf("\n. x=%f ,mu=%f r=%f y=%f dt=%f",x,mu,r,y,dt);
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-      Warn_And_Exit("");
-    }
-  
-  if(x < 1.E-10) x = 1.E-10;
-  
-  dr = lexp*dt*exp(-lexp*r*dt); /* This is the probability density for r. K = lexp*exp(-lexp*r*dt) gives
-				   the density of t1. As r = t1/T, the pdf for r is K*T. 
-				*/
-  dx = RATES_Dmu(x,(1-r)*dt,a,b,lexp,0); /* This is f(x;T*(1-r)) */
-  
-  return(dx*dr/(1-r)); /* The division by (1-r) comes from the transformation
-			  of the random variable x to get the probability density
-			  function of mu = r.y + (1-r).x.
-		       */
-}
-
-/*********************************************************/
-
-phydbl RATES_Dmu_Given_Y_Trpzd(phydbl mu, phydbl y, phydbl dt, phydbl a, phydbl b, phydbl lexp, 
-			       int nsteps, phydbl beg, phydbl end, phydbl prevs)
-{
-  phydbl scurr;
-
-  scurr = -1.E+10;
-  if(nsteps == 1)
-    {
-#ifdef DEBUG
-      if(beg*y > mu)
-	{
-	  PhyML_Printf("\n. beg=%f y=%f mu=%f",beg,y,mu);
-	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-	  Warn_And_Exit("");
-	}
-      if(end*y > mu)
-	{
-	  PhyML_Printf("\n. end=%f y=%f mu=%f",end,y,mu);
-	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-	  Warn_And_Exit("");
-	}
-#endif
-
-      
-      scurr = 0.5*(end-beg)*(RATES_Dr_X_Dx(beg,mu,y,dt,a,b,lexp)+
-			     RATES_Dr_X_Dx(end,mu,y,dt,a,b,lexp));
-    }
-  else
-    {
-      phydbl h,x,sum;
-      int i,npoints;
-
-      h = (end - beg)*pow(2,2-nsteps);
-      x = beg+0.5*h;
-      sum = 0.0;
-      npoints = pow(2,nsteps-2); /* actual formula is 2^(n-1) - 2^(n-2) */      
-
-      
-      For(i,npoints)
-	{
-#ifdef DEBUG
-	  if(x*y > mu)
-	    {
-	      PhyML_Printf("\n. x=%f y=%f mu=%f",x,y,mu);
-	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-	      Warn_And_Exit("");
-	    }
-	  if(x > 1.-1.E-10 || x < 1.E-10)
-	    {
-	      PhyML_Printf("\n. x=%f",x);
-	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-	      Warn_And_Exit("");
-	    }
-#endif
-	  
-	  sum += RATES_Dr_X_Dx(x,mu,y,dt,a,b,lexp);
-	  x = x+h;
-	}
-      scurr = prevs/2. + sum*(end-beg)/pow(2,nsteps-1);      
-    }
-  return scurr;
-}
-
-/*********************************************************/
-
-phydbl RATES_Dmu_Given_Y(phydbl mu, phydbl y, phydbl dt, phydbl a, phydbl b, phydbl lexp)
-{
-  phydbl p_no_jump;
-
-  p_no_jump = Dpois(0,lexp*(dt));
-
-  if(p_no_jump > 0.990)
-    {
-      if(fabs(mu-y) < 0.001 * MIN(mu,y)) return 1.0;
-      else return 0.0;
-    }
-  else
-    {
-      return RATES_Dmu_Given_Y_Romb(mu,y,dt,a,b,lexp);
-    }
-}
-
-/*********************************************************/
-/* f(mu;y) = \int_{r=0}^{r=1} f(u;y.r) x f(r) dr
-   i.e., this function computes f(mu,y) by intyegrating over r in [0,1].
- */
-phydbl RATES_Dmu_Given_Y_Std(phydbl mu, phydbl y, phydbl dt, phydbl a, phydbl b, phydbl lexp)
-{
-  phydbl s,olds,prevs,beg,end,eps;
-  int i;
-
-  s     = 0.0;
-  olds  = 0.0;
-  prevs = 0.0;
-
-  eps = MIN_CLOCK_RATE;
-  if(eps > mu)
-    {
-      printf("\n. eps=%G mu=%G",eps,mu);
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-      Warn_And_Exit("");
-    }
-
-  beg = eps;
-  end = MIN(1.,(mu-eps)/y);
-  
-  for(i=1;i<20;i++)
-    {
-      s = RATES_Dmu_Given_Y_Trpzd(mu,y,dt,a,b,lexp,i,beg,end,prevs);
-      prevs = s;
-      if(fabs(s-olds) < 1.E-03*fabs(olds))  return(s);       
-      olds = s;
-    }
-  return(-1.0E+10);
-}
-
-/*********************************************************/
-
-/*********************************************************/
-/* Romberg method of integration over the time of the first jump. 
-   Adapted from "Numerical Recipes in C". 
-   Press, Flannery, Teukolsky, Vetterling, 1988. 
-*/
-phydbl RATES_Dmu_Given_Y_Romb(phydbl mu, phydbl y, phydbl dt, phydbl a, phydbl b, phydbl lexp)
-{
-
-  phydbl *s,*h;
-  phydbl ss,dss;
-  phydbl beg,end,prevs;
-  int i,K,NMAXITER;
-  phydbl eps;
-
-  NMAXITER = 100;
-
-  s = (phydbl *)mCalloc(NMAXITER  ,sizeof(phydbl));
-  h = (phydbl *)mCalloc(NMAXITER+1,sizeof(phydbl));
-
-  K = 5;
-
-  eps = MIN_CLOCK_RATE;
-  if(eps > mu)
-    {
-      printf("\n. eps=%G mu=%G",eps,mu);
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-      Warn_And_Exit("");
-    }
-
-
-  beg = eps;
-  end = MIN(1.,(mu-eps)/y);
-
-  prevs = 0.0;
-  h[1] = 1.0;
-  for(i=1;i<=NMAXITER;i++)
-    {
-      s[i] = RATES_Dmu_Given_Y_Trpzd(mu,y,dt,a,b,lexp,i,beg,end,prevs);
-      prevs = s[i];
-      
-      if(i >= K)
-	{
-	  Polint(&h[i-K],&s[i-K],K,0.0,&ss,&dss);
-	  if(fabs(dss) <= 1.0E-03*fabs(ss)) 
-	    {
-	      Free(s); 
-	      Free(h);
-	      return(ss);
-	    }
-	}
-      h[i+1] = 0.25*h[i];
-    }
-  
-  Free(s);
-  Free(h);
-
-  return(ss);
-
 }
 
 /*********************************************************/
@@ -1362,87 +1062,9 @@ void RATES_Randomize_Node_Times_Pre(node *a, node *d, arbre *tree)
 
 /*********************************************************/
 
-phydbl RATES_Dmu2_Given_Mu1_Bis(phydbl mu1, phydbl mu2, phydbl dt1, phydbl dt2, phydbl alpha, phydbl beta, phydbl lexp)
-{
-  phydbl p0,p1,p2,v1,v2;
-  
-  p0 = Dpois(0,lexp*(dt1+dt2));
-  p1 = Dpois(1,lexp*(dt1+dt2));
-  p2 = Dpois(2,lexp*(dt1+dt2));       
-  
-  v1 = 
-    p0 * Dnorm_Moments(mu2,mu1,0.01) + 
-    p1 * Dnorm_Moments(mu2,mu1,0.04) + 
-    p2 * Dnorm_Moments(mu2,mu1,0.09) ;
-  
-  v2 = RATES_Dmu(mu2,dt2,alpha,beta,lexp,0);
-  
-  return(v1 + (1.-p0-p1-p2) * v2);
-}
-
-/*********************************************************/
-
-void RATES_Replace_Br_Lengths_By_Rates(arbre *tree)
-{
-  phydbl rate;
-
-  RATES_Replace_Br_Lengths_By_Rates_Pre(tree->n_root,tree->n_root->v[0],NULL,tree);
-  RATES_Replace_Br_Lengths_By_Rates_Pre(tree->n_root,tree->n_root->v[1],NULL,tree);
-  
-  rate = tree->n_root->l[0] / (tree->rates->clock_r * fabs(tree->rates->t[tree->n_root->num] - tree->rates->t[tree->n_root->v[0]->num]));
-/*   rate = fabs(tree->rates->t[tree->n_root->num] - tree->rates->t[tree->n_root->v[0]->num]); */
-  tree->n_root->l[0] = rate;
-
-  rate = tree->n_root->l[1] / (tree->rates->clock_r * fabs(tree->rates->t[tree->n_root->num] - tree->rates->t[tree->n_root->v[1]->num]));
-/*   rate = fabs(tree->rates->t[tree->n_root->num] - tree->rates->t[tree->n_root->v[1]->num]); */
-  tree->n_root->l[1] = rate;
-
-  tree->e_root->l = tree->n_root->l[0] + tree->n_root->l[1];
-
-  tree->n_root_pos = tree->n_root->l[0] / tree->e_root->l;
-
-}
-
-/*********************************************************/
-
-void RATES_Replace_Br_Lengths_By_Rates_Pre(node *a, node *d, edge *b, arbre *tree)
-{
-  if(b)
-    {
-      phydbl rate;      
-      rate = b->l / (tree->rates->clock_r * fabs(tree->rates->t[a->num] - tree->rates->t[d->num]));
-/*       rate = fabs(tree->rates->t[a->num] - tree->rates->t[d->num]); */
-/*       printf("\n. dt = %f clock_r = %f r=%f", */
-/* 	     fabs(tree->rates->t[a->num] - tree->rates->t[d->num]), */
-/* 	     tree->rates->clock_r, */
-/* 	     rate); */
-      b->l = rate;
-    }
- 
-  if(d->tax) return;
-  else
-    {
-      int i;
-      
-      For(i,3)
-	{
-	  if((d->v[i] != a) && (d->b[i] != tree->e_root))
-	    {
-	      RATES_Replace_Br_Lengths_By_Rates_Pre(d,d->v[i],d->b[i],tree);
-	    }
-	}
-    }
-}
-
-/*********************************************************/
-
 phydbl RATES_Dmu1_And_Mu2_One_Jump_Two_Intervals(phydbl mu1, phydbl mu2, phydbl dt1, phydbl dt2, phydbl alpha, phydbl beta)
 {
   phydbl dens;
-
-/*   dens = */
-/*     (dt1/(dt1+dt2)) * RATES_Dmu1_And_Mu2_One_Jump_One_Interval(mu1,mu2,alpha,beta) + */
-/*     (dt2/(dt1+dt2)) * RATES_Dmu1_And_Mu2_One_Jump_One_Interval(mu2,mu1,alpha,beta) ; */
 
   if(mu2 < 1.E-10)
     {
@@ -1461,11 +1083,6 @@ phydbl RATES_Dmu1_And_Mu2_One_Jump_Two_Intervals(phydbl mu1, phydbl mu2, phydbl 
   dens =
     ((dt1/(dt1+dt2)) * RATES_Dmu1_Given_V_And_N(mu1,mu2,1,dt1,alpha,beta) * Dgamma(mu2,alpha,beta)) +
     ((dt2/(dt1+dt2)) * RATES_Dmu1_Given_V_And_N(mu2,mu1,1,dt2,alpha,beta) * Dgamma(mu1,alpha,beta));
-
-/*   dens += */
-/*     (1./(dt1+dt2)) * */
-/*     Dgamma(mu1,alpha,beta) * */
-/*     Dgamma(mu2,alpha,beta); /\* Jump occurred at the junction *\/ */
 
   return dens;
 }
@@ -1692,6 +1309,19 @@ void RATES_Adjust_Clock_Rate(arbre *tree)
 
 /*********************************************************/
 
+void RATES_Record_Rates(arbre *tree)
+{
+  int i;
+  For(i,2*tree->n_otu-2) tree->rates->old_r[i] = tree->rates->cur_r[i];
+}
+
+/*********************************************************/
+
+void RATES_Reset_Rates(arbre *tree)
+{
+  int i;
+  For(i,2*tree->n_otu-2) tree->rates->cur_r[i] = tree->rates->old_r[i];
+}
 
 #endif
 /*********************************************************/
