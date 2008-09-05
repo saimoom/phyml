@@ -789,7 +789,8 @@ typedef struct __Trate {
   phydbl step_rate;
   phydbl  *cur_r;
   phydbl  *old_r;
-
+  
+  int bl_from_rt; /* if =1, branch lengths are obtained as the product of cur_r and t */
   int approx;
   int model; /* Model number */
   phydbl nu; /* Parameter of the Exponential distribution for the corresponding model */
@@ -1074,7 +1075,7 @@ phydbl Dnorm_Moments(phydbl x, phydbl mean, phydbl var);
 int Choose(int n, int k);
 phydbl Dnorm(phydbl x, phydbl mean, phydbl sd);
 phydbl LnFact(int n);
-void Update_Ancestors(node *a, node *d);
+void Update_Ancestors(node *a, node *d, arbre *tree);
 void Find_Common_Tips(arbre *tree1, arbre *tree2);
 phydbl Get_Tree_Size(arbre *tree);
 int Find_Bipartition(char **target_bip, int bip_size, arbre *tree);

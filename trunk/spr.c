@@ -3502,6 +3502,12 @@ void Speed_Spr(arbre *tree)
       Pars(tree);
 
 
+      if(tree->io->print_trace)
+	{
+	  PhyML_Fprintf(tree->io->fp_out_trace,"[%f]%s\n",tree->c_lnL,Write_Tree(tree)); fflush(tree->io->fp_out_trace);
+	  if(tree->io->print_site_lnl) Print_Site_Lk(tree,tree->io->fp_out_lk); fflush(tree->io->fp_out_lk);
+	}
+
       /* Print log-likelihood and parsimony scores */
       if(tree->mod->s_opt->print) Print_Lk(tree,"[Branch lengths     ]");
 

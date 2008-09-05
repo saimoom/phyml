@@ -80,7 +80,7 @@ void RATES_Init_Triplets(arbre *tree);
 phydbl RATES_Lk_Change_One_Time(node *n, phydbl new_t, arbre *tree);
 void RATES_Update_Triplet(node *n, arbre *tree);
 void RATES_Print_Triplets(arbre *tree);
-phydbl RATES_Lk_Change_One_Rate(edge *b, phydbl new_rate, arbre *tree);
+phydbl RATES_Lk_Change_One_Rate(node *d, phydbl new_rate, arbre *tree);
 phydbl RATES_Dmu2_And_Mu1_Given_Min_N(phydbl mu1, phydbl mu2, phydbl dt1, phydbl dt2, int n_min, phydbl a, phydbl b, phydbl lexp);
 phydbl RATES_Dmu2_And_Mu1_Given_N_Normal(phydbl mu1, phydbl mu2, phydbl dt1, phydbl dt2, int n, phydbl a, phydbl b, phydbl lexp);
 phydbl RATES_Coeff_Corr(phydbl alpha, phydbl beta, int n1, int n2);
@@ -99,5 +99,7 @@ void RATES_Record_Rates(arbre *tree);
 void RATES_Reset_Rates(arbre *tree);
 void RATES_Update_T_Rates_Pre(node *a, node *d, arbre *tree);
 void RATES_Update_T_Rates(arbre *tree);
+void RATES_Get_Br_Len(arbre *tree);
+void RATES_Get_Rates_From_Bl(arbre *tree);
 
 #endif
