@@ -47,7 +47,7 @@ phydbl RATES_Lk_Rates(arbre *tree)
   RATES_Set_Node_Times(tree);
   RATES_Init_Triplets(tree);
 /*   if(tree->rates->model == EXPONENTIAL) */
-  RATES_Adjust_Clock_Rate(tree);
+/*   RATES_Adjust_Clock_Rate(tree); */
 
   dens = UNLIKELY;
   tree->rates->c_lnL = .0;
@@ -110,20 +110,23 @@ void RATES_Lk_Rates_Pre(node *a, node *d, edge *b, arbre *tree)
       int i;
       phydbl dens,mu1,mu2,dt1,dt2;
       
-      mu1 = -1.;
+      if(d->anc != a)
+	{
+	  printf("\n. d=%d d->anc=%d a=%d root=%d",d->num,d->anc->num,a->num,tree->n_root->num);
+	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  Warn_And_Exit("");
+	}
 
-      dt1 = 
-	tree->rates->t[d->num] - 
-	(!b)?(tree->rates->t[tree->n_root->num]):(tree->rates->t[a->num]);
-
+      dt1 = fabs(tree->rates->t[d->num] - tree->rates->t[d->anc->num]);
       if(dt1 < MIN_DT) dt1 = MIN_DT;
       mu1 = tree->rates->cur_r[d->num];
 
+      tree->rates->triplet[d->num] = 0.0;
       For(i,3)
 	{
 	  if((d->v[i] != a) && (d->b[i] != tree->e_root))
 	    {
-	      dt2 = tree->rates->t[d->v[i]->num] - tree->rates->t[d->num];
+	      dt2 = fabs(tree->rates->t[d->v[i]->num] - tree->rates->t[d->num]);
 	      if(dt2 < MIN_DT) dt2 = MIN_DT;
 	      mu2 = tree->rates->cur_r[d->v[i]->num];
 
@@ -139,26 +142,11 @@ void RATES_Lk_Rates_Pre(node *a, node *d, edge *b, arbre *tree)
 
 /*********************************************************/
 
-phydbl RATES_Lk_Change_One_Rate(edge *b, phydbl new_rate, arbre *tree)
+phydbl RATES_Lk_Change_One_Rate(node *d, phydbl new_rate, arbre *tree)
 {
-  phydbl dt;
-  
-  if(b == tree->e_root)
-    {
-      printf("\n. Can't change rate on root...");
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-      Warn_And_Exit("");
-    }
-      
-  dt = fabs(tree->rates->t[b->left->num] - tree->rates->t[b->rght->num]);
-  if(dt < MIN_DT) dt = MIN_DT;
-  if(b->left->anc == b->rght) tree->rates->cur_r[b->left->num] = new_rate;
-  else                        tree->rates->cur_r[b->rght->num] = new_rate;
-/*   b->l = dt * new_rate * tree->rates->clock_r;  */
-  
-  RATES_Update_Triplet(b->left,tree);
-  RATES_Update_Triplet(b->rght,tree);
-
+  tree->rates->cur_r[d->num] = new_rate;
+  RATES_Update_Triplet(d,tree);
+  RATES_Update_Triplet(d->anc,tree);
   return(tree->rates->c_lnL);
 }
 
@@ -177,20 +165,13 @@ phydbl RATES_Lk_Change_One_Time(node *n, phydbl new_t, arbre *tree)
       int i;
       
       tree->rates->t[n->num] = new_t;
-/*       RATES_Set_Node_Times(tree);       */
 
       RATES_Update_Triplet(n,tree);
       
       For(i,3)
 	{
-	  if(n->b[i] != tree->e_root)
-	    {
-	      RATES_Update_Triplet(n->v[i],tree);
-	    }
-	  else
-	    {
-	      RATES_Update_Triplet(tree->n_root,tree);
-	    }
+	  if(n->b[i] != tree->e_root) RATES_Update_Triplet(n->v[i],tree);
+	  else RATES_Update_Triplet(tree->n_root,tree);
 	}
     }
   return(tree->rates->c_lnL);
@@ -203,34 +184,26 @@ void RATES_Update_Triplet(node *n, arbre *tree)
   phydbl curr_triplet,new_triplet;
   phydbl dt0,dt1,dt2;
   phydbl mu1_mu0,mu2_mu0;
-  phydbl l0,l1,l2;
   phydbl mu0,mu1,mu2;
   int i;
   node *v1,*v2;
-
 
   if(n->tax) return;
 
   curr_triplet = tree->rates->triplet[n->num];
 
-  l0 = l1 = l2 = -1.0;
   dt0 = dt1 = dt2 = -100.0;
 
   if(n == tree->n_root)
     {
       phydbl dens;
 
-/*       l0 = tree->n_root->l[0]; */
-/*       l1 = tree->n_root->l[1]; */
-      
       dt0 = tree->rates->t[tree->n_root->v[0]->num] - tree->rates->t[tree->n_root->num];
       dt1 = tree->rates->t[tree->n_root->v[1]->num] - tree->rates->t[tree->n_root->num];
       
       if(dt0 < MIN_DT) dt0 = MIN_DT;
       if(dt1 < MIN_DT) dt1 = MIN_DT;
 
-/*       mu0 = l0 / (dt0 * tree->rates->clock_r); */
-/*       mu1 = l1 / (dt1 * tree->rates->clock_r); */
       mu0 = tree->rates->cur_r[tree->n_root->v[0]->num];
       mu1 = tree->rates->cur_r[tree->n_root->v[1]->num];
       
@@ -248,41 +221,27 @@ void RATES_Update_Triplet(node *n, arbre *tree)
     }
   else
     {
+      mu0 = mu1 = mu2 = -1.;
+
+      mu0 = tree->rates->cur_r[n->num];
+      dt0 = fabs(tree->rates->t[n->num] - tree->rates->t[n->anc->num]);
+
       v1 = v2 = NULL;
       For(i,3)
 	{
 	  if((n->v[i] != n->anc) && (n->b[i] != tree->e_root))
 	    {
-	      if(!v1) 
+	      if(!v1)
 		{
 		  v1  = n->v[i]; 
-		  dt1 = tree->rates->t[v1->num] - tree->rates->t[n->num];
-		  l1  = n->b[i]->l;
+		  mu1 = tree->rates->cur_r[v1->num];
+		  dt1 = fabs(tree->rates->t[v1->num] - tree->rates->t[n->num]);
 		}
 	      else
 		{
 		  v2  = n->v[i]; 
-		  dt2 = tree->rates->t[v2->num] - tree->rates->t[n->num];
-		  l2  = n->b[i]->l;
-		}
-	    }
-	  else 
-	    {
-	      if(n->b[i] == tree->e_root)
-		{
-		  dt0 = tree->rates->t[n->num] - tree->rates->t[tree->n_root->num];
-		  if(n == tree->n_root->v[0])      l0 = tree->n_root->l[0];
-		  else if(n == tree->n_root->v[1]) l0 = tree->n_root->l[1];
-		  else 
-		    {
-		      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-		      Warn_And_Exit("");
-		    }
-		}	      
-	      else
-		{
-		  dt0 = tree->rates->t[n->num] - tree->rates->t[n->v[i]->num];
-		  l0 = n->b[i]->l;
+		  mu2 = tree->rates->cur_r[v2->num];
+		  dt2 = fabs(tree->rates->t[v2->num] - tree->rates->t[n->num]);
 		}
 	    }
 	}
@@ -290,15 +249,7 @@ void RATES_Update_Triplet(node *n, arbre *tree)
       if(dt0 < MIN_DT) dt0 = MIN_DT;
       if(dt1 < MIN_DT) dt1 = MIN_DT;
       if(dt2 < MIN_DT) dt2 = MIN_DT;
-
-/*       mu0 = l0 / (dt0 * tree->rates->clock_r); */
-/*       mu1 = l1 / (dt1 * tree->rates->clock_r); */
-/*       mu2 = l2 / (dt2 * tree->rates->clock_r); */
-
-      mu0 = tree->rates->cur_r[d->num];
-      mu1 = tree->rates->cur_r[v1->num];
-      mu2 = tree->rates->cur_r[v2->num];
-      
+ 
       mu1_mu0 = RATES_Lk_Rates_Core(mu0,mu1,dt0,dt1,tree);
       mu2_mu0 = RATES_Lk_Rates_Core(mu0,mu2,dt0,dt2,tree);
       
@@ -590,20 +541,20 @@ void RATES_Init_Rate_Struct(trate *rates, int n_otu)
 
   rates->model         = COMPOUND_COR;
   rates->n_mc_runs     = 1000; 
-  rates->clock_r       = 1.E-03;
-/*   rates->clock_r       = 1.E-2; */
+  rates->clock_r       = 1.E-3;
   rates->curr_mc_run   = 0;
   rates->c_lnL         = -INFINITY;
   rates->adjust_rates  = 0;
   rates->use_rates     = 1;
-  rates->lexp          = 0.2;
+  rates->lexp          = 0.04;
   rates->alpha         = 2.0;
   rates->birth_rate    = 0.001;
   rates->max_rate      = 10.;
   rates->min_rate      = 0.1;
-  rates->step_rate     = 1.E-2;
+  rates->step_rate     = 1.E-4;
   rates->nu            = 1.0;
   rates->approx        = 1;
+  rates->bl_from_rt    = 0;
 
   For(i,2*n_otu-2) rates->br_r[i] = 1.0;
 
@@ -1287,24 +1238,14 @@ phydbl RATES_Yule(arbre *tree)
 /* Set the clock rate such that the relative rates are centered on 1.0 */
 void RATES_Adjust_Clock_Rate(arbre *tree)
 {
-  phydbl ratio;
   int i;
+  phydbl mean;
 
-  ratio = 0.0;
-  For(i,2*tree->n_otu-3)
-    if(tree->t_edges[i] != tree->e_root)
-      ratio +=
-	tree->t_edges[i]->l / 
-	(fabs(tree->rates->t[tree->t_edges[i]->left->num] -
-	      tree->rates->t[tree->t_edges[i]->rght->num]));
-
-  ratio += tree->n_root->l[0] / (fabs(tree->rates->t[tree->n_root->v[0]->num] -
-				      tree->rates->t[tree->n_root->num]));
-
-  ratio += tree->n_root->l[1] / (fabs(tree->rates->t[tree->n_root->v[1]->num] -
-				      tree->rates->t[tree->n_root->num]));
-
-  tree->rates->clock_r = ratio/(phydbl)(2.*tree->n_otu-2);
+  mean = 0.0;
+  For(i,2*tree->n_otu-2) mean += tree->rates->cur_r[i];
+  mean /= (phydbl)(2*tree->n_otu-2);
+  For(i,2*tree->n_otu-2) tree->rates->cur_r[i] /= mean;
+  tree->rates->clock_r *= mean;
 }
 
 /*********************************************************/
@@ -1323,7 +1264,78 @@ void RATES_Reset_Rates(arbre *tree)
   For(i,2*tree->n_otu-2) tree->rates->cur_r[i] = tree->rates->old_r[i];
 }
 
+/*********************************************************/
+
+void RATES_Get_Br_Len(arbre *tree)
+{
+  phydbl dt,rr,cr;
+  node *left, *rght;
+  int i;
+
+  dt = rr = -1.0;
+  cr = tree->rates->clock_r;
+
+  if(tree->n_root)
+    {
+      dt = fabs(tree->rates->t[tree->n_root->num] - tree->rates->t[tree->n_root->v[0]->num]);
+      rr = tree->rates->cur_r[tree->n_root->v[0]->num];
+      tree->e_root->l = dt*rr*cr;
+      dt = fabs(tree->rates->t[tree->n_root->num] - tree->rates->t[tree->n_root->v[1]->num]);
+      rr = tree->rates->cur_r[tree->n_root->v[1]->num];
+      tree->e_root->l += dt*rr*cr;
+    }
+  
+  For(i,2*tree->n_otu-3)
+    {
+      if(tree->t_edges[i] != tree->e_root)
+	{
+	  left = tree->t_edges[i]->left;
+	  rght = tree->t_edges[i]->rght;
+	  dt = fabs(tree->rates->t[left->num] - tree->rates->t[rght->num]);	  
+	  rr = (left->anc == rght)?(tree->rates->cur_r[left->num]):(tree->rates->cur_r[rght->num]);
+	  tree->t_edges[i]->l = dt*rr*cr;
+	}
+    }
+}
+
+/*********************************************************/
+
+void RATES_Get_Rates_From_Bl(arbre *tree)
+{
+  phydbl dt,cr;
+  node *left, *rght;
+  int i;
+
+  dt = -1.0;
+  cr = tree->rates->clock_r;
+
+  if(tree->n_root)
+    {
+      dt = fabs(tree->rates->t[tree->n_root->num] - tree->rates->t[tree->n_root->v[0]->num]);
+      tree->rates->cur_r[tree->n_root->v[0]->num] = 0.5 * tree->e_root->l / (dt*cr);
+      dt = fabs(tree->rates->t[tree->n_root->num] - tree->rates->t[tree->n_root->v[1]->num]);
+      tree->rates->cur_r[tree->n_root->v[1]->num] = 0.5 * tree->e_root->l / (dt*cr);
+    }
+  
+
+  For(i,2*tree->n_otu-3)
+    {
+      if(tree->t_edges[i] != tree->e_root)
+	{
+	  left = tree->t_edges[i]->left;
+	  rght = tree->t_edges[i]->rght;
+	  dt = fabs(tree->rates->t[left->num] - tree->rates->t[rght->num]);	  
+	  
+	  if(left->anc == rght) tree->rates->cur_r[left->num] = tree->t_edges[i]->l / (dt*cr);
+	  else                  tree->rates->cur_r[rght->num] = tree->t_edges[i]->l / (dt*cr);
+	}
+    }
+
+  RATES_Adjust_Clock_Rate(tree);
+}
+
 #endif
+
 /*********************************************************/
 /*********************************************************/
 /*********************************************************/

@@ -1091,6 +1091,11 @@ char *Write_Tree(arbre *tree)
   tree->e_root = NULL;
   #endif
 
+  
+#ifdef MC
+  if(tree->rates->bl_from_rt) RATES_Get_Br_Len(tree);
+#endif
+
   if(!tree->n_root)
     {
       i = 0;
@@ -8813,21 +8818,23 @@ void Add_Root(edge *target, arbre *tree)
       tree->n_root_pos = 0.5;
     }
   
-  Update_Ancestors(tree->n_root,tree->n_root->v[0]);
-  Update_Ancestors(tree->n_root,tree->n_root->v[1]);
+  Update_Ancestors(tree->n_root,tree->n_root->v[0],tree);
+  Update_Ancestors(tree->n_root,tree->n_root->v[1],tree);
   tree->n_root->anc = NULL;
 }
 
 /*********************************************************/
 
-void Update_Ancestors(node *a, node *d)
+void Update_Ancestors(node *a, node *d, arbre *tree)
 {
   d->anc = a;
   if(d->tax) return;
   else
     {
       int i;
-      For(i,3) if(d->v[i] != d->anc) Update_Ancestors(d,d->v[i]);
+      For(i,3) 
+	if((d->v[i] != d->anc) && (d->b[i] != tree->e_root)) 
+	  Update_Ancestors(d,d->v[i],tree);
     }
 }
 

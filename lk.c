@@ -18,6 +18,10 @@ the GNU public licence. See http://www.opensource.org for details.
 #include "m4.h"
 #include "mc.h"
 
+#ifdef MC
+#include "rates.h"
+#endif
+
 /* int    LIM_SCALE; */
 /* phydbl LIM_SCALE_VAL; */
 /* phydbl MDBL_MAX; */
@@ -266,6 +270,7 @@ void Lk(arbre *tree)
   Set_Model_Parameters(tree->mod);
 
 #ifdef MC
+  if(tree->rates->bl_from_rt) RATES_Get_Br_Len(tree);
   if(tree->bl_from_node_stamps) MC_Bl_From_T(tree);
 #endif
 
@@ -336,6 +341,7 @@ phydbl Lk_At_Given_Edge(edge *b_fcus, arbre *tree)
   n_patterns = tree->n_pattern;
 
 #ifdef MC
+  if(tree->rates->bl_from_rt) RATES_Get_Br_Len(tree);
   if(tree->bl_from_node_stamps) MC_Bl_From_T(tree);
 #endif
 

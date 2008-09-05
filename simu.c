@@ -86,7 +86,6 @@ void Simu(arbre *tree, int n_step_max)
       tree->both_sides = 1;
       Lk(tree);
       
-
       if(tree->io->print_trace)
 	{
 	  PhyML_Fprintf(tree->io->fp_out_trace,"[%f]%s\n",tree->c_lnL,Write_Tree(tree)); fflush(tree->io->fp_out_trace);
