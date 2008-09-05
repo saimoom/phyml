@@ -677,7 +677,10 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	  {
 	    if(!strcmp(optarg,"e"))
 	      {
-		io->mod->s_opt->opt_state_freq = 1;
+	        if (io->mod->datatype == NT)
+		  io->mod->s_opt->opt_state_freq = 0;
+		else
+		  io->mod->s_opt->opt_state_freq = 1;
 		
 		if((io->mod->whichmodel == JC69) ||
 		   (io->mod->whichmodel == K80))
@@ -689,9 +692,12 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		    Exit("\n");
 		  }
 	      }
-	    else if(!strcmp(optarg,"d"))
+	    else if(!strcmp(optarg,"m"))
 	      {
-		io->mod->s_opt->opt_state_freq = 0;
+	        if (io->mod->datatype == NT)
+		  io->mod->s_opt->opt_state_freq = 1;
+		else
+		  io->mod->s_opt->opt_state_freq = 0;
 	      }
 	    else if(!isalpha(optarg[0]))
 	      {
