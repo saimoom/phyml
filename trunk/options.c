@@ -122,17 +122,17 @@ void Usage()
 
   PhyML_Printf("\n");
 
-  PhyML_Printf("%s\n\t-f %se%s, %sd%s, or %s\"fA fC fG fT\"%s\n",BOLD,LINE,BOLD,LINE,BOLD,LINE,FLAT);
+  PhyML_Printf("%s\n\t-f %se%s, %sm%s, or %s\"fA fC fG fT\"%s\n",BOLD,LINE,BOLD,LINE,BOLD,LINE,FLAT);
   PhyML_Printf("\t\t%se%s : the character frequencies are determined as follows : \n",LINE,FLAT);
-  PhyML_Printf("%s\t\t- %sNucleotide%s sequences: the equilibrium base frequencies are estimated using maximum likelihood \n",FLAT,LINE,FLAT);
-  PhyML_Printf("%s\t\t- %sAmino-acid%s sequences: the equilibrium amino-acid frequencies are estimated by counting the\n"
-"\t\t occurence of the different amino-acids in the data.\n",FLAT,LINE,FLAT);
+  PhyML_Printf("%s\t\t- %sNucleotide%s sequences: (Empirical) the equilibrium base frequencies are estimated by counting\n"
+	 "\t\t the occurence of the different bases in the alignment.\n",FLAT,LINE,FLAT);
+  PhyML_Printf("%s\t\t- %sAmino-acid%s sequences: (Empirical) the equilibrium amino-acid frequencies are estimated by counting\n"
+"\t\t the occurence of the different amino-acids in the alignment.\n",FLAT,LINE,FLAT);
   PhyML_Printf("\n");
-  PhyML_Printf("\t\t%sd%s : the character frequencies are determined as follows : \n",LINE,FLAT);
-  PhyML_Printf("%s\t\t- %sNucleotide%s sequences: the equilibrium base frequencies are estimated by counting the occurence\n"
-	 "\t\t of the different bases in the alignment.\n",FLAT,LINE,FLAT);
-  PhyML_Printf("%s\t\t- %sAmino-acid%s sequences: the equilibrium amino-acid frequencies are estimated using the frequencies\n"
-"\t\t defined by the substitution model.\n",FLAT,LINE,FLAT);
+  PhyML_Printf("\t\t%sm%s : the character frequencies are determined as follows : \n",LINE,FLAT);
+  PhyML_Printf("%s\t\t- %sNucleotide%s sequences: (ML) the equilibrium base frequencies are estimated using maximum likelihood \n",FLAT,LINE,FLAT);
+  PhyML_Printf("%s\t\t- %sAmino-acid%s sequences: (Model) the equilibrium amino-acid frequencies are estimated using\n"
+"\t\t the frequencies defined by the substitution model.\n",FLAT,LINE,FLAT);
   PhyML_Printf("\n");
   PhyML_Printf("\t\t%s\"fA fC fG fT\"%s : only valid for nucleotide-based models. fA, fC, fG and fT are floating numbers that \n",LINE,FLAT);
   PhyML_Printf("\t\t correspond to the frequencies of A, C, G and T respectively.\n");
@@ -221,7 +221,7 @@ void Usage()
   PhyML_Printf("%sEXAMPLES\n\n"
 	 "%s\tDNA interleaved sequence file, default parameters : ""%s  ./phyml -i seqs1"
 	 "%s\n\tAA interleaved sequence file, default parameters :  ""%s  ./phyml -i seqs2 -d aa"
-	 "%s\n\tAA sequential sequence file, with customization :   ""%s  ./phyml -i seqs3 -q -d aa -m JTT -c 4 -a e\n",BOLD,FLAT,BOLD,FLAT,BOLD,FLAT,BOLD);
+	 "%s\n\tAA sequential sequence file, with customization :   ""%s  ./phyml -i seqs3 -q -d aa -m JTT -c 4 -a e%s\n",BOLD,FLAT,BOLD,FLAT,BOLD,FLAT,BOLD,FLAT);
   Exit("");
 }
 
