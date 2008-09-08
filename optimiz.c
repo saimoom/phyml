@@ -593,7 +593,7 @@ phydbl Node_Time_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
   b=((ax > cx) ? ax : cx);
   x=w=v=bx;
   old_lnL = UNLIKELY;
-  tree->rates->t[des->num] = fabs(bx);
+  tree->rates->cur_t[des->num] = fabs(bx);
   fw=fv=fx=fu=-Lk_Triplet(anc,des,tree);
   init_lnL = -fw;
 
@@ -606,7 +606,7 @@ phydbl Node_Time_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 	  (tree->c_lnL > init_lnL - tol)) ||	 
 	 (iter > n_iter_max - 1))
 	{
-	  tree->rates->t[des->num]=x;
+	  tree->rates->cur_t[des->num]=x;
 	  Lk_Triplet(anc,des,tree);
 /* 	  PhyML_Printf("\n. iter=%3d max=%3d l=%f lnL=%f init_lnL=%f",iter,n_iter_max,des->t,tree->c_lnL,init_lnL); */
 	  return tree->c_lnL;
@@ -637,7 +637,7 @@ phydbl Node_Time_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 	}
       u=(fabs(d) >= tol1 ? x+d : x+SIGN(tol1,d));
       if(u<BL_MIN) u = BL_MIN;
-      tree->rates->t[des->num] = fabs(u);
+      tree->rates->cur_t[des->num] = fabs(u);
       old_lnL = tree->c_lnL;
       fu=-Lk_Triplet(anc,des,tree);
 
@@ -666,7 +666,7 @@ phydbl Node_Time_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 	    }
 	}
     }
-  if(iter > BRENT_ITMAX) PhyML_Printf("\n. Too many iterations in BRENT (%d) (%f)",iter,tree->rates->t[des->num]);
+  if(iter > BRENT_ITMAX) PhyML_Printf("\n. Too many iterations in BRENT (%d) (%f)",iter,tree->rates->cur_t[des->num]);
   return(-1);
   /* Not Reached ??  *xmin=x;   */
   /* Not Reached ??  return fx; */
@@ -2695,7 +2695,7 @@ phydbl Node_Time_Brent_Fixed_Br_Len(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
   old_lnL = UNLIKELY;
   new_t   = -fabs(bx);
   fw=fv=fx=fu = -RATES_Lk_Change_One_Time(n,new_t,tree);
-/*   tree->rates->t[n->num] = new_t; */
+/*   tree->rates->cur_t[n->num] = new_t; */
 /*   fw=fv=fx=fu = -RATES_Lk_Rates(tree); */
   init_lnL=-fw;
 /*   printf("\n. BRENT lk_init = %f",-fw); */
@@ -2710,9 +2710,9 @@ phydbl Node_Time_Brent_Fixed_Br_Len(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 	 (iter > n_iter_max - 1))
 	{
 	  RATES_Lk_Change_One_Time(n,-fabs(x),tree);
-/* 	  PhyML_Printf("\n. iter=%3d max=%3d l=%f lnL=%f init_lnL=%f",iter,n_iter_max,tree->rates->t[n->num],tree->rates->c_lnL,init_lnL); */
+/* 	  PhyML_Printf("\n. iter=%3d max=%3d l=%f lnL=%f init_lnL=%f",iter,n_iter_max,tree->rates->cur_t[n->num],tree->rates->c_lnL,init_lnL); */
 /* 	  RATES_Lk_Rates(tree); */
-/* 	  PhyML_Printf("\n. iter=%3d max=%3d l=%f lnL=%f init_lnL=%f",iter,n_iter_max,tree->rates->t[n->num],tree->rates->c_lnL,init_lnL); */
+/* 	  PhyML_Printf("\n. iter=%3d max=%3d l=%f lnL=%f init_lnL=%f",iter,n_iter_max,tree->rates->cur_t[n->num],tree->rates->c_lnL,init_lnL); */
 	  tree->rates->adjust_rates = 0;
 	  return tree->rates->c_lnL;
 	}
@@ -2744,12 +2744,12 @@ phydbl Node_Time_Brent_Fixed_Br_Len(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
       old_lnL = tree->rates->c_lnL;
       new_t = -fabs(u);
 
-      tree->rates->t[n->num] = new_t;
+      tree->rates->cur_t[n->num] = new_t;
 /*       fu = - RATES_Lk_Rates(tree); */
 /*       printf("\n. %f ",tree->rates->c_lnL); */
       fu=-RATES_Lk_Change_One_Time(n,new_t,tree);      
 /*       printf(" lk=%f ",tree->rates->c_lnL); */
-/*       PhyML_Printf("\n. BRENT node %3d t=%f lnL=%20f iter=%3d",n->num,tree->rates->t[n->num],-fu,iter); */
+/*       PhyML_Printf("\n. BRENT node %3d t=%f lnL=%20f iter=%3d",n->num,tree->rates->cur_t[n->num],-fu,iter); */
 
       if(fu <= fx)
 	{
@@ -2774,8 +2774,8 @@ phydbl Node_Time_Brent_Fixed_Br_Len(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 	    }
 	}
     }
-/*   PhyML_Printf("\n. iter=%3d max=%3d l=%f lnL=%f init_lnL=%f",iter,n_iter_max,tree->rates->t[n->num],tree->rates->c_lnL,init_lnL); */
-  if(iter > BRENT_ITMAX) PhyML_Printf("\n. Too many iterations in BRENT (%d) (%f)",iter,tree->rates->t[n->num]);
+/*   PhyML_Printf("\n. iter=%3d max=%3d l=%f lnL=%f init_lnL=%f",iter,n_iter_max,tree->rates->cur_t[n->num],tree->rates->c_lnL,init_lnL); */
+  if(iter > BRENT_ITMAX) PhyML_Printf("\n. Too many iterations in BRENT (%d) (%f)",iter,tree->rates->cur_t[n->num]);
   tree->rates->adjust_rates = 0;
   return(-1);
   /* Not Reached ??  *xmin=x;   */
