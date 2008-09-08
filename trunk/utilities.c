@@ -8948,7 +8948,7 @@ arbre *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
       tree->noeud[n1]->v[0] = curr_n;
       tree->noeud[n2]->v[0] = curr_n;
       
-      tree->rates->t[curr_n->num] = t[n_connected/2];
+      tree->rates->cur_t[curr_n->num] = t[n_connected/2];
 
       available_nodes[n_available] = tree->noeud[n1]->num;  
       For(i,n_available)
@@ -8966,7 +8966,7 @@ arbre *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
 
     }while(n_connected < 2*tree->n_otu-2);
 
-  For(i,2*tree->n_otu-2) tmp[i] = tree->rates->t[i];
+  For(i,2*tree->n_otu-2) tmp[i] = tree->rates->cur_t[i];
 
   /* Unroot the tree */
   root->v[1]->v[0] = root->v[2];
@@ -8991,15 +8991,15 @@ arbre *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
 	}
       else
 	{
-	  tree->rates->t[i]   = tmp[internal_nodes[n_internal]->num];
-	  tree->noeud[i]      = internal_nodes[n_internal++];
-	  tree->noeud[i]->tax = 0;
+	  tree->rates->cur_t[i] = tmp[internal_nodes[n_internal]->num];
+	  tree->noeud[i]        = internal_nodes[n_internal++];
+	  tree->noeud[i]->tax   = 0;
 	}
 
       tree->noeud[i]->num = i;
     }
 
-  For(i,tree->n_otu) tree->rates->t[i] = 0.0;
+  For(i,tree->n_otu) tree->rates->cur_t[i] = 0.0;
   
   For(i,tree->n_otu) 
     {
@@ -9037,9 +9037,9 @@ arbre *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
 
   if(rooted)
     {
-      tree->n_root->l[0] = (tree->rates->t[tree->n_root->v[0]->num] - t[0]);
-      tree->n_root->l[1] = (tree->rates->t[tree->n_root->v[1]->num] - t[0]);
-      tree->e_root->l = tree->n_root->l[0] + tree->n_root->l[1];
+      tree->n_root->l[0] = (tree->rates->cur_t[tree->n_root->v[0]->num] - t[0]);
+      tree->n_root->l[1] = (tree->rates->cur_t[tree->n_root->v[1]->num] - t[0]);
+      tree->e_root->l    = tree->n_root->l[0] + tree->n_root->l[1];
     }
 
   RATES_Random_Branch_Lengths(tree);

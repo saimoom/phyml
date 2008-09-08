@@ -1413,17 +1413,17 @@ phydbl Lk_Triplet(node *a, node *d, arbre *tree)
     {
       if((d->v[i] != a) && (d->b[i] != tree->e_root))
 	{
-	  if(tree->rates->t[d->v[i]->num] > max_height)
+	  if(tree->rates->cur_t[d->v[i]->num] > max_height)
 	    {
-	      max_height = tree->rates->t[d->v[i]->num];
+	      max_height = tree->rates->cur_t[d->v[i]->num];
 	    }
 	}
       else
 	{
 	  up_bound = 
 	    (a == tree->n_root)?
-	    (tree->rates->t[a->num]):
-	    (tree->rates->t[d->v[i]->num]);
+	    (tree->rates->cur_t[a->num]):
+	    (tree->rates->cur_t[d->v[i]->num]);
 	}
     }
 
@@ -1436,8 +1436,8 @@ phydbl Lk_Triplet(node *a, node *d, arbre *tree)
       Warn_And_Exit("\n");
     }
 
-  if(tree->rates->t[d->num] < low_bound) tree->rates->t[d->num] = low_bound;
-  else if(tree->rates->t[d->num] > up_bound) tree->rates->t[d->num] = up_bound;
+  if(tree->rates->cur_t[d->num] < low_bound) tree->rates->cur_t[d->num] = low_bound;
+  else if(tree->rates->cur_t[d->num] > up_bound) tree->rates->cur_t[d->num] = up_bound;
 
   /* Step (1) */
   For(i,3)
@@ -1445,7 +1445,7 @@ phydbl Lk_Triplet(node *a, node *d, arbre *tree)
       if((d->v[i] != a) && (d->b[i] != tree->e_root)) 
 	{
 	  d->b[i]->l = 
-	    (tree->rates->t[d->num] - tree->rates->t[d->v[i]->num]) * 
+	    (tree->rates->cur_t[d->num] - tree->rates->cur_t[d->v[i]->num]) * 
 	    tree->rates->clock_r * 
 	    tree->rates->br_r[d->b[i]->num];
 	}
@@ -1454,12 +1454,12 @@ phydbl Lk_Triplet(node *a, node *d, arbre *tree)
 	  if(a == tree->n_root)
 	    {
 	      d->b[i]->l = 
-		(tree->rates->t[tree->n_root->num] - tree->rates->t[tree->n_root->v[0]->num] + 
-		 tree->rates->t[tree->n_root->num] - tree->rates->t[tree->n_root->v[1]->num]) * tree->rates->clock_r;
+		(tree->rates->cur_t[tree->n_root->num] - tree->rates->cur_t[tree->n_root->v[0]->num] + 
+		 tree->rates->cur_t[tree->n_root->num] - tree->rates->cur_t[tree->n_root->v[1]->num]) * tree->rates->clock_r;
 	    }
 	  else
 	    {
-	      d->b[i]->l = (tree->rates->t[a->num] - tree->rates->t[d->num]) * tree->rates->clock_r * tree->rates->br_r[d->b[i]->num];	    
+	      d->b[i]->l = (tree->rates->cur_t[a->num] - tree->rates->cur_t[d->num]) * tree->rates->clock_r * tree->rates->br_r[d->b[i]->num];	    
 	    }
 	}
     }

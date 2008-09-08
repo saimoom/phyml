@@ -774,7 +774,6 @@ typedef struct __Trate {
   phydbl  lexp; /* Parameter of the exponential distribution that governs the rate at which substitution between rate classes ocur */
   phydbl alpha;
   phydbl **mc_mr; /* probability density of mean rates on each branch */
-  phydbl *t;
   phydbl *true_t;
   phydbl *dens; /* Probability densities of mean substitution rates at the nodes */
   phydbl c_lnL; /* Prob(Br len | time stamps, model of rate evolution) */
@@ -787,8 +786,10 @@ typedef struct __Trate {
   phydbl min_rate;
   phydbl max_rate;
   phydbl step_rate;
-  phydbl  *cur_r;
-  phydbl  *old_r;
+  phydbl  *cur_r; /* Current branch rates */
+  phydbl  *old_r; /* Old branch rates */
+  phydbl  *cur_t; /* Current node times */
+  phydbl  *old_t; /* Old node times */
   
   int bl_from_rt; /* if =1, branch lengths are obtained as the product of cur_r and t */
   int approx;
