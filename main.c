@@ -198,7 +198,7 @@ int main(int argc, char **argv)
 		}
 
 	      /* Launch bootstrap analysis */
-	      if(tree->mod->bootstrap) 
+	      if(mod->bootstrap) 
 		{
 		  PhyML_Printf("\n. Launch bootstrap analysis on the most likely tree...\n");
 
@@ -209,7 +209,7 @@ int main(int argc, char **argv)
 
 		  Bootstrap_From_String(most_likely_tree,alldata,mod,io);
 		}
-	      else if(tree->io->ratio_test) 
+	      else if(io->ratio_test) 
 		{
 		  /* Launch aLRT */
 		  PhyML_Printf("\n. Compute aLRT branch supports on the most likely tree...\n");
