@@ -109,17 +109,18 @@ void MCMC(arbre *tree)
  	case 3 : { MCMC_Rates_Global(tree); break; }
 	case 4 : { MCMC_Times_Local(tree);  break; }
 	case 5 : { MCMC_Times_Global(tree); break; }
- 	case 8 : { u = Uni(); if(u < 0.2) MCMC_Stick_Rates(tree); break; }
+ 	case 8 : { /* u = Uni(); if(u < 0.2) */ MCMC_Stick_Rates(tree); break; }
 	case 9 : { MCMC_Mixing_Step(tree);  break;}
 	}
 	    
       MCMC_Print_Param(fp,tree);
       MCMC_Print_Param(stdout,tree);
 
-      if(!(tree->mcmc->run%10))
+      if(!(tree->mcmc->run%100))
 	{
 	  RATES_Adjust_Clock_Rate(tree);
 	  RATES_Lk_Rates(tree);
+	  tree->both_sides = 0;
 	  Lk(tree);
 	}
     }
@@ -278,7 +279,6 @@ void MCMC_Times_Local(arbre *tree)
   local = 1;
   MCMC_Times_Pre(tree->n_root,tree->n_root->v[0],local,tree);
   MCMC_Times_Pre(tree->n_root,tree->n_root->v[1],local,tree);
-  RATES_Lk_Rates(tree);
 }
 
 /*********************************************************/
@@ -286,11 +286,13 @@ void MCMC_Times_Local(arbre *tree)
 void MCMC_Rates_Local(arbre *tree)
 {
   int local;
+
+  tree->both_sides = 1;
+  Lk(tree);
+
   local = 1;
   MCMC_Rates_Pre(tree->n_root,tree->n_root->v[0],local,tree);
   MCMC_Rates_Pre(tree->n_root,tree->n_root->v[1],local,tree);
-  RATES_Lk_Rates(tree);
-  Lk(tree);
 }
 
 /*********************************************************/
@@ -305,8 +307,9 @@ void MCMC_Rates_Global(arbre *tree)
 
   local = 0;
 
-  cur_lnL_data = tree->c_lnL;
-  cur_lnL_rate = tree->rates->c_lnL;
+  tree->both_sides = 0;
+  cur_lnL_data     = tree->c_lnL;
+  cur_lnL_rate     = tree->rates->c_lnL;
   
   RATES_Record_Rates(tree);
 
@@ -432,10 +435,11 @@ void MCMC_Times_Global(arbre *tree)
 
 void MCMC_Stick_Rates(arbre *tree)
 {
+  tree->both_sides = 1;
+  Lk(tree);
+
   MCMC_Stick_Rates_Pre(tree->n_root,tree->n_root->v[0],tree);
   MCMC_Stick_Rates_Pre(tree->n_root,tree->n_root->v[1],tree);
-  RATES_Lk_Rates(tree);
-  Lk(tree);
 }
 
 /*********************************************************/
