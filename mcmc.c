@@ -109,7 +109,7 @@ void MCMC(arbre *tree)
  	case 3 : { MCMC_Rates_Global(tree); break; }
 	case 4 : { MCMC_Times_Local(tree);  break; }
 	case 5 : { MCMC_Times_Global(tree); break; }
- 	case 8 : { /* u = Uni(); if(u < 0.2) */ MCMC_Stick_Rates(tree); break; }
+ 	case 8 : { u = Uni(); if(u < 0.2) MCMC_Stick_Rates(tree); break; }
 	case 9 : { MCMC_Mixing_Step(tree);  break;}
 	}
 	    
