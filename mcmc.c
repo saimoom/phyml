@@ -667,7 +667,7 @@ void MCMC_Times_Pre(node *a, node *d, int local, arbre *tree)
     new_t = u*(t_inf-t_sup) + t_sup;
   else
     {
-      new_t = cur_t + 2.0*(u-0.5);
+      new_t = cur_t + 1.0*(u-0.5);
       do
 	{
 	  if((new_t < t_inf) && (new_t > t_sup)) break;
