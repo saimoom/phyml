@@ -207,21 +207,20 @@ int main(int argc, char **argv)
 		  PhyML_Printf("\n. The bootstrap analysis will use %d CPUs.",Global_numTask);
 		  #endif
 
-		  Bootstrap_From_String(most_likely_tree,alldata,mod,io);
+		  most_likely_tree = Bootstrap_From_String(most_likely_tree,alldata,mod,io);
 		}
 	      else if(io->ratio_test) 
 		{
 		  /* Launch aLRT */
 		  PhyML_Printf("\n. Compute aLRT branch supports on the most likely tree...\n");
-		  aLRT_From_String(most_likely_tree,alldata,mod,io);
+		  most_likely_tree = aLRT_From_String(most_likely_tree,alldata,mod,io);
 		}
 
 	      /* Print the most likely tree in the output file */
 	      PhyML_Printf("\n. Printing the most likely tree in file '%s'...\n",io->out_tree_file);
 	      if(io->n_data_sets == 1) rewind(io->fp_out_tree);
-
 	      PhyML_Fprintf(io->fp_out_tree,"%s\n",most_likely_tree);
-
+	      
 	      if(io->n_trees > 1 && io->n_data_sets > 1) break;
 	    }
 	  Free_Cseq(alldata);

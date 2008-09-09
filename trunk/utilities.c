@@ -9872,7 +9872,7 @@ void Print_Time_Info(time_t t_beg, time_t t_end)
 
 /*********************************************************/
 
-void Bootstrap_From_String(char *s_tree, allseq *alldata, model *mod, option *io)
+char *Bootstrap_From_String(char *s_tree, allseq *alldata, model *mod, option *io)
 {
   arbre *tree;
 
@@ -9916,11 +9916,13 @@ void Bootstrap_From_String(char *s_tree, allseq *alldata, model *mod, option *io
   Free_Tree_Pars(tree);
   Free_Tree_Lk(tree);
   Free_Tree(tree);
+
+  return s_tree;
 }
 
 /*********************************************************/
 
-void aLRT_From_String(char *s_tree, allseq *alldata, model *mod, option *io)
+char *aLRT_From_String(char *s_tree, allseq *alldata, model *mod, option *io)
 {
   arbre *tree;
 
@@ -9963,6 +9965,8 @@ void aLRT_From_String(char *s_tree, allseq *alldata, model *mod, option *io)
   Free_Tree_Pars(tree);
   Free_Tree_Lk(tree);
   Free_Tree(tree);
+  
+  return s_tree;
 }
 
 /*********************************************************/
