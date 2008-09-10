@@ -2820,13 +2820,13 @@ void Print_Seq(seq **data, int n_otu)
   PhyML_Printf("%d\t%d\n",n_otu,data[0]->len);
   For(i,n_otu)
     {
-/*       For(j,30) */
-/* 	{ */
-/* 	  if(j<(int)strlen(data[i]->name)) */
-/* 	     putchar(data[i]->name[j]); */
-/* 	  else putchar(' '); */
-/* 	} */
-      PhyML_Printf("%10d  ",i);
+      For(j,20)
+	{
+	  if(j<(int)strlen(data[i]->name))
+	     putchar(data[i]->name[j]);
+	  else putchar(' ');
+	}
+/*       PhyML_Printf("%10d  ",i); */
       For(j,data[i]->len)
 	{
 	  PhyML_Printf("%c",data[i]->state[j]);
