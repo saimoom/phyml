@@ -531,7 +531,7 @@ void RATES_Init_Rate_Struct(trate *rates, int n_otu)
   rates->c_lnL_jps     = -INFINITY;
   rates->adjust_rates  = 0;
   rates->use_rates     = 1;
-  rates->lexp          = 0.05;
+  rates->lexp          = 0.15;
   rates->alpha         = 2.0;
   rates->birth_rate    = 0.001;
   rates->max_rate      = 100.;

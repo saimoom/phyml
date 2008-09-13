@@ -177,7 +177,7 @@ int MC_main(int argc, char **argv)
 
 		  int n_otu,i;
 
-		  n_otu = 80;
+		  n_otu = 20;
 
 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1);
 

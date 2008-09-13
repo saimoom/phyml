@@ -572,7 +572,7 @@ void MCMC_Jumps_Pre(node *a, node *d, int local, arbre *tree)
 
   new_jps = cur_jps + (int)((u-0.5)*8.);
 
-  if(local && new_jps > -1 && new_jps < 10.)
+  if(local && new_jps > -1 && new_jps < 30)
     {
       tree->rates->n_jps[d->num] = new_jps;
 
