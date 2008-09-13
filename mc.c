@@ -177,7 +177,7 @@ int MC_main(int argc, char **argv)
 
 		  int n_otu,i;
 
-		  n_otu = 20;
+		  n_otu = 80;
 
 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1);
 
@@ -213,7 +213,6 @@ int MC_main(int argc, char **argv)
 		  tree->both_sides = 1;
 		  tree->rates->model = COMPOUND_COR;
 		  Lk(tree);
-		  RATES_Get_Rates_From_Bl(tree);
 		  RATES_Lk_Rates(tree);
 		  printf("\n. CORRELATED lnL_data = %f lnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL);
 		  tree->rates->bl_from_rt = 1;
@@ -228,7 +227,6 @@ int MC_main(int argc, char **argv)
 		  tree->both_sides = 1;
 		  tree->rates->model = COMPOUND_COR;
 		  Lk(tree);
-		  RATES_Get_Rates_From_Bl(tree);
 		  RATES_Lk_Rates(tree);
 		  printf("\n. CORRELATED lnL_data = %f lnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL);
 		  tree->rates->bl_from_rt = 1;
@@ -240,9 +238,7 @@ int MC_main(int argc, char **argv)
 		  MCMC_Init_MCMC_Struct(tree->mcmc);
 		  tree->both_sides = 1;
 		  tree->rates->model = COMPOUND_NOCOR;
-		  Round_Optimize(tree,tree->data);
 		  Lk(tree);
-		  RATES_Get_Rates_From_Bl(tree);
 		  RATES_Lk_Rates(tree);
 		  printf("\n. NOT CORRELATED lnL_data = %f lnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL);
 		  tree->rates->bl_from_rt = 1;
@@ -254,9 +250,7 @@ int MC_main(int argc, char **argv)
 		  MCMC_Init_MCMC_Struct(tree->mcmc);
 		  tree->both_sides = 1;
 		  tree->rates->model = EXPONENTIAL;
-		  Round_Optimize(tree,tree->data);
 		  Lk(tree);
-		  RATES_Get_Rates_From_Bl(tree);
 		  RATES_Lk_Rates(tree);
 		  printf("\n. EXPONENTIAL lnL_data = %f lnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL);
 		  tree->rates->bl_from_rt = 1;
@@ -270,7 +264,6 @@ int MC_main(int argc, char **argv)
 		  tree->rates->model = GAMMA;
 		  Round_Optimize(tree,tree->data);
 		  Lk(tree);
-		  RATES_Get_Rates_From_Bl(tree);
 		  RATES_Lk_Rates(tree);
 		  printf("\n. GAMMA lnL_data = %f lnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL);
 		  tree->rates->bl_from_rt = 1;
