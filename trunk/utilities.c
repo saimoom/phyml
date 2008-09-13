@@ -606,6 +606,7 @@ phydbl Dpois(phydbl x, phydbl param)
 
   if(x < 0) 
     {
+      printf("\n. x = %f",x);
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }

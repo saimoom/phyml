@@ -60,7 +60,7 @@ the GNU public licence. See http://www.opensource.org for details.
 #define  N_MAX_OPTIONS        100
 #define  MIN_DT              0.01
 #define  H_MCMC_RATES         0.5
-#define  H_MCMC_LEXP          0.5
+#define  H_MCMC_LEXP          0.1
 #define  H_MCMC_NU            1.0
 
 #define  T_MAX_FILE           100
@@ -775,8 +775,11 @@ typedef struct __Trate {
   phydbl alpha;
   phydbl **mc_mr; /* probability density of mean rates on each branch */
   phydbl *true_t;
+  int *n_jps;
+  int *t_jps;
   phydbl *dens; /* Probability densities of mean substitution rates at the nodes */
   phydbl c_lnL; /* Prob(Br len | time stamps, model of rate evolution) */
+  phydbl c_lnL_jps; /* Prob(# Jumps | time stamps, rates, model of rate evolution) */
   int adjust_rates; /* if = 1, branch rates are adjusted such that a modification of a given node time
 		       does not modify any branch lengths */
   int use_rates; /* if = 0, branch lengths are expressed as differences between node times */

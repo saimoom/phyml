@@ -35,7 +35,7 @@ void RATES_Optimize_Lexp(arbre *tree);
 void RATES_Round_Optimize(arbre *tree);
 void RATES_Optimize_Lexp(arbre *tree);
 void RATES_Optimize_Alpha(arbre *tree);
-phydbl RATES_Dmu(phydbl mu, phydbl dt, phydbl a, phydbl b, phydbl lexp, int min_n);
+phydbl RATES_Dmu(phydbl mu, int n_jumps, phydbl dt, phydbl a, phydbl b, phydbl lexp, int min_n, int jps_dens);
 phydbl RATES_Dr_X_Dx(phydbl r, phydbl mu, phydbl y, phydbl dt, phydbl a, phydbl b, phydbl lexp);
 phydbl RATES_Dmu_Given_Y_Trpzd(phydbl mu, phydbl y, phydbl dt, phydbl a, phydbl b, phydbl lexp, 
 			       int nsteps, phydbl beg, phydbl end, phydbl prevs);
@@ -63,7 +63,7 @@ void RATES_Replace_Br_Lengths_By_Rates(arbre *tree);
 
 void RATES_Get_Mean_Rates(arbre *tree);
 void RATES_Get_Mean_Rates_Pre(node *a, node *d, edge *b, phydbl *r_a, phydbl alpha, phydbl lexp, arbre *tree);
-phydbl RATES_Expect_Number_Subst(phydbl t_beg, phydbl t_end, phydbl *r_beg, phydbl alpha, phydbl lexp);
+void RATES_Expect_Number_Subst(phydbl t_beg, phydbl t_end, phydbl *r_beg, phydbl alpha, phydbl lexp, int *n_jumps, phydbl *mean_r);
 void RATES_Optimize_Clock_Rate(arbre *tree);
 phydbl RATES_Dmu1_Given_Lbda_And_Mu2(phydbl lbda, phydbl mu1, phydbl mu2, phydbl alpha, phydbl beta);
 phydbl RATES_Dmu1_And_Mu2_One_Jump_Trpz(phydbl mu1, phydbl mu2, phydbl a, phydbl b,
@@ -75,7 +75,7 @@ phydbl RATES_Dmu1_And_Mu2_One_Jump_Old(phydbl mu1, phydbl mu2, phydbl a, phydbl 
 
 phydbl RATES_Dmu2_And_Min_N_Given_Mu1(phydbl mu1, phydbl mu2, phydbl dt1, phydbl dt2, int n_min, phydbl a, phydbl b, phydbl lexp);
 phydbl RATES_Dmu2_And_Mu1_Given_N(phydbl mu1, phydbl mu2, phydbl dt1, phydbl dt2, int n, phydbl a, phydbl b, phydbl lexp);
-phydbl RATES_Lk_Rates_Core(phydbl mu1, phydbl mu2, phydbl dt1, phydbl dt2, arbre *tree);
+phydbl RATES_Lk_Rates_Core(phydbl mu1, phydbl mu2, int n1, int n2, phydbl dt1, phydbl dt2, arbre *tree);
 void RATES_Init_Triplets(arbre *tree);
 phydbl RATES_Lk_Change_One_Time(node *n, phydbl new_t, arbre *tree);
 void RATES_Update_Triplet(node *n, arbre *tree);
@@ -94,7 +94,7 @@ void RATES_Discretize_Rates(arbre *tree);
 void RATES_Discretize_Rates_Pre(node *a, node *d, edge *b, arbre *tree);
 phydbl RATES_Dmu_Given_V_And_MinN(phydbl mu, phydbl dt, phydbl v, int minn, phydbl a, phydbl b, phydbl lexp);
 phydbl RATES_Dmu_One(phydbl mu, phydbl dt, phydbl a, phydbl b, phydbl lexp);
-phydbl RATES_Compound_Core(phydbl mu1, phydbl mu2, phydbl dt1, phydbl dt2, phydbl alpha, phydbl beta, phydbl lexp, phydbl eps, int approx);
+phydbl RATES_Compound_Core(phydbl mu1, phydbl mu2, int n1, int n2, phydbl dt1, phydbl dt2, phydbl alpha, phydbl beta, phydbl lexp, phydbl eps, int approx);
 void RATES_Record_Rates(arbre *tree);
 void RATES_Reset_Rates(arbre *tree);
 void RATES_Record_Times(arbre *tree);
@@ -103,5 +103,11 @@ void RATES_Update_T_Rates_Pre(node *a, node *d, arbre *tree);
 void RATES_Update_T_Rates(arbre *tree);
 void RATES_Get_Br_Len(arbre *tree);
 void RATES_Get_Rates_From_Bl(arbre *tree);
+phydbl RATES_Compound_Core_Joint(phydbl mu1, phydbl mu2, int n1, int n2, phydbl dt1, phydbl dt2, 
+				 phydbl alpha, phydbl beta, phydbl lexp, phydbl eps, int approx);
+phydbl RATES_Dmu_Joint(phydbl mu, int n, phydbl dt, phydbl a, phydbl b, phydbl lexp, int min_n);
+phydbl RATES_Compound_Core_Marginal(phydbl mu1, phydbl mu2, phydbl dt1, phydbl dt2, phydbl alpha, 
+				    phydbl beta, phydbl lexp, phydbl eps, int approx);
+phydbl RATES_Lk_Jumps(arbre *tree);
 
 #endif
