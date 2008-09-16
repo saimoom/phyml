@@ -119,7 +119,7 @@ void MCMC(arbre *tree)
       MCMC_Times_Local(tree);  tree->mcmc->run++;
 /*       MCMC_Times_Global(tree); tree->mcmc->run++;  */
 /*       MCMC_Stick_Rates(tree);  tree->mcmc->run++;  */
-      MCMC_Mixing_Step(tree);  tree->mcmc->run++;
+/*       MCMC_Mixing_Step(tree);  tree->mcmc->run++; */
 /*       MCMC_Jumps_Local(tree);  tree->mcmc->run++; */
 
 
@@ -816,8 +816,8 @@ void MCMC_Times_Pre(node *a, node *d, int local, arbre *tree)
       tree->rates->cur_r[d->v[dir1]->num] *= (cur_dt1 / new_dt1);
       tree->rates->cur_r[d->v[dir2]->num] *= (cur_dt2 / new_dt2);
       
-      new_lnL_rate  = RATES_Lk_Rates(tree);
-/*       new_lnL_rate  = RATES_Lk_Change_One_Time(d,new_t,tree); */
+/*       new_lnL_rate  = RATES_Lk_Rates(tree); */
+      new_lnL_rate  = RATES_Lk_Change_One_Time(d,new_t,tree);
       new_lnL_times = RATES_Yule(tree);
       
       ratio =
@@ -851,8 +851,8 @@ void MCMC_Times_Pre(node *a, node *d, int local, arbre *tree)
 	  RATES_Reset_Times(tree);
 	  RATES_Reset_Rates(tree);
 	  
-	  RATES_Lk_Rates(tree);
-/* 	  RATES_Lk_Change_One_Time(d,cur_t,tree); */
+/* 	  RATES_Lk_Rates(tree); */
+	  RATES_Lk_Change_One_Time(d,cur_t,tree);
 	  
 	  if((fabs(cur_lnL_data - tree->c_lnL) > 1.E-3) || (fabs(cur_lnL_rate - tree->rates->c_lnL) > 1.E-0))
 	    {
