@@ -60,7 +60,7 @@ the GNU public licence. See http://www.opensource.org for details.
 #define  N_MAX_OPTIONS        100
 #define  MIN_DT              0.01
 #define  H_MCMC_RATES         0.5
-#define  H_MCMC_LEXP          0.1
+#define  H_MCMC_LEXP          0.5
 #define  H_MCMC_NU            1.0
 
 #define  T_MAX_FILE           100

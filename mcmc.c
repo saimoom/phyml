@@ -85,37 +85,49 @@ void MCMC(arbre *tree)
 
   MCMC_Randomize_Rates(tree);
   MCMC_Randomize_Lexp(tree);
-  MCMC_Randomize_Jumps(tree);
+/*   MCMC_Randomize_Jumps(tree); */
 /*   MCMC_Randomize_Alpha(tree); */
   MCMC_Randomize_Node_Times(tree);
 
+
   RATES_Lk_Rates(tree);
   Lk(tree);
-
+  
   n_moves = 11;
   do
-    {
-      tree->mcmc->run++;
-      
+    {            
       u = Uni();
       u = rint(u*(n_moves));
 
+/*       switch((int)u) */
+/* 	{ */
+/* 	case 0  : { MCMC_Lexp(tree);         tree->mcmc->run++; break; } */
+/* /\* 	case 1  : { MCMC_Alpha(tree);        tree->mcmc->run++; break; } *\/ */
+/* /\*  	case 2  : { MCMC_Rates_Local(tree);  tree->mcmc->run++; break; } *\/ */
+/* /\*  	case 3  : { MCMC_Rates_Global(tree); tree->mcmc->run++; break; } *\/ */
+/* /\* 	case 4  : { MCMC_Times_Local(tree);  tree->mcmc->run++; break; } *\/ */
+/* /\* 	case 5  : { MCMC_Times_Global(tree); tree->mcmc->run++; break; } *\/ */
+/* /\*  	case 8  : { MCMC_Stick_Rates(tree);  tree->mcmc->run++; break; } *\/ */
+/* /\* 	case 9  : { MCMC_Mixing_Step(tree);  tree->mcmc->run++; break;} *\/ */
+/* /\* 	case 10 : { MCMC_Jumps_Local(tree);  tree->mcmc->run++; break;} *\/ */
+/*  	} */
 
-      switch((int)u)
+      MCMC_Lexp(tree);         tree->mcmc->run++; 
+/*       MCMC_Alpha(tree);        tree->mcmc->run++;  */
+      MCMC_Rates_Local(tree);  tree->mcmc->run++;
+/*       MCMC_Rates_Global(tree); tree->mcmc->run++;  */
+      MCMC_Times_Local(tree);  tree->mcmc->run++;
+/*       MCMC_Times_Global(tree); tree->mcmc->run++;  */
+/*       MCMC_Stick_Rates(tree);  tree->mcmc->run++;  */
+      MCMC_Mixing_Step(tree);  tree->mcmc->run++;
+/*       MCMC_Jumps_Local(tree);  tree->mcmc->run++; */
+
+
+      if(tree->mcmc->run > 0)
 	{
-	case 0  : { MCMC_Lexp(tree);         break; }
-/* 	case 1  : { MCMC_Alpha(tree);        break; } */
- 	case 2  : { MCMC_Rates_Local(tree);  break; }
-/*  	case 3  : { MCMC_Rates_Global(tree); break; } */
-	case 4  : { MCMC_Times_Local(tree);  break; }
-/* 	case 5  : { MCMC_Times_Global(tree); break; } */
- 	case 8  : { MCMC_Stick_Rates(tree); break; }
-	case 9  : { MCMC_Mixing_Step(tree);  break;}
-	case 10 : { MCMC_Jumps_Local(tree);  break;}
- 	}
-	    
-      MCMC_Print_Param(fp,tree);
-      MCMC_Print_Param(stdout,tree);
+	  MCMC_Print_Param(fp,tree);
+	  MCMC_Print_Param(stdout,tree);
+	}
 
       if(!(tree->mcmc->run%100))
 	{
@@ -154,6 +166,13 @@ void MCMC_Lexp(arbre *tree)
 
   cur_lexp = tree->rates->lexp;
   
+  if(cur_lexp > 2.0)
+    {
+      printf("\n. cur_lexp = %f iter=%d",cur_lexp,tree->mcmc->run);
+
+    }
+
+
   u = Uni();
   new_lexp = cur_lexp * exp(H_MCMC_LEXP*(u-0.5));
 
@@ -1028,7 +1047,7 @@ void MCMC_Randomize_Lexp(arbre *tree)
       u = Uni();
       tree->rates->lexp = -log(u);
     }
-  while((tree->rates->lexp < 1.E-5) && (tree->rates->lexp > 2.0));
+  while((tree->rates->lexp < 1.E-5) || (tree->rates->lexp > 2.0));
 }
 
 /*********************************************************/
@@ -1041,7 +1060,7 @@ void MCMC_Randomize_Nu(arbre *tree)
       u = Uni();
       tree->rates->nu = -log(u);
     }
-  while((tree->rates->nu < 1.E-5) && (tree->rates->nu > 10.0));
+  while((tree->rates->nu < 1.E-5) || (tree->rates->nu > 10.0));
 }
 
 /*********************************************************/
