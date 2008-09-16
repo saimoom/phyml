@@ -531,7 +531,7 @@ void RATES_Init_Rate_Struct(trate *rates, int n_otu)
   rates->c_lnL_jps     = -INFINITY;
   rates->adjust_rates  = 0;
   rates->use_rates     = 1;
-  rates->lexp          = 0.15;
+  rates->lexp          = 0.05;
   rates->alpha         = 2.0;
   rates->birth_rate    = 0.001;
   rates->max_rate      = 100.;
@@ -782,7 +782,7 @@ void RATES_Get_Mean_Rates_Pre(node *a, node *d, edge *b, phydbl *r_a, phydbl alp
   RATES_Expect_Number_Subst(a_t,d_t,r_a,alpha,lexp,&n_jumps,&mean_r);
   
   tree->rates->cur_r[d->num] = mean_r;
-  tree->rates->n_jps[d->num] = n_jumps;
+/*   tree->rates->n_jps[d->num] = n_jumps; */
   tree->rates->t_jps[d->num] = n_jumps;
 
 /*   printf("\n. a=%3d d=%3d mu=%15f nj=%3d r_a=%f", */
