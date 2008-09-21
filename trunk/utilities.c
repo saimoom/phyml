@@ -6348,7 +6348,7 @@ int Are_Compatible(char *statea, char *stateb, int stepsize, int datatype)
 		  {
                       PhyML_Printf("\n. Err. in Are_Compatible\n");
                       PhyML_Printf("\n. Please check that characters `%c` and `%c`\n",a,b);
-                      PhyML_Printf("  correspond to existing amino-acids.\n");
+                      PhyML_Printf("  correspond to existing nucleotides.\n");
                       Warn_And_Exit("\n");
                       return 0;
 		  }

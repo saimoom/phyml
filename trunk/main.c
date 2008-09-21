@@ -100,7 +100,6 @@ int main(int argc, char **argv)
 	  if(io->n_data_sets > 1) PhyML_Printf("\n. Data set [#%d]\n",num_data_set+1);
 	  PhyML_Printf("\n. Compressing sequences...\n");
 	  alldata = Compact_Seq(data,io);
-	  Print_Seq(data,alldata->n_otu);
 	  Free_Seq(data,alldata->n_otu);
 	  Check_Ambiguities(alldata,io->mod->datatype,io->mod->stepsize);
 
