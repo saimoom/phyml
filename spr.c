@@ -3460,7 +3460,7 @@ void Speed_Spr(arbre *tree)
     }
 
   /* Optimise parameters of the Markov model */
-/*   Optimiz_All_Free_Param(tree,0); */
+  Optimiz_All_Free_Param(tree,0);
 
   tree->both_sides = 1;
   Pars(tree);
@@ -3486,8 +3486,8 @@ void Speed_Spr(arbre *tree)
       tree->perform_spr_right_away = 1;
       Spr(UNLIKELY,tree);
 
-      /* Optimise parameters of the Markov model */
-      Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
+/*       /\* Optimise parameters of the Markov model *\/ */
+/*       Optimiz_All_Free_Param(tree,tree->mod->s_opt->print); */
 
       /* Optimise branch lengths */
       Optimize_Br_Len_Serie(tree->noeud[0],
@@ -3529,6 +3529,11 @@ void Speed_Spr(arbre *tree)
 	 (fabs(old_lnL-tree->c_lnL) < tree->mod->s_opt->min_diff_lk_global)) break;
 
     }while(1);
+
+  /* Optimise parameters of the Markov model */
+  Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
+
+
 }
 
 /*********************************************************/

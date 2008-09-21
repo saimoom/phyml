@@ -74,6 +74,8 @@ void Simu(arbre *tree, int n_step_max)
       Warn_And_Exit("");
     }
 
+  Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
+  
   do
     {
       ++step;
@@ -112,22 +114,22 @@ void Simu(arbre *tree, int n_step_max)
 	  if(!tree->n_swap) n_neg = 0;
 	  
 	  For(i,2*tree->n_otu-3) tree->t_edges[i]->l_old = tree->t_edges[i]->l;	    
-	  Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
+/* 	  Optimiz_All_Free_Param(tree,tree->mod->s_opt->print); */
 	  tree->both_sides = 1;
 	  Lk(tree);
 	}
       else 
 	{
 
-	  if(!each)
-	    {
-	      opt_free_param = 1;
-	      each           = 4;
-	      if(tree->mod->n_catg < tree->mod->n_catg) tree->mod->n_catg++;
-	      Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
-	      tree->both_sides = 1;
-	      Lk(tree);
-	    }
+/* 	  if(!each) */
+/* 	    { */
+/* 	      opt_free_param = 1; */
+/* 	      each           = 4; */
+/* 	      if(tree->mod->n_catg < tree->mod->n_catg) tree->mod->n_catg++; */
+/* 	      Optimiz_All_Free_Param(tree,tree->mod->s_opt->print); */
+/* 	      tree->both_sides = 1; */
+/* 	      Lk(tree); */
+/* 	    } */
 	  
 	  old_loglk = tree->c_lnL;	    
 	  Fill_Dir_Table(tree);
@@ -158,7 +160,8 @@ void Simu(arbre *tree, int n_step_max)
     }
   while(1);
     
-  Round_Optimize(tree,tree->data);
+/*   Round_Optimize(tree,tree->data); */
+  Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
 
   Free(sorted_b);
   Free(tested_b);

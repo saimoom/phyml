@@ -10,7 +10,7 @@ mkdir("./phyml/doc");
 mkdir("./phyml/bin");
 mkdir("./phyml/examples");
 
-$phyml_dir = "/Users/stephane/cvshome/phydev/";
+$phyml_dir = "/Users/stephane/cvshome/phyml/";
 chdir $phyml_dir;
 
 
