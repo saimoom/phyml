@@ -3433,10 +3433,11 @@ phydbl Test_One_Spr_Target(edge *b_target, edge *b_arrow, node *n_link, edge *b_
 void Speed_Spr_Loop(arbre *tree)
 {
   phydbl lk_old;
-
+  
   do
     {
       lk_old = tree->c_lnL;
+      Optimiz_All_Free_Param(tree,1);
       Speed_Spr(tree);
       Simu(tree,1000);
       if(tree->mod->s_opt->opt_five_branch) Check_NNI_Five_Branches(tree);
@@ -3459,8 +3460,6 @@ void Speed_Spr(arbre *tree)
       Warn_And_Exit("");
     }
 
-  /* Optimise parameters of the Markov model */
-  Optimiz_All_Free_Param(tree,0);
 
   tree->both_sides = 1;
   Pars(tree);
@@ -3529,11 +3528,6 @@ void Speed_Spr(arbre *tree)
 	 (fabs(old_lnL-tree->c_lnL) < tree->mod->s_opt->min_diff_lk_global)) break;
 
     }while(1);
-
-  /* Optimise parameters of the Markov model */
-  Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
-
-
 }
 
 /*********************************************************/
