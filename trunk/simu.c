@@ -30,6 +30,7 @@ void Simu_Loop(arbre *tree)
   do
     {
       lk_old = tree->c_lnL;
+      Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
       Simu(tree,1000);
       if(tree->mod->s_opt->opt_five_branch) Check_NNI_Five_Branches(tree);
     }
@@ -74,7 +75,6 @@ void Simu(arbre *tree, int n_step_max)
       Warn_And_Exit("");
     }
 
-  Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
   
   do
     {
@@ -105,10 +105,10 @@ void Simu(arbre *tree, int n_step_max)
 	{
 	  break;
 	}
-      
 
       if(tree->c_lnL < old_loglk)
 	{
+	  printf("\n. Moving backward\n");
 	  if(!Mov_Backward_Topo_Bl(tree,old_loglk,tested_b,n_tested))
 	    Exit("\n. Err: mov_back failed\n");
 	  if(!tree->n_swap) n_neg = 0;
@@ -144,7 +144,7 @@ void Simu(arbre *tree, int n_step_max)
 	  Sort_Edges_NNI_Score(tree,sorted_b,n_neg);	    
 	  Optimiz_Ext_Br(tree);	  	    
 	  Update_Bl(tree,lambda);
-	  
+	  	  
 	  n_tested = 0;
 	  For(i,(int)ceil((phydbl)n_neg*(lambda)))
 	    tested_b[n_tested++] = sorted_b[i];
@@ -161,7 +161,6 @@ void Simu(arbre *tree, int n_step_max)
   while(1);
     
 /*   Round_Optimize(tree,tree->data); */
-  Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
 
   Free(sorted_b);
   Free(tested_b);
