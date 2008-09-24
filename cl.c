@@ -1012,10 +1012,6 @@ void Read_Command_Line(option *io, int argc, char **argv)
 #endif 
 
 
-    if((use_gamma) && (io->mod->n_catg == 1))
-      {
-	io->mod->n_catg = 4;
-      }
  
     if((io->mod->s_opt->n_rand_starts)           && 
        (io->mod->s_opt->topo_search == NNI_MOVE) && 

@@ -5595,6 +5595,7 @@ void Set_Defaults_Optimiz(optimiz *s_opt)
   s_opt->opt_five_branch      = 1;
   s_opt->pars_thresh          = 5;
   s_opt->hybrid_thresh        = 1;
+  s_opt->quickdirty           = 0;
 
   s_opt->wim_n_rgrft          = -1;
   s_opt->wim_n_globl          = -1;

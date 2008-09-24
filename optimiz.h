@@ -86,14 +86,14 @@ void BFGS(arbre *tree, phydbl *p, int n, phydbl gtol, phydbl step_size,
 	  phydbl(*func)(), void (*dfunc)(), void (*lnsrch)(),int *failed);
 void Lnsrch_RR_Param(arbre *tree, int n, phydbl *xold, phydbl fold, phydbl *g, phydbl *p, phydbl *x,
 		     phydbl *f, phydbl stpmax, int *check);
-void Optimize_Single_Param_Generic(arbre *tree, phydbl *param, phydbl lim_inf, phydbl lim_sup, phydbl tol, int n_max_iter);
+void Optimize_Single_Param_Generic(arbre *tree, phydbl *param, phydbl lim_inf, phydbl lim_sup, phydbl tol, int n_max_iter, int quickdirty);
 int Generic_Brak(phydbl *param,
 		 phydbl *ax, phydbl *bx, phydbl *cx, 
 		 phydbl *fa, phydbl *fb, phydbl *fc,
 		 phydbl lim_inf, phydbl lim_sup,
 		 arbre *tree);
 phydbl Generic_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, 
-		     phydbl *xmin, arbre *tree, int n_iter_max);
+		     phydbl *xmin, arbre *tree, int n_iter_max,int quickdirty);
 void Optimize_Br_Len_Serie(node *a, node *d, edge *b_fcus, arbre *tree,allseq *alldata);
 void Lnsrch_Nucleotide_Frequencies(arbre *tree, int n, phydbl *xold, 
 				   phydbl fold, phydbl *g, phydbl *p, phydbl *x,

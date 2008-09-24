@@ -3433,17 +3433,25 @@ phydbl Test_One_Spr_Target(edge *b_target, edge *b_arrow, node *n_link, edge *b_
 void Speed_Spr_Loop(arbre *tree)
 {
   phydbl lk_old;
-  
+
+  lk_old = UNLIKELY;
+  tree->mod->s_opt->quickdirty = 1;
   do
     {
+      Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
       lk_old = tree->c_lnL;
-      Optimiz_All_Free_Param(tree,1);
-      Speed_Spr(tree);
-      Simu(tree,1000);
-      if(tree->mod->s_opt->opt_five_branch) Check_NNI_Five_Branches(tree);
+      if(tree->mod->s_opt->quickdirty)
+	Speed_Spr(tree);
+      else
+	{
+	  Simu(tree,1000);
+	  if(tree->mod->s_opt->opt_five_branch) Check_NNI_Five_Branches(tree);
+	}
+      if(fabs(tree->c_lnL - lk_old < 1.0)) tree->mod->s_opt->quickdirty = 0;	       
+      else                                 tree->mod->s_opt->quickdirty = 1;
     }
   while(tree->c_lnL > lk_old + tree->mod->s_opt->min_diff_lk_global);
-
+  Round_Optimize(tree,tree->data);
 }
 
 /*********************************************************/
@@ -3485,9 +3493,6 @@ void Speed_Spr(arbre *tree)
       tree->perform_spr_right_away = 1;
       Spr(UNLIKELY,tree);
 
-/*       /\* Optimise parameters of the Markov model *\/ */
-/*       Optimiz_All_Free_Param(tree,tree->mod->s_opt->print); */
-
       /* Optimise branch lengths */
       Optimize_Br_Len_Serie(tree->noeud[0],
 			    tree->noeud[0]->v[0],
@@ -3510,7 +3515,7 @@ void Speed_Spr(arbre *tree)
       /* Print log-likelihood and parsimony scores */
       if(tree->mod->s_opt->print) Print_Lk(tree,"[Branch lengths     ]");
 
-      /* Record the current best log-likleihood  */
+      /* Record the current best log-likelihood  */
       tree->best_lnL = tree->c_lnL;
 
       if(tree->c_lnL < old_lnL-tree->mod->s_opt->min_diff_lk_local)
@@ -3524,8 +3529,7 @@ void Speed_Spr(arbre *tree)
       Record_Br_Len(NULL,tree);
 
       /* Exit if no improvements after complete optimization */      
-      if((!tree->n_improvements) || 
-	 (fabs(old_lnL-tree->c_lnL) < tree->mod->s_opt->min_diff_lk_global)) break;
+      if((!tree->n_improvements) || (fabs(old_lnL-tree->c_lnL) < tree->mod->s_opt->min_diff_lk_global)) break;
 
     }while(1);
 }

@@ -35,6 +35,7 @@ void Simu_Loop(arbre *tree)
       if(tree->mod->s_opt->opt_five_branch) Check_NNI_Five_Branches(tree);
     }
   while(tree->c_lnL > lk_old + tree->mod->s_opt->min_diff_lk_global);
+  Round_Optimize(tree,tree->data);
 }
 
 /*********************************************************/
@@ -121,15 +122,15 @@ void Simu(arbre *tree, int n_step_max)
       else 
 	{
 
-/* 	  if(!each) */
-/* 	    { */
-/* 	      opt_free_param = 1; */
-/* 	      each           = 4; */
-/* 	      if(tree->mod->n_catg < tree->mod->n_catg) tree->mod->n_catg++; */
+	  if(!each)
+	    {
+	      opt_free_param = 1;
+	      each           = 4;
+	      if(tree->mod->n_catg < tree->mod->n_catg) tree->mod->n_catg++;
 /* 	      Optimiz_All_Free_Param(tree,tree->mod->s_opt->print); */
-/* 	      tree->both_sides = 1; */
-/* 	      Lk(tree); */
-/* 	    } */
+	      tree->both_sides = 1;
+	      Lk(tree);
+	    }
 	  
 	  old_loglk = tree->c_lnL;	    
 	  Fill_Dir_Table(tree);
