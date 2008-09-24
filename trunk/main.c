@@ -409,10 +409,4 @@ int main(int argc, char **argv)
   return 1;
 }
 
-#elif(TRIMTREE)
-
-int main(int argc, char **argv)
-{
-}
-
 #endif

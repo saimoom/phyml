@@ -651,6 +651,7 @@ typedef struct __Optimiz { /* parameters to be optimised (mostly used in 'optimi
   int              fast_nni;
   int                greedy;
   int          general_pars;
+  int            quickdirty;
 
   int           wim_n_rgrft;
   int           wim_n_globl;

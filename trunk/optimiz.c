@@ -20,7 +20,7 @@ the GNU public licence.  See http://www.opensource.org for details.
 
 /*********************************************************/
 
-void Optimize_Single_Param_Generic(arbre *tree, phydbl *param, phydbl lim_inf, phydbl lim_sup, phydbl tol, int n_max_iter)
+void Optimize_Single_Param_Generic(arbre *tree, phydbl *param, phydbl lim_inf, phydbl lim_sup, phydbl tol, int n_max_iter, int quickdirty)
 {
   phydbl ax,bx,cx;
   phydbl lk_init;
@@ -31,7 +31,9 @@ void Optimize_Single_Param_Generic(arbre *tree, phydbl *param, phydbl lim_inf, p
   bx = (*param);
   cx =  lim_sup;
   
-  Generic_Brent(ax,bx,cx,tol,param,tree,n_max_iter);
+  printf("\n. Quick and dirty = %d",quickdirty);
+
+  Generic_Brent(ax,bx,cx,tol,param,tree,n_max_iter,quickdirty);
 
   if(tree->c_lnL < lk_init - tree->mod->s_opt->min_diff_lk_global) 
     {
@@ -165,7 +167,8 @@ int Generic_Brak(phydbl *param,
 /*********************************************************/
 
 phydbl Generic_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, 
-		     phydbl *xmin, arbre *tree, int n_iter_max)
+		     phydbl *xmin, arbre *tree, int n_iter_max, 
+		     int quickdirty)
 {
   int iter;
   phydbl a,b,d,etemp,fu,fv,fw,fx,p,q,r,tol1,tol2,u,v,w,x,xm;
@@ -185,18 +188,26 @@ phydbl Generic_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
   best_fu = fw;
   best_x  = fabs(bx);;
 
-/*   PhyML_Printf("init_lnL = %f\n",init_lnL); */
+/*   PhyML_Printf("\n. init_lnL = %f a=%f b=%f c=%f\n",init_lnL,ax,bx,cx); */
 
   for(iter=1;iter<=BRENT_ITMAX;iter++) 
     {
       xm=0.5*(a+b);
       tol2=2.0*(tol1=tol*fabs(x)+BRENT_ZEPS);
-      if(
-	 ((fabs(tree->c_lnL-old_lnL) < tol) && (tree->c_lnL > init_lnL - tol)) || (iter > n_iter_max - 1))
+
+      if((tree->c_lnL > init_lnL + tol) && (quickdirty))
+	{
+	  (*xmin) = best_x;
+/* 	  PhyML_Printf("\n> iter=%3d max=%3d v=%f lnL=%f init_lnL=%f tol=%f",iter,n_iter_max,(*xmin),tree->c_lnL,init_lnL,tol); */
+	  Lk(tree);	  
+	  return tree->c_lnL;	  
+	}
+
+      if(((fabs(tree->c_lnL-old_lnL) < tol) && (tree->c_lnL > init_lnL)) || (iter > n_iter_max - 1))
 	{
 	  (*xmin) = best_x;
 	  Lk(tree);	  
-/* 	  PhyML_Printf("\n> iter=%3d max=%3d v=%f lnL=%f init_lnL=%f",iter,n_iter_max,(*xmin),tree->c_lnL,init_lnL); */
+/* 	  PhyML_Printf("\n* iter=%3d max=%3d v=%f lnL=%f init_lnL=%f old_lnL=%f",iter,n_iter_max,(*xmin),tree->c_lnL,init_lnL,old_lnL); */
 	  return tree->c_lnL;
 	}
       
@@ -1226,12 +1237,14 @@ void Optimiz_All_Free_Param(arbre *tree, int verbose)
       failed = 0;
       
       tree->mod->update_eigen = 1;
-      BFGS(tree,tree->mod->rr_val,tree->mod->n_diff_rr,1.e-5,1.e-7,
-	   &Return_Abs_Lk,
-	   &Num_Derivative_Several_Param,
-	   &Lnsrch_RR_Param,&failed);
-      
-      if(failed)
+      if(!tree->mod->s_opt->quickdirty)
+	{
+	  BFGS(tree,tree->mod->rr_val,tree->mod->n_diff_rr,1.e-5,1.e-7,
+	       &Return_Abs_Lk,
+	       &Num_Derivative_Several_Param,
+	       &Lnsrch_RR_Param,&failed);
+	}
+      if(failed || tree->mod->s_opt->quickdirty)
 	{
 	  int i;
 	  
@@ -1240,9 +1253,10 @@ void Optimiz_All_Free_Param(arbre *tree, int verbose)
 	    if(i != 5)
 	      {
 		Optimize_Single_Param_Generic(tree,&(tree->mod->rr_val[i]),
-					      1.E-20,1.E+10,
+					      1.E-2,1.E+2,
 					      tree->mod->s_opt->min_diff_lk_global,
-					      tree->mod->s_opt->brent_it_max);
+					      tree->mod->s_opt->brent_it_max,
+					      tree->mod->s_opt->quickdirty);
 	      }        
 	}
       if(verbose) Print_Lk(tree,"[GTR parameters     ]");
@@ -1255,7 +1269,8 @@ void Optimiz_All_Free_Param(arbre *tree, int verbose)
       Optimize_Single_Param_Generic(tree,&(tree->mod->kappa),
 				    .1,100.,
 				    tree->mod->s_opt->min_diff_lk_global,
-				    tree->mod->s_opt->brent_it_max);
+				    tree->mod->s_opt->brent_it_max,
+				    tree->mod->s_opt->quickdirty);
       if(verbose) 
 	{
 	  Print_Lk(tree,"[Ts/ts ratio        ]");
@@ -1268,7 +1283,8 @@ void Optimiz_All_Free_Param(arbre *tree, int verbose)
     {
       Optimize_Single_Param_Generic(tree,&(tree->mod->lambda),.001,100.,
 				    tree->mod->s_opt->min_diff_lk_global,
-				    tree->mod->s_opt->brent_it_max);
+				    tree->mod->s_opt->brent_it_max,
+				    tree->mod->s_opt->quickdirty);
       if(verbose) 
 	{
 	  Print_Lk(tree,"[Lambda             ]");
@@ -1294,7 +1310,8 @@ void Optimiz_All_Free_Param(arbre *tree, int verbose)
 	  Optimize_Single_Param_Generic(tree,&(tree->mod->pinvar),
 					.0001,0.9999,
 					tree->mod->s_opt->min_diff_lk_global,
-					tree->mod->s_opt->brent_it_max);
+					tree->mod->s_opt->brent_it_max,
+					tree->mod->s_opt->quickdirty);
 	  if(verbose) 
 	    {
 	      Print_Lk(tree,"[P-inv              ]");
@@ -1307,7 +1324,8 @@ void Optimiz_All_Free_Param(arbre *tree, int verbose)
 	  Optimize_Single_Param_Generic(tree,&(tree->mod->alpha),
 					.01,100.,
 					tree->mod->s_opt->min_diff_lk_global,
-					tree->mod->s_opt->brent_it_max);
+					tree->mod->s_opt->brent_it_max,
+					tree->mod->s_opt->quickdirty);
 	  if(verbose) 
 	    {
 	      Print_Lk(tree,"[Alpha              ]");
@@ -1330,7 +1348,8 @@ void Optimiz_All_Free_Param(arbre *tree, int verbose)
 	      Optimize_Single_Param_Generic(tree,&(tree->mod->pi_unscaled[i]),
 					    -1000.,1000.,
 					    tree->mod->s_opt->min_diff_lk_global,
-					    tree->mod->s_opt->brent_it_max);
+					    tree->mod->s_opt->brent_it_max,
+					    tree->mod->s_opt->quickdirty);
 	  }
 	if(verbose) Print_Lk(tree,"[Nucleotide freqs.  ]");
         tree->mod->update_eigen = 0;
@@ -1346,7 +1365,8 @@ void Optimiz_All_Free_Param(arbre *tree, int verbose)
 	  Optimize_Single_Param_Generic(tree,&(tree->mod->m4mod->delta),
 					0.01,10.,
 					tree->mod->s_opt->min_diff_lk_global,
-					tree->mod->s_opt->brent_it_max);
+					tree->mod->s_opt->brent_it_max,
+					tree->mod->s_opt->quickdirty);
 	  if(verbose) 
 	    {
 	      Print_Lk(tree,"[Switching param.   ]");
@@ -1365,7 +1385,8 @@ void Optimiz_All_Free_Param(arbre *tree, int verbose)
 	      Optimize_Single_Param_Generic(tree,&(tree->mod->m4mod->multipl_unscaled[rcat]),
 					    .01,10.,
 					    tree->mod->s_opt->min_diff_lk_global,
-					    tree->mod->s_opt->brent_it_max);
+					    tree->mod->s_opt->brent_it_max,
+					    tree->mod->s_opt->quickdirty);
 	      
 	      if(verbose) 
 		{
@@ -1379,7 +1400,8 @@ void Optimiz_All_Free_Param(arbre *tree, int verbose)
 	      Optimize_Single_Param_Generic(tree,&(tree->mod->m4mod->h_fq_unscaled[rcat]),
 					    .01,100.,
 					    tree->mod->s_opt->min_diff_lk_global,
-					    tree->mod->s_opt->brent_it_max);
+					    tree->mod->s_opt->brent_it_max,
+					    tree->mod->s_opt->quickdirty);
 	      
 	      if(verbose)
 		{
@@ -1396,7 +1418,8 @@ void Optimiz_All_Free_Param(arbre *tree, int verbose)
 	  Optimize_Single_Param_Generic(tree,&(tree->mod->m4mod->alpha),
 					.01,10.,
 					tree->mod->s_opt->min_diff_lk_global,
-					tree->mod->s_opt->brent_it_max);
+					tree->mod->s_opt->brent_it_max,
+					tree->mod->s_opt->quickdirty);
 	  if(verbose) 
 	    {
 	      Print_Lk(tree,"[Alpha (covarion)   ]");
@@ -1423,7 +1446,8 @@ void Optimiz_All_Free_Param(arbre *tree, int verbose)
 	      Optimize_Single_Param_Generic(tree,&(tree->mod->m4mod->o_rr[i]),
 					    1.E-20,1.E+10,
 					    tree->mod->s_opt->min_diff_lk_global,
-					    tree->mod->s_opt->brent_it_max);
+					    tree->mod->s_opt->brent_it_max,
+					    tree->mod->s_opt->quickdirty);
 	    }
 	}
       if(verbose) Print_Lk(tree,"[GTR parameters     ]");
@@ -2428,10 +2452,12 @@ int Optimiz_Alpha_And_Pinv(arbre *tree)
   tree->both_sides = 0;
   Optimize_Single_Param_Generic(tree,&(tree->mod->pinvar),.0001,0.9999,
 				tree->mod->s_opt->min_diff_lk_global,
-				tree->mod->s_opt->brent_it_max);
+				tree->mod->s_opt->brent_it_max,
+				tree->mod->s_opt->quickdirty);
   Optimize_Single_Param_Generic(tree,&(tree->mod->alpha),.01,100.,
 				tree->mod->s_opt->min_diff_lk_global,
-				tree->mod->s_opt->brent_it_max);
+				tree->mod->s_opt->brent_it_max,
+				tree->mod->s_opt->quickdirty);
   
   pinv0  = tree->mod->pinvar;
   alpha0 = tree->mod->alpha;
@@ -2447,10 +2473,12 @@ int Optimiz_Alpha_And_Pinv(arbre *tree)
   tree->both_sides = 0;
   Optimize_Single_Param_Generic(tree,&(tree->mod->pinvar),.0001,0.9999,
 				tree->mod->s_opt->min_diff_lk_global,
-				tree->mod->s_opt->brent_it_max);
+				tree->mod->s_opt->brent_it_max,
+				tree->mod->s_opt->quickdirty);
   Optimize_Single_Param_Generic(tree,&(tree->mod->alpha),.01,100.,
 				tree->mod->s_opt->min_diff_lk_global,
-				tree->mod->s_opt->brent_it_max);
+				tree->mod->s_opt->brent_it_max,
+				tree->mod->s_opt->quickdirty);
 
   lk_a = tree->c_lnL;
 
