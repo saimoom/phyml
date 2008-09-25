@@ -297,6 +297,7 @@ typedef struct __Arbre {
 
   phydbl                              init_lnL;
   phydbl                              best_lnL; /* highest value of the loglikelihood found so far */
+  int                                best_pars; /* highest value of the parsimony found so far */
   phydbl                                 c_lnL; /* loglikelihood */
   phydbl                         *c_lnL_sorted; /* used to compute c_lnL by adding sorted terms to minimize CPU errors */
   phydbl                              *site_lk; /* vector of likelihoods at individual sites */
@@ -652,6 +653,7 @@ typedef struct __Optimiz { /* parameters to be optimised (mostly used in 'optimi
   int                greedy;
   int          general_pars;
   int            quickdirty;
+  int              spr_pars;
 
   int           wim_n_rgrft;
   int           wim_n_globl;
