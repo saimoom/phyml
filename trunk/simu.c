@@ -27,6 +27,13 @@ void Simu_Loop(arbre *tree)
 {
   phydbl lk_old;
   
+  tree->mod->s_opt->spr_pars = 1;
+  Speed_Spr(tree,1);
+  tree->mod->s_opt->spr_pars = 0;
+  tree->both_sides = 1;
+  Lk(tree);
+  Optimize_Br_Len_Serie(tree->noeud[0],tree->noeud[0]->v[0],tree->noeud[0]->b[0],tree,tree->data);
+
   do
     {
       lk_old = tree->c_lnL;
