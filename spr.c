@@ -3172,20 +3172,20 @@ int Spr(phydbl init_lnL, arbre *tree)
 	      
 	      if(tree->mod->s_opt->spr_pars)
 		{
-		  if(tree->spr_list[0]->pars < tree->best_pars)
-		    {
-		      Prune_Subtree(tree->spr_list[0]->n_link,tree->spr_list[0]->n_opp_to_link,&target,&residual,tree);
-		      Graft_Subtree(tree->spr_list[0]->b_target,tree->spr_list[0]->n_link,residual,tree);
-		      tree->both_sides = 1;
-		      Pars(tree);
-		      tree->best_pars = tree->c_pars;
-		      if(tree->best_pars != tree->spr_list[0]->pars)
-			{
-			  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-			  Warn_And_Exit("");			  
-			}
-		      tree->n_improvements++;
-		    }
+/* 		  if(tree->spr_list[0]->pars < tree->best_pars) */
+/* 		    { */
+/* 		      Prune_Subtree(tree->spr_list[0]->n_link,tree->spr_list[0]->n_opp_to_link,&target,&residual,tree); */
+/* 		      Graft_Subtree(tree->spr_list[0]->b_target,tree->spr_list[0]->n_link,residual,tree); */
+/* 		      tree->both_sides = 1; */
+/* 		      Pars(tree); */
+/* 		      tree->best_pars = tree->c_pars; */
+/* 		      if(tree->best_pars != tree->spr_list[0]->pars) */
+/* 			{ */
+/* 			  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
+/* 			  Warn_And_Exit("");			   */
+/* 			} */
+/* 		      tree->n_improvements++; */
+/* 		    } */
 		}
 	      else
 		{
@@ -3229,20 +3229,20 @@ int Spr(phydbl init_lnL, arbre *tree)
 
 	      if(tree->mod->s_opt->spr_pars)
 		{
-		  if(tree->spr_list[0]->pars < tree->best_pars)
-		    {
-		      Prune_Subtree(tree->spr_list[0]->n_link,tree->spr_list[0]->n_opp_to_link,&target,&residual,tree);
-		      Graft_Subtree(tree->spr_list[0]->b_target,tree->spr_list[0]->n_link,residual,tree);
-		      tree->both_sides = 1;
-		      Pars(tree);
-		      tree->best_pars = tree->c_pars;
-		      if(tree->best_pars != tree->spr_list[0]->pars)
-			{
-			  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-			  Warn_And_Exit("");			  
-			}
-		      tree->n_improvements++;
-		    }
+/* 		  if(tree->spr_list[0]->pars < tree->best_pars) */
+/* 		    { */
+/* 		      Prune_Subtree(tree->spr_list[0]->n_link,tree->spr_list[0]->n_opp_to_link,&target,&residual,tree); */
+/* 		      Graft_Subtree(tree->spr_list[0]->b_target,tree->spr_list[0]->n_link,residual,tree); */
+/* 		      tree->both_sides = 1; */
+/* 		      Pars(tree); */
+/* 		      tree->best_pars = tree->c_pars; */
+/* 		      if(tree->best_pars != tree->spr_list[0]->pars) */
+/* 			{ */
+/* 			  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
+/* 			  Warn_And_Exit("");			   */
+/* 			} */
+/* 		      tree->n_improvements++; */
+/* 		    } */
 		}
 	      else
 		{
