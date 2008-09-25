@@ -1246,7 +1246,7 @@ void Init_Tree(arbre *tree, int n_otu)
   tree->best_lnL                  = UNLIKELY;
   tree->c_lnL                     = UNLIKELY;
   tree->n_swap                    = 0;
-  tree->best_pars                 = 1E+10;
+  tree->best_pars                 = 1E+5;
 
   tree->n_pattern                 = -1;
   tree->prop_of_sites_to_consider = 1.;

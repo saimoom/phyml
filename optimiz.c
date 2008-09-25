@@ -31,8 +31,6 @@ void Optimize_Single_Param_Generic(arbre *tree, phydbl *param, phydbl lim_inf, p
   bx = (*param);
   cx =  lim_sup;
   
-  printf("\n. Quick and dirty = %d",quickdirty);
-
   Generic_Brent(ax,bx,cx,tol,param,tree,n_max_iter,quickdirty);
 
   if(tree->c_lnL < lk_init - tree->mod->s_opt->min_diff_lk_global) 
@@ -1248,7 +1246,6 @@ void Optimiz_All_Free_Param(arbre *tree, int verbose)
 	{
 	  int i;
 	  
-	  if(verbose) PhyML_Printf("\n. Optimising one-by-one...\n");
 	  For(i,tree->mod->n_diff_rr) 
 	    if(i != 5)
 	      {
