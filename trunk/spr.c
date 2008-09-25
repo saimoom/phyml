@@ -3135,6 +3135,7 @@ void Randomize_Spr_List(arbre *tree)
 int Spr(phydbl init_lnL, arbre *tree)
 {
   int spr_moves, best_move, br, curr_pars, n_moves_pars, n_moves_phi, n_moves, i;
+  edge *target, *residual;
 
   curr_pars        = tree->c_pars;
   tree->both_sides = 1;
@@ -3168,15 +3169,35 @@ int Spr(phydbl init_lnL, arbre *tree)
 		  else n_moves = n_moves_pars;
 		}
 
-	      best_move = Evaluate_List_Of_Regraft_Pos_Triple(tree->spr_list,n_moves,tree);
-
-	      if(tree->spr_list[best_move]->lnL > init_lnL) Try_One_Spr_Move_Triple(tree->spr_list[best_move],tree);
+	      
+	      if(tree->mod->s_opt->spr_pars)
+		{
+		  if(tree->spr_list[0]->pars < tree->best_pars)
+		    {
+		      Prune_Subtree(tree->spr_list[0]->n_link,tree->spr_list[0]->n_opp_to_link,&target,&residual,tree);
+		      Graft_Subtree(tree->spr_list[0]->b_target,tree->spr_list[0]->n_link,residual,tree);
+		      tree->both_sides = 1;
+		      Pars(tree);
+		      tree->best_pars = tree->c_pars;
+		      if(tree->best_pars != tree->spr_list[0]->pars)
+			{
+			  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+			  Warn_And_Exit("");			  
+			}
+		      tree->n_improvements++;
+		    }
+		}
 	      else
 		{
-		  tree->both_sides = 1;
-		  Lk(tree);
-		  Pars(tree);
+		  best_move = Evaluate_List_Of_Regraft_Pos_Triple(tree->spr_list,n_moves,tree);
+		  if(tree->spr_list[best_move]->lnL > init_lnL) Try_One_Spr_Move_Triple(tree->spr_list[best_move],tree);
+		  else
+		    {
+		      tree->both_sides = 1;
+		      Lk(tree);
+		    }
 		}
+
 	    }
 	  Reset_Spr_List(tree);
 	}
@@ -3205,16 +3226,35 @@ int Spr(phydbl init_lnL, arbre *tree)
 		  else n_moves = n_moves_pars;
 		}
 
-/* 	      printf("\n. %d %d",n_moves_phi,n_moves_pars); */
 
-	      best_move = Evaluate_List_Of_Regraft_Pos_Triple(tree->spr_list,n_moves,tree);
-
-	      if(tree->spr_list[best_move]->lnL > init_lnL) Try_One_Spr_Move_Triple(tree->spr_list[best_move],tree);
+	      if(tree->mod->s_opt->spr_pars)
+		{
+		  if(tree->spr_list[0]->pars < tree->best_pars)
+		    {
+		      Prune_Subtree(tree->spr_list[0]->n_link,tree->spr_list[0]->n_opp_to_link,&target,&residual,tree);
+		      Graft_Subtree(tree->spr_list[0]->b_target,tree->spr_list[0]->n_link,residual,tree);
+		      tree->both_sides = 1;
+		      Pars(tree);
+		      tree->best_pars = tree->c_pars;
+		      if(tree->best_pars != tree->spr_list[0]->pars)
+			{
+			  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+			  Warn_And_Exit("");			  
+			}
+		      tree->n_improvements++;
+		    }
+		}
 	      else
 		{
-		  tree->both_sides = 1;
-		  Lk(tree);
-		  Pars(tree);
+		  best_move = Evaluate_List_Of_Regraft_Pos_Triple(tree->spr_list,n_moves,tree);
+
+		  if(tree->spr_list[best_move]->lnL > init_lnL) Try_One_Spr_Move_Triple(tree->spr_list[best_move],tree);
+		  else
+		    {
+		      tree->both_sides = 1;
+		      Lk(tree);
+		      Pars(tree);
+		    }
 		}
 	    }
 	  Reset_Spr_List(tree);
@@ -3328,7 +3368,12 @@ void Test_One_Spr_Target_Recur(node *a, node *d, edge *pulled, node *link, edge 
 	    //
 /* 	    Update_P_Lk(tree,d->b[i],d); */
 	    //
+/* 	    printf("\n node %d %d i=%d",d->num,d->v[i]->tax,i); */
 	    Update_P_Pars(tree,d->b[i],d);
+	    
+	    tree->both_sides = 1;
+	    Pars(tree);
+
 	    tree->curr_path[tree->depth_curr_path] = d->v[i];
 	    tree->depth_curr_path++;
 	    Test_One_Spr_Target(d->b[i],pulled,link,residual,tree);
@@ -3371,6 +3416,18 @@ phydbl Test_One_Spr_Target(edge *b_target, edge *b_arrow, node *n_link, edge *b_
 
   Update_P_Pars(tree,b_residual,n_link);
   move_pars = Pars_At_Given_Edge(b_residual,tree);
+
+
+/*   tree->both_sides = 1; */
+/*   Pars(tree); */
+/*   printf("\n. move_pars = %d tree->c_pars = %d move %d",move_pars,tree->c_pars,tree->n_moves); */
+/*   if(tree->c_pars != move_pars) */
+/*     { */
+/*       printf("\n. move_pars = %d tree->c_pars = %d move %d",move_pars,tree->c_pars,tree->n_moves); */
+/*       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
+/*       Warn_And_Exit(""); */
+/*     } */
+
 
   v1 = (b_residual->left == n_link)?(b_residual->rght):(b_residual->left);
   v2 = (b_target->left   == n_link)?(b_target->rght):(b_target->left);
@@ -3474,10 +3531,11 @@ void Speed_Spr(arbre *tree)
   Lk(tree);
   Record_Br_Len(NULL,tree);
 
-  tree->best_lnL = tree->c_lnL;
-  old_lnL        = tree->c_lnL;
-  old_pars       = tree->c_pars;
-  step           = 0;
+  tree->best_lnL  = tree->c_lnL;
+  tree->best_pars = tree->c_pars;
+  old_lnL         = tree->c_lnL;
+  old_pars        = tree->c_pars;
+  step            = 0;
 
   do
     {
@@ -3493,43 +3551,65 @@ void Speed_Spr(arbre *tree)
       tree->perform_spr_right_away = 1;
       Spr(UNLIKELY,tree);
 
-      /* Optimise branch lengths */
-      Optimize_Br_Len_Serie(tree->noeud[0],
-			    tree->noeud[0]->v[0],
-			    tree->noeud[0]->b[0],
-			    tree,
-			    tree->data);
+      if(!tree->mod->s_opt->spr_pars)
+	{
+	  /* Optimise branch lengths */
+	  Optimize_Br_Len_Serie(tree->noeud[0],
+				tree->noeud[0]->v[0],
+				tree->noeud[0]->b[0],
+				tree,
+				tree->data);
+	  
+	  /* Update partial likelihoods & parsimony */
+	  tree->both_sides = 1;
+	  Lk(tree);
+	  /* Print log-likelihood and parsimony scores */
+	  if(tree->mod->s_opt->print) Print_Lk(tree,"[Branch lengths     ]");
+	}
+      else
+	{
+	  if(tree->mod->s_opt->print) Print_Pars(tree);
+	}
 
-      /* Update partial likelihoods & parsimony */
-      tree->both_sides = 1;
-      Lk(tree);
       Pars(tree);
-
 
       if(tree->io->print_trace)
 	{
-	  PhyML_Fprintf(tree->io->fp_out_trace,"[%f]%s\n",tree->c_lnL,Write_Tree(tree)); fflush(tree->io->fp_out_trace);
-	  if(tree->io->print_site_lnl) Print_Site_Lk(tree,tree->io->fp_out_lk); fflush(tree->io->fp_out_lk);
+	  PhyML_Fprintf(tree->io->fp_out_trace,"[%f]%s\n",tree->c_lnL,Write_Tree(tree)); fflush(tree->io->fp_out_trace);	  
+	  if((tree->io->print_site_lnl) && (!tree->mod->s_opt->spr_pars)) Print_Site_Lk(tree,tree->io->fp_out_lk); fflush(tree->io->fp_out_lk);
 	}
 
-      /* Print log-likelihood and parsimony scores */
-      if(tree->mod->s_opt->print) Print_Lk(tree,"[Branch lengths     ]");
 
-      /* Record the current best log-likelihood  */
-      tree->best_lnL = tree->c_lnL;
+      /* Record the current best log-likelihood and parsimony */
+      tree->best_lnL  = tree->c_lnL;
+      tree->best_pars = tree->c_pars;
 
-      if(tree->c_lnL < old_lnL-tree->mod->s_opt->min_diff_lk_local)
+      if(!tree->mod->s_opt->spr_pars)
 	{
-	  PhyML_Printf("\n. old_lnL = %f c_lnL = %f",old_lnL,tree->c_lnL); 
-	  PhyML_Printf("\n. Err in file %s at line %d",__FILE__,__LINE__);
-	  Warn_And_Exit("");
+	  if(tree->c_lnL < old_lnL-tree->mod->s_opt->min_diff_lk_local)
+	    {
+	      PhyML_Printf("\n. old_lnL = %f c_lnL = %f",old_lnL,tree->c_lnL); 
+	      PhyML_Printf("\n. Err in file %s at line %d",__FILE__,__LINE__);
+	      Warn_And_Exit("");
+	    }
+	}
+      else
+	{
+	  if(tree->c_pars > old_pars)
+	    {
+	      PhyML_Printf("\n. old_pars = %d c_pars = %d",old_pars,tree->c_pars); 
+	      PhyML_Printf("\n. Err in file %s at line %d",__FILE__,__LINE__);
+	      Warn_And_Exit("");	    
+	    }
 	}
 
       /* Record the current best branch lengths  */
       Record_Br_Len(NULL,tree);
 
       /* Exit if no improvements after complete optimization */      
-      if((!tree->n_improvements) || (fabs(old_lnL-tree->c_lnL) < tree->mod->s_opt->min_diff_lk_global)) break;
+      if(!tree->n_improvements) break;
+      if((!tree->mod->s_opt->spr_pars) && (fabs(old_lnL-tree->c_lnL) < tree->mod->s_opt->min_diff_lk_global)) break;
+      if(( tree->mod->s_opt->spr_pars) && (fabs(old_pars-tree->c_pars) < 1.)) break;
 
     }while(1);
 }

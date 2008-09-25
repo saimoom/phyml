@@ -1246,6 +1246,7 @@ void Init_Tree(arbre *tree, int n_otu)
   tree->best_lnL                  = UNLIKELY;
   tree->c_lnL                     = UNLIKELY;
   tree->n_swap                    = 0;
+  tree->best_pars                 = 1E+10;
 
   tree->n_pattern                 = -1;
   tree->prop_of_sites_to_consider = 1.;
@@ -5596,6 +5597,7 @@ void Set_Defaults_Optimiz(optimiz *s_opt)
   s_opt->pars_thresh          = 5;
   s_opt->hybrid_thresh        = 1;
   s_opt->quickdirty           = 0;
+  s_opt->spr_pars             = 1;
 
   s_opt->wim_n_rgrft          = -1;
   s_opt->wim_n_globl          = -1;
