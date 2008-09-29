@@ -20,7 +20,7 @@ void      Optimize_Lambda(arbre *tree);
 void      Optimize_Param_Parall(arbre *tree);
 phydbl    Optimize_Branch_Quad(arbre *tree, allseq *alldata, edge *b_fcus);
 void      Optimize_After_Hide(arbre *tree, allseq *alldata, node *h);
-void      Round_Optimize(arbre *tree, allseq *data);
+void      Round_Optimize(arbre *tree, allseq *data, int n_round_max);
 int       Dist_Seq_Brak(phydbl *ax, phydbl *bx, phydbl *cx, 
 			phydbl *fa, phydbl *fb, phydbl *fc, 
 			allseq *data, int num1, int num2, model *mod);
@@ -39,7 +39,7 @@ phydbl    Alpha_Golden(phydbl ax, phydbl bx, phydbl cx, phydbl tol,phydbl *xmin,
 phydbl    Br_Len_Golden(phydbl ax, phydbl bx, phydbl cx, phydbl tol, 
 			phydbl *xmin, edge *b_fcus, arbre *tree);
 phydbl    Br_Len_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, 
-		       edge *b_fcus, arbre *tree, int n_iter_max);
+		       edge *b_fcus, arbre *tree, int n_iter_max, int quickdirty);
 int       Br_Len_Brak(phydbl *ax, phydbl *bx, phydbl *cx, 
 		      phydbl *fa, phydbl *fb, phydbl *fc, 
 		      edge *b_fcus, arbre *tree);

@@ -144,7 +144,7 @@ int main(int argc, char **argv)
 		  else
 		    {
 		      if(tree->mod->s_opt->opt_num_param || 
-			 tree->mod->s_opt->opt_bl)                       Round_Optimize(tree,tree->data);
+			 tree->mod->s_opt->opt_bl)                       Round_Optimize(tree,tree->data,ROUND_MAX);
 		      else                                               Lk(tree);
 		    }
 		  

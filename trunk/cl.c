@@ -98,7 +98,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	    }
 	  case 44 :
 	    {
-	      io->mod->s_opt->hybrid_thresh = 1;
+	      io->mod->s_opt->hybrid_thresh = 0;
 	      break;
 	    }
 	  case 43 :
@@ -106,8 +106,10 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	      io->mod->s_opt->min_diff_lk_move = atof(optarg);
 	      if(io->mod->s_opt->min_diff_lk_move < 0)
 		{
+		  char choix;
 		  PhyML_Printf("\n. Min_diff_lk_move must be a double greater than 0.\n");
 		  PhyML_Printf("\n. Type any key to exit.\n");
+		  scanf("%c",&choix);
 		  Exit("\n");
 		}
 	      break;
@@ -135,11 +137,13 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	    }
 	  case 39 :
 	    {
+	      char choix;
 	      io->mod->n_rr_branch = (int)atoi(optarg);
 	      if(io->mod->n_rr_branch < 1)
 		{
 		  PhyML_Printf("\n. The number of classes must be an integer greater than 0.\n");
 		  PhyML_Printf("\n. Type any key to exit.\n");
+		  scanf("%c",&choix);
 		  Exit("\n");
 		}
 	      break;
@@ -962,6 +966,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	      PhyML_Printf ("\n. Unknown option character `\\x%x'.\n", optopt);
 	    PhyML_Printf("\n. Type any key to exit.\n");
 	    scanf("%c",&choix);
+	    Exit("\n");
 	    break;
 	  }
 	  

@@ -28,7 +28,7 @@ void Simu_Loop(arbre *tree)
   phydbl lk_old;
   
   tree->mod->s_opt->spr_pars = 1;
-  Speed_Spr(tree,1);
+  Speed_Spr(tree,3);
   tree->mod->s_opt->spr_pars = 0;
   tree->both_sides = 1;
   Lk(tree);
@@ -42,7 +42,8 @@ void Simu_Loop(arbre *tree)
       if(tree->mod->s_opt->opt_five_branch) Check_NNI_Five_Branches(tree);
     }
   while(tree->c_lnL > lk_old + tree->mod->s_opt->min_diff_lk_global);
-  Round_Optimize(tree,tree->data);
+  Round_Optimize(tree,tree->data,ROUND_MAX);
+  Check_NNI_Five_Branches(tree);
 }
 
 /*********************************************************/
