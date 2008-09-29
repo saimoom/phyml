@@ -3354,7 +3354,8 @@ void NNI(arbre *tree, edge *b_fcus, int do_swap)
       lk1 = Br_Len_Brent(l_infa,l_max,l_infb,
 			 tree->mod->s_opt->min_diff_lk_local,
 			 b_fcus,tree,
-			 tree->mod->s_opt->brent_it_max);
+			 tree->mod->s_opt->brent_it_max,
+			 tree->mod->s_opt->quickdirty);
     }
 
   if(lk1 < lk1_init - tree->mod->s_opt->min_diff_lk_local)
@@ -3390,7 +3391,8 @@ void NNI(arbre *tree, edge *b_fcus, int do_swap)
       lk2 = Br_Len_Brent(l_infa,l_max,l_infb,
 			 tree->mod->s_opt->min_diff_lk_local,
 			 b_fcus,tree,
-			 tree->mod->s_opt->brent_it_max);
+			 tree->mod->s_opt->brent_it_max,
+			 tree->mod->s_opt->quickdirty);
     }
 
   if(lk2 < lk2_init - tree->mod->s_opt->min_diff_lk_local)
@@ -3436,7 +3438,8 @@ void NNI(arbre *tree, edge *b_fcus, int do_swap)
        lk0 = Br_Len_Brent(l_infa,l_max,l_infb,
 			  tree->mod->s_opt->min_diff_lk_local,
 			  b_fcus,tree,
-			  tree->mod->s_opt->brent_it_max);
+			  tree->mod->s_opt->brent_it_max,
+			  tree->mod->s_opt->quickdirty);
      }
 
    if(lk0 < lk_init - tree->mod->s_opt->min_diff_lk_local)
@@ -5025,7 +5028,7 @@ void Bootstrap(arbre *tree)
       else
 	{
 	  if(boot_tree->mod->s_opt->opt_num_param || boot_tree->mod->s_opt->opt_bl)
-	    Round_Optimize(boot_tree,boot_tree->data);
+	    Round_Optimize(boot_tree,boot_tree->data,ROUND_MAX);
 	  else
 	    Lk(boot_tree);
 	}
@@ -5598,6 +5601,7 @@ void Set_Defaults_Optimiz(optimiz *s_opt)
   s_opt->hybrid_thresh        = 1;
   s_opt->quickdirty           = 0;
   s_opt->spr_pars             = 1;
+  s_opt->spr_lnL              = 0;
 
   s_opt->wim_n_rgrft          = -1;
   s_opt->wim_n_globl          = -1;
@@ -7576,21 +7580,24 @@ void Triple_Dist(node *a, arbre *tree)
     {
       Update_PMat_At_Given_Edge(a->b[1],tree);
       Update_PMat_At_Given_Edge(a->b[2],tree);
+
       Update_P_Lk(tree,a->b[0],a);
-      Fast_Br_Len(a->b[0],tree);
-      Update_PMat_At_Given_Edge(a->b[0],tree);
+/*       Fast_Br_Len(a->b[0],tree); */
+/*       Update_PMat_At_Given_Edge(a->b[0],tree); */
+      Br_Len_Brent (10.*(a->b[0]->l), a->b[0]->l, .1*(a->b[0]->l), 1.e-10,a->b[0],tree,10,0);
 
       Update_P_Lk(tree,a->b[1],a);
-      Fast_Br_Len(a->b[1],tree);
-      Update_PMat_At_Given_Edge(a->b[1],tree);
+/*       Fast_Br_Len(a->b[1],tree); */
+/*       Update_PMat_At_Given_Edge(a->b[1],tree); */
+      Br_Len_Brent (10.*(a->b[1]->l), a->b[1]->l, .1*(a->b[1]->l), 1.e-10,a->b[1],tree,10,0);
 
       Update_P_Lk(tree,a->b[2],a);
-      Fast_Br_Len(a->b[2],tree);
-      Update_PMat_At_Given_Edge(a->b[2],tree);
+/*       Fast_Br_Len(a->b[2],tree); */
+/*       Update_PMat_At_Given_Edge(a->b[2],tree); */
+      Br_Len_Brent (10.*(a->b[2]->l), a->b[2]->l, .1*(a->b[2]->l), 1.e-10,a->b[2],tree,10,0);
 
       Update_P_Lk(tree,a->b[1],a);
       Update_P_Lk(tree,a->b[0],a);
-
 
 /*       node *b,*c,*d; */
 /*       int _a,_b,_c,_d; */
@@ -8600,7 +8607,7 @@ int Get_State_From_P_Pars(short int *p_pars, arbre *tree)
 void Print_Lk(arbre *tree, char *string)
 {
   time(&(tree->t_current));
-  PhyML_Printf("\n. (%5d sec)  [%10.6f] %s",(int)(tree->t_current-tree->t_beg),tree->c_lnL,string);
+  PhyML_Printf("\n. (%5d sec) [%15.4f] %s",(int)(tree->t_current-tree->t_beg),tree->c_lnL,string);
 #ifndef QUIET 
   fflush(NULL);
 #endif
@@ -8611,7 +8618,7 @@ void Print_Lk(arbre *tree, char *string)
 void Print_Pars(arbre *tree)
 {
   time(&(tree->t_current));
-  PhyML_Printf("\n. (%5d sec)  [%5d]",(int)(tree->t_current-tree->t_beg),tree->c_pars);
+  PhyML_Printf("\n. (%5d sec) [%5d]",(int)(tree->t_current-tree->t_beg),tree->c_pars);
 #ifndef QUIET
   fflush(NULL);
 #endif
@@ -8623,7 +8630,7 @@ void Print_Lk_And_Pars(arbre *tree)
 {	
   time(&(tree->t_current));
 
-  PhyML_Printf("\n. (%5d sec) [%10.4f] [%5d]",
+  PhyML_Printf("\n. (%5d sec) [%15.4f] [%5d]",
 	 (int)(tree->t_current-tree->t_beg),
 	 tree->c_lnL,tree->c_pars);
 #ifndef QUIET

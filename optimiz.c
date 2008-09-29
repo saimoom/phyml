@@ -490,13 +490,13 @@ int Br_Len_Brak(phydbl *ax, phydbl *bx, phydbl *cx,
 
 phydbl Br_Len_Brent_Default(edge *b_fcus, arbre *tree)
 {
-  return Br_Len_Brent(10.*b_fcus->l,b_fcus->l,.10*b_fcus->l,tree->mod->s_opt->min_diff_lk_local,b_fcus,tree,1000);
+  return Br_Len_Brent(10.*b_fcus->l,b_fcus->l,.10*b_fcus->l,tree->mod->s_opt->min_diff_lk_local,b_fcus,tree,1000,0);
 }
 
 /*********************************************************/
 
 phydbl Br_Len_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
-		    edge *b_fcus, arbre *tree, int n_iter_max)
+		    edge *b_fcus, arbre *tree, int n_iter_max, int quickdirty)
 {
   int iter;
   phydbl a,b,d,etemp,fu,fv,fw,fx,p,q,r,tol1,tol2,u,v,w,x,xm;
@@ -516,6 +516,17 @@ phydbl Br_Len_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
     {
       xm=0.5*(a+b);
       tol2=2.0*(tol1=tol*fabs(x)+BRENT_ZEPS);
+
+
+      if((tree->c_lnL > init_lnL + tol) && (quickdirty))
+	{
+	  b_fcus->l = x;
+/* 	  PhyML_Printf("\n> iter=%3d max=%3d v=%f lnL=%f init_lnL=%f tol=%f",iter,n_iter_max,(*xmin),tree->c_lnL,init_lnL,tol); */
+	  Lk_At_Given_Edge(b_fcus,tree);
+	  return tree->c_lnL;	  
+	}
+
+
       if(
 	 ((fabs(tree->c_lnL-old_lnL) < tol) && 
 	  (tree->c_lnL > init_lnL - tol)) ||	 
@@ -1085,7 +1096,7 @@ phydbl Optimize_Dist(model *mod, phydbl init, allseq *twoseqs)
 
 /*********************************************************/
 
-void Round_Optimize(arbre *tree, allseq *data)
+void Round_Optimize(arbre *tree, allseq *data, int n_round_max)
 {
   int n_round,each;
   phydbl lk_old, lk_new, tol;
@@ -1101,7 +1112,7 @@ void Round_Optimize(arbre *tree, allseq *data)
   tree->both_sides = 1;
   Lk(tree);
 
-  while(n_round < ROUND_MAX)
+  while(n_round < n_round_max)
     {
 
       (!((n_round+2)%2))?(root=tree->noeud[0]):(root=tree->noeud[tree->n_otu-1]);
@@ -1158,7 +1169,8 @@ void Optimize_Br_Len_Serie(node *a, node *d, edge *b_fcus, arbre *tree, allseq *
   Br_Len_Brent(l_infa,l_max,l_infb,
 	       tree->mod->s_opt->min_diff_lk_local,
 	       b_fcus,tree,
-	       tree->mod->s_opt->brent_it_max);
+	       tree->mod->s_opt->brent_it_max,
+	       tree->mod->s_opt->quickdirty);
 
   if(tree->c_lnL < lk_init - tree->mod->s_opt->min_diff_lk_local)
     {
@@ -1206,7 +1218,8 @@ void Optimiz_Ext_Br(arbre *tree)
 	  lk = Br_Len_Brent(l_infa,l_max,l_infb,
 			    tree->mod->s_opt->min_diff_lk_local,
 			    b,tree,
-			    tree->mod->s_opt->brent_it_max);
+			    tree->mod->s_opt->brent_it_max,
+			    tree->mod->s_opt->quickdirty);
 
 	  b->nni->best_l    = b->l;
 	  b->nni->l0        = b->l;
@@ -1244,17 +1257,21 @@ void Optimiz_All_Free_Param(arbre *tree, int verbose)
 	}
       if(failed || tree->mod->s_opt->quickdirty)
 	{
-	  int i;
+	  int i,j;
 	  
-	  For(i,tree->mod->n_diff_rr) 
-	    if(i != 5)
-	      {
-		Optimize_Single_Param_Generic(tree,&(tree->mod->rr_val[i]),
-					      1.E-2,1.E+2,
-					      tree->mod->s_opt->min_diff_lk_global,
-					      tree->mod->s_opt->brent_it_max,
-					      tree->mod->s_opt->quickdirty);
-	      }        
+	  For(j,3)
+	    {
+	      Lk(tree);
+	      For(i,tree->mod->n_diff_rr) 
+		if(i != 5)
+		  {
+		    Optimize_Single_Param_Generic(tree,&(tree->mod->rr_val[i]),
+						  1.E-2,1.E+2,
+						  tree->mod->s_opt->min_diff_lk_global,
+						  tree->mod->s_opt->brent_it_max,
+						  tree->mod->s_opt->quickdirty);
+		  }        
+	    }
 	}
       if(verbose) Print_Lk(tree,"[GTR parameters     ]");
       tree->mod->update_eigen = 0;
