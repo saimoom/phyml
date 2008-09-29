@@ -3540,7 +3540,7 @@ void Speed_Spr_Loop(arbre *tree)
   lk_old = UNLIKELY;
   tree->mod->s_opt->quickdirty = 1;
   tree->mod->s_opt->spr_lnL    = 0;
-  printf("\n LOOP 1");
+  printf("\n\n ** LOOP 1 **");
   do
     {
       lk_old = tree->c_lnL;
@@ -3549,17 +3549,17 @@ void Speed_Spr_Loop(arbre *tree)
     }
   while(1);
   
-  printf("\n LOOP 2");
+  printf("\n\n ** LOOP 2 **");
   tree->mod->s_opt->quickdirty = 0;
   tree->mod->s_opt->spr_lnL    = 1;
   do
     {
       lk_old = tree->c_lnL;
       Speed_Spr(tree,1);
-      if(!tree->n_improvements) break;
+      if((!tree->n_improvements) || (fabs(lk_old-tree->c_lnL) < 1.)) break;
     }while(1);
 
-  printf("\n LOOP 3");
+  printf("\n\n ** LOOP 3 **");
   tree->mod->s_opt->spr_lnL    = 1;
   do
     {

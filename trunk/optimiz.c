@@ -1259,19 +1259,16 @@ void Optimiz_All_Free_Param(arbre *tree, int verbose)
 	{
 	  int i,j;
 	  
-	  For(j,3)
-	    {
-	      Lk(tree);
-	      For(i,tree->mod->n_diff_rr) 
-		if(i != 5)
-		  {
-		    Optimize_Single_Param_Generic(tree,&(tree->mod->rr_val[i]),
-						  1.E-2,1.E+2,
-						  tree->mod->s_opt->min_diff_lk_global,
-						  tree->mod->s_opt->brent_it_max,
-						  tree->mod->s_opt->quickdirty);
-		  }        
-	    }
+	  For(i,tree->mod->n_diff_rr) 
+	    if(i != 5)
+	      {
+		Optimize_Single_Param_Generic(tree,&(tree->mod->rr_val[i]),
+					      1.E-2,1.E+2,
+					      tree->mod->s_opt->min_diff_lk_global,
+					      tree->mod->s_opt->brent_it_max,
+					      tree->mod->s_opt->quickdirty);
+	      }        
+
 	}
       if(verbose) Print_Lk(tree,"[GTR parameters     ]");
       tree->mod->update_eigen = 0;
