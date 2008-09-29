@@ -1259,7 +1259,7 @@ void Optimiz_All_Free_Param(arbre *tree, int verbose)
 	{
 	  int i,j;
 	  
-	  For(i,tree->mod->n_diff_rr) 
+	  For(i,tree->mod->n_diff_rr)
 	    if(i != 5)
 	      {
 		Optimize_Single_Param_Generic(tree,&(tree->mod->rr_val[i]),
@@ -1267,7 +1267,7 @@ void Optimiz_All_Free_Param(arbre *tree, int verbose)
 					      tree->mod->s_opt->min_diff_lk_global,
 					      tree->mod->s_opt->brent_it_max,
 					      tree->mod->s_opt->quickdirty);
-	      }        
+	      }
 
 	}
       if(verbose) Print_Lk(tree,"[GTR parameters     ]");
@@ -1332,11 +1332,12 @@ void Optimiz_All_Free_Param(arbre *tree, int verbose)
       
       if(tree->mod->s_opt->opt_alpha)
 	{
-	  Optimize_Single_Param_Generic(tree,&(tree->mod->alpha),
-					.01,100.,
-					tree->mod->s_opt->min_diff_lk_global,
-					tree->mod->s_opt->brent_it_max,
-					tree->mod->s_opt->quickdirty);
+	  if(tree->mod->n_catg > 1)
+	    Optimize_Single_Param_Generic(tree,&(tree->mod->alpha),
+					  .01,100.,
+					  tree->mod->s_opt->min_diff_lk_global,
+					  tree->mod->s_opt->brent_it_max,
+					  tree->mod->s_opt->quickdirty);
 	  if(verbose) 
 	    {
 	      Print_Lk(tree,"[Alpha              ]");
