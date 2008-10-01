@@ -4123,12 +4123,7 @@ void Print_Fp_Out(FILE *fp_out, time_t t_beg, time_t t_end, arbre *tree, option 
   min.quot -= hour.quot*60;
 
   PhyML_Fprintf(fp_out,"\n\n. Time used %dh%dm%ds\n", hour.quot,min.quot,(int)(t_end-t_beg)%60);
-  if(t_end-t_beg > 60)
-    PhyML_Fprintf(fp_out,"\n\n. -> %d seconds\n",(int)(t_end-t_beg));
-
-
-
-
+  PhyML_Fprintf(fp_out,"\n\n. %d seconds\n",(int)(t_end-t_beg));
 
   PhyML_Fprintf(fp_out,"\n");
   PhyML_Fprintf(fp_out," oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo\n");
