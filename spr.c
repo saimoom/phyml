@@ -3599,7 +3599,7 @@ void Speed_Spr_Loop(arbre *tree)
     {
       lk_old = tree->c_lnL;
       Round_Optimize(tree,tree->data,1000);
-      Check_NNI_Five_Branches(tree);
+      if(!Check_NNI_Five_Branches(tree)) break;
     }while(fabs(lk_old - tree->c_lnL) > tree->mod->s_opt->min_diff_lk_global);
   /*****************************/
 
