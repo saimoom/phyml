@@ -3590,7 +3590,7 @@ void Speed_Spr_Loop(arbre *tree)
       lk_old = tree->c_lnL;
       Simu(tree,1000);
       Round_Optimize(tree,tree->data,1000);
-    }while(fabs(lk_old - tree->c_lnL) < tree->mod->s_opt->min_diff_lk_global);
+    }while(fabs(lk_old - tree->c_lnL) > tree->mod->s_opt->min_diff_lk_global);
   /*****************************/
 
   
