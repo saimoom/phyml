@@ -3169,7 +3169,7 @@ int Spr(phydbl init_lnL, arbre *tree)
 		    } 
 		  else n_moves = n_moves_pars;
 		}
-	      if(tree->mod->s_opt->spr_lnL) n_moves = 10;
+	      if(tree->mod->s_opt->spr_lnL) n_moves = MIN(10,2*tree->n_otu-3);
 	      
 	      if(tree->mod->s_opt->spr_pars)
 		{
@@ -3241,7 +3241,7 @@ int Spr(phydbl init_lnL, arbre *tree)
 		    } 
 		  else n_moves = n_moves_pars;
 		}
-	      if(tree->mod->s_opt->spr_lnL) n_moves = 10;
+	      if(tree->mod->s_opt->spr_lnL) n_moves = MIN(10,2*tree->n_otu-3);
 
 	      if(tree->mod->s_opt->spr_pars)
 		{
@@ -3570,6 +3570,7 @@ void Speed_Spr_Loop(arbre *tree)
 
   /*****************************/
   printf("\n\n ** LOOP 2 **");
+  lk_old = UNLIKELY;
   tree->mod->s_opt->quickdirty = 0;
   tree->mod->s_opt->spr_lnL    = 1;
   do
@@ -3822,6 +3823,13 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, arbre *tr
   For(i,list_size)
     {
       move = spr_list[i];
+
+      if(!move)
+	{
+	  printf("\n. move is NULL\n");
+	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  Warn_And_Exit("");
+	}
 
       if(move->b_target)
 	{
