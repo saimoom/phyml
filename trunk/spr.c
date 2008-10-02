@@ -3543,7 +3543,7 @@ void Speed_Spr_Loop(arbre *tree)
     {
       lk_old = tree->c_lnL;
       Speed_Spr(tree,1);
-      if(fabs(lk_old-tree->c_lnL) < 10.) break;
+      if(fabs(lk_old-tree->c_lnL) < 1.) break;
     }
   while(1);
   /*****************************/
@@ -3562,7 +3562,7 @@ void Speed_Spr_Loop(arbre *tree)
     {
       lk_old = tree->c_lnL;
       Speed_Spr(tree,1);
-      if(fabs(lk_old-tree->c_lnL) < 10.) break;
+      if(fabs(lk_old-tree->c_lnL) < 1.) break;
     }
   while(1);
   /*****************************/
