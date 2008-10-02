@@ -3169,7 +3169,7 @@ int Spr(phydbl init_lnL, arbre *tree)
 		    } 
 		  else n_moves = n_moves_pars;
 		}
-	      if(tree->mod->s_opt->spr_lnL) n_moves = 5;
+	      if(tree->mod->s_opt->spr_lnL) n_moves = 10;
 	      
 	      if(tree->mod->s_opt->spr_pars)
 		{
@@ -3241,7 +3241,7 @@ int Spr(phydbl init_lnL, arbre *tree)
 		    } 
 		  else n_moves = n_moves_pars;
 		}
-	      if(tree->mod->s_opt->spr_lnL) n_moves = 5;
+	      if(tree->mod->s_opt->spr_lnL) n_moves = 10;
 
 	      if(tree->mod->s_opt->spr_pars)
 		{
@@ -3528,8 +3528,8 @@ void Speed_Spr_Loop(arbre *tree)
   tree->best_lnL  = UNLIKELY;
   tree->mod->s_opt->spr_lnL = 0;
 
-  tree->mod->s_opt->spr_pars = 1;
-  Speed_Spr(tree,1);
+  /*  tree->mod->s_opt->spr_pars = 1; */
+  /*   Speed_Spr(tree,1); */
   tree->mod->s_opt->spr_pars = 0;
 
 
