@@ -3169,7 +3169,7 @@ int Spr(phydbl init_lnL, arbre *tree)
 		    } 
 		  else n_moves = n_moves_pars;
 		}
-	      if(tree->mod->s_opt->spr_lnL) n_moves = MIN(10,2*tree->n_otu-3);
+	      if(tree->mod->s_opt->spr_lnL) n_moves = MIN(20,2*tree->n_otu-3);
 	      
 	      if(tree->mod->s_opt->spr_pars)
 		{
@@ -3241,7 +3241,7 @@ int Spr(phydbl init_lnL, arbre *tree)
 		    } 
 		  else n_moves = n_moves_pars;
 		}
-	      if(tree->mod->s_opt->spr_lnL) n_moves = MIN(10,2*tree->n_otu-3);
+	      if(tree->mod->s_opt->spr_lnL) n_moves = MIN(20,2*tree->n_otu-3);
 
 	      if(tree->mod->s_opt->spr_pars)
 		{
