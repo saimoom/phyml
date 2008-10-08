@@ -30,15 +30,15 @@ void Simu_Loop(arbre *tree)
   tree->mod->s_opt->spr_pars = 1;
   Speed_Spr(tree,3);
   tree->mod->s_opt->spr_pars = 0;
+
   tree->both_sides = 1;
   Lk(tree);
-  Optimize_Br_Len_Serie(tree->noeud[0],tree->noeud[0]->v[0],tree->noeud[0]->b[0],tree,tree->data);
 
   do
     {
       lk_old = tree->c_lnL;
       Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
-      Simu(tree,1000);
+      Simu(tree,10);
       if(tree->mod->s_opt->opt_five_branch) Check_NNI_Five_Branches(tree);
     }
   while(tree->c_lnL > lk_old + tree->mod->s_opt->min_diff_lk_global);
