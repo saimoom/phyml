@@ -527,8 +527,7 @@ phydbl Br_Len_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 	}
 
 
-      if(
-	 ((fabs(tree->c_lnL-old_lnL) < tol) && 
+      if(((fabs(tree->c_lnL-old_lnL) < tol) && 
 	  (tree->c_lnL > init_lnL - tol)) ||	 
 	 (iter > n_iter_max - 1))
 	{
@@ -1248,14 +1247,12 @@ void Optimiz_All_Free_Param(arbre *tree, int verbose)
       failed = 0;
       
       tree->mod->update_eigen = 1;
-      if(!tree->mod->s_opt->quickdirty)
-	{
-	  BFGS(tree,tree->mod->rr_val,tree->mod->n_diff_rr,1.e-5,1.e-7,
-	       &Return_Abs_Lk,
-	       &Num_Derivative_Several_Param,
-	       &Lnsrch_RR_Param,&failed);
-	}
-      if(failed || tree->mod->s_opt->quickdirty)
+      BFGS(tree,tree->mod->rr_val,tree->mod->n_diff_rr,1.e-5,1.e-7,
+	   &Return_Abs_Lk,
+	   &Num_Derivative_Several_Param,
+	   &Lnsrch_RR_Param,&failed);
+
+      if(failed)
 	{
 	  int i,j;
 	  
@@ -2466,6 +2463,7 @@ int Optimiz_Alpha_And_Pinv(arbre *tree)
 				tree->mod->s_opt->min_diff_lk_global,
 				tree->mod->s_opt->brent_it_max,
 				tree->mod->s_opt->quickdirty);
+
   Optimize_Single_Param_Generic(tree,&(tree->mod->alpha),.01,100.,
 				tree->mod->s_opt->min_diff_lk_global,
 				tree->mod->s_opt->brent_it_max,

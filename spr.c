@@ -3169,7 +3169,7 @@ int Spr(phydbl init_lnL, arbre *tree)
 		    } 
 		  else n_moves = n_moves_pars;
 		}
-	      if(tree->mod->s_opt->spr_lnL) n_moves = MIN(20,2*tree->n_otu-3);
+	      if(tree->mod->s_opt->spr_lnL) n_moves = MIN(20,tree->n_moves);
 	      
 	      if(tree->mod->s_opt->spr_pars)
 		{
@@ -3241,7 +3241,7 @@ int Spr(phydbl init_lnL, arbre *tree)
 		    } 
 		  else n_moves = n_moves_pars;
 		}
-	      if(tree->mod->s_opt->spr_lnL) n_moves = MIN(20,2*tree->n_otu-3);
+	      if(tree->mod->s_opt->spr_lnL) n_moves = MIN(20,tree->n_moves);
 
 	      if(tree->mod->s_opt->spr_pars)
 		{
@@ -3401,17 +3401,13 @@ void Test_One_Spr_Target_Recur(node *a, node *d, edge *pulled, node *link, edge 
       For(i,3)
 	if(d->v[i] != a)
 	  {
-	    if(tree->mod->s_opt->spr_lnL)
-	      {
-		Update_P_Lk(tree,d->b[i],d);
-	      }
-	    else
-	      {
-		Update_P_Pars(tree,d->b[i],d);	    
-	      }
+	    if(tree->mod->s_opt->spr_lnL) Update_P_Lk(tree,d->b[i],d);
+	    else                          Update_P_Pars(tree,d->b[i],d);	    
 	    tree->curr_path[tree->depth_curr_path] = d->v[i];
 	    tree->depth_curr_path++;
+
 	    Test_One_Spr_Target(d->b[i],pulled,link,residual,tree);
+
 	    if(((tree->mod->s_opt->spr_lnL) && (tree->depth_curr_path < 20)) || (!tree->mod->s_opt->spr_lnL))
 	      {
 		Test_One_Spr_Target_Recur(d,d->v[i],pulled,link,residual,tree);
@@ -3530,13 +3526,14 @@ void Speed_Spr_Loop(arbre *tree)
 
   /*  tree->mod->s_opt->spr_pars = 1; */
   /*   Speed_Spr(tree,1); */
-  tree->mod->s_opt->spr_pars = 0;
+  tree->mod->s_opt->spr_pars   = 0;
+
 
 
   /*****************************/
   lk_old = UNLIKELY;
-  tree->mod->s_opt->quickdirty = 1;
   tree->mod->s_opt->spr_lnL    = 0;
+  tree->mod->s_opt->quickdirty = 0;
   tree->mod->n_catg            = 1;
   printf("\n\n ** LOOP 0 **");
   do
@@ -3551,7 +3548,6 @@ void Speed_Spr_Loop(arbre *tree)
   /*****************************/
   tree->mod->n_catg = n_catg_ori;
   /*****************************/
-
   
   /*****************************/
   lk_old = UNLIKELY;
@@ -3585,6 +3581,8 @@ void Speed_Spr_Loop(arbre *tree)
   
   /*****************************/
   printf("\n\n ** LOOP 3 **");
+  lk_old = UNLIKELY;
+  tree->mod->s_opt->quickdirty = 0;
   do
     {
       lk_old = tree->c_lnL;
@@ -3596,6 +3594,8 @@ void Speed_Spr_Loop(arbre *tree)
   
   /*****************************/
   printf("\n\n ** LOOP 4 **");
+  lk_old = UNLIKELY;
+  tree->mod->s_opt->quickdirty = 0;
   do
     {
       lk_old = tree->c_lnL;
@@ -3848,7 +3848,7 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, arbre *tr
 	       * be true in the general case
 	       */
 /* 	      Fast_Br_Len(init_target,tree);	       */
-	      Br_Len_Brent (10.*(init_target->l), init_target->l, BL_MIN, 1.e-10,init_target,tree,20,0);
+	      Br_Len_Brent (10.*(init_target->l), init_target->l,0.1*(init_target->l), 1.e-10,init_target,tree,20,0);
 	      /* Record branch length at prune site */
 	      move->init_target_l = init_target->l;
 	      recorded_l          = init_target->l;
