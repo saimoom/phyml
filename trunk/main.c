@@ -150,6 +150,7 @@ int main(int argc, char **argv)
 		  
 		  tree->both_sides = 1;
 		  Lk(tree);
+		  Pars(tree);
 		  Get_Tree_Size(tree);
 		  PhyML_Printf("\n. Log likelihood of the current tree: %f.\n",tree->c_lnL);
 

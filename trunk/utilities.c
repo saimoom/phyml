@@ -4037,6 +4037,8 @@ void Print_Fp_Out(FILE *fp_out, time_t t_beg, time_t t_end, arbre *tree, option 
 
   PhyML_Fprintf(fp_out,"\n\n. Log-likelihood: \t\t\t%.5f",tree->c_lnL);/*was last ; moved here FLT*/
 
+  PhyML_Fprintf(fp_out,"\n\n. Parcimony: \t\t\t\t%d",tree->c_pars);
+
   PhyML_Fprintf(fp_out,"\n\n. Tree size: \t\t\t\t%.5f",tree->size);
 
   PhyML_Fprintf(fp_out,"\n\n. Discrete gamma model: \t\t%s",
@@ -7573,26 +7575,34 @@ void Triple_Dist(node *a, arbre *tree)
   if(a->tax) return;
   else
     {
-      Update_PMat_At_Given_Edge(a->b[1],tree);
-      Update_PMat_At_Given_Edge(a->b[2],tree);
+      int iter;
 
-      Update_P_Lk(tree,a->b[0],a);
-/*       Fast_Br_Len(a->b[0],tree); */
-/*       Update_PMat_At_Given_Edge(a->b[0],tree); */
-      Br_Len_Brent (10.*(a->b[0]->l), a->b[0]->l, .1*(a->b[0]->l), 1.e-10,a->b[0],tree,10,0);
+      iter = 0;
+      do
+	{
+	  Update_PMat_At_Given_Edge(a->b[1],tree);
+	  Update_PMat_At_Given_Edge(a->b[2],tree);
+	  
+	  Update_P_Lk(tree,a->b[0],a);
+	  /*       Fast_Br_Len(a->b[0],tree); */
+	  /*       Update_PMat_At_Given_Edge(a->b[0],tree); */
+	  Br_Len_Brent (10.*(a->b[0]->l), a->b[0]->l, .1*(a->b[0]->l), 1.e-10,a->b[0],tree,50,0);
+	  
+	  Update_P_Lk(tree,a->b[1],a);
+	  /*       Fast_Br_Len(a->b[1],tree); */
+	  /*       Update_PMat_At_Given_Edge(a->b[1],tree); */
+	  Br_Len_Brent (10.*(a->b[1]->l), a->b[1]->l, .1*(a->b[1]->l), 1.e-10,a->b[1],tree,50,0);
+	  
+	  Update_P_Lk(tree,a->b[2],a);
+	  /*       Fast_Br_Len(a->b[2],tree); */
+	  /*       Update_PMat_At_Given_Edge(a->b[2],tree); */
+	  Br_Len_Brent (10.*(a->b[2]->l), a->b[2]->l, .1*(a->b[2]->l), 1.e-10,a->b[2],tree,50,0);
+	  
+	  Update_P_Lk(tree,a->b[1],a);
+	  Update_P_Lk(tree,a->b[0],a);
 
-      Update_P_Lk(tree,a->b[1],a);
-/*       Fast_Br_Len(a->b[1],tree); */
-/*       Update_PMat_At_Given_Edge(a->b[1],tree); */
-      Br_Len_Brent (10.*(a->b[1]->l), a->b[1]->l, .1*(a->b[1]->l), 1.e-10,a->b[1],tree,10,0);
-
-      Update_P_Lk(tree,a->b[2],a);
-/*       Fast_Br_Len(a->b[2],tree); */
-/*       Update_PMat_At_Given_Edge(a->b[2],tree); */
-      Br_Len_Brent (10.*(a->b[2]->l), a->b[2]->l, .1*(a->b[2]->l), 1.e-10,a->b[2],tree,10,0);
-
-      Update_P_Lk(tree,a->b[1],a);
-      Update_P_Lk(tree,a->b[0],a);
+	  iter++;
+	}while(iter < 2);
 
 /*       node *b,*c,*d; */
 /*       int _a,_b,_c,_d; */
