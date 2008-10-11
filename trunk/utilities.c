@@ -7602,7 +7602,7 @@ void Triple_Dist(node *a, arbre *tree)
 	  Update_P_Lk(tree,a->b[0],a);
 
 	  iter++;
-	}while(iter < 2);
+	}while(iter < 1);
 
 /*       node *b,*c,*d; */
 /*       int _a,_b,_c,_d; */
