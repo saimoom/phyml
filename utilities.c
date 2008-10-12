@@ -7586,17 +7586,18 @@ void Triple_Dist(node *a, arbre *tree)
 	  Update_P_Lk(tree,a->b[0],a);
 	  /*       Fast_Br_Len(a->b[0],tree); */
 	  /*       Update_PMat_At_Given_Edge(a->b[0],tree); */
-	  Br_Len_Brent (10.*(a->b[0]->l), a->b[0]->l, .1*(a->b[0]->l), 1.e-10,a->b[0],tree,50,0);
+/* 	  Br_Len_Brent (10.*(a->b[0]->l), a->b[0]->l, .1*(a->b[0]->l), 1.e-10,a->b[0],tree,50,0); */
+	  Br_Len_Brent (BL_MAX, a->b[0]->l,BL_MIN, 1.e-10,a->b[0],tree,50,0);
 	  
 	  Update_P_Lk(tree,a->b[1],a);
 	  /*       Fast_Br_Len(a->b[1],tree); */
 	  /*       Update_PMat_At_Given_Edge(a->b[1],tree); */
-	  Br_Len_Brent (10.*(a->b[1]->l), a->b[1]->l, .1*(a->b[1]->l), 1.e-10,a->b[1],tree,50,0);
+	  Br_Len_Brent (BL_MAX, a->b[1]->l,BL_MIN, 1.e-10,a->b[1],tree,50,0);
 	  
 	  Update_P_Lk(tree,a->b[2],a);
 	  /*       Fast_Br_Len(a->b[2],tree); */
 	  /*       Update_PMat_At_Given_Edge(a->b[2],tree); */
-	  Br_Len_Brent (10.*(a->b[2]->l), a->b[2]->l, .1*(a->b[2]->l), 1.e-10,a->b[2],tree,50,0);
+	  Br_Len_Brent (BL_MAX, a->b[2]->l,BL_MIN, 1.e-10,a->b[2],tree,50,0);
 	  
 	  Update_P_Lk(tree,a->b[1],a);
 	  Update_P_Lk(tree,a->b[0],a);
