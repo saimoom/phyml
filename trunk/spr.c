@@ -3533,11 +3533,12 @@ void Speed_Spr_Loop(arbre *tree)
   lk_old = UNLIKELY;
   tree->mod->s_opt->spr_lnL    = 0;
   tree->mod->s_opt->quickdirty = 0;
-  tree->mod->n_catg            = 1;
+  if(n_catg_ori > 1) tree->mod->n_catg = 2;
   printf("\n\n ** LOOP 0 **");
   do
     {
       lk_old = tree->c_lnL;
+      Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
       Speed_Spr(tree,1);
       if(fabs(lk_old-tree->c_lnL) < 10.) break;
     }
@@ -3556,8 +3557,8 @@ void Speed_Spr_Loop(arbre *tree)
   do
     {
       lk_old = tree->c_lnL;
-      Speed_Spr(tree,1);
       Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
+      Speed_Spr(tree,1);
       if(fabs(lk_old-tree->c_lnL) < 10.) break;
     }
   while(1);
@@ -3572,8 +3573,8 @@ void Speed_Spr_Loop(arbre *tree)
   do
     {
       lk_old = tree->c_lnL;
-      Speed_Spr(tree,1);
       Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
+      Speed_Spr(tree,1);
       if((!tree->n_improvements) || (fabs(lk_old-tree->c_lnL) < 1.)) break;
     }
   while(1);
@@ -3587,8 +3588,8 @@ void Speed_Spr_Loop(arbre *tree)
   do
     {
       lk_old = tree->c_lnL;
-      Simu(tree,1000);
-      Round_Optimize(tree,tree->data,1000);
+      Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
+      Simu(tree,10);
     }while(fabs(lk_old - tree->c_lnL) > tree->mod->s_opt->min_diff_lk_global);
   /*****************************/
 
@@ -3600,8 +3601,8 @@ void Speed_Spr_Loop(arbre *tree)
   do
     {
       lk_old = tree->c_lnL;
+      Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
       if(!Check_NNI_Five_Branches(tree)) break;
-      Round_Optimize(tree,tree->data,1000);
     }while(fabs(lk_old - tree->c_lnL) > tree->mod->s_opt->min_diff_lk_global);
   /*****************************/
 
