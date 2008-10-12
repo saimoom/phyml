@@ -39,19 +39,17 @@ void Simu_Loop(arbre *tree)
 
 
   /*****************************/
-  lk_old = UNLIKELY;
-  tree->mod->s_opt->spr_lnL    = 0;
-  tree->mod->s_opt->quickdirty = 0;
-  tree->mod->n_catg            = 1;
-  printf("\n\n ** LOOP 0 **");
+  if(n_catg_ori > 1) tree->mod->n_catg = 2;
+  /*****************************/
+
+  printf("\n\n. LOOP 0 ");
   do
     {
       lk_old = tree->c_lnL;
-      Speed_Spr(tree,1);
-      if(fabs(lk_old-tree->c_lnL) < 10.) break;
+      Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
+      Simu(tree,10);
     }
-  while(1);
-  /*****************************/
+  while(tree->c_lnL > lk_old + 10.);
 
 
   /*****************************/
@@ -66,6 +64,7 @@ void Simu_Loop(arbre *tree)
       Simu(tree,10);
     }
   while(tree->c_lnL > lk_old + tree->mod->s_opt->min_diff_lk_global);
+
 
   Round_Optimize(tree,tree->data,ROUND_MAX);
   Check_NNI_Five_Branches(tree);
