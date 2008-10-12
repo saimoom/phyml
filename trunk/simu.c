@@ -54,6 +54,7 @@ void Simu_Loop(arbre *tree)
 
   /*****************************/
   tree->mod->n_catg = n_catg_ori;
+  Lk(tree);
   /*****************************/
 
   printf("\n\n. LOOP 1 ");
