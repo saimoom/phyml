@@ -3529,7 +3529,6 @@ void Speed_Spr_Loop(arbre *tree)
   tree->mod->s_opt->spr_pars   = 0;
 
 
-
   /*****************************/
   lk_old = UNLIKELY;
   tree->mod->s_opt->spr_lnL    = 0;
@@ -3558,25 +3557,27 @@ void Speed_Spr_Loop(arbre *tree)
     {
       lk_old = tree->c_lnL;
       Speed_Spr(tree,1);
+      Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
       if(fabs(lk_old-tree->c_lnL) < 10.) break;
     }
   while(1);
   /*****************************/
   
 
-/*   /\*****************************\/ */
-/*   printf("\n\n ** LOOP 2 **"); */
-/*   lk_old = UNLIKELY; */
-/*   tree->mod->s_opt->quickdirty = 0; */
-/*   tree->mod->s_opt->spr_lnL    = 1; */
-/*   do */
-/*     { */
-/*       lk_old = tree->c_lnL; */
-/*       Speed_Spr(tree,1); */
-/*       if((!tree->n_improvements) || (fabs(lk_old-tree->c_lnL) < 1.)) break; */
-/*     } */
-/*   while(1); */
-/*   /\*****************************\/ */
+  /*****************************/
+  printf("\n\n ** LOOP 2 **");
+  lk_old = UNLIKELY;
+  tree->mod->s_opt->quickdirty = 0;
+  tree->mod->s_opt->spr_lnL    = 1;
+  do
+    {
+      lk_old = tree->c_lnL;
+      Speed_Spr(tree,1);
+      Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
+      if((!tree->n_improvements) || (fabs(lk_old-tree->c_lnL) < 1.)) break;
+    }
+  while(1);
+  /*****************************/
 
   
   /*****************************/
@@ -3647,7 +3648,7 @@ void Speed_Spr(arbre *tree, int max_cycles)
       
       if(!tree->mod->s_opt->spr_pars)
 	{
-	  Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
+/* 	  Optimiz_All_Free_Param(tree,tree->mod->s_opt->print); */
 	  
 	  /* Optimise branch lengths */
 	  Optimize_Br_Len_Serie(tree->noeud[0],
@@ -3879,7 +3880,7 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, arbre *tr
 	      best_lnL = move_lnL;
 	      best_move = i;
 	    }
-	  else if(!tree->mod->s_opt->quickdirty)
+	  else
 	    {
 	      /* Estimate the three edge lengths at the regraft site */
 	      Triple_Dist(move->n_link,tree);
@@ -3946,6 +3947,9 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, arbre *tr
 	  /* Update relevant change proba matrices */
 	  Update_PMat_At_Given_Edge(move->b_target,tree);
 	}
+
+      /* Bail out as soon as you've found a true improvement */
+      if(move->lnL > tree->best_lnL + tree->mod->s_opt->min_diff_lk_move) break;
     }
 
   For(i,list_size)
