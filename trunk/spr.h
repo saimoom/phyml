@@ -62,7 +62,7 @@ int Spr(phydbl init_lnL, arbre *tree);
 int Spr_Recur(node *a, node *d, arbre *tree);
 int Test_All_Spr_Targets(edge *pulled, node *link, arbre *tree);
 void Randomize_Spr_List(arbre *tree);
-void Test_One_Spr_Target_Recur(node *a, node *d, edge *pulled, node *link, edge *residual, arbre *tree);
+void Test_One_Spr_Target_Recur(node *a, node *d, edge *pulled, node *link, edge *residual, int *best_found, arbre *tree);
 phydbl Test_One_Spr_Target(edge *target, edge *arrow, node *link, edge *residual, arbre *tree);
 void Apply_Spr_Moves_One_By_One(arbre *tree);
 int Try_One_Spr_Move_Triple(spr *move, arbre *tree);

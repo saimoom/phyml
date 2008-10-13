@@ -3301,6 +3301,7 @@ int Test_All_Spr_Targets(edge *b_pulled, node *n_link, arbre *tree)
   edge *b_target,*b_residual;
   int i,dir1,dir2;
   phydbl init_len_v1, init_len_v2, init_len_pulled;
+  int best_found;
 
   n_up = NULL;
   b_target = b_residual = NULL;
@@ -3338,15 +3339,16 @@ int Test_All_Spr_Targets(edge *b_pulled, node *n_link, arbre *tree)
       Update_PMat_At_Given_Edge(b_target,tree);
     }
 
+  best_found = 0;
   tree->depth_curr_path = 1; tree->curr_path[0] = b_target->left;
   Test_One_Spr_Target_Recur(b_target->rght,
 			    b_target->left,
-			    b_pulled,n_link,b_residual,tree);
+			    b_pulled,n_link,b_residual,&best_found,tree);
 
   tree->depth_curr_path = 1; tree->curr_path[0] = b_target->rght;
   Test_One_Spr_Target_Recur(b_target->left,
 			    b_target->rght,
-			    b_pulled,n_link,b_residual,tree);
+			    b_pulled,n_link,b_residual,&best_found,tree);
 
   Graft_Subtree(b_target,n_link,b_residual,tree);
 
@@ -3391,26 +3393,32 @@ int Test_All_Spr_Targets(edge *b_pulled, node *n_link, arbre *tree)
 
 /*********************************************************/
 
-void Test_One_Spr_Target_Recur(node *a, node *d, edge *pulled, node *link, edge *residual, arbre *tree)
+void Test_One_Spr_Target_Recur(node *a, node *d, edge *pulled, node *link, edge *residual, int *best_found, arbre *tree)
 {
   int i;
 
+  if(*best_found) return;
   if(d->tax) return;
   else
     {
+      phydbl move_lnL;
+
       For(i,3)
 	if(d->v[i] != a)
 	  {
 	    if(tree->mod->s_opt->spr_lnL) Update_P_Lk(tree,d->b[i],d);
-	    else                          Update_P_Pars(tree,d->b[i],d);	    
+	    else                          Update_P_Pars(tree,d->b[i],d);
+
 	    tree->curr_path[tree->depth_curr_path] = d->v[i];
 	    tree->depth_curr_path++;
 
-	    Test_One_Spr_Target(d->b[i],pulled,link,residual,tree);
+	    move_lnL = Test_One_Spr_Target(d->b[i],pulled,link,residual,tree);
 
-	    if(((tree->mod->s_opt->spr_lnL) && (tree->depth_curr_path < 20)) || (!tree->mod->s_opt->spr_lnL))
+	    if(move_lnL > tree->best_lnL + tree->mod->s_opt->min_diff_lk_move) *best_found = 1;
+
+	    if(((tree->mod->s_opt->spr_lnL) && (tree->depth_curr_path < 10)) || (!tree->mod->s_opt->spr_lnL))
 	      {
-		Test_One_Spr_Target_Recur(d,d->v[i],pulled,link,residual,tree);
+		Test_One_Spr_Target_Recur(d,d->v[i],pulled,link,residual,best_found,tree);
 	      }
 	    tree->depth_curr_path--;
 	  }
@@ -3500,16 +3508,12 @@ phydbl Test_One_Spr_Target(edge *b_target, edge *b_arrow, node *n_link, edge *b_
 		&b_residual,
 		tree);
 
-
-  if(tree->mod->s_opt->spr_lnL)
-    {  
-      Update_PMat_At_Given_Edge(b_target,tree);
-    }
+  if(tree->mod->s_opt->spr_lnL) Update_PMat_At_Given_Edge(b_target,tree);
 
   tree->c_lnL   = init_lnL;
   tree->c_pars  = init_pars;
 
-  return .0;
+  return move_lnL;
 }
 
 /*********************************************************/
@@ -3550,6 +3554,8 @@ void Speed_Spr_Loop(arbre *tree)
 /*   Lk(tree); */
 /*   /\*****************************\/ */
   
+
+
   /*****************************/
   lk_old = UNLIKELY;
   tree->mod->s_opt->quickdirty = 0;
@@ -3882,7 +3888,7 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, arbre *tr
 	      best_lnL = move_lnL;
 	      best_move = i;
 	    }
-	  else
+	  else if(tree->mod->s_opt->spr_lnL)
 	    {
 	      /* Estimate the three edge lengths at the regraft site */
 	      Triple_Dist(move->n_link,tree);
