@@ -3521,40 +3521,14 @@ phydbl Test_One_Spr_Target(edge *b_target, edge *b_arrow, node *n_link, edge *b_
 void Speed_Spr_Loop(arbre *tree)
 {
   phydbl lk_old;
-  int n_catg_ori;
 
-  n_catg_ori = tree->mod->n_catg;
   tree->best_pars = 1E+8;
-  tree->best_lnL  = UNLIKELY;
-  tree->mod->s_opt->spr_lnL = 0;
-
-  /*  tree->mod->s_opt->spr_pars = 1; */
-  /*   Speed_Spr(tree,1); */
-  tree->mod->s_opt->spr_pars   = 0;
-
-
-/*   /\*****************************\/ */
-/*   lk_old = UNLIKELY; */
-/*   tree->mod->s_opt->spr_lnL    = 0; */
-/*   tree->mod->s_opt->quickdirty = 0; */
-/*   if(n_catg_ori > 1) tree->mod->n_catg = 2; */
-/*   printf("\n\n ** LOOP 0 **"); */
-/*   do */
-/*     { */
-/*       lk_old = tree->c_lnL; */
-/*       Optimiz_All_Free_Param(tree,tree->mod->s_opt->print); */
-/*       Speed_Spr(tree,1); */
-/*       if(fabs(lk_old-tree->c_lnL) < 10.) break; */
-/*     } */
-/*   while(1); */
-/*   /\*****************************\/ */
+  tree->mod->s_opt->spr_lnL  = 0;
+  tree->mod->s_opt->spr_pars = 0;
   
-/*   /\*****************************\/ */
-/*   tree->mod->n_catg = n_catg_ori; */
-/*   Lk(tree); */
-/*   /\*****************************\/ */
-  
-
+  tree->both_sides = 0;
+  Lk(tree);
+  tree->best_lnL = tree->c_lnL;
 
   /*****************************/
   lk_old = UNLIKELY;

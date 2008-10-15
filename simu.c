@@ -36,6 +36,9 @@ void Simu_Loop(arbre *tree)
   tree->mod->s_opt->spr_pars = 1;
   Speed_Spr(tree,3);
   tree->mod->s_opt->spr_pars = 0;
+  
+  tree->both_sides = 0;
+  Lk(tree);
 
   do
     {
