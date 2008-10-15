@@ -40,6 +40,10 @@ void Simu_Loop(arbre *tree)
   tree->both_sides = 0;
   Lk(tree);
 
+  tree->mod->s_opt->spr_lnL  = 0;
+  Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
+  Speed_Spr(tree,1);
+
   do
     {
       lk_old = tree->c_lnL;
