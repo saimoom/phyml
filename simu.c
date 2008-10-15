@@ -35,29 +35,8 @@ void Simu_Loop(arbre *tree)
 
   tree->mod->s_opt->spr_pars = 1;
   Speed_Spr(tree,3);
-  tree->mod->s_opt->spr_pars   = 0;
+  tree->mod->s_opt->spr_pars = 0;
 
-
-  /*****************************/
-  if(n_catg_ori > 1) tree->mod->n_catg = 2;
-  /*****************************/
-
-  printf("\n\n. LOOP 0 ");
-  do
-    {
-      lk_old = tree->c_lnL;
-      Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
-      Simu(tree,10);
-    }
-  while(tree->c_lnL > lk_old + 10.);
-
-
-  /*****************************/
-  tree->mod->n_catg = n_catg_ori;
-  Lk(tree);
-  /*****************************/
-
-  printf("\n\n. LOOP 1 ");
   do
     {
       lk_old = tree->c_lnL;
