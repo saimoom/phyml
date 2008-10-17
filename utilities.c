@@ -657,6 +657,42 @@ int Rand_Int(int min, int max)
 }
 
 /*********************************************************/
+/* void Make_All_Edges_Light(node *a, node *d, int *curr_num_edge) */
+/* { */
+/*   int i; */
+
+/*   Make_Edge_Light(a,d,*curr_num_edge); */
+/*   (*curr_num_edge)++; */
+/*   if(d->tax) return; */
+/*   else */
+/*     { */
+/*       For(i,3) */
+/* 	{ */
+/* 	  if(d->v[i] != a) */
+/* 	    Make_All_Edges_Light(d,d->v[i],curr_num_edge); */
+/* 	} */
+/*     } */
+/* } */
+
+/*********************************************************/
+
+void Make_All_Edges_Lk(node *a, node *d, arbre *tree)
+{
+  int i;
+
+  For(i,3) if((a->v[i]) && (a->v[i] == d)) Make_Edge_Lk(a->b[i],tree);
+  if(d->tax) return;
+  else
+    {
+      For(i,3)
+	{
+	  if(d->v[i] != a)
+	    Make_All_Edges_Lk(d,d->v[i],tree);
+	}
+    }
+}
+
+/*********************************************************/
 
 arbre *Read_Tree(char *s_tree)
 {
@@ -697,40 +733,6 @@ arbre *Read_Tree(char *s_tree)
 
 /*********************************************************/
 
-/* void Make_All_Edges_Light(node *a, node *d, int *curr_num_edge) */
-/* { */
-/*   int i; */
-
-/*   Make_Edge_Light(a,d,*curr_num_edge); */
-/*   (*curr_num_edge)++; */
-/*   if(d->tax) return; */
-/*   else */
-/*     { */
-/*       For(i,3) */
-/* 	{ */
-/* 	  if(d->v[i] != a) */
-/* 	    Make_All_Edges_Light(d,d->v[i],curr_num_edge); */
-/* 	} */
-/*     } */
-/* } */
-
-/*********************************************************/
-
-void Make_All_Edges_Lk(node *a, node *d, arbre *tree)
-{
-  int i;
-
-  For(i,3) if((a->v[i]) && (a->v[i] == d)) Make_Edge_Lk(a->b[i],tree);
-  if(d->tax) return;
-  else
-    {
-      For(i,3)
-	{
-	  if(d->v[i] != a)
-	    Make_All_Edges_Lk(d,d->v[i],tree);
-	}
-    }
-}
 
 /*********************************************************/
 /* 'a' in node a stands for ancestor. 'd' stands for descendant */ 
@@ -1284,7 +1286,6 @@ edge *Make_Edge_Light(node *a, node *d, int num)
   edge *b;
 
   b = (edge *)mCalloc(1,sizeof(edge));
-
 
   Init_Edge_Light(b,num);
 
