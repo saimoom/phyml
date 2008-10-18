@@ -1380,7 +1380,6 @@ void Make_Edge_Dirs(edge *b, node *a, node *d)
 
   if(a->tax) {b->r_l = 0; For(i,3) if(d->v[i]==a) {b->l_r = i; break;}}
 
-
   b->l_v1 = b->l_v2 = b->r_v1 = b->r_v2 = -1;
   For(i,3)
     {
@@ -2467,7 +2466,7 @@ void Connect_One_Edge_To_Two_Nodes(node *a, node *d, edge *b, arbre *tree)
   b->left       = a;
   b->rght       = d;
   if(a->tax) {b->rght = a; b->left = d;} /* root */
-  /* a tip is necessary on the right side of the edge */
+  /* a tip is necessary on the right hand side of the edge */
 
   (b->left == a)?
     (Make_Edge_Dirs(b,a,d)):
@@ -6717,12 +6716,12 @@ void Prune_Subtree(node *a, node *d, edge **target, edge **residual, arbre *tree
       b2 = a->b[dir_v1];
     }
 
+  if(v1->tax && v2->tax) PhyML_Printf("\n. Pruning is meaningless here.\n");
 
   a->v[dir_v1] = NULL;
   a->v[dir_v2] = NULL;
   a->b[dir_v1] = NULL;
   a->b[dir_v2] = NULL;
-
 
   if(v1 == b1->left)
     {
@@ -6872,15 +6871,25 @@ void Prune_Subtree(node *a, node *d, edge **target, edge **residual, arbre *tree
 
   b1->l += b2->l;
 
-
   (v1 == b1->left)?
     (Make_Edge_Dirs(b1,v1,v2)):
     (Make_Edge_Dirs(b1,v2,v1));
 
   if(target)   (*target)   = b1;
   if(residual) (*residual) = b2;
-}
 
+
+#ifdef DEBUG
+  if(b1->left->tax)
+    {
+      printf("\n. b1->left->num = %d",b1->left->num);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+#endif
+
+
+}
 
 /*********************************************************/
 
