@@ -3169,8 +3169,11 @@ int Spr(phydbl init_lnL, arbre *tree)
 		    } 
 		  else n_moves = n_moves_pars;
 		}
-	      if(tree->mod->s_opt->spr_lnL) n_moves = MIN(10,tree->n_moves);
-	      
+	      if(tree->mod->s_opt->spr_lnL) 
+		{
+		  n_moves = MIN(15,tree->n_moves);
+/* 		  n_moves = tree->n_moves; */
+		}
 
 	      if(tree->mod->s_opt->spr_pars)
 		{
@@ -3207,7 +3210,6 @@ int Spr(phydbl init_lnL, arbre *tree)
 		{
 		  best_move = Evaluate_List_Of_Regraft_Pos_Triple(tree->spr_list,n_moves,tree);
 
-/* 		  if(tree->spr_list[best_move]->lnL > init_lnL) Try_One_Spr_Move_Triple(tree->spr_list[best_move],tree); */
 		  if(tree->spr_list[best_move]->lnL > tree->best_lnL) Try_One_Spr_Move_Triple(tree->spr_list[best_move],tree);
 		  else
 		    {
@@ -3216,7 +3218,6 @@ int Spr(phydbl init_lnL, arbre *tree)
 		      Pars(tree);
 		    }
 		}
-
 	    }
 	  Reset_Spr_List(tree);
 	}
@@ -3244,8 +3245,11 @@ int Spr(phydbl init_lnL, arbre *tree)
 		    } 
 		  else n_moves = n_moves_pars;
 		}
-	      if(tree->mod->s_opt->spr_lnL) n_moves = MIN(10,tree->n_moves);
-
+	      if(tree->mod->s_opt->spr_lnL) 
+		{
+		  n_moves = MIN(15,tree->n_moves);
+/* 		  n_moves = tree->n_moves; */
+		}
 
 	      if(tree->mod->s_opt->spr_pars)
 		{
@@ -3282,7 +3286,6 @@ int Spr(phydbl init_lnL, arbre *tree)
 		{
 		  best_move = Evaluate_List_Of_Regraft_Pos_Triple(tree->spr_list,n_moves,tree);
 
-/* 		  if(tree->spr_list[best_move]->lnL > init_lnL) Try_One_Spr_Move_Triple(tree->spr_list[best_move],tree); */
 		  if(tree->spr_list[best_move]->lnL > tree->best_lnL) Try_One_Spr_Move_Triple(tree->spr_list[best_move],tree);
 		  else
 		    {
@@ -3336,62 +3339,65 @@ int Test_All_Spr_Targets(edge *b_pulled, node *n_link, arbre *tree)
       init_len_v2 = n_link->b[dir1]->l;
     }
 
-
-  Prune_Subtree(n_link,n_opp_to_link,&b_target,&b_residual,tree);
-
-  if(tree->mod->s_opt->spr_lnL)
+  if(!(n_v1->tax && n_v2->tax)) /* Pruning is meaningless otherwise */
     {
-      Update_PMat_At_Given_Edge(b_target,tree);
-    }
-
-  best_found = 0;
-  tree->depth_curr_path = 1; tree->curr_path[0] = b_target->left;
-  Test_One_Spr_Target_Recur(b_target->rght,
-			    b_target->left,
-			    b_pulled,n_link,b_residual,&best_found,tree);
-
-  tree->depth_curr_path = 1; tree->curr_path[0] = b_target->rght;
-  Test_One_Spr_Target_Recur(b_target->left,
-			    b_target->rght,
-			    b_pulled,n_link,b_residual,&best_found,tree);
-
-  Graft_Subtree(b_target,n_link,b_residual,tree);
-
-  if((n_link->v[dir1] != n_v1) || (n_link->v[dir2] != n_v2))
-    PhyML_Printf("\n. Warning : -- SWITCH NEEDED -- ! \n");
-
-  n_link->b[dir1]->l = init_len_v1; Update_PMat_At_Given_Edge(n_link->b[dir1],tree);
-  n_link->b[dir2]->l = init_len_v2; Update_PMat_At_Given_Edge(n_link->b[dir2],tree);
-  b_pulled->l = init_len_pulled;
-  Update_PMat_At_Given_Edge(b_pulled,tree);
-
-  if(tree->mod->s_opt->spr_lnL)
-    {
-      Update_P_Lk(tree,b_pulled,  n_link);
-      Update_P_Lk(tree,b_target,  n_link);
-      Update_P_Lk(tree,b_residual,n_link);
-    }
-  else
-    {
-      Update_P_Pars(tree,b_pulled,  n_link);
-      Update_P_Pars(tree,b_target,  n_link);
-      Update_P_Pars(tree,b_residual,n_link);
-    }
-
-  if(!tree->perform_spr_right_away)
-    /* if perform_spr_right_away != 0 --> a spr move
-     * will be performed anyway. Thus it is not necessary 
-     * to update the partial likelihoods below 
-     */
-    {
-      For(i,3)
-	if(n_link->v[i] != n_opp_to_link)
-	  {
-	    if(tree->mod->s_opt->spr_lnL)
-	      Pre_Order_Lk(n_link,n_link->v[i],tree);
-	    else
-	      Pre_Order_Pars(n_link,n_link->v[i],tree);
-	  }
+      Prune_Subtree(n_link,n_opp_to_link,&b_target,&b_residual,tree);
+      
+      if(tree->mod->s_opt->spr_lnL)
+	{
+	  Br_Len_Brent(10.*(b_target->l),b_target->l,BL_MIN,1.e-10,b_target,tree,20,0);
+	  /*       Update_PMat_At_Given_Edge(b_target,tree); */
+	}
+      
+      best_found = 0;
+      tree->depth_curr_path = 1; tree->curr_path[0] = b_target->left;
+      Test_One_Spr_Target_Recur(b_target->rght,
+				b_target->left,
+				b_pulled,n_link,b_residual,&best_found,tree);
+      
+      tree->depth_curr_path = 1; tree->curr_path[0] = b_target->rght;
+      Test_One_Spr_Target_Recur(b_target->left,
+				b_target->rght,
+				b_pulled,n_link,b_residual,&best_found,tree);
+      
+      Graft_Subtree(b_target,n_link,b_residual,tree);
+      
+      if((n_link->v[dir1] != n_v1) || (n_link->v[dir2] != n_v2))
+	PhyML_Printf("\n. Warning : -- SWITCH NEEDED -- ! \n");
+      
+      n_link->b[dir1]->l = init_len_v1; Update_PMat_At_Given_Edge(n_link->b[dir1],tree);
+      n_link->b[dir2]->l = init_len_v2; Update_PMat_At_Given_Edge(n_link->b[dir2],tree);
+      b_pulled->l = init_len_pulled;
+      Update_PMat_At_Given_Edge(b_pulled,tree);
+      
+      if(tree->mod->s_opt->spr_lnL)
+	{
+	  Update_P_Lk(tree,b_pulled,  n_link);
+	  Update_P_Lk(tree,b_target,  n_link);
+	  Update_P_Lk(tree,b_residual,n_link);
+	}
+      else
+	{
+	  Update_P_Pars(tree,b_pulled,  n_link);
+	  Update_P_Pars(tree,b_target,  n_link);
+	  Update_P_Pars(tree,b_residual,n_link);
+	}
+      
+      if(!tree->perform_spr_right_away)
+	/* if perform_spr_right_away != 0 --> a spr move
+	 * will be performed anyway. Thus it is not necessary 
+	 * to update the partial likelihoods below 
+	 */
+	{
+	  For(i,3)
+	    if(n_link->v[i] != n_opp_to_link)
+	      {
+		if(tree->mod->s_opt->spr_lnL)
+		  Pre_Order_Lk(n_link,n_link->v[i],tree);
+		else
+		  Pre_Order_Pars(n_link,n_link->v[i],tree);
+	      }
+	}
     }
   return 0;
 }
@@ -3411,17 +3417,26 @@ void Test_One_Spr_Target_Recur(node *a, node *d, edge *pulled, node *link, edge 
       For(i,3)
 	if(d->v[i] != a)
 	  {
-	    if(tree->mod->s_opt->spr_lnL) Update_P_Lk(tree,d->b[i],d);
-	    else                          Update_P_Pars(tree,d->b[i],d);
+	    if(tree->mod->s_opt->spr_lnL) 
+	      {
+		Update_P_Lk(tree,d->b[i],d);
+	      }
+	    else
+	      {
+		Update_P_Pars(tree,d->b[i],d);
+	      }
 
 	    tree->curr_path[tree->depth_curr_path] = d->v[i];
 	    tree->depth_curr_path++;
 
 	    move_lnL = Test_One_Spr_Target(d->b[i],pulled,link,residual,tree);
 
-	    if(move_lnL > tree->best_lnL + tree->mod->s_opt->min_diff_lk_move) *best_found = 1;
+	    if(move_lnL > tree->best_lnL + tree->mod->s_opt->min_diff_lk_move) 
+	      {
+		*best_found = 1;		
+	      }
 
-	    if(((tree->mod->s_opt->spr_lnL) && (tree->depth_curr_path < 10)) || (!tree->mod->s_opt->spr_lnL))
+	    if(((tree->mod->s_opt->spr_lnL) && (tree->depth_curr_path < 15)) || (!tree->mod->s_opt->spr_lnL))
 	      {
 		Test_One_Spr_Target_Recur(d,d->v[i],pulled,link,residual,best_found,tree);
 	      }
@@ -3513,7 +3528,10 @@ phydbl Test_One_Spr_Target(edge *b_target, edge *b_arrow, node *n_link, edge *b_
 		&b_residual,
 		tree);
 
-  if(tree->mod->s_opt->spr_lnL) Update_PMat_At_Given_Edge(b_target,tree);
+  if(tree->mod->s_opt->spr_lnL) 
+    {
+      Update_PMat_At_Given_Edge(b_target,tree);
+    }
 
   tree->c_lnL   = init_lnL;
   tree->c_pars  = init_pars;
@@ -3539,7 +3557,6 @@ void Speed_Spr_Loop(arbre *tree)
   Lk(tree);
   tree->best_lnL = tree->c_lnL;
 
-
   /*****************************/
   lk_old = UNLIKELY;
   tree->mod->s_opt->quickdirty = 0;
@@ -3550,26 +3567,26 @@ void Speed_Spr_Loop(arbre *tree)
       lk_old = tree->c_lnL;
       Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
       Speed_Spr(tree,1);
-      if((!tree->n_improvements) || (fabs(lk_old-tree->c_lnL) < 1.)) break;
-/*       if(!tree->n_improvements) break; */
+      if(!tree->n_improvements) break;
+/*       if((!tree->n_improvements) || (fabs(lk_old-tree->c_lnL) < 10.)) break; */
     }
   while(1);
   /*****************************/
     
-  /*****************************/
-  printf("\n\n ** LOOP 2 **");
-  lk_old = UNLIKELY;
-  tree->mod->s_opt->quickdirty = 0;
-  tree->mod->s_opt->spr_lnL    = 1;
-  do
-    {
-      lk_old = tree->c_lnL;
-      Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
-      Speed_Spr(tree,1);
-      if((!tree->n_improvements) || (fabs(lk_old-tree->c_lnL) < 1.)) break;
-    }
-  while(1);
-  /*****************************/
+/*   /\*****************************\/ */
+/*   printf("\n\n ** LOOP 2 **"); */
+/*   lk_old = UNLIKELY; */
+/*   tree->mod->s_opt->quickdirty = 0; */
+/*   tree->mod->s_opt->spr_lnL    = 1; */
+/*   do */
+/*     { */
+/*       lk_old = tree->c_lnL; */
+/*       Optimiz_All_Free_Param(tree,tree->mod->s_opt->print); */
+/*       Speed_Spr(tree,1); */
+/*       if((!tree->n_improvements) || (fabs(lk_old-tree->c_lnL) < 1.)) break; */
+/*     } */
+/*   while(1); */
+/*   /\*****************************\/ */
 
   /*****************************/
   printf("\n\n ** LOOP 3 **");
@@ -3580,10 +3597,10 @@ void Speed_Spr_Loop(arbre *tree)
       lk_old = tree->c_lnL;
       Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
       Simu(tree,10);
-    }while(fabs(lk_old - tree->c_lnL) > tree->mod->s_opt->min_diff_lk_global);
+    }
+  while(fabs(lk_old - tree->c_lnL) > tree->mod->s_opt->min_diff_lk_global);
   /*****************************/
 
-  
   /*****************************/
   printf("\n\n ** LOOP 4 **");
   lk_old = UNLIKELY;
