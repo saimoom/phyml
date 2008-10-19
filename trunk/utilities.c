@@ -4438,8 +4438,9 @@ matrix *JC69_Dist(allseq *data, model *mod)
 	{
 	  for(k=j+1;k<data->n_otu;k++)
 	    {
-	      if((!Is_Ambigu(data->c_seq[j]->state+site,mod->datatype,mod->stepsize)) &&
-		 (!Is_Ambigu(data->c_seq[k]->state+site,mod->datatype,mod->stepsize)))
+/* 	      if((!Is_Ambigu(data->c_seq[j]->state+site,mod->datatype,mod->stepsize)) && */
+/* 		 (!Is_Ambigu(data->c_seq[k]->state+site,mod->datatype,mod->stepsize))) */
+	      if(1)
 		{
 		  len[j][k]+=data->wght[site];
 		  len[k][j]=len[j][k];
