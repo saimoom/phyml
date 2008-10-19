@@ -4479,10 +4479,10 @@ matrix *JC69_Dist(allseq *data, model *mod)
 	mat->dist[i][j] = len[i][j];
 
 
-	if(mat->dist[i][j] > DIST_MAX)
-	  {
-	    mat->dist[i][j] = DIST_MAX;
-	  }
+/* 	if(mat->dist[i][j] > DIST_MAX) */
+/* 	  { */
+/* 	    mat->dist[i][j] = DIST_MAX; */
+/* 	  } */
 	mat->dist[j][i] = mat->dist[i][j];
       }
 
