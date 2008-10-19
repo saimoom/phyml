@@ -4325,7 +4325,6 @@ matrix *K80_dist(allseq *data, phydbl g_shape)
   mat = Make_Mat(data->n_otu);
   Init_Mat(mat,data);
 
-
   For(i,data->c_seq[0]->len)
     {
       For(j,data->n_otu-1)
@@ -4342,7 +4341,7 @@ matrix *K80_dist(allseq *data, phydbl g_shape)
 		  len[j][k]+=data->wght[i];
 		  len[k][j]=len[j][k];
 		}
-
+	      
 	      else
 		if(((data->c_seq[j]->state[i] == 'A' && data->c_seq[k]->state[i] == 'G') ||
 		    (data->c_seq[j]->state[i] == 'G' && data->c_seq[k]->state[i] == 'A'))||

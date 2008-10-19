@@ -545,9 +545,10 @@ matrix *ML_Dist(allseq *data, model *mod)
   tmpdata->init_len   = data->init_len;
 
   mat =
-    (mod->datatype == NT) ?
-    ((mod->whichmodel < 10)?(K80_dist(data,2000)):(JC69_Dist(data,mod))):
-    (JC69_Dist(data,mod));
+/*     (mod->datatype == NT) ? */
+/*     ((mod->whichmodel < 10)?(K80_dist(data,2000)):(JC69_Dist(data,mod))): */
+/*     (JC69_Dist(data,mod)); */
+    JC69_Dist(data,mod);
 
   For(i,mod->n_catg) /* Don't use the discrete gamma distribution */
     {
@@ -606,9 +607,6 @@ matrix *ML_Dist(allseq *data, model *mod)
 	      Exit("");
 	    }
 
-	  /* */
-	  d_max = init;
-	  /* */
 
 /* /\* 	  BRENT *\/ */
 /* 	  d_max = Optimize_Dist(mod,init,twodata); */
