@@ -598,13 +598,17 @@ matrix *ML_Dist(allseq *data, model *mod)
 	  For(i,mod->ns*mod->ns) sum += F[i];
 	  	  
 	  if(sum < .001) d_max = -1.;
-/* 	  else if((sum > 1. - .001) && (sum < 1. + .001)) Opt_Dist_F(&(d_max),F,mod); */
+	  else if((sum > 1. - .001) && (sum < 1. + .001)) Opt_Dist_F(&(d_max),F,mod);
 	  else
 	    {
 	      PhyML_Printf("\n. sum = %f\n",sum);
 	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
 	      Exit("");
 	    }
+
+	  /* */
+	  d_max = init;
+	  /* */
 
 /* /\* 	  BRENT *\/ */
 /* 	  d_max = Optimize_Dist(mod,init,twodata); */
