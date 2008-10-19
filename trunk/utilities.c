@@ -9845,6 +9845,8 @@ arbre *Dist_And_BioNJ(allseq *alldata, model *mod)
   tree      = mat->tree;
   tree->mat = mat;
 
+  Print_Mat(mat);
+
   return tree;
 }
 
