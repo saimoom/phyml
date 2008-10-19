@@ -119,6 +119,7 @@ int main(int argc, char **argv)
 		  /* A user-given tree is used here instead of BioNJ */
 		  else             tree = Read_User_Tree(alldata,mod,io);
 		  
+		  printf("%s\n",Write_Tree(tree));
 
 		  if(!tree) continue;
 

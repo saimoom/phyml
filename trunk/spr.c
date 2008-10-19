@@ -4138,7 +4138,7 @@ int Try_One_Spr_Move_Triple(spr *move, arbre *tree)
       if(fabs(tree->c_lnL - move->lnL) > tree->mod->s_opt->min_diff_lk_local)
 	{
 	  if(tree->mod->s_opt->print) PhyML_Printf("\n. c_lnL = %f move_lnL = %f",
-					     tree->c_lnL,move->lnL);
+						   tree->c_lnL,move->lnL);
 	  PhyML_Printf("\n. Err in file %s at line %d",__FILE__,__LINE__);
 	  Warn_And_Exit("");
 	}
