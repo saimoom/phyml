@@ -4593,15 +4593,11 @@ int Is_Ambigu(char *state, int datatype, int stepsize)
 
   if(datatype == NT)
     {
-      For(i,stepsize)
-	{
-	  if(strchr("MRWSYKBDHVNXO?-.",state[i]))
-	    return 1;
-	}
+      if(strchr("MRWSYKBDHVNXO?-.",(int)state[0])) return 1;
     }
   else
     {
-      if(strchr("X?-.",state[0])) return 1;
+      if(strchr("X?-.",(int)state[0])) return 1;
     }
 
   return 0;
