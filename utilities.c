@@ -4438,15 +4438,12 @@ matrix *JC69_Dist(allseq *data, model *mod)
 	{
 	  for(k=j+1;k<data->n_otu;k++)
 	    {
-/* 	      if((!Is_Ambigu(data->c_seq[j]->state+site,mod->datatype,mod->stepsize)) && */
-/* 		 (!Is_Ambigu(data->c_seq[k]->state+site,mod->datatype,mod->stepsize))) */
-	      if(1)
+	      if((!Is_Ambigu(data->c_seq[j]->state+site,mod->datatype,mod->stepsize)) &&
+		 (!Is_Ambigu(data->c_seq[k]->state+site,mod->datatype,mod->stepsize)))
 		{
 		  len[j][k]+=data->wght[site];
 		  len[k][j]=len[j][k];
-		  if(strncmp(data->c_seq[j]->state+site,
-			     data->c_seq[k]->state+site,
-			     mod->stepsize))
+		  if(strncmp(data->c_seq[j]->state+site,data->c_seq[k]->state+site,mod->stepsize))
 		    mat->P[j][k]+=data->wght[site];
 		}
 	    }
@@ -4476,14 +4473,14 @@ matrix *JC69_Dist(allseq *data, model *mod)
 	  mat->dist[i][j] = -(mod->ns-1.)/(mod->ns)*(phydbl)log(1.-(mod->ns)/(mod->ns-1.)*mat->P[i][j]);
 
 
-	PhyML_Printf("\n. Incorrect JC distances");
-	mat->dist[i][j] = len[i][j];
+/* 	PhyML_Printf("\n. Incorrect JC distances"); */
+/* 	mat->dist[i][j] = len[i][j]; */
 
 
-/* 	if(mat->dist[i][j] > DIST_MAX) */
-/* 	  { */
-/* 	    mat->dist[i][j] = DIST_MAX; */
-/* 	  } */
+	if(mat->dist[i][j] > DIST_MAX)
+	  {
+	    mat->dist[i][j] = DIST_MAX;
+	  }
 	mat->dist[j][i] = mat->dist[i][j];
       }
 
@@ -9848,8 +9845,6 @@ arbre *Dist_And_BioNJ(allseq *alldata, model *mod)
   Bionj(mat);
   tree      = mat->tree;
   tree->mat = mat;
-
-  Print_Mat(mat);
 
   return tree;
 }

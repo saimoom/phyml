@@ -550,87 +550,89 @@ matrix *ML_Dist(allseq *data, model *mod)
 /*     (JC69_Dist(data,mod)); */
     JC69_Dist(data,mod);
 
-  For(i,mod->n_catg) /* Don't use the discrete gamma distribution */
-    {
-      mod->gamma_rr[i]      = 1.0;
-      mod->gamma_r_proba[i] = 1.0;
-    }
+  Print_Mat(mat);
 
-  n_catg = mod->n_catg;
-  mod->n_catg = 1;
+/*   For(i,mod->n_catg) /\* Don't use the discrete gamma distribution *\/ */
+/*     { */
+/*       mod->gamma_rr[i]      = 1.0; */
+/*       mod->gamma_r_proba[i] = 1.0; */
+/*     } */
 
-  For(j,data->n_otu-1)
-    {
-      tmpdata->c_seq[0]       = data->c_seq[j];
-      tmpdata->c_seq[0]->name = data->c_seq[j]->name;
-      tmpdata->wght           = data->wght;
+/*   n_catg = mod->n_catg; */
+/*   mod->n_catg = 1; */
 
-      for(k=j+1;k<data->n_otu;k++)
-	{	 
-	  tmpdata->c_seq[1]       = data->c_seq[k];
-	  tmpdata->c_seq[1]->name = data->c_seq[k]->name;
+/*   For(j,data->n_otu-1) */
+/*     { */
+/*       tmpdata->c_seq[0]       = data->c_seq[j]; */
+/*       tmpdata->c_seq[0]->name = data->c_seq[j]->name; */
+/*       tmpdata->wght           = data->wght; */
 
-	  twodata = Compact_CSeq(tmpdata,mod);
+/*       for(k=j+1;k<data->n_otu;k++) */
+/* 	{	  */
+/* 	  tmpdata->c_seq[1]       = data->c_seq[k]; */
+/* 	  tmpdata->c_seq[1]->name = data->c_seq[k]->name; */
 
-	  For(l,mod->ns) twodata->b_frq[l] = data->b_frq[l];
-	  Check_Ambiguities(twodata,mod->datatype,1);
-	  Hide_Ambiguities(twodata);
+/* 	  twodata = Compact_CSeq(tmpdata,mod); */
+
+/* 	  For(l,mod->ns) twodata->b_frq[l] = data->b_frq[l]; */
+/* 	  Check_Ambiguities(twodata,mod->datatype,1); */
+/* 	  Hide_Ambiguities(twodata); */
 	  
-	  init = mat->dist[j][k];
-	  if((init == DIST_MAX) || (init < .0)) init = 0.1;
+/* 	  init = mat->dist[j][k]; */
+/* 	  if((init == DIST_MAX) || (init < .0)) init = 0.1; */
 	  	  
-	  d_max = init;
+/* 	  d_max = init; */
 	  
-	  For(i,mod->ns*mod->ns) F[i]=.0;
-	  len = 0;
-	  For(l,twodata->c_seq[0]->len)
-	    {
-	      state0 = Assign_State(twodata->c_seq[0]->state+l,mod->datatype,mod->stepsize);
-	      state1 = Assign_State(twodata->c_seq[1]->state+l,mod->datatype,mod->stepsize);
-	      if((state0 > -1) && (state1 > -1))
-		{
-		  F[mod->ns*state0+state1] += twodata->wght[l];
-		  len += (int)twodata->wght[l];
-		}
-	    }
-	  if(len > .0) {For(i,mod->ns*mod->ns) F[i] /= (phydbl)len;}
+/* 	  For(i,mod->ns*mod->ns) F[i]=.0; */
+/* 	  len = 0; */
+/* 	  For(l,twodata->c_seq[0]->len) */
+/* 	    { */
+/* 	      state0 = Assign_State(twodata->c_seq[0]->state+l,mod->datatype,mod->stepsize); */
+/* 	      state1 = Assign_State(twodata->c_seq[1]->state+l,mod->datatype,mod->stepsize); */
+/* 	      if((state0 > -1) && (state1 > -1)) */
+/* 		{ */
+/* 		  F[mod->ns*state0+state1] += twodata->wght[l]; */
+/* 		  len += (int)twodata->wght[l]; */
+/* 		} */
+/* 	    } */
+/* 	  if(len > .0) {For(i,mod->ns*mod->ns) F[i] /= (phydbl)len;} */
 	  	  
-	  sum = 0.;
-	  For(i,mod->ns*mod->ns) sum += F[i];
+/* 	  sum = 0.; */
+/* 	  For(i,mod->ns*mod->ns) sum += F[i]; */
 	  	  
-	  if(sum < .001) d_max = -1.;
-	  else if((sum > 1. - .001) && (sum < 1. + .001)) Opt_Dist_F(&(d_max),F,mod);
-	  else
-	    {
-	      PhyML_Printf("\n. sum = %f\n",sum);
-	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-	      Exit("");
-	    }
+/* 	  if(sum < .001) d_max = -1.; */
+/* 	  else if((sum > 1. - .001) && (sum < 1. + .001)) Opt_Dist_F(&(d_max),F,mod); */
+/* 	  else */
+/* 	    { */
+/* 	      PhyML_Printf("\n. sum = %f\n",sum); */
+/* 	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
+/* 	      Exit(""); */
+/* 	    } */
 
 
-/* /\* 	  BRENT *\/ */
-/* 	  d_max = Optimize_Dist(mod,init,twodata); */
+/* /\* /\\* 	  BRENT *\\/ *\/ */
+/* /\* 	  d_max = Optimize_Dist(mod,init,twodata); *\/ */
 	  
-	  PhyML_Printf("\n. Warning : not using the ML pairwise distances...");
-	  d_max = init;
+/* /\* 	  PhyML_Printf("\n. Warning : not using the ML pairwise distances..."); *\/ */
+/* /\* 	  d_max = init; *\/ */
 	  	  
-	  if(d_max >= DIST_MAX)
-	    {
-/* 	      PhyML_Printf("\n. Large distance encountered between %s and %s sequences.", */
-/* 		     tmpdata->c_seq[1]->name, */
-/* 		     tmpdata->c_seq[0]->name); */
+/* 	  if(d_max >= DIST_MAX) */
+/* 	    { */
+/* /\* 	      PhyML_Printf("\n. Large distance encountered between %s and %s sequences.", *\/ */
+/* /\* 		     tmpdata->c_seq[1]->name, *\/ */
+/* /\* 		     tmpdata->c_seq[0]->name); *\/ */
 /* 	      d_max = DIST_MAX; */
-	    }
+/* 	    } */
 	  
-	  /* Do not correct for dist < BL_MIN, otherwise Fill_Missing_Dist 
-	   *  will not be called 
-	   */
+/* 	  /\* Do not correct for dist < BL_MIN, otherwise Fill_Missing_Dist  */
+/* 	   *  will not be called  */
+/* 	   *\/ */
 	  
-	  mat->dist[j][k] = d_max;
-	  mat->dist[k][j] = mat->dist[j][k];
-	  Free_Cseq(twodata);
-	}
-    }
+/* 	  mat->dist[j][k] = d_max; */
+/* 	  mat->dist[k][j] = mat->dist[j][k]; */
+/* 	  Free_Cseq(twodata); */
+/* 	} */
+/*     } */
 
   mod->n_catg = n_catg;
     
