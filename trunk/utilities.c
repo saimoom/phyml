@@ -4589,18 +4589,33 @@ int Is_Invar(int patt_num, int stepsize, int datatype, allseq *data)
 
 int Is_Ambigu(char *state, int datatype, int stepsize)
 {
-  int i;
+  int val,i;
 
+  val = -1;
   if(datatype == NT)
     {
-      if(strchr("MRWSYKBDHVNXO?-.",(int)state[0])) return 1;
+      For(i,stepsize)
+	{
+	  switch(state[i])
+	    {
+	    case 'A' : case 'C' : case 'G' : case 'T' : case 'U' : { val=0; break; }
+	    default : { val=1; break; }
+	    }
+	  if(val == 1) break;
+	  /*       if(strchr("MRWSYKBDHVNXO?-.",(int)state)) return 1; */
+	}
     }
   else
     {
-      if(strchr("X?-.",(int)state[0])) return 1;
+      switch(state[0])
+	{
+	case 'X' : case '?' : case '-' : case '.' : {val=1; break; }
+	default : { val=0; break; }
+	}
+/*       if(strchr("X?-.",(int)state)) return 1; */
     }
 
-  return 0;
+  return val;
 }
 
 /*********************************************************/
