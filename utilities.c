@@ -4473,14 +4473,15 @@ matrix *JC69_Dist(allseq *data, model *mod)
 	  mat->dist[i][j] = -(mod->ns-1.)/(mod->ns)*(phydbl)log(1.-(mod->ns)/(mod->ns-1.)*mat->P[i][j]);
 
 
-	PhyML_Printf("\n. Incorrect JC distances");
-	mat->dist[i][j] = len[i][j];
+/* 	PhyML_Printf("\n. Incorrect JC distances"); */
+/* 	mat->dist[i][j] = len[i][j]; */
 
 
-/* 	if(mat->dist[i][j] > DIST_MAX) */
-/* 	  { */
-/* 	    mat->dist[i][j] = DIST_MAX; */
-/* 	  } */
+	if(mat->dist[i][j] > DIST_MAX)
+	  {
+	    mat->dist[i][j] = DIST_MAX;
+	  }
+
 	mat->dist[j][i] = mat->dist[i][j];
       }
 
