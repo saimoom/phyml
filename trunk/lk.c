@@ -619,7 +619,7 @@ matrix *ML_Dist(allseq *data, model *mod)
 /* 	      PhyML_Printf("\n. Large distance encountered between %s and %s sequences.", */
 /* 		     tmpdata->c_seq[1]->name, */
 /* 		     tmpdata->c_seq[0]->name); */
-	      d_max = DIST_MAX;
+/* 	      d_max = DIST_MAX; */
 	    }
 	  
 	  /* Do not correct for dist < BL_MIN, otherwise Fill_Missing_Dist 
