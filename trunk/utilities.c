@@ -4475,6 +4475,9 @@ matrix *JC69_Dist(allseq *data, model *mod)
 	  mat->dist[i][j] = -(mod->ns-1.)/(mod->ns)*(phydbl)log(1.-(mod->ns)/(mod->ns-1.)*mat->P[i][j]);
 
 
+	mat->dist[i][j] = mat->P[i][j];
+
+
 	if(mat->dist[i][j] > DIST_MAX)
 	  {
 	    mat->dist[i][j] = DIST_MAX;
