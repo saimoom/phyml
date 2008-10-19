@@ -611,8 +611,8 @@ matrix *ML_Dist(allseq *data, model *mod)
 /* /\* 	  BRENT *\/ */
 /* 	  d_max = Optimize_Dist(mod,init,twodata); */
 	  
-/* 	  PhyML_Printf("\n. Warning : not using the ML pairwise distances..."); */
-/* 	  d_max = init; */
+	  PhyML_Printf("\n. Warning : not using the ML pairwise distances...");
+	  d_max = init;
 	  	  
 	  if(d_max >= DIST_MAX)
 	    {
