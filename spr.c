@@ -3171,8 +3171,8 @@ int Spr(phydbl init_lnL, arbre *tree)
 		}
 	      if(tree->mod->s_opt->spr_lnL) 
 		{
-		  n_moves = MIN(15,tree->n_moves);
-/* 		  n_moves = tree->n_moves; */
+/* 		  n_moves = MIN(15,tree->n_moves); */
+		  n_moves = tree->n_moves;
 		}
 
 	      if(tree->mod->s_opt->spr_pars)
@@ -3247,8 +3247,8 @@ int Spr(phydbl init_lnL, arbre *tree)
 		}
 	      if(tree->mod->s_opt->spr_lnL) 
 		{
-		  n_moves = MIN(15,tree->n_moves);
-/* 		  n_moves = tree->n_moves; */
+/* 		  n_moves = MIN(15,tree->n_moves); */
+		  n_moves = tree->n_moves;
 		}
 
 	      if(tree->mod->s_opt->spr_pars)
@@ -3345,7 +3345,7 @@ int Test_All_Spr_Targets(edge *b_pulled, node *n_link, arbre *tree)
       
       if(tree->mod->s_opt->spr_lnL)
 	{
-	  Br_Len_Brent(10.*(b_target->l),b_target->l,BL_MIN,1.e-10,b_target,tree,20,0);
+	  /* 	  Br_Len_Brent(10.*(b_target->l),b_target->l,BL_MIN,1.e-10,b_target,tree,20,0); */
 	  /*       Update_PMat_At_Given_Edge(b_target,tree); */
 	}
       
@@ -3372,9 +3372,9 @@ int Test_All_Spr_Targets(edge *b_pulled, node *n_link, arbre *tree)
       
       if(tree->mod->s_opt->spr_lnL)
 	{
-	  Update_P_Lk(tree,b_pulled,  n_link);
-	  Update_P_Lk(tree,b_target,  n_link);
-	  Update_P_Lk(tree,b_residual,n_link);
+/* 	  Update_P_Lk(tree,b_pulled,  n_link); */
+/* 	  Update_P_Lk(tree,b_target,  n_link); */
+/* 	  Update_P_Lk(tree,b_residual,n_link); */
 	}
       else
 	{
@@ -3393,9 +3393,13 @@ int Test_All_Spr_Targets(edge *b_pulled, node *n_link, arbre *tree)
 	    if(n_link->v[i] != n_opp_to_link)
 	      {
 		if(tree->mod->s_opt->spr_lnL)
-		  Pre_Order_Lk(n_link,n_link->v[i],tree);
+		  {
+		    /* 		  Pre_Order_Lk(n_link,n_link->v[i],tree); */
+		  }
 		else
-		  Pre_Order_Pars(n_link,n_link->v[i],tree);
+		  {
+		    Pre_Order_Pars(n_link,n_link->v[i],tree);
+		  }
 	      }
 	}
     }
@@ -3419,7 +3423,7 @@ void Test_One_Spr_Target_Recur(node *a, node *d, edge *pulled, node *link, edge 
 	  {
 	    if(tree->mod->s_opt->spr_lnL) 
 	      {
-		Update_P_Lk(tree,d->b[i],d);
+/* 		Update_P_Lk(tree,d->b[i],d); */
 	      }
 	    else
 	      {
@@ -3436,7 +3440,7 @@ void Test_One_Spr_Target_Recur(node *a, node *d, edge *pulled, node *link, edge 
 		*best_found = 1;		
 	      }
 
-	    if(((tree->mod->s_opt->spr_lnL) && (tree->depth_curr_path < 15)) || (!tree->mod->s_opt->spr_lnL))
+	    if(((tree->mod->s_opt->spr_lnL) && (tree->depth_curr_path < 10)) || (!tree->mod->s_opt->spr_lnL))
 	      {
 		Test_One_Spr_Target_Recur(d,d->v[i],pulled,link,residual,best_found,tree);
 	      }
@@ -3470,11 +3474,11 @@ phydbl Test_One_Spr_Target(edge *b_target, edge *b_arrow, node *n_link, edge *b_
 
   if(tree->mod->s_opt->spr_lnL)
     {
-/*       Triple_Dist(n_link,tree); */
-      Update_PMat_At_Given_Edge(b_target,tree);
-      Update_PMat_At_Given_Edge(b_arrow,tree);
-      Update_P_Lk(tree,b_residual,n_link);
-      move_lnL = Lk_At_Given_Edge(b_residual,tree);
+/* /\*       Triple_Dist(n_link,tree); *\/ */
+/*       Update_PMat_At_Given_Edge(b_target,tree); */
+/*       Update_PMat_At_Given_Edge(b_arrow,tree); */
+/*       Update_P_Lk(tree,b_residual,n_link); */
+/*       move_lnL = Lk_At_Given_Edge(b_residual,tree); */
     }
   else
     {
@@ -3530,7 +3534,7 @@ phydbl Test_One_Spr_Target(edge *b_target, edge *b_arrow, node *n_link, edge *b_
 
   if(tree->mod->s_opt->spr_lnL) 
     {
-      Update_PMat_At_Given_Edge(b_target,tree);
+/*       Update_PMat_At_Given_Edge(b_target,tree); */
     }
 
   tree->c_lnL   = init_lnL;
@@ -3566,28 +3570,29 @@ void Speed_Spr_Loop(arbre *tree)
     {
       lk_old = tree->c_lnL;
       Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
-      Speed_Spr(tree,1);
-      if(!tree->n_improvements) break;
-/*       if((!tree->n_improvements) || (fabs(lk_old-tree->c_lnL) < 10.)) break; */
+      Speed_Spr(tree,3);
+/*       if(!tree->n_improvements) break; */
+      if((!tree->n_improvements) || (fabs(lk_old-tree->c_lnL) < 10.)) break;
     }
-  while(1);
+  while(fabs(lk_old - tree->c_lnL) > tree->mod->s_opt->min_diff_lk_global);
+/*   while(1); */
   /*****************************/
     
-  /*****************************/
-  printf("\n\n ** LOOP 2 **");
-  lk_old = UNLIKELY;
-  tree->mod->s_opt->quickdirty = 0;
-  tree->mod->s_opt->spr_lnL    = 1;
-  do
-    {
-      lk_old = tree->c_lnL;
-      Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
-      Speed_Spr(tree,1);
-      if(!tree->n_improvements) break;
+/*   /\*****************************\/ */
+/*   printf("\n\n ** LOOP 2 **"); */
+/*   lk_old = UNLIKELY; */
+/*   tree->mod->s_opt->quickdirty = 0; */
+/*   tree->mod->s_opt->spr_lnL    = 1; */
+/*   do */
+/*     { */
+/*       lk_old = tree->c_lnL; */
+/*       Optimiz_All_Free_Param(tree,tree->mod->s_opt->print); */
+/*       Speed_Spr(tree,1); */
+/* /\*       if(!tree->n_improvements) break; *\/ */
 /*       if((!tree->n_improvements) || (fabs(lk_old-tree->c_lnL) < 1.)) break; */
-    }
-  while(1);
-  /*****************************/
+/*     } */
+/*   while(1); */
+/*   /\*****************************\/ */
 
   /*****************************/
   printf("\n\n ** LOOP 3 **");
@@ -3715,7 +3720,7 @@ void Speed_Spr(arbre *tree, int max_cycles)
       /* Exit if no improvements after complete optimization */      
       if(step+1 > max_cycles) break;
       if((!tree->mod->s_opt->spr_pars) && (fabs(old_lnL-tree->c_lnL) < tree->mod->s_opt->min_diff_lk_global)) break;
-      if(( tree->mod->s_opt->spr_pars) && (fabs(old_pars-tree->c_pars) < 1.)) break;
+/*       if(( tree->mod->s_opt->spr_pars) && (fabs(old_pars-tree->c_pars) < 1.)) break; */
       if(!tree->n_improvements) break;
 
     }while(1);
@@ -4288,7 +4293,9 @@ void Include_One_Spr_To_List_Of_Spr(spr *move, arbre *tree)
       for(i=tree->size_spr_list-1;i>0;i--)
 	{
 	  if((( tree->mod->s_opt->spr_lnL) && (tree->spr_list[i]->lnL > tree->spr_list[i-1]->lnL)) ||
-	     ((!tree->mod->s_opt->spr_lnL) && (tree->spr_list[i]->pars <= tree->spr_list[i-1]->pars)))
+	     ((!tree->mod->s_opt->spr_lnL) && (tree->spr_list[i]->pars <  tree->spr_list[i-1]->pars)) ||
+	     ((!tree->mod->s_opt->spr_lnL) && (tree->spr_list[i]->pars == tree->spr_list[i-1]->pars) && 
+	                                      (tree->spr_list[i]->depth_path > tree->spr_list[i-1]->depth_path)))
 	    {
 	      buff_spr            = tree->spr_list[i-1];
 	      tree->spr_list[i-1] = tree->spr_list[i];
