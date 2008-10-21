@@ -5601,14 +5601,14 @@ void Set_Defaults_Optimiz(optimiz *s_opt)
   s_opt->min_diff_lk_local    = 1.E-05;
   s_opt->min_diff_lk_global   = 1.E-03;
   s_opt->min_diff_lk_move     = 1.E-02;
-  s_opt->p_moves_to_examine   = 0.20;
+  s_opt->p_moves_to_examine   = 0.15;
   s_opt->fast_nni             = 0;
   s_opt->greedy               = 0;
   s_opt->general_pars         = 0;
   s_opt->tree_size_mult       = 1;
   s_opt->opt_five_branch      = 1;
   s_opt->pars_thresh          = 5;
-  s_opt->hybrid_thresh        = 1;
+  s_opt->hybrid_thresh        = 0;
   s_opt->quickdirty           = 0;
   s_opt->spr_pars             = 1;
   s_opt->spr_lnL              = 0;
