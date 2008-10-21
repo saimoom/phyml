@@ -3572,7 +3572,7 @@ void Speed_Spr_Loop(arbre *tree)
       Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
       Speed_Spr(tree,3);
 /*       if(!tree->n_improvements) break; */
-      if((!tree->n_improvements) || (fabs(lk_old-tree->c_lnL) < 10.)) break;
+      if((!tree->n_improvements) || (fabs(lk_old-tree->c_lnL) < 1.)) break;
     }
   while(fabs(lk_old - tree->c_lnL) > tree->mod->s_opt->min_diff_lk_global);
 /*   while(1); */
