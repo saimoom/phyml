@@ -357,6 +357,7 @@ int Pars_Core(edge *b, arbre *tree)
 
   if(tree->mod->s_opt->general_pars)
     {
+
       For(i,tree->mod->ns)
 	{
 	  min_l = MAX_PARS;

@@ -1440,23 +1440,23 @@ void Make_Edge_Lk(edge *b, arbre *tree)
   b->scale_left = b->scale_rght = 0;
   
   if(!b->left->tax)
-    b->sum_scale_f_left = (phydbl *)mCalloc(tree->data->crunch_len,sizeof(phydbl ));
+    b->sum_scale_f_left = (plkflt *)mCalloc(tree->data->crunch_len,sizeof(plkflt ));
   else
     b->sum_scale_f_left = NULL;
   
   if(!b->rght->tax)
-    b->sum_scale_f_rght = (phydbl *)mCalloc(tree->data->crunch_len,sizeof(phydbl ));
+    b->sum_scale_f_rght = (plkflt *)mCalloc(tree->data->crunch_len,sizeof(plkflt ));
   else
     b->sum_scale_f_rght = NULL;
   
   
   if((!b->left->tax) || (tree->mod->s_opt->greedy))
     {
-      b->p_lk_left = (phydbl ***)mCalloc(tree->data->crunch_len,sizeof(phydbl **));
+      b->p_lk_left = (plkflt ***)mCalloc(tree->data->crunch_len,sizeof(plkflt **));
       For(j,tree->data->crunch_len)
 	{
-	  b->p_lk_left[j] = (phydbl **)mCalloc(tree->mod->n_catg,sizeof(phydbl *));	  
-	  For(k,tree->mod->n_catg) b->p_lk_left[j][k] = (phydbl *)mCalloc(tree->mod->ns,sizeof(phydbl ));
+	  b->p_lk_left[j] = (plkflt **)mCalloc(tree->mod->n_catg,sizeof(plkflt *));	  
+	  For(k,tree->mod->n_catg) b->p_lk_left[j][k] = (plkflt *)mCalloc(tree->mod->ns,sizeof(plkflt ));
 	}
       b->p_lk_tip_l = NULL;
     }
@@ -1471,13 +1471,12 @@ void Make_Edge_Lk(edge *b, arbre *tree)
   
   if((!b->rght->tax) || (tree->mod->s_opt->greedy))
     {
-      b->p_lk_rght = (phydbl ***)mCalloc(tree->data->crunch_len,sizeof(phydbl **));
+      b->p_lk_rght = (plkflt ***)mCalloc(tree->data->crunch_len,sizeof(plkflt **));
       
       For(j,tree->data->crunch_len)
 	{
-	  b->p_lk_rght[j] = (phydbl **)mCalloc(tree->mod->n_catg,sizeof(phydbl *));
-	  
-	  For(k,tree->mod->n_catg) b->p_lk_rght[j][k] = (phydbl *)mCalloc(tree->mod->ns,sizeof(phydbl ));
+	  b->p_lk_rght[j] = (plkflt **)mCalloc(tree->mod->n_catg,sizeof(plkflt *));
+	  For(k,tree->mod->n_catg) b->p_lk_rght[j][k] = (plkflt *)mCalloc(tree->mod->ns,sizeof(plkflt ));
 	}
       b->p_lk_tip_r = NULL;
     }
@@ -6693,7 +6692,7 @@ void Prune_Subtree(node *a, node *d, edge **target, edge **residual, arbre *tree
   edge *b1, *b2;
   int dir_v1, dir_v2;
   int i;
-  phydbl ***buff_p_lk,*buff_scale;
+  plkflt ***buff_p_lk, *buff_scale;
   int **buff_p_pars, *buff_pars;
   unsigned int *buff_ui;
   short int **buff_p_lk_tip;
@@ -6910,7 +6909,7 @@ void Graft_Subtree(edge *target, node *link, edge *residual, arbre *tree)
 {
   node *v1, *v2;
   int i, dir_v1, dir_v2;
-  phydbl ***buff_p_lk, *buff_scale;
+  plkflt ***buff_p_lk, *buff_scale;
   int **buff_p_pars, *buff_pars; 
   short int **buff_p_lk_tip;
   unsigned int *buff_ui;
@@ -7592,10 +7591,10 @@ triplet *Make_Triplet_Struct(model *mod)
 
 /*********************************************************/
 
-void Triple_Dist(node *a, arbre *tree)
+phydbl Triple_Dist(node *a, arbre *tree)
 {
 
-  if(a->tax) return;
+  if(a->tax) return UNLIKELY;
   else
     {
       int iter;
@@ -7844,6 +7843,9 @@ void Triple_Dist(node *a, arbre *tree)
 /*       if(a->b[dir_d]->l < BL_MIN) a->b[dir_d]->l = BL_MIN; */
 /*       else if(a->b[dir_d]->l > BL_MAX) a->b[dir_d]->l = BL_MAX; */
     }
+
+  return tree->c_lnL;
+
 }
 
 
