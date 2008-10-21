@@ -3554,7 +3554,7 @@ void Speed_Spr_Loop(arbre *tree)
   tree->mod->s_opt->spr_pars = 0;
   
   tree->mod->s_opt->spr_pars = 1;
-  do Speed_Spr(tree,1); while(tree->n_improvements);  
+  do Speed_Spr(tree,1); while(tree->n_improvements);
   tree->mod->s_opt->spr_pars = 0;
 
   tree->both_sides = 0;
@@ -4291,10 +4291,12 @@ void Include_One_Spr_To_List_Of_Spr(spr *move, arbre *tree)
 
       for(i=tree->size_spr_list-1;i>0;i--)
 	{
+/* 	  if((( tree->mod->s_opt->spr_lnL) && (tree->spr_list[i]->lnL > tree->spr_list[i-1]->lnL)) || */
+/* 	     ((!tree->mod->s_opt->spr_lnL) && (tree->spr_list[i]->pars <  tree->spr_list[i-1]->pars)) || */
+/* 	     ((!tree->mod->s_opt->spr_lnL) && (tree->spr_list[i]->pars == tree->spr_list[i-1]->pars) &&  */
+/* 	                                      (tree->spr_list[i]->depth_path > tree->spr_list[i-1]->depth_path))) */
 	  if((( tree->mod->s_opt->spr_lnL) && (tree->spr_list[i]->lnL > tree->spr_list[i-1]->lnL)) ||
-	     ((!tree->mod->s_opt->spr_lnL) && (tree->spr_list[i]->pars <  tree->spr_list[i-1]->pars)) ||
-	     ((!tree->mod->s_opt->spr_lnL) && (tree->spr_list[i]->pars == tree->spr_list[i-1]->pars) && 
-	                                      (tree->spr_list[i]->depth_path > tree->spr_list[i-1]->depth_path)))
+	     ((!tree->mod->s_opt->spr_lnL) && (tree->spr_list[i]->pars <=  tree->spr_list[i-1]->pars)))
 	    {
 	      buff_spr            = tree->spr_list[i-1];
 	      tree->spr_list[i-1] = tree->spr_list[i];

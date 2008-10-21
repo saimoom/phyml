@@ -5601,7 +5601,7 @@ void Set_Defaults_Optimiz(optimiz *s_opt)
   s_opt->min_diff_lk_local    = 1.E-05;
   s_opt->min_diff_lk_global   = 1.E-03;
   s_opt->min_diff_lk_move     = 1.E-02;
-  s_opt->p_moves_to_examine   = 0.15;
+  s_opt->p_moves_to_examine   = 0.20;
   s_opt->fast_nni             = 0;
   s_opt->greedy               = 0;
   s_opt->general_pars         = 0;
