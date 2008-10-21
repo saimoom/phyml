@@ -29,7 +29,7 @@ the GNU public licence. See http://www.opensource.org for details.
 
 /*********************************************************/
 
-void Init_Tips_At_One_Site_Nucleotides_Float(char state, phydbl *p_lk)
+void Init_Tips_At_One_Site_Nucleotides_Float(char state, plkflt *p_lk)
 {
   switch(state)
     {
@@ -123,7 +123,7 @@ void Init_Tips_At_One_Site_Nucleotides_Int(char state, short int *p_pars)
 
 /*********************************************************/
 
-void Init_Tips_At_One_Site_AA_Float(char aa, phydbl *p_lk)
+void Init_Tips_At_One_Site_AA_Float(char aa, plkflt *p_lk)
 {
   int i;
 
@@ -375,7 +375,7 @@ phydbl Lk_At_Given_Edge(edge *b_fcus, arbre *tree)
 phydbl Lk_Core(edge *b, arbre *tree)
 {
   phydbl log_site_lk, site_lk, site_lk_cat;
-  phydbl scale_left, scale_rght;
+  plkflt scale_left, scale_rght;
   phydbl sum;
   int ambiguity_check,state;
   int catg,ns,k,l,site;
@@ -415,8 +415,8 @@ phydbl Lk_Core(edge *b, arbre *tree)
 	      For(l,ns)
 		{
 		  sum +=
-		    (phydbl)(b->Pij_rr[catg][state][l]) *
-		    b->p_lk_left[site][catg][l];
+		    b->Pij_rr[catg][state][l] *
+		    (phydbl)b->p_lk_left[site][catg][l];
 		}
 	      site_lk_cat += sum * tree->mod->pi[state];
 	    }
@@ -430,13 +430,13 @@ phydbl Lk_Core(edge *b, arbre *tree)
 		      For(l,ns)
 			{
 			  sum +=
-			    (phydbl)(b->Pij_rr[catg][k][l]) *
-			    b->p_lk_left[site][catg][l];
+			    b->Pij_rr[catg][k][l] *
+			    (phydbl)b->p_lk_left[site][catg][l];
 			}
 		      site_lk_cat +=
 			sum *
 			tree->mod->pi[k] *
-			(phydbl)(b->p_lk_tip_r[site][k]);
+			(phydbl)b->p_lk_tip_r[site][k];
 		    }
 		}
 	    }
@@ -451,13 +451,13 @@ phydbl Lk_Core(edge *b, arbre *tree)
 		  For(l,ns)
 		    {
 		      sum +=
-			(phydbl)(b->Pij_rr[catg][k][l]) *
-			b->p_lk_left[site][catg][l];
+			b->Pij_rr[catg][k][l] *
+			(phydbl)b->p_lk_left[site][catg][l];
 		    }
 		  site_lk_cat +=
 		    sum *
 		    tree->mod->pi[k] *
-		    b->p_lk_rght[site][catg][k];
+		    (phydbl)b->p_lk_rght[site][catg][k];
 		}
 	    }
 	}
@@ -472,7 +472,7 @@ phydbl Lk_Core(edge *b, arbre *tree)
 
   if(!tree->mod->invar)
     {      
-      log_site_lk = (phydbl)log(site_lk) + scale_left + scale_rght;
+      log_site_lk = (phydbl)log(site_lk) + (phydbl)scale_left + (phydbl)scale_rght;
     }
   else
     {
@@ -485,7 +485,7 @@ phydbl Lk_Core(edge *b, arbre *tree)
 	}
       else
 	{
-	  log_site_lk = (phydbl)log(site_lk*(1.0-tree->mod->pinvar)) + scale_left + scale_rght;
+	  log_site_lk = (phydbl)log(site_lk*(1.0-tree->mod->pinvar)) + (phydbl)scale_left + (phydbl)scale_rght;
 	}
     }
   
@@ -494,8 +494,8 @@ phydbl Lk_Core(edge *b, arbre *tree)
   For(catg,tree->mod->n_catg)
     tree->log_site_lk_cat[catg][site] = 
     (phydbl)log(tree->log_site_lk_cat[catg][site]) +
-    scale_left + 
-    scale_rght;
+    (phydbl)scale_left + 
+    (phydbl)scale_rght;
   
   tree->site_lk[site]      = log_site_lk;
   tree->c_lnL_sorted[site] = tree->data->wght[site]*log_site_lk;
@@ -652,7 +652,7 @@ phydbl Lk_Given_Two_Seq(allseq *data, int numseq1, int numseq2, phydbl dist, mod
   seq *seq1,*seq2;
   phydbl site_lk,log_site_lk;
   int i,j,k,l;
-  phydbl **p_lk_l,**p_lk_r;
+  plkflt **p_lk_l,**p_lk_r;
   phydbl len;
 
   DiscreteGamma(mod->gamma_r_proba, mod->gamma_rr, mod->alpha,
@@ -661,13 +661,13 @@ phydbl Lk_Given_Two_Seq(allseq *data, int numseq1, int numseq2, phydbl dist, mod
   seq1 = data->c_seq[numseq1];
   seq2 = data->c_seq[numseq2];
 
-  p_lk_l = (phydbl **)mCalloc(data->c_seq[0]->len,sizeof(phydbl *));
-  p_lk_r = (phydbl **)mCalloc(data->c_seq[0]->len,sizeof(phydbl *));
+  p_lk_l = (plkflt **)mCalloc(data->c_seq[0]->len,sizeof(plkflt *));
+  p_lk_r = (plkflt **)mCalloc(data->c_seq[0]->len,sizeof(plkflt *));
 
   For(i,data->c_seq[0]->len)
     {
-      p_lk_l[i] = (phydbl *)mCalloc(mod->ns,sizeof(phydbl));
-      p_lk_r[i] = (phydbl *)mCalloc(mod->ns,sizeof(phydbl));
+      p_lk_l[i] = (plkflt *)mCalloc(mod->ns,sizeof(plkflt));
+      p_lk_r[i] = (plkflt *)mCalloc(mod->ns,sizeof(plkflt));
     }
 
   if(dist < BL_MIN) dist = BL_START;
@@ -795,11 +795,11 @@ void Update_P_Lk(arbre *tree, edge *b, node *d)
 */
   node *n_v1, *n_v2;
   phydbl p1_lk1,p2_lk2;
-  phydbl ***p_lk,***p_lk_v1,***p_lk_v2;
+  plkflt ***p_lk,***p_lk_v1,***p_lk_v2;
   double ***Pij1,***Pij2;
-  phydbl max_p_lk;
-  phydbl *sum_scale, *sum_scale_v1, *sum_scale_v2;
-  phydbl scale_v1, scale_v2;
+  plkflt max_p_lk;
+  plkflt *sum_scale, *sum_scale_v1, *sum_scale_v2;
+  plkflt scale_v1, scale_v2;
   int i,j;
   int catg,site;
   int dir1,dir2;
@@ -915,13 +915,13 @@ void Update_P_Lk(arbre *tree, edge *b, node *d)
 		{
 		  if(!ambiguity_check_v1)
 		    {
-		      p1_lk1 = (phydbl)Pij1[catg][i][state_v1];
+		      p1_lk1 = Pij1[catg][i][state_v1];
 		    }
 		  else
 		    {
 		      For(j,tree->mod->ns)
 			{
-			  p1_lk1 += (phydbl)(Pij1[catg][i][j]) * (phydbl)(n_v1->b[0]->p_lk_tip_r[site][j]);
+			  p1_lk1 += Pij1[catg][i][j] * (phydbl)n_v1->b[0]->p_lk_tip_r[site][j];
 			}
 		    }
 		}
@@ -929,7 +929,7 @@ void Update_P_Lk(arbre *tree, edge *b, node *d)
 		{
 		  For(j,tree->mod->ns)
 		    {
-		      p1_lk1 += (phydbl)(Pij1[catg][i][j]) * (phydbl)(p_lk_v1[site][catg][j]);
+		      p1_lk1 += Pij1[catg][i][j] * (phydbl)p_lk_v1[site][catg][j];
 		    }
 		}
 	      
@@ -939,13 +939,13 @@ void Update_P_Lk(arbre *tree, edge *b, node *d)
 		{
 		  if(!ambiguity_check_v2)
 		    {
-		      p2_lk2 = (phydbl)Pij2[catg][i][state_v2];
+		      p2_lk2 = Pij2[catg][i][state_v2];
 		    }
 		  else
 		    {
 		      For(j,tree->mod->ns)
 			{
-			  p2_lk2 += (phydbl)(Pij2[catg][i][j]) * (phydbl)(n_v2->b[0]->p_lk_tip_r[site][j]);
+			  p2_lk2 += Pij2[catg][i][j] * (phydbl)n_v2->b[0]->p_lk_tip_r[site][j];
 			}
 		    }
 		}
@@ -953,13 +953,12 @@ void Update_P_Lk(arbre *tree, edge *b, node *d)
 		{
 		  For(j,tree->mod->ns)
 		    {
-		      p2_lk2 += (phydbl)(Pij2[catg][i][j]) * (phydbl)(p_lk_v2[site][catg][j]);
+		      p2_lk2 += Pij2[catg][i][j] * (phydbl)p_lk_v2[site][catg][j];
 		    }
 		}
 	      
-	      p_lk[site][catg][i] = p1_lk1 * p2_lk2;
+	      p_lk[site][catg][i] = (plkflt)(p1_lk1 * p2_lk2);
 	      
-
 	      if(p_lk[site][catg][i] > max_p_lk) max_p_lk = p_lk[site][catg][i];
 	    }
 	}
@@ -992,7 +991,7 @@ void Update_P_Lk(arbre *tree, edge *b, node *d)
 /* 		    } */
 		}
 	    }
-	  sum_scale[site] += (phydbl)log(max_p_lk);
+	  sum_scale[site] += (plkflt)log(max_p_lk);
 	}
     } 
 }

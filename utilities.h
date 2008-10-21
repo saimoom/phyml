@@ -140,6 +140,7 @@ the GNU public licence. See http://www.opensource.org for details.
 #define GAMMA          3
 
 typedef	double phydbl;
+typedef double plkflt;
 
 /*********************************************************/
 
@@ -202,7 +203,7 @@ typedef struct __Edge {
 					      bip_score = 1 iif the branch is found in both trees to be compared,
 					      bip_score = 0 otherwise. */
 
-  phydbl        ***p_lk_left,***p_lk_rght; /* likelihoods of the subtree on the left and
+  plkflt        ***p_lk_left,***p_lk_rght; /* likelihoods of the subtree on the left and
 					      right side (for each site and each relative rate category) */
   short int     **p_lk_tip_r,**p_lk_tip_l; 
   short int           *div_post_pred_left; /* posterior prediction of nucleotide/aa diversity (left-hand subtree) */
@@ -221,8 +222,8 @@ typedef struct __Edge {
      `Get_All_Partial_Lk_Scale' in lk.c */
   int                          scale_left;
   int                          scale_rght;
-  phydbl                *sum_scale_f_left;
-  phydbl                *sum_scale_f_rght;
+  plkflt                *sum_scale_f_left;
+  plkflt                *sum_scale_f_rght;
 
   phydbl                          bootval; /* bootstrap value (if exists) */
 
@@ -972,7 +973,7 @@ node *Common_Nodes_Btw_Two_Edges(edge *a, edge *b);
 void Make_Site_Lk_Backup(arbre *tree);
 int KH_Test(phydbl *site_lk_m1, phydbl *site_lk_M2, arbre *tree);
 void Store_P_Lk(phydbl ****ori, phydbl ****cpy, arbre *tree);
-void Triple_Dist(node *a, arbre *tree);
+phydbl Triple_Dist(node *a, arbre *tree);
 void Make_Symmetric(phydbl **F, int n);
 void Round_Down_Freq_Patt(phydbl **F, arbre *tree);
 phydbl Get_Sum_Of_Cells(phydbl *F, arbre *tree);

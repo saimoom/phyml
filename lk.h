@@ -14,8 +14,8 @@ the GNU public licence.  See http://www.opensource.org for details.
 #define ML_H
 
 
-void Init_Tips_At_One_Site_Nucleotides_Float(char state,phydbl *p_lk);
-void Init_Tips_At_One_Site_AA_Float(char aa,phydbl *p_lk);
+void Init_Tips_At_One_Site_Nucleotides_Float(char state, plkflt *p_lk);
+void Init_Tips_At_One_Site_AA_Float(char aa, plkflt *p_lk);
 void Get_All_Partial_Lk(arbre *tree,edge *b_fcus,node *a,node *d);
 void Get_All_Partial_Lk_Scale(arbre *tree,edge *b_fcus,node *a,node *d);
 void Post_Order_Lk(node *pere,node *fils, arbre *tree);
