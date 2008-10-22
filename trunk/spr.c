@@ -3555,8 +3555,8 @@ void Speed_Spr_Loop(arbre *tree)
   tree->mod->s_opt->spr_lnL  = 0;
   tree->mod->s_opt->spr_pars = 0;
   
-  tree->mod->s_opt->spr_pars = 1;
-  do Speed_Spr(tree,1); while(tree->n_improvements);
+/*   tree->mod->s_opt->spr_pars = 1; */
+/*   do Speed_Spr(tree,1); while(tree->n_improvements); */
   tree->mod->s_opt->spr_pars = 0;
 
   tree->both_sides = 0;
@@ -3578,21 +3578,20 @@ void Speed_Spr_Loop(arbre *tree)
   while(1);
   /*****************************/
 
-
-  /*****************************/
-  printf("\n\n ** LOOP 2 **");
-  lk_old = UNLIKELY;
-  tree->mod->s_opt->quickdirty = 0;
-  tree->mod->s_opt->spr_lnL    = 1;
-  do
-    {
-      lk_old = tree->c_lnL;
-      Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
-      Speed_Spr(tree,1);
-      if((!tree->n_improvements) || (fabs(lk_old-tree->c_lnL) < 1.)) break;
-    }
-  while(1);
-  /*****************************/
+/*   /\*****************************\/ */
+/*   printf("\n\n ** LOOP 2 **"); */
+/*   lk_old = UNLIKELY; */
+/*   tree->mod->s_opt->quickdirty = 0; */
+/*   tree->mod->s_opt->spr_lnL    = 1; */
+/*   do */
+/*     { */
+/*       lk_old = tree->c_lnL; */
+/*       Optimiz_All_Free_Param(tree,tree->mod->s_opt->print); */
+/*       Speed_Spr(tree,1); */
+/*       if((!tree->n_improvements) || (fabs(lk_old-tree->c_lnL) < 1.)) break; */
+/*     } */
+/*   while(1); */
+/*   /\*****************************\/ */
 
 
   /*****************************/
