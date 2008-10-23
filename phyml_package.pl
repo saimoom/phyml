@@ -13,6 +13,9 @@ mkdir("./phyml/examples");
 $phyml_dir = "/Users/stephane/cvshome/phyml/";
 chdir $phyml_dir;
 
+open(SVNVERSION,"| svnversion > version");
+close(SVNVERSION);
+
 
 $phyml_files[0]  = "main";
 $phyml_files[1]  = "utilities";
@@ -63,6 +66,7 @@ copy "depcomp",$output_dir."/phyml/src" || die "Could not copy file depcomp.\n";
 copy "install-sh",$output_dir."/phyml/src" || die "Could not copy file install-sh.\n";
 copy "missing",$output_dir."/phyml/src" || die "Could not copy file missing.\n";
 copy "ChangeLog",$output_dir."/phyml/src" || die "Could not copy file ChangeLog.\n";
+copy "version",$output_dir."/phyml/src" || die "Could not copy file version.\n";
 
 copy "phyml.bat",$output_dir."/phyml/bin" || die "Could not copy file phyml.bat.\n";
 copy("/Users/stephane/latex/phyml/phyml_manual.pdf",$output_dir."/phyml/doc") || die "Could not copy file phyml_manual.pdf.\n";
