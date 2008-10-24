@@ -1254,7 +1254,7 @@ void Optimiz_All_Free_Param(arbre *tree, int verbose)
 
       if(failed)
 	{
-	  int i,j;
+	  int i;
 	  
 	  For(i,tree->mod->n_diff_rr)
 	    if(i != 5)
