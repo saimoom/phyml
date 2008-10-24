@@ -65,7 +65,7 @@ the GNU public licence. See http://www.opensource.org for details.
 
 #define  T_MAX_FILE           100
 #define  T_MAX_LINE       2000000
-#define  T_MAX_NAME           100
+#define  T_MAX_NAME          1000
 #define  T_MAX_SEQ        2000000
 #define  T_MAX_OPTION         100
 #define  T_MAX_LABEL           10
