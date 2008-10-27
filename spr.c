@@ -3887,7 +3887,7 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, arbre *tr
 	}
 
       /* Bail out as soon as you've found a true improvement */
-      if(move->lnL > tree->best_lnL + tree->mod->s_opt->min_diff_lk_move) break;
+/*       if(move->lnL > tree->best_lnL + tree->mod->s_opt->min_diff_lk_move) break; */
     }
 
   For(i,list_size)
