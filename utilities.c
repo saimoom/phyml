@@ -5611,6 +5611,9 @@ void Set_Defaults_Optimiz(optimiz *s_opt)
   s_opt->quickdirty           = 0;
   s_opt->spr_pars             = 1;
   s_opt->spr_lnL              = 0;
+  s_opt->min_depth_path       = 0;
+  s_opt->max_depth_path       = 20;
+  s_opt->deepest_path         = 20;
 
   s_opt->wim_n_rgrft          = -1;
   s_opt->wim_n_globl          = -1;
@@ -7509,9 +7512,9 @@ void Fast_Br_Len(edge *b, arbre *tree)
   if(lk_b > lk_a + tree->mod->s_opt->min_diff_lk_global)
     {
       PhyML_Printf("\n. b->l = %f %d %f lk_b=%f lk_a=%f l0=%f l1=%f l2=%f l3=%f",
-	     b->l,
-	     tree->mod->n_catg,tree->mod->alpha,
-	     lk_b,lk_a,l0,l1,l2,l3);
+		   b->l,
+		   tree->mod->n_catg,tree->mod->alpha,
+		   lk_b,lk_a,l0,l1,l2,l3);
     }
 #endif
 
