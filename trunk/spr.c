@@ -3569,9 +3569,9 @@ void Speed_Spr_Loop(arbre *tree)
   Lk(tree);
   tree->best_lnL = tree->c_lnL;
 
-  tree->mod->s_opt->max_depth_path = 20;
+  tree->mod->s_opt->max_depth_path = 2*tree->n_otu-3;
   tree->mod->s_opt->min_depth_path = 0;
-  tree->mod->s_opt->deepest_path   = 20;
+  tree->mod->s_opt->deepest_path   = tree->mod->s_opt->max_depth_path;
 
   /*****************************/
   lk_old = UNLIKELY;
@@ -3581,7 +3581,6 @@ void Speed_Spr_Loop(arbre *tree)
   do
     {
       tree->mod->s_opt->max_depth_path = MAX(5,tree->mod->s_opt->deepest_path);
-      printf("\n. DEPTH = [%d;%d] \n",tree->mod->s_opt->min_depth_path,tree->mod->s_opt->max_depth_path);
       lk_old = tree->c_lnL;
       Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
       Speed_Spr(tree,1);
@@ -3589,6 +3588,24 @@ void Speed_Spr_Loop(arbre *tree)
     }
   while(1);
   /*****************************/
+
+
+  /*****************************/
+  lk_old = UNLIKELY;
+  tree->mod->s_opt->quickdirty = 0;
+  tree->mod->s_opt->spr_lnL    = 0;
+  tree->mod->s_opt->max_depth_path = 2*tree->n_otu-3;
+  printf("\n\n ** LOOP 2 **");
+  do
+    {
+      lk_old = tree->c_lnL;
+      Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
+      Speed_Spr(tree,1);
+      if((!tree->n_improvements) || (fabs(lk_old-tree->c_lnL) < 1.) || (tree->mod->s_opt->max_depth_path == 1)) break;
+    }
+  while(1);
+  /*****************************/
+
 
 
 /*   /\*****************************\/ */
@@ -3902,7 +3919,7 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, arbre *tr
 	}
 
       /* Bail out as soon as you've found a true improvement */
-      if(move->lnL > tree->best_lnL + tree->mod->s_opt->min_diff_lk_move) break;
+/*       if(move->lnL > tree->best_lnL + tree->mod->s_opt->min_diff_lk_move) break; */
     }
 
   For(i,list_size)
