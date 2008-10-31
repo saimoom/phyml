@@ -3565,13 +3565,13 @@ void Speed_Spr_Loop(arbre *tree)
 /*   do Speed_Spr(tree,1); while(tree->n_improvements); */
   tree->mod->s_opt->spr_pars = 0;
 
+  tree->mod->s_opt->max_depth_path = 5;
+  tree->mod->s_opt->min_depth_path = 0;
+  tree->mod->s_opt->deepest_path   = tree->mod->s_opt->max_depth_path;
+
   tree->both_sides = 0;
   Lk(tree);
   tree->best_lnL = tree->c_lnL;
-
-  tree->mod->s_opt->max_depth_path = 2*tree->n_otu-3;
-  tree->mod->s_opt->min_depth_path = 0;
-  tree->mod->s_opt->deepest_path   = tree->mod->s_opt->max_depth_path;
 
   /*****************************/
   lk_old = UNLIKELY;
@@ -3580,11 +3580,17 @@ void Speed_Spr_Loop(arbre *tree)
   printf("\n\n ** LOOP 1 **");
   do
     {
+/*       tree->mod->s_opt->max_depth_path = MAX(5,tree->mod->s_opt->deepest_path); */
       tree->mod->s_opt->max_depth_path = MAX(5,tree->mod->s_opt->deepest_path);
       lk_old = tree->c_lnL;
       Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
       Speed_Spr(tree,1);
-      if((!tree->n_improvements) || (fabs(lk_old-tree->c_lnL) < 1.) || (tree->mod->s_opt->max_depth_path == 1)) break;
+      if(!tree->n_improvements) 
+	{
+	  tree->mod->s_opt->max_depth_path += 5;
+	  tree->mod->s_opt->min_depth_path += 5;
+	}
+      if((!tree->n_improvements) || (fabs(lk_old-tree->c_lnL) < 1.) || (tree->mod->s_opt->max_depth_path > 20)) break;
     }
   while(1);
   /*****************************/
@@ -3992,12 +3998,16 @@ int Try_One_Spr_Move_Triple(spr *move, arbre *tree)
 	  Warn_And_Exit("");
 	}
 
+      Optimize_Br_Len_Serie(tree->noeud[0],tree->noeud[0]->v[0],tree->noeud[0]->b[0],tree,tree->data);
+      Lk(tree);
+
+
       Pars(tree);
 /*       if(tree->mod->s_opt->print) Print_Lk(tree,"[Topology           ]"); */
       if(tree->mod->s_opt->print) 
 	{
 	  Print_Lk_And_Pars(tree);
-	  printf(" [depth=%3d]",move->depth_path);
+	  printf(" [depth=%3d]",move->depth_path); fflush(NULL);
 	}
 
       tree->n_improvements++;
