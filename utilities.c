@@ -7408,12 +7408,6 @@ void Fast_Br_Len(edge *b, arbre *tree)
   phydbl v_rght;
 
 
-/*   Br_Len_Brent(10.*b->l,b->l,BL_MIN, */
-/* 	       tree->mod->s_opt->min_diff_lk_local, */
-/* 	       b,tree, */
-/* 	       tree->mod->s_opt->brent_it_max); */
-
-
   core  = tree->triplet_struct->core;
   prob  = tree->triplet_struct->p_one_site;
   F     = tree->triplet_struct->F_bc;
@@ -7461,64 +7455,27 @@ void Fast_Br_Len(edge *b, arbre *tree)
 	F[tree->mod->ns*i+j] += tree->data->wght[site] * prob[0][i][j];
     }
 
-  sum = .0;
-  For(i,tree->mod->ns)
-    {
-      tree->mod->pi[i] = .0;
-      For(j,tree->mod->ns)
-	{
-	  tree->mod->pi[i] += (F[tree->mod->ns*i+j] + F[tree->mod->ns*j+i])/2.;
-	}
-      tree->mod->pi[i] /= (phydbl)tree->data->init_len;
-      sum += tree->mod->pi[i];
-    }
 
-  For(i,tree->mod->ns) tree->mod->pi[i] /= sum;
 
-#ifdef DEBUG
-  sum = .0;
-  For(i,tree->mod->ns) sum += tree->mod->pi[i];
-  if((int)rint(sum) != 1)
-    {
-      PhyML_Printf("\n. site %d sum = %f ",site,sum);
-      PhyML_Printf("pi = ");
-      For(i,tree->mod->ns) PhyML_Printf("%f ",tree->mod->pi[i]);
-      PhyML_Printf("\n");
-    }
-#endif
 
   Divide_Cells(&F,(phydbl)tree->data->init_len,tree);
   Make_Symmetric(&F,tree->mod->ns);
 
-#ifdef DEBUG
-  phydbl lk_a, lk_b,l0,l1,l2,l3;
-  l0 = b->l;
-  if(b->l < BL_MIN) b->l = BL_MIN;
-  else if(b->l > BL_MAX) b->l = BL_MAX;
-  lk_b = Lk_Dist(F,b->l,tree->mod);
-#endif
 
-  l1 = b->l;
   Opt_Dist_F(&(b->l),F,tree->mod);
-  l2 = b->l;
 
   if(b->l < BL_MIN) b->l = BL_MIN;
   else if(b->l > BL_MAX) b->l = BL_MAX;
-  l3 = b->l;
-
-#ifdef DEBUG
-  lk_a = Lk_Dist(F,b->l,tree->mod);
-
-  if(lk_b > lk_a + tree->mod->s_opt->min_diff_lk_global)
-    {
-      PhyML_Printf("\n. b->l = %f %d %f lk_b=%f lk_a=%f l0=%f l1=%f l2=%f l3=%f",
-		   b->l,
-		   tree->mod->n_catg,tree->mod->alpha,
-		   lk_b,lk_a,l0,l1,l2,l3);
-    }
-#endif
 
   For(i,tree->mod->ns) tree->mod->pi[i] = pi[i];
+
+
+  Br_Len_Brent(.5*b->l,b->l,2.*b->l,
+	       tree->mod->s_opt->min_diff_lk_local,
+	       b,tree,
+	       tree->mod->s_opt->brent_it_max,
+	       tree->mod->s_opt->quickdirty);
+
 }
 
 
@@ -7609,20 +7566,20 @@ phydbl Triple_Dist(node *a, arbre *tree)
 	  Update_PMat_At_Given_Edge(a->b[2],tree);
 	  
 	  Update_P_Lk(tree,a->b[0],a);
-	  /*       Fast_Br_Len(a->b[0],tree); */
-	  /*       Update_PMat_At_Given_Edge(a->b[0],tree); */
+	  Fast_Br_Len(a->b[0],tree);
+	  Update_PMat_At_Given_Edge(a->b[0],tree);
 /* 	  Br_Len_Brent (10.*(a->b[0]->l), a->b[0]->l, .1*(a->b[0]->l), 1.e-10,a->b[0],tree,50,0); */
-	  Br_Len_Brent (BL_MAX, a->b[0]->l,BL_MIN, 1.e-10,a->b[0],tree,50,0);
+/* 	  Br_Len_Brent (BL_MAX, a->b[0]->l,BL_MIN, 1.e-10,a->b[0],tree,50,0); */
 	  
 	  Update_P_Lk(tree,a->b[1],a);
-	  /*       Fast_Br_Len(a->b[1],tree); */
-	  /*       Update_PMat_At_Given_Edge(a->b[1],tree); */
-	  Br_Len_Brent (BL_MAX, a->b[1]->l,BL_MIN, 1.e-10,a->b[1],tree,50,0);
+	  Fast_Br_Len(a->b[1],tree);
+	  Update_PMat_At_Given_Edge(a->b[1],tree);
+/* 	  Br_Len_Brent (BL_MAX, a->b[1]->l,BL_MIN, 1.e-10,a->b[1],tree,50,0); */
 	  
 	  Update_P_Lk(tree,a->b[2],a);
-	  /*       Fast_Br_Len(a->b[2],tree); */
-	  /*       Update_PMat_At_Given_Edge(a->b[2],tree); */
-	  Br_Len_Brent (BL_MAX, a->b[2]->l,BL_MIN, 1.e-10,a->b[2],tree,50,0);
+	  Fast_Br_Len(a->b[2],tree);
+	  Update_PMat_At_Given_Edge(a->b[2],tree);
+/* 	  Br_Len_Brent (BL_MAX, a->b[2]->l,BL_MIN, 1.e-10,a->b[2],tree,50,0); */
 	  
 	  Update_P_Lk(tree,a->b[1],a);
 	  Update_P_Lk(tree,a->b[0],a);
