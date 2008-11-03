@@ -3565,7 +3565,8 @@ void Speed_Spr_Loop(arbre *tree)
 /*   do Speed_Spr(tree,1); while(tree->n_improvements); */
   tree->mod->s_opt->spr_pars = 0;
 
-  tree->mod->s_opt->max_depth_path = 2*tree->n_otu-3;
+/*   tree->mod->s_opt->max_depth_path = 2*tree->n_otu-3; */
+  tree->mod->s_opt->max_depth_path = 15;
   tree->mod->s_opt->min_depth_path = 0;
   tree->mod->s_opt->deepest_path   = tree->mod->s_opt->max_depth_path;
 
