@@ -3139,11 +3139,16 @@ int Spr(phydbl init_lnL, arbre *tree)
   int spr_moves, best_move, br, curr_pars, n_moves_pars, n_moves_phi, n_moves, i, min_pars;
   edge *target, *residual;
   spr *best_pars_move;
+  int pars_diff, max_pars_diff;
 
   tree->both_sides = 1;
   spr_moves        = 0;
+  pars_diff        = -1;
+  max_pars_diff    = -1;
 
   Reset_Spr_List(tree);
+
+  printf("\n. PARS THRESH = %d",tree->mod->s_opt->pars_thresh);
 
   For(br,2*tree->n_otu-3)
     {
@@ -3213,7 +3218,12 @@ int Spr(phydbl init_lnL, arbre *tree)
 		{
 		  best_move = Evaluate_List_Of_Regraft_Pos_Triple(tree->spr_list,n_moves,tree);
 
-		  if(tree->spr_list[best_move]->lnL > tree->best_lnL) Try_One_Spr_Move_Triple(tree->spr_list[best_move],tree);
+		  if(tree->spr_list[best_move]->lnL > tree->best_lnL) 
+		    {
+		      pars_diff = tree->spr_list[best_move]->pars - tree->c_pars;
+		      if(pars_diff > max_pars_diff) max_pars_diff = pars_diff;
+		      Try_One_Spr_Move_Triple(tree->spr_list[best_move],tree);
+		    }
 		  else
 		    {
 		      tree->both_sides = 1;
@@ -3289,7 +3299,12 @@ int Spr(phydbl init_lnL, arbre *tree)
 		{
 		  best_move = Evaluate_List_Of_Regraft_Pos_Triple(tree->spr_list,n_moves,tree);
 
-		  if(tree->spr_list[best_move]->lnL > tree->best_lnL) Try_One_Spr_Move_Triple(tree->spr_list[best_move],tree);
+		  if(tree->spr_list[best_move]->lnL > tree->best_lnL) 
+		    {
+		      pars_diff = tree->spr_list[best_move]->pars - tree->c_pars;
+		      if(pars_diff > max_pars_diff) max_pars_diff = pars_diff;
+		      Try_One_Spr_Move_Triple(tree->spr_list[best_move],tree);
+		    }
 		  else
 		    {
 		      tree->both_sides = 1;
@@ -3301,6 +3316,9 @@ int Spr(phydbl init_lnL, arbre *tree)
 	  Reset_Spr_List(tree);
 	}
     }
+
+  tree->mod->s_opt->pars_thresh = MAX(5,max_pars_diff);
+
   return 1;
 }
 
