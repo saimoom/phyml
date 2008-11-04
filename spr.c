@@ -3140,7 +3140,6 @@ int Spr(phydbl init_lnL, arbre *tree)
   edge *target, *residual;
   spr *best_pars_move;
 
-  curr_pars        = tree->c_pars;
   tree->both_sides = 1;
   spr_moves        = 0;
 
@@ -3148,6 +3147,8 @@ int Spr(phydbl init_lnL, arbre *tree)
 
   For(br,2*tree->n_otu-3)
     {
+      curr_pars = tree->c_pars;
+
       /* Subtree rooted by the node on the left */
       tree->n_moves = 0;
 
@@ -3569,6 +3570,9 @@ void Speed_Spr_Loop(arbre *tree)
   tree->mod->s_opt->max_depth_path = 15;
   tree->mod->s_opt->min_depth_path = 0;
   tree->mod->s_opt->deepest_path   = tree->mod->s_opt->max_depth_path;
+  tree->mod->s_opt->quickdirty = 0;
+  tree->mod->s_opt->spr_lnL    = 0;
+
 
   tree->both_sides = 0;
   Lk(tree);
@@ -3576,9 +3580,6 @@ void Speed_Spr_Loop(arbre *tree)
 
   /*****************************/
   lk_old = UNLIKELY;
-  tree->mod->s_opt->quickdirty = 0;
-  tree->mod->s_opt->spr_lnL    = 0;
-  printf("\n\n ** LOOP 1 **");
   do
     {
       lk_old = tree->c_lnL;
@@ -3592,9 +3593,7 @@ void Speed_Spr_Loop(arbre *tree)
 
 
   /*****************************/
-  printf("\n\n ** LOOP 2 **");
   lk_old = UNLIKELY;
-  tree->mod->s_opt->quickdirty = 0;
   do
     {
       lk_old = tree->c_lnL;
@@ -3606,7 +3605,6 @@ void Speed_Spr_Loop(arbre *tree)
 
 
   /*****************************/
-  printf("\n\n ** LOOP 3 **");
   lk_old = UNLIKELY;
   tree->mod->s_opt->quickdirty = 0;
   do

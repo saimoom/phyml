@@ -8326,6 +8326,7 @@ void Print_Settings(option *io)
 
 
   PhyML_Printf("\n                . Optimise tree topology : \t\t\t %s", (io->mod->s_opt->opt_topo) ? "yes" : "no");
+
   if(io->mod->s_opt->opt_topo)
     {
       if(io->mod->s_opt->topo_search == NNI_MOVE) PhyML_Printf("\n                . Tree topology search : \t\t\t NNIs");
@@ -8339,6 +8340,10 @@ void Print_Settings(option *io)
       else
 	PhyML_Printf("\n                . Number of random starting trees : \t\t %d", io->mod->s_opt->n_rand_starts);	
     }
+  else
+    if(!io->mod->s_opt->random_input_tree)
+      PhyML_Printf("\n                . Evaluted tree : \t\t\t\t file \"%s\"", (!io->in_tree) ? "BioNJ" : io->in_tree_file);
+
   PhyML_Printf("\n                . Optimise branch lengths : \t\t\t %s", (io->mod->s_opt->opt_bl) ? "yes" : "no");
 
   answer = 0;

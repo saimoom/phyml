@@ -889,7 +889,6 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		  (strcmp (optarg, "ESTIMATED") == 0)) {
 		io->mod->s_opt->opt_num_param = 1;
 		io->mod->s_opt->opt_pinvar    = 1;
-		io->mod->pinvar               = 0.2;
 		io->mod->invar                = 1;
 	      }
 	      else if ((atof(optarg) < 0.0) || (atof(optarg) > 1.0))
