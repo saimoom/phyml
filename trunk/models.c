@@ -2175,7 +2175,7 @@ void Init_Model(allseq *data, model *mod)
     }
   else 
     {
-      if(mod->s_opt->opt_pinvar) mod->pinvar = data->obs_pinvar;
+/*       if(mod->s_opt->opt_pinvar) mod->pinvar = data->obs_pinvar; */
     }
 
 
