@@ -203,16 +203,16 @@ typedef struct __Edge {
 					      bip_score = 1 iif the branch is found in both trees to be compared,
 					      bip_score = 0 otherwise. */
 
-  plkflt        ***p_lk_left,***p_lk_rght; /* likelihoods of the subtree on the left and
+  plkflt            *p_lk_left,*p_lk_rght; /* likelihoods of the subtree on the left and
 					      right side (for each site and each relative rate category) */
-  short int     **p_lk_tip_r,**p_lk_tip_l; 
+  short int      *p_lk_tip_r, *p_lk_tip_l; 
   short int           *div_post_pred_left; /* posterior prediction of nucleotide/aa diversity (left-hand subtree) */
   short int           *div_post_pred_rght; /* posterior prediction of nucleotide/aa diversity (rght-hand subtree) */
 
   double                        ***Pij_rr; /* matrix of change probabilities and its first and secnd derivates */
   int                     *pars_l,*pars_r; /* parsimony of the subtree on the left and right sides (for each site) */
   unsigned int               *ui_l, *ui_r; /* union - intersection vectors used in Fitch's parsimony algorithm */
-  int              **p_pars_l, **p_pars_r; /* conditional parsimony vectors */
+  int                *p_pars_l, *p_pars_r; /* conditional parsimony vectors */
 
   int                         num_st_left; /* number of the subtree on the left side */
   int                         num_st_rght; /* number of the subtree on the right side */
@@ -1007,8 +1007,8 @@ void Update_Dirs(arbre *tree);
 void Print_Banner(FILE *fp);
 void Qksort_matrix(phydbl **A, int col, int ilo, int ihi);
 void Check_Memory_Amount(arbre *tree);
-int Get_State_From_P_Lk(phydbl *p_lk, arbre *tree);
-int Get_State_From_P_Pars(short int *p_pars, arbre *tree);
+int Get_State_From_P_Lk(phydbl *p_lk, int pos, arbre *tree);
+int Get_State_From_P_Pars(short int *p_pars, int pos, arbre *tree);
 void Unroot_Tree(char **subtrees);
 void Print_Lk(arbre *tree, char *string);
 void Print_Pars(arbre *tree);

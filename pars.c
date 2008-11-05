@@ -119,6 +119,9 @@ void Init_P_Pars_Tips(arbre *tree)
 {
   int curr_site,i,j;
   short int *state_v;
+  int dim1;
+
+  dim1 = tree->mod->ns;
 
   state_v = (short int *)mCalloc(tree->mod->ns,sizeof(short int));
   
@@ -133,15 +136,16 @@ void Init_P_Pars_Tips(arbre *tree)
 		  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
 		  Warn_And_Exit("\n");	    
 		}
-	      Init_Tips_At_One_Site_Nucleotides_Int(tree->data->c_seq[i]->state[curr_site],state_v);	      
-	      For(j,tree->mod->ns) tree->noeud[i]->b[0]->p_pars_r[curr_site][j] = MAX_PARS;
-	      For(j,tree->mod->ns) if(state_v[j] > 0.5) tree->noeud[i]->b[0]->p_pars_r[curr_site][j] =  0;
+
+	      Init_Tips_At_One_Site_Nucleotides_Int(tree->data->c_seq[i]->state[curr_site],0,state_v);	      
+	      For(j,tree->mod->ns) tree->noeud[i]->b[0]->p_pars_r[curr_site*dim1+j] = MAX_PARS;
+	      For(j,tree->mod->ns) if(state_v[j] > 0.5) tree->noeud[i]->b[0]->p_pars_r[curr_site*dim1+j] =  0;
 	    }
 	  else
 	    {
-	      Init_Tips_At_One_Site_AA_Int(tree->data->c_seq[i]->state[curr_site],state_v);
-	      For(j,tree->mod->ns) tree->noeud[i]->b[0]->p_pars_r[curr_site][j] = MAX_PARS;
-	      For(j,tree->mod->ns) if(state_v[j] > 0.5) tree->noeud[i]->b[0]->p_pars_r[curr_site][j] =  0;
+	      Init_Tips_At_One_Site_AA_Int(tree->data->c_seq[i]->state[curr_site],0,state_v);
+	      For(j,tree->mod->ns) tree->noeud[i]->b[0]->p_pars_r[curr_site*dim1+j] = MAX_PARS;
+	      For(j,tree->mod->ns) if(state_v[j] > 0.5) tree->noeud[i]->b[0]->p_pars_r[curr_site*dim1+j] =  0;
 	    }
 	}
     }
@@ -169,13 +173,13 @@ void Init_Ui_Tips(arbre *tree)
 		  Warn_And_Exit("\n");	    
 		}
 
-	      Init_Tips_At_One_Site_Nucleotides_Int(tree->data->c_seq[i]->state[curr_site],state_v);	      
+	      Init_Tips_At_One_Site_Nucleotides_Int(tree->data->c_seq[i]->state[curr_site],0,state_v);	      
 	      tree->noeud[i]->b[0]->ui_r[curr_site] = 0;
 	      For(j,tree->mod->ns) tree->noeud[i]->b[0]->ui_r[curr_site] += (unsigned int)(state_v[j] * pow(2,j));
 	    }
 	  else
 	    {
-	      Init_Tips_At_One_Site_AA_Int(tree->data->c_seq[i]->state[curr_site],state_v);
+	      Init_Tips_At_One_Site_AA_Int(tree->data->c_seq[i]->state[curr_site],0,state_v);
 	      tree->noeud[i]->b[0]->ui_r[curr_site] = 0;
 	      For(j,tree->mod->ns) tree->noeud[i]->b[0]->ui_r[curr_site] += (unsigned int)(state_v[j] * pow(2,j));
 	    }
@@ -213,12 +217,14 @@ void Update_P_Pars(arbre *tree, edge *b_fcus, node *n)
   int i,j;
   int site;
   unsigned int *ui, *ui_v1, *ui_v2;
-  int **p_pars_v1, **p_pars_v2, **p_pars;
+  int *p_pars_v1, *p_pars_v2, *p_pars;
   int *pars, *pars_v1, *pars_v2;
   int n_patterns,matches;
   int min_v1,min_v2;
   int v;
-  
+  int dim1;
+
+  dim1 = tree->mod->ns;
   matches = 0;
   ui = ui_v1 = ui_v2 = NULL;
   p_pars = p_pars_v1 = p_pars_v2 = NULL;
@@ -311,17 +317,17 @@ void Update_P_Pars(arbre *tree, edge *b_fcus, node *n)
 	      min_v1 = MAX_PARS;
 	      For(j,tree->mod->ns)
 		{
-		  v = p_pars_v1[site][j] + tree->step_mat[i*tree->mod->ns+j]; 
+		  v = p_pars_v1[site*dim1+j] + tree->step_mat[i*tree->mod->ns+j]; 
 		  if(v < min_v1) min_v1 = v;
 		}
 	      
 	      min_v2 = MAX_PARS;
 	      For(j,tree->mod->ns)
 		{
-		  v = p_pars_v2[site][j] + tree->step_mat[i*tree->mod->ns+j]; 
+		  v = p_pars_v2[site*dim1+j] + tree->step_mat[i*tree->mod->ns+j]; 
 		  if(v < min_v2) min_v2 = v;
 		}	      
-	      p_pars[site][i] = min_v1 + min_v2;
+	      p_pars[site*dim1+i] = min_v1 + min_v2;
 	    }	  
 	}
     }
@@ -351,7 +357,9 @@ int Pars_Core(edge *b, arbre *tree)
   int site_pars;
   int min_l,min_r;
   int v;
+  int dim1;
 
+  dim1 = tree->mod->ns;
   site = tree->curr_site;
   site_pars = MAX_PARS;
 
@@ -363,14 +371,14 @@ int Pars_Core(edge *b, arbre *tree)
 	  min_l = MAX_PARS;
 	  For(j,tree->mod->ns)
 	    {
-	      v = b->p_pars_l[site][j] + tree->step_mat[i*tree->mod->ns+j]; 
+	      v = b->p_pars_l[site*dim1+j] + tree->step_mat[i*tree->mod->ns+j]; 
 	      if(v < min_l) min_l = v;
 	    }
 
 	  min_r = MAX_PARS;
 	  For(j,tree->mod->ns)
 	    {
-	      v = b->p_pars_r[site][j] + tree->step_mat[i*tree->mod->ns+j]; 
+	      v = b->p_pars_r[site*dim1+j] + tree->step_mat[i*tree->mod->ns+j]; 
 	      if(v < min_r) min_r = v;
 	    }
 	  

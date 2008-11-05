@@ -1401,7 +1401,7 @@ void Make_Edge_Dirs(edge *b, node *a, node *d)
 
 void Make_Edge_Pars(edge *b, arbre *tree)
 {
-  int site;
+/*   int site; */
 
   b->pars_l = (int *)mCalloc(tree->data->crunch_len,sizeof(int));
   b->pars_r = (int *)mCalloc(tree->data->crunch_len,sizeof(int));
@@ -1409,21 +1409,26 @@ void Make_Edge_Pars(edge *b, arbre *tree)
   b->ui_l = (unsigned int *)mCalloc(tree->data->crunch_len,sizeof(unsigned int));
   b->ui_r = (unsigned int *)mCalloc(tree->data->crunch_len,sizeof(unsigned int));
 
-  b->p_pars_l = (int **)mCalloc(tree->data->crunch_len,sizeof(int *));
-  b->p_pars_r = (int **)mCalloc(tree->data->crunch_len,sizeof(int *));
 
-  For(site,tree->data->crunch_len)
-    {
-      b->p_pars_l[site] = (int *)mCalloc(tree->mod->ns,sizeof(int));
-      b->p_pars_r[site] = (int *)mCalloc(tree->mod->ns,sizeof(int));
-    }
+  b->p_pars_l = (int *)mCalloc(tree->data->crunch_len*tree->mod->ns,sizeof(int ));
+  b->p_pars_r = (int *)mCalloc(tree->data->crunch_len*tree->mod->ns,sizeof(int ));
+
+
+/*   b->p_pars_l = (int **)mCalloc(tree->data->crunch_len,sizeof(int *)); */
+/*   b->p_pars_r = (int **)mCalloc(tree->data->crunch_len,sizeof(int *)); */
+
+/*   For(site,tree->data->crunch_len) */
+/*     { */
+/*       b->p_pars_l[site] = (int *)mCalloc(tree->mod->ns,sizeof(int)); */
+/*       b->p_pars_r[site] = (int *)mCalloc(tree->mod->ns,sizeof(int)); */
+/*     } */
 }
 
 /*********************************************************/
 
 void Make_Edge_Lk(edge *b, arbre *tree)
 {
-  int i,j,k;
+  int i,j;
 
   b->l_old = b->l;
 
@@ -1452,40 +1457,53 @@ void Make_Edge_Lk(edge *b, arbre *tree)
   
   if((!b->left->tax) || (tree->mod->s_opt->greedy))
     {
-      b->p_lk_left = (plkflt ***)mCalloc(tree->data->crunch_len,sizeof(plkflt **));
-      For(j,tree->data->crunch_len)
-	{
-	  b->p_lk_left[j] = (plkflt **)mCalloc(tree->mod->n_catg,sizeof(plkflt *));	  
-	  For(k,tree->mod->n_catg) b->p_lk_left[j][k] = (plkflt *)mCalloc(tree->mod->ns,sizeof(plkflt ));
-	}
+      /**********/
+      b->p_lk_left = (plkflt *)mCalloc(tree->data->crunch_len*tree->mod->n_catg*tree->mod->ns,sizeof(plkflt));
+
+/*       b->p_lk_left = (plkflt ***)mCalloc(tree->data->crunch_len,sizeof(plkflt **)); */
+/*       For(j,tree->data->crunch_len) */
+/* 	{ */
+/* 	  b->p_lk_left[j] = (plkflt **)mCalloc(tree->mod->n_catg,sizeof(plkflt *));	   */
+/* 	  For(k,tree->mod->n_catg) b->p_lk_left[j][k] = (plkflt *)mCalloc(tree->mod->ns,sizeof(plkflt )); */
+/* 	} */
+      /**********/
+
       b->p_lk_tip_l = NULL;
     }
   else if(b->left->tax)
     {
       b->p_lk_left   = NULL;
       
-      b->p_lk_tip_l  = (short int **)mCalloc(tree->data->crunch_len,sizeof(short int *));
-      For(j,tree->data->crunch_len) b->p_lk_tip_l[j] = (short int *)mCalloc(tree->mod->ns,sizeof(short int));
+      b->p_lk_tip_l  = (short int *)mCalloc(tree->data->crunch_len*tree->mod->ns,sizeof(short int ));
+
+/*       b->p_lk_tip_l  = (short int **)mCalloc(tree->data->crunch_len,sizeof(short int *)); */
+/*       For(j,tree->data->crunch_len) b->p_lk_tip_l[j] = (short int *)mCalloc(tree->mod->ns,sizeof(short int)); */
     }
   
   
   if((!b->rght->tax) || (tree->mod->s_opt->greedy))
     {
-      b->p_lk_rght = (plkflt ***)mCalloc(tree->data->crunch_len,sizeof(plkflt **));
-      
-      For(j,tree->data->crunch_len)
-	{
-	  b->p_lk_rght[j] = (plkflt **)mCalloc(tree->mod->n_catg,sizeof(plkflt *));
-	  For(k,tree->mod->n_catg) b->p_lk_rght[j][k] = (plkflt *)mCalloc(tree->mod->ns,sizeof(plkflt ));
-	}
+      /**********/
+      b->p_lk_rght = (plkflt *)mCalloc(tree->data->crunch_len*tree->mod->n_catg*tree->mod->ns,sizeof(plkflt));
+
+/*       b->p_lk_rght = (plkflt ***)mCalloc(tree->data->crunch_len,sizeof(plkflt **));       */
+/*       For(j,tree->data->crunch_len) */
+/* 	{ */
+/* 	  b->p_lk_rght[j] = (plkflt **)mCalloc(tree->mod->n_catg,sizeof(plkflt *)); */
+/* 	  For(k,tree->mod->n_catg) b->p_lk_rght[j][k] = (plkflt *)mCalloc(tree->mod->ns,sizeof(plkflt )); */
+/* 	} */
+      /**********/
+
       b->p_lk_tip_r = NULL;
     }
   else if(b->rght->tax)
     {
       b->p_lk_rght = NULL;
       
-      b->p_lk_tip_r  = (short int **)mCalloc(tree->data->crunch_len,sizeof(short int *));
-      For(j,tree->data->crunch_len) b->p_lk_tip_r[j] = (short int *)mCalloc(tree->mod->ns,sizeof(short int));
+      b->p_lk_tip_r  = (short int *)mCalloc(tree->data->crunch_len*tree->mod->ns,sizeof(short int));
+
+/*       b->p_lk_tip_r  = (short int **)mCalloc(tree->data->crunch_len,sizeof(short int *)); */
+/*       For(j,tree->data->crunch_len) b->p_lk_tip_r[j] = (short int *)mCalloc(tree->mod->ns,sizeof(short int)); */
     }
 }
 
@@ -5635,7 +5653,7 @@ void Set_Defaults_Optimiz(optimiz *s_opt)
   s_opt->brent_it_max         = 500;
   s_opt->steph_spr            = 1;
   s_opt->user_state_freq      = 0;
-  s_opt->min_diff_lk_local    = 1.E-05;
+  s_opt->min_diff_lk_local    = 1.E-03;
   s_opt->min_diff_lk_global   = 1.E-03;
   s_opt->min_diff_lk_move     = 1.E-02;
   s_opt->p_moves_to_examine   = 0.15;
@@ -6733,10 +6751,12 @@ void Prune_Subtree(node *a, node *d, edge **target, edge **residual, arbre *tree
   edge *b1, *b2;
   int dir_v1, dir_v2;
   int i;
-  plkflt ***buff_p_lk, *buff_scale;
-  int **buff_p_pars, *buff_pars;
+/*   plkflt ***buff_p_lk; */
+  plkflt *buff_p_lk;
+  plkflt *buff_scale;
+  int *buff_p_pars, *buff_pars;
   unsigned int *buff_ui;
-  short int **buff_p_lk_tip;
+  short int *buff_p_lk_tip;
 
   if(a->tax)
     {
@@ -6950,9 +6970,10 @@ void Graft_Subtree(edge *target, node *link, edge *residual, arbre *tree)
 {
   node *v1, *v2;
   int i, dir_v1, dir_v2;
-  plkflt ***buff_p_lk, *buff_scale;
-  int **buff_p_pars, *buff_pars; 
-  short int **buff_p_lk_tip;
+  plkflt *buff_p_lk;
+  plkflt *buff_scale;
+  int *buff_p_pars, *buff_pars; 
+  short int *buff_p_lk_tip;
   unsigned int *buff_ui;
   edge *b_up;
 
@@ -7405,7 +7426,10 @@ void Fast_Br_Len(edge *b, arbre *tree, int approx)
   int i, j, k, site;
   phydbl *pi;
   phydbl v_rght;
+  int dim1,dim2;
 
+  dim1 = tree->mod->ns * tree->mod->n_catg;
+  dim2 = tree->mod->ns ;
 
   core  = tree->triplet_struct->core;
   prob  = tree->triplet_struct->p_one_site;
@@ -7433,11 +7457,11 @@ void Fast_Br_Len(edge *b, arbre *tree, int approx)
 	    {
 	      For(k,tree->mod->n_catg)
 		{
-		  v_rght = (b->rght->tax)?((phydbl)(b->p_lk_tip_r[site][j])):(b->p_lk_rght[site][k][j]);
+		  v_rght = (b->rght->tax)?((phydbl)(b->p_lk_tip_r[site*dim2+j])):(b->p_lk_rght[site*dim1+k*dim2+j]);
 
 		  prob[0][i][j]             +=
 		    core[k][0][i][j]         *
-		    b->p_lk_left[site][k][i] *
+		    b->p_lk_left[site*dim1+k*dim2+i] *
 		    v_rght;
 		}
 	    }
@@ -8577,19 +8601,19 @@ void Check_Memory_Amount(arbre *tree)
 
 /*********************************************************/
 
-int Get_State_From_P_Lk(phydbl *p_lk, arbre *tree)
+int Get_State_From_P_Lk(phydbl *p_lk, int pos, arbre *tree)
 {
   int i;
-  For(i,tree->mod->ns) if(p_lk[i] > .0) return i;
+  For(i,tree->mod->ns) if(p_lk[pos+i] > .0) return i;
   return -1;
 }
 
 /*********************************************************/
 
-int Get_State_From_P_Pars(short int *p_pars, arbre *tree)
+int Get_State_From_P_Pars(short int *p_pars, int pos, arbre *tree)
 {
   int i;
-  For(i,tree->mod->ns) if(p_pars[i] > .0) return i;
+  For(i,tree->mod->ns) if(p_pars[pos+i] > .0) return i;
   return -1;
 }
 

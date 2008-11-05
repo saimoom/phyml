@@ -14,12 +14,12 @@ the GNU public licence.  See http://www.opensource.org for details.
 #define ML_H
 
 
-void Init_Tips_At_One_Site_Nucleotides_Float(char state, plkflt *p_lk);
-void Init_Tips_At_One_Site_AA_Float(char aa, plkflt *p_lk);
+void Init_Tips_At_One_Site_Nucleotides_Float(char state, int pos, plkflt *p_lk);
+void Init_Tips_At_One_Site_AA_Float(char aa, int pos, plkflt *p_lk);
 void Get_All_Partial_Lk(arbre *tree,edge *b_fcus,node *a,node *d);
 void Get_All_Partial_Lk_Scale(arbre *tree,edge *b_fcus,node *a,node *d);
-void Post_Order_Lk(node *pere,node *fils, arbre *tree);
-void Pre_Order_Lk(node *pere,node *fils, arbre *tree);
+void Post_Order_Lk(node *pere, node *fils, arbre *tree);
+void Pre_Order_Lk(node *pere, node *fils, arbre *tree);
 void Lk(arbre *tree);
 void Site_Lk(arbre *tree);
 phydbl Lk_At_Given_Edge(edge *b_fcus,arbre *tree);
@@ -37,8 +37,8 @@ void Update_PMat_At_Given_Edge(edge *b_fcus, arbre *tree);
 void Sort_Sites_Based_On_Lk(arbre *tree);
 void Get_Partial_Lk_Scale(arbre *tree, edge *b_fcus, node *a, node *d);
 void Get_Partial_Lk(arbre *tree, edge *b_fcus, node *a, node *d);
-void Init_Tips_At_One_Site_Nucleotides_Int(char state, short int *p_pars);
-void Init_Tips_At_One_Site_AA_Int(char aa, short int *p_pars);
+void Init_Tips_At_One_Site_Nucleotides_Int(char state, int pos, short int *p_pars);
+void Init_Tips_At_One_Site_AA_Int(char aa, int pos, short int *p_pars);
 void Update_P_Lk_Along_A_Path(node **path, int path_length, arbre *tree);
 phydbl Lk_Dist(phydbl *F, phydbl dist, model *mod);
 phydbl Update_Lk_At_Given_Edge(edge *b_fcus, arbre *tree);

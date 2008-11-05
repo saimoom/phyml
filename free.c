@@ -60,17 +60,18 @@ void Free_Mat(matrix *mat)
 
 /*********************************************************/
 
-void Free_Partial_Lk(phydbl ****p_lk, int len, int n_catg)
+void Free_Partial_Lk(phydbl *p_lk, int len, int n_catg)
 {
-  int i,j;
+  Free(p_lk);
 
-  For(i,len)
-    {
-      For(j,n_catg) Free((*p_lk)[i][j]);
-      Free((*p_lk)[i]);
-    }
-  Free((*p_lk));
-  (*p_lk) = NULL;
+/*   int i,j; */
+/*   For(i,len) */
+/*     { */
+/*       For(j,n_catg) Free((*p_lk)[i][j]); */
+/*       Free((*p_lk)[i]); */
+/*     } */
+/*   Free((*p_lk)); */
+/*   (*p_lk) = NULL; */
 }
 
 /*********************************************************/
@@ -252,16 +253,16 @@ void Free_Tree_Pars(arbre *tree)
 
 void Free_Edge_Pars(edge *b, arbre *tree)
 {
-  int i;
+/*   int i; */
 
   Free(b->pars_l);
   Free(b->pars_r);
   
-  For(i,tree->data->crunch_len) 
-    {
-      Free(b->p_pars_l[i]);
-      Free(b->p_pars_r[i]);
-    }
+/*   For(i,tree->data->crunch_len)  */
+/*     { */
+/*       Free(b->p_pars_l[i]); */
+/*       Free(b->p_pars_r[i]); */
+/*     } */
   
   Free(b->ui_l);
   Free(b->ui_r);
@@ -318,48 +319,49 @@ void Free_Edge_Lk(arbre *tree, edge *b)
 
   if(b->p_lk_left)
     {
-      For(i,tree->data->crunch_len)
-	{
-	  For(j,tree->mod->n_catg)
-	    {
-	      Free(b->p_lk_left[i][j]);
-	    }
-	  Free(b->p_lk_left[i]);
-	}
+/*       For(i,tree->data->crunch_len) */
+/* 	{ */
+/* 	  For(j,tree->mod->n_catg) */
+/* 	    { */
+/* 	      Free(b->p_lk_left[i][j]); */
+/* 	    } */
+/* 	  Free(b->p_lk_left[i]); */
+/* 	} */
+
       Free(b->p_lk_left);
       if(b->sum_scale_f_left) Free(b->sum_scale_f_left);
     }
 
   if(b->p_lk_tip_l)
     {
-      For(i,tree->data->crunch_len)
-	{
-	  Free(b->p_lk_tip_l[i]);
-	}
+/*       For(i,tree->data->crunch_len) */
+/* 	{ */
+/* 	  Free(b->p_lk_tip_l[i]); */
+/* 	} */
       Free(b->p_lk_tip_l);
     }
 
 
   if(b->p_lk_rght)
     {
-      For(i,tree->data->crunch_len)
-	{
-	  For(j,tree->mod->n_catg)
-	    {
-	      Free(b->p_lk_rght[i][j]);
-	    }
-	  Free(b->p_lk_rght[i]);
-	}
+/*       For(i,tree->data->crunch_len) */
+/* 	{ */
+/* 	  For(j,tree->mod->n_catg) */
+/* 	    { */
+/* 	      Free(b->p_lk_rght[i][j]); */
+/* 	    } */
+/* 	  Free(b->p_lk_rght[i]); */
+/* 	} */
       Free(b->p_lk_rght);
       if(b->sum_scale_f_rght) Free(b->sum_scale_f_rght);
     }
 
   if(b->p_lk_tip_r)
     {
-      For(i,tree->data->crunch_len)
-	{
-	  Free(b->p_lk_tip_r[i]);
-	}
+/*       For(i,tree->data->crunch_len) */
+/* 	{ */
+/* 	  Free(b->p_lk_tip_r[i]); */
+/* 	} */
       Free(b->p_lk_tip_r);
     }
 
