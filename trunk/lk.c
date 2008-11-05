@@ -1220,24 +1220,20 @@ void Update_P_Lk_Along_A_Path(node **path, int path_length, arbre *tree)
 	  {
 	    if(path[i] == path[i]->b[j]->left)
 	      {
-		if(!path[i]->b[j]->is_p_lk_l_u2d) 
-		  {
-		    Update_P_Lk(tree,path[i]->b[j],path[i]->b[j]->left);		    
-		  }
-		path[i]->b[j]->is_p_lk_l_u2d = 1;
+		Update_P_Lk(tree,path[i]->b[j],path[i]->b[j]->left);		    
 	      }
 
 	    else if(path[i] == path[i]->b[j]->rght)
 	      {
-		if(!path[i]->b[j]->is_p_lk_r_u2d) 
-		  {
-		    Update_P_Lk(tree,path[i]->b[j],path[i]->b[j]->rght);
-		  }
-		path[i]->b[j]->is_p_lk_r_u2d = 1;
+		Update_P_Lk(tree,path[i]->b[j],path[i]->b[j]->rght);
+	      }
+	    else
+	      {
+		PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+		Exit("");
 	      }
 	    break;
-	  }
-
+	  }      
 #ifdef DEBUG
       if(j == 3)
 	{
@@ -1245,7 +1241,6 @@ void Update_P_Lk_Along_A_Path(node **path, int path_length, arbre *tree)
 	  Exit("");
 	}
 #endif
-
     }
 }
 

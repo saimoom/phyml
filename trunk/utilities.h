@@ -976,7 +976,7 @@ node *Common_Nodes_Btw_Two_Edges(edge *a, edge *b);
 void Make_Site_Lk_Backup(arbre *tree);
 int KH_Test(phydbl *site_lk_m1, phydbl *site_lk_M2, arbre *tree);
 void Store_P_Lk(phydbl ****ori, phydbl ****cpy, arbre *tree);
-phydbl Triple_Dist(node *a, arbre *tree);
+phydbl Triple_Dist(node *a, arbre *tree, int approx);
 void Make_Symmetric(phydbl **F, int n);
 void Round_Down_Freq_Patt(phydbl **F, arbre *tree);
 phydbl Get_Sum_Of_Cells(phydbl *F, arbre *tree);
@@ -985,7 +985,7 @@ void Divide_Mat_By_Vect(phydbl **F, phydbl *vect, int size);
 void Multiply_Mat_By_Vect(phydbl **F, phydbl *vect, int size);
 void Triple_Dist_Recur(node *a, node *d, arbre *tree);
 triplet *Make_Triplet_Struct(model *mod);
-void Fast_Br_Len(edge *b, arbre *tree);
+void Fast_Br_Len(edge *b, arbre *tree, int approx);
 void Fast_Br_Len_Recur(node *a, node *d, edge *b, arbre *tree);
 void Print_Tree(FILE *fp, arbre *tree);
 void Found_In_Subtree(node *a, node *d, node *target, int *match, arbre *tree);
@@ -1098,5 +1098,6 @@ void Dist_To_Root_Pre(node *a, node *d, edge *b, arbre *tree);
 void Dist_To_Root(node *n_root, arbre *tree);
 int Is_Duplication_Node(node *n, char **tax_set, int n_tax, arbre *tree);
 phydbl Dexp(phydbl x, phydbl param);
+int Sort_Edges_Depth(arbre *tree, edge **sorted_edges, int n_elem);
 
 #endif
