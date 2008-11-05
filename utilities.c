@@ -2575,7 +2575,7 @@ int Sort_Phydbl_Decrease(const void *a, const void *b)
 }
 
 /*********************************************************/
-/* Sort in ascending order. Elements in B (in provided) are also re-ordered according to the ordering of A  */
+/* Sort in ascending order. Elements in B (if provided) are also re-ordered according to the ordering of A  */
 void Qksort(phydbl *A, phydbl *B, int ilo, int ihi)
 {
     phydbl pivot;	// pivot value for partitioning array
@@ -3285,6 +3285,44 @@ int Sort_Edges_NNI_Score(arbre *tree, edge **sorted_edges, int n_elem)
 
 /*********************************************************/
 
+int Sort_Edges_Depth(arbre *tree, edge **sorted_edges, int n_elem)
+{
+  int i,j;
+  edge *buff;
+  phydbl *depth,buff_depth;
+  
+  depth = (phydbl *)mCalloc(n_elem,sizeof(phydbl));
+
+  For(i,n_elem) 
+    depth[i] = 
+    sorted_edges[i]->left->bip_size[sorted_edges[i]->l_r] * 
+    sorted_edges[i]->rght->bip_size[sorted_edges[i]->r_l] ;
+
+
+  For(i,n_elem-1)
+    {
+      for(j=i+1;j<n_elem;j++)
+	{
+	  if(depth[i] > depth[j])
+	    {
+	      buff = sorted_edges[i];
+	      sorted_edges[i] = sorted_edges[j];
+	      sorted_edges[j] = buff;
+
+	      buff_depth = depth[i];
+	      depth[i] = depth[j];
+	      depth[j] = buff_depth;
+	    }
+	}
+    }
+
+  Free(depth);
+
+  return 1;
+}
+
+/*********************************************************/
+
 void NNI(arbre *tree, edge *b_fcus, int do_swap)
 {
   int l_r, r_l, l_v1, l_v2, r_v3, r_v4;
@@ -3345,7 +3383,7 @@ void NNI(arbre *tree, edge *b_fcus, int do_swap)
 
   if(tree->mod->s_opt->fast_nni)
     {
-      Fast_Br_Len(b_fcus,tree);
+      Fast_Br_Len(b_fcus,tree,1);
       lk1 = Lk_At_Given_Edge(b_fcus,tree);
     }
   else
@@ -3382,7 +3420,7 @@ void NNI(arbre *tree, edge *b_fcus, int do_swap)
 
   if(tree->mod->s_opt->fast_nni)
     {
-      Fast_Br_Len(b_fcus,tree);
+      Fast_Br_Len(b_fcus,tree,1);
       lk2 = Lk_At_Given_Edge(b_fcus,tree);
     }
   else
@@ -3429,7 +3467,7 @@ void NNI(arbre *tree, edge *b_fcus, int do_swap)
 
    if(tree->mod->s_opt->fast_nni)
      {
-       Fast_Br_Len(b_fcus,tree);
+       Fast_Br_Len(b_fcus,tree,1);
        lk0 = Lk_At_Given_Edge(b_fcus,tree);
      }
    else
@@ -4932,9 +4970,9 @@ void Bootstrap(arbre *tree)
   char *s;
 /*   phydbl rf; */
 
-  tree->print_boot_val       = 1;
-  tree->print_alrt_val       = 0;
-  boot_tree                  = NULL;
+  tree->print_boot_val = 1;
+  tree->print_alrt_val = 0;
+  boot_tree            = NULL;
 
   site_num = (int *)mCalloc(tree->data->init_len,sizeof(int));
 
@@ -5606,7 +5644,7 @@ void Set_Defaults_Optimiz(optimiz *s_opt)
   s_opt->general_pars         = 0;
   s_opt->tree_size_mult       = 1;
   s_opt->opt_five_branch      = 1;
-  s_opt->pars_thresh          = 30;
+  s_opt->pars_thresh          = 20;
   s_opt->hybrid_thresh        = 0;
   s_opt->quickdirty           = 0;
   s_opt->spr_pars             = 1;
@@ -7360,46 +7398,7 @@ int Get_Subtree_Size(node *a, node *d)
 
 /*********************************************************/
 
-
-void Triple_Dist_Recur(node *a, node *d, arbre *tree)
-{
-
-  if(d->tax) return;
-  else
-    {
-      int i;
-      Triple_Dist(d,tree);
-
-      For(i,3) if(d->v[i] != a)
-	{
-	  Update_P_Lk(tree,d->b[i],d);
-	  Triple_Dist_Recur(d,d->v[i],tree);
-	}
-      For(i,3) if((d->v[i] == a) && !(d->v[i]->tax)) Update_P_Lk(tree,d->b[i],d);
-    }
-}
-
-/*********************************************************/
-
-void Fast_Br_Len_Recur(node *a, node *d, edge *b, arbre *tree)
-{
-  int i;
-
-  Fast_Br_Len(b,tree);
-
-  if(d->tax) return;
-  else For(i,3) if(d->v[i] != a)
-    {
-      Update_P_Lk(tree,d->b[i],d);
-      Fast_Br_Len_Recur(d,d->v[i],d->b[i],tree);
-    }
-  For(i,3) if((d->v[i] == a) && !(d->v[i]->tax)) Update_P_Lk(tree,d->b[i],d);
-
-}
-
-/*********************************************************/
-
-void Fast_Br_Len(edge *b, arbre *tree)
+void Fast_Br_Len(edge *b, arbre *tree, int approx)
 {
   phydbl sum;
   phydbl ***prob, ****core, *F;
@@ -7455,12 +7454,8 @@ void Fast_Br_Len(edge *b, arbre *tree)
 	F[tree->mod->ns*i+j] += tree->data->wght[site] * prob[0][i][j];
     }
 
-
-
-
   Divide_Cells(&F,(phydbl)tree->data->init_len,tree);
   Make_Symmetric(&F,tree->mod->ns);
-
 
   Opt_Dist_F(&(b->l),F,tree->mod);
 
@@ -7469,13 +7464,13 @@ void Fast_Br_Len(edge *b, arbre *tree)
 
   For(i,tree->mod->ns) tree->mod->pi[i] = pi[i];
 
-
-  Br_Len_Brent(.5*b->l,b->l,2.*b->l,
-	       tree->mod->s_opt->min_diff_lk_local,
-	       b,tree,
-	       tree->mod->s_opt->brent_it_max,
-	       tree->mod->s_opt->quickdirty);
-
+  if(!approx)
+    Br_Len_Brent(.5*b->l,b->l,2.*b->l,
+		 tree->mod->s_opt->min_diff_lk_local,
+		 b,tree,
+		 tree->mod->s_opt->brent_it_max,
+		 tree->mod->s_opt->quickdirty);
+  
 }
 
 
@@ -7551,7 +7546,7 @@ triplet *Make_Triplet_Struct(model *mod)
 
 /*********************************************************/
 
-phydbl Triple_Dist(node *a, arbre *tree)
+phydbl Triple_Dist(node *a, arbre *tree, int approx)
 {
 
   if(a->tax) return UNLIKELY;
@@ -7566,18 +7561,18 @@ phydbl Triple_Dist(node *a, arbre *tree)
 	  Update_PMat_At_Given_Edge(a->b[2],tree);
 	  
 	  Update_P_Lk(tree,a->b[0],a);
-	  Fast_Br_Len(a->b[0],tree);
+	  Fast_Br_Len(a->b[0],tree,approx);
 	  Update_PMat_At_Given_Edge(a->b[0],tree);
 /* 	  Br_Len_Brent (10.*(a->b[0]->l), a->b[0]->l, .1*(a->b[0]->l), 1.e-10,a->b[0],tree,50,0); */
 /* 	  Br_Len_Brent (BL_MAX, a->b[0]->l,BL_MIN, 1.e-10,a->b[0],tree,50,0); */
 	  
 	  Update_P_Lk(tree,a->b[1],a);
-	  Fast_Br_Len(a->b[1],tree);
+	  Fast_Br_Len(a->b[1],tree,approx);
 	  Update_PMat_At_Given_Edge(a->b[1],tree);
 /* 	  Br_Len_Brent (BL_MAX, a->b[1]->l,BL_MIN, 1.e-10,a->b[1],tree,50,0); */
 	  
 	  Update_P_Lk(tree,a->b[2],a);
-	  Fast_Br_Len(a->b[2],tree);
+	  Fast_Br_Len(a->b[2],tree,approx);
 	  Update_PMat_At_Given_Edge(a->b[2],tree);
 /* 	  Br_Len_Brent (BL_MAX, a->b[2]->l,BL_MIN, 1.e-10,a->b[2],tree,50,0); */
 	  
