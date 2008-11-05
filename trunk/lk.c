@@ -29,42 +29,42 @@ the GNU public licence. See http://www.opensource.org for details.
 
 /*********************************************************/
 
-void Init_Tips_At_One_Site_Nucleotides_Float(char state, plkflt *p_lk)
+void Init_Tips_At_One_Site_Nucleotides_Float(char state, int pos, plkflt *p_lk)
 {
   switch(state)
     {
-    case 'A' : p_lk[0]=1.; p_lk[1]=p_lk[2]=p_lk[3]=.0;
+    case 'A' : p_lk[pos+0]=1.; p_lk[pos+1]=p_lk[pos+2]=p_lk[pos+3]=.0;
       break;
-    case 'C' : p_lk[1]=1.; p_lk[0]=p_lk[2]=p_lk[3]=.0;
+    case 'C' : p_lk[pos+1]=1.; p_lk[pos+0]=p_lk[pos+2]=p_lk[pos+3]=.0;
       break;
-    case 'G' : p_lk[2]=1.; p_lk[1]=p_lk[0]=p_lk[3]=.0;
+    case 'G' : p_lk[pos+2]=1.; p_lk[pos+1]=p_lk[pos+0]=p_lk[pos+3]=.0;
       break;
-    case 'T' : p_lk[3]=1.; p_lk[1]=p_lk[2]=p_lk[0]=.0;
+    case 'T' : p_lk[pos+3]=1.; p_lk[pos+1]=p_lk[pos+2]=p_lk[pos+0]=.0;
       break;
-    case 'U' : p_lk[3]=1.; p_lk[1]=p_lk[2]=p_lk[0]=.0;
+    case 'U' : p_lk[pos+3]=1.; p_lk[pos+1]=p_lk[pos+2]=p_lk[pos+0]=.0;
       break;
-    case 'M' : p_lk[0]=p_lk[1]=1.; p_lk[2]=p_lk[3]=.0;
+    case 'M' : p_lk[pos+0]=p_lk[pos+1]=1.; p_lk[pos+2]=p_lk[pos+3]=.0;
       break;
-    case 'R' : p_lk[0]=p_lk[2]=1.; p_lk[1]=p_lk[3]=.0;
+    case 'R' : p_lk[pos+0]=p_lk[pos+2]=1.; p_lk[pos+1]=p_lk[pos+3]=.0;
       break;
-    case 'W' : p_lk[0]=p_lk[3]=1.; p_lk[1]=p_lk[2]=.0;
+    case 'W' : p_lk[pos+0]=p_lk[pos+3]=1.; p_lk[pos+1]=p_lk[pos+2]=.0;
       break;
-    case 'S' : p_lk[1]=p_lk[2]=1.; p_lk[0]=p_lk[3]=.0;
+    case 'S' : p_lk[pos+1]=p_lk[pos+2]=1.; p_lk[pos+0]=p_lk[pos+3]=.0;
       break;
-    case 'Y' : p_lk[1]=p_lk[3]=1.; p_lk[0]=p_lk[2]=.0;
+    case 'Y' : p_lk[pos+1]=p_lk[pos+3]=1.; p_lk[pos+0]=p_lk[pos+2]=.0;
       break;
-    case 'K' : p_lk[2]=p_lk[3]=1.; p_lk[0]=p_lk[1]=.0;
+    case 'K' : p_lk[pos+2]=p_lk[pos+3]=1.; p_lk[pos+0]=p_lk[pos+1]=.0;
       break;
-    case 'B' : p_lk[1]=p_lk[2]=p_lk[3]=1.; p_lk[0]=.0;
+    case 'B' : p_lk[pos+1]=p_lk[pos+2]=p_lk[pos+3]=1.; p_lk[pos+0]=.0;
       break;
-    case 'D' : p_lk[0]=p_lk[2]=p_lk[3]=1.; p_lk[1]=.0;
+    case 'D' : p_lk[pos+0]=p_lk[pos+2]=p_lk[pos+3]=1.; p_lk[pos+1]=.0;
       break;
-    case 'H' : p_lk[0]=p_lk[1]=p_lk[3]=1.; p_lk[2]=.0;
+    case 'H' : p_lk[pos+0]=p_lk[pos+1]=p_lk[pos+3]=1.; p_lk[pos+2]=.0;
       break;
-    case 'V' : p_lk[0]=p_lk[1]=p_lk[2]=1.; p_lk[3]=.0;
+    case 'V' : p_lk[pos+0]=p_lk[pos+1]=p_lk[pos+2]=1.; p_lk[pos+3]=.0;
       break;
     case 'N' : case 'X' : case '?' : case 'O' : case '-' :
-      p_lk[0]=p_lk[1]=p_lk[2]=p_lk[3]=1.;break;
+      p_lk[pos+0]=p_lk[pos+1]=p_lk[pos+2]=p_lk[pos+3]=1.;break;
     default :
       {
 	PhyML_Printf("\n. Unknown character state : %c\n",state);
@@ -76,42 +76,42 @@ void Init_Tips_At_One_Site_Nucleotides_Float(char state, plkflt *p_lk)
 
 /*********************************************************/
 
-void Init_Tips_At_One_Site_Nucleotides_Int(char state, short int *p_pars)
+void Init_Tips_At_One_Site_Nucleotides_Int(char state, int pos, short int *p_pars)
 {
   switch(state)
     {
-    case 'A' : p_pars[0]=1; p_pars[1]=p_pars[2]=p_pars[3]=0;
+    case 'A' : p_pars[pos+0]=1; p_pars[pos+1]=p_pars[pos+2]=p_pars[pos+3]=0;
       break;
-    case 'C' : p_pars[1]=1; p_pars[0]=p_pars[2]=p_pars[3]=0;
+    case 'C' : p_pars[pos+1]=1; p_pars[pos+0]=p_pars[pos+2]=p_pars[pos+3]=0;
       break;
-    case 'G' : p_pars[2]=1; p_pars[1]=p_pars[0]=p_pars[3]=0;
+    case 'G' : p_pars[pos+2]=1; p_pars[pos+1]=p_pars[pos+0]=p_pars[pos+3]=0;
       break;
-    case 'T' : p_pars[3]=1; p_pars[1]=p_pars[2]=p_pars[0]=0;
+    case 'T' : p_pars[pos+3]=1; p_pars[pos+1]=p_pars[pos+2]=p_pars[pos+0]=0;
       break;
-    case 'U' : p_pars[3]=1; p_pars[1]=p_pars[2]=p_pars[0]=0;
+    case 'U' : p_pars[pos+3]=1; p_pars[pos+1]=p_pars[pos+2]=p_pars[pos+0]=0;
       break;
-    case 'M' : p_pars[0]=p_pars[1]=1; p_pars[2]=p_pars[3]=0;
+    case 'M' : p_pars[pos+0]=p_pars[pos+1]=1; p_pars[pos+2]=p_pars[pos+3]=0;
       break;
-    case 'R' : p_pars[0]=p_pars[2]=1; p_pars[1]=p_pars[3]=0;
+    case 'R' : p_pars[pos+0]=p_pars[pos+2]=1; p_pars[pos+1]=p_pars[pos+3]=0;
       break;
-    case 'W' : p_pars[0]=p_pars[3]=1; p_pars[1]=p_pars[2]=0;
+    case 'W' : p_pars[pos+0]=p_pars[pos+3]=1; p_pars[pos+1]=p_pars[pos+2]=0;
       break;
-    case 'S' : p_pars[1]=p_pars[2]=1; p_pars[0]=p_pars[3]=0;
+    case 'S' : p_pars[pos+1]=p_pars[pos+2]=1; p_pars[pos+0]=p_pars[pos+3]=0;
       break;
-    case 'Y' : p_pars[1]=p_pars[3]=1; p_pars[0]=p_pars[2]=0;
+    case 'Y' : p_pars[pos+1]=p_pars[pos+3]=1; p_pars[pos+0]=p_pars[pos+2]=0;
       break;
-    case 'K' : p_pars[2]=p_pars[3]=1; p_pars[0]=p_pars[1]=0;
+    case 'K' : p_pars[pos+2]=p_pars[pos+3]=1; p_pars[pos+0]=p_pars[pos+1]=0;
       break;
-    case 'B' : p_pars[1]=p_pars[2]=p_pars[3]=1; p_pars[0]=0;
+    case 'B' : p_pars[pos+1]=p_pars[pos+2]=p_pars[pos+3]=1; p_pars[pos+0]=0;
       break;
-    case 'D' : p_pars[0]=p_pars[2]=p_pars[3]=1; p_pars[1]=0;
+    case 'D' : p_pars[pos+0]=p_pars[pos+2]=p_pars[pos+3]=1; p_pars[pos+1]=0;
       break;
-    case 'H' : p_pars[0]=p_pars[1]=p_pars[3]=1; p_pars[2]=0;
+    case 'H' : p_pars[pos+0]=p_pars[pos+1]=p_pars[pos+3]=1; p_pars[pos+2]=0;
       break;
-    case 'V' : p_pars[0]=p_pars[1]=p_pars[2]=1; p_pars[3]=0;
+    case 'V' : p_pars[pos+0]=p_pars[pos+1]=p_pars[pos+2]=1; p_pars[pos+3]=0;
       break;
     case 'N' : case 'X' : case '?' : case 'O' : case '-' :
-      p_pars[0]=p_pars[1]=p_pars[2]=p_pars[3]=1;break;
+      p_pars[pos+0]=p_pars[pos+1]=p_pars[pos+2]=p_pars[pos+3]=1;break;
     default :
       {
 	PhyML_Printf("\n. Unknown character state : %c\n",state);
@@ -123,38 +123,38 @@ void Init_Tips_At_One_Site_Nucleotides_Int(char state, short int *p_pars)
 
 /*********************************************************/
 
-void Init_Tips_At_One_Site_AA_Float(char aa, plkflt *p_lk)
+void Init_Tips_At_One_Site_AA_Float(char aa, int pos, plkflt *p_lk)
 {
   int i;
 
-  For(i,20) p_lk[i] = .0;
+  For(i,20) p_lk[pos+i] = .0;
 
   switch(aa){
-  case 'A' : p_lk[0]= 1.; break;/* Alanine */
-  case 'R' : p_lk[1]= 1.; break;/* Arginine */
-  case 'N' : p_lk[2]= 1.; break;/* Asparagine */
-  case 'D' : p_lk[3]= 1.; break;/* Aspartic acid */
-  case 'C' : p_lk[4]= 1.; break;/* Cysteine */
-  case 'Q' : p_lk[5]= 1.; break;/* Glutamine */
-  case 'E' : p_lk[6]= 1.; break;/* Glutamic acid */
-  case 'G' : p_lk[7]= 1.; break;/* Glycine */
-  case 'H' : p_lk[8]= 1.; break;/* Histidine */
-  case 'I' : p_lk[9]= 1.; break;/* Isoleucine */
-  case 'L' : p_lk[10]=1.; break;/* Leucine */
-  case 'K' : p_lk[11]=1.; break;/* Lysine */
-  case 'M' : p_lk[12]=1.; break;/* Methionine */
-  case 'F' : p_lk[13]=1.; break;/* Phenylalanin */
-  case 'P' : p_lk[14]=1.; break;/* Proline */
-  case 'S' : p_lk[15]=1.; break;/* Serine */
-  case 'T' : p_lk[16]=1.; break;/* Threonine */
-  case 'W' : p_lk[17]=1.; break;/* Tryptophan */
-  case 'Y' : p_lk[18]=1.; break;/* Tyrosine */
-  case 'V' : p_lk[19]=1.; break;/* Valine */
+  case 'A' : p_lk[pos+0]= 1.; break;/* Alanine */
+  case 'R' : p_lk[pos+1]= 1.; break;/* Arginine */
+  case 'N' : p_lk[pos+2]= 1.; break;/* Asparagine */
+  case 'D' : p_lk[pos+3]= 1.; break;/* Aspartic acid */
+  case 'C' : p_lk[pos+4]= 1.; break;/* Cysteine */
+  case 'Q' : p_lk[pos+5]= 1.; break;/* Glutamine */
+  case 'E' : p_lk[pos+6]= 1.; break;/* Glutamic acid */
+  case 'G' : p_lk[pos+7]= 1.; break;/* Glycine */
+  case 'H' : p_lk[pos+8]= 1.; break;/* Histidine */
+  case 'I' : p_lk[pos+9]= 1.; break;/* Isoleucine */
+  case 'L' : p_lk[pos+10]=1.; break;/* Leucine */
+  case 'K' : p_lk[pos+11]=1.; break;/* Lysine */
+  case 'M' : p_lk[pos+12]=1.; break;/* Methionine */
+  case 'F' : p_lk[pos+13]=1.; break;/* Phenylalanin */
+  case 'P' : p_lk[pos+14]=1.; break;/* Proline */
+  case 'S' : p_lk[pos+15]=1.; break;/* Serine */
+  case 'T' : p_lk[pos+16]=1.; break;/* Threonine */
+  case 'W' : p_lk[pos+17]=1.; break;/* Tryptophan */
+  case 'Y' : p_lk[pos+18]=1.; break;/* Tyrosine */
+  case 'V' : p_lk[pos+19]=1.; break;/* Valine */
 
-  case 'B' : p_lk[2]= 1.; break;/* Asparagine */
-  case 'Z' : p_lk[5]= 1.; break;/* Glutamine */
+  case 'B' : p_lk[pos+2]= 1.; break;/* Asparagine */
+  case 'Z' : p_lk[pos+5]= 1.; break;/* Glutamine */
 
-  case 'X' : case '?' : case '-' : For(i,20) p_lk[i] = 1.; break;
+  case 'X' : case '?' : case '-' : For(i,20) p_lk[pos+i] = 1.; break;
   default :
     {
       PhyML_Printf("\n. Unknown character state : %c\n",aa);
@@ -166,38 +166,38 @@ void Init_Tips_At_One_Site_AA_Float(char aa, plkflt *p_lk)
 
 /*********************************************************/
 
-void Init_Tips_At_One_Site_AA_Int(char aa, short int *p_pars)
+void Init_Tips_At_One_Site_AA_Int(char aa, int pos, short int *p_pars)
 {
   int i;
 
-  For(i,20) p_pars[i] = .0;
+  For(i,20) p_pars[pos+i] = .0;
 
   switch(aa){
-  case 'A' : p_pars[0]  = 1; break;/* Alanine */
-  case 'R' : p_pars[1]  = 1; break;/* Arginine */
-  case 'N' : p_pars[2]  = 1; break;/* Asparagine */
-  case 'D' : p_pars[3]  = 1; break;/* Aspartic acid */
-  case 'C' : p_pars[4]  = 1; break;/* Cysteine */
-  case 'Q' : p_pars[5]  = 1; break;/* Glutamine */
-  case 'E' : p_pars[6]  = 1; break;/* Glutamic acid */
-  case 'G' : p_pars[7]  = 1; break;/* Glycine */
-  case 'H' : p_pars[8]  = 1; break;/* Histidine */
-  case 'I' : p_pars[9]  = 1; break;/* Isoleucine */
-  case 'L' : p_pars[10] = 1; break;/* Leucine */
-  case 'K' : p_pars[11] = 1; break;/* Lysine */
-  case 'M' : p_pars[12] = 1; break;/* Methionine */
-  case 'F' : p_pars[13] = 1; break;/* Phenylalanin */
-  case 'P' : p_pars[14] = 1; break;/* Proline */
-  case 'S' : p_pars[15] = 1; break;/* Serine */
-  case 'T' : p_pars[16] = 1; break;/* Threonine */
-  case 'W' : p_pars[17] = 1; break;/* Tryptophan */
-  case 'Y' : p_pars[18] = 1; break;/* Tyrosine */
-  case 'V' : p_pars[19] = 1; break;/* Valine */
+  case 'A' : p_pars[pos+0]  = 1; break;/* Alanine */
+  case 'R' : p_pars[pos+1]  = 1; break;/* Arginine */
+  case 'N' : p_pars[pos+2]  = 1; break;/* Asparagine */
+  case 'D' : p_pars[pos+3]  = 1; break;/* Aspartic acid */
+  case 'C' : p_pars[pos+4]  = 1; break;/* Cysteine */
+  case 'Q' : p_pars[pos+5]  = 1; break;/* Glutamine */
+  case 'E' : p_pars[pos+6]  = 1; break;/* Glutamic acid */
+  case 'G' : p_pars[pos+7]  = 1; break;/* Glycine */
+  case 'H' : p_pars[pos+8]  = 1; break;/* Histidine */
+  case 'I' : p_pars[pos+9]  = 1; break;/* Isoleucine */
+  case 'L' : p_pars[pos+10] = 1; break;/* Leucine */
+  case 'K' : p_pars[pos+11] = 1; break;/* Lysine */
+  case 'M' : p_pars[pos+12] = 1; break;/* Methionine */
+  case 'F' : p_pars[pos+13] = 1; break;/* Phenylalanin */
+  case 'P' : p_pars[pos+14] = 1; break;/* Proline */
+  case 'S' : p_pars[pos+15] = 1; break;/* Serine */
+  case 'T' : p_pars[pos+16] = 1; break;/* Threonine */
+  case 'W' : p_pars[pos+17] = 1; break;/* Tryptophan */
+  case 'Y' : p_pars[pos+18] = 1; break;/* Tyrosine */
+  case 'V' : p_pars[pos+19] = 1; break;/* Valine */
 
-  case 'B' : p_pars[2]  = 1; break;/* Asparagine */
-  case 'Z' : p_pars[5]  = 1; break;/* Glutamine */
+  case 'B' : p_pars[pos+2]  = 1; break;/* Asparagine */
+  case 'Z' : p_pars[pos+5]  = 1; break;/* Glutamine */
 
-  case 'X' : case '?' : case '-' : For(i,20) p_pars[i] = 1; break;
+  case 'X' : case '?' : case '-' : For(i,20) p_pars[pos+i] = 1; break;
   default :
     {
       PhyML_Printf("\n. Unknown character state : %c\n",aa);
@@ -379,6 +379,11 @@ phydbl Lk_Core(edge *b, arbre *tree)
   phydbl sum;
   int ambiguity_check,state;
   int catg,ns,k,l,site;
+  int dim1,dim2;
+
+
+  dim1 = tree->mod->n_catg * tree->mod->ns;
+  dim2 = tree->mod->ns;
 
   log_site_lk = site_lk = site_lk_cat = .0;
   ambiguity_check = state = -1;
@@ -398,7 +403,7 @@ phydbl Lk_Core(edge *b, arbre *tree)
   if((b->rght->tax) && (!tree->mod->s_opt->greedy))
     {
       ambiguity_check = tree->data->c_seq[b->rght->num]->is_ambigu[site];      
-      if(!ambiguity_check) state = Get_State_From_P_Pars(b->p_lk_tip_r[site],tree);
+      if(!ambiguity_check) state = Get_State_From_P_Pars(b->p_lk_tip_r,site*dim2,tree);
     }
 
   if(tree->mod->use_m4mod) ambiguity_check = 1;
@@ -416,7 +421,7 @@ phydbl Lk_Core(edge *b, arbre *tree)
 		{
 		  sum +=
 		    b->Pij_rr[catg][state][l] *
-		    (phydbl)b->p_lk_left[site][catg][l];
+		    (phydbl)b->p_lk_left[site*dim1+catg*dim2+l];
 		}
 	      site_lk_cat += sum * tree->mod->pi[state];
 	    }
@@ -425,18 +430,18 @@ phydbl Lk_Core(edge *b, arbre *tree)
 	      For(k,ns)
 		{
 		  sum = .0;
-		  if(b->p_lk_tip_r[site][k] > .0)
+		  if(b->p_lk_tip_r[site*dim2+k] > .0)
 		    {
 		      For(l,ns)
 			{
 			  sum +=
 			    b->Pij_rr[catg][k][l] *
-			    (phydbl)b->p_lk_left[site][catg][l];
+			    (phydbl)b->p_lk_left[site*dim1+catg*dim2+l];
 			}
 		      site_lk_cat +=
 			sum *
 			tree->mod->pi[k] *
-			(phydbl)b->p_lk_tip_r[site][k];
+			(phydbl)b->p_lk_tip_r[site*dim2+k];
 		    }
 		}
 	    }
@@ -446,18 +451,18 @@ phydbl Lk_Core(edge *b, arbre *tree)
 	  For(k,ns) 
 	    {
 	      sum = .0;
-	      if(b->p_lk_rght[site][catg][k] > .0)
+	      if(b->p_lk_rght[site*dim1+catg*dim2+k] > .0)
 		{
 		  For(l,ns)
 		    {
 		      sum +=
 			b->Pij_rr[catg][k][l] *
-			(phydbl)b->p_lk_left[site][catg][l];
+			(phydbl)b->p_lk_left[site*dim1+catg*dim2+l];
 		    }
 		  site_lk_cat +=
 		    sum *
 		    tree->mod->pi[k] *
-		    (phydbl)b->p_lk_rght[site][catg][k];
+		    (phydbl)b->p_lk_rght[site*dim1+catg*dim2+k];
 		}
 	    }
 	}
@@ -652,8 +657,12 @@ phydbl Lk_Given_Two_Seq(allseq *data, int numseq1, int numseq2, phydbl dist, mod
   seq *seq1,*seq2;
   phydbl site_lk,log_site_lk;
   int i,j,k,l;
-  plkflt **p_lk_l,**p_lk_r;
+/*   plkflt **p_lk_l,**p_lk_r; */
+  plkflt *p_lk_l,*p_lk_r;
   phydbl len;
+  int dim1;
+
+  dim1 = mod->ns;
 
   DiscreteGamma(mod->gamma_r_proba, mod->gamma_rr, mod->alpha,
 		mod->alpha,mod->n_catg,mod->gamma_median);
@@ -661,14 +670,19 @@ phydbl Lk_Given_Two_Seq(allseq *data, int numseq1, int numseq2, phydbl dist, mod
   seq1 = data->c_seq[numseq1];
   seq2 = data->c_seq[numseq2];
 
-  p_lk_l = (plkflt **)mCalloc(data->c_seq[0]->len,sizeof(plkflt *));
-  p_lk_r = (plkflt **)mCalloc(data->c_seq[0]->len,sizeof(plkflt *));
 
-  For(i,data->c_seq[0]->len)
-    {
-      p_lk_l[i] = (plkflt *)mCalloc(mod->ns,sizeof(plkflt));
-      p_lk_r[i] = (plkflt *)mCalloc(mod->ns,sizeof(plkflt));
-    }
+  p_lk_l = (plkflt *)mCalloc(data->c_seq[0]->len * mod->ns,sizeof(plkflt));
+  p_lk_r = (plkflt *)mCalloc(data->c_seq[0]->len * mod->ns,sizeof(plkflt));
+
+
+/*   p_lk_l = (plkflt **)mCalloc(data->c_seq[0]->len,sizeof(plkflt *)); */
+/*   p_lk_r = (plkflt **)mCalloc(data->c_seq[0]->len,sizeof(plkflt *)); */
+
+/*   For(i,data->c_seq[0]->len) */
+/*     { */
+/*       p_lk_l[i] = (plkflt *)mCalloc(mod->ns,sizeof(plkflt)); */
+/*       p_lk_r[i] = (plkflt *)mCalloc(mod->ns,sizeof(plkflt)); */
+/*     } */
 
   if(dist < BL_MIN) dist = BL_START;
   else if(dist > BL_MAX) dist = BL_START;
@@ -685,16 +699,16 @@ phydbl Lk_Given_Two_Seq(allseq *data, int numseq1, int numseq2, phydbl dist, mod
     {
       For(i,data->c_seq[0]->len)
 	{
-	  Init_Tips_At_One_Site_Nucleotides_Float(seq1->state[i],p_lk_l[i]);
-	  Init_Tips_At_One_Site_Nucleotides_Float(seq2->state[i],p_lk_r[i]);
+	  Init_Tips_At_One_Site_Nucleotides_Float(seq1->state[i],i*mod->ns,p_lk_l);
+	  Init_Tips_At_One_Site_Nucleotides_Float(seq2->state[i],i*mod->ns,p_lk_r);
 	}
     }
   else
     {
       For(i,data->c_seq[0]->len)
 	{
-	  Init_Tips_At_One_Site_AA_Float(seq1->state[i],p_lk_l[i]);
-	  Init_Tips_At_One_Site_AA_Float(seq2->state[i],p_lk_r[i]);
+	  Init_Tips_At_One_Site_AA_Float(seq1->state[i],i*mod->ns,p_lk_l);
+	  Init_Tips_At_One_Site_AA_Float(seq2->state[i],i*mod->ns,p_lk_r);
 	}
     }
 
@@ -709,16 +723,16 @@ phydbl Lk_Given_Two_Seq(allseq *data, int numseq1, int numseq2, phydbl dist, mod
 	  site_lk = log_site_lk = .0;
 	  if(!data->ambigu[i])
 	    {
-	      For(k,mod->ns) {if(p_lk_l[i][k] > .0001) break;}
-	      For(l,mod->ns) {if(p_lk_r[i][l] > .0001) break;}
+	      For(k,mod->ns) {if(p_lk_l[i*mod->ns+k] > .0001) break;}
+	      For(l,mod->ns) {if(p_lk_r[i*mod->ns+l] > .0001) break;}
 	      For(j,mod->n_catg)
 		{
 		  site_lk +=
 		    mod->gamma_r_proba[j] *
 		    mod->pi[k] *
-		    p_lk_l[i][k] *
-		    (phydbl)mod->Pij_rr[j][k][l] *
-		    p_lk_r[i][l];
+		    p_lk_l[i*dim1+k] *
+		    mod->Pij_rr[j][k][l] *
+		    p_lk_r[i*dim1+l];
 		}
 	    }
 	  else
@@ -732,15 +746,13 @@ phydbl Lk_Given_Two_Seq(allseq *data, int numseq1, int numseq2, phydbl dist, mod
 			  site_lk +=
 			    mod->gamma_r_proba[j] *
 			    mod->pi[k] *
-			    p_lk_l[i][k] *
-			    (phydbl)mod->Pij_rr[j][k][l] *
-			    p_lk_r[i][l];
+			    p_lk_l[i*dim1+k] *
+			    mod->Pij_rr[j][k][l] *
+			    p_lk_r[i*dim1+l];
 			}
 		    }
 		}
 	    }
-
-/* 	  PhyML_Printf("'%c' '%c' -> %f\n",seq1->state[i],seq2->state[i],site_lk); */
 
 	  if(site_lk <= .0)
 	    {
@@ -754,11 +766,12 @@ phydbl Lk_Given_Two_Seq(allseq *data, int numseq1, int numseq2, phydbl dist, mod
 	}
     }
 
-  For(i,data->c_seq[0]->len)
-    {
-      Free(p_lk_l[i]);
-      Free(p_lk_r[i]);
-    }
+/*   For(i,data->c_seq[0]->len) */
+/*     { */
+/*       Free(p_lk_l[i]); */
+/*       Free(p_lk_r[i]); */
+/*     } */
+
   Free(p_lk_l); Free(p_lk_r);
   return *loglk;
 }
@@ -795,7 +808,8 @@ void Update_P_Lk(arbre *tree, edge *b, node *d)
 */
   node *n_v1, *n_v2;
   phydbl p1_lk1,p2_lk2;
-  plkflt ***p_lk,***p_lk_v1,***p_lk_v2;
+/*   plkflt ***p_lk,***p_lk_v1,***p_lk_v2; */
+  plkflt *p_lk,*p_lk_v1,*p_lk_v2;
   double ***Pij1,***Pij2;
   plkflt max_p_lk;
   plkflt *sum_scale, *sum_scale_v1, *sum_scale_v2;
@@ -806,7 +820,12 @@ void Update_P_Lk(arbre *tree, edge *b, node *d)
   int n_patterns;
   int ambiguity_check_v1,ambiguity_check_v2;
   int state_v1,state_v2;
-  
+  int dim1, dim2;
+
+
+  dim1 = tree->mod->n_catg * tree->mod->ns;
+  dim2 = tree->mod->ns;
+
   state_v1 = state_v2 = -1;
   ambiguity_check_v1 = ambiguity_check_v2 = -1;
   scale_v1 = scale_v2 = 0.0;
@@ -889,13 +908,13 @@ void Update_P_Lk(arbre *tree, edge *b, node *d)
 	  if(n_v1->tax)
 	    {
 	      ambiguity_check_v1 = tree->data->c_seq[n_v1->num]->is_ambigu[site];
-	      if(!ambiguity_check_v1) state_v1 = Get_State_From_P_Pars(n_v1->b[0]->p_lk_tip_r[site],tree);
+	      if(!ambiguity_check_v1) state_v1 = Get_State_From_P_Pars(n_v1->b[0]->p_lk_tip_r,site*dim2,tree);
 	    }
 	      
 	  if(n_v2->tax)
 	    {
 	      ambiguity_check_v2 = tree->data->c_seq[n_v2->num]->is_ambigu[site];
-	      if(!ambiguity_check_v2) state_v2 = Get_State_From_P_Pars(n_v2->b[0]->p_lk_tip_r[site],tree);
+	      if(!ambiguity_check_v2) state_v2 = Get_State_From_P_Pars(n_v2->b[0]->p_lk_tip_r,site*dim2,tree);
 	    }
 	}
       
@@ -921,7 +940,7 @@ void Update_P_Lk(arbre *tree, edge *b, node *d)
 		    {
 		      For(j,tree->mod->ns)
 			{
-			  p1_lk1 += Pij1[catg][i][j] * (phydbl)n_v1->b[0]->p_lk_tip_r[site][j];
+			  p1_lk1 += Pij1[catg][i][j] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+j];
 			}
 		    }
 		}
@@ -929,7 +948,7 @@ void Update_P_Lk(arbre *tree, edge *b, node *d)
 		{
 		  For(j,tree->mod->ns)
 		    {
-		      p1_lk1 += Pij1[catg][i][j] * (phydbl)p_lk_v1[site][catg][j];
+		      p1_lk1 += Pij1[catg][i][j] * (phydbl)p_lk_v1[site*dim1+catg*dim2+j];
 		    }
 		}
 	      
@@ -945,7 +964,7 @@ void Update_P_Lk(arbre *tree, edge *b, node *d)
 		    {
 		      For(j,tree->mod->ns)
 			{
-			  p2_lk2 += Pij2[catg][i][j] * (phydbl)n_v2->b[0]->p_lk_tip_r[site][j];
+			  p2_lk2 += Pij2[catg][i][j] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+j];
 			}
 		    }
 		}
@@ -953,13 +972,13 @@ void Update_P_Lk(arbre *tree, edge *b, node *d)
 		{
 		  For(j,tree->mod->ns)
 		    {
-		      p2_lk2 += Pij2[catg][i][j] * (phydbl)p_lk_v2[site][catg][j];
+		      p2_lk2 += Pij2[catg][i][j] * (phydbl)p_lk_v2[site*dim1+catg*dim2+j];
 		    }
 		}
 	      
-	      p_lk[site][catg][i] = (plkflt)(p1_lk1 * p2_lk2);
+	      p_lk[site*dim1+catg*dim2+i] = (plkflt)(p1_lk1 * p2_lk2);
 	      
-	      if(p_lk[site][catg][i] > max_p_lk) max_p_lk = p_lk[site][catg][i];
+	      if(p_lk[site*dim1+catg*dim2+i] > max_p_lk) max_p_lk = p_lk[site*dim1+catg*dim2+i];
 	    }
 	}
       
@@ -969,7 +988,7 @@ void Update_P_Lk(arbre *tree, edge *b, node *d)
 	    {
 	      For(i,tree->mod->ns)
 		{
-		  p_lk[site][catg][i] /= max_p_lk;
+		  p_lk[site*dim1+catg*dim2+i] /= max_p_lk;
 		  
 /* 		  if((p_lk[site][catg][i] > MDBL_MAX) || (p_lk[site][catg][i] < MDBL_MIN)) */
 /* 		    { */
@@ -1029,41 +1048,30 @@ void Make_Tree_4_Lk(arbre *tree, allseq *alldata, int n_site)
 
 void Init_P_Lk_Tips_Double(arbre *tree)
 {
-  int curr_site,i,j,k;
+  int curr_site,i,j,k,dim1,dim2;
+
+  dim1 = tree->mod->n_catg * tree->mod->ns;
+  dim2 = tree->mod->ns;
 
   Fors(curr_site,tree->data->crunch_len,tree->mod->stepsize)
     {
       For(i,tree->n_otu)
 	{
 	  if (tree->mod->datatype == NT)
-	    {
-	      if(tree->noeud[i]->b[0]->rght->tax != 1)
-		{
-		  PhyML_Printf("\n. tree->noeud[i]->b[0]->rght->num = %d ; %f %f %f %f\n",
-			 tree->noeud[i]->b[0]->rght->num,
-			 tree->noeud[i]->b[0]->p_lk_rght[curr_site][0][0],
-			 tree->noeud[i]->b[0]->p_lk_rght[curr_site][0][1],
-			 tree->noeud[i]->b[0]->p_lk_rght[curr_site][0][2],
-			 tree->noeud[i]->b[0]->p_lk_rght[curr_site][0][3]);
-		  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-		  Exit("");
-		}
-
-	      Init_Tips_At_One_Site_Nucleotides_Float(tree->data->c_seq[i]->state[curr_site],
-						      tree->noeud[i]->b[0]->p_lk_rght[curr_site][0]);
-	    }
+	    Init_Tips_At_One_Site_Nucleotides_Float(tree->data->c_seq[i]->state[curr_site],
+						    curr_site*dim1+0*dim2,
+						    tree->noeud[i]->b[0]->p_lk_rght);
 	  else
-	    {
-	      Init_Tips_At_One_Site_AA_Float(tree->data->c_seq[i]->state[curr_site],
-					     tree->noeud[i]->b[0]->p_lk_rght[curr_site][0]);
-	    }
+	    Init_Tips_At_One_Site_AA_Float(tree->data->c_seq[i]->state[curr_site],
+					   curr_site*dim1+0*dim2,
+					   tree->noeud[i]->b[0]->p_lk_rght);
 
 	  for(j=1;j<tree->mod->n_catg;j++)
 	    {
 	      For(k,tree->mod->ns)
 		{
-		  tree->noeud[i]->b[0]->p_lk_rght[curr_site][j][k]=
-		    tree->noeud[i]->b[0]->p_lk_rght[curr_site][0][k];
+		  tree->noeud[i]->b[0]->p_lk_rght[curr_site*dim1+j*dim2+k] = 
+		    tree->noeud[i]->b[0]->p_lk_rght[curr_site*dim1+0*dim2+k];
 		}
 	    }
 	}
@@ -1078,8 +1086,9 @@ void Init_P_Lk_Tips_Double(arbre *tree)
 
 void Init_P_Lk_Tips_Int(arbre *tree)
 {
-  int curr_site,i;
+  int curr_site,i,dim1;
 
+  dim1 = tree->mod->ns;
 
   Fors(curr_site,tree->data->crunch_len,tree->mod->stepsize)
     {
@@ -1087,25 +1096,15 @@ void Init_P_Lk_Tips_Int(arbre *tree)
 	{
 	  if(tree->mod->datatype == NT)
 	    {
-	      if(tree->noeud[i]->b[0]->rght->tax != 1)
-		{
-		  PhyML_Printf("\n. tree->noeud[i]->b[0]->rght->num = %d ; %f %f %f %f\n",
-			 tree->noeud[i]->b[0]->rght->num,
-			 tree->noeud[i]->b[0]->p_lk_rght[curr_site][0][0],
-			 tree->noeud[i]->b[0]->p_lk_rght[curr_site][0][1],
-			 tree->noeud[i]->b[0]->p_lk_rght[curr_site][0][2],
-			 tree->noeud[i]->b[0]->p_lk_rght[curr_site][0][3]);
-		  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-		  Exit("");
-		}
-
 	      Init_Tips_At_One_Site_Nucleotides_Int(tree->data->c_seq[i]->state[curr_site],
-						    tree->noeud[i]->b[0]->p_lk_tip_r[curr_site]);
+						    curr_site*dim1,
+						    tree->noeud[i]->b[0]->p_lk_tip_r);
 	    }
 	  else
 	    {
 	      Init_Tips_At_One_Site_AA_Int(tree->data->c_seq[i]->state[curr_site],
-					   tree->noeud[i]->b[0]->p_lk_tip_r[curr_site]);
+					   curr_site*dim1,					   
+					   tree->noeud[i]->b[0]->p_lk_tip_r);
 	    }
 	}
     }
@@ -1114,35 +1113,6 @@ void Init_P_Lk_Tips_Int(arbre *tree)
   if(tree->mod->m4mod) M4_Init_P_Lk_Tips_Int(tree);
   #endif
 
-}
-
-/*********************************************************/
-
-void Init_P_Lk_At_One_Node(node *a, arbre *tree)
-{
-  int curr_site,j,k;
-
-  if(!a->tax) Exit("\n. Node 'a' must be a tip (err. in Init_P_Lk_At_One_Node)\n");
-  if(a->b[0]->rght != a) Exit("\n. Node 'a' must be on the right handside of the terminal branch (err. in Init_P_Lk_At_One_Node)\n");
-
-  Fors(curr_site,tree->data->crunch_len,tree->mod->stepsize)
-    {
-      if(tree->mod->datatype == NT)
-	Init_Tips_At_One_Site_Nucleotides_Float(tree->data->c_seq[a->num]->state[curr_site],
-						tree->noeud[a->num]->b[0]->p_lk_rght[curr_site][0]);
-      else
-	Init_Tips_At_One_Site_AA_Float(tree->data->c_seq[a->num]->state[curr_site],
-				       tree->noeud[a->num]->b[0]->p_lk_rght[curr_site][0]);
-
-      for(j=1;j<tree->mod->n_catg;j++)
-	{
-	  For(k,tree->mod->ns)
-	    {
-	      a->b[0]->p_lk_rght[curr_site][j][k]=
-		a->b[0]->p_lk_rght[curr_site][0][k];
-	    }
-	}
-    }
 }
 
 /*********************************************************/
@@ -1241,76 +1211,6 @@ void Update_P_Lk_Along_A_Path(node **path, int path_length, arbre *tree)
 	  Exit("");
 	}
 #endif
-    }
-}
-
-/*********************************************************/
-
-void Sort_Sites_Based_On_Lk(arbre *tree)
-{
-  int i,j,k,l,m;
-  phydbl buff_dbl;
-  char buff_char;
-  int buff_int;
-
-  For(i,tree->data->crunch_len)
-    {
-      for(j=i+1;j<tree->data->crunch_len;j++)
-	{
-	  if(tree->site_lk[j]*tree->data->wght[j] < tree->site_lk[i]*tree->data->wght[i])
-	    {
-	      buff_dbl              = tree->site_lk[j];
-	      tree->site_lk[j]      = tree->site_lk[i];
-	      tree->site_lk[i]      = buff_dbl;
-
-	      buff_dbl              = tree->data->wght[j];
-	      tree->data->wght[j]   = tree->data->wght[i];
-	      tree->data->wght[i]   = buff_dbl;
-
-	      buff_int              = tree->data->invar[j];
-	      tree->data->invar[j]  = tree->data->invar[i];
-	      tree->data->invar[i]  = buff_int;
-
-	      buff_int              = tree->data->ambigu[j];
-	      tree->data->ambigu[j] = tree->data->ambigu[i];
-	      tree->data->ambigu[i] = buff_int;
-
-	      if(tree->data->c_seq[0]->state)
-		{
-		  For(k,tree->n_otu)
-		    {
-		      buff_char                      = tree->data->c_seq[k]->state[j];
-		      tree->data->c_seq[k]->state[j] = tree->data->c_seq[k]->state[i];
-		      tree->data->c_seq[k]->state[i] = buff_char;
-		    }
-		}
-
-	      For(k,2*tree->n_otu-3)
-		{
-		  For(l,tree->mod->n_catg)
-		    {
-		      For(m,tree->mod->ns)
-			{
-			  buff_dbl                             = tree->t_edges[k]->p_lk_rght[j][l][m];
-			  tree->t_edges[k]->p_lk_rght[j][l][m] = tree->t_edges[k]->p_lk_rght[i][l][m];
-			  tree->t_edges[k]->p_lk_rght[i][l][m] = buff_dbl;
-
-			  buff_dbl                             = tree->t_edges[k]->p_lk_left[j][l][m];
-			  tree->t_edges[k]->p_lk_left[j][l][m] = tree->t_edges[k]->p_lk_left[i][l][m];
-			  tree->t_edges[k]->p_lk_left[i][l][m] = buff_dbl;
-			}
-		    }
-
-		  buff_dbl                              = tree->t_edges[k]->sum_scale_f_rght[j];
-		  tree->t_edges[k]->sum_scale_f_rght[j] = tree->t_edges[k]->sum_scale_f_rght[i];
-		  tree->t_edges[k]->sum_scale_f_rght[i] = buff_dbl;
-
-		  buff_dbl                              = tree->t_edges[k]->sum_scale_f_left[j];
-		  tree->t_edges[k]->sum_scale_f_left[j] = tree->t_edges[k]->sum_scale_f_left[i];
-		  tree->t_edges[k]->sum_scale_f_left[i] = buff_dbl;
-		}
-	    }
-	}
     }
 }
 
