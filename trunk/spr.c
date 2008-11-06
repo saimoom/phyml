@@ -3185,7 +3185,7 @@ int Spr(phydbl init_lnL, arbre *tree)
       if(pars_diff > max_pars_diff) max_pars_diff = pars_diff;
     }
 
-  tree->mod->s_opt->pars_thresh = MAX(5,max_pars_diff);
+/*   tree->mod->s_opt->pars_thresh = MAX(5,max_pars_diff); */
 
 
   return 1;
@@ -3224,7 +3224,7 @@ void Spr_Subtree(edge *b, node *link, arbre *tree)
 
 	  n_moves_pars = MAX(n_moves_pars,1);
 	  
-	  if(tree->mod->s_opt->spr_lnL) n_moves = tree->n_moves;
+	  if(tree->mod->s_opt->spr_lnL) /* n_moves = tree->n_moves; */ n_moves = 20;
 	  else                          n_moves = n_moves_pars;
 
 	  if(tree->mod->s_opt->spr_pars)
@@ -3543,20 +3543,19 @@ void Speed_Spr_Loop(arbre *tree)
   while(1);
   /*****************************/
 
-
-/*   /\*****************************\/ */
-/*   lk_old = UNLIKELY; */
-/*   tree->mod->s_opt->spr_lnL    = 1; */
-/*   printf("\n\n. -- LOOP 1 --"); */
-/*   do */
-/*     { */
-/*       lk_old = tree->c_lnL; */
-/*       Optimiz_All_Free_Param(tree,tree->mod->s_opt->print); */
-/*       Speed_Spr(tree,1); */
-/*       if((!tree->n_improvements) || (fabs(lk_old-tree->c_lnL) < 1.)) break; */
-/*     } */
-/*   while(1); */
-/*   /\*****************************\/ */
+  /*****************************/
+  lk_old = UNLIKELY;
+  tree->mod->s_opt->spr_lnL    = 1;
+  printf("\n\n. -- LOOP 1 --");
+  do
+    {
+      lk_old = tree->c_lnL;
+      Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
+      Speed_Spr(tree,1);
+      if((!tree->n_improvements) || (fabs(lk_old-tree->c_lnL) < 1.)) break;
+    }
+  while(1);
+  /*****************************/
 
   /*****************************/
   lk_old = UNLIKELY;
