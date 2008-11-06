@@ -19,7 +19,7 @@ the GNU public licence.  See http://www.opensource.org for details.
 
 /*********************************************************/
 
-void PMat_K80(phydbl l,phydbl kappa, double ***Pij)
+void PMat_K80(phydbl l, phydbl kappa, int pos, double *Pij)
 {
   phydbl Ts,Tv,e1,e2,aux;
 
@@ -44,24 +44,37 @@ void PMat_K80(phydbl l,phydbl kappa, double ***Pij)
       Ts = Tv = .25*(1-e1);
     }
 
+  Pij[pos+ 4*0+0] = Pij[pos+ 4*1+1] = 
+  Pij[pos+ 4*2+2] = Pij[pos+ 4*3+3] = 1.-Ts-2.*Tv;
 
-  (*Pij)[0][1] = (*Pij)[1][0] = Tv;  
-  (*Pij)[0][2] = (*Pij)[2][0] = Ts; 
-  (*Pij)[0][3] = (*Pij)[3][0] = Tv;
+  Pij[pos+ 4*0+1] = Pij[pos+ 4*1+0] = Tv;
+  Pij[pos+ 4*0+2] = Pij[pos+ 4*2+0] = Ts;
+  Pij[pos+ 4*0+3] = Pij[pos+ 4*3+0] = Tv;
 
-  (*Pij)[1][2] = (*Pij)[2][1] = Tv;  
-  (*Pij)[1][3] = (*Pij)[3][1] = Ts; 
+  Pij[pos+ 4*1+2] = Pij[pos+ 4*2+1] = Tv;
+  Pij[pos+ 4*1+3] = Pij[pos+ 4*3+1] = Ts;
+
+  Pij[pos+ 4*2+3] = Pij[pos+ 4*3+2] = Tv;
+
+
+
+/*   (*Pij)[0][1] = (*Pij)[1][0] = Tv;   */
+/*   (*Pij)[0][2] = (*Pij)[2][0] = Ts;  */
+/*   (*Pij)[0][3] = (*Pij)[3][0] = Tv; */
+
+/*   (*Pij)[1][2] = (*Pij)[2][1] = Tv;   */
+/*   (*Pij)[1][3] = (*Pij)[3][1] = Ts;  */
   
-  (*Pij)[2][3] = (*Pij)[3][2] = Tv;
+/*   (*Pij)[2][3] = (*Pij)[3][2] = Tv; */
 
-  (*Pij)[0][0] = (*Pij)[1][1] = 
-  (*Pij)[2][2] = (*Pij)[3][3] = 1.-Ts-2.*Tv;
+/*   (*Pij)[0][0] = (*Pij)[1][1] =  */
+/*   (*Pij)[2][2] = (*Pij)[3][3] = 1.-Ts-2.*Tv; */
 }
 
 /*********************************************************/
 
 
-void PMat_TN93(phydbl l, model *mod, double ***Pij)
+void PMat_TN93(phydbl l, model *mod, int pos, double *Pij)
 {
   int i,j;
   phydbl e1,e2,e3;
@@ -114,28 +127,51 @@ void PMat_TN93(phydbl l, model *mod, double ***Pij)
   e3 = (phydbl)exp(-bt);
 
 
-  /*A->A*/(*Pij)[0][0] = A+Y*A/R*e3+G/R*e1; 
-  /*A->C*/(*Pij)[0][1] = C*(1-e3);
-  /*A->G*/(*Pij)[0][2] = G+Y*G/R*e3-G/R*e1;
-  /*A->T*/(*Pij)[0][3] = T*(1-e3);
+  /*A->A*/Pij[pos + 4*0+0] = A+Y*A/R*e3+G/R*e1; 
+  /*A->C*/Pij[pos + 4*0+1] = C*(1-e3);
+  /*A->G*/Pij[pos + 4*0+2] = G+Y*G/R*e3-G/R*e1;
+  /*A->T*/Pij[pos + 4*0+3] = T*(1-e3);
 
-  /*C->A*/(*Pij)[1][0] = A*(1-e3);
-  /*C->C*/(*Pij)[1][1] = C+R*C/Y*e3+T/Y*e2;
-  /*C->G*/(*Pij)[1][2] = G*(1-e3);
-  /*C->T*/(*Pij)[1][3] = T+R*T/Y*e3-T/Y*e2;
+  /*C->A*/Pij[pos + 4*1+0] = A*(1-e3);
+  /*C->C*/Pij[pos + 4*1+1] = C+R*C/Y*e3+T/Y*e2;
+  /*C->G*/Pij[pos + 4*1+2] = G*(1-e3);
+  /*C->T*/Pij[pos + 4*1+3] = T+R*T/Y*e3-T/Y*e2;
 
-  /*G->A*/(*Pij)[2][0] = A+Y*A/R*e3-A/R*e1;
-  /*G->C*/(*Pij)[2][1] = C*(1-e3);
-  /*G->G*/(*Pij)[2][2] = G+Y*G/R*e3+A/R*e1;
-  /*G->T*/(*Pij)[2][3] = T*(1-e3);
+  /*G->A*/Pij[pos + 4*2+0] = A+Y*A/R*e3-A/R*e1;
+  /*G->C*/Pij[pos + 4*2+1] = C*(1-e3);
+  /*G->G*/Pij[pos + 4*2+2] = G+Y*G/R*e3+A/R*e1;
+  /*G->T*/Pij[pos + 4*2+3] = T*(1-e3);
 
-  /*T->A*/(*Pij)[3][0] = A*(1-e3);
-  /*T->C*/(*Pij)[3][1] = C+R*C/Y*e3-C/Y*e2;
-  /*T->G*/(*Pij)[3][2] = G*(1-e3);
-  /*T->T*/(*Pij)[3][3] = T+R*T/Y*e3+C/Y*e2;
+  /*T->A*/Pij[pos + 4*3+0] = A*(1-e3);
+  /*T->C*/Pij[pos + 4*3+1] = C+R*C/Y*e3-C/Y*e2;
+  /*T->G*/Pij[pos + 4*3+2] = G*(1-e3);
+  /*T->T*/Pij[pos + 4*3+3] = T+R*T/Y*e3+C/Y*e2;
   
   For(i,4) For(j,4)
-    if((*Pij)[i][j] < MDBL_MIN) (*Pij)[i][j] = MDBL_MIN;
+    if(Pij[pos + 4*i+j] < MDBL_MIN) Pij[pos + 4*i+j] = MDBL_MIN;
+
+/*   /\*A->A*\/(*Pij)[0][0] = A+Y*A/R*e3+G/R*e1;  */
+/*   /\*A->C*\/(*Pij)[0][1] = C*(1-e3); */
+/*   /\*A->G*\/(*Pij)[0][2] = G+Y*G/R*e3-G/R*e1; */
+/*   /\*A->T*\/(*Pij)[0][3] = T*(1-e3); */
+
+/*   /\*C->A*\/(*Pij)[1][0] = A*(1-e3); */
+/*   /\*C->C*\/(*Pij)[1][1] = C+R*C/Y*e3+T/Y*e2; */
+/*   /\*C->G*\/(*Pij)[1][2] = G*(1-e3); */
+/*   /\*C->T*\/(*Pij)[1][3] = T+R*T/Y*e3-T/Y*e2; */
+
+/*   /\*G->A*\/(*Pij)[2][0] = A+Y*A/R*e3-A/R*e1; */
+/*   /\*G->C*\/(*Pij)[2][1] = C*(1-e3); */
+/*   /\*G->G*\/(*Pij)[2][2] = G+Y*G/R*e3+A/R*e1; */
+/*   /\*G->T*\/(*Pij)[2][3] = T*(1-e3); */
+
+/*   /\*T->A*\/(*Pij)[3][0] = A*(1-e3); */
+/*   /\*T->C*\/(*Pij)[3][1] = C+R*C/Y*e3-C/Y*e2; */
+/*   /\*T->G*\/(*Pij)[3][2] = G*(1-e3); */
+/*   /\*T->T*\/(*Pij)[3][3] = T+R*T/Y*e3+C/Y*e2; */
+  
+/*   For(i,4) For(j,4) */
+/*     if((*Pij)[i][j] < MDBL_MIN) (*Pij)[i][j] = MDBL_MIN; */
 
 }
 
@@ -255,7 +291,7 @@ int Matinv(double *x, int n, int m, double *space)
 /*   8000 = 20x20x20 times the operation +                          */
 /********************************************************************/
 
-void PMat_Empirical(phydbl l, model *mod, double ***Pij)
+void PMat_Empirical(phydbl l, model *mod, int pos, double *Pij)
 {
   int n = mod->ns;
   int i, j, k;
@@ -269,7 +305,7 @@ void PMat_Empirical(phydbl l, model *mod, double ***Pij)
   V     = mod->eigen->l_e_vect;
   R     = mod->eigen->e_val; /* exponential of the eigen value matrix */
 
-  For(i,n) For(k,n) (*Pij)[i][k] = .0;
+  For(i,n) For(k,n) Pij[pos+mod->ns*i+k] = .0;
 
   /* compute pow(exp(D/mr),l) into mat_eDmrl */
   For(k,n) expt[k] = (double)pow(R[k],l);
@@ -283,15 +319,15 @@ void PMat_Empirical(phydbl l, model *mod, double ***Pij)
 	{
 	  For(k,n)
 	    {
-	      (*Pij)[i][j] += (uexpt[i*n+k] * V[k*n+j]);
+	      Pij[pos+mod->ns*i+j] += (uexpt[i*n+k] * V[k*n+j]);
 	    }
-	  if((*Pij)[i][j] < MDBL_MIN) (*Pij)[i][j] = MDBL_MIN;
+	  if(Pij[pos+mod->ns*i+j] < MDBL_MIN) Pij[pos+mod->ns*i+j] = MDBL_MIN;
 	}
 
 #ifndef PHYML
       phydbl sum;
       sum = .0;
-      For (j,n) sum += (*Pij)[i][j];
+      For (j,n) sum += Pij[pos+mod->ns*i+j];
       if((sum > 1.+.0001) || (sum < 1.-.0001))
 	{
 	  PhyML_Printf("\n");
@@ -307,7 +343,7 @@ void PMat_Empirical(phydbl l, model *mod, double ***Pij)
 	  For(i,n)  PhyML_Printf("%E ",expt[i]);
 	  PhyML_Printf("\n");
 	  PhyML_Printf("\n. Pij\n");
-	  For(i,n) { For (j,n) PhyML_Printf("%f ",(*Pij)[i][j]); PhyML_Printf("\n"); }
+	  For(i,n) { For (j,n) PhyML_Printf("%f ",Pij[pos+mod->ns*i+j]); PhyML_Printf("\n"); }
 	  PhyML_Printf("\n. sum = %f",sum);
 	  if(mod->m4mod)
 	    {
@@ -329,7 +365,7 @@ void PMat_Empirical(phydbl l, model *mod, double ***Pij)
 
 /*********************************************************/
 
-void PMat_Gamma(phydbl l, model *mod, double ***Pij)
+void PMat_Gamma(phydbl l, model *mod, int pos, double *Pij)
 {
   int n = mod->ns;
   int i, j, k;
@@ -343,7 +379,7 @@ void PMat_Gamma(phydbl l, model *mod, double ***Pij)
   V     = mod->eigen->l_e_vect;
   R     = mod->eigen->e_val; /* exponential of the eigen value matrix */
 
-  For(i,n) For(k,n) (*Pij)[i][k] = .0;
+  For(i,n) For(k,n) Pij[pos+mod->ns*i+k] = .0;
   
   if(mod->alpha < 1.E-10) 
     {
@@ -363,15 +399,15 @@ void PMat_Gamma(phydbl l, model *mod, double ***Pij)
 	{
 	  For(k,n)
 	    {
-	      (*Pij)[i][j] += (uexpt[i*n+k] * V[k*n+j]);
+	      Pij[pos+mod->ns*i+j] += (uexpt[i*n+k] * V[k*n+j]);
 	    }
-	  if((*Pij)[i][j] < MDBL_MIN) (*Pij)[i][j] = MDBL_MIN;
+	  if(Pij[pos+mod->ns*i+j] < MDBL_MIN) Pij[pos+mod->ns*i+j] = MDBL_MIN;
 	}
 
 #ifdef DEBUG
       phydbl sum;
       sum = .0;
-      For (j,n) sum += (*Pij)[i][j];
+      For (j,n) sum += Pij[pos+mod->ns*i+j];
       if((sum > 1.+.0001) || (sum < 1.-.0001))
 	{
 	  PhyML_Printf("\n");
@@ -387,7 +423,7 @@ void PMat_Gamma(phydbl l, model *mod, double ***Pij)
 	  For(i,n)  PhyML_Printf("%E ",expt[i]);
 	  PhyML_Printf("\n");
 	  PhyML_Printf("\n. Pij\n");
-	  For(i,n) { For (j,n) PhyML_Printf("%f ",(*Pij)[i][j]); PhyML_Printf("\n"); }
+	  For(i,n) { For (j,n) PhyML_Printf("%f ",Pij[pos+mod->ns*i+j]); PhyML_Printf("\n"); }
 	  PhyML_Printf("\n. sum = %f",sum);
 	  if(mod->m4mod)
 	    {
@@ -409,23 +445,23 @@ void PMat_Gamma(phydbl l, model *mod, double ***Pij)
 
 /*********************************************************/
 
-void PMat_Zero_Br_Len(model  *mod, double ***Pij)
+void PMat_Zero_Br_Len(model  *mod, int pos, double *Pij)
 {
   int n = mod->ns;
   int i, j;
 
-  For (i,n) For (j,n) (*Pij)[i][j] = .0;
-  For (i,n) (*Pij)[i][i] = 1.0;
+  For (i,n) For (j,n) Pij[pos+mod->ns*i+j] = .0;
+  For (i,n) Pij[pos+mod->ns*i+i] = 1.0;
 
 }
 
 /*********************************************************/
 
-void PMat(phydbl l, model *mod, double ***Pij)
+void PMat(phydbl l, model *mod, int pos, double *Pij)
 {
   if(l < BL_MIN)
     {
-      PMat_Zero_Br_Len(mod,Pij);
+      PMat_Zero_Br_Len(mod,pos,Pij);
     }
   else
     {
@@ -435,14 +471,14 @@ void PMat(phydbl l, model *mod, double ***Pij)
 	  {
 	    if(mod->use_m4mod)
 	      {
-		PMat_Empirical(l,mod,Pij);
+		PMat_Empirical(l,mod,pos,Pij);
 	      }
 	    else
 	      {
 		if((mod->whichmodel == JC69) ||  
 		   (mod->whichmodel == K80))  
 		  {
-		    PMat_K80(l,mod->kappa,Pij);
+		    PMat_K80(l,mod->kappa,pos,Pij);
 		  }
 		else
 		  {
@@ -452,18 +488,18 @@ void PMat(phydbl l, model *mod, double ***Pij)
 		       (mod->whichmodel == F84)   ||
 		       (mod->whichmodel == TN93))
 		      {
-			PMat_TN93(l,mod,Pij);
+			PMat_TN93(l,mod,pos,Pij);
 		      }
 		    else
 		      {
-			PMat_Empirical(l,mod,Pij);
+			PMat_Empirical(l,mod,pos,Pij);
 		      }
 		  }
 		break;
 	      }
 	  case AA : 
 	    {
-	      PMat_Empirical(l,mod,Pij);
+	      PMat_Empirical(l,mod,pos,Pij);
 	      break;
 	    }
 	  }

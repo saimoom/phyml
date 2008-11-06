@@ -209,7 +209,7 @@ typedef struct __Edge {
   short int           *div_post_pred_left; /* posterior prediction of nucleotide/aa diversity (left-hand subtree) */
   short int           *div_post_pred_rght; /* posterior prediction of nucleotide/aa diversity (rght-hand subtree) */
 
-  double                        ***Pij_rr; /* matrix of change probabilities and its first and secnd derivates */
+  double                          *Pij_rr; /* matrix of change probabilities and its first and secnd derivates */
   int                     *pars_l,*pars_r; /* parsimony of the subtree on the left and right sides (for each site) */
   unsigned int               *ui_l, *ui_r; /* union - intersection vectors used in Fitch's parsimony algorithm */
   int                *p_pars_l, *p_pars_r; /* conditional parsimony vectors */
@@ -517,7 +517,7 @@ typedef struct __Model {
 
   phydbl               *rr; /* relative rate parameters of the GTR or custom model (given by rr_val[rr_num[i]]) */
   phydbl           *rr_val; /* relative rate parameters of the GTR or custom model */
-  double         ***Pij_rr; /* matrix of change probabilities */
+  double           *Pij_rr; /* matrix of change probabilities */
   phydbl                mr; /* mean rate = branch length/time interval  mr = -sum(i)(vct_pi[i].mat_Q[ii]) */
   phydbl      *user_b_freq; /* user-defined nucleotide frequencies */
   phydbl             *qmat;

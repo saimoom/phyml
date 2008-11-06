@@ -310,8 +310,6 @@ void Free_Node_Lk(node *n)
 
 void Free_Edge_Lk(arbre *tree, edge *b)
 {
-  int i,j;
-
   Free(b->nni);
 
   Free(b->div_post_pred_left);
@@ -319,61 +317,21 @@ void Free_Edge_Lk(arbre *tree, edge *b)
 
   if(b->p_lk_left)
     {
-/*       For(i,tree->data->crunch_len) */
-/* 	{ */
-/* 	  For(j,tree->mod->n_catg) */
-/* 	    { */
-/* 	      Free(b->p_lk_left[i][j]); */
-/* 	    } */
-/* 	  Free(b->p_lk_left[i]); */
-/* 	} */
-
       Free(b->p_lk_left);
       if(b->sum_scale_f_left) Free(b->sum_scale_f_left);
     }
 
-  if(b->p_lk_tip_l)
-    {
-/*       For(i,tree->data->crunch_len) */
-/* 	{ */
-/* 	  Free(b->p_lk_tip_l[i]); */
-/* 	} */
-      Free(b->p_lk_tip_l);
-    }
+  if(b->p_lk_tip_l) Free(b->p_lk_tip_l);
 
 
   if(b->p_lk_rght)
     {
-/*       For(i,tree->data->crunch_len) */
-/* 	{ */
-/* 	  For(j,tree->mod->n_catg) */
-/* 	    { */
-/* 	      Free(b->p_lk_rght[i][j]); */
-/* 	    } */
-/* 	  Free(b->p_lk_rght[i]); */
-/* 	} */
       Free(b->p_lk_rght);
       if(b->sum_scale_f_rght) Free(b->sum_scale_f_rght);
     }
+  
+  if(b->p_lk_tip_r) Free(b->p_lk_tip_r);
 
-  if(b->p_lk_tip_r)
-    {
-/*       For(i,tree->data->crunch_len) */
-/* 	{ */
-/* 	  Free(b->p_lk_tip_r[i]); */
-/* 	} */
-      Free(b->p_lk_tip_r);
-    }
-
-
-  For(i,tree->mod->n_catg)
-    {
-      For(j,tree->mod->ns)
-	{
-	  Free(b->Pij_rr[i][j]);
-	}
-      Free(b->Pij_rr[i]);
-    }
   Free(b->Pij_rr);
 }
 
@@ -381,7 +339,6 @@ void Free_Edge_Lk(arbre *tree, edge *b)
 
 void Free_Model(model *mod)
 {
-  int i,j;
 
   Free(mod->modelname);
   Free(mod->custom_mod_string);
@@ -399,11 +356,6 @@ void Free_Model(model *mod)
   Free(mod->qmat_buff);
   Free_Eigen(mod->eigen);
 
-  For(i,mod->n_catg)
-    {
-      For(j,mod->ns) Free(mod->Pij_rr[i][j]);
-      Free(mod->Pij_rr[i]);
-    }
   Free(mod->Pij_rr);
 
   if(mod->n_rr_branch) 
