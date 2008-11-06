@@ -379,11 +379,12 @@ phydbl Lk_Core(edge *b, arbre *tree)
   phydbl sum;
   int ambiguity_check,state;
   int catg,ns,k,l,site;
-  int dim1,dim2;
+  int dim1,dim2,dim3;
 
 
   dim1 = tree->mod->n_catg * tree->mod->ns;
   dim2 = tree->mod->ns;
+  dim3 = tree->mod->ns * tree->mod->ns;
 
   log_site_lk = site_lk = site_lk_cat = .0;
   ambiguity_check = state = -1;
@@ -420,7 +421,7 @@ phydbl Lk_Core(edge *b, arbre *tree)
 	      For(l,ns)
 		{
 		  sum +=
-		    b->Pij_rr[catg][state][l] *
+		    b->Pij_rr[catg*dim3+state*dim2+l] *
 		    (phydbl)b->p_lk_left[site*dim1+catg*dim2+l];
 		}
 	      site_lk_cat += sum * tree->mod->pi[state];
@@ -435,7 +436,7 @@ phydbl Lk_Core(edge *b, arbre *tree)
 		      For(l,ns)
 			{
 			  sum +=
-			    b->Pij_rr[catg][k][l] *
+			    b->Pij_rr[catg*dim3+k*dim2+l] *
 			    (phydbl)b->p_lk_left[site*dim1+catg*dim2+l];
 			}
 		      site_lk_cat +=
@@ -456,7 +457,7 @@ phydbl Lk_Core(edge *b, arbre *tree)
 		  For(l,ns)
 		    {
 		      sum +=
-			b->Pij_rr[catg][k][l] *
+			b->Pij_rr[catg*dim3+k*dim2+l] *
 			(phydbl)b->p_lk_left[site*dim1+catg*dim2+l];
 		    }
 		  site_lk_cat +=
@@ -660,9 +661,10 @@ phydbl Lk_Given_Two_Seq(allseq *data, int numseq1, int numseq2, phydbl dist, mod
 /*   plkflt **p_lk_l,**p_lk_r; */
   plkflt *p_lk_l,*p_lk_r;
   phydbl len;
-  int dim1;
+  int dim1,dim2;
 
   dim1 = mod->ns;
+  dim2 = mod->ns * mod->ns;
 
   DiscreteGamma(mod->gamma_r_proba, mod->gamma_rr, mod->alpha,
 		mod->alpha,mod->n_catg,mod->gamma_median);
@@ -674,16 +676,6 @@ phydbl Lk_Given_Two_Seq(allseq *data, int numseq1, int numseq2, phydbl dist, mod
   p_lk_l = (plkflt *)mCalloc(data->c_seq[0]->len * mod->ns,sizeof(plkflt));
   p_lk_r = (plkflt *)mCalloc(data->c_seq[0]->len * mod->ns,sizeof(plkflt));
 
-
-/*   p_lk_l = (plkflt **)mCalloc(data->c_seq[0]->len,sizeof(plkflt *)); */
-/*   p_lk_r = (plkflt **)mCalloc(data->c_seq[0]->len,sizeof(plkflt *)); */
-
-/*   For(i,data->c_seq[0]->len) */
-/*     { */
-/*       p_lk_l[i] = (plkflt *)mCalloc(mod->ns,sizeof(plkflt)); */
-/*       p_lk_r[i] = (plkflt *)mCalloc(mod->ns,sizeof(plkflt)); */
-/*     } */
-
   if(dist < BL_MIN) dist = BL_START;
   else if(dist > BL_MAX) dist = BL_START;
 
@@ -692,7 +684,7 @@ phydbl Lk_Given_Two_Seq(allseq *data, int numseq1, int numseq2, phydbl dist, mod
       len = dist*mod->gamma_rr[i];
       if(len < BL_MIN) len = BL_MIN;
       else if(len > BL_MAX) len = BL_MAX;
-      PMat(len,mod,&(mod->Pij_rr[i]));
+      PMat(len,mod,dim2*i,mod->Pij_rr);
     }
 
   if(mod->datatype == NT)
@@ -731,7 +723,7 @@ phydbl Lk_Given_Two_Seq(allseq *data, int numseq1, int numseq2, phydbl dist, mod
 		    mod->gamma_r_proba[j] *
 		    mod->pi[k] *
 		    p_lk_l[i*dim1+k] *
-		    mod->Pij_rr[j][k][l] *
+		    mod->Pij_rr[j*dim2+k*dim1+l] *
 		    p_lk_r[i*dim1+l];
 		}
 	    }
@@ -747,7 +739,7 @@ phydbl Lk_Given_Two_Seq(allseq *data, int numseq1, int numseq2, phydbl dist, mod
 			    mod->gamma_r_proba[j] *
 			    mod->pi[k] *
 			    p_lk_l[i*dim1+k] *
-			    mod->Pij_rr[j][k][l] *
+			    mod->Pij_rr[j*dim2+k*dim1+l] *
 			    p_lk_r[i*dim1+l];
 			}
 		    }
@@ -808,9 +800,8 @@ void Update_P_Lk(arbre *tree, edge *b, node *d)
 */
   node *n_v1, *n_v2;
   phydbl p1_lk1,p2_lk2;
-/*   plkflt ***p_lk,***p_lk_v1,***p_lk_v2; */
   plkflt *p_lk,*p_lk_v1,*p_lk_v2;
-  double ***Pij1,***Pij2;
+  double *Pij1,*Pij2;
   plkflt max_p_lk;
   plkflt *sum_scale, *sum_scale_v1, *sum_scale_v2;
   plkflt scale_v1, scale_v2;
@@ -820,11 +811,12 @@ void Update_P_Lk(arbre *tree, edge *b, node *d)
   int n_patterns;
   int ambiguity_check_v1,ambiguity_check_v2;
   int state_v1,state_v2;
-  int dim1, dim2;
+  int dim1, dim2, dim3;
 
 
   dim1 = tree->mod->n_catg * tree->mod->ns;
   dim2 = tree->mod->ns;
+  dim3 = tree->mod->ns * tree->mod->ns;
 
   state_v1 = state_v2 = -1;
   ambiguity_check_v1 = ambiguity_check_v2 = -1;
@@ -934,13 +926,13 @@ void Update_P_Lk(arbre *tree, edge *b, node *d)
 		{
 		  if(!ambiguity_check_v1)
 		    {
-		      p1_lk1 = Pij1[catg][i][state_v1];
+		      p1_lk1 = Pij1[catg*dim3+i*dim2+state_v1];
 		    }
 		  else
 		    {
 		      For(j,tree->mod->ns)
 			{
-			  p1_lk1 += Pij1[catg][i][j] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+j];
+			  p1_lk1 += Pij1[catg*dim3+i*dim2+j] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+j];
 			}
 		    }
 		}
@@ -948,7 +940,7 @@ void Update_P_Lk(arbre *tree, edge *b, node *d)
 		{
 		  For(j,tree->mod->ns)
 		    {
-		      p1_lk1 += Pij1[catg][i][j] * (phydbl)p_lk_v1[site*dim1+catg*dim2+j];
+		      p1_lk1 += Pij1[catg*dim3+i*dim2+j] * (phydbl)p_lk_v1[site*dim1+catg*dim2+j];
 		    }
 		}
 	      
@@ -958,13 +950,13 @@ void Update_P_Lk(arbre *tree, edge *b, node *d)
 		{
 		  if(!ambiguity_check_v2)
 		    {
-		      p2_lk2 = Pij2[catg][i][state_v2];
+		      p2_lk2 = Pij2[catg*dim3+i*dim2+state_v2];
 		    }
 		  else
 		    {
 		      For(j,tree->mod->ns)
 			{
-			  p2_lk2 += Pij2[catg][i][j] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+j];
+			  p2_lk2 += Pij2[catg*dim3+i*dim2+j] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+j];
 			}
 		    }
 		}
@@ -972,7 +964,7 @@ void Update_P_Lk(arbre *tree, edge *b, node *d)
 		{
 		  For(j,tree->mod->ns)
 		    {
-		      p2_lk2 += Pij2[catg][i][j] * (phydbl)p_lk_v2[site*dim1+catg*dim2+j];
+		      p2_lk2 += Pij2[catg*dim3+i*dim2+j] * (phydbl)p_lk_v2[site*dim1+catg*dim2+j];
 		    }
 		}
 	      
@@ -1136,7 +1128,7 @@ void Update_PMat_At_Given_Edge(edge *b_fcus, arbre *tree)
 	  if(len < BL_MIN)      len = BL_MIN;
 	  else if(len > BL_MAX) len = BL_MAX;
 	}
-      PMat(len,tree->mod,&b_fcus->Pij_rr[i]);
+      PMat(len,tree->mod,tree->mod->ns*tree->mod->ns*i,b_fcus->Pij_rr);
     }
 }
 
@@ -1254,11 +1246,11 @@ phydbl Lk_Dist(phydbl *F, phydbl dist, model *mod)
 /* 	} */
 /*     } */
 
-  PMat_Gamma(dist,mod,&(mod->Pij_rr[0]));
+  PMat_Gamma(dist,mod,0,mod->Pij_rr);
 
   lnL = .0;
   For(i,mod->ns) For(j,mod->ns)
-    lnL += F[mod->ns*i+j] * log(mod->pi[i] * (phydbl)(mod->Pij_rr[0][i][j]));
+    lnL += F[mod->ns*i+j] * log(mod->pi[i] * (phydbl)(mod->Pij_rr[mod->ns*i+j]));
  
   return lnL;
 }

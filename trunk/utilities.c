@@ -1428,19 +1428,13 @@ void Make_Edge_Pars(edge *b, arbre *tree)
 
 void Make_Edge_Lk(edge *b, arbre *tree)
 {
-  int i,j;
 
   b->l_old = b->l;
 
   b->div_post_pred_left = (short int *)mCalloc((tree->mod->datatype == NT)?(4):(20),sizeof(short int));
   b->div_post_pred_rght = (short int *)mCalloc((tree->mod->datatype == NT)?(4):(20),sizeof(short int));
 
-  b->Pij_rr   = (double ***)mCalloc(tree->mod->n_catg,sizeof(double **));
-  For(i,tree->mod->n_catg)
-    {
-      b->Pij_rr[i] = (double **)mCalloc(tree->mod->ns,sizeof(double *));
-      For(j,tree->mod->ns) b->Pij_rr[i][j] = (double *)mCalloc(tree->mod->ns,sizeof(double ));
-    }
+  b->Pij_rr   = (double *)mCalloc(tree->mod->n_catg*tree->mod->ns*tree->mod->ns,sizeof(double));
   
   b->scale_left = b->scale_rght = 0;
   
@@ -5397,21 +5391,14 @@ model *Make_Model_Basic()
 
 void Make_Model_Complete(model *mod)
 {
-  int i,j;
 
   mod->pi             = (phydbl *)mCalloc(mod->ns,sizeof(phydbl));
   mod->gamma_r_proba  = (phydbl *)mCalloc(mod->n_catg,sizeof(phydbl));
   mod->gamma_rr       = (phydbl *)mCalloc(mod->n_catg,sizeof(phydbl));
   mod->pi_unscaled    = (phydbl *)mCalloc(mod->ns,sizeof(phydbl));
 
-  mod->Pij_rr   = (double***)mCalloc(mod->n_catg,sizeof(double **));
+  mod->Pij_rr   = (double *)mCalloc(mod->n_catg*mod->ns*mod->ns,sizeof(double));
   
-  For(i,mod->n_catg)
-    {
-      mod->Pij_rr[i] = (double **)mCalloc(mod->ns,sizeof(double *));
-      For(j,mod->ns) mod->Pij_rr[i][j] = (double *)mCalloc(mod->ns,sizeof(double));
-    }
-
   mod->qmat      = (double *)mCalloc(mod->ns*mod->ns,sizeof(double));
   mod->qmat_buff = (double *)mCalloc(mod->ns*mod->ns,sizeof(double));
   mod->eigen     = (eigen *)Make_Eigen_Struct(mod);
@@ -7426,10 +7413,11 @@ void Fast_Br_Len(edge *b, arbre *tree, int approx)
   int i, j, k, site;
   phydbl *pi;
   phydbl v_rght;
-  int dim1,dim2;
+  int dim1,dim2,dim3;
 
   dim1 = tree->mod->ns * tree->mod->n_catg;
   dim2 = tree->mod->ns ;
+  dim3 = tree->mod->ns * tree->mod->ns;
 
   core  = tree->triplet_struct->core;
   prob  = tree->triplet_struct->p_one_site;
@@ -7441,7 +7429,7 @@ void Fast_Br_Len(edge *b, arbre *tree, int approx)
   Update_PMat_At_Given_Edge(b,tree);
 
   For(i,tree->mod->ns) For(j,tree->mod->ns) For(k,tree->mod->n_catg)
-    core[k][0][i][j] = b->Pij_rr[k][i][j]*tree->mod->pi[i]*tree->mod->gamma_r_proba[k];
+    core[k][0][i][j] = b->Pij_rr[k*dim3+i*dim2+j]*tree->mod->pi[i]*tree->mod->gamma_r_proba[k];
 
   For(i,tree->mod->ns) For(j,tree->mod->ns) F[tree->mod->ns*i+j] = .0;
 
@@ -9240,8 +9228,12 @@ int Pick_State(int n, phydbl *prob)
 void Evolve_Recur(node *a, node *d, edge *b, int a_state, int r_class, int site_num, allseq *gen_data, model *mod, arbre *tree)
 {
   int d_state;
+  int dim1,dim2;
 
-  d_state = Pick_State(mod->ns,b->Pij_rr[r_class][a_state]);
+  dim1 = tree->mod->ns * tree->mod->ns;
+  dim2 = tree->mod->ns;
+
+  d_state = Pick_State(mod->ns,b->Pij_rr+r_class*dim1+a_state*dim2);
   
 /*   PhyML_Printf("\n>> %c (%d,%d)",Reciproc_Assign_State(d_state,mod->datatype),d_state,(int)d_state/mod->m4mod->n_o); */
 

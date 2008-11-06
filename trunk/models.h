@@ -13,10 +13,13 @@ the GNU public licence.  See http://www.opensource.org for details.
 #ifndef MODELS_H
 #define MODELS_H
 
-void  PMat(phydbl l, model *mod, double ***Pij);
-void  PMat_K80(phydbl l,phydbl kappa, double ***Pij);
-void  PMat_TN93(phydbl l, model *mod, double ***Pij);
-void  PMat_Empirical(phydbl l, model *mod, double ***Pij);
+void  PMat(phydbl l, model *mod, int pos, double *Pij);
+void  PMat_K80(phydbl l,phydbl kappa, int pos, double *Pij);
+void  PMat_TN93(phydbl l, model *mod, int pos, double *Pij);
+void  PMat_Empirical(phydbl l, model *mod, int pos, double *Pij);
+void PMat_Zero_Br_Len(model  *mod, int pos, double *Pij);
+void PMat_Gamma(phydbl l, model *mod, int pos, double *Pij);
+
 int GetDaa (phydbl *daa, phydbl *pi, char *file_name);
 int Matinv (double *x, int n, int m, double *space);
 void Init_Model(allseq *data, model *mod);
@@ -25,7 +28,6 @@ void Update_Qmat_HKY(double kappa, double *pi, double *qmat);
 void Update_Qmat_Generic(double *rr, double *pi, int ns, double *qmat);
 void Translate_Custom_Mod_String(model *mod);
 void Set_Model_Parameters(model *mod);
-void PMat_Zero_Br_Len(model  *mod, double ***Pij);
 phydbl GTR_Dist(phydbl *F, phydbl alpha, eigen *eigen_struct);
 phydbl General_Dist(phydbl *F, model *mod, eigen *eigen_struct);
 
@@ -42,6 +44,5 @@ int Init_Qmat_HIVb(double *daa, double *pi); //added by Federic Abascal
 int Init_Qmat_HIVw(double *daa, double *pi); //added by Federico Abascal
 void Switch_From_Mod_To_M4mod(model *mod);
 void Switch_From_M4mod_To_Mod(model *mod);
-void PMat_Gamma(phydbl l, model *mod, double ***Pij);
 
 #endif
