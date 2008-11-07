@@ -94,7 +94,7 @@ the GNU public licence. See http://www.opensource.org for details.
 #define  DIST_MAX            2.00
 #define  AROUND_LK           50.0
 #define  PROP_STEP            1.0
-#define  T_MAX_ALPHABET       100
+#define  T_MAX_ALPHABET        30
 #define  MDBL_MIN   2.225074E-308
 #define  MDBL_MAX   1.797693E+308
 #define  POWELL_ITMAX         200
