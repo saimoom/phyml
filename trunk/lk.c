@@ -556,6 +556,7 @@ matrix *ML_Dist(allseq *data, model *mod)
     (JC69_Dist(data,mod));
 
 /*   Print_Mat(mat); */
+/*   Exit("\n"); */
 
   For(i,mod->n_catg) /* Don't use the discrete gamma distribution */
     {
@@ -1252,6 +1253,9 @@ phydbl Lk_Dist(phydbl *F, phydbl dist, model *mod)
   For(i,mod->ns) For(j,mod->ns)
     lnL += F[mod->ns*i+j] * log(mod->pi[i] * (phydbl)(mod->Pij_rr[mod->ns*i+j]));
  
+/*   printf("\n. dist = %f lnL = %f",dist,lnL); */
+/*   Exit("\n"); */
+
   return lnL;
 }
 

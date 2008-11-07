@@ -1409,19 +1409,8 @@ void Make_Edge_Pars(edge *b, arbre *tree)
   b->ui_l = (unsigned int *)mCalloc(tree->data->crunch_len,sizeof(unsigned int));
   b->ui_r = (unsigned int *)mCalloc(tree->data->crunch_len,sizeof(unsigned int));
 
-
   b->p_pars_l = (int *)mCalloc(tree->data->crunch_len*tree->mod->ns,sizeof(int ));
   b->p_pars_r = (int *)mCalloc(tree->data->crunch_len*tree->mod->ns,sizeof(int ));
-
-
-/*   b->p_pars_l = (int **)mCalloc(tree->data->crunch_len,sizeof(int *)); */
-/*   b->p_pars_r = (int **)mCalloc(tree->data->crunch_len,sizeof(int *)); */
-
-/*   For(site,tree->data->crunch_len) */
-/*     { */
-/*       b->p_pars_l[site] = (int *)mCalloc(tree->mod->ns,sizeof(int)); */
-/*       b->p_pars_r[site] = (int *)mCalloc(tree->mod->ns,sizeof(int)); */
-/*     } */
 }
 
 /*********************************************************/
@@ -1434,7 +1423,7 @@ void Make_Edge_Lk(edge *b, arbre *tree)
   b->div_post_pred_left = (short int *)mCalloc((tree->mod->datatype == NT)?(4):(20),sizeof(short int));
   b->div_post_pred_rght = (short int *)mCalloc((tree->mod->datatype == NT)?(4):(20),sizeof(short int));
 
-  b->Pij_rr   = (double *)mCalloc(tree->mod->n_catg*tree->mod->ns*tree->mod->ns,sizeof(double));
+  b->Pij_rr   = (phydbl *)mCalloc(tree->mod->n_catg*tree->mod->ns*tree->mod->ns,sizeof(phydbl));
   
   b->scale_left = b->scale_rght = 0;
   
@@ -1451,53 +1440,24 @@ void Make_Edge_Lk(edge *b, arbre *tree)
   
   if((!b->left->tax) || (tree->mod->s_opt->greedy))
     {
-      /**********/
       b->p_lk_left = (plkflt *)mCalloc(tree->data->crunch_len*tree->mod->n_catg*tree->mod->ns,sizeof(plkflt));
-
-/*       b->p_lk_left = (plkflt ***)mCalloc(tree->data->crunch_len,sizeof(plkflt **)); */
-/*       For(j,tree->data->crunch_len) */
-/* 	{ */
-/* 	  b->p_lk_left[j] = (plkflt **)mCalloc(tree->mod->n_catg,sizeof(plkflt *));	   */
-/* 	  For(k,tree->mod->n_catg) b->p_lk_left[j][k] = (plkflt *)mCalloc(tree->mod->ns,sizeof(plkflt )); */
-/* 	} */
-      /**********/
-
       b->p_lk_tip_l = NULL;
     }
   else if(b->left->tax)
     {
-      b->p_lk_left   = NULL;
-      
+      b->p_lk_left   = NULL;      
       b->p_lk_tip_l  = (short int *)mCalloc(tree->data->crunch_len*tree->mod->ns,sizeof(short int ));
-
-/*       b->p_lk_tip_l  = (short int **)mCalloc(tree->data->crunch_len,sizeof(short int *)); */
-/*       For(j,tree->data->crunch_len) b->p_lk_tip_l[j] = (short int *)mCalloc(tree->mod->ns,sizeof(short int)); */
-    }
-  
+    }  
   
   if((!b->rght->tax) || (tree->mod->s_opt->greedy))
     {
-      /**********/
       b->p_lk_rght = (plkflt *)mCalloc(tree->data->crunch_len*tree->mod->n_catg*tree->mod->ns,sizeof(plkflt));
-
-/*       b->p_lk_rght = (plkflt ***)mCalloc(tree->data->crunch_len,sizeof(plkflt **));       */
-/*       For(j,tree->data->crunch_len) */
-/* 	{ */
-/* 	  b->p_lk_rght[j] = (plkflt **)mCalloc(tree->mod->n_catg,sizeof(plkflt *)); */
-/* 	  For(k,tree->mod->n_catg) b->p_lk_rght[j][k] = (plkflt *)mCalloc(tree->mod->ns,sizeof(plkflt )); */
-/* 	} */
-      /**********/
-
       b->p_lk_tip_r = NULL;
     }
   else if(b->rght->tax)
     {
-      b->p_lk_rght = NULL;
-      
+      b->p_lk_rght = NULL;      
       b->p_lk_tip_r  = (short int *)mCalloc(tree->data->crunch_len*tree->mod->ns,sizeof(short int));
-
-/*       b->p_lk_tip_r  = (short int **)mCalloc(tree->data->crunch_len,sizeof(short int *)); */
-/*       For(j,tree->data->crunch_len) b->p_lk_tip_r[j] = (short int *)mCalloc(tree->mod->ns,sizeof(short int)); */
     }
 }
 
@@ -1583,6 +1543,7 @@ seq **Get_Seq(option *io,  int rw)
 
   if(io->interleaved) data = Read_Seq_Interleaved(io->fp_in_seq,&(io->mod->n_otu));
   else                data = Read_Seq_Sequential(io->fp_in_seq,&(io->mod->n_otu));
+
 
   if(data)
     {
@@ -1727,7 +1688,8 @@ seq **Read_Seq_Interleaved(FILE *in, int *n_otu)
       if(fscanf(in,"%s",line) == EOF)
 	{
 	  Free(format);
-	  Free(line); return NULL;
+	  Free(line); 
+	  return NULL;
 	}
       else
 	{
@@ -1747,13 +1709,14 @@ seq **Read_Seq_Interleaved(FILE *in, int *n_otu)
 
   while(((c=fgetc(in))!='\n') && (c != ' ') && (c != '\r') && (c != '\t'));
 
+
   end = 0;
   For(i,*n_otu)
     {
       data[i] = (seq *)mCalloc(1,sizeof(seq));
       data[i]->len = 0;
       data[i]->name = (char *)mCalloc(T_MAX_NAME,sizeof(char));
-      data[i]->state = (char *)mCalloc(T_MAX_SEQ,sizeof(char));
+      data[i]->state = (char *)mCalloc(len+100,sizeof(char));
       data[i]->is_ambigu = NULL;
       sprintf(format, "%%%ds", T_MAX_NAME);
 /*       sprintf(format, "%%%ds", 10); */
@@ -1769,7 +1732,7 @@ seq **Read_Seq_Interleaved(FILE *in, int *n_otu)
 	  break;
 	}
     }
-
+  
   if(data[0]->len == len) end = 1;
 
   if(!end)
@@ -1947,9 +1910,9 @@ allseq *Compact_Seq(seq **data, option *io)
     }
   
   compress = io->compress_seq;
-/*   compress = 0; */
   n_ambigu = 0;
   is_ambigu = 0;
+
 
   Fors(site,data[0]->len,io->mod->stepsize)
     {
@@ -1958,16 +1921,12 @@ allseq *Compact_Seq(seq **data, option *io)
 	  is_ambigu = 0;
 	  For(j,n_otu)
 	    {
-	      if(Is_Ambigu(data[j]->state+site,io->mod->datatype,io->mod->stepsize))
-		{
-		  break;
-		}
+	      if(Is_Ambigu(data[j]->state+site,io->mod->datatype,io->mod->stepsize)) break;
 	    }
 	  if(j != n_otu)
 	    {
 	      is_ambigu = 1;
-	      n_ambigu++
-;
+	      n_ambigu++;
 	    }
 	}
 
@@ -2214,10 +2173,7 @@ void Traverse_Prefix_Tree(int site, int seqnum, int *patt_num, int *n_patt, seq 
 					       io->mod->datatype,
 					       io->mod->stepsize);
 
-      if(!n->next[next_state])
-	{
-	  n->next[next_state] = Create_Pnode(T_MAX_ALPHABET);
-	}
+      if(!n->next[next_state]) n->next[next_state] = Create_Pnode(T_MAX_ALPHABET);
       Traverse_Prefix_Tree(site,seqnum+1,patt_num,n_patt,data,io,n->next[next_state]);
     }
 }
@@ -5640,7 +5596,7 @@ void Set_Defaults_Optimiz(optimiz *s_opt)
   s_opt->brent_it_max         = 500;
   s_opt->steph_spr            = 1;
   s_opt->user_state_freq      = 0;
-  s_opt->min_diff_lk_local    = 1.E-03;
+  s_opt->min_diff_lk_local    = 1.E-04;
   s_opt->min_diff_lk_global   = 1.E-03;
   s_opt->min_diff_lk_move     = 1.E-02;
   s_opt->p_moves_to_examine   = 0.15;
@@ -8552,21 +8508,18 @@ void Check_Memory_Amount(arbre *tree)
 
   /* Pmat */
   nbytes += (2*mod->n_otu-3) * mod->n_catg * mod->ns * mod->ns * sizeof(phydbl);
-  nbytes += (2*mod->n_otu-3) * mod->n_catg * mod->ns * sizeof(phydbl *);
-  nbytes += (2*mod->n_otu-3) * mod->n_catg * sizeof(phydbl **);
-  nbytes += (2*mod->n_otu-3) * mod->n_catg * sizeof(phydbl ***);
   
   /* Partial Lk */
-  nbytes += (2*mod->n_otu-3) * 2 * tree->n_pattern * mod->n_catg * mod->ns * sizeof(phydbl);
-  nbytes += (2*mod->n_otu-3) * 2 * tree->n_pattern * mod->n_catg * sizeof(phydbl *);
-  nbytes += (2*mod->n_otu-3) * 2 * tree->n_pattern * sizeof(phydbl **);
-  nbytes += (2*mod->n_otu-3) * 2 * tree->n_pattern * sizeof(phydbl ***);
-  nbytes += (2*mod->n_otu-3) * 2 * tree->n_pattern * sizeof(phydbl);
+  nbytes += ((2*mod->n_otu-3) * 2 - tree->n_otu) * tree->n_pattern * mod->n_catg * mod->ns * sizeof(phydbl);
+
+  /* Scaling factors */
+  nbytes += ((2*mod->n_otu-3) * 2 - tree->n_otu) * tree->n_pattern * sizeof(phydbl);
 
   /* Partial Pars */
+  nbytes += (2*mod->n_otu-3) * 2 * tree->n_pattern * mod->ns * sizeof(short int);
   nbytes += (2*mod->n_otu-3) * 2 * tree->n_pattern * mod->ns * sizeof(int);
-  nbytes += (2*mod->n_otu-3) * 2 * tree->n_pattern * sizeof(int *);
-  nbytes += (2*mod->n_otu-3) * 2 * tree->n_pattern * sizeof(int );
+  nbytes += (2*mod->n_otu-3) * 2 * tree->n_pattern * sizeof(int);
+  nbytes += (2*mod->n_otu-3) * 2 * tree->n_pattern * sizeof(int);
 
   if(((phydbl)nbytes/(1.E+06)) > 256.)
     {
@@ -9829,6 +9782,9 @@ arbre *Dist_And_BioNJ(allseq *alldata, model *mod)
   mat = ML_Dist(alldata,mod);
   Fill_Missing_Dist(mat);
   
+/*   Print_Mat(mat); */
+/*   Exit("\n"); */
+
   PhyML_Printf("\n. Building BioNJ tree...\n");
 
   mat->tree = Make_Tree_From_Scratch(alldata->n_otu,alldata);

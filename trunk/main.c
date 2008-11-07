@@ -91,17 +91,21 @@ int main(int argc, char **argv)
   
   For(num_data_set,io->n_data_sets)
     {
+
       n_otu = 0;
       best_lnL = UNLIKELY;
       data = Get_Seq(io,0);
 
+      
       if(data)
 	{
 	  if(io->n_data_sets > 1) PhyML_Printf("\n. Data set [#%d]\n",num_data_set+1);
 	  PhyML_Printf("\n. Compressing sequences...\n");
 	  alldata = Compact_Seq(data,io);
+
 	  Free_Seq(data,alldata->n_otu);
 	  Check_Ambiguities(alldata,io->mod->datatype,io->mod->stepsize);
+
 
 	  for(num_tree=(io->n_trees == 1)?(0):(num_data_set);num_tree < io->n_trees;num_tree++)
 	    {
@@ -113,6 +117,7 @@ int main(int argc, char **argv)
 		    PhyML_Printf("\n. [Random start %3d/%3d]\n",num_rand_tree+1,io->mod->s_opt->n_rand_starts);
 
 		  Init_Model(alldata,mod);
+
 
 		  /* A BioNJ tree is built here */
 		  if(!io->in_tree) tree = Dist_And_BioNJ(alldata,mod);
@@ -136,7 +141,7 @@ int main(int argc, char **argv)
 
 		  if(tree->mod->s_opt->opt_topo)
 		    {
-		      if(tree->mod->s_opt->topo_search ==      NNI_MOVE) Simu_Loop(tree);
+		      if(tree->mod->s_opt->topo_search      == NNI_MOVE) Simu_Loop(tree);
 		      else if(tree->mod->s_opt->topo_search == SPR_MOVE) Speed_Spr_Loop(tree);
 		      else                                               Best_Of_NNI_And_SPR(tree);
 		    }

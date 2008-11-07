@@ -3511,19 +3511,10 @@ void Speed_Spr_Loop(arbre *tree)
 {
   phydbl lk_old;
 
-  tree->best_pars = 1E+8;
-  tree->mod->s_opt->spr_lnL  = 0;
-  tree->mod->s_opt->spr_pars = 0;
-  
-/*   tree->mod->s_opt->spr_pars = 1; */
-/*   do Speed_Spr(tree,1); while(tree->n_improvements); */
-  tree->mod->s_opt->spr_pars = 0;
-
-/*   tree->mod->s_opt->max_depth_path = 2*tree->n_otu-3; */
-  tree->mod->s_opt->max_depth_path = 15;
-  tree->mod->s_opt->min_depth_path = 0;
-  tree->mod->s_opt->deepest_path   = tree->mod->s_opt->max_depth_path;
-  tree->mod->s_opt->quickdirty = 0;
+  tree->best_pars                  = 1E+8;
+  tree->mod->s_opt->spr_lnL        = 0;
+  tree->mod->s_opt->spr_pars       = 0;
+  tree->mod->s_opt->quickdirty     = 0;
 
   tree->both_sides = 0;
   Lk(tree);
@@ -3531,6 +3522,7 @@ void Speed_Spr_Loop(arbre *tree)
 
   /*****************************/
   lk_old = UNLIKELY;
+  tree->mod->s_opt->max_depth_path = 2*tree->n_otu-3;
   tree->mod->s_opt->spr_lnL    = 0;
   printf("\n\n. -- LOOP 0 --");
   do
@@ -3545,7 +3537,8 @@ void Speed_Spr_Loop(arbre *tree)
 
   /*****************************/
   lk_old = UNLIKELY;
-  tree->mod->s_opt->spr_lnL    = 1;
+  tree->mod->s_opt->max_depth_path = 20;
+  tree->mod->s_opt->spr_lnL        = 1;
   printf("\n\n. -- LOOP 1 --");
   do
     {
