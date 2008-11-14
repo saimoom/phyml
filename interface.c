@@ -64,38 +64,14 @@ void Launch_Interface(option *io)
     }while(!io->ready_to_go);
 
 
-  if(io->print_site_lnl)
+  if(io->in_tree == 2)
     {
-      strcpy(io->out_lk_file,io->in_seq_file);
-      strcat(io->out_lk_file, "_phyml_lk.txt");
-      io->fp_out_lk = Openfile(io->out_lk_file,1);
+      PhyML_Printf("\n. Enter the name of the input tree file > ");
+      Getstring_Stdin(io->in_tree_file);
+      io->fp_in_tree = Openfile(io->in_tree_file,0);
     }
-  
-  if(io->print_trace)
-    {
-      strcpy(io->out_trace_file,io->in_seq_file);
-      strcat(io->out_trace_file,"_phyml_trace.txt");
-      io->fp_out_trace = Openfile(io->out_trace_file,1);
-    }
-  
-  if(io->mod->s_opt->random_input_tree)
-    {
-      strcpy(io->out_trees_file,io->in_seq_file);
-      strcat(io->out_trees_file,"_phyml_trees.txt");
-      io->fp_out_trees = Openfile(io->out_trees_file,1);
-    }
-  
-  if((io->print_boot_trees) && (io->mod->bootstrap > 0))
-    {
-      strcpy(io->out_boot_tree_file,io->in_seq_file);
-      strcat(io->out_boot_tree_file,"_phyml_boot_trees.txt");
-      io->fp_out_boot_tree = Openfile(io->out_boot_tree_file,1);
-      
-      strcpy(io->out_boot_stats_file,io->in_seq_file);
-      strcat(io->out_boot_stats_file,"_phyml_boot_stats.txt");
-      io->fp_out_boot_stats = Openfile(io->out_boot_stats_file,1);
-    }
-      
+
+
   if((io->mod->s_opt->n_rand_starts)           && 
      (io->mod->s_opt->topo_search == NNI_MOVE) && 
      (io->mod->s_opt->random_input_tree))
@@ -144,7 +120,60 @@ void Launch_Interface(option *io)
       io->mod->m4mod->use_cov_free       = 1;
     }
   
-  io->fp_out_tree = Openfile(io->out_tree_file,1);
+
+  if(io->print_site_lnl)
+    {
+      strcpy(io->out_lk_file,io->in_seq_file);
+      strcat(io->out_lk_file, "_phyml_lk");
+      if(io->append_run_ID) { strcat(io->out_lk_file,"_"); strcat(io->out_lk_file,io->run_id_string); }
+      strcat(io->out_lk_file, ".txt");
+      io->fp_out_lk = Openfile(io->out_lk_file,1);
+    }
+  
+  if(io->print_trace)
+    {
+      strcpy(io->out_trace_file,io->in_seq_file);
+      strcat(io->out_trace_file,"_phyml_trace");
+      if(io->append_run_ID) { strcat(io->out_trace_file,"_"); strcat(io->out_trace_file,io->run_id_string); }
+      strcat(io->out_trace_file,".txt");
+      io->fp_out_trace = Openfile(io->out_trace_file,1);
+    }
+  
+  if(io->mod->s_opt->random_input_tree)
+    {
+      strcpy(io->out_trees_file,io->in_seq_file);
+      strcat(io->out_trees_file,"_phyml_trees");
+      if(io->append_run_ID) { strcat(io->out_trees_file,"_"); strcat(io->out_trees_file,io->run_id_string); }
+      strcat(io->out_trees_file,".txt");
+      io->fp_out_trees = Openfile(io->out_trees_file,1);
+    }
+
+  if((io->print_boot_trees) && (io->mod->bootstrap > 0))
+    {
+      strcpy(io->out_boot_tree_file,io->in_seq_file);
+      strcat(io->out_boot_tree_file,"_phyml_boot_trees");
+      if(io->append_run_ID) { strcat(io->out_boot_tree_file,"_"); strcat(io->out_boot_tree_file,io->run_id_string); }
+      strcat(io->out_boot_tree_file,".txt");
+      io->fp_out_boot_tree = Openfile(io->out_boot_tree_file,1);
+      
+      strcpy(io->out_boot_stats_file,io->in_seq_file);
+      strcat(io->out_boot_stats_file,"_phyml_boot_stats");
+      if(io->append_run_ID) { strcat(io->out_boot_stats_file,"_"); strcat(io->out_boot_stats_file,io->run_id_string); }
+      strcat(io->out_boot_stats_file,".txt");
+      io->fp_out_boot_stats = Openfile(io->out_boot_stats_file,1);
+    }
+  
+  if(io->append_run_ID)
+    {
+      strcat(io->out_tree_file,"_");
+      strcat(io->out_stats_file,"_");
+      strcat(io->out_tree_file,io->run_id_string);
+      strcat(io->out_stats_file,io->run_id_string);
+      strcat(io->out_tree_file,".txt");
+      strcat(io->out_stats_file,".txt");
+    }
+  
+  io->fp_out_tree  = Openfile(io->out_tree_file,1);
   io->fp_out_stats = Openfile(io->out_stats_file,1);
 }
 
@@ -376,6 +405,12 @@ void Launch_Interface_Data_Type(option *io)
 	 "....................... Analyze multiple data sets "
 	 " %-15s \n",buff);
 
+  if(!io->append_run_ID) strcpy(s,"none");
+  else strcpy(s,io->run_id_string);
+  PhyML_Printf("                [R] "
+	 "........................................... Run ID "
+	 " %-15s \n",s);
+
 
   PhyML_Printf("\n\n. Are these settings correct ? "
 	 "(type '+', '-', 'Y' or other letter for one to change)  ");
@@ -394,6 +429,15 @@ void Launch_Interface_Data_Type(option *io)
 /* 	io->curr_interface++; */
 /* 	break; */
 /*       } */
+    case 'R' :
+      {
+	io->append_run_ID = (io->append_run_ID)?(0):(1);
+	PhyML_Printf("\n. Enter a run ID (any string of characters) > ");
+	Getstring_Stdin(io->run_id_string);
+	break;
+      }
+      
+
     case 'M' :
       {
 	char *c;
@@ -1297,6 +1341,9 @@ void Launch_Interface_Model(option *io)
 void Launch_Interface_Topo_Search(option *io)
 {
   char choix;
+  char *s;
+
+  s = (char *)mCalloc(100,sizeof(char));
 
   Clear();
   Print_Banner(stdout);
@@ -1328,14 +1375,18 @@ void Launch_Interface_Topo_Search(option *io)
 	 (io->mod->s_opt->opt_topo)?("yes"):("no"));
 
 
-/*   if(!io->mod->s_opt->random_input_tree) */
-/*     { */
   if(io->mod->s_opt->opt_topo)
     {
+      switch(io->in_tree)
+	{
+	case 0: { strcpy(s,"BioNJ");     break; }
+	case 1: { strcpy(s,"parsimony"); break; }
+	case 2: { strcpy(s,"user tree"); break; }
+	}
+
       PhyML_Printf("                [U] "
-		   ".................. Starting tree (BioNJ/user tree) "
-		   " %-15s \n",
-		   (!io->in_tree)?("BioNJ"):("user tree"));
+		   "........ Starting tree (BioNJ/parsimony/user tree) "
+		   " %-15s \n",s);
     }
   else
     {
@@ -1344,7 +1395,6 @@ void Launch_Interface_Topo_Search(option *io)
 		   " %-15s \n",
 		   (!io->in_tree)?("BioNJ"):("user tree"));
     }
-/*     } */
 
   if(io->mod->s_opt->opt_topo)
     {
@@ -1353,15 +1403,15 @@ void Launch_Interface_Topo_Search(option *io)
       s = (char *)mCalloc(T_MAX_OPTION,sizeof(char));
       if(io->mod->s_opt->topo_search == NNI_MOVE)
 	{
-	  strcpy(s,"NNI moves (default, fast)\0");
+	  strcpy(s,"NNI moves (fast, approximate)\0");
 	}
       else if(io->mod->s_opt->topo_search == SPR_MOVE)
 	{
-	  strcpy(s,"SPR moves (a bit slower than NNI)\0");
+	  strcpy(s,"SPR moves (slow, accurate)\0");
 	}
       else if(io->mod->s_opt->topo_search == BEST_OF_NNI_AND_SPR)
 	{
-	  strcpy(s,"Best of NNI and SPR (extensive tree search) \0");
+	  strcpy(s,"Best of NNI and SPR \0");
 	}
 
       PhyML_Printf("                [S] "
@@ -1400,7 +1450,10 @@ void Launch_Interface_Topo_Search(option *io)
   scanf("%c",&choix);
   if(choix != '\n') getchar(); /* \n */
 
+  Free(s);
+
   Uppercase(&choix);
+
 
   switch(choix)
     {
@@ -1421,14 +1474,8 @@ void Launch_Interface_Topo_Search(option *io)
       }
     case 'U' :
       {
-	if(!io->in_tree)
-	  {
-	    io->in_tree = 1;
-	    PhyML_Printf("\n. Enter the name of the tree file > ");
-	    Getstring_Stdin(io->in_tree_file);
-	    io->fp_in_tree = Openfile(io->in_tree_file,0);
-	  }
-	else io->in_tree = 0;
+	io->in_tree++;
+	if(io->in_tree == 3) io->in_tree = 0;
 	break;
       }
     case 'N' : 

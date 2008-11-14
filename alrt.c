@@ -161,7 +161,6 @@ int Check_NNI_Five_Branches(arbre *tree)
 	  if(tree->mod->s_opt->print)
 	    {
 	      Print_Lk(tree,"[Topology           ]");
-	      PhyML_Printf("\n");
 	    }
 	  return 1;
 	}

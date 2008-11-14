@@ -392,6 +392,7 @@ void Free_Input(option *io)
   Free(io->out_ps_file);
   Free(io->out_trace_file);
   Free(io->nt_or_cd);
+  Free(io->run_id_string);
   Free(io);
 }
 

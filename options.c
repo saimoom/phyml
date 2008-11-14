@@ -54,13 +54,14 @@ void Usage()
   PhyML_Printf("%sNAME\n"
 	 "%s\t- PhyML %s - \n\n"
 	 "%s\t\''A simple, fast, and accurate algorithm to estimate\n"
-	 "%s\tlarge phylogenies by maximum likelihood.\''\n\n"
+	 "%s\tlarge phylogenies by maximum likelihood\''\n\n"
 	 "%s\tStephane Guindon and Olivier Gascuel,\n"
 	 "%s\tSystematic Biology 52(5):696-704, 2003.\n\n"
 	 "%s\tPlease cite this paper if you use this software in your publications.\n",BOLD,FLAT,VERSION,FLAT,FLAT,FLAT,FLAT,FLAT);
   
   PhyML_Printf("%s\nSYNOPSIS:\n\n"
 	 "%s\tphyml %s[command args]\n",BOLD,BOLD,BOLD);
+  PhyML_Printf("%s\n\tAll the options below are optional (except '%s-i%s' if you want to use the command-line interface).\n\n",FLAT,BOLD,FLAT); 
   
   PhyML_Printf("%s\nCommand options:\n%s",BOLD,FLAT);
 
@@ -83,6 +84,10 @@ void Usage()
   PhyML_Printf("%s\t\tnb_data_sets%s is an integer corresponding to the number of data sets to analyse.\n",LINE,FLAT);
 
   PhyML_Printf("\n");
+
+  PhyML_Printf("%s\n\t-p (or --pars)%s\n",BOLD,FLAT);
+  PhyML_Printf("%s\t\tUse a minimum parsimony starting tree. This option is taken into account when the '-u' option\n",FLAT);
+  PhyML_Printf("%s\t\tis absent and when tree topology modifications are to be done.\n",FLAT);
 
   PhyML_Printf("%s\n\t-b (or --bootstrap) %sint%s\n",BOLD,LINE,FLAT);
   PhyML_Printf("\t\t%sint%s >  0 : %sint%s is the number of bootstrap replicates.\n",LINE,FLAT,LINE,FLAT);
@@ -213,6 +218,12 @@ void Usage()
   PhyML_Printf("%s\n\t--print_trace%s\n",BOLD,FLAT);
   PhyML_Printf("\t\t%sPrint each phylogeny explored during the tree search process\n",FLAT);
   PhyML_Printf("\t\t%sin file *_phyml_trace.txt.\n",FLAT);
+
+  PhyML_Printf("\n");
+
+  PhyML_Printf("%s\n\t--run_id %sID_string%s\n",BOLD,LINE,FLAT);
+  PhyML_Printf("\t\t%sAppend the string %sID_string%s at the end of each PhyML output file.\n",FLAT,LINE,FLAT);
+  PhyML_Printf("\t\t%sThis option may be useful when running simulations involving PhyML.\n",FLAT);
 
   PhyML_Printf("\n");
 

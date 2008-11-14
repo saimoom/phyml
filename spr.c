@@ -3518,6 +3518,8 @@ void Speed_Spr_Loop(arbre *tree)
   tree->mod->s_opt->spr_pars       = 0;
   tree->mod->s_opt->quickdirty     = 0;
 
+  PhyML_Printf("\n. Maximizing likelihood (using SPR moves)...\n");
+
   tree->both_sides = 0;
   Lk(tree);
   tree->best_lnL = tree->c_lnL;
@@ -3526,7 +3528,6 @@ void Speed_Spr_Loop(arbre *tree)
   lk_old = UNLIKELY;
   tree->mod->s_opt->max_depth_path = 2*tree->n_otu-3;
   tree->mod->s_opt->spr_lnL    = 0;
-  printf("\n\n. -- LOOP 0 --");
   do
     {
       lk_old = tree->c_lnL;
@@ -3541,7 +3542,6 @@ void Speed_Spr_Loop(arbre *tree)
   lk_old = UNLIKELY;
   tree->mod->s_opt->max_depth_path = 20;
   tree->mod->s_opt->spr_lnL        = 1;
-  printf("\n\n. -- LOOP 1 --");
   do
     {
       lk_old = tree->c_lnL;
@@ -3554,7 +3554,6 @@ void Speed_Spr_Loop(arbre *tree)
 
   /*****************************/
   lk_old = UNLIKELY;
-  printf("\n\n. -- LOOP 2 --");
   do
     {
       lk_old = tree->c_lnL;
@@ -3575,6 +3574,8 @@ void Speed_Spr_Loop(arbre *tree)
       if(!Check_NNI_Five_Branches(tree)) break;
     }while(fabs(lk_old - tree->c_lnL) > tree->mod->s_opt->min_diff_lk_global);
   /*****************************/
+
+  PhyML_Printf("\n");
 
 }
 /*********************************************************/
@@ -3607,8 +3608,6 @@ void Speed_Spr(arbre *tree, int max_cycles)
   do
     {
       ++step;
-
-      if(tree->mod->s_opt->print) PhyML_Printf("\n\n. Starting a SPR cycle... \n");
 
       Init_One_Spr(tree->best_spr);
       old_lnL  = tree->c_lnL;
@@ -3956,7 +3955,7 @@ int Try_One_Spr_Move_Triple(spr *move, arbre *tree)
       if(tree->mod->s_opt->print) 
 	{
 	  Print_Lk_And_Pars(tree);
-	  printf(" [depth=%3d]",move->depth_path); fflush(NULL);
+	  printf(" [depth=%5d]",move->depth_path); fflush(NULL);
 	}
 
       tree->n_improvements++;
@@ -4228,8 +4227,26 @@ spr *Make_One_Spr(arbre *tree)
 
 /*********************************************************/
 
+void Spr_Pars(arbre *tree)
+{
 
+  PhyML_Printf("\n. Minimizing parsimony...\n");
 
+  tree->best_pars = 1E+8;
+  tree->best_lnL  = UNLIKELY;
+  tree->mod->s_opt->spr_lnL = 0;
+  
+  tree->mod->s_opt->spr_pars = 1;
+  do
+    {
+      Speed_Spr(tree,1);
+    }while(tree->n_improvements);  
+  tree->mod->s_opt->spr_pars = 0;
+  
+  PhyML_Printf("\n");
+}
+
+/*********************************************************/
 
 
 

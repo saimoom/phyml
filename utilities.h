@@ -63,9 +63,9 @@ the GNU public licence. See http://www.opensource.org for details.
 #define  H_MCMC_LEXP          0.5
 #define  H_MCMC_NU            1.0
 
-#define  T_MAX_FILE           100
+#define  T_MAX_FILE           500
 #define  T_MAX_LINE       2000000
-#define  T_MAX_NAME          1000
+#define  T_MAX_NAME           500
 #define  T_MAX_SEQ        2000000
 #define  T_MAX_OPTION         100
 #define  T_MAX_LABEL           10
@@ -608,6 +608,9 @@ typedef struct __Option { /* mostly used in 'options.c' */
   int                       m4_model;
   int                      rm_ambigu; /* 0 is the default. 1: columns with ambiguous characters are discarded prior further analysis */
   int                   compress_seq;
+  int                  append_run_ID;
+  char                *run_id_string;
+
 }option;
 
 /*********************************************************/

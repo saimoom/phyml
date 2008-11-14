@@ -68,7 +68,7 @@ int M4_main(int argc, char **argv)
   Make_Model_Complete(io->mod);
   mod = io->mod;
   m4mod = mod->m4mod;
-  if(io->in_tree) Test_Multiple_Data_Set_Format(io);
+  if(io->in_tree == 2) Test_Multiple_Data_Set_Format(io);
   else io->n_trees = 1;
 
 
@@ -124,7 +124,7 @@ int M4_main(int argc, char **argv)
 		      tree->mat = mat;
 
 		    }
-		  else
+		  else if(io->in_tree == 2)
 		    {
 		      if((io->n_trees == 1) || (!num_tree))
 			{
@@ -299,7 +299,7 @@ int M4_main(int argc, char **argv)
 		      if(tree->mod->bootstrap)
 			{
 			  num_rand_tree--;
-			  io->in_tree = 1;
+			  io->in_tree = 2;
 			  io->fp_in_tree = io->fp_out_trees;
 			  bootstrap_this_tree  = 1;
 			  io->fp_in_tree = (FILE *)fopen(io->out_trees_file,"r");
