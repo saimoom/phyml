@@ -80,7 +80,7 @@ int MC_main(int argc, char **argv)
   srand(r_seed); rand();
   Make_Model_Complete(io->mod);
   mod = io->mod;
-  if(io->in_tree) Test_Multiple_Data_Set_Format(io);
+  if(io->in_tree == 2) Test_Multiple_Data_Set_Format(io);
   else io->n_trees = 1;
 
   io->compress_seq = 0;

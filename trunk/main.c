@@ -74,7 +74,7 @@ int main(int argc, char **argv)
   srand(r_seed); rand();
   Make_Model_Complete(io->mod);
   mod = io->mod;
-  if(io->in_tree) Test_Multiple_Data_Set_Format(io);
+  if(io->in_tree == 2) Test_Multiple_Data_Set_Format(io);
   else io->n_trees = 1;
 
 
@@ -118,12 +118,12 @@ int main(int argc, char **argv)
 
 		  Init_Model(alldata,mod);
 
+		  switch(io->in_tree)
+		    {
+		    case 0 : case 1 : { tree = Dist_And_BioNJ(alldata,mod);    break; }
+		    case 2 :          { tree = Read_User_Tree(alldata,mod,io); break; }
+		    }
 
-		  /* A BioNJ tree is built here */
-		  if(!io->in_tree) tree = Dist_And_BioNJ(alldata,mod);
-		  /* A user-given tree is used here instead of BioNJ */
-		  else             tree = Read_User_Tree(alldata,mod,io);
-		  
 		  if(!tree) continue;
 
 		  time(&t_beg);
@@ -138,6 +138,8 @@ int main(int argc, char **argv)
 		  Prepare_Tree_For_Lk(tree);
 
 		  if((!num_data_set) && (!num_tree) && (!num_rand_tree)) Check_Memory_Amount(tree);
+
+		  if(io->in_tree == 1) Spr_Pars(tree);
 
 		  if(tree->mod->s_opt->opt_topo)
 		    {

@@ -81,16 +81,29 @@ void Read_Command_Line(option *io, int argc, char **argv)
       {"min_diff_lk_move",  required_argument,NULL,43},
       {"hybrid",            no_argument,NULL,44},
       {"use_median",        no_argument,NULL,45},
+      {"run_id",            required_argument,NULL,46},
+      {"pars",              no_argument,NULL,47},
       {0,0,0,0}
     };
 
   writemode = 1;
   open_ps_file = 0;
   use_gamma = 0;
-  while((c = getopt_long(argc,argv,"qi:d:m:b:n:t:f:zk:v:c:a:u:ho:s:x:g:l:e",longopts,NULL)) != -1)
+  while((c = getopt_long(argc,argv,"qi:d:m:b:n:t:f:zk:v:c:a:u:ho:s:x:g:l:ep",longopts,NULL)) != -1)
       {
 	switch(c)
 	  {
+	  case 'p' : case 47 : 
+	    {
+	      io->in_tree = 1;
+	      break;
+	    }
+	  case 46 : 
+	    {
+	      io->append_run_ID = 1;
+	      strcpy(io->run_id_string,optarg);
+	      break;
+	    }
 	  case 45 : 
 	    {
 	      io->mod->gamma_median = 1;
@@ -775,13 +788,13 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		  io->fp_in_seq = Openfile(io->in_seq_file,0);
 		  strcpy(io->out_tree_file,optarg);
 #ifdef PHYML
-		  strcat(io->out_tree_file,"_phyml_tree.txt");
+		  strcat(io->out_tree_file,"_phyml_tree");
 #else
 		  strcat(io->out_tree_file,"_mc_tree.txt");
 #endif
 		  strcpy(io->out_stats_file,optarg);
 #ifdef PHYML
-		  strcat(io->out_stats_file,"_phyml_stats.txt");
+		  strcat(io->out_stats_file,"_phyml_stats");
 #else
 		  strcat(io->out_stats_file,"_mc_stats.txt");
 #endif
@@ -874,7 +887,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	      else
 		{
 		  strcpy(io->in_tree_file, optarg);
-		  io->in_tree = 1;
+		  io->in_tree = 2;
 		  io->fp_in_tree = Openfile(io->in_tree_file,0);
 		}
 	      Free(tmp);
@@ -974,37 +987,6 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	  }
       }
 
-    if(io->print_site_lnl)
-      {
-	strcpy(io->out_lk_file,io->in_seq_file);
-	strcat(io->out_lk_file, "_phyml_lk.txt");
-	io->fp_out_lk = Openfile(io->out_lk_file,1);
-      }
-
-    if(io->print_trace)
-      {
-	strcpy(io->out_trace_file,io->in_seq_file);
-	strcat(io->out_trace_file,"_phyml_trace.txt");
-	io->fp_out_trace = Openfile(io->out_trace_file,1);
-      }
-
-    if(io->mod->s_opt->random_input_tree)
-      {
-	strcpy(io->out_trees_file,io->in_seq_file);
-	strcat(io->out_trees_file,"_phyml_trees.txt");
-	io->fp_out_trees = Openfile(io->out_trees_file,1);
-      }
-
-    if((io->print_boot_trees) && (io->mod->bootstrap > 0))
-      {
-	strcpy(io->out_boot_tree_file,io->in_seq_file);
-	strcat(io->out_boot_tree_file,"_phyml_boot_trees.txt");
-	io->fp_out_boot_tree = Openfile(io->out_boot_tree_file,1);
-	
-	strcpy(io->out_boot_stats_file,io->in_seq_file);
-	strcat(io->out_boot_stats_file,"_phyml_boot_stats.txt");
-	io->fp_out_boot_stats = Openfile(io->out_boot_stats_file,1);
-      }
 
 #ifndef PHYML
     if((open_ps_file) || (io->m4_model == YES))
@@ -1065,8 +1047,61 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	io->mod->m4mod->use_cov_free       = 1;
       }
     
-    io->fp_out_tree = Openfile(io->out_tree_file,writemode);
+    if(io->print_site_lnl)
+      {
+	strcpy(io->out_lk_file,io->in_seq_file);
+	strcat(io->out_lk_file, "_phyml_lk");
+	if(io->append_run_ID) { strcat(io->out_lk_file,"_"); strcat(io->out_lk_file,io->run_id_string); }
+	strcat(io->out_lk_file, ".txt");
+	io->fp_out_lk = Openfile(io->out_lk_file,1);
+      }
+
+    if(io->print_trace)
+      {
+	strcpy(io->out_trace_file,io->in_seq_file);
+	strcat(io->out_trace_file,"_phyml_trace");
+	if(io->append_run_ID) { strcat(io->out_trace_file,"_"); strcat(io->out_trace_file,io->run_id_string); }
+	strcat(io->out_trace_file,".txt");
+	io->fp_out_trace = Openfile(io->out_trace_file,1);
+      }
+
+    if(io->mod->s_opt->random_input_tree)
+      {
+	strcpy(io->out_trees_file,io->in_seq_file);
+	strcat(io->out_trees_file,"_phyml_trees");
+	if(io->append_run_ID) { strcat(io->out_trees_file,"_"); strcat(io->out_trees_file,io->run_id_string); }
+	strcat(io->out_trees_file,".txt");
+	io->fp_out_trees = Openfile(io->out_trees_file,1);
+      }
+
+    if((io->print_boot_trees) && (io->mod->bootstrap > 0))
+      {
+	strcpy(io->out_boot_tree_file,io->in_seq_file);
+	strcat(io->out_boot_tree_file,"_phyml_boot_trees");
+	if(io->append_run_ID) { strcat(io->out_boot_tree_file,"_"); strcat(io->out_boot_tree_file,io->run_id_string); }
+	strcat(io->out_boot_tree_file,".txt");
+	io->fp_out_boot_tree = Openfile(io->out_boot_tree_file,1);
+	
+	strcpy(io->out_boot_stats_file,io->in_seq_file);
+	strcat(io->out_boot_stats_file,"_phyml_boot_stats");
+	if(io->append_run_ID) { strcat(io->out_boot_stats_file,"_"); strcat(io->out_boot_stats_file,io->run_id_string); }
+	strcat(io->out_boot_stats_file,".txt");
+	io->fp_out_boot_stats = Openfile(io->out_boot_stats_file,1);
+      }
+
+    if(io->append_run_ID)
+      {
+	strcat(io->out_tree_file,"_");
+	strcat(io->out_stats_file,"_");
+	strcat(io->out_tree_file,io->run_id_string);
+	strcat(io->out_stats_file,io->run_id_string);
+	strcat(io->out_tree_file,".txt");
+	strcat(io->out_stats_file,".txt");
+      }
+
+    io->fp_out_tree  = Openfile(io->out_tree_file,writemode);
     io->fp_out_stats = Openfile(io->out_stats_file,writemode);
+
     return;
 }
 

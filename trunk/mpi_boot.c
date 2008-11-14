@@ -153,7 +153,7 @@ printf ("task %d, receiving random from task %d done\n", Global_myRank, Stat.MPI
       boot_mod = Copy_Model(tree->mod);
       Init_Model(boot_data,boot_mod);
 
-      if(tree->io->in_tree)
+      if(tree->io->in_tree == 2)
 	{
 	  rewind(tree->io->fp_in_tree);
 	  boot_tree = Read_Tree_File(tree->io->fp_in_tree);
@@ -339,9 +339,12 @@ void Print_Fp_Out_Lines_MPI(arbre *tree, option *io, int n_data_set, char *bootS
 	(snprintf(tmp, T_MAX_LINE, ". Model of amino acids substitution : %s\n\n", io->mod->modelname));
     strncat (s, tmp, T_MAX_LINE);
     
-    snprintf(tmp, T_MAX_LINE, ". Initial tree : [%s]\n\n",
-		(!io->in_tree)?("BIONJ"):
-		(strcat(strcat(strcat(s,"user tree ("),io->in_tree_file),")")));
+    switch(io->in_tree)
+      {
+      case 0: { snprintf(tmp, T_MAX_LINE, ". Initial tree : [BioNJ]\n\n");               break; }
+      case 1: { snprintf(tmp, T_MAX_LINE, ". Initial tree : [parsimony]\n\n");           break; }
+      case 2: { snprintf(tmp, T_MAX_LINE, ". Initial tree : [%s]\n\n",io->in_tree_file); break; }
+      }
     strncat (s, tmp, T_MAX_LINE);
 
     strncat (s, "\n", T_MAX_LINE);

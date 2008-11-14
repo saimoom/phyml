@@ -1649,8 +1649,7 @@ seq **Read_Seq_Sequential(FILE *in, int *n_otu)
       sprintf(format, "%%%ds", T_MAX_NAME);
       fscanf(in, format, data[i]->name);
 
-      while(data[i]->len < len)
-	Read_One_Line_Seq(&data,i,in);
+      while(data[i]->len < len) Read_One_Line_Seq(&data,i,in);
 
       if(data[i]->len != len)
 	{
@@ -1659,9 +1658,6 @@ seq **Read_Seq_Sequential(FILE *in, int *n_otu)
 	  Warn_And_Exit("");
 	}
     }
-
-  /*   fgets(line,T_MAX_LINE,in);  */
-  /* inter data sets */
 
   Free(format);
   Free(line);
@@ -4014,7 +4010,7 @@ void Print_Fp_Out(FILE *fp_out, time_t t_beg, time_t t_end, arbre *tree, option 
 
   /* was after Sequence file ; moved here FLT */
   s = (char *)mCalloc(T_MAX_LINE,sizeof(char));
-  if(io->in_tree)
+  if(io->in_tree == 2)
     {
       strcat(strcat(strcat(s,"user tree ("),io->in_tree_file),")");
     }
@@ -4022,7 +4018,10 @@ void Print_Fp_Out(FILE *fp_out, time_t t_beg, time_t t_end, arbre *tree, option 
     {
       if(!io->mod->s_opt->random_input_tree)
 	{
-	  strcat(s,"BioNJ");
+	  if(io->in_tree == 0)
+	    strcat(s,"BioNJ");
+	  if(io->in_tree == 1)
+	    strcat(s,"parsimony");
 	}
       else
 	{
@@ -4042,7 +4041,7 @@ void Print_Fp_Out(FILE *fp_out, time_t t_beg, time_t t_end, arbre *tree, option 
 
   PhyML_Fprintf(fp_out,"\n\n. Log-likelihood: \t\t\t%.5f",tree->c_lnL);/*was last ; moved here FLT*/
 
-  PhyML_Fprintf(fp_out,"\n\n. Parcimony: \t\t\t\t%d",tree->c_pars);
+  PhyML_Fprintf(fp_out,"\n\n. Parsimony: \t\t\t\t%d",tree->c_pars);
 
   PhyML_Fprintf(fp_out,"\n\n. Tree size: \t\t\t\t%.5f",tree->size);
 
@@ -4160,10 +4159,19 @@ void Print_Fp_Out_Lines(FILE *fp_out, time_t t_beg, time_t t_end, arbre *tree, o
 	  (fprintf(fp_out,". Model of nucleotides substitution : %s\n\n",io->mod->modelname)):
 	  (fprintf(fp_out,". Model of amino acids substitution : %s\n\n",io->mod->modelname));
 
-	s = (char *)mCalloc(T_MAX_LINE,sizeof(char));
-	fprintf(fp_out,". Initial tree : [%s]\n\n",
-		(!io->in_tree)?("BIONJ"):
-		(strcat(strcat(strcat(s,"user tree ("),io->in_tree_file),")")));
+	s = (char *)mCalloc(100,sizeof(char));
+
+	switch(io->in_tree)
+	  {
+	  case 0: { strcpy(s,"BioNJ");     break; }
+	  case 1: { strcpy(s,"parsimony"); break; }
+	  case 2: { strcpy(s,"user tree ("); 
+	            strcat(s,io->in_tree_file); 
+	            strcat(s,")");         break; }
+	  }
+
+	fprintf(fp_out,". Initial tree : [%s]\n\n",s);
+
 	Free(s);
 
 	fprintf(fp_out,"\n");
@@ -4988,7 +4996,7 @@ void Bootstrap(arbre *tree)
       boot_mod = Copy_Model(tree->mod);
       Init_Model(boot_data,boot_mod);
 
-      if(tree->io->in_tree)
+      if(tree->io->in_tree == 2)
 	{
 	  rewind(tree->io->fp_in_tree);
 	  boot_tree = Read_Tree_File(tree->io->fp_in_tree);
@@ -5481,6 +5489,7 @@ option *Make_Input()
   io->out_ps_file          = (char *)mCalloc(T_MAX_FILE,sizeof(char));
   io->out_trace_file       = (char *)mCalloc(T_MAX_FILE,sizeof(char));
   io->nt_or_cd             = (char *)mCalloc(T_MAX_FILE,sizeof(char));
+  io->run_id_string        = (char *)mCalloc(T_MAX_OPTION,sizeof(char));
 
   return io;
 }
@@ -5521,6 +5530,7 @@ void Set_Defaults_Input(option* io)
   io->m4_model                   = NO;
   io->rm_ambigu                  = 0;
   io->compress_seq               = 1;
+  io->append_run_ID              = 0;
 }
 
 /*********************************************************/
@@ -8218,7 +8228,10 @@ void Random_NNI(int n_moves, arbre *tree)
 void Print_Settings(option *io)
 {
   int answer;
+  char *s;
 
+  s = (char *)mCalloc(100,sizeof(char));
+  
   PhyML_Printf("\n\n\n");
   PhyML_Printf("\n\n");
 
@@ -8290,6 +8303,15 @@ void Print_Settings(option *io)
 
   PhyML_Printf("\n                . Optimise tree topology : \t\t\t %s", (io->mod->s_opt->opt_topo) ? "yes" : "no");
 
+  switch(io->in_tree)
+    {
+    case 0: { strcpy(s,"BioNJ");     break; }
+    case 1: { strcpy(s,"parsimony"); break; }
+    case 2: { strcpy(s,"user tree ("); 
+	strcat(s,io->in_tree_file); 
+	strcat(s,")");         break; }
+    }
+
   if(io->mod->s_opt->opt_topo)
     {
       if(io->mod->s_opt->topo_search == NNI_MOVE) PhyML_Printf("\n                . Tree topology search : \t\t\t NNIs");
@@ -8297,15 +8319,16 @@ void Print_Settings(option *io)
       else if(io->mod->s_opt->topo_search == BEST_OF_NNI_AND_SPR) PhyML_Printf("\n                . Tree topology search : \t\t\t Best of NNIs and SPRs");
 
 
-      PhyML_Printf("\n                . Random input tree : \t\t\t\t %s", (io->mod->s_opt->random_input_tree) ? "yes" : "no");
-      if(!io->mod->s_opt->random_input_tree)
-	PhyML_Printf("\n                . Starting tree : \t\t\t\t %s", (!io->in_tree) ? "BioNJ" : io->in_tree_file);
-      else
+
+      PhyML_Printf("\n                . Starting tree : \t\t\t\t %s",s);
+
+      PhyML_Printf("\n                . Add random input tree : \t\t\t %s", (io->mod->s_opt->random_input_tree) ? "yes" : "no");
+      if(io->mod->s_opt->random_input_tree)
 	PhyML_Printf("\n                . Number of random starting trees : \t\t %d", io->mod->s_opt->n_rand_starts);	
     }
   else
     if(!io->mod->s_opt->random_input_tree)
-      PhyML_Printf("\n                . Evaluted tree : \t\t\t\t file \"%s\"", (!io->in_tree) ? "BioNJ" : io->in_tree_file);
+      PhyML_Printf("\n                . Evaluted tree : \t\t\t\t file \"%s\"",s);
 
   PhyML_Printf("\n                . Optimise branch lengths : \t\t\t %s", (io->mod->s_opt->opt_bl) ? "yes" : "no");
 
@@ -8318,14 +8341,16 @@ void Print_Settings(option *io)
   
   PhyML_Printf("\n                . Optimise substitution model parameters : \t %s", (answer) ? "yes" : "no");
 
+  PhyML_Printf("\n                . Run ID : \t\t\t\t\t %s", (io->append_run_ID) ? (io->run_id_string) : ("none"));
 
 
   PhyML_Printf("\n\n oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo\n");
 
   PhyML_Printf("\n\n");
   fflush(NULL);
+  
+  Free(s);
 }
-
 
 /*********************************************************/
 
@@ -9782,9 +9807,6 @@ arbre *Dist_And_BioNJ(allseq *alldata, model *mod)
   mat = ML_Dist(alldata,mod);
   Fill_Missing_Dist(mat);
   
-/*   Print_Mat(mat); */
-/*   Exit("\n"); */
-
   PhyML_Printf("\n. Building BioNJ tree...\n");
 
   mat->tree = Make_Tree_From_Scratch(alldata->n_otu,alldata);
@@ -9820,7 +9842,6 @@ arbre *Read_User_Tree(allseq *alldata, model *mod, option *io)
 
   
   PhyML_Printf("\n. Reading tree...\n"); fflush(NULL);
-  
   if(io->n_trees == 1) rewind(io->fp_in_tree);
   tree = Read_Tree_File(io->fp_in_tree);
   if(!tree) Exit("\n. Input tree not found...\n");

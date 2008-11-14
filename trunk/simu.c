@@ -27,36 +27,12 @@ void Simu_Loop(arbre *tree)
 {
   phydbl lk_old;
 
-  tree->best_pars = 1E+8;
-  tree->best_lnL  = UNLIKELY;
-  tree->mod->s_opt->spr_lnL = 0;
-
-  tree->mod->s_opt->spr_pars = 1;
-  do
-    {
-      Speed_Spr(tree,1);
-    }while(tree->n_improvements);  
-  tree->mod->s_opt->spr_pars = 0;
   
   tree->both_sides = 0;
   Lk(tree);
 
-/*   /\*****************************\/ */
-/*   lk_old = UNLIKELY; */
-/*   tree->mod->s_opt->quickdirty = 0; */
-/*   tree->mod->s_opt->spr_lnL    = 0; */
-/*   printf("\n\n ** LOOP 1 **"); */
-/*   do */
-/*     { */
-/*       lk_old = tree->c_lnL; */
-/*       Optimiz_All_Free_Param(tree,tree->mod->s_opt->print); */
-/*       Speed_Spr(tree,1); */
-/*       if((!tree->n_improvements) || (fabs(lk_old-tree->c_lnL) < 10.)) break; */
-/*     } */
-/*   while(1); */
-/*   /\*****************************\/ */
+  PhyML_Printf("\n. Maximizing likelihood (using NNI moves)...\n");
 
-  printf("\n\n ** LOOP 2 **");
   do
     {
       lk_old = tree->c_lnL;
@@ -68,6 +44,9 @@ void Simu_Loop(arbre *tree)
 
   Round_Optimize(tree,tree->data,ROUND_MAX);
   Check_NNI_Five_Branches(tree);
+  
+  PhyML_Printf("\n");
+
 }
 
 /*********************************************************/
@@ -98,9 +77,7 @@ void Simu(arbre *tree, int n_step_max)
   recurr              = 0;
   
   Update_Dirs(tree);
-  
-  if(tree->mod->s_opt->print) PhyML_Printf("\n\n. Starting simultaneous NNI moves...\n");
-    
+      
   if(tree->lock_topo)
     {
       PhyML_Printf("\n. The tree topology is locked.");
