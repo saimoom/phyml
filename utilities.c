@@ -7456,14 +7456,13 @@ void Fast_Br_Len(edge *b, arbre *tree, int approx)
 
   For(i,tree->mod->ns) tree->mod->pi[i] = pi[i];
 
+  if(!approx)
+    Br_Len_Brent(.5*b->l,b->l,2.*b->l,
+		 tree->mod->s_opt->min_diff_lk_local,
+		 b,tree,
+		 tree->mod->s_opt->brent_it_max,
+		 tree->mod->s_opt->quickdirty);
 
-/*   if(!approx) */
-/*     Br_Len_Brent(.5*b->l,b->l,2.*b->l, */
-/* 		 tree->mod->s_opt->min_diff_lk_local, */
-/* 		 b,tree, */
-/* 		 tree->mod->s_opt->brent_it_max, */
-/* 		 tree->mod->s_opt->quickdirty); */
-  
 }
 
 
