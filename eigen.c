@@ -857,3 +857,71 @@ void det(double **a, int n, double *d)
   ludcmp(a,n,d);
   For(j,n) *d *= a[j][j];
 }
+
+
+
+int ludcmp_1D(double *a, int n, double *d)
+{
+   int i,imax,j,k;
+   double big,dum,sum,temp;
+   double *vv;
+   
+   imax = 0;
+   vv = (double *)mCalloc(n,sizeof(double));
+
+   *d=1.0;
+   for (i=0;i<n;i++) 
+     {
+       big=0.0;
+       for (j=0;j<n;j++)
+         if ((temp=fabs(a[i*n+j])) > big) big=temp;
+       if (big == 0.0) Exit("\n. Singular matrix in routine LUDCMP");
+       vv[i]=1.0/big;
+     }
+   for (j=0;j<n;j++) 
+     {
+       for (i=0;i<j;i++) 
+	 {
+	   sum=a[i*n+j];
+	   for (k=0;k<i;k++) sum -= a[i*n+k]*a[k*n+j];
+	   a[i*n+j]=sum;
+	 }
+      big=0.0;
+      for (i=j;i<n;i++) {
+	sum=a[i*n+j];
+	for (k=0;k<j;k++)
+	  sum -= a[i*n+k]*a[k*n+j];
+	a[i*n+j]=sum;
+	if ((dum=vv[i]*fabs(sum)) >= big) 
+	  {
+            big=dum;
+            imax=i;
+	  }
+      }
+      if (j != imax) 
+	{
+	  for (k=0;k<n;k++) 
+	    {
+	      dum=a[imax*n+k];
+	      a[imax*n+k]=a[j*n+k];
+	      a[j*n+k]=dum;
+	    }
+	  *d = -(*d);
+	  vv[imax]=vv[j];
+	}
+      if (a[j*n+j] == 0.0) a[j*n+j]=LUDCMP_TINY;
+      if (j != n) {
+	dum=1.0/(a[j*n+j]);
+	for (i=j+1;i<n;i++) a[i*n+j] *= dum;
+      }
+     }
+   Free(vv);
+   return(0);
+}
+
+void det_1D(double *a, int n, double *d)
+{
+  int j;
+  ludcmp_1D(a,n,d);
+  For(j,n) *d *= a[j*n+j];
+}

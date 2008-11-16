@@ -1,6 +1,9 @@
 #ifndef EIGEN_H
 #define EIGEN_H
 
+int ludcmp_1D(double *a, int n, double *d);
+void det_1D(double *a, int n, double *d);
+
 int Eigen(int job, double *A, int n, double *rr, double *ri,
           double *vr, double *vi, double *w);
 void balance(double *mat, int n, int *low, int *hi, double *scale);
