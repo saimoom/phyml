@@ -1095,9 +1095,9 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	strcat(io->out_stats_file,"_");
 	strcat(io->out_tree_file,io->run_id_string);
 	strcat(io->out_stats_file,io->run_id_string);
-	strcat(io->out_tree_file,".txt");
-	strcat(io->out_stats_file,".txt");
       }
+    strcat(io->out_tree_file,".txt");
+    strcat(io->out_stats_file,".txt");
 
     io->fp_out_tree  = Openfile(io->out_tree_file,writemode);
     io->fp_out_stats = Openfile(io->out_stats_file,writemode);
