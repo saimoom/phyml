@@ -2141,8 +2141,6 @@ void Opt_Dist_F(phydbl *dist, phydbl *F, model *mod)
 
   if(*dist < BL_MIN) *dist = BL_MIN;
 
-  ax = *dist;
-  bx = 1.5*(*dist);
 
   ax = 10.*(*dist);
   bx =     (*dist);
