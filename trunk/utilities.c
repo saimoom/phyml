@@ -7380,7 +7380,6 @@ void Fast_Br_Len(edge *b, arbre *tree, int approx)
   phydbl *pi;
   phydbl v_rght;
   int dim1,dim2,dim3;
-  phydbl d;
 
   dim1 = tree->mod->ns * tree->mod->n_catg;
   dim2 = tree->mod->ns ;
@@ -7392,18 +7391,18 @@ void Fast_Br_Len(edge *b, arbre *tree, int approx)
   pi    = tree->triplet_struct->pi_bc;
 
   For(i,tree->mod->ns) pi[i] = tree->mod->pi[i];
-
+  
   Update_PMat_At_Given_Edge(b,tree);
-
+  
   For(i,tree->mod->ns) For(j,tree->mod->ns) For(k,tree->mod->n_catg)
     core[k][0][i][j] = b->Pij_rr[k*dim3+i*dim2+j]*tree->mod->pi[i]*tree->mod->gamma_r_proba[k];
-
+  
   For(i,tree->mod->ns) For(j,tree->mod->ns) F[tree->mod->ns*i+j] = .0;
-
+  
   For(site,tree->n_pattern)
     {
       For(i,tree->mod->ns) For(j,tree->mod->ns) prob[0][i][j] = .0;
-
+      
       /* Joint probabilities of the states at the two ends of the edge */
       v_rght = -1.;
       For(i,tree->mod->ns)
@@ -7413,46 +7412,33 @@ void Fast_Br_Len(edge *b, arbre *tree, int approx)
 	      For(k,tree->mod->n_catg)
 		{
 		  v_rght = (b->rght->tax)?((phydbl)(b->p_lk_tip_r[site*dim2+j])):(b->p_lk_rght[site*dim1+k*dim2+j]);
-
-		  prob[0][i][j]             +=
-		    core[k][0][i][j]         *
+		  
+		  prob[0][i][j]                      +=
+		    core[k][0][i][j]                 *
 		    b->p_lk_left[site*dim1+k*dim2+i] *
 		    v_rght;
 		}
 	    }
 	}
-
-      sum = .0;
-      For(i,tree->mod->ns) For(j,tree->mod->ns) sum += prob[0][i][j];
-
+      
       /* Scaling */
-      For(i,tree->mod->ns) For(j,tree->mod->ns) prob[0][i][j] /= sum;
-
+      sum = .0;
+      For(i,tree->mod->ns) For(j,tree->mod->ns) sum += prob[0][i][j];	  
+      For(i,tree->mod->ns) For(j,tree->mod->ns) prob[0][i][j] /= sum;	  
+      
       /* Expected number of each pair of states */
       For(i,tree->mod->ns) For(j,tree->mod->ns)
 	F[tree->mod->ns*i+j] += tree->data->wght[site] * prob[0][i][j];
     }
-
-  Divide_Cells(&F,(phydbl)tree->data->init_len,tree);
+  
+/*   Divide_Cells(&F,(phydbl)tree->data->init_len,tree); */
   Make_Symmetric(&F,tree->mod->ns);
-
-/*   Opt_Dist_F(&(b->l),F,tree->mod); */
-
-  For(i,tree->mod->ns)
-    {
-      tree->mod->pi[i] = 0.0;
-      For(j,tree->mod->ns) tree->mod->pi[i] += F[tree->mod->ns*i+j];
-    }
-
-  For(i,tree->mod->ns) For(j,tree->mod->ns) F[tree->mod->ns*i+j] /= tree->mod->pi[i];
-
-  det_1D(F,tree->mod->ns,&d);
-  b->l = log(d);
-
-  b->l *= -1./(phydbl)(tree->mod->ns);
-
-  if(b->l < BL_MIN) b->l = BL_MIN;
+  Opt_Dist_F(&(b->l),F,tree->mod);
+  
+  if(b->l < BL_MIN)      b->l = BL_MIN;
   else if(b->l > BL_MAX) b->l = BL_MAX;
+  
+/*   printf("\n. %f -- ",b->l); */
 
   For(i,tree->mod->ns) tree->mod->pi[i] = pi[i];
 
@@ -7462,7 +7448,13 @@ void Fast_Br_Len(edge *b, arbre *tree, int approx)
 		 b,tree,
 		 tree->mod->s_opt->brent_it_max,
 		 tree->mod->s_opt->quickdirty);
+/*     Br_Len_Brent(BL_MIN,b->l,BL_MAX, */
+/* 		 tree->mod->s_opt->min_diff_lk_local, */
+/* 		 b,tree, */
+/* 		 tree->mod->s_opt->brent_it_max, */
+/* 		 tree->mod->s_opt->quickdirty); */
 
+/*   printf(" %f",b->l); */
 }
 
 

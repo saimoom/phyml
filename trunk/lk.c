@@ -1214,38 +1214,8 @@ phydbl Lk_Dist(phydbl *F, phydbl dist, model *mod)
   int i,j;
   phydbl lnL;
 
-/*   int k; */
-/*   phydbl len,tmp; */
-
-  
-/*   DiscreteGamma(mod->gamma_r_proba, mod->gamma_rr, mod->alpha, */
-/* 		mod->alpha,mod->n_catg,1); */
-
-/*   len = -1.; */
-/*   For(k,mod->n_catg) */
-/*     { */
-/*       len = dist*mod->gamma_rr[k]; */
-/*       if(len < BL_MIN) len = BL_MIN; */
-/*       else if(len > BL_MAX) len = BL_MAX; */
-/*       PMat(len,mod,&(mod->Pij_rr[k])); */
-/*     } */
-
-/*   lnL = .0; */
-/*   For(i,mod->ns) */
-/*     { */
-/*       For(j,mod->ns) */
-/* 	{ */
-/* 	  tmp = .0; */
-/* 	  For(k,mod->n_catg) */
-/* 	    { */
-/* 	      tmp += */
-/* 		mod->gamma_r_proba[k] * */
-/* 		mod->pi[i] * */
-/* 		(phydbl)(mod->Pij_rr[k][i][j]); */
-/* 	    } */
-/* 	  lnL += F[mod->ns*i+j] * (phydbl)log(tmp); */
-/* 	} */
-/*     } */
+  if(dist < BL_MIN) dist = BL_MIN;
+  if(dist > BL_MAX) dist = BL_MAX;
 
   PMat_Gamma(dist,mod,0,mod->Pij_rr);
 
@@ -1253,9 +1223,6 @@ phydbl Lk_Dist(phydbl *F, phydbl dist, model *mod)
   For(i,mod->ns) For(j,mod->ns)
     lnL += F[mod->ns*i+j] * log(mod->pi[i] * (phydbl)(mod->Pij_rr[mod->ns*i+j]));
  
-/*   printf("\n. dist = %f lnL = %f",dist,lnL); */
-/*   Exit("\n"); */
-
   return lnL;
 }
 
