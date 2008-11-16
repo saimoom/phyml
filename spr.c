@@ -3319,7 +3319,7 @@ int Test_All_Spr_Targets(edge *b_pulled, node *n_link, arbre *tree)
       
       if(tree->mod->s_opt->spr_lnL)
 	{
-/* 	  Fast_Br_Len(b_target,tree,approx); */
+	  Fast_Br_Len(b_target,tree,approx);
 	  Update_PMat_At_Given_Edge(b_target,tree);
 	}
       
