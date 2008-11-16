@@ -7380,6 +7380,7 @@ void Fast_Br_Len(edge *b, arbre *tree, int approx)
   phydbl *pi;
   phydbl v_rght;
   int dim1,dim2,dim3;
+  phydbl d;
 
   dim1 = tree->mod->ns * tree->mod->n_catg;
   dim2 = tree->mod->ns ;
@@ -7435,19 +7436,33 @@ void Fast_Br_Len(edge *b, arbre *tree, int approx)
   Divide_Cells(&F,(phydbl)tree->data->init_len,tree);
   Make_Symmetric(&F,tree->mod->ns);
 
-  Opt_Dist_F(&(b->l),F,tree->mod);
+/*   Opt_Dist_F(&(b->l),F,tree->mod); */
+
+  For(i,tree->mod->ns)
+    {
+      tree->mod->pi[i] = 0.0;
+      For(j,tree->mod->ns) tree->mod->pi[i] += F[tree->mod->ns*i+j];
+    }
+
+  For(i,tree->mod->ns) For(j,tree->mod->ns) F[tree->mod->ns*i+j] /= tree->mod->pi[i];
+
+  det_1D(F,tree->mod->ns,&d);
+  b->l = log(d);
+
+  b->l *= -1./(phydbl)(tree->mod->ns);
 
   if(b->l < BL_MIN) b->l = BL_MIN;
   else if(b->l > BL_MAX) b->l = BL_MAX;
 
   For(i,tree->mod->ns) tree->mod->pi[i] = pi[i];
 
-  if(!approx)
-    Br_Len_Brent(.5*b->l,b->l,2.*b->l,
-		 tree->mod->s_opt->min_diff_lk_local,
-		 b,tree,
-		 tree->mod->s_opt->brent_it_max,
-		 tree->mod->s_opt->quickdirty);
+
+/*   if(!approx) */
+/*     Br_Len_Brent(.5*b->l,b->l,2.*b->l, */
+/* 		 tree->mod->s_opt->min_diff_lk_local, */
+/* 		 b,tree, */
+/* 		 tree->mod->s_opt->brent_it_max, */
+/* 		 tree->mod->s_opt->quickdirty); */
   
 }
 
