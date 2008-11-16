@@ -3440,7 +3440,7 @@ phydbl Test_One_Spr_Target(edge *b_target, edge *b_arrow, node *n_link, edge *b_
 
   if(tree->mod->s_opt->spr_lnL)
     {
-      Triple_Dist(n_link,tree,approx);
+/*       Triple_Dist(n_link,tree,approx); */
       Update_PMat_At_Given_Edge(b_target,tree);
       Update_PMat_At_Given_Edge(b_arrow,tree);
       Update_P_Lk(tree,b_residual,n_link);
