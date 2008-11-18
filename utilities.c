@@ -7372,7 +7372,7 @@ int Get_Subtree_Size(node *a, node *d)
 
 /*********************************************************/
 
-void Fast_Br_Len(edge *b, arbre *tree, int approx)
+void Fast_Br_Len(edge *b, arbre *tree, int n_iter_max)
 {
   phydbl sum;
   phydbl *prob, *F;
@@ -7433,23 +7433,14 @@ void Fast_Br_Len(edge *b, arbre *tree, int approx)
       new_l = b->l;
       n_iter++;
 
-    }while((fabs(old_l-new_l) > eps_bl) && (n_iter < 10));
+/*     }while((fabs(old_l-new_l) > eps_bl) && (n_iter < 10)); */
+    }while((fabs(old_l-new_l) > eps_bl) && (n_iter < n_iter_max));
 
 
   if(b->l < BL_MIN)      b->l = BL_MIN;
   else if(b->l > BL_MAX) b->l = BL_MAX;
 
   Lk_At_Given_Edge(b,tree);
-
-/*   if(!approx) */
-/*     Br_Len_Brent(BL_MIN,b->l,BL_MAX, */
-/* 		 tree->mod->s_opt->min_diff_lk_local, */
-/* 		 b,tree, */
-/* 		 tree->mod->s_opt->brent_it_max, */
-/* 		 tree->mod->s_opt->quickdirty); */
-
-
-/*   printf(" %f ",b->l); */
 
   Free(F);
   Free(prob);
@@ -7528,257 +7519,25 @@ triplet *Make_Triplet_Struct(model *mod)
 
 /*********************************************************/
 
-phydbl Triple_Dist(node *a, arbre *tree, int approx)
+phydbl Triple_Dist(node *a, arbre *tree, int n_iter_max)
 {
-
   if(a->tax) return UNLIKELY;
   else
     {
-      int iter;
-
-      iter = 0;
-      do
-	{
-	  Update_PMat_At_Given_Edge(a->b[1],tree);
-	  Update_PMat_At_Given_Edge(a->b[2],tree);
-	  
-	  Update_P_Lk(tree,a->b[0],a);
-	  Fast_Br_Len(a->b[0],tree,approx);
-	  Update_PMat_At_Given_Edge(a->b[0],tree);
-/* 	  Br_Len_Brent (10.*(a->b[0]->l), a->b[0]->l, .1*(a->b[0]->l), 1.e-10,a->b[0],tree,50,0); */
-/* 	  Br_Len_Brent (BL_MAX, a->b[0]->l,BL_MIN, 1.e-10,a->b[0],tree,50,0); */
-	  
-	  Update_P_Lk(tree,a->b[1],a);
-	  Fast_Br_Len(a->b[1],tree,approx);
-	  Update_PMat_At_Given_Edge(a->b[1],tree);
-/* 	  Br_Len_Brent (BL_MAX, a->b[1]->l,BL_MIN, 1.e-10,a->b[1],tree,50,0); */
-	  
-	  Update_P_Lk(tree,a->b[2],a);
-	  Fast_Br_Len(a->b[2],tree,approx);
-	  Update_PMat_At_Given_Edge(a->b[2],tree);
-/* 	  Br_Len_Brent (BL_MAX, a->b[2]->l,BL_MIN, 1.e-10,a->b[2],tree,50,0); */
-	  
-	  Update_P_Lk(tree,a->b[1],a);
-	  Update_P_Lk(tree,a->b[0],a);
-
-	  iter++;
-	}while(iter < 1);
-
-/*       node *b,*c,*d; */
-/*       int _a,_b,_c,_d; */
-/*       int dir_b,dir_c,dir_d; */
-/*       int i, site, gamma; */
-/*       phydbl ***p_lk_b,***p_lk_c,***p_lk_d; */
-/*       double ***P_ab,***P_ac,***P_ad; */
-/*       phydbl ***prob,***sum_prob,****core,*F_bc,*F_cd,*F_bd,*pi_bc,*pi_cd,*pi_bd; */
-/*       phydbl sum, len; */
-/*       phydbl d_bc, d_cd, d_bd; */
-/*       double *eigen_val_real, *eigen_val_im, *eigen_vect_real, *eigen_vect_im, *space; */
-
-/*       pi_bc           = tree->triplet_struct->pi_bc; */
-/*       pi_cd           = tree->triplet_struct->pi_cd; */
-/*       pi_bd           = tree->triplet_struct->pi_bd; */
-/*       core            = tree->triplet_struct->core; */
-/*       prob            = tree->triplet_struct->p_one_site; */
-/*       sum_prob        = tree->triplet_struct->sum_p_one_site; */
-/*       F_bc            = tree->triplet_struct->F_bc; */
-/*       F_cd            = tree->triplet_struct->F_cd; */
-/*       F_bd            = tree->triplet_struct->F_bd; */
-/*       eigen_val_real  = tree->triplet_struct->eigen_struct->eigen_val_real; */
-/*       eigen_val_im    = tree->triplet_struct->eigen_struct->eigen_val_im; */
-/*       eigen_vect_real = tree->triplet_struct->eigen_struct->eigen_vect_real; */
-/*       eigen_vect_im   = tree->triplet_struct->eigen_struct->eigen_vect_im; */
-/*       space           = tree->triplet_struct->eigen_struct->space; */
-
-/*       p_lk_b = p_lk_c = p_lk_d = NULL; */
-/*       P_ab = P_ac = P_ad = NULL; */
-/*       b = c = d = NULL; */
-/*       dir_b = dir_c = dir_d = -1; */
-/*       For(i,3) */
-/* 	{ */
-/* 	  if(!b) */
-/* 	    { */
-/* 	      b      = a->v[i]; */
-/* 	      p_lk_b = (a == a->b[i]->left)?(a->b[i]->p_lk_rght):(a->b[i]->p_lk_left); */
-/* 	      P_ab   = a->b[i]->Pij_rr; */
-/* 	      dir_b  = i; */
-/* 	    } */
-/* 	  else if(!c) */
-/* 	    { */
-/* 	      c      = a->v[i]; */
-/* 	      p_lk_c = (a == a->b[i]->left)?(a->b[i]->p_lk_rght):(a->b[i]->p_lk_left); */
-/* 	      P_ac   = a->b[i]->Pij_rr; */
-/* 	      dir_c  = i; */
-/* 	    } */
-/* 	  else if(!d) */
-/* 	    { */
-/* 	      d      = a->v[i]; */
-/* 	      p_lk_d = (a == a->b[i]->left)?(a->b[i]->p_lk_rght):(a->b[i]->p_lk_left); */
-/* 	      P_ad   = a->b[i]->Pij_rr; */
-/* 	      dir_d  = i; */
-/* 	    } */
-/* 	} */
-
-/*       For(_b,tree->mod->ns) For(_c,tree->mod->ns) For(_d,tree->mod->ns) sum_prob[_b][_c][_d] = .0; */
-
-/*       For(i,tree->mod->n_catg) */
-/* 	{ */
-/* 	  len = a->b[dir_b]->l * tree->mod->rr[i]; */
-/* 	  if(len < BL_MIN) len = BL_MIN; */
-/* 	  else if(len > BL_MAX) len = BL_MAX; */
-/* 	  PMat(len,tree->mod,&(P_ab[i])); */
-/* 	} */
-
-/*       For(i,tree->mod->n_catg) */
-/* 	{ */
-/* 	  len = a->b[dir_c]->l * tree->mod->rr[i]; */
-/* 	  if(len < BL_MIN) len = BL_MIN; */
-/* 	  else if(len > BL_MAX) len = BL_MAX; */
-/* 	  PMat(len,tree->mod,&(P_ac[i])); */
-/* 	} */
-
-/*       For(i,tree->mod->n_catg) */
-/* 	{ */
-/* 	  len = a->b[dir_d]->l * tree->mod->rr[i]; */
-/* 	  if(len < BL_MIN) len = BL_MIN; */
-/* 	  else if(len > BL_MAX) len = BL_MAX; */
-/* 	  PMat(len,tree->mod,&(P_ad[i])); */
-/* 	} */
-
-/* /\*       PMat(a->b[dir_b]->l,tree->mod,&(P_ab[0])); *\/ */
-/* /\*       PMat(a->b[dir_c]->l,tree->mod,&(P_ac[0])); *\/ */
-/* /\*       PMat(a->b[dir_d]->l,tree->mod,&(P_ad[0])); *\/ */
-
-/*       For(gamma,tree->mod->n_catg) */
-/* 	{ */
-/* 	  For(_b,tree->mod->ns) */
-/* 	    { */
-/* 	      For(_c,tree->mod->ns) */
-/* 		{ */
-/* 		  For(_d,tree->mod->ns) */
-/* 		    { */
-/* 		      core[gamma][_b][_c][_d] = .0; */
-/* 		      For(_a,tree->mod->ns) */
-/* 			{ */
-/* 			  core[gamma][_b][_c][_d] += */
-/* 			    tree->mod->r_proba[gamma] * */
-/* 			    tree->mod->pi[_a]         * */
-/* 			    P_ab[gamma][_a][_b]       * */
-/* 			    P_ac[gamma][_a][_c]       * */
-/* 			    P_ad[gamma][_a][_d]       ; */
-/* 			} */
-/* 		    } */
-/* 		} */
-/* 	    } */
-/* 	} */
-
-/*       For(site,tree->n_pattern) */
-/* 	{ */
-/* 	  For(_b,tree->mod->ns) For(_c,tree->mod->ns) For(_d,tree->mod->ns) prob[_b][_c][_d] = .0; */
-
-/* 	  For(gamma,tree->mod->n_catg) */
-/* 	    For(_b,tree->mod->ns) */
-/* 	    For(_c,tree->mod->ns) */
-/* 	    For(_d,tree->mod->ns) */
-/* 	    prob[_b][_c][_d]          += */
-/* 	    core[gamma][_b][_c][_d]   * */
-/* 	    p_lk_b[site][gamma][_b]   * */
-/* 	    p_lk_c[site][gamma][_c]   * */
-/* 	    p_lk_d[site][gamma][_d]   ; */
-
-
-/* 	  sum = .0; */
-/* 	  For(_b,tree->mod->ns) For(_c,tree->mod->ns) For(_d,tree->mod->ns) sum += prob[_b][_c][_d]; */
-
-/* 	  For(_b,tree->mod->ns) For(_c,tree->mod->ns) For(_d,tree->mod->ns) prob[_b][_c][_d] /= sum; */
-
-/* 	  For(_b,tree->mod->ns) For(_c,tree->mod->ns) For(_d,tree->mod->ns) */
-/* 	    sum_prob[_b][_c][_d] += */
-/* 	    tree->data->wght[site]* */
-/* 	    prob[_b][_c][_d]; */
-/* 	} */
-
-
-/*       For(_b,tree->mod->ns) */
-/* 	{ */
-/* 	  pi_bc[_b] = .0; */
-/* 	  For(_c,tree->mod->ns) */
-/* 	    { */
-/* 	      F_bc[tree->mod->ns*_b+_c] = .0; */
-/* 	      For(_d,tree->mod->ns) */
-/* 		{ */
-/* 		  F_bc[tree->mod->ns*_b+_c] += sum_prob[_b][_c][_d]; */
-/* 		} */
-/* 	      pi_bc[_b] += (F_bc[tree->mod->ns*_b+_c]+F_bc[tree->mod->ns*_c+_b])/2.; */
-/* 	    } */
-/* 	  pi_bc[_b] /= (phydbl)tree->data->init_len; */
-/* 	} */
-
-/*       For(_c,tree->mod->ns) */
-/* 	{ */
-/* 	  pi_cd[_c] = .0; */
-/* 	  For(_d,tree->mod->ns) */
-/* 	    { */
-/* 	      F_cd[tree->mod->ns*_c+_d] = .0; */
-/* 	      For(_b,tree->mod->ns) */
-/* 		{ */
-/* 		  F_cd[tree->mod->ns*_c+_d] += sum_prob[_b][_c][_d]; */
-/* 		} */
-/* 	      pi_cd[_c] += (F_cd[tree->mod->ns*_c+_d]+F_cd[tree->mod->ns*_d+_c])/2.; */
-/* 	    } */
-/* 	  pi_cd[_c] /= (phydbl)tree->data->init_len; */
-/* 	} */
-
-/*       For(_b,tree->mod->ns) */
-/* 	{ */
-/* 	  pi_bd[_b] = .0; */
-/* 	  For(_d,tree->mod->ns) */
-/* 	    { */
-/* 	      F_bd[tree->mod->ns*_b+_d] = .0; */
-/* 	      For(_c,tree->mod->ns) */
-/* 		{ */
-/* 		  F_bd[tree->mod->ns*_b+_d] += sum_prob[_b][_c][_d]; */
-/* 		} */
-/* 	      pi_bd[_b] += (F_bd[tree->mod->ns*_b+_d]+F_bd[tree->mod->ns*_d+_b])/2.; */
-/* 	    } */
-/* 	  pi_bd[_b] /= (phydbl)tree->data->init_len; */
-/* 	} */
-
-/*       Divide_Cells(&F_bc,(phydbl)tree->data->init_len,tree); */
-/*       Divide_Cells(&F_cd,(phydbl)tree->data->init_len,tree); */
-/*       Divide_Cells(&F_bd,(phydbl)tree->data->init_len,tree); */
-
-/*       Make_Symmetric(&F_bc,tree->mod->ns); */
-/*       Make_Symmetric(&F_cd,tree->mod->ns); */
-/*       Make_Symmetric(&F_bd,tree->mod->ns); */
-
-/*       d_bc = d_cd = d_bd = 0.1; */
-
-
-/* /\*       Dist_F_Brent(&(d_bc),F_bc,BL_MIN,d_bc,BL_MAX,1.E-4,&(d_bc),tree->mod,100); *\/ */
-/* /\*       Dist_F_Brent(&(d_cd),F_cd,BL_MIN,d_cd,BL_MAX,1.E-4,&(d_cd),tree->mod,100); *\/ */
-/* /\*       Dist_F_Brent(&(d_bd),F_bd,BL_MIN,d_bd,BL_MAX,1.E-4,&(d_bd),tree->mod,100); *\/ */
-
-/*       Opt_Dist_F(&(d_bc),F_bc,tree->mod); */
-/*       Opt_Dist_F(&(d_cd),F_cd,tree->mod); */
-/*       Opt_Dist_F(&(d_bd),F_bd,tree->mod); */
+      Update_PMat_At_Given_Edge(a->b[1],tree);
+      Update_PMat_At_Given_Edge(a->b[2],tree);
       
-
-
-/* /\*       d_bc = GTR_Dist(F_bc,(tree->mod->n_catg > 1)?(tree->mod->alpha):(-1.),tree->triplet_struct->eigen_struct); *\/ */
-/* /\*       d_bd = GTR_Dist(F_bd,(tree->mod->n_catg > 1)?(tree->mod->alpha):(-1.),tree->triplet_struct->eigen_struct); *\/ */
-/* /\*       d_cd = GTR_Dist(F_cd,(tree->mod->n_catg > 1)?(tree->mod->alpha):(-1.),tree->triplet_struct->eigen_struct); *\/ */
-
-/*       a->b[dir_b]->l = (d_bc-d_cd+d_bd)/2.; */
-/*       a->b[dir_c]->l = (d_bc-d_bd+d_cd)/2.; */
-/*       a->b[dir_d]->l = (d_bd-d_bc+d_cd)/2.; */
-
-/*       if(a->b[dir_b]->l < BL_MIN) a->b[dir_b]->l = BL_MIN; */
-/*       else if(a->b[dir_b]->l > BL_MAX) a->b[dir_b]->l = BL_MAX; */
-/*       if(a->b[dir_c]->l < BL_MIN) a->b[dir_c]->l = BL_MIN; */
-/*       else if(a->b[dir_c]->l > BL_MAX) a->b[dir_c]->l = BL_MAX; */
-/*       if(a->b[dir_d]->l < BL_MIN) a->b[dir_d]->l = BL_MIN; */
-/*       else if(a->b[dir_d]->l > BL_MAX) a->b[dir_d]->l = BL_MAX; */
+      Update_P_Lk(tree,a->b[0],a);
+      Fast_Br_Len(a->b[0],tree,n_iter_max);
+	  
+      Update_P_Lk(tree,a->b[1],a);
+      Fast_Br_Len(a->b[1],tree,n_iter_max);
+	  
+      Update_P_Lk(tree,a->b[2],a);
+      Fast_Br_Len(a->b[2],tree,n_iter_max);
+	  
+      Update_P_Lk(tree,a->b[1],a);
+      Update_P_Lk(tree,a->b[0],a);      
     }
 
   return tree->c_lnL;
