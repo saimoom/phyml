@@ -3164,6 +3164,8 @@ int Spr(phydbl init_lnL, arbre *tree)
   old_pars         = -1;
 
 
+  printf("\n. Pars thresh = %d\n",tree->mod->s_opt->pars_thresh);
+
   Reset_Spr_List(tree);
 
   For(br,2*tree->n_otu-3)
@@ -3185,8 +3187,7 @@ int Spr(phydbl init_lnL, arbre *tree)
       if(pars_diff > max_pars_diff) max_pars_diff = pars_diff;
     }
 
-/*   tree->mod->s_opt->pars_thresh = MAX(5,max_pars_diff); */
-
+  tree->mod->s_opt->pars_thresh = MAX(5,max_pars_diff);
 
   return 1;
 }
@@ -3199,10 +3200,12 @@ void Spr_Subtree(edge *b, node *link, arbre *tree)
   int n_moves_pars, n_moves, curr_pars, min_pars, best_move;
   spr *best_pars_move;
   edge *target, *residual;
+  int ret_val;
 
   best_move     = -1;
   tree->n_moves = 0;
   curr_pars     = tree->c_pars;
+  ret_val       = 0;
 
   if((link != b->left) && (link != b->rght))
     {
@@ -3224,7 +3227,7 @@ void Spr_Subtree(edge *b, node *link, arbre *tree)
 
 	  n_moves_pars = MAX(n_moves_pars,1);
 	  
-	  if(tree->mod->s_opt->spr_lnL) /* n_moves = tree->n_moves; */ n_moves = 20;
+	  if(tree->mod->s_opt->spr_lnL) /* n_moves = tree->n_moves; */ n_moves = 5;
 	  else                          n_moves = n_moves_pars;
 
 	  n_moves = MIN(n_moves,2*tree->n_otu-3);
@@ -3264,9 +3267,14 @@ void Spr_Subtree(edge *b, node *link, arbre *tree)
 	      best_move = Evaluate_List_Of_Regraft_Pos_Triple(tree->spr_list,n_moves,tree);
 
 	      if(tree->spr_list[best_move]->lnL > tree->best_lnL + tree->mod->s_opt->min_diff_lk_move) 
-		Try_One_Spr_Move_Triple(tree->spr_list[best_move],tree);
+		{
+		  Try_One_Spr_Move_Triple(tree->spr_list[best_move],tree);
+		  ret_val = 1;
+		}
 	      else
-		Pars(tree);
+		{
+		  Pars(tree);
+		}
 	    }
 	}
       Reset_Spr_List(tree);
@@ -3283,7 +3291,10 @@ int Test_All_Spr_Targets(edge *b_pulled, node *n_link, arbre *tree)
   int i,dir1,dir2;
   phydbl init_len_v1, init_len_v2, init_len_pulled;
   int best_found,approx;
+  phydbl init_lnL;
 
+
+  init_lnL = tree->c_lnL;
   n_up = NULL;
   b_target = b_residual = NULL;
   n_opp_to_link  = (n_link == b_pulled->rght)?(b_pulled->left):(b_pulled->rght);
@@ -3319,10 +3330,11 @@ int Test_All_Spr_Targets(edge *b_pulled, node *n_link, arbre *tree)
       
       if(tree->mod->s_opt->spr_lnL)
 	{
-/* 	  Fast_Br_Len(b_target,tree,approx); */
+	  Fast_Br_Len(b_target,tree,5);
 	  Update_PMat_At_Given_Edge(b_target,tree);
 	}
       
+
       best_found = 0;
       tree->depth_curr_path = 0; 
       tree->curr_path[0] = b_target->left;
@@ -3345,10 +3357,12 @@ int Test_All_Spr_Targets(edge *b_pulled, node *n_link, arbre *tree)
       n_link->b[dir2]->l = init_len_v2; 
       b_pulled->l = init_len_pulled;
 
+
       Update_PMat_At_Given_Edge(n_link->b[dir1],tree);
       Update_PMat_At_Given_Edge(n_link->b[dir2],tree);
       Update_PMat_At_Given_Edge(b_pulled,tree);
       
+
       if(tree->mod->s_opt->spr_lnL)
 	{
 	  Update_P_Lk(tree,b_pulled,  n_link);
@@ -3369,6 +3383,8 @@ int Test_All_Spr_Targets(edge *b_pulled, node *n_link, arbre *tree)
 	    else                          Pre_Order_Pars(n_link,n_link->v[i],tree);
 	  }
     }
+
+  tree->c_lnL = init_lnL;
 
   return 0;
 
@@ -3440,11 +3456,11 @@ phydbl Test_One_Spr_Target(edge *b_target, edge *b_arrow, node *n_link, edge *b_
 
   if(tree->mod->s_opt->spr_lnL)
     {
-/*       Triple_Dist(n_link,tree,approx); */
-      Update_PMat_At_Given_Edge(b_target,tree);
-      Update_PMat_At_Given_Edge(b_arrow,tree);
-      Update_P_Lk(tree,b_residual,n_link);
-      move_lnL = Lk_At_Given_Edge(b_residual,tree);
+      move_lnL = Triple_Dist(n_link,tree,0);
+/*       Update_PMat_At_Given_Edge(b_target,tree); */
+/*       Update_PMat_At_Given_Edge(b_arrow,tree); */
+/*       Update_P_Lk(tree,b_residual,n_link); */
+/*       move_lnL = Lk_At_Given_Edge(b_residual,tree); */
     }
   else
     {
@@ -3512,7 +3528,9 @@ phydbl Test_One_Spr_Target(edge *b_target, edge *b_arrow, node *n_link, edge *b_
 void Speed_Spr_Loop(arbre *tree)
 {
   phydbl lk_old;
+  int init_thresh;
 
+  init_thresh                      = tree->mod->s_opt->pars_thresh;
   tree->best_pars                  = 1E+8;
   tree->mod->s_opt->spr_lnL        = 0;
   tree->mod->s_opt->spr_pars       = 0;
@@ -3524,26 +3542,25 @@ void Speed_Spr_Loop(arbre *tree)
   Lk(tree);
   tree->best_lnL = tree->c_lnL;
 
+
   /*****************************/
   lk_old = UNLIKELY;
   tree->mod->s_opt->max_depth_path = 2*tree->n_otu-3;
   tree->mod->s_opt->spr_lnL        = 0;
   tree->mod->s_opt->pars_thresh    = 0;
-  printf("\n. LOOP 1\n");
-  do
-    {
-      lk_old = tree->c_lnL;
-      Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
-      Speed_Spr(tree,1);
-      if((!tree->n_improvements) || (fabs(lk_old-tree->c_lnL) < 1.)) break;
-    }
-  while(1);
+  lk_old = tree->c_lnL;
+  Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
+  Speed_Spr(tree,1);
   /*****************************/
+
+
 
   /*****************************/
   lk_old = UNLIKELY;
-  tree->mod->s_opt->pars_thresh = 5;
-  printf("\n. LOOP 2\n");
+  tree->mod->s_opt->max_depth_path = 2*tree->n_otu-3;
+  tree->mod->s_opt->spr_lnL        = 0;
+  tree->mod->s_opt->pars_thresh    = init_thresh;
+  printf("\n. LOOP 1\n");
   do
     {
       lk_old = tree->c_lnL;
@@ -3560,7 +3577,7 @@ void Speed_Spr_Loop(arbre *tree)
   lk_old = UNLIKELY;
   tree->mod->s_opt->max_depth_path = 20;
   tree->mod->s_opt->spr_lnL        = 1;
-  printf("\n. LOOP 3\n");
+  printf("\n. LOOP 2\n");
   do
     {
       lk_old = tree->c_lnL;
@@ -3569,6 +3586,8 @@ void Speed_Spr_Loop(arbre *tree)
       if((!tree->n_improvements) || (fabs(lk_old-tree->c_lnL) < 1.)) break;
     }
   while(1);
+  /*****************************/
+
 
 
   /*****************************/
@@ -3636,6 +3655,10 @@ void Speed_Spr(arbre *tree, int max_cycles)
       tree->perform_spr_right_away = 1;
       Spr(UNLIKELY,tree);
       
+/*       int i; */
+/*       For(i,2*tree->n_otu-3) printf("\n. %f",Lk_At_Given_Edge(tree->t_edges[i],tree)); */
+      Lk_At_Given_Edge(tree->t_edges[1],tree);
+
       if(!tree->mod->s_opt->spr_pars)
 	{
 /* 	  Optimiz_All_Free_Param(tree,tree->mod->s_opt->print); */
@@ -3646,7 +3669,8 @@ void Speed_Spr(arbre *tree, int max_cycles)
 				tree->noeud[0]->b[0],
 				tree,
 				tree->data);	  
-	  /* Update partial likelihoods & parsimony */
+
+	  /* Update partial likelihoods */
 	  tree->both_sides = 1;
 	  Lk(tree);
 
@@ -3712,14 +3736,13 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, arbre *tr
   int dir_v0, dir_v1, dir_v2;
   phydbl recorded_l;
   phydbl move_lnL, best_lnL,init_lnL;
-  int approx;
 
   best_lnL = UNLIKELY;
   init_target = b_residual = NULL;
   best_move = -1;
-  approx = 0;
   init_lnL = tree->c_lnL;
   
+
   if(!list_size) 
     {
       printf("\n. List size is 0 !");
@@ -3757,8 +3780,8 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, arbre *tr
 	       * same across all the elements of spr_list. It would not
 	       * be true in the general case
 	       */
-	      Fast_Br_Len(init_target,tree,approx);
-/* 	      Br_Len_Brent (10.*(init_target->l), init_target->l,BL_MIN, 1.e-10,init_target,tree,20,0); */
+	      Fast_Br_Len(init_target,tree,5);
+
 	      /* Record branch length at prune site */
 	      move->init_target_l = init_target->l;
 	      recorded_l          = init_target->l;
@@ -3792,15 +3815,15 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, arbre *tr
 	  else
 	    {
 	      /* Estimate the three edge lengths at the regraft site */
-	      move_lnL = Triple_Dist(move->n_link,tree,approx);
-
-	      move_lnL = Lk_At_Given_Edge(move->b_opp_to_link,tree);
+	      move_lnL = Triple_Dist(move->n_link,tree,10);
+/* 	      move_lnL = Lk_At_Given_Edge(move->b_opp_to_link,tree); */
 	      
 	      if(move_lnL > best_lnL + tree->mod->s_opt->min_diff_lk_move)
 		{
 		  best_lnL = move_lnL;
 		  best_move = i;
 		}
+
 	    }
 
 	  if(move_lnL > tree->best_spr->lnL)
@@ -3874,6 +3897,7 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, arbre *tr
       if(move->lnL > tree->best_lnL + tree->mod->s_opt->min_diff_lk_move) break;
     }
 
+/*   printf("\n. [ %4d/%4d ]",i,list_size); */
   
   For(i,list_size)
     {
@@ -3886,12 +3910,14 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, arbre *tr
 	  /* TO DO : we don't need to update all these partial likelihoods here.
 	     Would need to record only those that were along any of the paths
 	     examined above */
+
 	  For(j,3)
 	    if(move->n_link->v[j] != move->n_opp_to_link)
 	      Pre_Order_Lk(move->n_link,move->n_link->v[j],tree);
 	  break;
 	}
     }
+
 
 #ifdef DEBUG
   if(best_move < 0)
