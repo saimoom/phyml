@@ -3542,8 +3542,7 @@ void Speed_Spr_Loop(arbre *tree)
 
   /*****************************/
   lk_old = UNLIKELY;
-  tree->mod->s_opt->max_depth_path = 20;
-  tree->mod->s_opt->spr_lnL        = 1;
+  tree->mod->s_opt->pars_thresh = 5;
   printf("\n. LOOP 2\n");
   do
     {
@@ -3553,19 +3552,24 @@ void Speed_Spr_Loop(arbre *tree)
       if((!tree->n_improvements) || (fabs(lk_old-tree->c_lnL) < 1.)) break;
     }
   while(1);
-
-/*   lk_old = UNLIKELY; */
-/*   tree->mod->s_opt->pars_thresh = 5; */
-/*   printf("\n. LOOP 2\n"); */
-/*   do */
-/*     { */
-/*       lk_old = tree->c_lnL; */
-/*       Optimiz_All_Free_Param(tree,tree->mod->s_opt->print); */
-/*       Speed_Spr(tree,1); */
-/*       if((!tree->n_improvements) || (fabs(lk_old-tree->c_lnL) < 1.)) break; */
-/*     } */
-/*   while(1); */
   /*****************************/
+
+
+
+  /*****************************/
+  lk_old = UNLIKELY;
+  tree->mod->s_opt->max_depth_path = 20;
+  tree->mod->s_opt->spr_lnL        = 1;
+  printf("\n. LOOP 3\n");
+  do
+    {
+      lk_old = tree->c_lnL;
+      Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
+      Speed_Spr(tree,1);
+      if((!tree->n_improvements) || (fabs(lk_old-tree->c_lnL) < 1.)) break;
+    }
+  while(1);
+
 
   /*****************************/
   lk_old = UNLIKELY;
