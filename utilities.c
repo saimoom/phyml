@@ -7433,13 +7433,13 @@ void Fast_Br_Len(edge *b, arbre *tree, int approx)
       new_l = b->l;
       n_iter++;
 
-    }while((fabs(old_l-new_l) > eps_bl) && (n_iter < 5));
+    }while((fabs(old_l-new_l) > eps_bl) && (n_iter < 10));
 
 
   if(b->l < BL_MIN)      b->l = BL_MIN;
   else if(b->l > BL_MAX) b->l = BL_MAX;
 
-/*   printf("\n. (%d) %f -- ",n_iter,b->l); */
+  Lk_At_Given_Edge(b,tree);
 
 /*   if(!approx) */
 /*     Br_Len_Brent(BL_MIN,b->l,BL_MAX, */
