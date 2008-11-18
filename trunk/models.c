@@ -367,28 +367,38 @@ void PMat_Empirical(phydbl l, model *mod, int pos, double *Pij)
 
 void PMat_Gamma(phydbl l, model *mod, int pos, double *Pij)
 {
-  int n = mod->ns;
+  int n;
   int i, j, k;
   double *U,*V,*R;
   double *expt; 
   double *uexpt;
+  double shape;
 
+  
+  n     = mod->ns;
   expt  = mod->eigen->e_val_im;
   uexpt = mod->eigen->r_e_vect_im;
   U     = mod->eigen->r_e_vect;
   V     = mod->eigen->l_e_vect;
   R     = mod->eigen->e_val; /* exponential of the eigen value matrix */
+  
+  if(mod->n_catg == 1) shape = 1.E+4;
+  else                 shape = mod->alpha;
+
 
   For(i,n) For(k,n) Pij[pos+mod->ns*i+k] = .0;
   
-  if(mod->alpha < 1.E-10) 
+  if(shape < 1.E-10) 
     {
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
+
+  
+
   /* Formula 13.42, page 220 of Felsenstein's book ``Inferring Phylogenies'' */ 
-  For(k,n) expt[k] = pow(mod->alpha/(mod->alpha-log(R[k])*l),mod->alpha);
+  For(k,n) expt[k] = pow(shape/(shape-log(R[k])*l),shape);
 
   /* multiply Vr*expt*Vi into Pij */
   For(i,n) For(k,n) uexpt[i*n+k] = U[i*n+k] * expt[k];
