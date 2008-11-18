@@ -7375,86 +7375,84 @@ int Get_Subtree_Size(node *a, node *d)
 void Fast_Br_Len(edge *b, arbre *tree, int approx)
 {
   phydbl sum;
-  phydbl ***prob, ****core, *F;
+  phydbl *prob, *F;
   int i, j, k, site;
-  phydbl *pi;
   phydbl v_rght;
   int dim1,dim2,dim3;
+  phydbl eps_bl,old_l,new_l;
+  int n_iter;
 
-  dim1 = tree->mod->ns * tree->mod->n_catg;
-  dim2 = tree->mod->ns ;
-  dim3 = tree->mod->ns * tree->mod->ns;
+  n_iter = 0;
+  dim1   = tree->mod->ns * tree->mod->n_catg;
+  dim2   = tree->mod->ns ;
+  dim3   = tree->mod->ns * tree->mod->ns;
+  eps_bl = BL_MIN;
 
-  core  = tree->triplet_struct->core;
-  prob  = tree->triplet_struct->p_one_site;
-  F     = tree->triplet_struct->F_bc;
-  pi    = tree->triplet_struct->pi_bc;
+  F    = (phydbl *)mCalloc(dim1*dim2,sizeof(phydbl));
+  prob = (phydbl *)mCalloc(dim1*dim2,sizeof(phydbl));
 
-  For(i,tree->mod->ns) pi[i] = tree->mod->pi[i];
-  
-  Update_PMat_At_Given_Edge(b,tree);
-  
-  For(i,tree->mod->ns) For(j,tree->mod->ns) For(k,tree->mod->n_catg)
-    core[k][0][i][j] = b->Pij_rr[k*dim3+i*dim2+j]*tree->mod->pi[i]*tree->mod->gamma_r_proba[k];
-  
-  For(i,tree->mod->ns) For(j,tree->mod->ns) F[tree->mod->ns*i+j] = .0;
-  
-  For(site,tree->n_pattern)
+  do
     {
-      For(i,tree->mod->ns) For(j,tree->mod->ns) prob[0][i][j] = .0;
+      Update_PMat_At_Given_Edge(b,tree);
+            
+      For(i,dim1*dim2) F[i] = .0;
       
-      /* Joint probabilities of the states at the two ends of the edge */
-      v_rght = -1.;
-      For(i,tree->mod->ns)
-	{
-	  For(j,tree->mod->ns)
+      For(site,tree->n_pattern)
+	{	  
+	  /* Joint probabilities of the states at the two ends of the edge */
+	  v_rght = -1.;
+	  For(i,tree->mod->ns)
 	    {
-	      For(k,tree->mod->n_catg)
+	      For(j,tree->mod->ns)
 		{
-		  v_rght = (b->rght->tax)?((phydbl)(b->p_lk_tip_r[site*dim2+j])):(b->p_lk_rght[site*dim1+k*dim2+j]);
-		  
-		  prob[0][i][j]                      +=
-		    core[k][0][i][j]                 *
-		    b->p_lk_left[site*dim1+k*dim2+i] *
-		    v_rght;
+		  For(k,tree->mod->n_catg)
+		    {
+		      v_rght = (b->rght->tax)?((phydbl)(b->p_lk_tip_r[site*dim2+j])):(b->p_lk_rght[site*dim1+k*dim2+j]);
+		      
+		      prob[dim3*k+dim2*i+j]              =
+			tree->mod->gamma_r_proba[k]      *
+			tree->mod->pi[i]                 *
+			b->Pij_rr[k*dim3+i*dim2+j]       *
+			b->p_lk_left[site*dim1+k*dim2+i] *
+			v_rght;
+		    }
 		}
 	    }
-	}
-      
-      /* Scaling */
-      sum = .0;
-      For(i,tree->mod->ns) For(j,tree->mod->ns) sum += prob[0][i][j];	  
-      For(i,tree->mod->ns) For(j,tree->mod->ns) prob[0][i][j] /= sum;	  
-      
-      /* Expected number of each pair of states */
-      For(i,tree->mod->ns) For(j,tree->mod->ns)
-	F[tree->mod->ns*i+j] += tree->data->wght[site] * prob[0][i][j];
-    }
-  
-/*   Divide_Cells(&F,(phydbl)tree->data->init_len,tree); */
-  Make_Symmetric(&F,tree->mod->ns);
-  Opt_Dist_F(&(b->l),F,tree->mod);
-  
+	  
+	  /* Scaling */
+	  sum = .0;
+	  For(k,tree->mod->n_catg) For(i,tree->mod->ns) For(j,tree->mod->ns) sum += prob[dim3*k+dim2*i+j];
+	  For(k,tree->mod->n_catg) For(i,tree->mod->ns) For(j,tree->mod->ns) prob[dim3*k+dim2*i+j] /= sum;
+
+	  /* Expected number of each pair of states */
+	  For(i,tree->mod->ns) For(j,tree->mod->ns) For(k,tree->mod->n_catg)
+	    F[dim3*k+dim2*i+j] += tree->data->wght[site] * prob[dim3*k+dim2*i+j];
+	}     
+      old_l = b->l;
+      Opt_Dist_F(&(b->l),F,tree->mod);
+      new_l = b->l;
+      n_iter++;
+
+    }while((fabs(old_l-new_l) > eps_bl) && (n_iter < 5));
+
+
   if(b->l < BL_MIN)      b->l = BL_MIN;
   else if(b->l > BL_MAX) b->l = BL_MAX;
-  
-/*   printf("\n. %f -- ",b->l); */
 
-  For(i,tree->mod->ns) tree->mod->pi[i] = pi[i];
+/*   printf("\n. (%d) %f -- ",n_iter,b->l); */
 
-  if(!approx)
-    Br_Len_Brent(.5*b->l,b->l,2.*b->l,
-		 tree->mod->s_opt->min_diff_lk_local,
-		 b,tree,
-		 tree->mod->s_opt->brent_it_max,
-		 tree->mod->s_opt->quickdirty);
+/*   if(!approx) */
 /*     Br_Len_Brent(BL_MIN,b->l,BL_MAX, */
 /* 		 tree->mod->s_opt->min_diff_lk_local, */
 /* 		 b,tree, */
 /* 		 tree->mod->s_opt->brent_it_max, */
 /* 		 tree->mod->s_opt->quickdirty); */
 
-/*   printf(" %f",b->l); */
+
+/*   printf(" %f ",b->l); */
+
+  Free(F);
+  Free(prob);
 }
 
 

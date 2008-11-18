@@ -1211,18 +1211,33 @@ void Update_P_Lk_Along_A_Path(node **path, int path_length, arbre *tree)
 
 phydbl Lk_Dist(phydbl *F, phydbl dist, model *mod)
 {
-  int i,j;
-  phydbl lnL;
+  int i,j,k;
+  phydbl lnL,len;
+  int dim1,dim2;
 
-  if(dist < BL_MIN) dist = BL_MIN;
-  if(dist > BL_MAX) dist = BL_MAX;
 
-  PMat_Gamma(dist,mod,0,mod->Pij_rr);
+  For(k,mod->n_catg)
+    {
+      len = dist*mod->gamma_rr[k];
+      if(len < BL_MIN)      len = BL_MIN;
+      else if(len > BL_MAX) len = BL_MAX;
+      PMat(len,mod,mod->ns*mod->ns*k,mod->Pij_rr);
+    }
 
+  dim1 = mod->ns*mod->ns;
+  dim2 = mod->ns;
   lnL = .0;
-  For(i,mod->ns) For(j,mod->ns)
-    lnL += F[mod->ns*i+j] * log(mod->pi[i] * (phydbl)(mod->Pij_rr[mod->ns*i+j]));
- 
+  For(i,mod->ns)
+    {
+      For(j,mod->ns)
+	{
+	  For(k,mod->n_catg)
+	    {
+ 	      lnL += F[dim1*k+dim2*i+j] * log(mod->Pij_rr[dim1*k+dim2*i+j]);
+	    }
+	}
+    }
+
   return lnL;
 }
 

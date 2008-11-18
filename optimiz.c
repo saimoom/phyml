@@ -521,8 +521,8 @@ phydbl Br_Len_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
       if((tree->c_lnL > init_lnL + tol) && (quickdirty))
 	{
 	  b_fcus->l = x;
-/* 	  PhyML_Printf("\n> iter=%3d max=%3d v=%f lnL=%f init_lnL=%f tol=%f",iter,n_iter_max,(*xmin),tree->c_lnL,init_lnL,tol); */
 	  Lk_At_Given_Edge(b_fcus,tree);
+/* 	  PhyML_Printf("\n> iter=%3d max=%3d v=%f lnL=%f init_lnL=%f tol=%f",iter,n_iter_max,(*xmin),tree->c_lnL,init_lnL,tol); */
 	  return tree->c_lnL;	  
 	}
 
@@ -2141,10 +2141,9 @@ void Opt_Dist_F(phydbl *dist, phydbl *F, model *mod)
 
   if(*dist < BL_MIN) *dist = BL_MIN;
 
-
-  ax = 10.*(*dist);
-  bx =     (*dist);
-  cx = .10*(*dist);
+  ax = BL_MIN;
+  bx =  (*dist);
+  cx = BL_MAX;
 
 /*   Dist_F_Brak(&ax,&bx,&cx,F,dist,mod); */
   Dist_F_Brent(ax,bx,cx,1.E-10,1000,dist,F,mod);
