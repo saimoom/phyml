@@ -3187,7 +3187,7 @@ int Spr(phydbl init_lnL, arbre *tree)
       if(pars_diff > max_pars_diff) max_pars_diff = pars_diff;
     }
 
-  tree->mod->s_opt->pars_thresh = MAX(5,max_pars_diff);
+/*   tree->mod->s_opt->pars_thresh = MAX(5,max_pars_diff); */
 
   return 1;
 }
@@ -3227,7 +3227,7 @@ void Spr_Subtree(edge *b, node *link, arbre *tree)
 
 	  n_moves_pars = MAX(n_moves_pars,1);
 	  
-	  if(tree->mod->s_opt->spr_lnL) /* n_moves = tree->n_moves; */ n_moves = 5;
+	  if(tree->mod->s_opt->spr_lnL) /* n_moves = tree->n_moves; */ n_moves = 10;
 	  else                          n_moves = n_moves_pars;
 
 	  n_moves = MIN(n_moves,2*tree->n_otu-3);
@@ -3330,11 +3330,10 @@ int Test_All_Spr_Targets(edge *b_pulled, node *n_link, arbre *tree)
       
       if(tree->mod->s_opt->spr_lnL)
 	{
-	  Fast_Br_Len(b_target,tree,5);
+/* 	  Fast_Br_Len(b_target,tree,5); */
 	  Update_PMat_At_Given_Edge(b_target,tree);
 	}
       
-
       best_found = 0;
       tree->depth_curr_path = 0; 
       tree->curr_path[0] = b_target->left;
@@ -3456,11 +3455,11 @@ phydbl Test_One_Spr_Target(edge *b_target, edge *b_arrow, node *n_link, edge *b_
 
   if(tree->mod->s_opt->spr_lnL)
     {
-      move_lnL = Triple_Dist(n_link,tree,0);
+/*       move_lnL = Triple_Dist(n_link,tree,0); */
 /*       Update_PMat_At_Given_Edge(b_target,tree); */
 /*       Update_PMat_At_Given_Edge(b_arrow,tree); */
 /*       Update_P_Lk(tree,b_residual,n_link); */
-/*       move_lnL = Lk_At_Given_Edge(b_residual,tree); */
+      move_lnL = Lk_At_Given_Edge(b_residual,tree);
     }
   else
     {
@@ -3548,9 +3547,14 @@ void Speed_Spr_Loop(arbre *tree)
   tree->mod->s_opt->max_depth_path = 2*tree->n_otu-3;
   tree->mod->s_opt->spr_lnL        = 0;
   tree->mod->s_opt->pars_thresh    = 0;
-  lk_old = tree->c_lnL;
-  Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
-  Speed_Spr(tree,1);
+  do
+    {
+      lk_old = tree->c_lnL;
+      Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
+      Speed_Spr(tree,1);
+      if((!tree->n_improvements) || (fabs(lk_old-tree->c_lnL) < 1.)) break;
+    }
+  while(1);
   /*****************************/
 
 
@@ -3736,6 +3740,7 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, arbre *tr
   int dir_v0, dir_v1, dir_v2;
   phydbl recorded_l;
   phydbl move_lnL, best_lnL,init_lnL;
+  int n_iter;
 
   best_lnL = UNLIKELY;
   init_target = b_residual = NULL;
@@ -3815,14 +3820,18 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, arbre *tr
 	  else
 	    {
 	      /* Estimate the three edge lengths at the regraft site */
-	      move_lnL = Triple_Dist(move->n_link,tree,10);
-/* 	      move_lnL = Lk_At_Given_Edge(move->b_opp_to_link,tree); */
-	      
-	      if(move_lnL > best_lnL + tree->mod->s_opt->min_diff_lk_move)
+	      n_iter = 0;
+	      do
 		{
-		  best_lnL = move_lnL;
-		  best_move = i;
-		}
+		  move_lnL = Triple_Dist(move->n_link,tree,0);
+	      
+		  if(move_lnL > best_lnL + tree->mod->s_opt->min_diff_lk_move)
+		    {
+		      best_lnL = move_lnL;
+		      best_move = i;
+		      break;
+		    }
+		}while(n_iter++ < 10);
 
 	    }
 
