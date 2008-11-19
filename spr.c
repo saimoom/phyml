@@ -3794,24 +3794,23 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, arbre *tr
 	    {
 	      /* Estimate the three edge lengths at the regraft site */
 	      move_lnL = Triple_Dist(move->n_link,tree,5);
-	      do
-		{
-		  delta_lnL = Triple_Dist(move->n_link,tree,5) - move_lnL;		  
-		  move_lnL += delta_lnL;
+/* 	      do */
+/* 		{ */
+/* 		  delta_lnL = Triple_Dist(move->n_link,tree,5) - move_lnL;		   */
+/* 		  move_lnL += delta_lnL; */
 
-		  if(delta_lnL < -1.E-3)
-		    {
-		      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-		      Warn_And_Exit("");
-		    }
-		}while(delta_lnL > tree->mod->s_opt->min_diff_lk_global);
+/* 		  if(delta_lnL < -1.E-3) */
+/* 		    { */
+/* 		      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
+/* 		      Warn_And_Exit(""); */
+/* 		    } */
+/* 		}while(delta_lnL > tree->mod->s_opt->min_diff_lk_global); */
 
 	      if(move_lnL > best_lnL + tree->mod->s_opt->min_diff_lk_move)
 		{
-		  best_lnL = move_lnL;
-		      best_move = i;
+		  best_lnL  = move_lnL;
+		  best_move = i;
 		}
-
 	    }
 
 	  if(move_lnL > tree->best_spr->lnL)
