@@ -1215,7 +1215,6 @@ phydbl Lk_Dist(phydbl *F, phydbl dist, model *mod)
   phydbl lnL,len;
   int dim1,dim2;
 
-
   For(k,mod->n_catg)
     {
       len = dist*mod->gamma_rr[k];
