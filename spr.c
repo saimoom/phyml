@@ -3456,6 +3456,9 @@ phydbl Test_One_Spr_Target(edge *b_target, edge *b_arrow, node *n_link, edge *b_
   if(tree->mod->s_opt->spr_lnL)
     {
 /*       move_lnL = Triple_Dist(n_link,tree,0); */
+      Update_PMat_At_Given_Edge(b_target,tree);
+      Update_PMat_At_Given_Edge(b_arrow,tree);
+      Update_P_Lk(tree,b_residual,n_link);
       move_lnL = Lk_At_Given_Edge(b_residual,tree);
     }
   else
@@ -3961,7 +3964,6 @@ int Try_One_Spr_Move_Triple(spr *move, arbre *tree)
       Lk(tree);
       Pars(tree);
 
-/*       if(fabs(tree->c_lnL - move->lnL) > tree->mod->s_opt->min_diff_lk_local) */
       if(fabs(tree->c_lnL - move->lnL) > 1.E-3)
 	{
 	  if(tree->mod->s_opt->print) PhyML_Printf("\n. c_lnL = %f move_lnL = %f",
