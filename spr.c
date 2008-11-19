@@ -3227,7 +3227,7 @@ void Spr_Subtree(edge *b, node *link, arbre *tree)
 
 	  n_moves_pars = MAX(n_moves_pars,1);
 	  
-	  if(tree->mod->s_opt->spr_lnL) /* n_moves = tree->n_moves; */ n_moves = 10;
+	  if(tree->mod->s_opt->spr_lnL) /* n_moves = tree->n_moves; */ n_moves = 20;
 	  else                          n_moves = n_moves_pars;
 
 	  n_moves = MIN(n_moves,2*tree->n_otu-3);
@@ -3456,9 +3456,6 @@ phydbl Test_One_Spr_Target(edge *b_target, edge *b_arrow, node *n_link, edge *b_
   if(tree->mod->s_opt->spr_lnL)
     {
 /*       move_lnL = Triple_Dist(n_link,tree,0); */
-/*       Update_PMat_At_Given_Edge(b_target,tree); */
-/*       Update_PMat_At_Given_Edge(b_arrow,tree); */
-/*       Update_P_Lk(tree,b_residual,n_link); */
       move_lnL = Lk_At_Given_Edge(b_residual,tree);
     }
   else
@@ -3794,17 +3791,6 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, arbre *tr
 	    {
 	      /* Estimate the three edge lengths at the regraft site */
 	      move_lnL = Triple_Dist(move->n_link,tree,5);
-/* 	      do */
-/* 		{ */
-/* 		  delta_lnL = Triple_Dist(move->n_link,tree,5) - move_lnL;		   */
-/* 		  move_lnL += delta_lnL; */
-
-/* 		  if(delta_lnL < -1.E-3) */
-/* 		    { */
-/* 		      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
-/* 		      Warn_And_Exit(""); */
-/* 		    } */
-/* 		}while(delta_lnL > tree->mod->s_opt->min_diff_lk_global); */
 
 	      if(move_lnL > best_lnL + tree->mod->s_opt->min_diff_lk_move)
 		{
