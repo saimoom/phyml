@@ -5615,7 +5615,7 @@ void Set_Defaults_Optimiz(optimiz *s_opt)
   s_opt->general_pars         = 0;
   s_opt->tree_size_mult       = 1;
   s_opt->opt_five_branch      = 1;
-  s_opt->pars_thresh          = 15;
+  s_opt->pars_thresh          = 5;
   s_opt->hybrid_thresh        = 0;
   s_opt->quickdirty           = 0;
   s_opt->spr_pars             = 1;
@@ -7388,8 +7388,8 @@ void Fast_Br_Len(edge *b, arbre *tree, int n_iter_max)
   dim3   = tree->mod->ns * tree->mod->ns;
   eps_bl = BL_MIN;
 
-  F    = (phydbl *)mCalloc(dim1*dim2,sizeof(phydbl));
-  prob = (phydbl *)mCalloc(dim1*dim2,sizeof(phydbl));
+  F    = tree->triplet_struct->F_bc;
+  prob = tree->triplet_struct->F_cd;
 
   do
     {
@@ -7428,12 +7428,12 @@ void Fast_Br_Len(edge *b, arbre *tree, int n_iter_max)
 	  For(i,tree->mod->ns) For(j,tree->mod->ns) For(k,tree->mod->n_catg)
 	    F[dim3*k+dim2*i+j] += tree->data->wght[site] * prob[dim3*k+dim2*i+j];
 	}     
+
       old_l = b->l;
       Opt_Dist_F(&(b->l),F,tree->mod);
       new_l = b->l;
       n_iter++;
 
-/*     }while((fabs(old_l-new_l) > eps_bl) && (n_iter < 10)); */
     }while((fabs(old_l-new_l) > eps_bl) && (n_iter < n_iter_max));
 
 
@@ -7441,9 +7441,6 @@ void Fast_Br_Len(edge *b, arbre *tree, int n_iter_max)
   else if(b->l > BL_MAX) b->l = BL_MAX;
 
   Lk_At_Given_Edge(b,tree);
-
-  Free(F);
-  Free(prob);
 }
 
 
@@ -7480,8 +7477,8 @@ triplet *Make_Triplet_Struct(model *mod)
   triplet_struct->pi_bc           = (phydbl *)mCalloc(mod->ns,sizeof(phydbl ));
   triplet_struct->pi_cd           = (phydbl *)mCalloc(mod->ns,sizeof(phydbl ));
   triplet_struct->pi_bd           = (phydbl *)mCalloc(mod->ns,sizeof(phydbl ));
-  triplet_struct->F_bc            = (phydbl *)mCalloc(mod->ns*mod->ns,sizeof(phydbl));
-  triplet_struct->F_cd            = (phydbl *)mCalloc(mod->ns*mod->ns,sizeof(phydbl));
+  triplet_struct->F_bc            = (phydbl *)mCalloc(mod->ns*mod->ns*mod->n_catg,sizeof(phydbl));
+  triplet_struct->F_cd            = (phydbl *)mCalloc(mod->ns*mod->ns*mod->n_catg,sizeof(phydbl));
   triplet_struct->F_bd            = (phydbl *)mCalloc(mod->ns*mod->ns,sizeof(phydbl));
   triplet_struct->core            = (phydbl ****)mCalloc(mod->n_catg,sizeof(phydbl ***));
   triplet_struct->p_one_site      = (phydbl ***)mCalloc(mod->ns,sizeof(phydbl **));
@@ -7526,18 +7523,18 @@ phydbl Triple_Dist(node *a, arbre *tree, int n_iter_max)
     {
       Update_PMat_At_Given_Edge(a->b[1],tree);
       Update_PMat_At_Given_Edge(a->b[2],tree);
-      
+
       Update_P_Lk(tree,a->b[0],a);
       Fast_Br_Len(a->b[0],tree,n_iter_max);
-	  
+
       Update_P_Lk(tree,a->b[1],a);
       Fast_Br_Len(a->b[1],tree,n_iter_max);
-	  
+
       Update_P_Lk(tree,a->b[2],a);
       Fast_Br_Len(a->b[2],tree,n_iter_max);
-	  
+
       Update_P_Lk(tree,a->b[1],a);
-      Update_P_Lk(tree,a->b[0],a);      
+      Update_P_Lk(tree,a->b[0],a);
     }
 
   return tree->c_lnL;
