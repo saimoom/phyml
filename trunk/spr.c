@@ -3758,7 +3758,7 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, arbre *tr
 	       * same across all the elements of spr_list. It would not
 	       * be true in the general case
 	       */
-	      Fast_Br_Len(init_target,tree,5);
+	      Fast_Br_Len(init_target,tree,10);
 
 	      /* Record branch length at prune site */
 	      move->init_target_l = init_target->l;
