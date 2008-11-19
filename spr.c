@@ -3555,7 +3555,7 @@ void Speed_Spr_Loop(arbre *tree)
 
   /*****************************/
   lk_old = UNLIKELY;
-  tree->mod->s_opt->max_depth_path = 15;
+  tree->mod->s_opt->max_depth_path = 20;
   tree->mod->s_opt->spr_lnL        = 1;
   printf("\n. LOOP 2\n");
   do
@@ -3790,7 +3790,7 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, arbre *tr
 	  else
 	    {
 	      /* Estimate the three edge lengths at the regraft site */
-	      move_lnL = Triple_Dist(move->n_link,tree,10);
+	      move_lnL = Triple_Dist(move->n_link,tree,5);
 
 	      if(move_lnL > best_lnL + tree->mod->s_opt->min_diff_lk_move)
 		{
