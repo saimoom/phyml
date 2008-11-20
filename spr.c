@@ -3187,7 +3187,7 @@ int Spr(phydbl init_lnL, arbre *tree)
       if(pars_diff > max_pars_diff) max_pars_diff = pars_diff;
     }
 
-  tree->mod->s_opt->pars_thresh = MAX(5,max_pars_diff);
+/*   tree->mod->s_opt->pars_thresh = MAX(5,max_pars_diff); */
 
   return 1;
 }
@@ -3330,7 +3330,7 @@ int Test_All_Spr_Targets(edge *b_pulled, node *n_link, arbre *tree)
       
       if(tree->mod->s_opt->spr_lnL)
 	{
-	  Fast_Br_Len(b_target,tree,5);
+	  Fast_Br_Len(b_target,tree,0);
 /* 	  Update_PMat_At_Given_Edge(b_target,tree); */
 	}
       
@@ -3448,14 +3448,14 @@ phydbl Test_One_Spr_Target(edge *b_target, edge *b_arrow, node *n_link, edge *b_
   init_pars = tree->c_pars;
 
   Graft_Subtree(b_target,n_link,b_residual,tree);
-
+ 
   init_target_len   = b_target->l;
   init_arrow_len    = b_arrow->l;
   init_residual_len = b_residual->l;
 
   if(tree->mod->s_opt->spr_lnL)
     {
-      move_lnL = Triple_Dist(n_link,tree,0);
+      move_lnL = Triple_Dist(n_link,tree,1);
 /*       Update_PMat_At_Given_Edge(b_target,tree); */
 /*       Update_PMat_At_Given_Edge(b_arrow,tree); */
 /*       Update_P_Lk(tree,b_residual,n_link); */
@@ -3546,6 +3546,7 @@ void Speed_Spr_Loop(arbre *tree)
   lk_old = UNLIKELY;
   tree->mod->s_opt->max_depth_path = 2*tree->n_otu-3;
   tree->mod->s_opt->spr_lnL        = 0;
+  printf("\n-- LOOP 1 --\n");
   do
     {
       lk_old = tree->c_lnL;
@@ -3560,7 +3561,7 @@ void Speed_Spr_Loop(arbre *tree)
   lk_old = UNLIKELY;
   tree->mod->s_opt->max_depth_path = 20;
   tree->mod->s_opt->spr_lnL        = 1;
-  printf("\n. LOOP 2\n");
+  printf("\n-- LOOP 2 --\n");
   do
     {
       lk_old = tree->c_lnL;
@@ -3628,7 +3629,6 @@ void Speed_Spr(arbre *tree, int max_cycles)
     {
       ++step;
 
-      Init_One_Spr(tree->best_spr);
       old_lnL  = tree->c_lnL;
       old_pars = tree->c_pars;
 
@@ -3638,7 +3638,6 @@ void Speed_Spr(arbre *tree, int max_cycles)
       
       if(!tree->mod->s_opt->spr_pars)
 	{
-/* 	  Optimiz_All_Free_Param(tree,tree->mod->s_opt->print); */
 	  
 	  /* Optimise branch lengths */
 	  Optimize_Br_Len_Serie(tree->noeud[0],
@@ -3712,10 +3711,9 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, arbre *tr
   int i,j,best_move;
   int dir_v0, dir_v1, dir_v2;
   phydbl recorded_l;
-  phydbl move_lnL, best_lnL,init_lnL,delta_lnL;
+  phydbl best_lnL,init_lnL;
 
   best_lnL = UNLIKELY;
-  delta_lnL = UNLIKELY;
   init_target = b_residual = NULL;
   best_move = -1;
   init_lnL = tree->c_lnL;
@@ -3732,7 +3730,6 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, arbre *tr
   For(i,list_size)
     {
       move = spr_list[i];
-      move_lnL = UNLIKELY;
 
       if(!move)
 	{
@@ -3758,7 +3755,7 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, arbre *tr
 	       * same across all the elements of spr_list. It would not
 	       * be true in the general case
 	       */
-	      Fast_Br_Len(init_target,tree,10);
+	      Fast_Br_Len(init_target,tree,0);
 
 	      /* Record branch length at prune site */
 	      move->init_target_l = init_target->l;
@@ -3780,39 +3777,7 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, arbre *tr
 	  /* Regraft subtree */
 	  Graft_Subtree(move->b_target,move->n_link,b_residual,tree);
 	  
-	  Update_PMat_At_Given_Edge(move->b_target,tree);
-	  Update_PMat_At_Given_Edge(b_residual,tree);
-	  Update_P_Lk(tree,move->b_opp_to_link,move->n_link);
-	  move_lnL = Lk_At_Given_Edge(move->b_opp_to_link,tree);
 
-	  if(move_lnL > best_lnL + tree->mod->s_opt->min_diff_lk_move)
-	    {
-	      best_lnL = move_lnL;
-	      best_move = i;
-	    }
-	  else
-	    {
-	      /* Estimate the three edge lengths at the regraft site */
-	      move_lnL = Triple_Dist(move->n_link,tree,5);
-
-	      if(move_lnL > best_lnL + tree->mod->s_opt->min_diff_lk_move)
-		{
-		  best_lnL  = move_lnL;
-		  best_move = i;
-		}
-	    }
-
-	  if(move_lnL > tree->best_spr->lnL)
-	    {
-	      tree->best_spr->lnL           = move_lnL;
-	      tree->best_spr->pars          = tree->c_pars;
-	      tree->best_spr->b_target      = move->b_target;
-	      tree->best_spr->n_link        = move->n_link;
-	      tree->best_spr->n_opp_to_link = move->n_opp_to_link;
-	      tree->best_spr->b_opp_to_link = move->b_opp_to_link;
-	    }
-
-	  /* Record branch lengths */
 	  dir_v1 = dir_v2 = dir_v0 = -1;
 	  For(j,3)
 	    {
@@ -3820,22 +3785,55 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, arbre *tr
 	      else if(dir_v1 < 0)                           dir_v1 = j;
 	      else                                          dir_v2 = j;
 	    }
-
-	  move->l0 = move->n_link->b[dir_v0]->l;
-
+	  
+	  move->n_link->b[dir_v0]->l = move->l0;
+	  
 	  if(move->n_link->v[dir_v1]->num > move->n_link->v[dir_v2]->num)
 	    {
-	      move->l1 = move->n_link->b[dir_v2]->l;
-	      move->l2 = move->n_link->b[dir_v1]->l;
+	      move->n_link->b[dir_v2]->l = move->l1;
+	      move->n_link->b[dir_v1]->l = move->l2;
 	    }
 	  else
 	    {
-	      move->l1 = move->n_link->b[dir_v1]->l;
-	      move->l2 = move->n_link->b[dir_v2]->l;
+	      move->n_link->b[dir_v1]->l = move->l1;
+	      move->n_link->b[dir_v2]->l = move->l2;
 	    }
 
-	  /* Record likelihood */
-	  move->lnL = tree->c_lnL;
+	  if(!tree->mod->s_opt->spr_lnL)
+	    {
+	      Update_PMat_At_Given_Edge(move->b_target,tree);
+	      Update_PMat_At_Given_Edge(b_residual,tree);
+	      Update_P_Lk(tree,move->b_opp_to_link,move->n_link);
+	      move->lnL = Lk_At_Given_Edge(move->b_opp_to_link,tree);
+	    }
+
+	  if(move->lnL < best_lnL && move->lnL > best_lnL - 50.)
+/* 	  if(move->lnL < best_lnL) */
+	    {
+	      /* Estimate the three edge lengths at the regraft site */
+	      move->lnL = Triple_Dist(move->n_link,tree,0);
+	      
+	      /* Record updated branch lengths for this move */
+	      move->l0 = move->n_link->b[dir_v0]->l;
+	      
+	      if(move->n_link->v[dir_v1]->num > move->n_link->v[dir_v2]->num)
+		{
+		  move->l1 = move->n_link->b[dir_v2]->l;
+		  move->l2 = move->n_link->b[dir_v1]->l;
+		}
+	      else
+		{
+		  move->l1 = move->n_link->b[dir_v1]->l;
+		  move->l2 = move->n_link->b[dir_v2]->l;
+		}
+	    }
+
+	  if(move->lnL > best_lnL + tree->mod->s_opt->min_diff_lk_move)
+	    {
+	      best_lnL  = move->lnL;
+	      best_move = i;
+	    }
+
 
 	  /* Regraft the subtree at its original position */
 	  Prune_Subtree(move->n_link,
@@ -3911,6 +3909,7 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, arbre *tr
       Warn_And_Exit("");
     }
 #endif
+
 
   return best_move;
 }
