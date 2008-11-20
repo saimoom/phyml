@@ -988,7 +988,7 @@ void Divide_Mat_By_Vect(phydbl **F, phydbl *vect, int size);
 void Multiply_Mat_By_Vect(phydbl **F, phydbl *vect, int size);
 void Triple_Dist_Recur(node *a, node *d, arbre *tree);
 triplet *Make_Triplet_Struct(model *mod);
-void Fast_Br_Len(edge *b, arbre *tree, int n_iter_max);
+void Fast_Br_Len(edge *b, arbre *tree, int approx);
 void Fast_Br_Len_Recur(node *a, node *d, edge *b, arbre *tree);
 void Print_Tree(FILE *fp, arbre *tree);
 void Found_In_Subtree(node *a, node *d, node *target, int *match, arbre *tree);

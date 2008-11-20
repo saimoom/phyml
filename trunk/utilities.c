@@ -7372,7 +7372,7 @@ int Get_Subtree_Size(node *a, node *d)
 
 /*********************************************************/
 
-void Fast_Br_Len(edge *b, arbre *tree, int n_iter_max)
+void Fast_Br_Len(edge *b, arbre *tree, int approx)
 {
   phydbl sum;
   phydbl *prob, *F;
@@ -7391,56 +7391,61 @@ void Fast_Br_Len(edge *b, arbre *tree, int n_iter_max)
   F    = tree->triplet_struct->F_bc;
   prob = tree->triplet_struct->F_cd;
 
-  do
-    {
-      Update_PMat_At_Given_Edge(b,tree);
-            
-      For(i,dim1*dim2) F[i] = .0;
-      
-      For(site,tree->n_pattern)
-	{	  
-	  /* Joint probabilities of the states at the two ends of the edge */
-	  v_rght = -1.;
-	  For(i,tree->mod->ns)
+  Update_PMat_At_Given_Edge(b,tree);
+  
+  For(i,dim1*dim2) F[i] = .0;
+  
+  For(site,tree->n_pattern)
+    {	  
+      /* Joint probabilities of the states at the two ends of the edge */
+      v_rght = -1.;
+      For(i,tree->mod->ns)
+	{
+	  For(j,tree->mod->ns)
 	    {
-	      For(j,tree->mod->ns)
+	      For(k,tree->mod->n_catg)
 		{
-		  For(k,tree->mod->n_catg)
-		    {
-		      v_rght = (b->rght->tax)?((phydbl)(b->p_lk_tip_r[site*dim2+j])):(b->p_lk_rght[site*dim1+k*dim2+j]);
-		      
-		      prob[dim3*k+dim2*i+j]              =
-			tree->mod->gamma_r_proba[k]      *
-			tree->mod->pi[i]                 *
-			b->Pij_rr[k*dim3+i*dim2+j]       *
-			b->p_lk_left[site*dim1+k*dim2+i] *
-			v_rght;
-		    }
+		  v_rght = (b->rght->tax)?((phydbl)(b->p_lk_tip_r[site*dim2+j])):(b->p_lk_rght[site*dim1+k*dim2+j]);
+		  
+		  prob[dim3*k+dim2*i+j]              =
+		    tree->mod->gamma_r_proba[k]      *
+		    tree->mod->pi[i]                 *
+		    b->Pij_rr[k*dim3+i*dim2+j]       *
+		    b->p_lk_left[site*dim1+k*dim2+i] *
+		    v_rght;
 		}
 	    }
-	  
-	  /* Scaling */
-	  sum = .0;
-	  For(k,tree->mod->n_catg) For(i,tree->mod->ns) For(j,tree->mod->ns) sum += prob[dim3*k+dim2*i+j];
-	  For(k,tree->mod->n_catg) For(i,tree->mod->ns) For(j,tree->mod->ns) prob[dim3*k+dim2*i+j] /= sum;
-
-	  /* Expected number of each pair of states */
-	  For(i,tree->mod->ns) For(j,tree->mod->ns) For(k,tree->mod->n_catg)
-	    F[dim3*k+dim2*i+j] += tree->data->wght[site] * prob[dim3*k+dim2*i+j];
-	}     
-
-      old_l = b->l;
-      Opt_Dist_F(&(b->l),F,tree->mod);
-      new_l = b->l;
-      n_iter++;
-
-    }while((fabs(old_l-new_l) > eps_bl) && (n_iter < n_iter_max));
+	}
+      
+      /* Scaling */
+      sum = .0;
+      For(k,tree->mod->n_catg) For(i,tree->mod->ns) For(j,tree->mod->ns) sum += prob[dim3*k+dim2*i+j];
+      For(k,tree->mod->n_catg) For(i,tree->mod->ns) For(j,tree->mod->ns) prob[dim3*k+dim2*i+j] /= sum;
+      
+      /* Expected number of each pair of states */
+      For(i,tree->mod->ns) For(j,tree->mod->ns) For(k,tree->mod->n_catg)
+	F[dim3*k+dim2*i+j] += tree->data->wght[site] * prob[dim3*k+dim2*i+j];
+    }     
+  
+  old_l = b->l;
+  Opt_Dist_F(&(b->l),F,tree->mod);
+  new_l = b->l;
+  n_iter++;
+  
 
 
   if(b->l < BL_MIN)      b->l = BL_MIN;
   else if(b->l > BL_MAX) b->l = BL_MAX;
 
-  Lk_At_Given_Edge(b,tree);
+
+  if(!approx)
+    Br_Len_Brent(0.1*b->l,b->l,10.*b->l,
+		 tree->mod->s_opt->min_diff_lk_local,
+		 b,tree,
+		 tree->mod->s_opt->brent_it_max,
+		 tree->mod->s_opt->quickdirty);
+  else
+    Lk_At_Given_Edge(b,tree);
 }
 
 
@@ -7516,7 +7521,7 @@ triplet *Make_Triplet_Struct(model *mod)
 
 /*********************************************************/
 
-phydbl Triple_Dist(node *a, arbre *tree, int n_iter_max)
+phydbl Triple_Dist(node *a, arbre *tree, int approx)
 {
   if(a->tax) return UNLIKELY;
   else
@@ -7525,13 +7530,18 @@ phydbl Triple_Dist(node *a, arbre *tree, int n_iter_max)
       Update_PMat_At_Given_Edge(a->b[2],tree);
 
       Update_P_Lk(tree,a->b[0],a);
-      Fast_Br_Len(a->b[0],tree,n_iter_max);
+      Fast_Br_Len(a->b[0],tree,approx);
+/*       Br_Len_Brent (BL_MAX, a->b[0]->l,BL_MIN, 1.e-10,a->b[0],tree,50,0); */
+
 
       Update_P_Lk(tree,a->b[1],a);
-      Fast_Br_Len(a->b[1],tree,n_iter_max);
+      Fast_Br_Len(a->b[1],tree,approx);
+/*       Br_Len_Brent (BL_MAX, a->b[1]->l,BL_MIN, 1.e-10,a->b[1],tree,50,0); */
+
 
       Update_P_Lk(tree,a->b[2],a);
-      Fast_Br_Len(a->b[2],tree,n_iter_max);
+      Fast_Br_Len(a->b[2],tree,approx);
+/*       Br_Len_Brent (BL_MAX, a->b[2]->l,BL_MIN, 1.e-10,a->b[2],tree,50,0); */
 
       Update_P_Lk(tree,a->b[1],a);
       Update_P_Lk(tree,a->b[0],a);
