@@ -662,6 +662,9 @@ typedef struct __Optimiz { /* parameters to be optimised (mostly used in 'optimi
   int        max_depth_path;
   int        min_depth_path;
   int          deepest_path;
+  phydbl  max_delta_lnL_spr;
+  
+
 
   int           wim_n_rgrft;
   int           wim_n_globl;
@@ -669,6 +672,8 @@ typedef struct __Optimiz { /* parameters to be optimised (mostly used in 'optimi
   int           wim_n_optim;
   int            wim_n_best;
   int        wim_inside_opt;
+
+
 
 }optimiz;
 
