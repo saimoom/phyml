@@ -5623,6 +5623,7 @@ void Set_Defaults_Optimiz(optimiz *s_opt)
   s_opt->min_depth_path       = 0;
   s_opt->max_depth_path       = 20;
   s_opt->deepest_path         = 20;
+  s_opt->max_delta_lnL_spr    = 50.;
 
   s_opt->wim_n_rgrft          = -1;
   s_opt->wim_n_globl          = -1;
@@ -7439,7 +7440,7 @@ void Fast_Br_Len(edge *b, arbre *tree, int approx)
 
 
   if(!approx)
-    Br_Len_Brent(0.1*b->l,b->l,10.*b->l,
+    Br_Len_Brent(0.02*b->l,b->l,50.*b->l,
 		 tree->mod->s_opt->min_diff_lk_local,
 		 b,tree,
 		 tree->mod->s_opt->brent_it_max,

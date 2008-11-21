@@ -3572,6 +3572,7 @@ void Speed_Spr_Loop(arbre *tree)
   while(1);
   /*****************************/
 
+
   /*****************************/
   lk_old = UNLIKELY;
   do
@@ -3711,9 +3712,12 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, arbre *tr
   int i,j,best_move;
   int dir_v0, dir_v1, dir_v2;
   phydbl recorded_l;
-  phydbl best_lnL,init_lnL;
+  phydbl best_lnL,init_lnL,delta_lnL;
+  phydbl max_improv;
 
   best_lnL = UNLIKELY;
+  delta_lnL = 0.0;
+  max_improv = 0.0;
   init_target = b_residual = NULL;
   best_move = -1;
   init_lnL = tree->c_lnL;
@@ -3806,32 +3810,38 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, arbre *tr
 	      Update_P_Lk(tree,move->b_opp_to_link,move->n_link);
 	      move->lnL = Lk_At_Given_Edge(move->b_opp_to_link,tree);
 	    }
-
-	  if(move->lnL < best_lnL && move->lnL > best_lnL - 50.)
-/* 	  if(move->lnL < best_lnL) */
+	  else
 	    {
-	      /* Estimate the three edge lengths at the regraft site */
-	      move->lnL = Triple_Dist(move->n_link,tree,0);
-	      
-	      /* Record updated branch lengths for this move */
-	      move->l0 = move->n_link->b[dir_v0]->l;
-	      
-	      if(move->n_link->v[dir_v1]->num > move->n_link->v[dir_v2]->num)
-		{
-		  move->l1 = move->n_link->b[dir_v2]->l;
-		  move->l2 = move->n_link->b[dir_v1]->l;
-		}
-	      else
-		{
-		  move->l1 = move->n_link->b[dir_v1]->l;
-		  move->l2 = move->n_link->b[dir_v2]->l;
-		}
+	      move->lnL = Triple_Dist(move->n_link,tree,-1);
 	    }
 
+	  delta_lnL = 0.0;
+	  if((move->lnL < best_lnL) && (move->lnL > best_lnL - tree->mod->s_opt->max_delta_lnL_spr))
+	    {
+	      /* Estimate the three edge lengths at the regraft site */	      
+	      delta_lnL = Triple_Dist(move->n_link,tree,0) - move->lnL;
+	      move->lnL += delta_lnL;
+	    }
+	  
+	  /* Record updated branch lengths for this move */
+	  move->l0 = move->n_link->b[dir_v0]->l;
+	  
+	  if(move->n_link->v[dir_v1]->num > move->n_link->v[dir_v2]->num)
+	    {
+	      move->l1 = move->n_link->b[dir_v2]->l;
+	      move->l2 = move->n_link->b[dir_v1]->l;
+	    }
+	  else
+	    {
+	      move->l1 = move->n_link->b[dir_v1]->l;
+	      move->l2 = move->n_link->b[dir_v2]->l;
+	    }
+	
 	  if(move->lnL > best_lnL + tree->mod->s_opt->min_diff_lk_move)
 	    {
 	      best_lnL  = move->lnL;
 	      best_move = i;
+	      if(delta_lnL > max_improv) max_improv = delta_lnL;	     
 	    }
 
 
@@ -3873,6 +3883,8 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, arbre *tr
 
 /*   printf("\n. [ %4d/%4d ]",i,list_size); */
   
+/*   printf("\n. max_improv = %f",max_improv); */
+
   For(i,list_size)
     {
       move = spr_list[i];
@@ -3882,8 +3894,8 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, arbre *tr
 	  For(j,3) Update_P_Lk(tree,move->n_link->b[j],move->n_link);
 
 	  /* TO DO : we don't need to update all these partial likelihoods here.
-	     Would need to record only those that were along any of the paths
-	     examined above */
+	     Would need to record only those that were along the paths examined
+	     above */
 
 	  For(j,3)
 	    if(move->n_link->v[j] != move->n_opp_to_link)
