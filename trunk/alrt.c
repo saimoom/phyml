@@ -132,7 +132,6 @@ int Check_NNI_Five_Branches(arbre *tree)
 	    }
 	}
 
-
       if((tree->c_lnL < init_lnL - tree->mod->s_opt->min_diff_lk_local) || (tree->c_lnL > init_lnL + tree->mod->s_opt->min_diff_lk_local))
 	{
 	  PhyML_Printf("\n\n. tree->c_lnL = %f init_lnL = %f.",tree->c_lnL,init_lnL);
@@ -141,9 +140,8 @@ int Check_NNI_Five_Branches(arbre *tree)
 	}
 
       //Don't do any NNI if the user doesn't want to optimize topology
-
       if(!tree->mod->s_opt->opt_topo) better_found = 0;
-      if(fabs(best_gain) <= tree->mod->s_opt->min_diff_lk_move) better_found = 0;
+/*       if(fabs(best_gain) <= tree->mod->s_opt->min_diff_lk_move) better_found = 0; */
 
       //If there is one swap to do, make the best one.
       if(better_found)
@@ -184,7 +182,8 @@ void aLRT(arbre *tree)
   
   tree->both_sides = 1;
   Lk(tree);
-  
+
+
   For(i,2*tree->n_otu-3)
     if((!tree->t_edges[i]->left->tax) && (!tree->t_edges[i]->rght->tax)) 
       {
@@ -696,12 +695,12 @@ int NNI_Neigh_BL(edge *b_fcus, arbre *tree)
       if(b_fcus->nni->lk0 > b_fcus->nni->lk2) result = 1; //lk1 > lk0 > lk2
       else                                    result = 3; //lk1 > lk2 > lk0
     }
- else if((b_fcus->nni->lk2 > b_fcus->nni->lk0) && (b_fcus->nni->lk2 > b_fcus->nni->lk1))
+  else if((b_fcus->nni->lk2 > b_fcus->nni->lk0) && (b_fcus->nni->lk2 > b_fcus->nni->lk1))
     {
       if(b_fcus->nni->lk0 > b_fcus->nni->lk1) result = 2; //lk2 > lk0 > lk1
       else                                    result = 4; //lk2 > lk1 > lk0
     }
-  
+
 /*   int counter=0; */
 /*   For(site,n_patterns) */
 /*     { */

@@ -1149,16 +1149,16 @@ void R_wtree(node *pere, node *fils, char *s_tree, arbre *tree)
 	  strcat(s_tree,":");
 
 	  if(pere != tree->n_root)
-	    sprintf(s_tree+(int)strlen(s_tree),"%f",fils->b[0]->l);
+	    sprintf(s_tree+(int)strlen(s_tree),"%.10f",fils->b[0]->l);
 	  else
 	    {
 	      if(tree->n_root->v[0] == fils)
 		{
-		  sprintf(s_tree+(int)strlen(s_tree),"%f",tree->n_root->l[0]);		  
+		  sprintf(s_tree+(int)strlen(s_tree),"%.10f",tree->n_root->l[0]);		  
 		}
 	      else 
 		{
-		  sprintf(s_tree+(int)strlen(s_tree),"%f",tree->n_root->l[1]);		  
+		  sprintf(s_tree+(int)strlen(s_tree),"%.10f",tree->n_root->l[1]);		  
 		}
 	    }
 	}
@@ -1193,7 +1193,7 @@ void R_wtree(node *pere, node *fils, char *s_tree, arbre *tree)
 	  if(tree->print_boot_val)
 	    sprintf(s_tree+(int)strlen(s_tree),"%d",fils->b[p]->bip_score);
 	  else if(tree->print_alrt_val)
-	    sprintf(s_tree+(int)strlen(s_tree),"%f",fils->b[p]->ratio_test);
+	    sprintf(s_tree+(int)strlen(s_tree),"%.10f",fils->b[p]->ratio_test);
 
 	  if(tree->print_labels)
 	    {
@@ -1206,16 +1206,16 @@ void R_wtree(node *pere, node *fils, char *s_tree, arbre *tree)
 	  strcat(s_tree,":");
 
 	  if(pere != tree->n_root)
-	    sprintf(s_tree+(int)strlen(s_tree),"%f",fils->b[p]->l);
+	    sprintf(s_tree+(int)strlen(s_tree),"%.10f",fils->b[p]->l);
 	  else
 	    {
 	      if(tree->n_root->v[0] == fils)
 		{
-		  sprintf(s_tree+(int)strlen(s_tree),"%f",tree->n_root->l[0]);		  
+		  sprintf(s_tree+(int)strlen(s_tree),"%.10f",tree->n_root->l[0]);		  
 		}
 	      else 
 		{
-		  sprintf(s_tree+(int)strlen(s_tree),"%f",tree->n_root->l[1]);		  
+		  sprintf(s_tree+(int)strlen(s_tree),"%.10f",tree->n_root->l[1]);		  
 		}
 	    }
 	}
@@ -5637,44 +5637,52 @@ void Set_Defaults_Optimiz(optimiz *s_opt)
 
 void Copy_Optimiz(optimiz *ori, optimiz *cpy)
 {
-  cpy->print                = ori->print;
-  cpy->last_opt             = ori->last_opt;
-  cpy->opt_alpha            = ori->opt_alpha;
-  cpy->opt_kappa            = ori->opt_kappa;
-  cpy->opt_bl               = ori->opt_bl;
-  cpy->opt_lambda           = ori->opt_lambda;
-  cpy->opt_pinvar           = ori->opt_pinvar;
-  cpy->opt_cov_delta        = ori->opt_cov_delta;
-  cpy->opt_cov_alpha        = ori->opt_cov_alpha;
-  cpy->opt_num_param        = ori->opt_num_param;
-  cpy->opt_cov_free_rates   = ori->opt_cov_free_rates;
-  cpy->opt_rr               = ori->opt_rr;
-  cpy->init_lk              = ori->init_lk;
-  cpy->n_it_max             = ori->n_it_max;
-  cpy->opt_topo             = ori->opt_topo;
-  cpy->topo_search          = ori->topo_search;
-  cpy->random_input_tree    = ori->random_input_tree;
-  cpy->n_rand_starts        = ori->n_rand_starts;
-  cpy->brent_it_max         = ori->brent_it_max;
-  cpy->steph_spr            = ori->steph_spr;
-  cpy->user_state_freq      = ori->user_state_freq;
-  cpy->min_diff_lk_local    = ori->min_diff_lk_local;
-  cpy->min_diff_lk_global   = ori->min_diff_lk_global;
-  cpy->min_diff_lk_move     = ori->min_diff_lk_move;
-  cpy->p_moves_to_examine   = ori->p_moves_to_examine;
-  cpy->fast_nni             = ori->fast_nni;
-  cpy->greedy               = ori->greedy;
-  cpy->general_pars         = ori->general_pars;
-  cpy->tree_size_mult       = ori->tree_size_mult;
-  cpy->pars_thresh          = ori->pars_thresh;
-  cpy->hybrid_thresh        = ori->hybrid_thresh;
-
-  cpy->wim_n_rgrft          = ori->wim_n_rgrft;
-  cpy->wim_n_globl          = ori->wim_n_globl;
-  cpy->wim_max_dist         = ori->wim_max_dist;
-  cpy->wim_n_optim          = ori->wim_n_optim;
-  cpy->wim_n_best           = ori->wim_n_best;
-  cpy->wim_inside_opt       = ori->wim_inside_opt;
+  cpy->print                =   ori->print                ;  
+  cpy->last_opt             =   ori->last_opt             ;  
+  cpy->opt_alpha            =   ori->opt_alpha            ;  
+  cpy->opt_kappa            =   ori->opt_kappa            ;  
+  cpy->opt_bl               =   ori->opt_bl               ;  
+  cpy->opt_lambda           =   ori->opt_lambda           ;  
+  cpy->opt_pinvar           =   ori->opt_pinvar           ;  
+  cpy->opt_num_param        =   ori->opt_num_param        ;  
+  cpy->opt_cov_delta        =   ori->opt_cov_delta        ;  
+  cpy->opt_cov_alpha        =   ori->opt_cov_alpha        ;  
+  cpy->opt_cov_free_rates   =   ori->opt_cov_free_rates   ;  
+  cpy->opt_rr               =   ori->opt_rr               ;  
+  cpy->init_lk              =   ori->init_lk              ;  
+  cpy->n_it_max             =   ori->n_it_max             ;  
+  cpy->opt_topo             =   ori->opt_topo             ;  
+  cpy->topo_search          =   ori->topo_search          ;  
+  cpy->random_input_tree    =   ori->random_input_tree    ;  
+  cpy->n_rand_starts        =   ori->n_rand_starts        ;  
+  cpy->brent_it_max         =   ori->brent_it_max         ;  
+  cpy->steph_spr            =   ori->steph_spr            ;  
+  cpy->user_state_freq      =   ori->user_state_freq      ;  
+  cpy->min_diff_lk_local    =   ori->min_diff_lk_local    ;  
+  cpy->min_diff_lk_global   =   ori->min_diff_lk_global   ;  
+  cpy->min_diff_lk_move     =   ori->min_diff_lk_move     ;  
+  cpy->p_moves_to_examine   =   ori->p_moves_to_examine   ;  
+  cpy->fast_nni             =   ori->fast_nni             ;  
+  cpy->greedy               =   ori->greedy               ;  
+  cpy->general_pars         =   ori->general_pars         ;  
+  cpy->tree_size_mult       =   ori->tree_size_mult       ;  
+  cpy->opt_five_branch      =   ori->opt_five_branch      ;  
+  cpy->pars_thresh          =   ori->pars_thresh          ;  
+  cpy->hybrid_thresh        =   ori->hybrid_thresh        ;  
+  cpy->quickdirty           =   ori->quickdirty           ;  
+  cpy->spr_pars             =   ori->spr_pars             ;  
+  cpy->spr_lnL              =   ori->spr_lnL              ;  
+  cpy->min_depth_path       =   ori->min_depth_path       ;  
+  cpy->max_depth_path       =   ori->max_depth_path       ;  
+  cpy->deepest_path         =   ori->deepest_path         ;  
+  cpy->max_delta_lnL_spr    =   ori->max_delta_lnL_spr    ;  
+			                                     
+  cpy->wim_n_rgrft          =   ori->wim_n_rgrft          ;  
+  cpy->wim_n_globl          =   ori->wim_n_globl          ;  
+  cpy->wim_max_dist         =   ori->wim_max_dist         ;  
+  cpy->wim_n_optim          =   ori->wim_n_optim          ;  
+  cpy->wim_n_best           =   ori->wim_n_best           ;  
+  cpy->wim_inside_opt       =   ori->wim_inside_opt       ;  			       
 }
 
 /*********************************************************/
