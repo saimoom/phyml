@@ -3163,9 +3163,6 @@ int Spr(phydbl init_lnL, arbre *tree)
   new_pars         = -1;
   old_pars         = -1;
 
-
-  printf("\n. Pars thresh = %d\n",tree->mod->s_opt->pars_thresh);
-
   Reset_Spr_List(tree);
 
   For(br,2*tree->n_otu-3)
@@ -3546,7 +3543,6 @@ void Speed_Spr_Loop(arbre *tree)
   lk_old = UNLIKELY;
   tree->mod->s_opt->max_depth_path = 2*tree->n_otu-3;
   tree->mod->s_opt->spr_lnL        = 0;
-  printf("\n-- LOOP 1 --\n");
   do
     {
       lk_old = tree->c_lnL;
@@ -3562,7 +3558,6 @@ void Speed_Spr_Loop(arbre *tree)
   lk_old = UNLIKELY;
   tree->mod->s_opt->max_depth_path = 10;
   tree->mod->s_opt->spr_lnL        = 1;
-  printf("\n-- LOOP 2 --\n");
   do
     {
       lk_old = tree->c_lnL;
@@ -3575,10 +3570,7 @@ void Speed_Spr_Loop(arbre *tree)
 
   /*****************************/
   lk_old = UNLIKELY;
-  tree->mod->s_opt->max_depth_path    = 10;
   tree->mod->s_opt->max_delta_lnL_spr = 200.;
-  tree->mod->s_opt->spr_lnL        = 1;
-  printf("\n-- LOOP 3 --\n");
   do
     {
       lk_old = tree->c_lnL;
@@ -3588,8 +3580,6 @@ void Speed_Spr_Loop(arbre *tree)
     }
   while(1);
   /*****************************/
-
-
 
 
   /*****************************/
