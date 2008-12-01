@@ -5588,7 +5588,7 @@ void Set_Defaults_Optimiz(optimiz *s_opt)
   s_opt->print                = 1;
   s_opt->last_opt             = 1;
   s_opt->opt_alpha            = 1;
-  s_opt->opt_kappa            = 0;
+  s_opt->opt_kappa            = 1;
   s_opt->opt_bl               = 1;
   s_opt->opt_lambda           = 0;
   s_opt->opt_pinvar           = 0;
