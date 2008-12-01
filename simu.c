@@ -42,8 +42,12 @@ void Simu_Loop(arbre *tree)
   while(tree->c_lnL > lk_old + tree->mod->s_opt->min_diff_lk_global);
 
 
-  Round_Optimize(tree,tree->data,ROUND_MAX);
-  Check_NNI_Five_Branches(tree);
+  do
+    {
+      Simu(tree,10);
+      if(!Check_NNI_Five_Branches(tree)) break;
+    }while(1);
+  /*****************************/
   
   PhyML_Printf("\n");
 
