@@ -44,7 +44,6 @@ void Simu_Loop(arbre *tree)
 
   do
     {
-      Simu(tree,10);
       if(!Check_NNI_Five_Branches(tree)) break;
     }while(1);
   /*****************************/
