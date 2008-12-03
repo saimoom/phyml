@@ -95,7 +95,6 @@ int main(int argc, char **argv)
       n_otu = 0;
       best_lnL = UNLIKELY;
       data = Get_Seq(io,0);
-
       
       if(data)
 	{
@@ -105,7 +104,6 @@ int main(int argc, char **argv)
 
 	  Free_Seq(data,alldata->n_otu);
 	  Check_Ambiguities(alldata,io->mod->datatype,io->mod->stepsize);
-
 
 	  for(num_tree=(io->n_trees == 1)?(0):(num_data_set);num_tree < io->n_trees;num_tree++)
 	    {
@@ -168,7 +166,7 @@ int main(int argc, char **argv)
 		      fflush(NULL);
 		    }
 
-		  /* Record most likely tree in a string of characters */
+		  /* Record the most likely tree in a string of characters */
 		  if(tree->c_lnL > best_lnL)
 		    {
 		      best_lnL = tree->c_lnL;
@@ -228,6 +226,8 @@ int main(int argc, char **argv)
 	      if(io->n_data_sets == 1) rewind(io->fp_out_tree);
 	      PhyML_Fprintf(io->fp_out_tree,"%s\n",most_likely_tree);
 	      
+	      Free(most_likely_tree);
+
 	      if(io->n_trees > 1 && io->n_data_sets > 1) break;
 	    }
 	  Free_Cseq(alldata);
@@ -246,7 +246,6 @@ int main(int argc, char **argv)
   if(io->fp_out_trees)  fclose(io->fp_out_trees);
   if(io->fp_out_stats)  fclose(io->fp_out_stats);
 
-  Free(most_likely_tree);
   Free_Input(io);
 
   time(&t_end);

@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 use File::Copy;
 use Cwd;
 
@@ -72,3 +72,13 @@ copy "phyml.bat",$output_dir."/phyml/bin" || die "Could not copy file phyml.bat.
 copy("/Users/stephane/latex/phyml/phyml_manual.pdf",$output_dir."/phyml/doc") || die "Could not copy file phyml_manual.pdf.\n";
 copy("/Users/stephane/data/phyml_example/nucleic",$output_dir."/phyml/examples/") || die "Could not copy example file 'nucleic'";
 copy("/Users/stephane/data/phyml_example/proteic",$output_dir."/phyml/examples/") || die "Could not copy example file 'proteic'";
+
+
+chdir($output_dir);
+
+($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
+my @abbr = qw( January February March April May June July August September October November December );
+$year = $year+1900;
+$tarfile = "phyml_".$mday.$abbr[$mon].$year.".tar.gz";
+system("tar -zcvf $tarfile ./phyml/");
+print "<$mday>", "<$abbr[$mon]>", "<$year>","\n";
