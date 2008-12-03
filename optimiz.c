@@ -172,7 +172,6 @@ phydbl Generic_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
   phydbl a,b,d,etemp,fu,fv,fw,fx,p,q,r,tol1,tol2,u,v,w,x,xm;
   phydbl e=0.0;
   phydbl old_lnL,init_lnL;
-  phydbl best_fu, best_x;
 
   
   d=0.0;
@@ -183,8 +182,6 @@ phydbl Generic_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
   (*xmin) = fabs(bx);
   fw=fv=fx=-Return_Lk(tree);
   init_lnL = -fw;
-  best_fu = fw;
-  best_x  = fabs(bx);;
 
 /*   PhyML_Printf("\n. init_lnL = %f a=%f b=%f c=%f\n",init_lnL,ax,bx,cx); */
 
@@ -193,21 +190,20 @@ phydbl Generic_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
       xm=0.5*(a+b);
       tol2=2.0*(tol1=tol*fabs(x)+BRENT_ZEPS);
 
-      if((tree->c_lnL > init_lnL + tol) && (quickdirty))
-	{
-	  (*xmin) = best_x;
-/* 	  PhyML_Printf("\n> iter=%3d max=%3d v=%f lnL=%f init_lnL=%f tol=%f",iter,n_iter_max,(*xmin),tree->c_lnL,init_lnL,tol); */
-	  Lk(tree);	  
-	  return tree->c_lnL;	  
-	}
 
-      if(((fabs(tree->c_lnL-old_lnL) < tol) && (tree->c_lnL > init_lnL)) || (iter > n_iter_max - 1))
+      if(fabs(x - xm) <= (tol2 - 0.5 * (b - a)))
 	{
-	  (*xmin) = best_x;
-	  Lk(tree);	  
-/* 	  PhyML_Printf("\n* iter=%3d max=%3d v=%f lnL=%f init_lnL=%f old_lnL=%f",iter,n_iter_max,(*xmin),tree->c_lnL,init_lnL,old_lnL); */
+	  *xmin = x;
+	  Lk(tree);
+	  if(tree->c_lnL < init_lnL - tree->mod->s_opt->min_diff_lk_local)
+	    {
+	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	      Warn_And_Exit("");
+	    }
 	  return tree->c_lnL;
 	}
+
+
       
       if(fabs(e) > tol1) 
 	{
@@ -222,21 +218,20 @@ phydbl Generic_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 	  if(fabs(p) >= fabs(0.5*q*etemp) || p <= q*(a-x) || p >= q*(b-x))
 	    {
 	      d=BRENT_CGOLD*(e=(x >= xm ? a-x : b-x));
-	      /*                   PhyML_Printf("Golden section step\n"); */
+/* 	      PhyML_Printf("Golden section step\n"); */
 	    }
 	  else
 	    {
 	      d=p/q;
 	      u=x+d;
-	      if (u-a < tol2 || b-u < tol2)
-		d=SIGN(tol1,xm-x);
-	      /*                   PhyML_Printf("Parabolic step\n"); */
+	      if (u-a < tol2 || b-u < tol2) d=SIGN(tol1,xm-x);
+/* 	      PhyML_Printf("Parabolic step [e=%f]\n",e); */
 	    }
         }
       else
 	{
 	  d=BRENT_CGOLD*(e=(x >= xm ? a-x : b-x));
-	  /*               PhyML_Printf("Golden section step (default)\n"); */
+/* 	  PhyML_Printf("Golden section step (default) [e=%f tol1=%f a=%f b=%f d=%f]\n",e,tol1,a,b,d); */
 	}
       
       u=(fabs(d) >= tol1 ? x+d : x+SIGN(tol1,d));
@@ -244,31 +239,29 @@ phydbl Generic_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
       old_lnL = tree->c_lnL;
       fu = -Return_Lk(tree);
       
-      if(fu < best_fu)
-	{
-	  best_fu = fu;
-	  best_x = fabs(u);
-	}
+/*       PhyML_Printf("\n. iter=%d/%d param=%f loglk=%f",iter,BRENT_ITMAX,*xmin,tree->c_lnL); */
 
-/*       PhyML_Printf("\n. iter=%d/%d param=%f loglk=%f (best=%f %f)",iter,BRENT_ITMAX,*xmin,tree->c_lnL,best_fu,best_x); */
-
-      if(fu <= fx) 
+      if(fu <= fx)
+/*       if(fu < fx)  */
 	{
 	  if(u >= x) a=x; else b=x;
+/* 	  if(u > x) a=x; else b=x; */
 	  SHFT(v,w,x,u)
 	  SHFT(fv,fw,fx,fu)
 	} 
       else
 	{
 	  if (u < x) a=u; else b=u;
-	  if (fu <= fw || w == x) 
+	  if (fu <= fw || w == x)
+/* 	  if (fu < fw || fabs(w-x) < 1.E-10)  */
 	    {
 	      v=w;
 	      w=u;
 	      fv=fw;
 	      fw=fu;
 	    } 
-	  else if (fu <= fv || v == x || v == w) 
+	  else if (fu <= fv || v == x || v == w)
+/* 	  else if (fu < fv || fabs(v-x) < 1.E-10 || fabs(v-w) < 1.E-10)  */
 	    {
 	      v=u;
 	      fv=fu;
@@ -1104,7 +1097,7 @@ void Round_Optimize(arbre *tree, allseq *data, int n_round_max)
   lk_new = tree->c_lnL;
   lk_old = UNLIKELY;
   n_round = 0;
-  each = 1;
+  each = 0;
   tol = 1.e-2;
   root = tree->noeud[0];
   
@@ -1331,7 +1324,8 @@ void Optimiz_All_Free_Param(arbre *tree, int verbose)
 	{
 	  if(tree->mod->n_catg > 1)
 	    Optimize_Single_Param_Generic(tree,&(tree->mod->alpha),
-					  .01,100.,
+/* 					  .01,100., */
+					  tree->mod->alpha/2.,tree->mod->alpha*2.,
 					  tree->mod->s_opt->min_diff_lk_global,
 					  tree->mod->s_opt->brent_it_max,
 					  tree->mod->s_opt->quickdirty);

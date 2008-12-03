@@ -14,7 +14,7 @@ the GNU public licence.  See http://www.opensource.org for details.
 #define CURR_H
 
 void Simu_Loop(arbre *tree);
-void Simu(arbre *tree,int n_step_max);
+int Simu(arbre *tree,int n_step_max);
 void Select_Edges_To_Swap(arbre *tree,edge **sorted_b,int *n_neg);
 void Update_Bl(arbre *tree,phydbl fact);
 void Make_N_Swap(arbre *tree,edge **b,int beg,int end);

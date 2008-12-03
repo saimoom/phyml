@@ -27,17 +27,16 @@ void Simu_Loop(arbre *tree)
 {
   phydbl lk_old;
 
-  
   tree->both_sides = 0;
   Lk(tree);
 
   PhyML_Printf("\n. Maximizing likelihood (using NNI moves)...\n");
-
+  
   do
     {
       lk_old = tree->c_lnL;
       Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
-      Simu(tree,10);
+      if(!Simu(tree,10)) Check_NNI_Five_Branches(tree);
     }
   while(tree->c_lnL > lk_old + tree->mod->s_opt->min_diff_lk_global);
 
@@ -54,12 +53,12 @@ void Simu_Loop(arbre *tree)
 
 /*********************************************************/
 
-void Simu(arbre *tree, int n_step_max)
+int Simu(arbre *tree, int n_step_max)
 {
   phydbl old_loglk,n_iter,lambda;
   int i,n_neg,n_tested,n_without_swap,n_tot_swap,step,it_lim_without_swap;
   edge **sorted_b,**tested_b;
-  int each,each_invar,opt_free_param;
+  int opt_free_param;
   int recurr;
 
   sorted_b = (edge **)mCalloc(tree->n_otu-3,sizeof(edge *));
@@ -72,9 +71,7 @@ void Simu(arbre *tree, int n_step_max)
   n_tested            = 0;
   n_without_swap      = 0;
   step                = 0;
-  each                = 4;
   lambda              = .75;
-  each_invar          = 2;
   n_tot_swap          = 0;
   opt_free_param      = 0;
   recurr              = 0;
@@ -94,10 +91,7 @@ void Simu(arbre *tree, int n_step_max)
       ++step;
       
       if(step > n_step_max) break;
-      
-      each--;
-      each_invar--;
-      
+           
       tree->both_sides = 1;
       Lk(tree);
       
@@ -127,23 +121,11 @@ void Simu(arbre *tree, int n_step_max)
 	  if(!tree->n_swap) n_neg = 0;
 	  
 	  For(i,2*tree->n_otu-3) tree->t_edges[i]->l_old = tree->t_edges[i]->l;	    
-/* 	  Optimiz_All_Free_Param(tree,tree->mod->s_opt->print); */
 	  tree->both_sides = 1;
 	  Lk(tree);
 	}
       else 
-	{
-
-	  if(!each)
-	    {
-	      opt_free_param = 1;
-	      each           = 4;
-	      if(tree->mod->n_catg < tree->mod->n_catg) tree->mod->n_catg++;
-/* 	      Optimiz_All_Free_Param(tree,tree->mod->s_opt->print); */
-	      tree->both_sides = 1;
-	      Lk(tree);
-	    }
-	  
+	{	  
 	  old_loglk = tree->c_lnL;	    
 	  Fill_Dir_Table(tree);
 	  Fix_All(tree);
@@ -177,6 +159,8 @@ void Simu(arbre *tree, int n_step_max)
 
   Free(sorted_b);
   Free(tested_b);
+
+  return n_tested;
 }
 
 /*********************************************************/

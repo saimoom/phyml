@@ -485,18 +485,19 @@ void Launch_Interface_Data_Type(option *io)
       {
 	if(io->mod->datatype == NT)
 	  {
-	    io->mod->datatype   = 1;
-	    io->mod->stepsize   = 1;
-	    io->mod->ns         = 20;
-	    io->mod->whichmodel = LG;
+	    io->mod->datatype         = 1;
+	    io->mod->stepsize         = 1;
+	    io->mod->ns               = 20;
+	    io->mod->s_opt->opt_kappa = 0;
+	    io->mod->whichmodel       = LG;
 	    strcpy(io->mod->modelname,"LG");
 	  }
 	else
 	  {
-	    io->mod->datatype   = 0;
-	    io->mod->stepsize   = 1;
-	    io->mod->ns         = 4;
-	    io->mod->whichmodel = HKY85;
+	    io->mod->datatype         = 0;
+	    io->mod->stepsize         = 1;
+	    io->mod->ns               = 4;
+	    io->mod->whichmodel       = HKY85;
 	    strcpy(io->mod->modelname,"HKY85");
 	    strcpy(io->nt_or_cd,"nucleotides");
 	  }
@@ -1124,7 +1125,6 @@ void Launch_Interface_Model(option *io)
 	    {
 	      io->mod->kappa = 4.0;
 	      io->mod->s_opt->opt_num_param = 1;
-	      io->mod->s_opt->opt_kappa = 1;
 	      io->mod->s_opt->opt_kappa = 1;
 	      if(io->mod->whichmodel == TN93)
 		io->mod->s_opt->opt_lambda = 1;
