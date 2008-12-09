@@ -211,7 +211,7 @@ int Compute_Likelihood_Ratio_Test(edge *tested_edge, arbre *tree)
 {
   int result=0;
 
-  tested_edge->ratio_test     = 0.0;
+  tested_edge->ratio_test     =  0.0;
   tested_edge->alrt_statistic = -1.0;
   
   if((tested_edge->nni->lk0 > tested_edge->nni->lk1) && (tested_edge->nni->lk0 > tested_edge->nni->lk2))
@@ -263,12 +263,14 @@ int Compute_Likelihood_Ratio_Test(edge *tested_edge, arbre *tree)
   //statistic is not valid, give the negative statistics if wished, or a zero support.
   else if((tested_edge->nni->lk1 > tested_edge->nni->lk0) && (tested_edge->nni->lk1 > tested_edge->nni->lk2))
     {
-      tested_edge->ratio_test = 2*(tested_edge->nni->lk0-tested_edge->nni->lk1);
+/*       tested_edge->ratio_test = 2*(tested_edge->nni->lk0-tested_edge->nni->lk1); */
+      tested_edge->ratio_test = -1.0;
       if(tree->io->ratio_test > 1) tested_edge->alrt_statistic = 0.0;
     }
   else if((tested_edge->nni->lk2 > tested_edge->nni->lk0) && (tested_edge->nni->lk2 > tested_edge->nni->lk1))
     {
-      tested_edge->ratio_test = 2*(tested_edge->nni->lk0-tested_edge->nni->lk2);
+/*       tested_edge->ratio_test = 2*(tested_edge->nni->lk0-tested_edge->nni->lk2); */
+      tested_edge->ratio_test = -1.0;
       if(tree->io->ratio_test > 1) tested_edge->alrt_statistic = 0.0;
     }
   else // lk0 ~ lk1 ~ lk2

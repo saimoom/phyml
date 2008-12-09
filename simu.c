@@ -30,7 +30,7 @@ void Simu_Loop(arbre *tree)
   tree->both_sides = 0;
   Lk(tree);
 
-  PhyML_Printf("\n. Maximizing likelihood (using NNI moves)...\n");
+  if(tree->mod->s_opt->print) PhyML_Printf("\n. Maximizing likelihood (using NNI moves)...\n");
   
   do
     {
@@ -47,7 +47,7 @@ void Simu_Loop(arbre *tree)
     }while(1);
   /*****************************/
   
-  PhyML_Printf("\n");
+  if(tree->mod->s_opt->print) PhyML_Printf("\n");
 
 }
 
