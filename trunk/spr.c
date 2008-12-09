@@ -3532,13 +3532,11 @@ void Speed_Spr_Loop(arbre *tree)
   tree->mod->s_opt->spr_pars       = 0;
   tree->mod->s_opt->quickdirty     = 0;
 
-  PhyML_Printf("\n. Maximizing likelihood (using SPR moves)...\n");
+  if(tree->mod->s_opt->print) PhyML_Printf("\n. Maximizing likelihood (using SPR moves)...\n");
 
   Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
   tree->best_lnL = tree->c_lnL;
 
-
-  printf("\n. ** LOOP 1 ** \n");
   /*****************************/
   lk_old = UNLIKELY;
   tree->mod->s_opt->max_depth_path = 2*tree->n_otu-3;
@@ -3553,8 +3551,6 @@ void Speed_Spr_Loop(arbre *tree)
   while(1);
   /*****************************/
 
-
-  printf("\n. ** LOOP 2 ** \n");
   /*****************************/
   lk_old = UNLIKELY;
   tree->mod->s_opt->max_depth_path = 10;
@@ -3569,21 +3565,6 @@ void Speed_Spr_Loop(arbre *tree)
   while(1);
   /*****************************/
 
-/*   /\*****************************\/ */
-/*   lk_old = UNLIKELY; */
-/*   tree->mod->s_opt->max_delta_lnL_spr = 200.; */
-/*   do */
-/*     { */
-/*       lk_old = tree->c_lnL; */
-/*       Optimiz_All_Free_Param(tree,tree->mod->s_opt->print); */
-/*       Speed_Spr(tree,1); */
-/*       if((!tree->n_improvements) || (fabs(lk_old-tree->c_lnL) < 1.)) break; */
-/*     } */
-/*   while(1); */
-/*   /\*****************************\/ */
-
-
-  printf("\n. ** LOOP 3 ** \n");
   /*****************************/
   lk_old = UNLIKELY;
   do
@@ -3595,8 +3576,6 @@ void Speed_Spr_Loop(arbre *tree)
   while(fabs(lk_old - tree->c_lnL) > tree->mod->s_opt->min_diff_lk_global);
   /*****************************/
 
-
-  printf("\n. ** LOOP 4 ** \n");
   /*****************************/
   do
     {
@@ -3604,7 +3583,7 @@ void Speed_Spr_Loop(arbre *tree)
     }while(1);
   /*****************************/
 
-  PhyML_Printf("\n");
+  if(tree->mod->s_opt->print) PhyML_Printf("\n");
 
 }
 /*********************************************************/
