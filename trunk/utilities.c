@@ -5615,7 +5615,7 @@ void Set_Defaults_Optimiz(optimiz *s_opt)
   s_opt->general_pars         = 0;
   s_opt->tree_size_mult       = 1;
   s_opt->opt_five_branch      = 1;
-  s_opt->pars_thresh          = 15;
+  s_opt->pars_thresh          = 5;
   s_opt->hybrid_thresh        = 0;
   s_opt->quickdirty           = 0;
   s_opt->spr_pars             = 1;
