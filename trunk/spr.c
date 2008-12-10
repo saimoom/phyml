@@ -3554,17 +3554,20 @@ void Speed_Spr_Loop(arbre *tree)
 
 
   /*****************************/
-  lk_old = UNLIKELY;
-  tree->mod->s_opt->max_depth_path = 10;
-  tree->mod->s_opt->spr_lnL        = 1;
-  do
+  if(tree->mod->datatype == NT)
     {
-      lk_old = tree->c_lnL;
-      Speed_Spr(tree,1);
-      if(tree->n_improvements) Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
-      if((!tree->n_improvements) || (fabs(lk_old-tree->c_lnL) < 1.)) break;
+      lk_old = UNLIKELY;
+      tree->mod->s_opt->max_depth_path = 10;
+      tree->mod->s_opt->spr_lnL        = 1;
+      do
+	{
+	  lk_old = tree->c_lnL;
+	  Speed_Spr(tree,1);
+	  if(tree->n_improvements) Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
+	  if((!tree->n_improvements) || (fabs(lk_old-tree->c_lnL) < 1.)) break;
+	}
+      while(1);
     }
-  while(1);
   /*****************************/
 
 
