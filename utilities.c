@@ -5615,13 +5615,13 @@ void Set_Defaults_Optimiz(optimiz *s_opt)
   s_opt->general_pars         = 0;
   s_opt->tree_size_mult       = 1;
   s_opt->opt_five_branch      = 1;
-  s_opt->pars_thresh          = 5;
+  s_opt->pars_thresh          = 10;
   s_opt->hybrid_thresh        = 0;
   s_opt->quickdirty           = 0;
   s_opt->spr_pars             = 1;
   s_opt->spr_lnL              = 0;
   s_opt->min_depth_path       = 0;
-  s_opt->max_depth_path       = 20;
+  s_opt->max_depth_path       = 200;
   s_opt->deepest_path         = 20;
   s_opt->max_delta_lnL_spr    = 50.;
 
@@ -7441,11 +7441,8 @@ void Fast_Br_Len(edge *b, arbre *tree, int approx)
   new_l = b->l;
   n_iter++;
   
-
-
   if(b->l < BL_MIN)      b->l = BL_MIN;
   else if(b->l > BL_MAX) b->l = BL_MAX;
-
 
   if(!approx)
     Br_Len_Brent(0.02*b->l,b->l,50.*b->l,

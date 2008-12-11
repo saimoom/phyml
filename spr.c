@@ -3557,7 +3557,7 @@ void Speed_Spr_Loop(arbre *tree)
   if(tree->mod->datatype == NT)
     {
       lk_old = UNLIKELY;
-      tree->mod->s_opt->max_depth_path = 10;
+      tree->mod->s_opt->max_depth_path = 5;
       tree->mod->s_opt->spr_lnL        = 1;
       do
 	{
@@ -3797,17 +3797,17 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, arbre *tr
 	      move->n_link->b[dir_v2]->l = move->l2;
 	    }
 
-/* 	  if(!tree->mod->s_opt->spr_lnL) */
-/* 	    { */
-/* 	      Update_PMat_At_Given_Edge(move->b_target,tree); */
-/* 	      Update_PMat_At_Given_Edge(b_residual,tree); */
-/* 	      Update_P_Lk(tree,move->b_opp_to_link,move->n_link); */
-/* 	      move->lnL = Lk_At_Given_Edge(move->b_opp_to_link,tree); */
-/* 	    } */
-/* 	  else */
-/* 	    { */
+	  if(!tree->mod->s_opt->spr_lnL)
+	    {
+	      Update_PMat_At_Given_Edge(move->b_target,tree);
+	      Update_PMat_At_Given_Edge(b_residual,tree);
+	      Update_P_Lk(tree,move->b_opp_to_link,move->n_link);
+	      move->lnL = Lk_At_Given_Edge(move->b_opp_to_link,tree);
+	    }
+	  else
+	    {
 	      move->lnL = Triple_Dist(move->n_link,tree,-1);
-/* 	    } */
+	    }
 
 	  delta_lnL = 0.0;
 	  if((move->lnL < best_lnL) && (move->lnL > best_lnL - tree->mod->s_opt->max_delta_lnL_spr))
