@@ -5621,7 +5621,7 @@ void Set_Defaults_Optimiz(optimiz *s_opt)
   s_opt->spr_pars             = 1;
   s_opt->spr_lnL              = 0;
   s_opt->min_depth_path       = 0;
-  s_opt->max_depth_path       = 200;
+  s_opt->max_depth_path       = 20;
   s_opt->deepest_path         = 20;
   s_opt->max_delta_lnL_spr    = 50.;
 
