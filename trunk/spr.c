@@ -3218,11 +3218,11 @@ void Spr_Subtree(edge *b, node *link, arbre *tree)
 	  n_moves_pars = 0;
 	  n_moves      = 0;
 	  
-	  For(i,tree->n_moves) 
-	    if(curr_pars - tree->spr_list[i]->pars >= -tree->mod->s_opt->pars_thresh) 
-	      n_moves_pars++; 
-
-	  n_moves_pars = MAX(n_moves_pars,1);
+/* 	  For(i,tree->n_moves)  */
+/* 	    if(curr_pars - tree->spr_list[i]->pars >= -tree->mod->s_opt->pars_thresh)  */
+/* 	      n_moves_pars++;  */
+/* 	  n_moves_pars = MAX(n_moves_pars,1); */
+	  n_moves_pars = 10;
 	  
 	  if(tree->mod->s_opt->spr_lnL) n_moves = 20;
 	  else                          n_moves = n_moves_pars;
@@ -3533,6 +3533,7 @@ void Speed_Spr_Loop(arbre *tree)
   tree->mod->s_opt->quickdirty     = 0;
 
   if(tree->mod->s_opt->print) PhyML_Printf("\n. Maximizing likelihood (using SPR moves)...\n");
+  
 
   Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
   tree->best_lnL = tree->c_lnL;
@@ -3807,7 +3808,7 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, arbre *tr
 	  /* 	  else */
 	  /* 	    { */
 	  move->lnL = Triple_Dist(move->n_link,tree,-1);
-	      /* 	    } */
+	  /* 	    } */
 
 	  delta_lnL = 0.0;
 	  if((move->lnL < best_lnL) && (move->lnL > best_lnL - tree->mod->s_opt->max_delta_lnL_spr))
