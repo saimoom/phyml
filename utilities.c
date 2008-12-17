@@ -24,6 +24,7 @@ the GNU public licence. See http://www.opensource.org for details.
 #include "m4.h"
 #include "mc.h"
 #include "rates.h"
+#include "libgen.h"
 
 #ifdef MPI
 #include "mpi_boot.h"
@@ -3988,7 +3989,7 @@ void Print_Fp_Out(FILE *fp_out, time_t t_beg, time_t t_end, arbre *tree, option 
       Print_Banner_Small(fp_out);
     }
 
-  PhyML_Fprintf(fp_out,"\n\n. Sequence filename: \t\t\t%s",io->in_seq_file);
+  PhyML_Fprintf(fp_out,"\n\n. Sequence filename: \t\t\t%s", basename (io->in_seq_file));
   PhyML_Fprintf(fp_out,"\n\n. Data set: \t\t\t\t#%d",n_data_set);
 
   if(io->mod->s_opt->random_input_tree)
@@ -8015,7 +8016,7 @@ void Print_Settings(option *io)
   PhyML_Printf(" ooooooooooooooooooooooooooooo        CURRENT SETTINGS        ooooooooooooooooooooooooooooooooooo\n");
   PhyML_Printf("                                 ..........................                                      \n");
 
-  PhyML_Printf("\n                . Sequence filename : \t\t\t\t %s", io->in_seq_file);
+  PhyML_Printf("\n                . Sequence filename : \t\t\t\t %s", basename (io->in_seq_file));
   PhyML_Printf("\n                . Data type :             \t\t\t %s", (io->mod->datatype ? "aa" : "dna"));
   PhyML_Printf("\n                . Sequence format : \t\t\t\t %s", io->interleaved ? "interleaved" : "sequential");
   PhyML_Printf("\n                . Number of data sets : \t\t\t %d", io->n_data_sets);
@@ -8084,7 +8085,7 @@ void Print_Settings(option *io)
     case 0: { strcpy(s,"BioNJ");     break; }
     case 1: { strcpy(s,"parsimony"); break; }
     case 2: { strcpy(s,"user tree ("); 
-	strcat(s,io->in_tree_file); 
+	strcat(s, basename (io->in_tree_file)); 
 	strcat(s,")");         break; }
     }
 
