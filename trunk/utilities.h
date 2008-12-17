@@ -1108,5 +1108,6 @@ void Dist_To_Root(node *n_root, arbre *tree);
 int Is_Duplication_Node(node *n, char **tax_set, int n_tax, arbre *tree);
 phydbl Dexp(phydbl x, phydbl param);
 int Sort_Edges_Depth(arbre *tree, edge **sorted_edges, int n_elem);
+char *Basename(char *path);
 
 #endif
