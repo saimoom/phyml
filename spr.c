@@ -3218,11 +3218,10 @@ void Spr_Subtree(edge *b, node *link, arbre *tree)
 	  n_moves_pars = 0;
 	  n_moves      = 0;
 	  
-/* 	  For(i,tree->n_moves)  */
-/* 	    if(curr_pars - tree->spr_list[i]->pars >= -tree->mod->s_opt->pars_thresh)  */
-/* 	      n_moves_pars++;  */
-/* 	  n_moves_pars = MAX(n_moves_pars,1); */
-	  n_moves_pars = 10;
+	  For(i,tree->n_moves)
+	    if(curr_pars - tree->spr_list[i]->pars >= -tree->mod->s_opt->pars_thresh)
+	      n_moves_pars++;
+	  n_moves_pars = MAX(n_moves_pars,1);
 	  
 	  if(tree->mod->s_opt->spr_lnL) n_moves = 20;
 	  else                          n_moves = n_moves_pars;
