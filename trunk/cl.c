@@ -83,6 +83,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
       {"use_median",        no_argument,NULL,45},
       {"run_id",            required_argument,NULL,46},
       {"pars",              no_argument,NULL,47},
+      {"quiet",             no_argument,NULL,48},
       {0,0,0,0}
     };
 
@@ -93,6 +94,11 @@ void Read_Command_Line(option *io, int argc, char **argv)
       {
 	switch(c)
 	  {
+	  case 48 : 
+	    {
+	      io->quiet = 1;
+	      break;
+	    }
 	  case 'p' : case 47 : 
 	    {
 	      io->in_tree = 1;

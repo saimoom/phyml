@@ -5532,6 +5532,7 @@ void Set_Defaults_Input(option* io)
   io->rm_ambigu                  = 0;
   io->compress_seq               = 1;
   io->append_run_ID              = 0;
+  io->quiet                      = 0;
 }
 
 /*********************************************************/
@@ -8328,11 +8329,13 @@ void Check_Memory_Amount(arbre *tree)
       char answer;
       PhyML_Printf("\n. WARNING: this analysis requires at least %.0fMo of memory space.\n",(phydbl)nbytes/(1.E+06));
 #ifndef BATCH
-      PhyML_Printf("\n. Do you really want to continue ? [Y/n] ");
-      scanf("%c", &answer);
-      if(answer == '\n') answer = 'Y';
-      else if(answer == 'n' || answer == 'N') Warn_And_Exit("\n\n");
-      else getchar();
+      if (! tree->io->quiet) {
+        PhyML_Printf("\n. Do you really want to continue ? [Y/n] ");
+        scanf("%c", &answer);
+        if(answer == '\n') answer = 'Y';
+        else if(answer == 'n' || answer == 'N') Warn_And_Exit("\n\n");
+        else getchar();
+      }
 #endif
     }
   else if(((phydbl)nbytes/(1.E+06)) > 100.)
@@ -8440,11 +8443,13 @@ void Warn_And_Exit(char *s)
 {
   PhyML_Fprintf(stdout,"%s",s);
   fflush(NULL);
-  #ifndef BATCH
-  char c;
-  PhyML_Fprintf(stdout,"\n. Type any key to exit.\n");
-  fscanf(stdin,"%c",&c);
-  #endif
+#ifndef BATCH
+//  if (! tree->io->quiet) {
+    char c;
+    PhyML_Fprintf(stdout,"\n. Type any key to exit.\n");
+    fscanf(stdin,"%c",&c);
+//  }
+#endif
   Exit("\n");
 }
 

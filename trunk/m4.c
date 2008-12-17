@@ -177,9 +177,9 @@ int M4_main(int argc, char **argv)
 
 		  if((!num_data_set) && (!num_tree) && (!num_rand_tree)) 
 		    {
-#ifndef BATCH
+//#ifndef BATCH
 		      Check_Memory_Amount(tree);
-#endif
+//#endif
 		    }
 
 		  Order_Tree_CSeq(tree,alldata);
