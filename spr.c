@@ -3223,7 +3223,7 @@ void Spr_Subtree(edge *b, node *link, arbre *tree)
 	      n_moves_pars++;
 	  n_moves_pars = MAX(n_moves_pars,1);
 	  
-	  if(tree->mod->s_opt->spr_lnL) n_moves = 20;
+	  if(tree->mod->s_opt->spr_lnL) n_moves = 15;
 	  else                          n_moves = n_moves_pars;
 
 	  n_moves = MIN(n_moves,2*tree->n_otu-3);
