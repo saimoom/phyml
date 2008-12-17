@@ -610,6 +610,7 @@ typedef struct __Option { /* mostly used in 'options.c' */
   int                   compress_seq;
   int                  append_run_ID;
   char                *run_id_string;
+  int                          quiet; /* 0 is the default. 1: no interactive question (for batch mode) */
 
 }option;
 

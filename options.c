@@ -227,6 +227,11 @@ void Usage()
 
   PhyML_Printf("\n");
 
+  PhyML_Printf("%s\n\t--quiet%s\n",BOLD,FLAT);
+  PhyML_Printf("\t\t%sNo interactive question (for running in batch mode).\n",FLAT);
+
+  PhyML_Printf("\n");
+
   PhyML_Printf("%sPHYLIP-LIKE INTERFACE\n""%s\n\tYou can also use PhyML with no argument, in this case change the value of\n",BOLD,FLAT);
   PhyML_Printf("%s\ta parameter by typing its corresponding character as shown on screen.\n\n",FLAT);
  
