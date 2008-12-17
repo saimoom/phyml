@@ -22,6 +22,7 @@ the GNU public licence. See http://www.opensource.org for details.
 #include "eigen.h"
 #include "pars.h"
 #include "alrt.h"
+#include "libgen.h"
 
 #ifdef MPI
 #include "mpi_boot.h"
@@ -222,7 +223,7 @@ int main(int argc, char **argv)
 		}
 
 	      /* Print the most likely tree in the output file */
-	      PhyML_Printf("\n. Printing the most likely tree in file '%s'...\n",io->out_tree_file);
+	      PhyML_Printf("\n. Printing the most likely tree in file '%s'...\n", basename (io->out_tree_file));
 	      if(io->n_data_sets == 1) rewind(io->fp_out_tree);
 	      PhyML_Fprintf(io->fp_out_tree,"%s\n",most_likely_tree);
 	      
