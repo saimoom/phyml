@@ -84,7 +84,7 @@ void Launch_Interface(option *io)
       char choix;
       PhyML_Printf("\n. Err: model incompatible with the data type. Please use JC69, K80, F81, HKY, F84, TN93 or GTR\n");
       PhyML_Printf("\n. Type any key to exit.\n");
-      scanf("%c",&choix);
+      if(!scanf("%c",&choix)) Exit("\n");
       Warn_And_Exit("\n");
     }
   else if ((io->mod->datatype == AA) && (io->mod->whichmodel < 11))
@@ -92,7 +92,7 @@ void Launch_Interface(option *io)
       char choix;
       PhyML_Printf("\n. Err: model incompatible with the data type. Please use LG, Dayhoff, JTT, MtREV, WAG, DCMut, RtREV, CpREV, VT, Blosum62, MtMam, MtArt, HIVw or HIVb.\n");
       PhyML_Printf("\n. Type any key to exit.\n");
-      scanf("%c",&choix);
+      if(!scanf("%c",&choix)) Exit("\n");
       Exit("\n");
     }
   
@@ -295,7 +295,7 @@ void Launch_Interface_Input(option *io)
       do
 	{
 	  PhyML_Printf("\n. Please type R or A > ");
-	  scanf("%c",&choix);
+	  if(!scanf("%c",&choix)) Exit("\n");
 	  if(choix == '\n') choix = 'r';
 	  else getchar();
 	  if(++n_trial>10) Exit("\n");
@@ -339,7 +339,7 @@ void Launch_Interface_Input(option *io)
       do
 	{
 	  PhyML_Printf("\n. Please type R or A > ");
-	  scanf("%c",&choix);
+	  if(!scanf("%c",&choix)) Exit("\n");
 	  if(choix == '\n') choix = 'r';
 	  else getchar();
 	  Uppercase(&choix);
@@ -416,7 +416,7 @@ void Launch_Interface_Data_Type(option *io)
 	 "(type '+', '-', 'Y' or other letter for one to change)  ");
 
  
-  scanf("%c",&choix);
+  if(!scanf("%c",&choix)) Exit("\n");
   if(choix != '\n') getchar(); /* \n */
   fflush(NULL);
 
@@ -467,7 +467,7 @@ void Launch_Interface_Data_Type(option *io)
 	  {
 	    PhyML_Printf("\n. Bootstrap option is not allowed with multiple data sets !\n");
 	    PhyML_Printf("\n. Type any key to exit.");
-	    scanf("%c",&choix);
+	    if(!scanf("%c",&choix)) Exit("\n");
 	    Exit("\n");
 	  }
 
@@ -707,7 +707,7 @@ void Launch_Interface_Model(option *io)
 	 "(type '+', '-', 'Y' or other letter for one to change)  ");
 
 
-  scanf("%c",&choix);
+  if(!scanf("%c",&choix)) Exit("\n");
   if(choix != '\n') getchar(); /* \n */
 
   Uppercase(&choix);
@@ -882,7 +882,7 @@ void Launch_Interface_Model(option *io)
 			       io->mod->user_b_freq[2],
 			       io->mod->user_b_freq[3]);			  
 			PhyML_Printf("\n. Enter any key to continue.\n");
-			scanf("%c",bs);
+			if(!scanf("%c",bs)) Exit("\n");
 		      }
 
 		    For(i,4) Free(bases[i]);
@@ -907,7 +907,7 @@ void Launch_Interface_Model(option *io)
 	  case 0 :
 	    {
 	      PhyML_Printf("\n. Optimise alpha ? [Y/n] ");
-	      scanf("%c",&answer);
+	      if(!scanf("%c",&answer)) Exit("\n");
 	      if(answer == '\n') answer = 'Y';
 	      else getchar();
 	      break;
@@ -915,7 +915,7 @@ void Launch_Interface_Model(option *io)
 	  case 1 :
 	    {
 	      PhyML_Printf("\n. Optimise alpha ? [N/y] ");
-	      scanf("%c",&answer);
+	      if(!scanf("%c",&answer)) Exit("\n");
 	      if(answer == '\n') answer = 'N';
 	      else getchar();
 	      break;
@@ -929,7 +929,7 @@ void Launch_Interface_Model(option *io)
 	  {
 	    if(++n_trial > 10) Exit("\n. Err : wrong answers !");
 	    PhyML_Printf("\n. Optimise alpha ? [N/y] ");
-	    scanf("%c",&answer);
+	    if(!scanf("%c",&answer)) Exit("\n");
 	    if(answer == '\n') answer = 'N';
 	    else getchar();
 	  }
@@ -1004,7 +1004,7 @@ void Launch_Interface_Model(option *io)
 	  case 0 :
 	    {
 	      PhyML_Printf("\n. Optimise p-invar ? [Y/n] ");
-	      scanf("%c", &answer);
+	      if(!scanf("%c", &answer)) Exit("\n");
 	      if(answer == '\n') answer = 'Y';
 	      else getchar();
 	      break;
@@ -1012,7 +1012,7 @@ void Launch_Interface_Model(option *io)
 	  case 1 :
 	    {
 	      PhyML_Printf("\n. Optimise p-invar ? [N/y] ");
-	      scanf("%c", &answer);
+	      if(!scanf("%c", &answer)) Exit("\n");
 	      if(answer == '\n') answer = 'N';
 	      else getchar();
 	      break;
@@ -1026,7 +1026,7 @@ void Launch_Interface_Model(option *io)
 	  {
 	    if(++n_trial > 10) Exit("\n. Err : wrong answers !");
 	    PhyML_Printf("\n. Optimise p-invar ? [N/y] ");
-	    scanf("%c", &answer);
+	    if(!scanf("%c", &answer)) Exit("\n");
 	    if(answer == '\n') answer = 'N';
 	    else getchar();
 	  }
@@ -1083,7 +1083,7 @@ void Launch_Interface_Model(option *io)
 	  {
 	    PhyML_Printf("\n. 'K' is not a valid choice for this model\n");
 	    PhyML_Printf("\n. Type any key to exit.\n");
-	    scanf("%c",&choix);
+	    if(!scanf("%c",&choix)) Exit("\n");
 	    Exit("\n");
 	  }
 
@@ -1092,7 +1092,7 @@ void Launch_Interface_Model(option *io)
 	  case 0 :
 	    {
 	      PhyML_Printf("\n. Optimise ts/tv ratio ? [Y/n] ");
-	      scanf("%c", &answer);
+	      if(!scanf("%c", &answer)) Exit("\n");
 	      if(answer == '\n') answer = 'Y';
 	      else getchar();
 	      break;
@@ -1100,7 +1100,7 @@ void Launch_Interface_Model(option *io)
 	  case 1 :
 	    {
 	      PhyML_Printf("\n. Optimise ts/tv ratio ? [N/y] ");
-	      scanf("%c", &answer);
+	      if(!scanf("%c", &answer)) Exit("\n");
 	      if(answer == '\n') answer = 'N';
 	      else getchar();
 	      break;
@@ -1114,7 +1114,7 @@ void Launch_Interface_Model(option *io)
 	  {
 	    if(++n_trial > 10) Exit("\n. Err : wrong answers !");
 	    PhyML_Printf("\n. Optimise ts/tv ratio ? [N/y] ");
-	    scanf("%c", &answer);
+	    if(!scanf("%c", &answer)) Exit("\n");
 	    if(answer == '\n') answer = 'N';
 	    else getchar();
 	  }
@@ -1447,7 +1447,7 @@ void Launch_Interface_Topo_Search(option *io)
 	 "(type '+', '-', 'Y' or other letter for one to change)  ");
 
 
-  scanf("%c",&choix);
+  if(!scanf("%c",&choix)) Exit("\n");
   if(choix != '\n') getchar(); /* \n */
 
   Free(s);
@@ -1635,7 +1635,7 @@ void Launch_Interface_Branch_Support(option *io)
 	 "(type '+', '-', 'Y' or other letter for one to change)  ");
 
 
-  scanf("%c",&choix);
+  if(!scanf("%c",&choix)) Exit("\n");
   if(choix != '\n') getchar(); /* \n */
 
   Uppercase(&choix);
@@ -1665,7 +1665,7 @@ void Launch_Interface_Branch_Support(option *io)
 	      {
 		PhyML_Printf("\n. Bootstrap option is not allowed with multiple data sets.\n");
 		PhyML_Printf("\n. Type any key to exit.\n");
-		scanf("%c",&choix);
+		if(!scanf("%c",&choix)) Exit("\n");
 		Exit("\n");
 	      }
 
@@ -1686,7 +1686,7 @@ void Launch_Interface_Branch_Support(option *io)
 	    PhyML_Printf("\n. Print bootstrap trees (and statistics) ? (%s) > ",
 		   (io->print_boot_trees)?("Y/n"):("y/N"));
 
-	    scanf("%c",&answer);
+	    if(!scanf("%c",&answer)) Exit("\n");
 	    if(answer == '\n') answer = (io->print_boot_trees)?('Y'):('N');
 	    else getchar();
 
@@ -1803,7 +1803,7 @@ void Launch_Interface_Multigene(option *io)
       
       
       PhyML_Printf("\n. Do you want to use your own initial tree ? [N/y] ");
-      scanf("%c", &choix);
+      if(!scanf("%c", &choix)) Exit("\n");
       if(choix != '\n') getchar();
       
       n_trial = 0;
@@ -1812,7 +1812,7 @@ void Launch_Interface_Multigene(option *io)
 	{
 	  if(++n_trial > 10) Exit("\n. Err : wrong answers !");
 	  PhyML_Printf("\n. Do you want to use your own initial tree ? [N/y] ? ");
-	  scanf("%c", &choix);
+	  if(!scanf("%c", &choix)) Exit("\n");
 	  if(choix == '\n') choix = 'N';
 	  else getchar();
 	}

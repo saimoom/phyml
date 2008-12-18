@@ -538,14 +538,14 @@ int GetDaa (phydbl *daa, phydbl *pi, char *file_name)
    for(i=0; i<naa; i++)  
      for(j=0; j<i; j++)  
        {
-	 fscanf(fdaa, "%lf", &daa[i*naa+j]);
+	 if(fscanf(fdaa, "%lf", &daa[i*naa+j])) Exit("\n. err aaRatefile");
 	 daa[j*naa+i]=daa[i*naa+j];
 	 if (dmax<daa[i*naa+j]) dmax=daa[i*naa+j];
 	 if (dmin>daa[i*naa+j]) dmin=daa[i*naa+j];
        }
    
    For(i,naa) {
-     if(fscanf(fdaa,"%lf",&pi[i])!=1) Exit("err aaRatefile");
+     if(fscanf(fdaa,"%lf",&pi[i])!=1) Exit("\n. err aaRatefile");
    }
    sum = 0.0;
    For(i, naa) sum += pi[i];
