@@ -1,4 +1,4 @@
-AM_CFLAGS=-O3 -fomit-frame-pointer -funroll-loops -Wall
+AM_CFLAGS=-O3 -fomit-frame-pointer -funroll-loops -Wall 
 # AM_CFLAGS=-g
 
 AM_LDFLAGS=-lm

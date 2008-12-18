@@ -1627,7 +1627,7 @@ seq **Read_Seq_Sequential(FILE *in, int *n_otu)
 	      *n_otu = atoi(line);
 	      data = (seq **)mCalloc(*n_otu,sizeof(seq *));
 	      if(*n_otu <= 0) Warn_And_Exit("\n. Problem with sequence format\n");
-	      fscanf(in,"%s",line);
+	      if(!fscanf(in,"%s",line)) Exit("\n");
 	      len = atoi(line);
 	      if(len <= 0) Warn_And_Exit("\n. Problem with sequence format\n");
 	      else readok = 1;
@@ -1647,7 +1647,7 @@ seq **Read_Seq_Sequential(FILE *in, int *n_otu)
       data[i]->state = (char *)mCalloc(T_MAX_SEQ,sizeof(char));
       data[i]->is_ambigu = NULL;
       sprintf(format, "%%%ds", T_MAX_NAME);
-      fscanf(in, format, data[i]->name);
+      if(!fscanf(in, format, data[i]->name)) Exit("\n");
 
       while(data[i]->len < len) Read_One_Line_Seq(&data,i,in);
 
@@ -1694,7 +1694,7 @@ seq **Read_Seq_Interleaved(FILE *in, int *n_otu)
 	      *n_otu = atoi(line);
 	      data = (seq **)mCalloc(*n_otu,sizeof(seq *));
 	      if(*n_otu <= 0) Warn_And_Exit("\n. Problem with sequence format\n");
-	      fscanf(in,"%s",line);
+	      if(!fscanf(in,"%s",line)) Exit("\n");
 	      len = atoi(line);
 	      if(len <= 0) Warn_And_Exit("\n. Problem with sequence format\n");
 	      else readok = 1;
@@ -1716,7 +1716,7 @@ seq **Read_Seq_Interleaved(FILE *in, int *n_otu)
       data[i]->is_ambigu = NULL;
       sprintf(format, "%%%ds", T_MAX_NAME);
 /*       sprintf(format, "%%%ds", 10); */
-      fscanf(in, format, data[i]->name);
+      if(!fscanf(in, format, data[i]->name)) Exit("\n");
       if(!Read_One_Line_Seq(&data,i,in))
 	{
 	  end = 1;
@@ -8330,10 +8330,16 @@ void Check_Memory_Amount(arbre *tree)
 #ifndef BATCH
       if (! tree->io->quiet) {
         PhyML_Printf("\n. Do you really want to continue ? [Y/n] ");
-        scanf("%c", &answer);
-        if(answer == '\n') answer = 'Y';
-        else if(answer == 'n' || answer == 'N') Warn_And_Exit("\n\n");
-        else getchar();
+        if(scanf("%c", &answer))
+	  {
+	    if(answer == '\n') answer = 'Y';
+	    else if(answer == 'n' || answer == 'N') Warn_And_Exit("\n\n");
+	    else getchar();
+	  }
+	else
+	  {
+	    Warn_And_Exit("\n\n");
+	  }
       }
 #endif
     }
@@ -8446,7 +8452,7 @@ void Warn_And_Exit(char *s)
 //  if (! tree->io->quiet) {
     char c;
     PhyML_Fprintf(stdout,"\n. Type any key to exit.\n");
-    fscanf(stdin,"%c",&c);
+    if(!fscanf(stdin,"%c",&c)) Exit("");
 //  }
 #endif
   Exit("\n");
@@ -8463,13 +8469,13 @@ void Read_Qmat(double *daa, phydbl *pi, FILE *fp)
     {
       For(j,19)
 	{
-	  fscanf(fp,"%lf",&(daa[i*20+j]));
+	  if(!fscanf(fp,"%lf",&(daa[i*20+j]))) Exit("\n");
 	  daa[j*20+i] = daa[i*20+j];
 	  if(j == i-1) break; 
 	}
     }
 
-  For(i,20) { fscanf(fp,"%lf",pi+i);}
+  For(i,20) { if(!fscanf(fp,"%lf",pi+i)) Exit("\n");}
   sum = .0;
   For(i,20) sum += pi[i];
   if(fabs(sum - 1.) > 1.E-06)
