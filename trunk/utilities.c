@@ -24,7 +24,6 @@ the GNU public licence. See http://www.opensource.org for details.
 #include "m4.h"
 #include "mc.h"
 #include "rates.h"
-#include "libgen.h"
 
 #ifdef MPI
 #include "mpi_boot.h"
