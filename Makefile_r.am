@@ -14,7 +14,7 @@ AM_LDFLAGS=-lm
 DEFS=-DUNIX -D$(PROG) -DDEBUG
 
 # SCOMPILE = $(CC) $(SDEFS) $(DEFS) $(INCLUDES) $(AM_CFLAGS) $(SCFLAGS)
-SCOMPILE = $(CC) $(SDEFS) $(DEFS) $(INCLUDES) $(AM_CFLAGS) $(SCFLAGS) -I/Library/Frameworks/R.framework/Versions/2.5/Resources/include/
+SCOMPILE = $(CC) $(SDEFS) $(DEFS) $(INCLUDES) $(AM_CFLAGS) $(SCFLAGS) -I/Library/Frameworks/R.framework/Versions/2.8/Resources/include/
 SCCLD = $(CC) $(LIBS)
 SLINK = $(SCCLD) $(AM_CFLAGS) $(SLDFLAGS) $(LDFLAGS) $(INCLUDES) $(AM_LDFLAGS) -bundle -flat_namespace -undefined suppress
 

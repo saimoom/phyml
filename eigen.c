@@ -24,6 +24,10 @@
 #include "eigen.h"
 #include "free.h"
 
+#ifdef RWRAPPER
+#include <R.h>
+#endif
+
 #define BASE        2    /* base of floating point arithmetic */
 #define DIGITS     40    /* no. of digits to the base BASE in the fraction */
 /*
@@ -924,4 +928,51 @@ void det_1D(double *a, int n, double *d)
   int j;
   ludcmp_1D(a,n,d);
   For(j,n) *d *= a[j*n+j];
+}
+
+/* Find L such that L.L' = A */
+double *Cholesky_Decomp(double *A,  int dim)
+{
+  int i,j,k;
+  double sum;
+  double *L;
+
+  L = (double *)mCalloc(dim*dim,sizeof(double));
+  
+  For(i,dim)
+    {
+      for(j=0;j<=i;j++)
+	{
+	  sum = A[i*dim+j];
+	  for(k=0;k<j;k++)
+	    {
+	      sum -= L[i*dim+k] * L[j*dim+k];
+	    }
+	  if(i == j)
+	    {
+	      if(sum < 0.0)
+		{
+		  For(i,dim)
+		    {
+		      For(j,dim)
+			{
+			  PhyML_Printf("%f ",A[i*dim+j]);
+			}
+		      PhyML_Printf("\n");
+		    }
+		  
+		  PhyML_Printf("\n. sum=%f i=%d j=%d",sum,i,j);
+		  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+		  Warn_And_Exit("");
+		}
+	      L[i*dim+i] = sqrt(sum);
+	    }
+	  else
+	    {
+	      L[i*dim+j] = sum / L[j*dim+j];
+	    }
+	}
+    }
+
+  return L;
 }
