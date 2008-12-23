@@ -38,6 +38,8 @@ the GNU public licence. See http://www.opensource.org for details.
 #define  SPR_MOVE            1
 #define  BEST_OF_NNI_AND_SPR 2
 
+#define  PI 3.14159
+
 #define  YES 1
 #define  NO  0
 
@@ -1109,5 +1111,7 @@ int Is_Duplication_Node(node *n, char **tax_set, int n_tax, arbre *tree);
 phydbl Dexp(phydbl x, phydbl param);
 int Sort_Edges_Depth(arbre *tree, edge **sorted_edges, int n_elem);
 char *Basename(char *path);
+phydbl Rnorm(phydbl mean, phydbl sd);
+phydbl *Rnorm_Multid(phydbl *mu, phydbl *cov, int dim);
 
 #endif

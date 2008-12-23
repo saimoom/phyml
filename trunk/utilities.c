@@ -636,10 +636,22 @@ phydbl Dpois(phydbl x, phydbl param)
 
 phydbl Rand_Normal_Deviate(phydbl mean, phydbl sd)
 {
-  int i;
-  phydbl x=.0;
-  For(i,12) x += (phydbl)rand()/(RAND_MAX);
-  return sd * (x-6.0) + mean;
+  /* Box-Muller transformation */
+  phydbl u1, u2;
+
+  u1=(phydbl)rand()/(RAND_MAX);
+  u2=(phydbl)rand()/(RAND_MAX);
+ 
+  u1 = sqrt(-2*log(u1))*cos(2*PI*u2);
+
+  return u1*sd+mean;
+}
+
+/*********************************************************/
+
+phydbl Rnorm(phydbl mean, phydbl sd)
+{
+  return Rand_Normal_Deviate(mean,sd);
 }
 
 /*********************************************************/
@@ -654,6 +666,27 @@ int Rand_Int(int min, int max)
   u += min;
 
   return (int)floor(u);
+}
+
+/*********************************************************/
+
+phydbl *Rnorm_Multid(phydbl *mu, phydbl *cov, int dim)
+{
+  phydbl *L,*x,*y;
+  int i,j;
+  
+  x = (phydbl *)mCalloc(dim,sizeof(phydbl));
+  y = (phydbl *)mCalloc(dim,sizeof(phydbl));
+
+  L = (phydbl *)Cholesky_Decomp(cov,dim);
+  For(i,dim) x[i]=Rnorm(0.0,1.0);
+  For(i,dim) For(j,dim) y[i] += L[i*dim+j]*x[j];
+  For(i,dim) y[i] += mu[i];
+
+  Free(L);
+  Free(x);
+
+  return(y);
 }
 
 /*********************************************************/

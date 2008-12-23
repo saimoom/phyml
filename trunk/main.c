@@ -43,7 +43,6 @@ int main(int argc, char **argv)
   phydbl best_lnL,most_likely_size,tree_size;
   int r_seed;
   char *most_likely_tree;
-
   
 #ifdef MPI
   int rc;

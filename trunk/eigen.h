@@ -34,6 +34,7 @@ int cxtoy (complex *x, complex *y, int n);
 int cmatby (complex *a, complex *b, complex *c, int n,int m,int k);
 int cmatout (FILE * fout, complex *x, int n, int m);
 int cmatinv( complex *x, int n, int m, double *space);
+double *Cholesky_Decomp(double *A,  int dim);
 
 
 #endif
