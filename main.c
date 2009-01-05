@@ -43,6 +43,7 @@ int main(int argc, char **argv)
   phydbl best_lnL,most_likely_size,tree_size;
   int r_seed;
   char *most_likely_tree;
+
   
 #ifdef MPI
   int rc;
@@ -199,7 +200,8 @@ int main(int argc, char **argv)
 		  Free_Tree_Pars(tree);
 		  Free_Tree_Lk(tree);
 		  Free_Tree(tree);
-		}
+		}	      
+
 
 	      /* Launch bootstrap analysis */
 	      if(mod->bootstrap) 

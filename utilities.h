@@ -1113,5 +1113,8 @@ int Sort_Edges_Depth(arbre *tree, edge **sorted_edges, int n_elem);
 char *Basename(char *path);
 phydbl Rnorm(phydbl mean, phydbl sd);
 phydbl *Rnorm_Multid(phydbl *mu, phydbl *cov, int dim);
+phydbl *Covariance_Matrix(arbre *tree);
+phydbl *Matrix_Mult(phydbl *A, phydbl *B, int nra, int nca, int nrb, int ncb);
+phydbl *Matrix_Transpose(phydbl *A, int dim);
 
 #endif

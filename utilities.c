@@ -678,7 +678,10 @@ phydbl *Rnorm_Multid(phydbl *mu, phydbl *cov, int dim)
   x = (phydbl *)mCalloc(dim,sizeof(phydbl));
   y = (phydbl *)mCalloc(dim,sizeof(phydbl));
 
+
   L = (phydbl *)Cholesky_Decomp(cov,dim);
+
+
   For(i,dim) x[i]=Rnorm(0.0,1.0);
   For(i,dim) For(j,dim) y[i] += L[i*dim+j]*x[j];
   For(i,dim) y[i] += mu[i];
@@ -9975,6 +9978,130 @@ char *Basename(char *path)
 }
 
 /*********************************************************/
+
+phydbl *Covariance_Matrix(arbre *tree)
+{
+  phydbl *cov, *mean,var_min;
+  int *ori_wght,*site_num;
+  int dim,i,j,replicate,n_site,position,sample_size;
+
+  sample_size = 50;
+  dim = 2*tree->n_otu-3;
+
+  cov      = (phydbl *)mCalloc(dim*dim,sizeof(phydbl));
+  mean     = (phydbl *)mCalloc(    dim,sizeof(phydbl));
+  ori_wght = (int *)mCalloc(tree->data->crunch_len,sizeof(int));
+  site_num = (int *)mCalloc(tree->data->init_len,sizeof(int));
+  
+  var_min = 1./pow(tree->data->init_len,2);
+
+  For(i,tree->data->crunch_len) ori_wght[i] = tree->data->wght[i];
+
+  n_site = 0;
+  For(i,tree->data->crunch_len) For(j,tree->data->wght[i])
+    {
+      site_num[n_site] = i;
+      n_site++;
+    }
+
+  tree->mod->s_opt->print = 0;
+  For(replicate,sample_size)
+    {
+      For(i,tree->data->crunch_len) tree->data->wght[i] = 0;
+
+      For(i,tree->data->init_len)
+	{
+	  position = Rand_Int(0,(int)(tree->data->init_len-1.0));
+	  tree->data->wght[site_num[position]] += 1;
+	}
+
+      Round_Optimize(tree,tree->data,ROUND_MAX);
+      
+      For(i,2*tree->n_otu-3) For(j,2*tree->n_otu-3) cov[i*dim+j] += tree->t_edges[i]->l * tree->t_edges[j]->l;  
+      For(i,2*tree->n_otu-3) mean[i] += tree->t_edges[i]->l;
+
+      printf("."); fflush(NULL);
+   }
+
+  For(i,2*tree->n_otu-3) mean[i] /= (phydbl)sample_size;
+  
+  For(i,2*tree->n_otu-3) For(j,2*tree->n_otu-3) cov[i*dim+j] /= (phydbl)sample_size;
+  For(i,2*tree->n_otu-3) For(j,2*tree->n_otu-3) cov[i*dim+j] -= mean[i]*mean[j];
+  For(i,2*tree->n_otu-3) if(cov[i*dim+i] < var_min) cov[i*dim+i] = var_min;
+  
+
+/*   printf("\n"); */
+/*   For(i,2*tree->n_otu-3) printf("%f %f\n",mean[i],tree->t_edges[i]->l); */
+/*   printf("\n"); */
+/*   printf("\n"); */
+/*   For(i,2*tree->n_otu-3) */
+/*     { */
+/*       For(j,2*tree->n_otu-3) */
+/* 	{ */
+/* 	  printf("%G\n",cov[i*dim+j]); */
+/* 	} */
+/*       printf("\n"); */
+/*     } */
+
+  For(i,tree->data->crunch_len) tree->data->wght[i] = ori_wght[i];
+
+  Free(mean);
+  Free(ori_wght);
+  Free(site_num);
+
+  return cov;
+}
+
 /*********************************************************/
+
+phydbl *Matrix_Mult(phydbl *A, phydbl *B, int nra, int nca, int nrb, int ncb)
+{
+  int i,j,k;
+  phydbl *C;
+
+  C = (phydbl *)mCalloc(nra*ncb,sizeof(phydbl));
+
+  if(nca != nrb)
+    {
+      PhyML_Printf("\n. Matrices dimensions don't match.");
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");      
+    }
+  
+  For(i,nra)
+    {
+      For(j,ncb)
+	{
+	  For(k,nca)
+	    {
+	      C[i*nra+j] += A[i*nra+k] * B[k*nrb+j];
+	    }
+	}
+    }
+  
+  return C;
+}
+
+
 /*********************************************************/
+
+phydbl *Matrix_Transpose(phydbl *A, int dim)
+{
+  phydbl *tA,buff;
+  int i,j;
+
+  tA = (phydbl *)mCalloc(dim*dim,sizeof(phydbl));
+
+  For(i,dim*dim) tA[i]=A[i];
+
+  For(i,dim) for(j=i+1;j<dim;j++) 
+    {
+      buff        = tA[i*dim+j];
+      tA[i*dim+j] = tA[j*dim+i];
+      tA[j*dim+i]  = buff;
+    }
+
+  return tA;
+}
+
 /*********************************************************/
