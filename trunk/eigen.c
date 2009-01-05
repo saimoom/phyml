@@ -934,44 +934,36 @@ void det_1D(double *a, int n, double *d)
 double *Cholesky_Decomp(double *A,  int dim)
 {
   int i,j,k;
-  double sum;
-  double *L;
+  phydbl sum;
+  phydbl *L;
 
-  L = (double *)mCalloc(dim*dim,sizeof(double));
-  
+  L   = (phydbl *)mCalloc(dim*dim,sizeof(phydbl));
+
   For(i,dim)
     {
-      for(j=0;j<=i;j++)
+      for(j=i;j<dim;j++)
 	{
-	  sum = A[i*dim+j];
-	  for(k=0;k<j;k++)
+	  sum = A[j*dim+i];
+	  for(k=0;k<i;k++)
 	    {
 	      sum -= L[i*dim+k] * L[j*dim+k];
 	    }
 	  if(i == j)
 	    {
-	      if(sum < 0.0)
+	      if(sum < 1.E-10)
 		{
-		  For(i,dim)
-		    {
-		      For(j,dim)
-			{
-			  PhyML_Printf("%f ",A[i*dim+j]);
-			}
-		      PhyML_Printf("\n");
-		    }
-		  
-		  PhyML_Printf("\n. sum=%f i=%d j=%d",sum,i,j);
-		  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-		  Warn_And_Exit("");
+		  sum = 1.E-10;
+/* 		  PhyML_Printf("\n. sum=%G i=%d j=%d",sum,i,j); */
+/* 		  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
+/* 		  Warn_And_Exit(""); */
 		}
-	      L[i*dim+i] = sqrt(sum);
+	      L[j*dim+i] = sqrt(sum);
 	    }
 	  else
 	    {
-	      L[i*dim+j] = sum / L[j*dim+j];
+	      L[j*dim+i] = sum / (L[i*dim+i]);
 	    }
-	}
+ 	}
     }
 
   return L;
