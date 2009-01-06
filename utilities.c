@@ -658,14 +658,17 @@ phydbl Rnorm(phydbl mean, phydbl sd)
 
 int Rand_Int(int min, int max)
 {
-  phydbl u;
-  
-  u = (phydbl)rand();
-  u /=  (RAND_MAX);
-  u *= (max - min + 1);
-  u += min;
+/*   phydbl u;   */
+/*   u = (phydbl)rand(); */
+/*   u /=  (RAND_MAX); */
+/*   u *= (max - min + 1); */
+/*   u += min; */
+/*   return (int)floor(u); */
 
-  return (int)floor(u);
+  int u;
+  u = rand();
+  return (u%(max+1-min)+min);
+
 }
 
 /*********************************************************/
@@ -1944,7 +1947,6 @@ allseq *Compact_Seq(seq **data, option *io)
   compress = io->compress_seq;
   n_ambigu = 0;
   is_ambigu = 0;
-
 
   Fors(site,data[0]->len,io->mod->stepsize)
     {
@@ -9985,7 +9987,7 @@ phydbl *Covariance_Matrix(arbre *tree)
   int *ori_wght,*site_num;
   int dim,i,j,replicate,n_site,position,sample_size;
 
-  sample_size = 50;
+  sample_size = 1000;
   dim = 2*tree->n_otu-3;
 
   cov      = (phydbl *)mCalloc(dim*dim,sizeof(phydbl));
@@ -10004,9 +10006,12 @@ phydbl *Covariance_Matrix(arbre *tree)
       n_site++;
     }
 
+  		  
   tree->mod->s_opt->print = 0;
   For(replicate,sample_size)
     {
+      For(i,2*tree->n_otu-3) tree->t_edges[i]->l = .1;
+
       For(i,tree->data->crunch_len) tree->data->wght[i] = 0;
 
       For(i,tree->data->init_len)
@@ -10021,6 +10026,20 @@ phydbl *Covariance_Matrix(arbre *tree)
       For(i,2*tree->n_otu-3) mean[i] += tree->t_edges[i]->l;
 
       printf("."); fflush(NULL);
+/*       printf("\n. %3d %12f %12f %12f [%12f %12f %12f] [%12f %12f %12f] [%12f %12f %12f]", */
+/* 	     replicate, */
+/*  	     cov[0]/(replicate+1)-mean[0]*mean[0]/pow(replicate+1,2), */
+/*  	     cov[1]/(replicate+1)-mean[0]*mean[1]/pow(replicate+1,2), */
+/*  	     cov[2]/(replicate+1)-mean[0]*mean[2]/pow(replicate+1,2), */
+/* 	     tree->t_edges[0]->l, */
+/* 	     tree->t_edges[1]->l, */
+/* 	     tree->t_edges[2]->l, */
+/* 	     mean[0]/(replicate+1), */
+/* 	     mean[1]/(replicate+1), */
+/* 	     mean[2]/(replicate+1), */
+/* 	     cov[0]/(replicate+1), */
+/* 	     cov[1]/(replicate+1), */
+/* 	     cov[2]/(replicate+1)); */
    }
 
   For(i,2*tree->n_otu-3) mean[i] /= (phydbl)sample_size;

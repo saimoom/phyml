@@ -83,7 +83,7 @@ int MC_main(int argc, char **argv)
   if(io->in_tree == 2) Test_Multiple_Data_Set_Format(io);
   else io->n_trees = 1;
 
-  io->compress_seq = 0;
+  io->compress_seq = 1;
 
   mat = NULL;
   tree_line_number = 0;
@@ -133,53 +133,17 @@ int MC_main(int argc, char **argv)
 		  time(&t_beg);
 		  time(&(tree->t_beg));
 
-/* 		  tree->mod         = mod; */
-/* 		  tree->io          = io; */
-/* 		  tree->data        = alldata; */
-/* 		  tree->both_sides  = 1; */
-/* 		  tree->n_pattern   = tree->data->crunch_len/tree->mod->stepsize; */
 
-/* 		  Prepare_Tree_For_Lk(tree); */
+		  /************************************/
+		  /************************************/
+		  /************************************/
+		  /************************************/
+		  /************************************/
 
-/* 		  if((!num_data_set) && (!num_tree) && (!num_rand_tree)) Check_Memory_Amount(tree); */
+		  /* IMPORTANCE SAMPLING STUFF */
 
-/* 		  if(tree->mod->s_opt->opt_topo) */
-/* 		    { */
-/* 		      if(tree->mod->s_opt->topo_search ==      NNI_MOVE) Simu_Loop(tree); */
-/* 		      else if(tree->mod->s_opt->topo_search == SPR_MOVE) Speed_Spr_Loop(tree); */
-/* 		      else                                               Best_Of_NNI_And_SPR(tree); */
-/* 		    } */
-/* 		  else */
-/* 		    { */
-/* 		      if(tree->mod->s_opt->opt_num_param ||  */
-/* 			 tree->mod->s_opt->opt_bl)                       Round_Optimize(tree,tree->data); */
-/* 		      else                                               Lk(tree); */
-/* 		    } */
-		  
-/* 		  tree->both_sides = 1; */
-/* 		  Lk(tree); */
-/* 		  Get_Tree_Size(tree); */
-/* 		  PhyML_Printf("\n. Log likelihood of the current tree: %f.\n",tree->c_lnL); */
-
-/* 		  tree->rates = RATES_Make_Rate_Struct(tree->n_otu); */
-/* 		  RATES_Init_Rate_Struct(tree->rates,tree->n_otu); */
-
-/* 		  /\* Find the position of the root (approximate) *\/ */
-/* 		  edge *root_edge; */
-/* 		  tree->bl_from_node_stamps = 1; */
-/* 		  tree->n_root_pos = -10.; */
-/* 		  root_edge = MC_Find_Best_Root_Position_Approx(tree); */
-/* 		  tree->bl_from_node_stamps = 0; */
-		  
-/* 		  /\* Going back to the unconstrained branch lengths *\/ */
-/* 		  Round_Optimize(tree,tree->data); */
-/* 		  Add_Root(root_edge,tree); */
-
-		  int n_otu,i;
-
-		  n_otu = 30;
-
-		  tree = Generate_Random_Tree_From_Scratch(n_otu,1);
+		  phydbl *cov;
+		  int i,j;
 
 		  tree->mod         = mod;
 		  tree->io          = io;
@@ -187,91 +151,148 @@ int MC_main(int argc, char **argv)
 		  tree->both_sides  = 1;
 		  tree->n_pattern   = tree->data->crunch_len/tree->mod->stepsize;
 
-		  For(i,tree->n_otu) strcpy(tree->noeud[i]->name,alldata->c_seq[i]->name);
-
 		  Fill_Dir_Table(tree);
 		  Update_Dirs(tree);
 		  Make_Tree_4_Pars(tree,alldata,alldata->init_len);
 		  Make_Tree_4_Lk(tree,alldata,alldata->init_len);
 
-		  Evolve(tree->data,tree->mod,tree);
-		  Init_Ui_Tips(tree);
-		  Init_P_Pars_Tips(tree);
-		  if(tree->mod->s_opt->greedy) Init_P_Lk_Tips_Double(tree);
-		  else Init_P_Lk_Tips_Int(tree);
-
-		  For(i,2*tree->n_otu-1) tree->rates->true_t[i] = tree->rates->cur_t[i];
-
-		  printf("%s\n",Write_Tree(tree));
-
-
-		  /***********************************/
- 		  tree->rates->approx = 1;
-		  printf("\n. USING APPROX %d",tree->rates->approx);
-		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
-		  MCMC_Init_MCMC_Struct(tree->mcmc);
-		  tree->both_sides = 1;
-		  tree->rates->model = COMPOUND_COR;
-		  Lk(tree);
-		  RATES_Lk_Rates(tree);
-		  printf("\n. CORRELATED lnL_data = %f lnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL);
-		  tree->rates->bl_from_rt = 1;
-		  MCMC(tree);
-		  /***********************************/
-
-		  /***********************************/
- 		  tree->rates->approx = 2;
-		  printf("\n. USING APPROX %d",tree->rates->approx);
-		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
-		  MCMC_Init_MCMC_Struct(tree->mcmc);
-		  tree->both_sides = 1;
-		  tree->rates->model = COMPOUND_COR;
-		  Lk(tree);
-		  RATES_Lk_Rates(tree);
-		  printf("\n. CORRELATED lnL_data = %f lnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL);
-		  tree->rates->bl_from_rt = 1;
-		  MCMC(tree);
-		  /***********************************/
-
-		  /***********************************/
-		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
-		  MCMC_Init_MCMC_Struct(tree->mcmc);
-		  tree->both_sides = 1;
-		  tree->rates->model = COMPOUND_NOCOR;
-		  Lk(tree);
-		  RATES_Lk_Rates(tree);
-		  printf("\n. NOT CORRELATED lnL_data = %f lnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL);
-		  tree->rates->bl_from_rt = 1;
-		  MCMC(tree);
-		  /***********************************/
-
-		  /***********************************/
-		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
-		  MCMC_Init_MCMC_Struct(tree->mcmc);
-		  tree->both_sides = 1;
-		  tree->rates->model = EXPONENTIAL;
-		  Lk(tree);
-		  RATES_Lk_Rates(tree);
-		  printf("\n. EXPONENTIAL lnL_data = %f lnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL);
-		  tree->rates->bl_from_rt = 1;
-		  MCMC(tree);
-		  /***********************************/
-
-		  /***********************************/
-		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
-		  MCMC_Init_MCMC_Struct(tree->mcmc);
-		  tree->both_sides = 1;
-		  tree->rates->model = GAMMA;
-		  Round_Optimize(tree,tree->data);
-		  Lk(tree);
-		  RATES_Lk_Rates(tree);
-		  printf("\n. GAMMA lnL_data = %f lnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL);
-		  tree->rates->bl_from_rt = 1;
-		  MCMC(tree);
-		  /***********************************/
-
-
+		  cov = Covariance_Matrix(tree);
+		  printf("\n");
+		  For(i,2*tree->n_otu-3)
+		    {
+		      For(j,2*tree->n_otu-3)
+			{
+			  printf("%12f ",cov[i*(2*tree->n_otu-3)+j]);
+			}
+		      printf("\n");
+		    }
+		  printf("\n");
 		  Exit("\n");
+
+		  /* END OF IMPORTANCE SAMPLING STUFF */
+
+		  /************************************/
+		  /************************************/
+		  /************************************/
+		  /************************************/
+		  /************************************/
+
+
+
+
+		  /************************************/
+		  /************************************/
+		  /************************************/
+		  /************************************/
+		  /************************************/
+
+		  /* COMPOUND POISSON STUFF */
+
+/* 		  int n_otu,i; */
+
+/* 		  n_otu = 30; */
+
+/* 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1); */
+
+/* 		  tree->mod         = mod; */
+/* 		  tree->io          = io; */
+/* 		  tree->data        = alldata; */
+/* 		  tree->both_sides  = 1; */
+/* 		  tree->n_pattern   = tree->data->crunch_len/tree->mod->stepsize; */
+
+/* 		  For(i,tree->n_otu) strcpy(tree->noeud[i]->name,alldata->c_seq[i]->name); */
+
+/* 		  Fill_Dir_Table(tree); */
+/* 		  Update_Dirs(tree); */
+/* 		  Make_Tree_4_Pars(tree,alldata,alldata->init_len); */
+/* 		  Make_Tree_4_Lk(tree,alldata,alldata->init_len); */
+
+/* 		  Evolve(tree->data,tree->mod,tree); */
+/* 		  Init_Ui_Tips(tree); */
+/* 		  Init_P_Pars_Tips(tree); */
+/* 		  if(tree->mod->s_opt->greedy) Init_P_Lk_Tips_Double(tree); */
+/* 		  else Init_P_Lk_Tips_Int(tree); */
+
+/* 		  For(i,2*tree->n_otu-1) tree->rates->true_t[i] = tree->rates->cur_t[i]; */
+
+/* 		  printf("%s\n",Write_Tree(tree)); */
+
+
+/* 		  /\***********************************\/ */
+/*  		  tree->rates->approx = 1; */
+/* 		  printf("\n. USING APPROX %d",tree->rates->approx); */
+/* 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree); */
+/* 		  MCMC_Init_MCMC_Struct(tree->mcmc); */
+/* 		  tree->both_sides = 1; */
+/* 		  tree->rates->model = COMPOUND_COR; */
+/* 		  Lk(tree); */
+/* 		  RATES_Lk_Rates(tree); */
+/* 		  printf("\n. CORRELATED lnL_data = %f lnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL); */
+/* 		  tree->rates->bl_from_rt = 1; */
+/* 		  MCMC(tree); */
+/* 		  /\***********************************\/ */
+
+/* 		  /\***********************************\/ */
+/*  		  tree->rates->approx = 2; */
+/* 		  printf("\n. USING APPROX %d",tree->rates->approx); */
+/* 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree); */
+/* 		  MCMC_Init_MCMC_Struct(tree->mcmc); */
+/* 		  tree->both_sides = 1; */
+/* 		  tree->rates->model = COMPOUND_COR; */
+/* 		  Lk(tree); */
+/* 		  RATES_Lk_Rates(tree); */
+/* 		  printf("\n. CORRELATED lnL_data = %f lnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL); */
+/* 		  tree->rates->bl_from_rt = 1; */
+/* 		  MCMC(tree); */
+/* 		  /\***********************************\/ */
+
+/* 		  /\***********************************\/ */
+/* 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree); */
+/* 		  MCMC_Init_MCMC_Struct(tree->mcmc); */
+/* 		  tree->both_sides = 1; */
+/* 		  tree->rates->model = COMPOUND_NOCOR; */
+/* 		  Lk(tree); */
+/* 		  RATES_Lk_Rates(tree); */
+/* 		  printf("\n. NOT CORRELATED lnL_data = %f lnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL); */
+/* 		  tree->rates->bl_from_rt = 1; */
+/* 		  MCMC(tree); */
+/* 		  /\***********************************\/ */
+
+/* 		  /\***********************************\/ */
+/* 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree); */
+/* 		  MCMC_Init_MCMC_Struct(tree->mcmc); */
+/* 		  tree->both_sides = 1; */
+/* 		  tree->rates->model = EXPONENTIAL; */
+/* 		  Lk(tree); */
+/* 		  RATES_Lk_Rates(tree); */
+/* 		  printf("\n. EXPONENTIAL lnL_data = %f lnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL); */
+/* 		  tree->rates->bl_from_rt = 1; */
+/* 		  MCMC(tree); */
+/* 		  /\***********************************\/ */
+
+/* 		  /\***********************************\/ */
+/* 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree); */
+/* 		  MCMC_Init_MCMC_Struct(tree->mcmc); */
+/* 		  tree->both_sides = 1; */
+/* 		  tree->rates->model = GAMMA; */
+/* 		  Round_Optimize(tree,tree->data,100); */
+/* 		  Lk(tree); */
+/* 		  RATES_Lk_Rates(tree); */
+/* 		  printf("\n. GAMMA lnL_data = %f lnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL); */
+/* 		  tree->rates->bl_from_rt = 1; */
+/* 		  MCMC(tree); */
+/* 		  /\***********************************\/ */
+
+
+/* 		  Exit("\n"); */
+
+		  /* END OF COMPOUND POISSON STUFF */
+
+		  /************************************/
+		  /************************************/
+		  /************************************/
+		  /************************************/
+		  /************************************/
 
 
 		  /* Print the tree estimated using the current random (or BioNJ) starting tree */
