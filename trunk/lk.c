@@ -270,7 +270,7 @@ void Lk(arbre *tree)
   Set_Model_Parameters(tree->mod);
 
 #ifdef MC
-  if(tree->rates->bl_from_rt) RATES_Get_Br_Len(tree);
+  if((tree->rates) && (tree->rates->bl_from_rt)) RATES_Get_Br_Len(tree);
   if(tree->bl_from_node_stamps) MC_Bl_From_T(tree);
 #endif
 
@@ -341,7 +341,7 @@ phydbl Lk_At_Given_Edge(edge *b_fcus, arbre *tree)
   n_patterns = tree->n_pattern;
 
 #ifdef MC
-  if(tree->rates->bl_from_rt) RATES_Get_Br_Len(tree);
+  if((tree->rates) && (tree->rates->bl_from_rt)) RATES_Get_Br_Len(tree);
   if(tree->bl_from_node_stamps) MC_Bl_From_T(tree);
 #endif
 

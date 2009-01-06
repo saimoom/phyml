@@ -77,10 +77,8 @@ int main(int argc, char **argv)
   if(io->in_tree == 2) Test_Multiple_Data_Set_Format(io);
   else io->n_trees = 1;
 
-
   mat = NULL;
   tree_line_number = 0;
-
 
   if((io->n_data_sets > 1) && (io->n_trees > 1))
     {
