@@ -30,12 +30,12 @@ void Simu_Loop(arbre *tree)
   tree->both_sides = 0;
   Lk(tree);
 
-  if(tree->mod->s_opt->print) PhyML_Printf("\n. Maximizing likelihood (using NNI moves)...\n");
+  if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n. Maximizing likelihood (using NNI moves)...\n");
   
   do
     {
       lk_old = tree->c_lnL;
-      Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
+      Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
       if(!Simu(tree,10)) Check_NNI_Five_Branches(tree);
     }
   while(tree->c_lnL > lk_old + tree->mod->s_opt->min_diff_lk_global);
@@ -47,7 +47,7 @@ void Simu_Loop(arbre *tree)
     }while(1);
   /*****************************/
   
-  if(tree->mod->s_opt->print) PhyML_Printf("\n");
+  if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n");
 
 }
 
@@ -101,7 +101,7 @@ int Simu(arbre *tree, int n_step_max)
 	  if(tree->io->print_site_lnl) Print_Site_Lk(tree,tree->io->fp_out_lk); fflush(tree->io->fp_out_lk);
 	}
 
-      if(tree->mod->s_opt->print) 
+      if((tree->mod->s_opt->print) && (!tree->io->quiet)) 
 	{
 	  Print_Lk(tree,"[Topology           ]");
 /* 	  if(step > 1) (n_tested > 1)?(printf(" (%d NNIs)",n_tested)):(printf(" (%d NNI )",n_tested)); */
@@ -115,7 +115,7 @@ int Simu(arbre *tree, int n_step_max)
 
       if(tree->c_lnL < old_loglk)
 	{
-	  if(tree->mod->s_opt->print) printf("\n\n. Moving backward\n");
+	  if((tree->mod->s_opt->print) && (!tree->io->quiet)) printf("\n\n. Moving backward\n");
 	  if(!Mov_Backward_Topo_Bl(tree,old_loglk,tested_b,n_tested))
 	    Exit("\n. Err: mov_back failed\n");
 	  if(!tree->n_swap) n_neg = 0;
@@ -187,7 +187,7 @@ void Simu_Pars(arbre *tree, int n_step_max)
   
   Update_Dirs(tree);
   
-  if(tree->mod->s_opt->print) PhyML_Printf("\n. Starting simultaneous NNI moves (parsimony criterion)...\n");
+  if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n. Starting simultaneous NNI moves (parsimony criterion)...\n");
   
   do
     {
@@ -200,7 +200,7 @@ void Simu_Pars(arbre *tree, int n_step_max)
       tree->both_sides = 1;
       Pars(tree);
       
-      if(tree->mod->s_opt->print) 
+      if((tree->mod->s_opt->print) && (!tree->io->quiet)) 
 	{
 	  Print_Pars(tree);
 	  if(step > 1) (n_tested > 1)?(printf("[%4d NNIs]",n_tested)):(printf("[%4d NNI ]",n_tested));
@@ -211,7 +211,7 @@ void Simu_Pars(arbre *tree, int n_step_max)
 	      
       if((tree->c_pars > old_pars) && (step > 1))
 	{
-	  if(tree->mod->s_opt->print)
+	  if((tree->mod->s_opt->print) && (!tree->io->quiet))
 	    PhyML_Printf("\n\n. Moving backward (topology) \n");
 	  if(!Mov_Backward_Topo_Pars(tree,old_pars,tested_b,n_tested))
 	    Exit("\n. Err: mov_back failed\n");

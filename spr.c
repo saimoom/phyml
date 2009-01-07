@@ -430,7 +430,7 @@ void Optim_SPR (arbre *tree, int max_size, int method)
 	    /*
 	    ** Optimize model parameters.
 	    */
-	    Optimiz_All_Free_Param (tree, tree->mod->s_opt->print);
+	    Optimiz_All_Free_Param (tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
 	    tree->both_sides = 1;
 	    Lk(tree);
 	  }
@@ -3531,10 +3531,10 @@ void Speed_Spr_Loop(arbre *tree)
   tree->mod->s_opt->spr_pars       = 0;
   tree->mod->s_opt->quickdirty     = 0;
 
-  if(tree->mod->s_opt->print) PhyML_Printf("\n. Maximizing likelihood (using SPR moves)...\n");
+  if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n. Maximizing likelihood (using SPR moves)...\n");
   
 
-  Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
+  Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
   tree->best_lnL = tree->c_lnL;
 
   /*****************************/
@@ -3545,7 +3545,7 @@ void Speed_Spr_Loop(arbre *tree)
     {
       lk_old = tree->c_lnL;
       Speed_Spr(tree,1);
-      if(tree->n_improvements) Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
+      if(tree->n_improvements) Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
       if((!tree->n_improvements) || (fabs(lk_old-tree->c_lnL) < 1.)) break;
     }
   while(1);
@@ -3563,7 +3563,7 @@ void Speed_Spr_Loop(arbre *tree)
 	{
 	  lk_old = tree->c_lnL;
 	  Speed_Spr(tree,1);
-	  if(tree->n_improvements) Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
+	  if(tree->n_improvements) Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
 	  if((!tree->n_improvements) || (fabs(lk_old-tree->c_lnL) < 1.)) break;
 	}
       while(1);
@@ -3578,7 +3578,7 @@ void Speed_Spr_Loop(arbre *tree)
     {
       lk_old = tree->c_lnL;
       Simu(tree,10);
-      Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
+      Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
     }
   while(fabs(lk_old - tree->c_lnL) > tree->mod->s_opt->min_diff_lk_global);
   /*****************************/
@@ -3590,7 +3590,7 @@ void Speed_Spr_Loop(arbre *tree)
     }while(1);
   /*****************************/
 
-  if(tree->mod->s_opt->print) PhyML_Printf("\n");
+  if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n");
 
 }
 /*********************************************************/
@@ -3646,11 +3646,11 @@ void Speed_Spr(arbre *tree, int max_cycles)
 	  Lk(tree);
 
 	  /* Print log-likelihood and parsimony scores */
-	  if(tree->mod->s_opt->print) Print_Lk(tree,"[Branch lengths     ]");
+	  if((tree->mod->s_opt->print) && (!tree->io->quiet)) Print_Lk(tree,"[Branch lengths     ]");
 	}
       else
 	{
-	  if(tree->mod->s_opt->print) Print_Pars(tree);
+	  if((tree->mod->s_opt->print) && (!tree->io->quiet)) Print_Pars(tree);
 	}
 
       Pars(tree);
@@ -3716,7 +3716,6 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, arbre *tr
   best_move = -1;
   init_lnL = tree->c_lnL;
   
-
   if(!list_size) 
     {
       printf("\n. List size is 0 !");
@@ -3977,7 +3976,7 @@ int Try_One_Spr_Move_Triple(spr *move, arbre *tree)
 	  Warn_And_Exit("");
 	}
 
-      if(tree->mod->s_opt->print) 
+      if((tree->mod->s_opt->print) && (!tree->io->quiet)) 
 	{
 	  Print_Lk_And_Pars(tree);
 	  printf(" [depth=%5d]",move->depth_path); fflush(NULL);
@@ -4042,7 +4041,7 @@ int Try_One_Spr_Move_Full(spr *move, arbre *tree)
   if(tree->c_lnL > tree->best_lnL + tree->mod->s_opt->min_diff_lk_move)
     {
       Pars(tree);
-      if(tree->mod->s_opt->print) Print_Lk(tree,"[Topology           ]");
+      if((tree->mod->s_opt->print) && (!tree->io->quiet)) Print_Lk(tree,"[Topology           ]");
       tree->n_improvements++;
       tree->best_lnL = tree->c_lnL;
       Record_Br_Len(NULL,tree);

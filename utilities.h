@@ -1083,7 +1083,7 @@ int Polint(phydbl *xa, phydbl *ya, int n, phydbl x, phydbl *y, phydbl *dy);
 void Reset_Model_Parameters(model *mod);
 void Print_Banner_Small(FILE *fp);
 void JF(arbre *tree);
-arbre *Dist_And_BioNJ(allseq *alldata, model *mod);
+arbre *Dist_And_BioNJ(allseq *alldata, model *mod, option *io);
 void Add_BioNJ_Branch_Lengths(arbre *tree, allseq *alldata, model *mod);
 arbre *Read_User_Tree(allseq *alldata, model *mod, option *io);
 void Print_Time_Info(time_t t_beg, time_t t_end);

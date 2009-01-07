@@ -97,7 +97,7 @@ int main(int argc, char **argv)
       if(data)
 	{
 	  if(io->n_data_sets > 1) PhyML_Printf("\n. Data set [#%d]\n",num_data_set+1);
-	  PhyML_Printf("\n. Compressing sequences...\n");
+	  if(!io->quiet) PhyML_Printf("\n. Compressing sequences...\n");
 	  alldata = Compact_Seq(data,io);
 
 	  Free_Seq(data,alldata->n_otu);
@@ -110,13 +110,13 @@ int main(int argc, char **argv)
 	      For(num_rand_tree,io->mod->s_opt->n_rand_starts)
 		{
 		  if((io->mod->s_opt->random_input_tree) && (io->mod->s_opt->topo_search != NNI_MOVE))
-		    PhyML_Printf("\n. [Random start %3d/%3d]\n",num_rand_tree+1,io->mod->s_opt->n_rand_starts);
+		    if(!io->quiet) PhyML_Printf("\n. [Random start %3d/%3d]\n",num_rand_tree+1,io->mod->s_opt->n_rand_starts);
 
 		  Init_Model(alldata,mod);
 
 		  switch(io->in_tree)
 		    {
-		    case 0 : case 1 : { tree = Dist_And_BioNJ(alldata,mod);    break; }
+		    case 0 : case 1 : { tree = Dist_And_BioNJ(alldata,mod,io);    break; }
 		    case 2 :          { tree = Read_User_Tree(alldata,mod,io); break; }
 		    }
 
@@ -204,11 +204,11 @@ int main(int argc, char **argv)
 	      /* Launch bootstrap analysis */
 	      if(mod->bootstrap) 
 		{
-		  PhyML_Printf("\n. Launch bootstrap analysis on the most likely tree...\n");
+		  if(!io->quiet) PhyML_Printf("\n. Launch bootstrap analysis on the most likely tree...\n");
 
                   #ifdef MPI
 		  MPI_Bcast (most_likely_tree, strlen(most_likely_tree)+1, MPI_CHAR, 0, MPI_COMM_WORLD);
-		  PhyML_Printf("\n. The bootstrap analysis will use %d CPUs.",Global_numTask);
+		  if(!io->quiet)  PhyML_Printf("\n. The bootstrap analysis will use %d CPUs.",Global_numTask);
 		  #endif
 
 		  most_likely_tree = Bootstrap_From_String(most_likely_tree,alldata,mod,io);
@@ -216,12 +216,12 @@ int main(int argc, char **argv)
 	      else if(io->ratio_test) 
 		{
 		  /* Launch aLRT */
-		  PhyML_Printf("\n. Compute aLRT branch supports on the most likely tree...\n");
+		  if(!io->quiet) PhyML_Printf("\n. Compute aLRT branch supports on the most likely tree...\n");
 		  most_likely_tree = aLRT_From_String(most_likely_tree,alldata,mod,io);
 		}
 
 	      /* Print the most likely tree in the output file */
-	      PhyML_Printf("\n. Printing the most likely tree in file '%s'...\n", Basename(io->out_tree_file));
+	      if(!io->quiet) PhyML_Printf("\n. Printing the most likely tree in file '%s'...\n", Basename(io->out_tree_file));
 	      if(io->n_data_sets == 1) rewind(io->fp_out_tree);
 	      PhyML_Fprintf(io->fp_out_tree,"%s\n",most_likely_tree);
 	      

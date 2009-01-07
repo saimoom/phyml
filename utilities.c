@@ -1616,9 +1616,13 @@ seq **Get_Seq(option *io,  int rw)
       if(n_removed > 0)
 	{
 	  if(io->mod->datatype == NT)
-	    PhyML_Printf("\n. %d sites are made from completely undetermined states ('X', '-', '?' or 'N')...\n",n_removed);
+	    {
+	      if(!io->quiet) PhyML_Printf("\n. %d sites are made from completely undetermined states ('X', '-', '?' or 'N')...\n",n_removed);
+	    }
 	  else
-	    PhyML_Printf("\n. %d sites are made from completely undetermined states ('X', '-', '?')...\n",n_removed);
+	    {
+	      if(!io->quiet) PhyML_Printf("\n. %d sites are made from completely undetermined states ('X', '-', '?')...\n",n_removed);
+	    }
 	}
 
       pos = 0;
@@ -2036,7 +2040,7 @@ allseq *Compact_Seq(seq **data, option *io)
   alldata_tmp->crunch_len                 = n_patt;
   For(i,n_otu) alldata_tmp->c_seq[i]->len = n_patt;
   
-  PhyML_Printf("\n. %d patterns found. (out of a total of %d sites) \n",n_patt,data[0]->len);
+  if(!io->quiet) PhyML_Printf("\n. %d patterns found. (out of a total of %d sites) \n",n_patt,data[0]->len);
 
   if((io->rm_ambigu) && (n_ambigu))
     {
@@ -2046,8 +2050,8 @@ allseq *Compact_Seq(seq **data, option *io)
   n_invar=0;
   For(i,alldata_tmp->crunch_len) if(alldata_tmp->invar[i] > -1.) n_invar+=(int)alldata_tmp->wght[i];
 
-  PhyML_Printf("\n. %d sites without polymorphism (%.2f%c).\n",n_invar,100.*(phydbl)n_invar/data[0]->len,'%');
-
+  if(!io->quiet) PhyML_Printf("\n. %d sites without polymorphism (%.2f%c).\n",n_invar,100.*(phydbl)n_invar/data[0]->len,'%');
+  
   alldata_tmp->obs_pinvar = (phydbl)n_invar/data[0]->len;
 
   n_sites = 0;
@@ -8382,10 +8386,13 @@ void Check_Memory_Amount(arbre *tree)
 #endif
     }
   else if(((phydbl)nbytes/(1.E+06)) > 100.)
-    PhyML_Printf("\n. WARNING: this analysis will use at least %.0fMo of memory space...\n",(phydbl)nbytes/(1.E+06));
+    {
+      if(!tree->io->quiet) PhyML_Printf("\n. WARNING: this analysis will use at least %.0fMo of memory space...\n",(phydbl)nbytes/(1.E+06));
+    }
   else
-    PhyML_Printf("\n. This analysis requires at least %.0fMo of memory space.\n",(phydbl)nbytes/(1.E+06));
-  
+    {
+      if(!tree->io->quiet) PhyML_Printf("\n. This analysis requires at least %.0fMo of memory space.\n",(phydbl)nbytes/(1.E+06));
+    }
 }
 
 /*********************************************************/
@@ -9622,17 +9629,17 @@ void JF(arbre *tree)
 
 /*********************************************************/
 
-arbre *Dist_And_BioNJ(allseq *alldata, model *mod)
+arbre *Dist_And_BioNJ(allseq *alldata, model *mod, option *io)
 {
   arbre *tree;
   matrix *mat;
 
-  PhyML_Printf("\n. Computing pairwise distances...\n");
+  if(!io->quiet) PhyML_Printf("\n. Computing pairwise distances...\n");
 
   mat = ML_Dist(alldata,mod);
   Fill_Missing_Dist(mat);
   
-  PhyML_Printf("\n. Building BioNJ tree...\n");
+  if(!io->quiet) PhyML_Printf("\n. Building BioNJ tree...\n");
 
   mat->tree = Make_Tree_From_Scratch(alldata->n_otu,alldata);
   Bionj(mat);
