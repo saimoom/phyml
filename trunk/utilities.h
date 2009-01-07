@@ -83,7 +83,7 @@ the GNU public licence. See http://www.opensource.org for details.
 #define  MNBRAK_TINY       1.e-20
 #define  ALPHA_MIN           0.04
 #define  ALPHA_MAX            100
-#define  BL_MIN            1.e-04
+#define  BL_MIN            1.e-10
 #define  BL_START          1.e-04
 #define  BL_MAX             100.0
 #define  GOLDEN_R      0.61803399
