@@ -4083,6 +4083,9 @@ void Print_Fp_Out(FILE *fp_out, time_t t_beg, time_t t_end, arbre *tree, option 
 
   PhyML_Fprintf(fp_out,"\n\n. Log-likelihood: \t\t\t%.5f",tree->c_lnL);/*was last ; moved here FLT*/
 
+  Unconstraint_Lk(tree);
+  PhyML_Fprintf(fp_out,"\n\n. Unconstrained likelihood: \t\t%.5f",tree->unconstraint_lk);
+
   PhyML_Fprintf(fp_out,"\n\n. Parsimony: \t\t\t\t%d",tree->c_pars);
 
   PhyML_Fprintf(fp_out,"\n\n. Tree size: \t\t\t\t%.5f",tree->size);
@@ -5172,7 +5175,7 @@ void Br_Len_Not_Involving_Invar(arbre *tree)
 
 void Getstring_Stdin(char *file_name)
 {
-  fgets(file_name,T_MAX_LINE,stdin);
+  if(!fgets(file_name,T_MAX_LINE,stdin)) Exit("");
   if (strchr(file_name, '\n') != NULL)
     *strchr(file_name, '\n') = '\0';
 }
