@@ -1114,12 +1114,12 @@ void Round_Optimize(arbre *tree, allseq *data, int n_round_max)
       tree->both_sides = 1;
       Lk(tree);
       
-      if(tree->mod->s_opt->print) Print_Lk(tree,"[Branch lengths     ]");
+      if((tree->mod->s_opt->print) && (!tree->io->quiet)) Print_Lk(tree,"[Branch lengths     ]");
 
       if(!each)
 	{
 	  each = 1;
-	  Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
+	  Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
 	  tree->both_sides = 1;
 	  Lk(tree);
 	}
@@ -1133,7 +1133,7 @@ void Round_Optimize(arbre *tree, allseq *data, int n_round_max)
       each--;
     }
   
-  Optimiz_All_Free_Param(tree,tree->mod->s_opt->print);
+  Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
 }
 
 /*********************************************************/

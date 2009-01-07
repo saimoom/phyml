@@ -54,7 +54,7 @@ int Check_NNI_Five_Branches(arbre *tree)
       Update_Dirs(tree);
 
       //Interface output
-      if (tree->mod->s_opt->print) PhyML_Printf("\n\n. Checking for NNIs, optimizing five branches...\n");
+      if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n\n. Checking for NNIs, optimizing five branches...\n");
 
       better_found  =  0;
       result        = -1;
