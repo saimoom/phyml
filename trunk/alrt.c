@@ -156,10 +156,7 @@ int Check_NNI_Five_Branches(arbre *tree)
 	      Warn_And_Exit("\n");
 	    }
 
-	  if(tree->mod->s_opt->print)
-	    {
-	      Print_Lk(tree,"[Topology           ]");
-	    }
+	  if((tree->mod->s_opt->print) && (!tree->io->quiet)) Print_Lk(tree,"[Topology           ]");
 	  return 1;
 	}
     }
