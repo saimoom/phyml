@@ -109,5 +109,9 @@ phydbl RATES_Dmu_Joint(phydbl mu, int n, phydbl dt, phydbl a, phydbl b, phydbl l
 phydbl RATES_Compound_Core_Marginal(phydbl mu1, phydbl mu2, phydbl dt1, phydbl dt2, phydbl alpha, 
 				    phydbl beta, phydbl lexp, phydbl eps, int approx);
 phydbl RATES_Lk_Jumps(arbre *tree);
+void RATES_Set_Rates_Prior_Mean(arbre *tree);
+void RATES_Set_Rates_Prior_Mean_Pre(node *a, node *d, arbre *tree);
+void RATES_Set_Rates_Post_Cov(arbre *tree);
+void RATES_Set_Rates_Post_Mean_And_Cov(arbre *tree);
 
 #endif

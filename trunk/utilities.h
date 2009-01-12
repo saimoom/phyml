@@ -784,15 +784,11 @@ typedef struct __Tdraw {
 
 /*********************************************************/
 
-
 typedef struct __Trate {
-  int n_mc_runs; /* Number of Monte Carlo runs to estimate the probability density of mean rates on each branch */
-  int curr_mc_run; /* Current Monte Carlo run */
   phydbl clock_r; /* Mean substitution rate, i.e., 'molecular clock' rate */
   phydbl  *br_r; /* Relative substitution rate, i.e., multiplier of mean_r on each branch */
   phydbl  lexp; /* Parameter of the exponential distribution that governs the rate at which substitution between rate classes ocur */
   phydbl alpha;
-  phydbl **mc_mr; /* probability density of mean rates on each branch */
   phydbl *true_t;
   int *n_jps;
   int *t_jps;
@@ -808,15 +804,23 @@ typedef struct __Trate {
   phydbl min_rate;
   phydbl max_rate;
   phydbl step_rate;
-  phydbl  *cur_r; /* Current branch rates */
-  phydbl  *old_r; /* Old branch rates */
-  phydbl  *cur_t; /* Current node times */
+  phydbl  *nd_r;  /* Current rates at nodes and the corresponding incoming edges */
+  phydbl  *old_r; /* Old node rates */
+  phydbl  *nd_t; /* Current node times */
   phydbl  *old_t; /* Old node times */
   
+
   int bl_from_rt; /* if =1, branch lengths are obtained as the product of cur_r and t */
   int approx;
   int model; /* Model number */
   phydbl nu; /* Parameter of the Exponential distribution for the corresponding model */
+
+  phydbl *prior_r_mean;
+  phydbl *prior_r_cov;
+  phydbl *post_r_mean;
+  phydbl *post_r_cov;
+
+  phydbl autocor;
 }trate;
 
 /*********************************************************/
@@ -1113,7 +1117,6 @@ int Sort_Edges_Depth(arbre *tree, edge **sorted_edges, int n_elem);
 char *Basename(char *path);
 phydbl Rnorm(phydbl mean, phydbl sd);
 phydbl *Rnorm_Multid(phydbl *mu, phydbl *cov, int dim);
-phydbl *Covariance_Matrix(arbre *tree);
 phydbl *Matrix_Mult(phydbl *A, phydbl *B, int nra, int nca, int nrb, int ncb);
 phydbl *Matrix_Transpose(phydbl *A, int dim);
 

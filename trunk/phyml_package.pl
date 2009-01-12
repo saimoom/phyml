@@ -10,7 +10,8 @@ mkdir("./phyml/doc");
 mkdir("./phyml/bin");
 mkdir("./phyml/examples");
 
-$phyml_dir = "/Users/stephane/cvshome/phyml/";
+# Put your path to the svn sources here
+$phyml_dir = "/Users/guindon/cvshome/phyml/";
 chdir $phyml_dir;
 
 open(SVNVERSION,"| svnversion > version");
@@ -38,6 +39,7 @@ $phyml_files[17] = "draw";
 $phyml_files[18] = "rates";
 $phyml_files[19] = "mg";
 $phyml_files[20] = "mpi_boot";
+$phyml_files[21] = "numeric";
 
 chdir($phyml_dir); 
 opendir(PHYML_DIR,$phyml_dir) || die;
@@ -69,9 +71,9 @@ copy "ChangeLog",$output_dir."/phyml/src" || die "Could not copy file ChangeLog.
 copy "version",$output_dir."/phyml/src" || die "Could not copy file version.\n";
 
 copy "phyml.bat",$output_dir."/phyml/bin" || die "Could not copy file phyml.bat.\n";
-copy("/Users/stephane/latex/phyml/phyml_manual.pdf",$output_dir."/phyml/doc") || die "Could not copy file phyml_manual.pdf.\n";
-copy("/Users/stephane/data/phyml_example/nucleic",$output_dir."/phyml/examples/") || die "Could not copy example file 'nucleic'";
-copy("/Users/stephane/data/phyml_example/proteic",$output_dir."/phyml/examples/") || die "Could not copy example file 'proteic'";
+copy("/Users/guindon/latex/phyml/phyml_manual.pdf",$output_dir."/phyml/doc") || die "Could not copy file phyml_manual.pdf.\n";
+copy("/Users/guindon/data/phyml_example/nucleic",$output_dir."/phyml/examples/") || die "Could not copy example file 'nucleic'";
+copy("/Users/guindon/data/phyml_example/proteic",$output_dir."/phyml/examples/") || die "Could not copy example file 'proteic'";
 
 
 chdir($output_dir);
@@ -80,5 +82,6 @@ chdir($output_dir);
 my @abbr = qw( January February March April May June July August September October November December );
 $year = $year+1900;
 $tarfile = "phyml_".$mday.$abbr[$mon].$year.".tar.gz";
+chdir $output_dir;
 system("tar -zcvf $tarfile ./phyml/");
 print "<$mday>", "<$abbr[$mon]>", "<$year>","\n";

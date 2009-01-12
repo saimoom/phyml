@@ -31,6 +31,7 @@ the GNU public licence. See http://www.opensource.org for details.
 #include "draw.h"
 #include "rates.h"
 #include "mcmc.h"
+#include "numeric.h"
 
 /*********************************************************/
 
@@ -123,7 +124,7 @@ int MC_main(int argc, char **argv)
 		  Init_Model(alldata,mod);
 
 		  /* A BioNJ tree is built here */
-		  if(!io->in_tree) tree = Dist_And_BioNJ(alldata,mod);
+		  if(!io->in_tree) tree = Dist_And_BioNJ(alldata,mod,io);
 		  /* A user-given tree is used here instead of BioNJ */
 		  else             tree = Read_User_Tree(alldata,mod,io);
 		  
@@ -143,7 +144,6 @@ int MC_main(int argc, char **argv)
 		  /* IMPORTANCE SAMPLING STUFF */
 
 		  phydbl *cov;
-		  int i,j;
 
 		  tree->mod         = mod;
 		  tree->io          = io;
@@ -155,18 +155,12 @@ int MC_main(int argc, char **argv)
 		  Update_Dirs(tree);
 		  Make_Tree_4_Pars(tree,alldata,alldata->init_len);
 		  Make_Tree_4_Lk(tree,alldata,alldata->init_len);
+		  
+		  Round_Optimize(tree,tree->data,ROUND_MAX);
+		  cov = Hessian(tree);
+		  
+/* 		  RATES_Initialize_Mean_Rates(tree); */
 
-		  cov = Covariance_Matrix(tree);
-		  printf("\n");
-		  For(i,2*tree->n_otu-3)
-		    {
-		      For(j,2*tree->n_otu-3)
-			{
-			  printf("%12f ",cov[i*(2*tree->n_otu-3)+j]);
-			}
-		      printf("\n");
-		    }
-		  printf("\n");
 		  Exit("\n");
 
 		  /* END OF IMPORTANCE SAMPLING STUFF */
@@ -213,7 +207,7 @@ int MC_main(int argc, char **argv)
 /* 		  if(tree->mod->s_opt->greedy) Init_P_Lk_Tips_Double(tree); */
 /* 		  else Init_P_Lk_Tips_Int(tree); */
 
-/* 		  For(i,2*tree->n_otu-1) tree->rates->true_t[i] = tree->rates->cur_t[i]; */
+/* 		  For(i,2*tree->n_otu-1) tree->rates->true_t[i] = tree->rates->nd_t[i]; */
 
 /* 		  printf("%s\n",Write_Tree(tree)); */
 
@@ -440,10 +434,10 @@ void MC_Least_Square_Node_Times(edge *e_root, arbre *tree)
   For(i,n) x[i] = .0;
   For(i,n) For(j,n) x[i] += A[i*n+j] * b[j];
 
-  For(i,n-1) { tree->rates->cur_t[tree->noeud[i]->num] = x[i]; }
-  tree->rates->cur_t[root->num] = x[n-1];
-  tree->n_root->l[0] = tree->rates->cur_t[root->num] - tree->rates->cur_t[root->v[0]->num];
-  tree->n_root->l[1] = tree->rates->cur_t[root->num] - tree->rates->cur_t[root->v[1]->num];
+  For(i,n-1) { tree->rates->nd_t[tree->noeud[i]->num] = x[i]; }
+  tree->rates->nd_t[root->num] = x[n-1];
+  tree->n_root->l[0] = tree->rates->nd_t[root->num] - tree->rates->nd_t[root->v[0]->num];
+  tree->n_root->l[1] = tree->rates->nd_t[root->num] - tree->rates->nd_t[root->v[1]->num];
 
 
   /* Rescale the node times such that the time at the root
@@ -453,17 +447,17 @@ void MC_Least_Square_Node_Times(edge *e_root, arbre *tree)
 
   phydbl scale_f,time_tree_length,tree_length;
 
-  scale_f = -100./tree->rates->cur_t[root->num];
-  For(i,2*tree->n_otu-1) tree->rates->cur_t[i] *= scale_f;
+  scale_f = -100./tree->rates->nd_t[root->num];
+  For(i,2*tree->n_otu-1) tree->rates->nd_t[i] *= scale_f;
 
   time_tree_length = 0.0;
   For(i,2*tree->n_otu-3)
     if(tree->t_edges[i] != tree->e_root)
       time_tree_length +=
-	fabs(tree->rates->cur_t[tree->t_edges[i]->left->num] -
-	     tree->rates->cur_t[tree->t_edges[i]->rght->num]);
-  time_tree_length += fabs(tree->rates->cur_t[root->num] - tree->rates->cur_t[root->v[0]->num]);
-  time_tree_length += fabs(tree->rates->cur_t[root->num] - tree->rates->cur_t[root->v[1]->num]);
+	fabs(tree->rates->nd_t[tree->t_edges[i]->left->num] -
+	     tree->rates->nd_t[tree->t_edges[i]->rght->num]);
+  time_tree_length += fabs(tree->rates->nd_t[root->num] - tree->rates->nd_t[root->v[0]->num]);
+  time_tree_length += fabs(tree->rates->nd_t[root->num] - tree->rates->nd_t[root->v[1]->num]);
   
   tree_length = 0.0;
   For(i,2*tree->n_otu-3) tree_length += tree->t_edges[i]->l;
@@ -519,11 +513,11 @@ void MC_Adjust_Node_Times(arbre *tree)
   MC_Adjust_Node_Times_Pre(tree->n_root->v[0],tree->n_root->v[1],tree);
   MC_Adjust_Node_Times_Pre(tree->n_root->v[1],tree->n_root->v[0],tree);
 
-  if(tree->rates->cur_t[tree->n_root->num] > MIN(tree->rates->cur_t[tree->n_root->v[0]->num],
-					     tree->rates->cur_t[tree->n_root->v[1]->num]))
+  if(tree->rates->nd_t[tree->n_root->num] > MIN(tree->rates->nd_t[tree->n_root->v[0]->num],
+					     tree->rates->nd_t[tree->n_root->v[1]->num]))
     {
-      tree->rates->cur_t[tree->n_root->num] = MIN(tree->rates->cur_t[tree->n_root->v[0]->num],
-					      tree->rates->cur_t[tree->n_root->v[1]->num]);
+      tree->rates->nd_t[tree->n_root->num] = MIN(tree->rates->nd_t[tree->n_root->v[0]->num],
+					      tree->rates->nd_t[tree->n_root->v[1]->num]);
     }
 }
 
@@ -548,16 +542,16 @@ void MC_Adjust_Node_Times_Pre(node *a, node *d, arbre *tree)
 	{
 	  if((d->v[i] != a) && (d->b[i] != tree->e_root))
 	    {
-	      if(tree->rates->cur_t[d->v[i]->num] < min_height)
+	      if(tree->rates->nd_t[d->v[i]->num] < min_height)
 		{
-		  min_height = tree->rates->cur_t[d->v[i]->num];
+		  min_height = tree->rates->nd_t[d->v[i]->num];
 		}
 	    }
 	}
 
-      if(tree->rates->cur_t[d->num] > min_height) tree->rates->cur_t[d->num] = min_height;
+      if(tree->rates->nd_t[d->num] > min_height) tree->rates->nd_t[d->num] = min_height;
 
-      if(tree->rates->cur_t[d->num] < -100.) tree->rates->cur_t[d->num] = -100.;
+      if(tree->rates->nd_t[d->num] < -100.) tree->rates->nd_t[d->num] = -100.;
 
     }
 }
@@ -571,8 +565,8 @@ void MC_Adjust_Node_Times_Pre(node *a, node *d, arbre *tree)
 void MC_Mult_Time_Stamps(arbre *tree)
 {
   int i;
-  For(i,2*tree->n_otu-2) tree->rates->cur_t[tree->noeud[i]->num] *= fabs(tree->mod->s_opt->tree_size_mult);
-  tree->rates->cur_t[tree->n_root->num] *= fabs(tree->mod->s_opt->tree_size_mult);
+  For(i,2*tree->n_otu-2) tree->rates->nd_t[tree->noeud[i]->num] *= fabs(tree->mod->s_opt->tree_size_mult);
+  tree->rates->nd_t[tree->n_root->num] *= fabs(tree->mod->s_opt->tree_size_mult);
 }
 
 /*********************************************************/
@@ -583,8 +577,8 @@ void MC_Mult_Time_Stamps(arbre *tree)
 void MC_Div_Time_Stamps(arbre *tree)
 {
   int i;
-  For(i,2*tree->n_otu-2) tree->rates->cur_t[tree->noeud[i]->num] /= fabs(tree->mod->s_opt->tree_size_mult);
-  tree->rates->cur_t[tree->n_root->num] /= fabs(tree->mod->s_opt->tree_size_mult);
+  For(i,2*tree->n_otu-2) tree->rates->nd_t[tree->noeud[i]->num] /= fabs(tree->mod->s_opt->tree_size_mult);
+  tree->rates->nd_t[tree->n_root->num] /= fabs(tree->mod->s_opt->tree_size_mult);
 }
 
 /*********************************************************/
@@ -600,21 +594,20 @@ void MC_Bl_From_T(arbre *tree)
   mean_rate   = tree->rates->clock_r;
   branch_rate = tree->rates->br_r[tree->e_root->num];
 
-  
   if(tree->rates->use_rates)
     tree->e_root->l = 
-      mean_rate * branch_rate * (tree->rates->cur_t[tree->n_root->num] - tree->rates->cur_t[tree->e_root->left->num]) + 
-      mean_rate * branch_rate * (tree->rates->cur_t[tree->n_root->num] - tree->rates->cur_t[tree->e_root->rght->num]);
+      mean_rate * branch_rate * (tree->rates->nd_t[tree->n_root->num] - tree->rates->nd_t[tree->e_root->left->num]) + 
+      mean_rate * branch_rate * (tree->rates->nd_t[tree->n_root->num] - tree->rates->nd_t[tree->e_root->rght->num]);
   else
     tree->e_root->l = 
-      (tree->rates->cur_t[tree->n_root->num] - tree->rates->cur_t[tree->e_root->left->num]) + 
-      (tree->rates->cur_t[tree->n_root->num] - tree->rates->cur_t[tree->e_root->rght->num]);
+      (tree->rates->nd_t[tree->n_root->num] - tree->rates->nd_t[tree->e_root->left->num]) + 
+      (tree->rates->nd_t[tree->n_root->num] - tree->rates->nd_t[tree->e_root->rght->num]);
 
   /* Actual formula =>  tree->e_root->l = 
      (tree->n_root->t - tree->e_root->left->t) + 
      (tree->n_root->t - tree->e_root->rght->t); */
   
-  tree->n_root_pos = (tree->rates->cur_t[tree->n_root->num] - tree->rates->cur_t[tree->e_root->left->num])/tree->e_root->l;
+  tree->n_root_pos = (tree->rates->nd_t[tree->n_root->num] - tree->rates->nd_t[tree->e_root->left->num])/tree->e_root->l;
 
 }
 
@@ -632,17 +625,17 @@ void MC_Bl_From_T_Post(node *a, node *d, edge *b, arbre *tree)
 
       if(tree->rates->use_rates)
 	{
-	  b->l = (tree->rates->cur_t[d->num] - tree->rates->cur_t[a->num]) * mean_rate * branch_rate;
+	  b->l = (tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num]) * mean_rate * branch_rate;
 	}
       else
 	{
-	  b->l = (tree->rates->cur_t[d->num] - tree->rates->cur_t[a->num]);
+	  b->l = (tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num]);
 	}
 
       if(b->l < 0.0)
 	{
 	  PhyML_Printf("\n. Correction failed.");
-	  PhyML_Printf("\n. d->t = %f a->t = %f",tree->rates->cur_t[d->num],tree->rates->cur_t[a->num]);
+	  PhyML_Printf("\n. d->t = %f a->t = %f",tree->rates->nd_t[d->num],tree->rates->nd_t[a->num]);
 	  PhyML_Printf("\n. a->num=%d d->num=%d",a->num,d->num);
 	  Warn_And_Exit("\n");
 	}
@@ -736,8 +729,8 @@ void MC_Optimize_Node_Times_Serie(node *a, node *d, arbre *tree)
 	  else    v2 = d->v[i];
 	}
 	  
-      t_inf = MAX(tree->rates->cur_t[v1->num],tree->rates->cur_t[v2->num]);
-      t_sup = tree->rates->cur_t[a->num];
+      t_inf = MAX(tree->rates->nd_t[v1->num],tree->rates->nd_t[v2->num]);
+      t_sup = tree->rates->nd_t[a->num];
 
       if(t_sup < t_inf - MDBL_MAX)
 	{
@@ -747,7 +740,7 @@ void MC_Optimize_Node_Times_Serie(node *a, node *d, arbre *tree)
 	}
       else
 	{
-	  Node_Time_Brent(t_inf,tree->rates->cur_t[d->num],t_sup,
+	  Node_Time_Brent(t_inf,tree->rates->nd_t[d->num],t_sup,
 			  tree->mod->s_opt->min_diff_lk_local,
 			  a,d,tree,
 			  tree->mod->s_opt->brent_it_max);  
@@ -756,7 +749,7 @@ void MC_Optimize_Node_Times_Serie(node *a, node *d, arbre *tree)
       if(tree->c_lnL < lk_init - tree->mod->s_opt->min_diff_lk_local*10.)
 /*       if(tree->c_lnL < lk_init - 1.E-03) */
 	{
-	  PhyML_Printf("\n. t-inf= %f t-sup=%f t-est=%f",t_inf,t_sup,tree->rates->cur_t[d->num]);
+	  PhyML_Printf("\n. t-inf= %f t-sup=%f t-est=%f",t_inf,t_sup,tree->rates->nd_t[d->num]);
 	  PhyML_Printf("\n. %f -- %f",lk_init,tree->c_lnL);
 	  PhyML_Printf("\n. a->num = %d, d->num = %d",a->num,d->num);
 	  Warn_And_Exit("\n. Err. in MC_Optimize_Node_Times_Serie.");
@@ -792,9 +785,9 @@ void MC_Print_Node_Times(node *a, node *d, arbre *tree)
 
   PhyML_Printf("\n. (%3d %3d) a->t = %f d->t = %f (#=%f) b->l = %f",
 	 a->num,d->num,
-	 tree->rates->cur_t[a->num],
-	 tree->rates->cur_t[d->num],
-	 tree->rates->cur_t[a->num]-tree->rates->cur_t[d->num],
+	 tree->rates->nd_t[a->num],
+	 tree->rates->nd_t[d->num],
+	 tree->rates->nd_t[a->num]-tree->rates->nd_t[d->num],
 	 (b)?(b->l):(-1.0));
   if(d->tax) return;
   else
@@ -913,8 +906,8 @@ l_1 / mu  |
   Br_Len_Brent_Default(tree->e_root,tree);
 
   l_1 = 
-    (MAX(tree->rates->cur_t[tree->e_root->left->num],tree->rates->cur_t[tree->e_root->rght->num]) -
-     MIN(tree->rates->cur_t[tree->e_root->left->num],tree->rates->cur_t[tree->e_root->rght->num])) *
+    (MAX(tree->rates->nd_t[tree->e_root->left->num],tree->rates->nd_t[tree->e_root->rght->num]) -
+     MIN(tree->rates->nd_t[tree->e_root->left->num],tree->rates->nd_t[tree->e_root->rght->num])) *
     mean_rate * branch_rate;
   
   l_2 = (tree->e_root->l - l_1) / 2.;
@@ -926,8 +919,8 @@ l_1 / mu  |
       Lk_At_Given_Edge(tree->e_root,tree);
     }
 
-  tree->rates->cur_t[tree->n_root->num] = 
-    MAX(tree->rates->cur_t[tree->e_root->left->num],tree->rates->cur_t[tree->e_root->rght->num]) +
+  tree->rates->nd_t[tree->n_root->num] = 
+    MAX(tree->rates->nd_t[tree->e_root->left->num],tree->rates->nd_t[tree->e_root->rght->num]) +
     l_2 / (mean_rate * branch_rate);
 
 /*  /\* Check that the optimal 'root branch' length is longer than the  */
@@ -952,13 +945,13 @@ l_1 / mu  |
 /* /\* 		 tree->e_root->rght->t, *\/ */
 /* /\* 		 tree->e_root->l); *\/ */
 
-  if((tree->rates->cur_t[tree->n_root->num] < tree->rates->cur_t[tree->e_root->left->num]-1.E-4) ||
-     (tree->rates->cur_t[tree->n_root->num] < tree->rates->cur_t[tree->e_root->rght->num]-1.E-4))
+  if((tree->rates->nd_t[tree->n_root->num] < tree->rates->nd_t[tree->e_root->left->num]-1.E-4) ||
+     (tree->rates->nd_t[tree->n_root->num] < tree->rates->nd_t[tree->e_root->rght->num]-1.E-4))
     {
       PhyML_Printf("\n. t_root = %f t_left = %f t_rght = %f",
-	     tree->rates->cur_t[tree->n_root->num],
-	     tree->rates->cur_t[tree->e_root->left->num],
-	     tree->rates->cur_t[tree->e_root->rght->num]);
+	     tree->rates->nd_t[tree->n_root->num],
+	     tree->rates->nd_t[tree->e_root->left->num],
+	     tree->rates->nd_t[tree->e_root->rght->num]);
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
@@ -998,8 +991,8 @@ void MC_Compute_Rates_And_Times_Least_Square_Adjustments_Post(node *a, node *d, 
       phydbl mu1, mu2, mu3;
       phydbl K;
 
-      t0 = tree->rates->cur_t[a->num];
-      t1 = tree->rates->cur_t[d->num];
+      t0 = tree->rates->nd_t[a->num];
+      t1 = tree->rates->nd_t[d->num];
 
       mu1 = tree->rates->br_r[b->num];
       mu2 = -1.;
@@ -1011,12 +1004,12 @@ void MC_Compute_Rates_And_Times_Least_Square_Adjustments_Post(node *a, node *d, 
 	  {
 	    if(t2 < 0) 
 	      {
-		t2  = tree->rates->cur_t[d->v[i]->num];
+		t2  = tree->rates->nd_t[d->v[i]->num];
 		mu2 = tree->rates->br_r[d->b[i]->num];
 	      }
 	    if(t3 < 0) 
 	      {
-		t3  = tree->rates->cur_t[d->v[i]->num];
+		t3  = tree->rates->nd_t[d->v[i]->num];
 		mu3 = tree->rates->br_r[d->b[i]->num];
 	      }
 	  }

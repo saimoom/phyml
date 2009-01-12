@@ -4178,7 +4178,7 @@ void Print_Fp_Out(FILE *fp_out, time_t t_beg, time_t t_end, arbre *tree, option 
 
   PhyML_Fprintf(fp_out,"\n");
   PhyML_Fprintf(fp_out," oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo\n");
-  PhyML_Fprintf(fp_out," Suggested citation:\n\n");
+  PhyML_Fprintf(fp_out," Suggested citation:\n");
   PhyML_Fprintf(fp_out," S. Guindon & O. Gascuel\n");
   PhyML_Fprintf(fp_out," \"A simple, fast, and accurate algorithm to estimate large phylogenies by maximum likelihood\"\n");
   PhyML_Fprintf(fp_out," Systematic Biology. 2003. 52(5):696-704.\n");
@@ -8775,7 +8775,7 @@ arbre *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
       tree->noeud[n1]->v[0] = curr_n;
       tree->noeud[n2]->v[0] = curr_n;
       
-      tree->rates->cur_t[curr_n->num] = t[n_connected/2];
+      tree->rates->nd_t[curr_n->num] = t[n_connected/2];
 
       available_nodes[n_available] = tree->noeud[n1]->num;  
       For(i,n_available)
@@ -8793,7 +8793,7 @@ arbre *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
 
     }while(n_connected < 2*tree->n_otu-2);
 
-  For(i,2*tree->n_otu-2) tmp[i] = tree->rates->cur_t[i];
+  For(i,2*tree->n_otu-2) tmp[i] = tree->rates->nd_t[i];
 
   /* Unroot the tree */
   root->v[1]->v[0] = root->v[2];
@@ -8818,7 +8818,7 @@ arbre *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
 	}
       else
 	{
-	  tree->rates->cur_t[i] = tmp[internal_nodes[n_internal]->num];
+	  tree->rates->nd_t[i] = tmp[internal_nodes[n_internal]->num];
 	  tree->noeud[i]        = internal_nodes[n_internal++];
 	  tree->noeud[i]->tax   = 0;
 	}
@@ -8826,7 +8826,7 @@ arbre *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
       tree->noeud[i]->num = i;
     }
 
-  For(i,tree->n_otu) tree->rates->cur_t[i] = 0.0;
+  For(i,tree->n_otu) tree->rates->nd_t[i] = 0.0;
   
   For(i,tree->n_otu) 
     {
@@ -8864,8 +8864,8 @@ arbre *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
 
   if(rooted)
     {
-      tree->n_root->l[0] = (tree->rates->cur_t[tree->n_root->v[0]->num] - t[0]);
-      tree->n_root->l[1] = (tree->rates->cur_t[tree->n_root->v[1]->num] - t[0]);
+      tree->n_root->l[0] = (tree->rates->nd_t[tree->n_root->v[0]->num] - t[0]);
+      tree->n_root->l[1] = (tree->rates->nd_t[tree->n_root->v[1]->num] - t[0]);
       tree->e_root->l    = tree->n_root->l[0] + tree->n_root->l[1];
     }
 
@@ -9991,98 +9991,6 @@ char *Basename(char *path)
 
 /*********************************************************/
 
-phydbl *Covariance_Matrix(arbre *tree)
-{
-  phydbl *cov, *mean,var_min;
-  int *ori_wght,*site_num;
-  int dim,i,j,replicate,n_site,position,sample_size;
-
-  sample_size = 1000;
-  dim = 2*tree->n_otu-3;
-
-  cov      = (phydbl *)mCalloc(dim*dim,sizeof(phydbl));
-  mean     = (phydbl *)mCalloc(    dim,sizeof(phydbl));
-  ori_wght = (int *)mCalloc(tree->data->crunch_len,sizeof(int));
-  site_num = (int *)mCalloc(tree->data->init_len,sizeof(int));
-  
-  var_min = 1./pow(tree->data->init_len,2);
-
-  For(i,tree->data->crunch_len) ori_wght[i] = tree->data->wght[i];
-
-  n_site = 0;
-  For(i,tree->data->crunch_len) For(j,tree->data->wght[i])
-    {
-      site_num[n_site] = i;
-      n_site++;
-    }
-
-  		  
-  tree->mod->s_opt->print = 0;
-  For(replicate,sample_size)
-    {
-      For(i,2*tree->n_otu-3) tree->t_edges[i]->l = .1;
-
-      For(i,tree->data->crunch_len) tree->data->wght[i] = 0;
-
-      For(i,tree->data->init_len)
-	{
-	  position = Rand_Int(0,(int)(tree->data->init_len-1.0));
-	  tree->data->wght[site_num[position]] += 1;
-	}
-
-      Round_Optimize(tree,tree->data,ROUND_MAX);
-      
-      For(i,2*tree->n_otu-3) For(j,2*tree->n_otu-3) cov[i*dim+j] += tree->t_edges[i]->l * tree->t_edges[j]->l;  
-      For(i,2*tree->n_otu-3) mean[i] += tree->t_edges[i]->l;
-
-      printf("."); fflush(NULL);
-/*       printf("\n. %3d %12f %12f %12f [%12f %12f %12f] [%12f %12f %12f] [%12f %12f %12f]", */
-/* 	     replicate, */
-/*  	     cov[0]/(replicate+1)-mean[0]*mean[0]/pow(replicate+1,2), */
-/*  	     cov[1]/(replicate+1)-mean[0]*mean[1]/pow(replicate+1,2), */
-/*  	     cov[2]/(replicate+1)-mean[0]*mean[2]/pow(replicate+1,2), */
-/* 	     tree->t_edges[0]->l, */
-/* 	     tree->t_edges[1]->l, */
-/* 	     tree->t_edges[2]->l, */
-/* 	     mean[0]/(replicate+1), */
-/* 	     mean[1]/(replicate+1), */
-/* 	     mean[2]/(replicate+1), */
-/* 	     cov[0]/(replicate+1), */
-/* 	     cov[1]/(replicate+1), */
-/* 	     cov[2]/(replicate+1)); */
-   }
-
-  For(i,2*tree->n_otu-3) mean[i] /= (phydbl)sample_size;
-  
-  For(i,2*tree->n_otu-3) For(j,2*tree->n_otu-3) cov[i*dim+j] /= (phydbl)sample_size;
-  For(i,2*tree->n_otu-3) For(j,2*tree->n_otu-3) cov[i*dim+j] -= mean[i]*mean[j];
-  For(i,2*tree->n_otu-3) if(cov[i*dim+i] < var_min) cov[i*dim+i] = var_min;
-  
-
-/*   printf("\n"); */
-/*   For(i,2*tree->n_otu-3) printf("%f %f\n",mean[i],tree->t_edges[i]->l); */
-/*   printf("\n"); */
-/*   printf("\n"); */
-/*   For(i,2*tree->n_otu-3) */
-/*     { */
-/*       For(j,2*tree->n_otu-3) */
-/* 	{ */
-/* 	  printf("%G\n",cov[i*dim+j]); */
-/* 	} */
-/*       printf("\n"); */
-/*     } */
-
-  For(i,tree->data->crunch_len) tree->data->wght[i] = ori_wght[i];
-
-  Free(mean);
-  Free(ori_wght);
-  Free(site_num);
-
-  return cov;
-}
-
-/*********************************************************/
-
 phydbl *Matrix_Mult(phydbl *A, phydbl *B, int nra, int nca, int nrb, int ncb)
 {
   int i,j,k;
@@ -10110,7 +10018,6 @@ phydbl *Matrix_Mult(phydbl *A, phydbl *B, int nra, int nca, int nrb, int ncb)
   
   return C;
 }
-
 
 /*********************************************************/
 

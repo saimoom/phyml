@@ -535,16 +535,13 @@ void Free_Pnode(pnode *n)
 
 void Free_Rates(int n_otu, trate *r)
 {
-  int i;
-
+  Free(r->post_r_mean);
+  Free(r->post_r_cov);
+  Free(r->prior_r_mean);
+  Free(r->prior_r_cov);
   Free(r->dens);
-  Free(r->br_r);
-
-  For(i,n_otu) Free(r->mc_mr[i]);
-  Free(r->mc_mr);
-  
+  Free(r->br_r);  
   Free(r->triplet);
-
   Free(r);
 }
 
