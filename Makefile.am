@@ -23,9 +23,9 @@ PROG = PHYML
 
 
 phyml_SOURCES = main.c utilities.c optimiz.c lk.c bionj.c models.c free.c\
-options.c simu.c eigen.c pars.c alrt.c interface.c cl.c spr.c  draw.c mpi_boot.c
+options.c simu.c eigen.c pars.c alrt.c interface.c cl.c spr.c  draw.c mpi_boot.c numeric.c
 phyml_LDADD = main.o utilities.o optimiz.o lk.o bionj.o models.o free.o\
-options.o simu.o eigen.o pars.o alrt.o interface.o cl.o spr.o draw.o mpi_boot.o
+options.o simu.o eigen.o pars.o alrt.o interface.o cl.o spr.o draw.o mpi_boot.o numeric.o
 
 
 SCOMPILE = $(CC) $(SDEFS) $(DEFS) $(INCLUDES) $(AM_CFLAGS) $(SCFLAGS)
@@ -94,3 +94,6 @@ draw.o: draw.c draw.h
 
 mpi_boot.o: mpi_boot.c mpi_boot.h
 	$(SCOMPILE) -c mpi_boot.c
+
+numeric.o: numeric.c numeric.h
+	$(SCOMPILE) -c numeric.c

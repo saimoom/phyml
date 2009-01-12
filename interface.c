@@ -1181,7 +1181,8 @@ void Launch_Interface_Model(option *io)
 		  {
 		    io->mod->whichmodel = F81;
 		    strcpy(io->mod->modelname,"F81");
-		    io->mod->s_opt->opt_kappa = 0;
+		    io->mod->s_opt->opt_kappa  = 0;
+		    io->mod->s_opt->opt_lambda = 0;
 		  }
 		else if(io->mod->whichmodel == F81)
 		  {
@@ -1203,21 +1204,24 @@ void Launch_Interface_Model(option *io)
 		  {
 		    io->mod->whichmodel = GTR;
 		    strcpy(io->mod->modelname,"GTR");
-		    io->mod->s_opt->opt_kappa = 0;
-		    io->mod->s_opt->opt_rr    = 1;
+		    io->mod->s_opt->opt_kappa  = 0;
+		    io->mod->s_opt->opt_lambda = 0;
+		    io->mod->s_opt->opt_rr     = 1;
 		  }
 		else if(io->mod->whichmodel == GTR)
 		  {
 		    io->mod->whichmodel = CUSTOM;
 		    strcpy(io->mod->modelname,"custom");
-		    io->mod->s_opt->opt_kappa = 0;
+		    io->mod->s_opt->opt_kappa  = 0;
+		    io->mod->s_opt->opt_lambda = 0;
 		  }
 
 		else if(io->mod->whichmodel == CUSTOM)
 		  {
 		    io->mod->whichmodel = JC69;
 		    strcpy(io->mod->modelname,"JC69");
-		    io->mod->s_opt->opt_kappa = 0;
+		    io->mod->s_opt->opt_kappa  = 0;
+		    io->mod->s_opt->opt_lambda = 0;
 		  }
 	      }
 	  }

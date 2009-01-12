@@ -177,7 +177,6 @@ void PMat_TN93(phydbl l, model *mod, int pos, double *Pij)
 
 /*********************************************************/
 
-
 int Matinv(double *x, int n, int m, double *space)
 {
 
