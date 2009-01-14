@@ -202,8 +202,6 @@ phydbl Generic_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 	    }
 	  return tree->c_lnL;
 	}
-
-
       
       if(fabs(e) > tol1) 
 	{

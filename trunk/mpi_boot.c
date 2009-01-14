@@ -20,6 +20,7 @@ the GNU public licence. See http://www.opensource.org for details.
 #include "spr.h"
 #include "bionj.h"
 #include "mpi_boot.h"
+#include "numeric.h"
 
 #ifdef MPI
 

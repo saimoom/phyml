@@ -35,6 +35,7 @@ void Simu_Loop(arbre *tree)
   do
     {
       lk_old = tree->c_lnL;
+      printf("\n. Before opt ts/t=%f LK=%f",tree->mod->kappa,Return_Lk(tree));
       Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
       if(!Simu(tree,10)) Check_NNI_Five_Branches(tree);
     }
@@ -89,30 +90,11 @@ int Simu(arbre *tree, int n_step_max)
   do
     {
       ++step;
-      
-      if(step > n_step_max) break;
-           
+                 
+      old_loglk = tree->c_lnL;	    
       tree->both_sides = 1;
       Lk(tree);
       
-      if(tree->io->print_trace)
-	{
-	  PhyML_Fprintf(tree->io->fp_out_trace,"[%f]%s\n",tree->c_lnL,Write_Tree(tree)); fflush(tree->io->fp_out_trace);
-	  if(tree->io->print_site_lnl) Print_Site_Lk(tree,tree->io->fp_out_lk); fflush(tree->io->fp_out_lk);
-	}
-
-      if((tree->mod->s_opt->print) && (!tree->io->quiet)) 
-	{
-	  Print_Lk(tree,"[Topology           ]");
-/* 	  if(step > 1) (n_tested > 1)?(printf(" (%d NNIs)",n_tested)):(printf(" (%d NNI )",n_tested)); */
-	}
-      
-      if((fabs(old_loglk-tree->c_lnL) < tree->mod->s_opt->min_diff_lk_global) || 
-	 (n_without_swap > it_lim_without_swap)) 
-	{
-	  break;
-	}
-
       if(tree->c_lnL < old_loglk)
 	{
 	  if((tree->mod->s_opt->print) && (!tree->io->quiet)) printf("\n\n. Moving backward\n");
@@ -124,33 +106,47 @@ int Simu(arbre *tree, int n_step_max)
 	  tree->both_sides = 1;
 	  Lk(tree);
 	}
-      else 
-	{	  
-	  old_loglk = tree->c_lnL;	    
-	  Fill_Dir_Table(tree);
-	  Fix_All(tree);
-	  n_neg = 0;
-	  For(i,2*tree->n_otu-3)
-	    if((!tree->t_edges[i]->left->tax) && 
-	       (!tree->t_edges[i]->rght->tax)) 
-	      NNI(tree,tree->t_edges[i],0);
-	  
-	  Select_Edges_To_Swap(tree,sorted_b,&n_neg);	    	  
-	  Sort_Edges_NNI_Score(tree,sorted_b,n_neg);	    
-	  Optimiz_Ext_Br(tree);	  	    
-	  Update_Bl(tree,lambda);
-	  	  
-	  n_tested = 0;
-	  For(i,(int)ceil((phydbl)n_neg*(lambda)))
-	    tested_b[n_tested++] = sorted_b[i];
-	  
-	  Make_N_Swap(tree,tested_b,0,n_tested);
-	  
-	  n_tot_swap += n_tested;
-	  
-	  if(n_tested > 0) n_without_swap = 0;
-	  else             n_without_swap++;
+
+      if(step > n_step_max) break;
+
+      if(tree->io->print_trace)
+	{
+	  PhyML_Fprintf(tree->io->fp_out_trace,"[%f]%s\n",tree->c_lnL,Write_Tree(tree)); fflush(tree->io->fp_out_trace);
+	  if(tree->io->print_site_lnl) Print_Site_Lk(tree,tree->io->fp_out_lk); fflush(tree->io->fp_out_lk);
 	}
+
+      if((tree->mod->s_opt->print) && (!tree->io->quiet)) Print_Lk(tree,"[Topology           ]");
+      
+      if(((tree->c_lnL > old_loglk) &&
+	  (fabs(old_loglk-tree->c_lnL) < tree->mod->s_opt->min_diff_lk_global)) ||
+	 (n_without_swap > it_lim_without_swap)) break;
+      
+
+      Fill_Dir_Table(tree);
+      Fix_All(tree);
+      n_neg = 0;
+      For(i,2*tree->n_otu-3)
+	if((!tree->t_edges[i]->left->tax) && 
+	   (!tree->t_edges[i]->rght->tax)) 
+	  NNI(tree,tree->t_edges[i],0);
+      
+      
+      Select_Edges_To_Swap(tree,sorted_b,&n_neg);	    	  
+      Sort_Edges_NNI_Score(tree,sorted_b,n_neg);	    
+      Optimiz_Ext_Br(tree);	  	    
+      Update_Bl(tree,lambda);
+	  	        
+      n_tested = 0;
+      For(i,(int)ceil((phydbl)n_neg*(lambda)))
+	tested_b[n_tested++] = sorted_b[i];
+      
+      Make_N_Swap(tree,tested_b,0,n_tested);
+            
+      n_tot_swap += n_tested;
+      
+      if(n_tested > 0) n_without_swap = 0;
+      else             n_without_swap++;
+      
       n_iter+=1.0;
     }
   while(1);

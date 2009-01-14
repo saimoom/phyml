@@ -30,6 +30,7 @@ the GNU public licence. See http://www.opensource.org for details.
 #include "m4.h"
 #include "draw.h"
 #include "rates.h"
+#include "numeric.h"
 
 #ifdef RWRAPPER
 #include <R.h>
@@ -1153,7 +1154,7 @@ phydbl RATES_Yule(arbre *tree)
     (n-1.)*log(2.) + 
     (n-2.)*log(lambda) - 
     lambda*sumti - 
-    factln(n) - 
+    Factln(n) - 
     log(n-1.) - 
     (n-2.)*log(1.-exp(-lambda));
   
@@ -1338,8 +1339,8 @@ void RATES_Set_Rates_Prior_Mean_Pre(node *a, node *d, arbre *tree)
 
 void RATES_Set_Rates_Prior_Cov(arbre *tree)
 {
-  RATES_Set_Rates_Prior_Cov_Pre(tree->n_root,tree->n_root->v[0],tree);
-  RATES_Set_Rates_Prior_Cov_Pre(tree->n_root,tree->n_root->v[1],tree);
+/*   RATES_Set_Rates_Prior_Cov_Pre(tree->n_root,tree->n_root->v[0],tree); */
+/*   RATES_Set_Rates_Prior_Cov_Pre(tree->n_root,tree->n_root->v[1],tree); */
 }
 
 /*********************************************************/
@@ -1359,48 +1360,44 @@ void RATES_Set_Rates_Prior_Cov_Pre(node *a, node *d, arbre *tree)
 
 /*********************************************************/
 
-void RATES_Set_Rates_Post_Mean_And_Cov(arbre *tree)
-{
-  RATES_Set_Rates_Post_Cov(tree);
-  RATES_Set_Rates_Post_Mean(tree);
-}
+/* void RATES_Set_Rates_Post_Mean_And_Cov(arbre *tree) */
+/* { */
+/*   int i,j; */
+/*   int dim; */
+/*   phydbl *inv_prior, *A, *B, *buff; */
 
-/*********************************************************/
+/*   dim = 2*tree->n_otu-3; */
 
-void RATES_Set_Rates_Post_Cov(arbre *tree)
-{
-  int i,j;
-  int dim;
-  phydbl *inv_prior, *buff;
+/*   inv_prior = (phydbl *)mCalloc(dim*dim,sizeof(phydbl)); */
+/*   buff      = (phydbl *)mCalloc(dim*dim,sizeof(phydbl)); */
 
-  dim = 2*tree->n_otu-3;
+/*   For(i,dim*dim) inv_prior[i] = tree->rates->prior_r_cov[i]; */
 
-  inv_prior = (phydbl *)mCalloc(dim*dim,sizeof(phydbl));
-  buff      = (phydbl *)mCalloc(dim*dim,sizeof(phydbl));
-
-  For(i,dim*dim) inv_prior[i] = tree->rates->prior_r_cov[i];
-
-  Matinv(inv_prior,dim,dim,buff);
+/*   Matinv(inv_prior,dim,dim,buff); */
   
-  /* sum of the inverse of the covariance matrix for the likelihood (i.e., the hessian) and
-     the covariance matrix for the prior */
-  For(i,dim) For(j,dim)
-    tree->rates->post_r_cov[i*dim+j] = tree->hessian[i*dim+j] + inv_prior[i*dim+j];
+/*   /\* sum of the inverse of the covariance matrix for the likelihood (i.e., the hessian) and */
+/*      the covariance matrix for the prior *\/ */
+/*   For(i,dim) For(j,dim) */
+/*     tree->rates->post_r_cov[i*dim+j] = tree->hessian[i*dim+j] + inv_prior[i*dim+j]; */
  
-  Matinv(tree->rates->post_r_cov,dim,dim,buff);
+/*   Matinv(tree->rates->post_r_cov,dim,dim,buff); */
 
-  Free(inv_prior);
-  Free(buff);
-}
 
-/*********************************************************/
 
-void RATES_Set_Rates_Post_Mean(arbre *tree)
-{
-  int i,j;
-  
 
-}
+
+
+
+
+
+
+/*   Free(inv_prior); */
+/*   Free(A); */
+/*   Free(B); */
+/* } */
+
+/* /\*********************************************************\/ */
+
 
 
 #endif

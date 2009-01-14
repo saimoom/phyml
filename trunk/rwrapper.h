@@ -27,5 +27,7 @@ void RWRAPPER_RATES_Dmu1_And_Mu2_One_Jump_Two_Intervals(phydbl *dt1, phydbl *dt2
 void RWRAPPER_Dmu_One(phydbl *mu, phydbl *dt, phydbl *a, phydbl *b, phydbl *lexp, double *dens);
 void RWRAPPER_Lk_Rates_Core(phydbl *mu1, phydbl *mu2, phydbl *dt1, phydbl *dt2, phydbl *a, phydbl *b, phydbl *lexp, phydbl *eps, int *approx, phydbl *dens);
 void RWRAPPER_Dmu2_And_Mu1(double *mu1, double *mu2, double *dt1, double *dt2, double *a, double *b, double *lexp, double *dens);
+void RWRAPPER_Rnorm_Trunc(phydbl *mean, phydbl *sd, phydbl *min, phydbl *max, phydbl *res);
+void  RWRAPPER_Cholesky_Decomp(double *A, int *dim);
 
 #endif

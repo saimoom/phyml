@@ -111,7 +111,6 @@ phydbl RATES_Compound_Core_Marginal(phydbl mu1, phydbl mu2, phydbl dt1, phydbl d
 phydbl RATES_Lk_Jumps(arbre *tree);
 void RATES_Set_Rates_Prior_Mean(arbre *tree);
 void RATES_Set_Rates_Prior_Mean_Pre(node *a, node *d, arbre *tree);
-void RATES_Set_Rates_Post_Cov(arbre *tree);
 void RATES_Set_Rates_Post_Mean_And_Cov(arbre *tree);
 
 #endif

@@ -166,11 +166,7 @@ void MCMC_Lexp(arbre *tree)
 
   cur_lexp = tree->rates->lexp;
   
-  if(cur_lexp > 2.0)
-    {
-      printf("\n. cur_lexp = %f iter=%d",cur_lexp,tree->mcmc->run);
-
-    }
+  if(cur_lexp > 2.0) printf("\n. cur_lexp = %f iter=%d",cur_lexp,tree->mcmc->run);
 
 
   u = Uni();
@@ -188,7 +184,6 @@ void MCMC_Lexp(arbre *tree)
 
       ratio = exp(ratio);
 
-      
 /*       ratio =  */
 /* 	exp(new_lnL-cur_lnL)* */
 /* 	(new_lexp/cur_lexp) * */
