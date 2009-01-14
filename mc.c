@@ -143,7 +143,34 @@ int MC_main(int argc, char **argv)
 
 		  /* IMPORTANCE SAMPLING STUFF */
 
-		  phydbl *cov;
+/* 		  phydbl *cov; */
+		  int i,j;
+
+		  phydbl *mean, *cov, *min, *max, *x;
+		  int dim;
+
+		  dim = 2;
+		  
+		  mean = (phydbl *)mCalloc(dim,    sizeof(phydbl));
+		  cov  = (phydbl *)mCalloc(dim*dim,sizeof(phydbl));
+		  min  = (phydbl *)mCalloc(dim,    sizeof(phydbl));
+		  max  = (phydbl *)mCalloc(dim,    sizeof(phydbl));
+		  
+		  mean[0] = 0.; mean[1] = 10.;
+		  
+		  cov[0*dim+0] = 9. ; cov[0*dim+1] = 0.;
+		  cov[1*dim+0] =  0.; cov[1*dim+1] = 9.;
+		  
+		  min[0] = -1.; max[0] = 1.;
+		  min[1] = -10.; max[1] = 10.;
+
+		  For(i,1000)
+		    {
+		      x = Rnorm_Multid_Trunc(mean,cov,min,max,dim);
+		      For(j,dim) printf("%10lf ",x[j]);
+		      printf("\n");
+		    }
+		  Exit("\n");
 
 		  tree->mod         = mod;
 		  tree->io          = io;

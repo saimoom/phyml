@@ -1,6 +1,7 @@
 #include "utilities.h"
 #include "rates.h"
 #include "eigen.h"
+#include "numeric.h"
 
 /*********************************************************/
 /*********************************************************/
@@ -9,9 +10,14 @@
 /*********************************************************/
 /*********************************************************/
 
-void  RWRAPPER_Cholesky_Decomp(double *A, int *dim, double *L)
+void RWRAPPER_Rnorm_Trunc(phydbl *mean, phydbl *sd, phydbl *min, phydbl *max, phydbl *res)
 {
-  Cholesky_Decomp(A,*dim,L);
+  *res = Rnorm_Trunc(*mean,*sd,*min,*max);
+}
+
+void  RWRAPPER_Cholesky_Decomp(double *A, int *dim)
+{
+  Cholesky_Decomp(A,*dim);
 }
 
 /*********************************************************/

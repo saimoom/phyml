@@ -34,11 +34,34 @@ the GNU public licence. See http://www.opensource.org for details.
 #define SIGN(a,b)                    ((b) > 0.0 ? fabs(a) : -fabs(a))
 #define SHFT(a,b,c,d)                (a)=(b);(b)=(c);(c)=(d);
 
+#ifndef isnan
+# define isnan(x)						 \
+  (sizeof (x) == sizeof (long double) ? isnan_ld (x)		 \
+   : sizeof (x) == sizeof (double) ? isnan_d (x)		 \
+   : isnan_f (x))
+static inline int isnan_f  (float       x) { return x != x; }
+static inline int isnan_d  (double      x) { return x != x; }
+static inline int isnan_ld (long double x) { return x != x; }
+#endif
+
+#ifndef isinf
+# define isinf(x)						 \
+  (sizeof (x) == sizeof (long double) ? isinf_ld (x)		 \
+   : sizeof (x) == sizeof (double) ? isinf_d (x)		 \
+   : isinf_f (x))
+static inline int isinf_f  (float       x) { return isnan (x - x); }
+static inline int isinf_d  (double      x) { return isnan (x - x); }
+static inline int isinf_ld (long double x) { return isnan (x - x); }
+#endif
+     
+
+
 #define  NNI_MOVE            0
 #define  SPR_MOVE            1
 #define  BEST_OF_NNI_AND_SPR 2
 
-#define  PI 3.14159
+#define  PI      3.141593
+#define  SQRT2PI 2.506628
 
 #define  YES 1
 #define  NO  0
