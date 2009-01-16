@@ -1292,7 +1292,6 @@ phydbl RATES_Lk_Jumps(arbre *tree)
   phydbl dens,dt,lexp;
   node *n;
 
-
   n = NULL;
   lexp = tree->rates->lexp;
   n_jps = 0;
@@ -1314,84 +1313,100 @@ phydbl RATES_Lk_Jumps(arbre *tree)
 
 /*********************************************************/
 
-void RATES_Set_Rates_Prior_Mean(arbre *tree)
-{
-  tree->rates->nd_r[tree->n_root->num] = 1.0;
-  RATES_Set_Rates_Prior_Mean_Pre(tree->n_root,tree->n_root->v[0],tree);
-  RATES_Set_Rates_Prior_Mean_Pre(tree->n_root,tree->n_root->v[1],tree);
-}
+/* void RATES_Set_Prior_Mean_Rates(arbre *tree) */
+/* { */
+/*   tree->rates->nd_r[tree->n_root->num] = 1.0; */
+/*   RATES_Set_Rates_Prior_Mean_Pre(tree->n_root,tree->n_root->v[0],tree); */
+/*   RATES_Set_Rates_Prior_Mean_Pre(tree->n_root,tree->n_root->v[1],tree); */
+/* } */
 
-/*********************************************************/
+/* /\*********************************************************\/ */
 
-void RATES_Set_Rates_Prior_Mean_Pre(node *a, node *d, arbre *tree)
-{
-  tree->rates->prior_r_mean[d->num] = tree->rates->nd_r[a->num] * tree->rates->clock_r;
-  
-  if(d->tax) return;
-  else
-    {
-      int i;
-      For(i,3) if(d->v[i] != a) RATES_Set_Rates_Prior_Mean_Pre(d,d->v[i],tree);     
-    }
-}
-
-/*********************************************************/
-
-void RATES_Set_Rates_Prior_Cov(arbre *tree)
-{
+/* void RATES_Set_Prior_Cov_Rates(arbre *tree) */
+/* { */
 /*   RATES_Set_Rates_Prior_Cov_Pre(tree->n_root,tree->n_root->v[0],tree); */
 /*   RATES_Set_Rates_Prior_Cov_Pre(tree->n_root,tree->n_root->v[1],tree); */
-}
+/* } */
 
-/*********************************************************/
+/* /\*********************************************************\/ */
 
-void RATES_Set_Rates_Prior_Cov_Pre(node *a, node *d, arbre *tree)
-{
-  tree->rates->prior_r_cov[d->num*(2*tree->n_otu-2)+d->num] = 
-    fabs(tree->rates->nd_t[a->num] - tree->rates->nd_t[d->num]) * tree->rates->autocor;
+/* void RATES_Set_Prior_Mean_Rates_Pre(node *a, node *d, arbre *tree) */
+/* { */
+/*   tree->rates->prior_mean_rates[d->num] = tree->rates->nd_r[a->num] * tree->rates->clock_r; */
   
-  if(d->tax) return;
-  else
-    {
-      int i;
-      For(i,3) if(d->v[i] != a) RATES_Set_Rates_Prior_Cov_Pre(d,d->v[i],tree);
-    }
-}
+/*   if(d->tax) return; */
+/*   else */
+/*     { */
+/*       int i; */
+/*       For(i,3) if(d->v[i] != a) RATES_Set_Prior_Mean_Rates_Pre(d,d->v[i],tree);      */
+/*     } */
+/* } */
 
-/*********************************************************/
+/* /\*********************************************************\/ */
 
-/* void RATES_Set_Rates_Post_Mean_And_Cov(arbre *tree) */
+
+/* void RATES_Set_Prior_Cov_Rates_Pre(node *a, node *d, arbre *tree) */
+/* { */
+/*   tree->rates->prior_cov_rates[d->num*(2*tree->n_otu-2)+d->num] =  */
+/*     fabs(tree->rates->nd_t[a->num] - tree->rates->nd_t[d->num]) * tree->rates->autocor; */
+  
+/*   if(d->tax) return; */
+/*   else */
+/*     { */
+/*       int i; */
+/*       For(i,3) if(d->v[i] != a) RATES_Set_Prior_Cov_Rates_Pre(d,d->v[i],tree); */
+/*     } */
+/* } */
+
+/* /\*********************************************************\/ */
+
+/* void RATES_Set_Post_Mean_And_Cov_Bl(arbre *tree) */
 /* { */
 /*   int i,j; */
 /*   int dim; */
-/*   phydbl *inv_prior, *A, *B, *buff; */
+/*   phydbl *inv_prior_cov, *inv_like_cov; */
+/*   phydbl *post_mean, *post_cov; */
+/*   phydbl *A, *B, *buff; */
 
 /*   dim = 2*tree->n_otu-3; */
 
-/*   inv_prior = (phydbl *)mCalloc(dim*dim,sizeof(phydbl)); */
-/*   buff      = (phydbl *)mCalloc(dim*dim,sizeof(phydbl)); */
+/*   inv_prior_cov = (phydbl *)mCalloc(dim*dim,sizeof(phydbl)); */
+/*   buff          = (phydbl *)mCalloc(dim*dim,sizeof(phydbl)); */
 
-/*   For(i,dim*dim) inv_prior[i] = tree->rates->prior_r_cov[i]; */
+/*   inv_like_cov  = tree->hessian; */
+/*   post_cov      = tree->rates->post_cov_bl; */
+/*   post_mean     = tree->rates->post_mean_bl; */
 
-/*   Matinv(inv_prior,dim,dim,buff); */
+/*   For(i,dim*dim) inv_prior_cov[i] = tree->rates->prior_r_cov[i]; */
+
+/*   Matinv(inv_prior_r_cov,dim,dim,buff); */
   
 /*   /\* sum of the inverse of the covariance matrix for the likelihood (i.e., the hessian) and */
 /*      the covariance matrix for the prior *\/ */
-/*   For(i,dim) For(j,dim) */
-/*     tree->rates->post_r_cov[i*dim+j] = tree->hessian[i*dim+j] + inv_prior[i*dim+j]; */
- 
-/*   Matinv(tree->rates->post_r_cov,dim,dim,buff); */
+/*   For(i,dim) For(j,dim) post_cov[i*dim+j] = inv_like_cov[i*dim+j] + inv_prior_cov[i*dim+j]; */
+
+
+/*   A = Matrix_Mult( */
 
 
 
 
 
 
+  
+  
+/*   Matinvc(tree->rates->post_r_cov,dim,dim,buff); */
+  
+  
+  
+  
+  
+  
 
 
 
-
-/*   Free(inv_prior); */
+  
+/*   Free(inv_prior_r_cov); */
 /*   Free(A); */
 /*   Free(B); */
 /* } */
