@@ -35,7 +35,6 @@ void Simu_Loop(arbre *tree)
   do
     {
       lk_old = tree->c_lnL;
-      printf("\n. Before opt ts/t=%f LK=%f",tree->mod->kappa,Return_Lk(tree));
       Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
       if(!Simu(tree,10)) Check_NNI_Five_Branches(tree);
     }

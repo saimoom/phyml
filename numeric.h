@@ -15,7 +15,7 @@ the GNU public licence. See http://www.opensource.org for details.
 
 phydbl *Covariance_Matrix(arbre *tree);
 phydbl *Hessian(arbre *tree);
-void Recurr_Hessian(node *a, node *b, int plus_minus, phydbl eps, phydbl *res, arbre *tree);
+void   Recurr_Hessian(node *a, node *b, int plus_minus, phydbl *inc, phydbl *res, int *is_ok, arbre *tree);
 double stdnormal_inv(double p);
 double Uni();
 int    Rand_Int(int min, int max);
@@ -48,6 +48,10 @@ phydbl Rnorm(phydbl mean, phydbl sd);
 phydbl *Rnorm_Multid(phydbl *mu, phydbl *cov, int dim);
 phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max);
 phydbl *Rnorm_Multid_Trunc(phydbl *mean, phydbl *cov, phydbl *min, phydbl *max, int dim);
+phydbl *Hessian_Log(arbre *tree);
+void Recurr_Hessian_Log(node *a, node *d, int plus_minus, phydbl *inc, phydbl *res, int *is_ok, arbre *tree);
+phydbl Log_Det(int *is_ok, arbre *tree);
+phydbl Dnorm_Trunc(phydbl x, phydbl mean, phydbl sd, phydbl lo, phydbl up);
 
 
 #endif NUMERIC_H
