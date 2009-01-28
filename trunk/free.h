@@ -45,6 +45,4 @@ void Free_Actual_CSeq(allseq *data);
 void Free_Prefix_Tree(pnode *n, int size);
 void Free_Pnode(pnode *n);
 void Free_Edge_Labels(edge *b);
-void Free_Rates(int n_otu, trate *r);
-
 #endif

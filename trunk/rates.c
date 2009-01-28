@@ -30,6 +30,7 @@ the GNU public licence. See http://www.opensource.org for details.
 #include "m4.h"
 #include "draw.h"
 #include "rates.h"
+#include "mcmc.h"
 #include "numeric.h"
 
 #ifdef RWRAPPER
@@ -52,6 +53,12 @@ phydbl RATES_Lk_Rates(arbre *tree)
   RATES_Lk_Rates_Pre(tree->n_root,tree->n_root->v[0],NULL,tree);
   RATES_Lk_Rates_Pre(tree->n_root,tree->n_root->v[1],NULL,tree);
 
+  if(isnan(tree->rates->c_lnL))
+    {
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");
+    }
+
   return tree->rates->c_lnL;
 }
 
@@ -61,7 +68,8 @@ void RATES_Lk_Rates_Pre(node *a, node *d, edge *b, arbre *tree)
 {
   int i,n1,n2;
   phydbl dens,mu1,mu2,dt1,dt2;
-      
+  
+  dens = -1.;
 
   if(d->anc != a)
     {
@@ -88,10 +96,46 @@ void RATES_Lk_Rates_Pre(node *a, node *d, edge *b, arbre *tree)
       mu2 = tree->rates->nd_r[d->num];
       n2  = tree->rates->n_jps[d->num];
 
-      dens = RATES_Dmu(mu2,n2,dt2,tree->rates->alpha,1./tree->rates->alpha,tree->rates->lexp,0,1);
+      switch(tree->rates->model)
+	{
+	case COMPOUND_COR: case COMPOUND_NOCOR:
+	  {       
+	    dens = RATES_Dmu(mu2,n2,dt2,tree->rates->alpha,1./tree->rates->alpha,tree->rates->lexp,0,1);
+	    break;
+	  }
+	case EXPONENTIAL:
+	  {
+	    dens = Dexp(mu2,tree->rates->lexp);
+	    break;
+	  }
+	case GAMMA:
+	  {
+	    dens = Dgamma(mu2,tree->rates->alpha,1./tree->rates->alpha);
+	    break;
+	  }
+	case THORNE:
+	  {
+	    dens = Dnorm_Trunc(mu2,1.0,sqrt(tree->rates->nu*dt2),tree->rates->min_rate,tree->rates->max_rate);
+	    break;
+	  }
+
+	default:
+	  {	    
+	    PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	    Exit("\n. Model not implemented yet.\n");
+	    break;
+	  }
+	}
     }
 
   tree->rates->c_lnL += log(dens);
+
+  if(isnan(tree->rates->c_lnL))
+    {
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      MCMC_Print_Param(stderr,tree);
+      Exit("\n");
+    }
 
   tree->rates->triplet[a->num] += log(dens);
 
@@ -178,20 +222,47 @@ void RATES_Update_Triplet(node *n, arbre *tree)
       n0  = tree->rates->n_jps[tree->n_root->v[0]->num];
       n1  = tree->rates->n_jps[tree->n_root->v[1]->num];
 
-      if((tree->rates->model == COMPOUND_COR) ||
-	 (tree->rates->model == COMPOUND_NOCOR))
-	{
-	  dens  = RATES_Dmu(mu0,n0,dt0,tree->rates->alpha,1./tree->rates->alpha,tree->rates->lexp,0,1);
-	  dens *= RATES_Dmu(mu1,n1,dt1,tree->rates->alpha,1./tree->rates->alpha,tree->rates->lexp,0,1);
-	}
-      else
-	{
-/* 	  dens = Dexp(mu0,tree->rates->nu) * Dexp(mu1,tree->rates->nu); */
-	  printf("\n TO DOOOO");
-	}
 
+      switch(tree->rates->model)
+	{
+	case COMPOUND_COR : case COMPOUND_NOCOR : 
+	  {
+	    dens  = RATES_Dmu(mu0,n0,dt0,tree->rates->alpha,1./tree->rates->alpha,tree->rates->lexp,0,1);
+	    dens *= RATES_Dmu(mu1,n1,dt1,tree->rates->alpha,1./tree->rates->alpha,tree->rates->lexp,0,1);
+	    break;
+	  }
+	case EXPONENTIAL : 
+	  {
+	    dens = Dexp(mu0,tree->rates->lexp) * Dexp(mu1,tree->rates->lexp);
+	    break;
+	  }
+	case GAMMA :
+	  {
+	    dens = Dgamma(mu0,tree->rates->alpha,1./tree->rates->alpha) * Dgamma(mu1,tree->rates->alpha,1./tree->rates->alpha);
+	    break;
+	  }
+	case THORNE :
+	  {
+	    dens = 
+	      Dnorm_Trunc(mu0,1.0,sqrt(tree->rates->nu*dt0),tree->rates->min_rate,tree->rates->max_rate) * 
+	      Dnorm_Trunc(mu1,1.0,sqrt(tree->rates->nu*dt1),tree->rates->min_rate,tree->rates->max_rate); 
+	    break;
+	  }
+	default :
+	  {
+	    Exit("\n. Model not implemented yet.\n");
+	    break;
+	  }
+	}
       new_triplet = +1.;
       new_triplet = log(dens);
+
+      if(isnan(dens) || isinf(fabs(dens)))
+	{
+	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  MCMC_Print_Param(stderr,tree);
+	  Exit("\n");
+	}
     }
   else
     {
@@ -271,7 +342,7 @@ phydbl RATES_Lk_Rates_Core(phydbl mu1, phydbl mu2, int n1, int n2, phydbl dt1, p
       
     case EXPONENTIAL :
       {
-	dens = Dexp(mu2,tree->rates->nu);
+	dens = Dexp(mu2,tree->rates->lexp);
 	break;
       }
       
@@ -281,12 +352,27 @@ phydbl RATES_Lk_Rates_Core(phydbl mu1, phydbl mu2, int n1, int n2, phydbl dt1, p
 	break;
       }
       
+    case THORNE :
+      {
+	dens = Dnorm_Trunc(mu2,mu1,sqrt(tree->rates->nu*dt2),tree->rates->min_rate,tree->rates->max_rate);
+	break;
+      }
+
     default : 
       {
 	PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
 	Warn_And_Exit("");
       }
     }
+
+  if(isnan(dens) || isinf(fabs(dens)) || (dens < MDBL_MIN))
+    {
+      PhyML_Printf("\n. mu2=%f mu1=%f dt2=%f dt1=%f nu=%f dens=%f\n",mu2,mu1,dt2,dt1,tree->rates->nu,dens);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      MCMC_Print_Param(stderr,tree);
+      Exit("\n");
+    }
+
   return dens;
 }
 
@@ -506,6 +592,7 @@ trate *RATES_Make_Rate_Struct(int n_otu)
   rates->br_r         = (phydbl *)mCalloc(2*n_otu-3,sizeof(phydbl));
   rates->old_r        = (phydbl *)mCalloc(2*n_otu-2,sizeof(phydbl));
   rates->nd_r         = (phydbl *)mCalloc(2*n_otu-2,sizeof(phydbl));
+  rates->true_r       = (phydbl *)mCalloc(2*n_otu-2,sizeof(phydbl));
   rates->old_t        = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
   rates->nd_t         = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
   rates->true_t       = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
@@ -513,12 +600,29 @@ trate *RATES_Make_Rate_Struct(int n_otu)
   rates->triplet      = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
   rates->n_jps        = (int *)mCalloc(2*n_otu-2,sizeof(int));
   rates->t_jps        = (int *)mCalloc(2*n_otu-2,sizeof(int));
-  rates->prior_r_mean = (phydbl *)mCalloc(2*n_otu-2,sizeof(phydbl));
-  rates->prior_r_cov  = (phydbl *)mCalloc((2*n_otu-2)*(2*n_otu-2),sizeof(phydbl));
-  rates->post_r_mean  = (phydbl *)mCalloc(2*n_otu-2,sizeof(phydbl));
-  rates->post_r_cov   = (phydbl *)mCalloc((2*n_otu-2)*(2*n_otu-2),sizeof(phydbl));
+  rates->cov          = (phydbl *)mCalloc((2*n_otu-3)*(2*n_otu-3),sizeof(phydbl));
+  rates->ml_l         = (phydbl *)mCalloc(2*n_otu-3,sizeof(phydbl));
 
   return rates;
+}
+
+/*********************************************************/
+
+void Free_Rates(trate *rates)
+{
+  Free(rates->br_r);
+  Free(rates->old_r);     
+  Free(rates->nd_r);    
+  Free(rates->true_r);     
+  Free(rates->old_t);   
+  Free(rates->nd_t);   
+  Free(rates->true_t);     
+  Free(rates->dens);   
+  Free(rates->triplet);    
+  Free(rates->n_jps);  
+  Free(rates->t_jps);    
+  Free(rates->cov);   
+  Free(rates->ml_l);
 }
 
 /*********************************************************/
@@ -527,19 +631,19 @@ void RATES_Init_Rate_Struct(trate *rates, int n_otu)
 {
   int i;
 
-  rates->model         = COMPOUND_COR;
+  rates->model         = GAMMA;
   rates->clock_r       = 1.E-3;
   rates->c_lnL         = -INFINITY;
   rates->c_lnL_jps     = -INFINITY;
   rates->adjust_rates  = 0;
   rates->use_rates     = 1;
-  rates->lexp          = 0.05;
-  rates->alpha         = 2.0;
+  rates->lexp          = 1.E-3;
+  rates->alpha         = 2.;
   rates->birth_rate    = 0.001;
-  rates->max_rate      = 100.;
-  rates->min_rate      = 0.01;
+  rates->max_rate      = 10.;
+  rates->min_rate      = 0.1;
   rates->step_rate     = 1.E-4;
-  rates->nu            = 1.0;
+  rates->nu            = 0.1;
   rates->approx        = 1;
   rates->bl_from_rt    = 0;
 
@@ -728,45 +832,82 @@ phydbl RATES_Dmu_One(phydbl mu, phydbl dt, phydbl a, phydbl b, phydbl lexp)
    instantaneous rate at node a, this function works out an expected number of (amino-acids or 
    nucleotide) substitutions per site.
 */
-void RATES_Expect_Number_Subst(phydbl t_beg, phydbl t_end, phydbl *r_beg, phydbl alpha, phydbl lexp, int *n_jumps, phydbl *mean_r)
+void RATES_Expect_Number_Subst(phydbl t_beg, phydbl t_end, phydbl *r_beg, int *n_jumps, phydbl *mean_r, trate *rates)
 {
   phydbl curr_r, curr_t, next_t;
 
-  curr_r = *r_beg;
-  *mean_r = *r_beg;
-      
-  curr_t = t_beg + Rexp(lexp); /* Exponentially distributed waiting times */
-  next_t = curr_t;
-  
-  *n_jumps = 0;
-  while(curr_t < t_end)
+  switch(rates->model)
     {
-      curr_r = Rgamma(alpha,1./alpha); /* Gamma distributed random instantaneous rate */
-      
-      (*n_jumps)++;
-      
-      next_t = curr_t + Rexp(lexp);
-	  
-      if(next_t < t_end)
-	{
-	  *mean_r = (1./(next_t - t_beg)) * (*mean_r * (curr_t - t_beg) + curr_r * (next_t - curr_t));
-	}
-      else
-	{
-	  *mean_r = (1./(t_end - t_beg)) * (*mean_r * (curr_t - t_beg) + curr_r * (t_end - curr_t));
-	}
-      curr_t = next_t;
+    case COMPOUND_COR:case COMPOUND_NOCOR:
+      {
+	/* Compound Poisson */
+	if(rates->model == COMPOUND_COR)
+	  {
+	    curr_r  = *r_beg;
+	    *mean_r = *r_beg;
+	  }
+	else
+	  {
+	    curr_r  = Rgamma(rates->alpha,1./rates->alpha);;
+	    *mean_r = curr_r;
+	  }
+
+	curr_t = t_beg + Rexp(rates->lexp); /* Exponentially distributed waiting times */
+	next_t = curr_t;
+	
+	*n_jumps = 0;
+	while(curr_t < t_end)
+	  {
+	    curr_r = Rgamma(rates->alpha,1./rates->alpha); /* Gamma distributed random instantaneous rate */
+	    
+	    (*n_jumps)++;
+	    
+	    next_t = curr_t + Rexp(rates->lexp);
+	    
+	    if(next_t < t_end)
+	      {
+		*mean_r = (1./(next_t - t_beg)) * (*mean_r * (curr_t - t_beg) + curr_r * (next_t - curr_t));
+	      }
+	    else
+	      {
+		*mean_r = (1./(t_end - t_beg)) * (*mean_r * (curr_t - t_beg) + curr_r * (t_end - curr_t));
+	      }
+	    curr_t = next_t;
+	  }
+	
+	/*   printf("\n. [%3d %f %f]",*n_jumps,*mean_r,*r_beg); */
+	
+	*r_beg = curr_r;
+	break;
+      }
+    case EXPONENTIAL:
+      {
+	*mean_r = Rexp(rates->lexp);
+	break;
+      }
+    case GAMMA:
+      {
+	*mean_r = Rgamma(rates->alpha,1./rates->alpha);
+	break;
+      }
+    case THORNE:
+      {
+	*mean_r = Rnorm_Trunc(*r_beg,sqrt(rates->nu*fabs(t_beg-t_end)),rates->min_rate,rates->max_rate);
+	break;
+      }
+    default:
+      {
+	PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	Exit("\n. Model not implemented yet.\n");
+	break;
+      }
     }
-
-/*   printf("\n. [%3d %f %f]",*n_jumps,*mean_r,*r_beg); */
-
-  *r_beg = curr_r;  
 }
-
+  
 /*********************************************************/
 
 
-void RATES_Get_Mean_Rates_Pre(node *a, node *d, edge *b, phydbl *r_a, phydbl alpha, phydbl lexp, arbre *tree)
+void RATES_Get_Mean_Rates_Pre(node *a, node *d, edge *b, phydbl *r_a, arbre *tree)
 {
   phydbl a_t,d_t;
   phydbl r_d;
@@ -776,10 +917,9 @@ void RATES_Get_Mean_Rates_Pre(node *a, node *d, edge *b, phydbl *r_a, phydbl alp
   a_t = tree->rates->nd_t[a->num];
   d_t = tree->rates->nd_t[d->num];
       
-  RATES_Expect_Number_Subst(a_t,d_t,r_a,alpha,lexp,&n_jumps,&mean_r);
+  RATES_Expect_Number_Subst(a_t,d_t,r_a,&n_jumps,&mean_r,tree->rates);
   
-  tree->rates->nd_r[d->num] = mean_r;
-/*   tree->rates->n_jps[d->num] = n_jumps; */
+  tree->rates->nd_r[d->num]  = mean_r;
   tree->rates->t_jps[d->num] = n_jumps;
 
 /*   printf("\n. a=%3d d=%3d mu=%15f nj=%3d r_a=%f", */
@@ -804,7 +944,7 @@ void RATES_Get_Mean_Rates_Pre(node *a, node *d, edge *b, phydbl *r_a, phydbl alp
 	  if((d->v[i] != a) && (d->b[i] != tree->e_root))
 	    {
 	      *r_a = r_d;
-	      RATES_Get_Mean_Rates_Pre(d,d->v[i],d->b[i],r_a,alpha,lexp,tree);
+	      RATES_Get_Mean_Rates_Pre(d,d->v[i],d->b[i],r_a,tree);
 	    }
 	}
     }
@@ -814,32 +954,20 @@ void RATES_Get_Mean_Rates_Pre(node *a, node *d, edge *b, phydbl *r_a, phydbl alp
 
 void RATES_Random_Branch_Lengths(arbre *tree)
 {
-  phydbl r0,r_root,alpha,lexp;
+  phydbl r0,r_root;
    
-  alpha = tree->rates->alpha;
-  lexp  = tree->rates->lexp;
-  
-  printf("\n. alpha = %f lexp = %f",alpha,lexp);
-
-  r0 = Rgamma(alpha,1./alpha);
+  r0 = Rgamma(tree->rates->alpha,1./tree->rates->alpha);
   r_root = r0;
-  RATES_Get_Mean_Rates_Pre(tree->n_root,tree->n_root->v[0],NULL,&r_root,alpha,lexp,tree);
+  RATES_Get_Mean_Rates_Pre(tree->n_root,tree->n_root->v[0],NULL,&r_root,tree);
   r_root = r0;
-  RATES_Get_Mean_Rates_Pre(tree->n_root,tree->n_root->v[1],NULL,&r_root,alpha,lexp,tree);
+  RATES_Get_Mean_Rates_Pre(tree->n_root,tree->n_root->v[1],NULL,&r_root,tree);
 
   RATES_Adjust_Clock_Rate(tree);
   RATES_Get_Br_Len(tree);
+  RATES_Initialize_True_Rates(tree);
 
 /*   RATES_Print_Rates(tree); */
 
-}
-
-/*********************************************************/
-
-void RATES_Randomize_Node_Times(arbre *tree)
-{
-  RATES_Randomize_Node_Times_Pre(tree->n_root,tree->n_root->v[0],tree);
-  RATES_Randomize_Node_Times_Pre(tree->n_root,tree->n_root->v[1],tree);
 }
 
 /*********************************************************/
@@ -900,48 +1028,6 @@ void RATES_Set_Node_Times_Pre(node *a, node *d, arbre *tree)
 
 /*********************************************************/
 
-void RATES_Randomize_Node_Times_Pre(node *a, node *d, arbre *tree)
-{
-  if(d->tax) return;
-  else
-    {
-      node *v1, *v2; /* the two sons of d */
-      phydbl t_sup, t_inf, u;
-      int i;
-
-      v1 = v2 = NULL;
-      For(i,3) if((d->v[i] != a) && (d->b[i] != tree->e_root)) 
-	{
-	  if(!v1) v1 = d->v[i]; 
-	  else    v2 = d->v[i];
-	}
-	  
-      t_inf = MIN(tree->rates->nd_t[v1->num],tree->rates->nd_t[v2->num]);
-      t_sup = tree->rates->nd_t[a->num];
-
-      if(t_sup > t_inf)
-	{
-	  printf("\n. t_sup = %f t_inf = %f",t_sup,t_inf);
-	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-	  Warn_And_Exit("");
-	}
-      
-      u = rand();
-      u /= RAND_MAX;
-
-      tree->rates->nd_t[d->num] = t_sup + u * fabs(t_sup-t_inf);
-
-      For(i,3)
-	{
-	  if((d->v[i] != a) && (d->b[i] != tree->e_root))
-	    {
-	      RATES_Randomize_Node_Times_Pre(d,d->v[i],tree);	      
-	    }
-	}
-    }
-}
-
-/*********************************************************/
 
 phydbl RATES_Dmu1_And_Mu2_One_Jump_Two_Intervals(phydbl mu1, phydbl mu2, phydbl dt1, phydbl dt2, phydbl alpha, phydbl beta)
 {
@@ -1181,6 +1267,13 @@ void RATES_Adjust_Clock_Rate(arbre *tree)
 
 /*********************************************************/
 
+void RATES_Initialize_True_Rates(arbre *tree)
+{
+  int i;
+  For(i,2*tree->n_otu-2) tree->rates->true_r[i] = tree->rates->nd_r[i];
+}
+/*********************************************************/
+
 void RATES_Record_Rates(arbre *tree)
 {
   int i;
@@ -1313,106 +1406,163 @@ phydbl RATES_Lk_Jumps(arbre *tree)
 
 /*********************************************************/
 
-/* void RATES_Set_Prior_Mean_Rates(arbre *tree) */
-/* { */
-/*   tree->rates->nd_r[tree->n_root->num] = 1.0; */
-/*   RATES_Set_Rates_Prior_Mean_Pre(tree->n_root,tree->n_root->v[0],tree); */
-/*   RATES_Set_Rates_Prior_Mean_Pre(tree->n_root,tree->n_root->v[1],tree); */
-/* } */
+void RATES_Posterior_Rates(arbre *tree)
+{
 
-/* /\*********************************************************\/ */
+  RATES_Posterior_Rates_Pre(tree->n_root,tree->n_root->v[0],NULL,tree);
+  RATES_Posterior_Rates_Pre(tree->n_root,tree->n_root->v[1],NULL,tree);
+}
 
-/* void RATES_Set_Prior_Cov_Rates(arbre *tree) */
-/* { */
-/*   RATES_Set_Rates_Prior_Cov_Pre(tree->n_root,tree->n_root->v[0],tree); */
-/*   RATES_Set_Rates_Prior_Cov_Pre(tree->n_root,tree->n_root->v[1],tree); */
-/* } */
+/*********************************************************/
 
-/* /\*********************************************************\/ */
+void RATES_Posterior_Times(arbre *tree)
+{
 
-/* void RATES_Set_Prior_Mean_Rates_Pre(node *a, node *d, arbre *tree) */
-/* { */
-/*   tree->rates->prior_mean_rates[d->num] = tree->rates->nd_r[a->num] * tree->rates->clock_r; */
+  RATES_Posterior_Times_Pre(tree->n_root,tree->n_root->v[0],NULL,tree);
+  RATES_Posterior_Times_Pre(tree->n_root,tree->n_root->v[1],NULL,tree);
+}
+
+/*********************************************************/
+
+void RATES_Posterior_Rates_Pre(node *a, node *d, edge *b, arbre *tree)
+{
+  phydbl like_mean, like_var;
+  phydbl prior_mean, prior_var;
+  phydbl post_mean, post_var, post_sd;
+  phydbl dt;
+  int dim;
+
+  dim = 2*tree->n_otu-3;
+
+  if(a != tree->n_root)
+    {
+      dt = tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num];
+
+      /*       like_mean  = log(tree->rates->ml_l[b->num]) - log(fabs(tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num])); */
+      /*       like_mean  = tree->rates->ml_l[b->num]/(tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num]); */
+      like_mean = tree->rates->ml_l[b->num];
+
+      /*       like_var   = tree->rates->cov[b->num*dim+b->num]; */
+      /*       like_var  = tree->rates->cov[b->num*dim+b->num]/pow(tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num],2); */
+      like_var = tree->rates->cov[b->num*dim+b->num];
+
+      /*       prior_mean = log(tree->rates->nd_r[a->num] * tree->rates->clock_r); */
+      /*       prior_mean = tree->rates->nd_r[a->num] * tree->rates->clock_r; */
+      prior_mean = tree->rates->nd_r[a->num] * tree->rates->clock_r * dt;
+
+      /*       prior_var  = tree->rates->nu * fabs(tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num]); */
+      prior_var = tree->rates->nu * pow(tree->rates->clock_r,2) * pow(dt,3);
+
+      post_var   = 1./(1./prior_var + 1./like_var);
+
+      post_mean  = (prior_mean/prior_var + like_mean/like_var)/(1./prior_var + 1./like_var);
+
+      post_sd    = sqrt(post_var);
+
+      /*       tree->rates->nd_r[d->num]  = Rnorm(post_mean,post_sd); */
+      /*       tree->rates->nd_r[d->num]  = Rnorm_Trunc(post_mean,post_sd,0.0,10.*tree->rates->clock_r); */
+      /*       tree->rates->nd_r[d->num]  = exp(tree->rates->nd_r[d->num]);  */
+      /*       tree->rates->nd_r[d->num] /= tree->rates->clock_r; */
+      tree->rates->nd_r[d->num]  = Rnorm_Trunc(post_mean,post_sd,0.0,10.*tree->rates->clock_r*dt);
+      tree->rates->nd_r[d->num] /= (dt*tree->rates->clock_r);
+
+/*             printf("nd%3d dt=%12f l=%12f like_mean=%12lf like_var=%12lf prior_mean=%12lf prior_var=%12lf post_mean=%12lf post_var=%12lf true=%12lf sampled=%12lf\n", */
+/*       	     a->num, */
+/*       	     fabs(tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num]), */
+/*       	     tree->rates->ml_l[b->num], */
+/*       	     like_mean,like_var, */
+/*       	     prior_mean,prior_var, */
+/*       	     post_mean,post_var, */
+/*       	     tree->rates->true_r[d->num], */
+/*       	     tree->rates->nd_r[d->num]); */
+    }
+  else
+    {
+      /* Edge connected to the root */
+      /*       tree->rates->nd_r[d->num] = Rnorm(tree->rates->clock_r,tree->rates->nu); */
+      /*       tree->rates->nd_r[d->num] = fabs(tree->rates->nd_r[d->num]); /\* TO DO: use logarithms *\/ */
+      tree->rates->nd_r[d->num] = 1.0;
+    }
+
+  if(d->tax) return;
+  else
+    {
+      int i;
+
+      For(i,3)
+	if((d->v[i] != a) && (d->b[i] != tree->e_root))
+	  RATES_Posterior_Rates_Pre(d,d->v[i],d->b[i],tree);
+    }
+}
+
+/*********************************************************/
+
+void RATES_Posterior_Times_Pre(node *a, node *d, edge *b, arbre *tree)
+{
+  phydbl like_mean, like_var, like_sd;
+  phydbl prior_up, prior_lo;
+  int dim;
+  int dir1, dir2;
+  int i;
   
-/*   if(d->tax) return; */
-/*   else */
-/*     { */
-/*       int i; */
-/*       For(i,3) if(d->v[i] != a) RATES_Set_Prior_Mean_Rates_Pre(d,d->v[i],tree);      */
-/*     } */
-/* } */
 
-/* /\*********************************************************\/ */
+  if(d->tax) return;
 
+  dim = 2*tree->n_otu-3;
 
-/* void RATES_Set_Prior_Cov_Rates_Pre(node *a, node *d, arbre *tree) */
-/* { */
-/*   tree->rates->prior_cov_rates[d->num*(2*tree->n_otu-2)+d->num] =  */
-/*     fabs(tree->rates->nd_t[a->num] - tree->rates->nd_t[d->num]) * tree->rates->autocor; */
-  
-/*   if(d->tax) return; */
-/*   else */
-/*     { */
-/*       int i; */
-/*       For(i,3) if(d->v[i] != a) RATES_Set_Prior_Cov_Rates_Pre(d,d->v[i],tree); */
-/*     } */
-/* } */
+  dir1 = dir2 = -1;
+  For(i,3) 
+    if((d->v[i] != a) && (d->b[i] != tree->e_root))
+      {
+	if(dir1 < 0) dir1 = i;
+	else         dir2 = i;
+      }
 
-/* /\*********************************************************\/ */
-
-/* void RATES_Set_Post_Mean_And_Cov_Bl(arbre *tree) */
-/* { */
-/*   int i,j; */
-/*   int dim; */
-/*   phydbl *inv_prior_cov, *inv_like_cov; */
-/*   phydbl *post_mean, *post_cov; */
-/*   phydbl *A, *B, *buff; */
-
-/*   dim = 2*tree->n_otu-3; */
-
-/*   inv_prior_cov = (phydbl *)mCalloc(dim*dim,sizeof(phydbl)); */
-/*   buff          = (phydbl *)mCalloc(dim*dim,sizeof(phydbl)); */
-
-/*   inv_like_cov  = tree->hessian; */
-/*   post_cov      = tree->rates->post_cov_bl; */
-/*   post_mean     = tree->rates->post_mean_bl; */
-
-/*   For(i,dim*dim) inv_prior_cov[i] = tree->rates->prior_r_cov[i]; */
-
-/*   Matinv(inv_prior_r_cov,dim,dim,buff); */
-  
-/*   /\* sum of the inverse of the covariance matrix for the likelihood (i.e., the hessian) and */
-/*      the covariance matrix for the prior *\/ */
-/*   For(i,dim) For(j,dim) post_cov[i*dim+j] = inv_like_cov[i*dim+j] + inv_prior_cov[i*dim+j]; */
+  if(a != tree->n_root)
+    {
+      
+      /*       like_mean  = log(tree->rates->ml_l[b->num]) - log(tree->rates->nd_r[a->num]) - log(tree->rates->clock_r); */
+      /*       like_mean = tree->rates->nd_t[a->num] + tree->rates->ml_l[b->num]/(tree->rates->nd_r[d->num]*tree->rates->clock_r); */
+      like_mean = tree->rates->ml_l[b->num];
 
 
-/*   A = Matrix_Mult( */
+      /*       like_var   = tree->rates->cov[b->num*dim+b->num]; */
+      /*       like_var  = tree->rates->cov[b->num*dim+b->num]/pow(tree->rates->nd_r[d->num]*tree->rates->clock_r,2); */
+      like_var = tree->rates->cov[b->num*dim+b->num];
 
+      like_sd   = sqrt(like_var);
+      
+      /*       prior_up   = log(MIN(tree->rates->nd_t[d->v[dir1]->num],tree->rates->nd_t[d->v[dir2]->num])-tree->rates->nd_t[a->num]); */
+      /*       prior_up  = MIN(tree->rates->nd_t[d->v[dir1]->num],tree->rates->nd_t[d->v[dir2]->num]); */
+      prior_up  = 
+	tree->rates->nd_r[d->num]*tree->rates->clock_r*
+	(MIN(tree->rates->nd_t[d->v[dir1]->num],tree->rates->nd_t[d->v[dir2]->num])-tree->rates->nd_t[a->num]);
+		      
+      /*       prior_lo   = log(1.E-10); */
+      /*       prior_lo  = tree->rates->nd_t[a->num]; */
+      prior_lo = 0.0;
 
+      /*       tree->rates->nd_t[d->num] = Rnorm_Trunc(like_mean,like_sd,prior_lo,prior_up); */
+      /*       tree->rates->nd_t[d->num] = tree->rates->nd_t[a->num] + exp(tree->rates->nd_t[d->num]); */
+      tree->rates->nd_t[d->num] = Rnorm_Trunc(like_mean,like_sd,prior_lo,prior_up);
 
+/*       printf("\n. lup=%12lf llo=%12lf like_mean=%12lf like_var=%12lf sampled=%12lf true=%12lf rate=%12lf", */
+/* 	     prior_up, */
+/* 	     prior_lo, */
+/* 	     like_mean, */
+/* 	     like_var, */
+/* 	     tree->rates->nd_t[d->num], */
+/* 	     tree->rates->ml_l[b->num], */
+/* 	     tree->rates->nd_r[d->num]); */
 
+      tree->rates->nd_t[d->num] = tree->rates->nd_t[d->num]/(tree->rates->nd_r[d->num]*tree->rates->clock_r) + tree->rates->nd_t[a->num];
+    }
 
+  /* TO DO : a == root */
 
-  
-  
-/*   Matinvc(tree->rates->post_r_cov,dim,dim,buff); */
-  
-  
-  
-  
-  
-  
-
-
-
-  
-/*   Free(inv_prior_r_cov); */
-/*   Free(A); */
-/*   Free(B); */
-/* } */
-
-/* /\*********************************************************\/ */
-
-
+  For(i,3)
+    if((d->v[i] != a) && (d->b[i] != tree->e_root))
+      RATES_Posterior_Times_Pre(d,d->v[i],d->b[i],tree);
+}
 
 #endif

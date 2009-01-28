@@ -86,7 +86,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  MIN_DT              0.01
 #define  H_MCMC_RATES         0.5
 #define  H_MCMC_LEXP          0.5
-#define  H_MCMC_NU            1.0
+#define  H_MCMC_NU            0.5
 
 #define  T_MAX_FILE           500
 #define  T_MAX_LINE       2000000
@@ -159,10 +159,13 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define CUSTOMAA  24
 #define LG        25
 
+
 #define COMPOUND_COR   0
 #define COMPOUND_NOCOR 1
 #define EXPONENTIAL    2
 #define GAMMA          3
+#define THORNE         4
+
 
 typedef	double phydbl;
 typedef double plkflt;
@@ -812,7 +815,8 @@ typedef struct __Trate {
   phydbl  *br_r; /* Relative substitution rate, i.e., multiplier of mean_r on each branch */
   phydbl  lexp; /* Parameter of the exponential distribution that governs the rate at which substitution between rate classes ocur */
   phydbl alpha;
-  phydbl *true_t;
+  phydbl *true_t; /* true node times (including root node) */
+  phydbl *true_r; /* true edge rates (on rooted tree) */
   int *n_jps;
   int *t_jps;
   phydbl *dens; /* Probability densities of mean substitution rates at the nodes */
@@ -838,12 +842,9 @@ typedef struct __Trate {
   int model; /* Model number */
   phydbl nu; /* Parameter of the Exponential distribution for the corresponding model */
 
-  phydbl *prior_r_mean;
-  phydbl *prior_r_cov;
-  phydbl *post_r_mean;
-  phydbl *post_r_cov;
+  phydbl *ml_l;
+  phydbl *cov;
 
-  phydbl autocor;
 }trate;
 
 /*********************************************************/

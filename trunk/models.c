@@ -177,7 +177,7 @@ void PMat_TN93(phydbl l, model *mod, int pos, double *Pij)
 
 /*********************************************************/
 
-int Matinv(double *x, int n, int m, double *space)
+int Matinv(double *x, int n, int m)
 {
 
 /* x[n*m]  ... m>=n
@@ -187,33 +187,33 @@ int Matinv(double *x, int n, int m, double *space)
    int *irow;
    double ee, t,t1,xmax;
    double det;
-   
+
    ee = 1.0E-10;
    det = 1.0;
-
+   
    irow = (int *)mCalloc(n,sizeof(int));
 
-   For (i,n)  
+   For (i,n)
      {
        xmax = 0.;
        for (j=i; j<n; j++)
-         if (xmax < fabs(x[j*m+i])) 
-	   { 
-	     xmax = fabs(x[j*m+i]); 
-	     irow[i]=j; 
+         if (xmax < fabs(x[j*m+i]))
+	   {
+	     xmax = fabs(x[j*m+i]);
+	     irow[i]=j;
 	   }
 
       det *= xmax;
-      if (xmax < ee)   
+      if (xmax < ee)
 	{
 	  Free(irow);
 	  PhyML_Printf("\n. Determinant becomes zero at %3d!\t\n", i+1);
-	  PhyML_Printf("\n. Cannot invert the matrix of eigen vectors.\n");
+	  PhyML_Printf("\n. Failed to invert the matrix.\n");
 	  return(0);
 	}
-      if (irow[i] != i) 
+      if (irow[i] != i)
 	{
-	  For (j,m) 
+	  For (j,m)
 	    {
 	      t = x[i*m+j];
 	      x[i*m+j] = x[irow[i]*m+j];
@@ -221,7 +221,7 @@ int Matinv(double *x, int n, int m, double *space)
 	    }
 	}
       t = 1./x[i*m+i];
-      For (j,n) 
+      For (j,n)
 	{
 	  if (j == i) continue;
 	  t1 = t*x[j*m+i];
@@ -231,10 +231,10 @@ int Matinv(double *x, int n, int m, double *space)
       For(j,m)   x[i*m+j] *= t;
       x[i*m+i] = t;
    }                            /* i  */
-   for (i=n-1; i>=0; i--) 
+   for (i=n-1; i>=0; i--)
      {
        if (irow[i] == i) continue;
-       For(j,n)  
+       For(j,n)
 	 {
 	   t = x[j*m+i];
 	   x[j*m+i] = x[j*m + irow[i]];
@@ -244,6 +244,38 @@ int Matinv(double *x, int n, int m, double *space)
 
    Free(irow);
    return (1);
+
+/*   int i, j, k, lower, upper; */
+/*   double temp; */
+/*   phydbl *a; */
+/*   int nsize; */
+
+/*   nsize = n; */
+/*   a = x; */
+  
+/*   /\*Gauss-Jordan reduction -- invert matrix a in place, */
+/*          overwriting previous contents of a.  On exit, matrix a */
+/*          contains the inverse.*\/ */
+/*   lower = 0; */
+/*   upper = nsize; */
+/*   for (i = lower; i <= upper; i++) { */
+/*     temp = 1.0 / a[i*n+i]; */
+/*     a[i*n+i] = 1.0; */
+/*     for (j = lower; j <= upper; j++) { */
+/*       a[i*n+j] *= temp; */
+/*     } */
+/*     for (j = lower; j <= upper; j++) { */
+/*       if (j != i) { */
+/* 	temp = a[j*n+i]; */
+/* 	a[j*n+i] = 0.0; */
+/* 	for (k = lower; k <= upper; k++) { */
+/* 	  a[j*n+k] -= temp * a[i*n+k]; */
+/* 	} */
+/*       } */
+/*     } */
+/*   } */
+/*   return(1); */
+
 }
 
 /********************************************************************/
@@ -2304,9 +2336,14 @@ void Init_Model(allseq *data, model *mod)
 	  Translate_Custom_Mod_String(mod);
 	}
       
-      if(mod->whichmodel == CUSTOM)
+      if((mod->whichmodel != JC69) && (mod->whichmodel != K80)) 
 	{
-	  if(mod->s_opt->user_state_freq) For(i,4) mod->pi[i] = mod->user_b_freq[i];
+	  if(mod->s_opt->user_state_freq) 
+	    For(i,4) 
+	      {
+		mod->pi[i] = mod->user_b_freq[i];
+		printf("%f\n",mod->pi[i]);
+	      }
 	}
 
       if(!mod->use_m4mod) Set_Model_Parameters(mod);      
@@ -2482,7 +2519,7 @@ void Init_Model(allseq *data, model *mod)
 	{
 	  /* compute inverse(Vr) into Vi */
 	  For (i,ns*ns) mod->eigen->l_e_vect[i] = mod->eigen->r_e_vect[i];
-	  Matinv(mod->eigen->l_e_vect,mod->eigen->size,mod->eigen->size, mod->eigen->space);
+	  Matinv(mod->eigen->l_e_vect,mod->eigen->size,mod->eigen->size);
 	  
 	  /* compute the diagonal terms of exp(D) */
 	  For(i,ns) mod->eigen->e_val[i] = (double)exp(mod->eigen->e_val[i]);
@@ -2749,7 +2786,7 @@ void Set_Model_Parameters(model *mod)
 	{
 	  /* compute inverse(Vr) into Vi */
 	  For (i,mod->ns*mod->ns) mod->eigen->l_e_vect[i] = mod->eigen->r_e_vect[i];
-	  while(!Matinv(mod->eigen->l_e_vect, mod->eigen->size, mod->eigen->size, mod->eigen->space))
+	  while(!Matinv(mod->eigen->l_e_vect, mod->eigen->size, mod->eigen->size))
 	    {
 	      PhyML_Printf("\n. Trying Q<-Q*scalar and then Root<-Root/scalar to fix this...\n");
 	      scalar += scalar / 3.;
@@ -2854,7 +2891,7 @@ phydbl General_Dist(phydbl *F, model *mod, eigen *eigen_struct)
 
   /* Get the left eigen vector of pi^{-1} x F */
   For(i,eigen_struct->size*eigen_struct->size) eigen_struct->l_e_vect[i] = eigen_struct->r_e_vect[i];
-  if(!Matinv(eigen_struct->l_e_vect,eigen_struct->size,eigen_struct->size,eigen_struct->space)<0) 
+  if(!Matinv(eigen_struct->l_e_vect,eigen_struct->size,eigen_struct->size)<0) 
     {
       For(i,mod->ns) mod->pi[i] = mod_pi[i];
       Update_Qmat_GTR(mod->rr, mod->rr_val, mod->rr_num, mod->pi, mod->qmat);
@@ -2955,7 +2992,7 @@ phydbl GTR_Dist(phydbl *F, phydbl alpha, eigen *eigen_struct)
 
   /* Get the left eigen vector of pi^{-1} x F */
   For(i,eigen_struct->size*eigen_struct->size) eigen_struct->l_e_vect[i] = eigen_struct->r_e_vect[i];
-  if(!Matinv(eigen_struct->l_e_vect,eigen_struct->size,eigen_struct->size,eigen_struct->space)<0) {Free(pi); return -1.;}
+  if(!Matinv(eigen_struct->l_e_vect,eigen_struct->size,eigen_struct->size)<0) {Free(pi); return -1.;}
 
   /* Equation (3) + inverse of the moment generating function for the gamma distribution (see Waddell & Steel, 1997) */
   For(i,eigen_struct->size) 

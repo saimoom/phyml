@@ -21,7 +21,7 @@ void PMat_Zero_Br_Len(model  *mod, int pos, double *Pij);
 void PMat_Gamma(phydbl l, model *mod, int pos, double *Pij);
 
 int GetDaa (phydbl *daa, phydbl *pi, char *file_name);
-int Matinv (double *x, int n, int m, double *space);
+int Matinv (double *x, int n, int m);
 void Init_Model(allseq *data, model *mod);
 void Update_Qmat_GTR(double *rr, phydbl *rr_val, int *rr_num, double *pi, double *qmat);
 void Update_Qmat_HKY(double kappa, double *pi, double *qmat);

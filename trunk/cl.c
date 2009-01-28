@@ -729,7 +729,13 @@ void Read_Command_Line(option *io, int argc, char **argv)
 
 		io->mod->s_opt->opt_state_freq  = 0;
 		io->mod->s_opt->user_state_freq = 1;
-		
+				
+		sscanf(optarg,"%lf,%lf,%lf,%lf",
+		       io->mod->user_b_freq,
+		       io->mod->user_b_freq+1,
+		       io->mod->user_b_freq+2,
+		       io->mod->user_b_freq+3);
+
 		sum =
 		  (io->mod->user_b_freq[0] +
 		   io->mod->user_b_freq[1] +
@@ -740,6 +746,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		io->mod->user_b_freq[1] /= sum;
 		io->mod->user_b_freq[2] /= sum;
 		io->mod->user_b_freq[3] /= sum;
+
 
 		if(io->mod->user_b_freq[0] < .0 ||
 		   io->mod->user_b_freq[1] < .0 ||

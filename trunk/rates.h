@@ -53,8 +53,6 @@ void RATES_Random_Branch_Lengths(arbre *tree);
 void RATES_Bracket_N_Jumps(int *up, int *down, phydbl param);
 void RATES_Set_Node_Times(arbre *tree);
 void RATES_Set_Node_Times_Pre(node *a, node *d, arbre *tree);
-void RATES_Randomize_Node_Times(arbre *tree);
-void RATES_Randomize_Node_Times_Pre(node *a, node *d, arbre *tree);
 void RATES_Optimize_Node_Times(arbre *tree);
 phydbl RATES_Exp_Y(phydbl mu1, phydbl mu2, phydbl dt1, phydbl lexp);
 phydbl RATES_Dmu2_Given_Mu1_Bis(phydbl mu1, phydbl mu2, phydbl dt1, phydbl dt2, phydbl alpha, phydbl beta, phydbl lexp);
@@ -62,8 +60,8 @@ void RATES_Replace_Br_Lengths_By_Rates_Pre(node *a, node *d, edge *b, arbre *tre
 void RATES_Replace_Br_Lengths_By_Rates(arbre *tree);
 
 void RATES_Get_Mean_Rates(arbre *tree);
-void RATES_Get_Mean_Rates_Pre(node *a, node *d, edge *b, phydbl *r_a, phydbl alpha, phydbl lexp, arbre *tree);
-void RATES_Expect_Number_Subst(phydbl t_beg, phydbl t_end, phydbl *r_beg, phydbl alpha, phydbl lexp, int *n_jumps, phydbl *mean_r);
+void RATES_Get_Mean_Rates_Pre(node *a, node *d, edge *b, phydbl *r_a, arbre *tree);
+void RATES_Expect_Number_Subst(phydbl t_beg, phydbl t_end, phydbl *r_beg, int *n_jumps, phydbl *mean_r, trate *rates);
 void RATES_Optimize_Clock_Rate(arbre *tree);
 phydbl RATES_Dmu1_Given_Lbda_And_Mu2(phydbl lbda, phydbl mu1, phydbl mu2, phydbl alpha, phydbl beta);
 phydbl RATES_Dmu1_And_Mu2_One_Jump_Trpz(phydbl mu1, phydbl mu2, phydbl a, phydbl b,
@@ -109,8 +107,13 @@ phydbl RATES_Dmu_Joint(phydbl mu, int n, phydbl dt, phydbl a, phydbl b, phydbl l
 phydbl RATES_Compound_Core_Marginal(phydbl mu1, phydbl mu2, phydbl dt1, phydbl dt2, phydbl alpha, 
 				    phydbl beta, phydbl lexp, phydbl eps, int approx);
 phydbl RATES_Lk_Jumps(arbre *tree);
-void RATES_Set_Rates_Prior_Mean(arbre *tree);
-void RATES_Set_Rates_Prior_Mean_Pre(node *a, node *d, arbre *tree);
-void RATES_Set_Rates_Post_Mean_And_Cov(arbre *tree);
+void RATES_Posterior_Rates(arbre *tree);
+void RATES_Posterior_Rates_Pre(node *a, node *d, edge *b, arbre *tree);
+void Free_Rates(trate *r);
+void RATES_Initialize_True_Rates(arbre *tree);
+void RATES_Posterior_Times(arbre *tree);
+void RATES_Posterior_Times_Pre(node *a, node *d, edge *b, arbre *tree);
+
+
 
 #endif

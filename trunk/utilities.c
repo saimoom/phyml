@@ -477,7 +477,7 @@ char *Write_Tree(arbre *tree)
 
   
 #ifdef MC
-  if(tree->rates->bl_from_rt) RATES_Get_Br_Len(tree);
+  if((tree->rates) && (tree->rates->bl_from_rt)) RATES_Get_Br_Len(tree);
 #endif
 
   if(!tree->n_root)
@@ -535,11 +535,11 @@ void R_wtree(node *pere, node *fils, char *s_tree, arbre *tree)
 	    {
 	      if(tree->n_root->v[0] == fils)
 		{
-		  sprintf(s_tree+(int)strlen(s_tree),"%.10f",tree->n_root->l[0]);		  
+		  sprintf(s_tree+(int)strlen(s_tree),"%.10f",tree->n_root->l[0]);
 		}
-	      else 
+	      else
 		{
-		  sprintf(s_tree+(int)strlen(s_tree),"%.10f",tree->n_root->l[1]);		  
+		  sprintf(s_tree+(int)strlen(s_tree),"%.10f",tree->n_root->l[1]);
 		}
 	    }
 	}
@@ -592,11 +592,11 @@ void R_wtree(node *pere, node *fils, char *s_tree, arbre *tree)
 	    {
 	      if(tree->n_root->v[0] == fils)
 		{
-		  sprintf(s_tree+(int)strlen(s_tree),"%.10f",tree->n_root->l[0]);		  
+		  sprintf(s_tree+(int)strlen(s_tree),"%.10f",tree->n_root->l[0]);
 		}
-	      else 
+	      else
 		{
-		  sprintf(s_tree+(int)strlen(s_tree),"%.10f",tree->n_root->l[1]);		  
+		  sprintf(s_tree+(int)strlen(s_tree),"%.10f",tree->n_root->l[1]);
 		}
 	    }
 	}
@@ -1328,7 +1328,7 @@ allseq *Compact_Seq(seq **data, option *io)
 	    }
 	  else
 	    {
-	      PhyML_Printf("\n. WARNING: sequences are not compressed !");
+	      if(!io->quiet) { PhyML_Printf("\n. WARNING: sequences are not compressed !");}
 	      k = n_patt;
 	    }
 	  
@@ -7459,11 +7459,21 @@ void Print_Settings(option *io)
   if(io->mod->datatype == AA)
     PhyML_Printf("\n                . Amino acid equilibrium frequencies : \t\t %s", (io->mod->s_opt->opt_state_freq) ? ("empirical"):("model"));
   else if(io->mod->datatype == NT)
-    if((io->mod->whichmodel != JC69) &&
-       (io->mod->whichmodel != K80)  &&
-       (io->mod->whichmodel != F81))
-      PhyML_Printf("\n                . Nucleotide equilibrium frequencies : \t\t %s", (io->mod->s_opt->opt_state_freq) ? ("ML"):("empirical"));
-
+    {
+      if((io->mod->whichmodel != JC69) &&
+	 (io->mod->whichmodel != K80)  &&
+	 (io->mod->whichmodel != F81))
+	{
+	  if(!io->mod->s_opt->user_state_freq)
+	    {
+	      PhyML_Printf("\n                . Nucleotide equilibrium frequencies : \t\t %s", (io->mod->s_opt->opt_state_freq) ? ("ML"):("empirical"));
+	    }
+	  else
+	    {
+	      PhyML_Printf("\n                . Nucleotide equilibrium frequencies : \t\t %s","user-defined");
+	    }
+	}
+    }
 
   PhyML_Printf("\n                . Optimise tree topology : \t\t\t %s", (io->mod->s_opt->opt_topo) ? "yes" : "no");
 
@@ -8327,7 +8337,6 @@ void Evolve(allseq *data, model *mod, arbre *tree)
   /* Get the change probability matrices */
   Set_Model_Parameters(mod);
   For(i,2*tree->n_otu-3) Update_PMat_At_Given_Edge(tree->t_edges[i],tree);
-
 
   For(site,data->init_len)
     {

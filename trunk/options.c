@@ -90,12 +90,12 @@ void Usage()
   PhyML_Printf("%s\t\tis absent and when tree topology modifications are to be done.\n",FLAT);
 
   PhyML_Printf("%s\n\t-b (or --bootstrap) %sint%s\n",BOLD,LINE,FLAT);
-  PhyML_Printf("\t\t%sint%s >  0 : %sint%s is the number of bootstrap replicates.\n",LINE,FLAT,LINE,FLAT);
-  PhyML_Printf("\t\t%sint%s =  0 : neither approximate likelihood ratio test nor bootstrap values are computed.\n",LINE,FLAT);
-  PhyML_Printf("\t\t%sint%s = -1 : approximate likelihood ratio test returning aLRT statistics.\n",LINE,FLAT);
-  PhyML_Printf("\t\t%sint%s = -2 : approximate likelihood ratio test returning Chi2-based parametric branch supports.\n",LINE,FLAT);
+  PhyML_Printf("\t\t%sint%s >  0: %sint%s is the number of bootstrap replicates.\n",LINE,FLAT,LINE,FLAT);
+  PhyML_Printf("\t\t%sint%s =  0: neither approximate likelihood ratio test nor bootstrap values are computed.\n",LINE,FLAT);
+  PhyML_Printf("\t\t%sint%s = -1: approximate likelihood ratio test returning aLRT statistics.\n",LINE,FLAT);
+  PhyML_Printf("\t\t%sint%s = -2: approximate likelihood ratio test returning Chi2-based parametric branch supports.\n",LINE,FLAT);
 /*   PhyML_Printf("\t\t%sint%s = -3 : minimum of Chi2-based parametric and SH-like branch supports.\n",LINE,FLAT); */
-  PhyML_Printf("\t\t%sint%s = -4 : SH-like branch supports alone.\n",LINE,FLAT);
+  PhyML_Printf("\t\t%sint%s = -4: (default) SH-like branch supports alone.\n",LINE,FLAT);
 
   PhyML_Printf("\n");
   
@@ -128,7 +128,7 @@ void Usage()
 
   PhyML_Printf("\n");
 
-  PhyML_Printf("%s\n\t-f %se%s, %sm%s, or %s\"fA fC fG fT\"%s\n",BOLD,LINE,BOLD,LINE,BOLD,LINE,FLAT);
+  PhyML_Printf("%s\n\t-f %se%s, %sm%s, or %sfA,fC,fG,fT%s\n",BOLD,LINE,BOLD,LINE,BOLD,LINE,FLAT);
   PhyML_Printf("\t\t%se%s : the character frequencies are determined as follows : \n",LINE,FLAT);
   PhyML_Printf("%s\t\t- %sNucleotide%s sequences: (Empirical) the equilibrium base frequencies are estimated by counting\n"
 	 "\t\t the occurence of the different bases in the alignment.\n",FLAT,LINE,FLAT);
@@ -140,8 +140,9 @@ void Usage()
   PhyML_Printf("%s\t\t- %sAmino-acid%s sequences: (Model) the equilibrium amino-acid frequencies are estimated using\n"
 "\t\t the frequencies defined by the substitution model.\n",FLAT,LINE,FLAT);
   PhyML_Printf("\n");
-  PhyML_Printf("\t\t%s\"fA fC fG fT\"%s : only valid for nucleotide-based models. fA, fC, fG and fT are floating numbers that \n",LINE,FLAT);
-  PhyML_Printf("\t\t correspond to the frequencies of A, C, G and T respectively.\n");
+  PhyML_Printf("\t\t%s\"fA,fC,fG,fT\"%s : only valid for nucleotide-based models. fA, fC, fG and fT are floating numbers that \n",LINE,FLAT);
+  PhyML_Printf("\t\t correspond to the frequencies of A, C, G and T respectively (WARNING: do not use any blank space between\n");
+  PhyML_Printf("\t\t your values of nucleotide frequencies, only commas!)\n");
 
   PhyML_Printf("\n");
 
@@ -158,7 +159,7 @@ void Usage()
   PhyML_Printf("\n");
 
   PhyML_Printf("%s\n\t-c (or --nclasses) %snb_subst_cat%s\n",BOLD,LINE,FLAT);
-  PhyML_Printf("\t\tnb_subst_cat%s : number of relative substitution rate categories. Default : %snb_subst_cat%s=1.\n",
+  PhyML_Printf("\t\tnb_subst_cat%s : number of relative substitution rate categories. Default : %snb_subst_cat%s=4.\n",
 	 FLAT,LINE,FLAT);
   PhyML_Printf("\t\tMust be a positive integer.\n");
 
