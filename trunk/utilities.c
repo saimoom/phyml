@@ -9386,3 +9386,64 @@ phydbl *Matrix_Transpose(phydbl *A, int dim)
 }
 
 /*********************************************************/
+
+/* http://en.wikipedia.org/wiki/Multivariate_normal_distribution (Conditional distributions), where mu1 is a scalar */
+void Normal_Conditional(phydbl *a, phydbl *mu, phydbl *cov, int dim, int elem, phydbl *cond_mu, phydbl *cond_var)
+{
+  phydbl *cov12,*cov21,*cov22,*cov12_invcov22,*buff;
+  phydbl *centr_a;
+  int i,j;
+  int nr,nc;
+
+  cov12   = (phydbl *)mCalloc(dim-1,          sizeof(phydbl));
+  cov21   = (phydbl *)mCalloc(dim-1,          sizeof(phydbl));
+  cov22   = (phydbl *)mCalloc((dim-1)*(dim-1),sizeof(phydbl));
+  buff    = (phydbl *)mCalloc(dim-1,          sizeof(phydbl));;
+  centr_a = (phydbl *)mCalloc(dim-1,          sizeof(phydbl));
+
+  nr=0;
+  For(i,dim) if(i != elem) { centr_a[nr] = a[i]-mu[i]; nr++; } 
+
+  nc=0;
+  For(i,dim) if(i != elem) { cov12[nc] = cov[elem*dim+i]; nc++; }
+
+  nr=0;
+  For(i,dim) if(i != elem) { cov21[nr] = cov[i*dim+elem]; nr++; }
+
+  nr=nc=0;
+  For(i,dim)
+    {
+      if(i != elem)
+	{
+	  nc = 0;
+	  For(j,dim)
+	    {
+	      if(j != elem)
+		{
+		  cov22[nr*(dim-1)+nc] = cov[i*dim+j];
+		  nc++;
+		}
+	    }
+	  nr++;
+	}
+    }
+
+  Matinv(cov22,dim-1,dim-1);
+  cov12_invcov22 = Matrix_Mult(cov12,cov22,1,dim-1,dim-1,dim-1);
+  
+  buff = Matrix_Mult(cov12_invcov22,centr_a,1,dim-1,dim-1,1);
+  *cond_mu = mu[elem] + buff[0];
+  Free(buff);
+
+  buff = Matrix_Mult(cov12_invcov22,cov21,1,dim-1,dim-1,1);
+  *cond_var = cov[elem*dim+elem] - buff[0];
+  Free(buff);
+
+  Free(cov12);
+  Free(cov21);
+  Free(cov22);
+  Free(centr_a);
+  Free(cov12_invcov22);
+}
+
+/*********************************************************/

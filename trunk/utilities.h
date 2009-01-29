@@ -84,7 +84,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 
 #define  N_MAX_OPTIONS        100
 #define  MIN_DT              0.01
-#define  H_MCMC_RATES         0.5
+#define  H_MCMC_RATES         0.01
 #define  H_MCMC_LEXP          0.5
 #define  H_MCMC_NU            0.5
 
@@ -830,6 +830,7 @@ typedef struct __Trate {
   phydbl birth_rate;
   phydbl min_rate;
   phydbl max_rate;
+  phydbl min_dt;
   phydbl step_rate;
   phydbl  *nd_r;  /* Current rates at nodes and the corresponding incoming edges */
   phydbl  *old_r; /* Old node rates */
@@ -843,6 +844,7 @@ typedef struct __Trate {
   phydbl nu; /* Parameter of the Exponential distribution for the corresponding model */
 
   phydbl *ml_l;
+  phydbl *cur_l;
   phydbl *cov;
 
 }trate;
@@ -1143,5 +1145,6 @@ phydbl Rnorm(phydbl mean, phydbl sd);
 phydbl *Rnorm_Multid(phydbl *mu, phydbl *cov, int dim);
 phydbl *Matrix_Mult(phydbl *A, phydbl *B, int nra, int nca, int nrb, int ncb);
 phydbl *Matrix_Transpose(phydbl *A, int dim);
+void Normal_Conditional(phydbl *a, phydbl *mu, phydbl *cov, int dim, int elem, phydbl *cond_mu, phydbl *cond_var);
 
 #endif

@@ -165,11 +165,19 @@ phydbl *Rnorm_Multid(phydbl *mu, phydbl *cov, int dim)
 
 phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max)
 {
-  phydbl cdf_min, cdf_max, u;
+  phydbl cdf_min, cdf_max, u, ret_val;
+
   cdf_min = CDF_Normal(min,mean,sd);
   cdf_max = CDF_Normal(max,mean,sd);  
   u = cdf_min + (cdf_max-cdf_min) * Uni();
-  return(sd*PointNormal(u)+mean);
+  ret_val = sd*PointNormal(u)+mean;
+
+/*   if(ret_val < min || ret_val > max) printf("\n. Numerical precision issue detected in Rnorm_Trunc.\n"); */
+
+  if(ret_val < min) ret_val = min;
+  if(ret_val > max) ret_val = max;
+
+  return(ret_val);
 }
 
 /*********************************************************/
@@ -576,7 +584,7 @@ phydbl PointNormal (phydbl prob)
 
    p1 = (p<0.5 ? p : 1-p);
 /*    if (p1<1e-20) return (-INFINITY); */
-   if (p1<1e-20) return (-10.);
+   if (p1<1e-20) return (-999.);
 
    y = sqrt ((phydbl)log(1/(p1*p1)));
    z = y + ((((y*a4+a3)*y+a2)*y+a1)*y+a0) / ((((y*b4+b3)*y+b2)*y+b1)*y+b0);

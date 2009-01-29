@@ -113,6 +113,7 @@ void Free_Rates(trate *r);
 void RATES_Initialize_True_Rates(arbre *tree);
 void RATES_Posterior_Times(arbre *tree);
 void RATES_Posterior_Times_Pre(node *a, node *d, edge *b, arbre *tree);
+void RATES_Update_Bl(arbre *tree);
 
 
 
