@@ -83,8 +83,8 @@ void MCMC(arbre *tree)
   MCMC_Print_Param(fp,tree);
   MCMC_Print_Param(stdout,tree);
 
-  MCMC_Randomize_Rates(tree);
-/*   MCMC_Randomize_Nu(tree); */
+/*   MCMC_Randomize_Rates(tree); */
+  MCMC_Randomize_Nu(tree);
 /*   MCMC_Randomize_Lexp(tree); */
 /*   MCMC_Randomize_Jumps(tree); */
 /*   MCMC_Randomize_Alpha(tree); */
@@ -100,7 +100,7 @@ void MCMC(arbre *tree)
 
 /*       MCMC_Lexp(tree);         tree->mcmc->run++; */
 /*       MCMC_Alpha(tree);        tree->mcmc->run++; */
-/*       MCMC_Nu(tree);           tree->mcmc->run++; */
+      MCMC_Nu(tree);           tree->mcmc->run++;
       MCMC_Rates_Local(tree);  tree->mcmc->run++;
 /*       MCMC_Rates_Global(tree); tree->mcmc->run++;  */
 /*       MCMC_Times_Local(tree);  tree->mcmc->run++; */
@@ -476,11 +476,8 @@ void MCMC_Rates_Pre(node *a, node *d, int local, arbre *tree)
   u = Uni();
   
   new_mu = cur_mu * exp(H_MCMC_RATES*(u-0.5));
-  
-  
-  if((new_mu > tree->rates->max_rate) ||
-     (new_mu < tree->rates->min_rate)) return;
 
+  if((new_mu > tree->rates->max_rate) || (new_mu < tree->rates->min_rate)) return;
 
   if(local)
     {

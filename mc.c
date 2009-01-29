@@ -178,7 +178,7 @@ int MC_main(int argc, char **argv)
 		  int n_otu;
 		  int i,j;
 
-		  n_otu = 68;
+		  n_otu = 51;
 
 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1);
 
@@ -205,49 +205,49 @@ int MC_main(int argc, char **argv)
 		  printf("\n%s\n",Write_Tree(tree));
 
 
-/* /\* 		  IMPORTANCE SAMPLING STUFF *\/ */
+/* 		  IMPORTANCE SAMPLING STUFF */
 
 /* 		  Round_Optimize(tree,tree->data,1000); */
-/* 		  For(i,2*tree->n_otu-3) tree->rates->ml_l[i] = tree->t_edges[i]->l; */
-/* 		  printf("\n. Computing Hessian...\n"); */
-/* 		  tree->rates->cov = Hessian(tree); */
-/* 		  For(i,(2*tree->n_otu-3)*(2*tree->n_otu-3)) tree->rates->cov[i] = -tree->rates->cov[i]; */
-/* 		  Matinv(tree->rates->cov,2*tree->n_otu-3,2*tree->n_otu-3); */
-/* 		  For(i,2*tree->n_otu-3) */
-/* 		    if(tree->rates->cov[i*(2*tree->n_otu-3)+i] < 0.0) */
-/* 		      { */
-/* 			printf("\n%s\n",Write_Tree(tree)); */
-/* 			Print_CSeq(stdout,tree->data); */
-/* 			For(i,2*tree->n_otu-3) */
-/* 			  { */
-/* 			    printf("[%12lf] ",tree->t_edges[i]->l); */
-/* /\* 			    For(j,i+1) *\/ */
-/* /\* 			      { *\/ */
-/* 				printf("%f ",tree->rates->cov[i*(2*tree->n_otu-3)+i]); */
-/* /\* 			      } *\/ */
-/* 				printf("\n"); */
-/* 			  } */
-/* 			Exit("\n"); */
-/* 		      } */
+		  For(i,2*tree->n_otu-3) tree->rates->ml_l[i] = tree->t_edges[i]->l;
+		  printf("\n. Computing Hessian...\n");
+		  tree->rates->cov = Hessian(tree);
+		  For(i,(2*tree->n_otu-3)*(2*tree->n_otu-3)) tree->rates->cov[i] = -tree->rates->cov[i];
+		  Matinv(tree->rates->cov,2*tree->n_otu-3,2*tree->n_otu-3);
+		  For(i,2*tree->n_otu-3)
+		    if(tree->rates->cov[i*(2*tree->n_otu-3)+i] < 0.0)
+		      {
+			printf("\n%s\n",Write_Tree(tree));
+			Print_CSeq(stdout,tree->data);
+			For(i,2*tree->n_otu-3)
+			  {
+			    printf("[%12lf] ",tree->t_edges[i]->l);
+/* 			    For(j,i+1) */
+/* 			      { */
+				printf("%f ",tree->rates->cov[i*(2*tree->n_otu-3)+i]);
+/* 			      } */
+				printf("\n");
+			  }
+			Exit("\n");
+		      }
 
-/* 		  printf("\n. Clock rate = %f",tree->rates->clock_r); */
+		  printf("\n. Clock rate = %f",tree->rates->clock_r);
 
-/* 		  printf("\n. Gibbs sampling...\n"); */
+		  printf("\n. Gibbs sampling...\n");
 /* 		  MCMC_Randomize_Rates(tree); */
-/* /\* 		  MCMC_Randomize_Node_Times(tree); *\/ */
-/* 		  For(j,2*tree->n_otu-2) printf("%12lf ",tree->rates->true_r[j]); */
-/* /\* 		  For(j,2*tree->n_otu-2) if(!tree->noeud[j]->tax) printf("%12lf ",tree->rates->true_t[j]); *\/ */
-/* 		  printf("\n"); */
-/* 		  For(i,10000) */
-/* 		    { */
-/* 		      RATES_Posterior_Rates(tree); */
-/* /\* 		      RATES_Posterior_Times(tree); *\/ */
-/* 		      For(j,2*tree->n_otu-2) printf("%12lf ",tree->rates->nd_r[j]); */
-/* /\* 		      For(j,2*tree->n_otu-2) if(!tree->noeud[j]->tax) printf("%12lf ",tree->rates->nd_t[j]-tree->rates->true_t[j]); *\/ */
-/* 		      printf("\n"); */
-/* 		    } */
-/* 		  Exit("\n"); */
-		  /* END OF IMPORTANCE SAMPLING STUFF */
+/* 		  MCMC_Randomize_Node_Times(tree); */
+		  For(j,2*tree->n_otu-2) printf("%12lf ",tree->rates->true_r[j]);
+/* 		  For(j,2*tree->n_otu-2) if(!tree->noeud[j]->tax) printf("%12lf ",tree->rates->true_t[j]); */
+		  printf("\n");
+		  For(i,1000)
+		    {
+		      RATES_Posterior_Rates(tree);
+/* 		      RATES_Posterior_Times(tree); */
+		      For(j,2*tree->n_otu-2) printf("%12lf ",tree->rates->nd_r[j]);
+/* 		      For(j,2*tree->n_otu-2) if(!tree->noeud[j]->tax) printf("%12lf ",tree->rates->nd_t[j]); */
+		      printf("\n");
+		    }
+		  Exit("\n");
+/* 		  END OF IMPORTANCE SAMPLING STUFF */
 
 
 		  /* COMPOUND POISSON */
@@ -308,11 +308,11 @@ int MC_main(int argc, char **argv)
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
 		  MCMC_Init_MCMC_Struct(tree->mcmc);
 		  tree->both_sides = 1;
-		  tree->rates->model = GAMMA;
-		  Round_Optimize(tree,tree->data,100);
+		  tree->rates->model = THORNE;
+/* 		  Round_Optimize(tree,tree->data,100); */
 		  Lk(tree);
 		  RATES_Lk_Rates(tree);
-		  printf("\n. GAMMA lnL_data = %f lnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL);
+		  printf("\n. THORNE lnL_data = %f lnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL);
 		  tree->rates->bl_from_rt = 1;
 		  MCMC(tree);
 		  /***********************************/
