@@ -113,8 +113,15 @@ void Free_Rates(trate *r);
 void RATES_Initialize_True_Rates(arbre *tree);
 void RATES_Posterior_Times(arbre *tree);
 void RATES_Posterior_Times_Pre(node *a, node *d, edge *b, arbre *tree);
-void RATES_Update_Bl(arbre *tree);
-
-
+void RATES_Update_Cur_Bl(arbre *tree);
+void RATES_Update_Cur_Bl_Pre(node *a, node *d, edge *b, arbre *tree);
+void RATES_Posterior_Rates_And_Times_Pre(node *a, node *d, edge *b, arbre *tree);
+void RATES_Posterior_Rates_And_Times(arbre *tree);
+void RATES_Posterior_Times_Pre2(node *a, node *d, edge *b, arbre *tree);
+void RATES_Posterior_Times_Pre3(node *a, node *d, edge *b, arbre *tree);
+void RATES_Update_Ml_Bl(arbre *tree);
+void RATES_Update_Ml_Bl_Pre(node *a, node *d, edge *b, arbre *tree);
+void RATES_Get_Cov_Matrix_Rooted(arbre *tree);
+void RATES_Get_Cov_Matrix_Rooted_Pre(node *a, node *d, edge *b, phydbl *cov, arbre *tree);
 
 #endif
