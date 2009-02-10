@@ -54,4 +54,4 @@ phydbl Log_Det(int *is_ok, arbre *tree);
 phydbl Dnorm_Trunc(phydbl x, phydbl mean, phydbl sd, phydbl lo, phydbl up);
 
 
-#endif NUMERIC_H
+#endif //NUMERIC_H
