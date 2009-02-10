@@ -60,8 +60,8 @@ void RATES_Replace_Br_Lengths_By_Rates_Pre(node *a, node *d, edge *b, arbre *tre
 void RATES_Replace_Br_Lengths_By_Rates(arbre *tree);
 
 void RATES_Get_Mean_Rates(arbre *tree);
-void RATES_Get_Mean_Rates_Pre(node *a, node *d, edge *b, phydbl *r_a, arbre *tree);
-void RATES_Expect_Number_Subst(phydbl t_beg, phydbl t_end, phydbl *r_beg, int *n_jumps, phydbl *mean_r, trate *rates);
+void RATES_Get_Mean_Rates_Pre(node *a, node *d, edge *b, phydbl *r_a, phydbl *r_d, arbre *tree);
+void RATES_Expect_Number_Subst(phydbl t_beg, phydbl t_end, phydbl *r_beg, phydbl *r_end, int *n_jumps, phydbl *mean_r, trate *rates);
 void RATES_Optimize_Clock_Rate(arbre *tree);
 phydbl RATES_Dmu1_Given_Lbda_And_Mu2(phydbl lbda, phydbl mu1, phydbl mu2, phydbl alpha, phydbl beta);
 phydbl RATES_Dmu1_And_Mu2_One_Jump_Trpz(phydbl mu1, phydbl mu2, phydbl a, phydbl b,
@@ -87,7 +87,7 @@ phydbl RATES_Dmu1_Given_V_And_N(phydbl mu1, phydbl v, int n, phydbl dt1, phydbl 
 phydbl RATES_Yule(arbre *tree);
 phydbl RATES_Check_Mean_Rates(arbre *tree);
 void RATES_Check_Mean_Rates_Pre(node *a, node *d, edge *b, phydbl *sum, arbre *tree);
-void RATES_Adjust_Clock_Rate(arbre *tree);
+phydbl RATES_Adjust_Clock_Rate(arbre *tree);
 void RATES_Discretize_Rates(arbre *tree);
 void RATES_Discretize_Rates_Pre(node *a, node *d, edge *b, arbre *tree);
 phydbl RATES_Dmu_Given_V_And_MinN(phydbl mu, phydbl dt, phydbl v, int minn, phydbl a, phydbl b, phydbl lexp);
@@ -99,7 +99,6 @@ void RATES_Record_Times(arbre *tree);
 void RATES_Reset_Times(arbre *tree);
 void RATES_Update_T_Rates_Pre(node *a, node *d, arbre *tree);
 void RATES_Update_T_Rates(arbre *tree);
-void RATES_Get_Br_Len(arbre *tree);
 void RATES_Get_Rates_From_Bl(arbre *tree);
 phydbl RATES_Compound_Core_Joint(phydbl mu1, phydbl mu2, int n1, int n2, phydbl dt1, phydbl dt2, 
 				 phydbl alpha, phydbl beta, phydbl lexp, phydbl eps, int approx);
@@ -121,7 +120,7 @@ void RATES_Posterior_Times_Pre2(node *a, node *d, edge *b, arbre *tree);
 void RATES_Posterior_Times_Pre3(node *a, node *d, edge *b, arbre *tree);
 void RATES_Update_Ml_Bl(arbre *tree);
 void RATES_Update_Ml_Bl_Pre(node *a, node *d, edge *b, arbre *tree);
-void RATES_Get_Cov_Matrix_Rooted(arbre *tree);
+void RATES_Get_Cov_Matrix_Rooted(phydbl *unroot_cov, arbre *tree);
 void RATES_Get_Cov_Matrix_Rooted_Pre(node *a, node *d, edge *b, phydbl *cov, arbre *tree);
 
 #endif

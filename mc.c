@@ -32,6 +32,8 @@ the GNU public licence. See http://www.opensource.org for details.
 #include "rates.h"
 #include "mcmc.h"
 #include "numeric.h"
+#include <stdlib.h>
+#include <unistd.h>
 
 /*********************************************************/
 
@@ -233,10 +235,26 @@ int MC_main(int argc, char **argv)
 
 		  int n_otu;
 		  int i,j;
+		  phydbl *cov;
+		  int pid;
+		  FILE *fpout;
+		  char *filename;
 
-		  n_otu = 5;
+		  filename=(char *)mCalloc(100,sizeof(char));
+		  		  
+		  pid = getpid();
+
+		  strcpy(filename,"gibbs");
+		  sprintf(filename+strlen(filename),".%d",pid);
+		  fpout=fopen(filename,"w");
+		  Free(filename);
+
+		  printf("\n. pid=%d",pid);
+
+		  n_otu = 51;
 
 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1);
+		  
 
 		  tree->mod         = mod;
 		  tree->io          = io;
@@ -258,92 +276,40 @@ int MC_main(int argc, char **argv)
 		  else Init_P_Lk_Tips_Int(tree);
 
 		  For(i,2*tree->n_otu-1) tree->rates->true_t[i] = tree->rates->nd_t[i];
-		  printf("\n%s\n",Write_Tree(tree));
+		  For(i,2*tree->n_otu-2) tree->rates->true_r[i] = tree->rates->nd_r[i];
 
+		  Get_Tree_Size(tree);
 
 /* 		  IMPORTANCE SAMPLING STUFF */
-
 /* 		  Round_Optimize(tree,tree->data,1000); */
+		  RATES_Adjust_Clock_Rate(tree);
+		  printf("\n. Mean rate = %f",RATES_Check_Mean_Rates(tree));
 		  RATES_Update_Ml_Bl(tree);
 		  printf("\n. Computing Hessian...\n");
-		  tree->rates->cov = Hessian(tree);
-		  For(i,(2*tree->n_otu-3)*(2*tree->n_otu-3)) tree->rates->cov[i] = -tree->rates->cov[i];
-		  Matinv(tree->rates->cov,2*tree->n_otu-3,2*tree->n_otu-3);
-
-		  For(i,2*tree->n_otu-3)
-		    {
-		      if(tree->t_edges[i]->left->anc == tree->t_edges[i]->rght)
-			printf("%4d ",tree->t_edges[i]->left->num);
-		      else
-			printf("%4d ",tree->t_edges[i]->rght->num);
-
-		      For(j,2*tree->n_otu-3)
-			{
-			  printf("%12f ",tree->rates->cov[i*(2*tree->n_otu-3)+j]);
-			}
-		      printf("\n");
-		    }
-		  
-		  RATES_Get_Cov_Matrix_Rooted(tree);
-
-		  printf("\n");
-		  For(i,2*tree->n_otu-2)
-		    {
-
-		      if(tree->noeud[i] == tree->n_root->v[0] || tree->noeud[i] == tree->n_root->v[1])
-			printf("root ");
-		      else 
-			printf("%4d ",tree->noeud[i]->num);
-			
-		      For(j,2*tree->n_otu-2)
-			{
-			  printf("%12f ",tree->rates->cov[i*(2*tree->n_otu-2)+j]);
-			}
-		      printf("\n");
-		    }
-		  Exit("\n");
-
-
-		  For(i,2*tree->n_otu-3)
-		    if(tree->rates->cov[i*(2*tree->n_otu-3)+i] < 0.0)
-		      {
-			printf("\n%s\n",Write_Tree(tree));
-			Print_CSeq(stdout,tree->data);
-			For(i,2*tree->n_otu-3)
-			  {
-			    printf("[%12lf] ",tree->t_edges[i]->l);
-/* 			    For(j,i+1) */
-/* 			      { */
-				printf("%f ",tree->rates->cov[i*(2*tree->n_otu-3)+i]);
-/* 			      } */
-				printf("\n");
-			  }
-			Exit("\n");
-		      }
-
-		  printf("\n. Clock rate = %f",tree->rates->clock_r);
-
+		  cov = Hessian(tree);
+		  For(i,(2*tree->n_otu-3)*(2*tree->n_otu-3)) cov[i] = -cov[i];
+		  Matinv(cov,2*tree->n_otu-3,2*tree->n_otu-3);
+		  Free(tree->rates->cov); tree->rates->cov = cov;
+/* 		  RATES_Get_Cov_Matrix_Rooted(cov,tree); */
+/* 		  For(i,2*tree->n_otu-2) tree->rates->ml_l[i] = tree->rates->cur_l[i]; */
 		  printf("\n. Gibbs sampling...\n");
 		  MCMC_Randomize_Rates(tree);
 		  MCMC_Randomize_Node_Times(tree);
-/* 		  For(j,2*tree->n_otu-3) printf("%12lf ",tree->rates->ml_l[j]); */
+/* 		  For(j,2*tree->n_otu-2) printf("%12lf ",tree->rates->ml_l[j]); */
 /* 		  For(j,2*tree->n_otu-2) printf("%12lf ",tree->rates->true_r[j]); */
-		  For(j,2*tree->n_otu-2) if(!tree->noeud[j]->tax) printf("%12lf ",tree->rates->true_t[j]);
-		  printf("\n");
+		  For(j,2*tree->n_otu-2) if(!tree->noeud[j]->tax) fprintf(fpout,"%12lf ",tree->rates->true_t[j]);
+		  fprintf(fpout,"\n");
 		  For(i,1000)
 		    {
 		      RATES_Posterior_Times(tree);
 		      RATES_Posterior_Rates(tree);
 		      RATES_Adjust_Clock_Rate(tree);
-/* 		      For(j,2*tree->n_otu-3) printf("%12lf ",tree->rates->cur_l[j]); */
+/* 		      For(j,2*tree->n_otu-2) printf("%12lf ",tree->rates->cur_l[j]); */
 /* 		      For(j,2*tree->n_otu-2) printf("%12lf ",tree->rates->nd_r[j]); */
-		      For(j,2*tree->n_otu-2) if(!tree->noeud[j]->tax) printf("%12lf ",tree->rates->nd_t[j]);
-
-
-
-		      printf("\n");
+		      For(j,2*tree->n_otu-2) if(!tree->noeud[j]->tax) fprintf(fpout,"%12lf ",tree->rates->nd_t[j]);
+		      fprintf(fpout,"\n");
 		    }
-		  Exit("\n");
+		  fclose(fpout);
 /* 		  END OF IMPORTANCE SAMPLING STUFF */
 
 
@@ -406,10 +372,9 @@ int MC_main(int argc, char **argv)
 		  MCMC_Init_MCMC_Struct(tree->mcmc);
 		  tree->both_sides = 1;
 		  tree->rates->model = THORNE;
-/* 		  Round_Optimize(tree,tree->data,100); */
 		  Lk(tree);
 		  RATES_Lk_Rates(tree);
-		  printf("\n. THORNE lnL_data = %f lnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL);
+		  printf("\n. lnL_data = %f lnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL);
 		  tree->rates->bl_from_rt = 1;
 		  MCMC(tree);
 		  /***********************************/

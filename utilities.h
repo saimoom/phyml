@@ -83,8 +83,8 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #endif
 
 #define  N_MAX_OPTIONS        100
-#define  MIN_DT              0.01
-#define  H_MCMC_RATES         0.01
+#define  MIN_DT               1.0
+#define  H_MCMC_RATES         0.5
 #define  H_MCMC_LEXP          0.5
 #define  H_MCMC_NU            0.5
 
@@ -843,10 +843,11 @@ typedef struct __Trate {
   int model; /* Model number */
   phydbl nu; /* Parameter of the Exponential distribution for the corresponding model */
 
-  phydbl *ml_l;
-  phydbl *cur_l;
+  phydbl *ml_l; /* ML edge lengths (rooted) */
+  phydbl *cur_l; /* Current edge lengths (rooted) */
+  phydbl *u_ml_l; /* ML edge lengths (unrooted) */
+  phydbl *u_cur_l; /* Current edge lengths (unrooted) */
   phydbl *cov;
-
 }trate;
 
 /*********************************************************/

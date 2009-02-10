@@ -40,8 +40,7 @@ void MCMC(arbre *tree)
   FILE *fp;
   int pid;
   char *filename;
-  phydbl u;
-  int n_moves;
+  int n_moves,i;
 
   filename = (char *)mCalloc(T_MAX_FILE,sizeof(char));
 
@@ -73,23 +72,31 @@ void MCMC(arbre *tree)
 	strcpy(filename,"gamma");
 	break;
       }
+    case THORNE :
+      {
+	strcpy(filename,"thorne");
+	break;
+      }
     }
 
   sprintf(filename+strlen(filename),".%d",pid);
   fp = fopen(filename,"w");
   
-  tree->mcmc->sample_interval = 100;
+  tree->mcmc->sample_interval = 1;
+
+  For(i,2*tree->n_otu-2) tree->rates->nd_r[i] = tree->rates->true_r[i];
+  For(i,2*tree->n_otu-2) tree->rates->nd_t[i] = tree->rates->true_t[i];
+  RATES_Update_Cur_Bl(tree);
 
   MCMC_Print_Param(fp,tree);
   MCMC_Print_Param(stdout,tree);
 
 /*   MCMC_Randomize_Rates(tree); */
-  MCMC_Randomize_Nu(tree);
+/*   MCMC_Randomize_Nu(tree); */
 /*   MCMC_Randomize_Lexp(tree); */
 /*   MCMC_Randomize_Jumps(tree); */
 /*   MCMC_Randomize_Alpha(tree); */
-/*   MCMC_Randomize_Node_Times(tree); */
-
+  MCMC_Randomize_Node_Times(tree);
 
   RATES_Lk_Rates(tree);
   Lk(tree);
@@ -100,10 +107,10 @@ void MCMC(arbre *tree)
 
 /*       MCMC_Lexp(tree);         tree->mcmc->run++; */
 /*       MCMC_Alpha(tree);        tree->mcmc->run++; */
-      MCMC_Nu(tree);           tree->mcmc->run++;
-      MCMC_Rates_Local(tree);  tree->mcmc->run++;
+/*       MCMC_Nu(tree);           tree->mcmc->run++; */
+/*       MCMC_Rates_Local(tree);  tree->mcmc->run++; */
 /*       MCMC_Rates_Global(tree); tree->mcmc->run++;  */
-/*       MCMC_Times_Local(tree);  tree->mcmc->run++; */
+      MCMC_Times_Local(tree);  tree->mcmc->run++;
 /*       MCMC_Times_Global(tree); tree->mcmc->run++;  */
 /*       MCMC_Stick_Rates(tree);  tree->mcmc->run++;  */
 /*       MCMC_Mixing_Step(tree);  tree->mcmc->run++; */
@@ -477,6 +484,8 @@ void MCMC_Rates_Pre(node *a, node *d, int local, arbre *tree)
   
   new_mu = cur_mu * exp(H_MCMC_RATES*(u-0.5));
 
+/*   printf("\n. cur=%f new=%f",cur_mu,new_mu); */
+
   if((new_mu > tree->rates->max_rate) || (new_mu < tree->rates->min_rate)) return;
 
   if(local)
@@ -731,7 +740,7 @@ void MCMC_Times_Pre(node *a, node *d, int local, arbre *tree)
   phydbl cur_dt0,cur_dt1,cur_dt2;
   phydbl new_dt0,new_dt1,new_dt2;
   phydbl t_inf,t_sup;
-  phydbl nd_t, new_t;
+  phydbl cur_t, new_t;
   phydbl cur_lnL_times, new_lnL_times;
   phydbl cur_lnL_rate, new_lnL_rate;
   phydbl cur_lnL_data, new_lnL_data;
@@ -745,7 +754,8 @@ void MCMC_Times_Pre(node *a, node *d, int local, arbre *tree)
 
   cur_lnL_data  = tree->c_lnL;
   cur_lnL_rate  = tree->rates->c_lnL;
-  nd_t         = tree->rates->nd_t[d->num];
+  cur_t         = tree->rates->nd_t[d->num];
+  cur_lnL_times = RATES_Yule(tree);
   
   new_lnL_data  = cur_lnL_data;
 
@@ -766,25 +776,29 @@ void MCMC_Times_Pre(node *a, node *d, int local, arbre *tree)
   cur_dt1 = fabs(tree->rates->nd_t[d->num] - tree->rates->nd_t[d->v[dir1]->num]);
   cur_dt2 = fabs(tree->rates->nd_t[d->num] - tree->rates->nd_t[d->v[dir2]->num]);
   
-  t_inf = MIN(tree->rates->nd_t[d->v[dir1]->num],tree->rates->nd_t[d->v[dir2]->num])-MIN_DT;
-  t_sup = tree->rates->nd_t[a->num]+MIN_DT;
+  t_inf = MIN(tree->rates->nd_t[d->v[dir1]->num],tree->rates->nd_t[d->v[dir2]->num]);
+  t_sup = tree->rates->nd_t[a->num];
   
   u = Uni();
-  if(local)
-    new_t = u*(t_inf-t_sup) + t_sup;
-  else
-    {
-      new_t = nd_t + 1.0*(u-0.5);
-      do
-	{
-	  if((new_t < t_inf) && (new_t > t_sup)) break;
-	  else
-	    {
-	      if(new_t > t_inf)      new_t = t_sup + fabs(new_t-t_inf);
-	      else if(new_t < t_sup) new_t = t_inf - fabs(new_t-t_sup);
-	    }
-	}while(1);
-    }
+
+/*   if(u * (t_inf-t_sup) > cur_t) */
+/*     { */
+/*       u = 0.6*Uni(); */
+/*       new_t = cur_t + u * (t_inf-cur_t); */
+/*     } */
+/*   else */
+/*     { */
+/*       u = 0.6*Uni(); */
+/*       new_t = cur_t - u * (cur_t-t_sup); */
+/*     } */
+
+
+/*   new_t = u*(t_inf-t_sup) + t_sup; */
+
+  new_t = cur_t * exp(H_MCMC_RATES*(u-0.5));
+
+  if(new_t > t_inf-MIN_DT) new_t = t_inf-MIN_DT;
+  if(new_t < t_sup+MIN_DT) new_t = t_sup+MIN_DT;
 
   tree->rates->nd_t[d->num] = new_t;
 
@@ -798,17 +812,28 @@ void MCMC_Times_Pre(node *a, node *d, int local, arbre *tree)
       if(new_dt1 < MIN_DT) new_dt1 = MIN_DT;
       if(new_dt2 < MIN_DT) new_dt2 = MIN_DT;
       
-      tree->rates->nd_r[d->num]          *= (cur_dt0 / new_dt0);
-      tree->rates->nd_r[d->v[dir1]->num] *= (cur_dt1 / new_dt1);
-      tree->rates->nd_r[d->v[dir2]->num] *= (cur_dt2 / new_dt2);
+/*       tree->rates->nd_r[d->num]          *= (cur_dt0 / new_dt0); */
+/*       tree->rates->nd_r[d->v[dir1]->num] *= (cur_dt1 / new_dt1); */
+/*       tree->rates->nd_r[d->v[dir2]->num] *= (cur_dt2 / new_dt2); */
       
-/*       new_lnL_rate  = RATES_Lk_Rates(tree); */
-      new_lnL_rate  = RATES_Lk_Change_One_Time(d,new_t,tree);
+/*       if(tree->rates->nd_r[d->num] < tree->rates->min_rate) tree->rates->nd_r[d->num] = tree->rates->min_rate; */
+/*       if(tree->rates->nd_r[d->num] > tree->rates->max_rate) tree->rates->nd_r[d->num] = tree->rates->max_rate; */
+
+/*       if(tree->rates->nd_r[d->v[dir1]->num] < tree->rates->min_rate) tree->rates->nd_r[d->v[dir1]->num] = tree->rates->min_rate; */
+/*       if(tree->rates->nd_r[d->v[dir1]->num] > tree->rates->max_rate) tree->rates->nd_r[d->v[dir1]->num] = tree->rates->max_rate; */
+
+/*       if(tree->rates->nd_r[d->v[dir2]->num] < tree->rates->min_rate) tree->rates->nd_r[d->v[dir2]->num] = tree->rates->min_rate; */
+/*       if(tree->rates->nd_r[d->v[dir2]->num] > tree->rates->max_rate) tree->rates->nd_r[d->v[dir2]->num] = tree->rates->max_rate; */
+
+      new_lnL_rate  = RATES_Lk_Rates(tree);
+/*       new_lnL_rate  = RATES_Lk_Change_One_Time(d,new_t,tree); */
       new_lnL_times = RATES_Yule(tree);
-      
-      ratio =
-	(new_lnL_rate + new_lnL_times + log(cur_dt0) + log(cur_dt1) + log(cur_dt2)) -
-	(cur_lnL_rate + cur_lnL_times + log(new_dt0) + log(new_dt1) + log(new_dt2));
+      new_lnL_data  = Return_Lk(tree);
+
+
+/*       ratio = */
+/* 	(new_lnL_rate + new_lnL_times + log(cur_dt0) + log(cur_dt1) + log(cur_dt2)) - */
+/* 	(cur_lnL_rate + cur_lnL_times + log(new_dt0) + log(new_dt1) + log(new_dt2)); */
       
       /*   ratio = */
       /*     (log(cur_dt0) + log(cur_dt1) + log(cur_dt2)) - */
@@ -818,8 +843,13 @@ void MCMC_Times_Pre(node *a, node *d, int local, arbre *tree)
       /*     (new_lnL_rate + log(cur_dt0) + log(cur_dt1) + log(cur_dt2)) - */
       /*     (cur_lnL_rate + log(new_dt0) + log(new_dt1) + log(new_dt2));            */
       
+      ratio =
+	(new_lnL_data + new_lnL_rate + new_lnL_times + log(fabs(new_t))) -
+	(cur_lnL_data + cur_lnL_rate + cur_lnL_times + log(fabs(cur_t)));
+
       ratio = exp(ratio);
       
+
       alpha = MIN(1.,ratio);
       
       u = Uni();
@@ -837,9 +867,10 @@ void MCMC_Times_Pre(node *a, node *d, int local, arbre *tree)
 	  RATES_Reset_Times(tree);
 	  RATES_Reset_Rates(tree);
 	  
-/* 	  RATES_Lk_Rates(tree); */
-	  RATES_Lk_Change_One_Time(d,nd_t,tree);
-	  
+	  RATES_Lk_Rates(tree);
+/* 	  RATES_Lk_Change_One_Time(d,cur_t,tree); */
+	  Return_Lk(tree);
+
 	  if((fabs(cur_lnL_data - tree->c_lnL) > 1.E-3) || (fabs(cur_lnL_rate - tree->rates->c_lnL) > 1.E-0))
 	    {
 	      printf("\n. lexp = %f alpha = %f",
@@ -851,8 +882,8 @@ void MCMC_Times_Pre(node *a, node *d, int local, arbre *tree)
 		     cur_dt1,new_dt1,
 		     cur_dt2,new_dt2);
 	      
-	      printf("\n. nd_t = %f ; cur_lnL_data = %f vs %f ; cur_lnL_rates = %f vs %f",
-		     nd_t,
+	      printf("\n. cur_t = %f ; cur_lnL_data = %f vs %f ; cur_lnL_rates = %f vs %f",
+		     cur_t,
 		     cur_lnL_data,tree->c_lnL,
 		     cur_lnL_rate,tree->rates->c_lnL);
 	      
@@ -906,7 +937,7 @@ void MCMC_Print_Param(FILE *fp, arbre *tree)
 	  fprintf(fp,"Nu\t");
 /* 	  fprintf(fp,"Nu\t"); */
 	  if(fp != stdout) for(i=tree->n_otu;i<2*tree->n_otu-1;i++) fprintf(fp,"T%d\t",i);
-	  if(fp != stdout) for(i=0;i<2*tree->n_otu-2;i++) fprintf(fp,"J%d\t",i);
+/* 	  if(fp != stdout) for(i=0;i<2*tree->n_otu-2;i++) fprintf(fp,"J%d\t",i); */
 	}
 
       fprintf(fp,"\n");
@@ -920,7 +951,7 @@ void MCMC_Print_Param(FILE *fp, arbre *tree)
       fprintf(fp,"%4.2lf\t",tree->rates->alpha);
       fprintf(fp,"%10lf\t",tree->rates->nu);
       if(fp != stdout) for(i=tree->n_otu;i<2*tree->n_otu-1;i++) fprintf(fp,"%8f\t",tree->rates->nd_t[i]-tree->rates->true_t[i]);
-      if(fp != stdout) for(i=0;i<2*tree->n_otu-2;i++) fprintf(fp,"%d\t",tree->rates->n_jps[i]-tree->rates->t_jps[i]);
+/*       if(fp != stdout) for(i=0;i<2*tree->n_otu-2;i++) fprintf(fp,"%d\t",tree->rates->n_jps[i]-tree->rates->t_jps[i]); */
       if(fp == stdout) printf("%f",tree->rates->nd_t[tree->n_root->num]);
 /*       if(fp == stdout) for(i=0;i<MIN(10,2*tree->n_otu-2);i++) fprintf(fp,"%4d ",tree->rates->n_jps[i]); */
 /*       if(fp == stdout) for(i=0;i<MIN(4,2*tree->n_otu-2);i++) fprintf(fp,"%8f ",tree->rates->nd_t[i]-tree->rates->true_t[i]); */
@@ -930,8 +961,6 @@ void MCMC_Print_Param(FILE *fp, arbre *tree)
 	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
 	  Exit("\n");
 	}
-
-
       fflush(NULL);
     }
 }
@@ -1139,7 +1168,7 @@ void MCMC_Mixing_Step(arbre *tree)
   For(i,2*tree->n_otu-1) tree->rates->nd_t[i] *= multiplier;
   tree->rates->clock_r /= multiplier;
   
-  RATES_Get_Br_Len(tree);
+  RATES_Update_Cur_Bl(tree);
   
   hr = pow(multiplier,-(tree->n_otu-1));
   
