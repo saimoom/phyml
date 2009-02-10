@@ -11,7 +11,7 @@ mkdir("./phyml/bin");
 mkdir("./phyml/examples");
 
 # Put your path to the svn sources here
-$phyml_dir = "/Users/guindon/cvshome/phyml/";
+$phyml_dir = "/home/lefort/homedir/home/ATGC/phyml/src/svn/phyml/";
 chdir $phyml_dir;
 
 open(SVNVERSION,"| svnversion > version");
