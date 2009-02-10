@@ -477,7 +477,7 @@ char *Write_Tree(arbre *tree)
 
   
 #ifdef MC
-  if((tree->rates) && (tree->rates->bl_from_rt)) RATES_Get_Br_Len(tree);
+  if((tree->rates) && (tree->rates->bl_from_rt)) RATES_Update_Cur_Bl(tree);
 #endif
 
   if(!tree->n_root)
@@ -533,14 +533,7 @@ void R_wtree(node *pere, node *fils, char *s_tree, arbre *tree)
 	    sprintf(s_tree+(int)strlen(s_tree),"%.10f",fils->b[0]->l);
 	  else
 	    {
-	      if(tree->n_root->v[0] == fils)
-		{
-		  sprintf(s_tree+(int)strlen(s_tree),"%.10f",tree->n_root->l[0]);
-		}
-	      else
-		{
-		  sprintf(s_tree+(int)strlen(s_tree),"%.10f",tree->n_root->l[1]);
-		}
+	      sprintf(s_tree+(int)strlen(s_tree),"%.10f",tree->rates->cur_l[fils->num]);
 	    }
 	}
       sprintf(s_tree+(int)strlen(s_tree),",");
@@ -590,14 +583,7 @@ void R_wtree(node *pere, node *fils, char *s_tree, arbre *tree)
 	    sprintf(s_tree+(int)strlen(s_tree),"%.10f",fils->b[p]->l);
 	  else
 	    {
-	      if(tree->n_root->v[0] == fils)
-		{
-		  sprintf(s_tree+(int)strlen(s_tree),"%.10f",tree->n_root->l[0]);
-		}
-	      else
-		{
-		  sprintf(s_tree+(int)strlen(s_tree),"%.10f",tree->n_root->l[1]);
-		}
+	      sprintf(s_tree+(int)strlen(s_tree),"%.10f",tree->rates->cur_l[fils->num]);
 	    }
 	}
       strcat(s_tree,",");
@@ -8211,18 +8197,8 @@ arbre *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
       Free_Node(root);
     }
 
-  tree->rates->use_rates = 0;
-  MC_Bl_From_T(tree);
-
-  if(rooted)
-    {
-      tree->n_root->l[0] = (tree->rates->nd_t[tree->n_root->v[0]->num] - t[0]);
-      tree->n_root->l[1] = (tree->rates->nd_t[tree->n_root->v[1]->num] - t[0]);
-      tree->e_root->l    = tree->n_root->l[0] + tree->n_root->l[1];
-    }
-
   RATES_Random_Branch_Lengths(tree);
-
+  
   Free(available_nodes);
   Free(connected);
   Free(nonconnected);
@@ -9429,6 +9405,7 @@ void Normal_Conditional_1(phydbl *a, phydbl *mu, phydbl *cov, int dim, int elem,
     }
 
   Matinv(cov22,dim-1,dim-1);
+
   cov12_invcov22 = Matrix_Mult(cov12,cov22,1,dim-1,dim-1,dim-1);
   
   buff = Matrix_Mult(cov12_invcov22,centr_a,1,dim-1,dim-1,1);
@@ -9518,13 +9495,13 @@ void Normal_Conditional(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is
 
   n2 = n-n1;
 
-  mu1            = (phydbl *)mCalloc(n1,     sizeof(phydbl));
-  mu2            = (phydbl *)mCalloc(n2,    sizeof(phydbl));
-  sig11          = (phydbl *)mCalloc(n1*n1,  sizeof(phydbl));
-  sig12          = (phydbl *)mCalloc(n1*n2, sizeof(phydbl));
-  sig21          = (phydbl *)mCalloc(n2*n1, sizeof(phydbl));
+  mu1            = (phydbl *)mCalloc(n1,   sizeof(phydbl));
+  mu2            = (phydbl *)mCalloc(n2,   sizeof(phydbl));
+  sig11          = (phydbl *)mCalloc(n1*n1,sizeof(phydbl));
+  sig12          = (phydbl *)mCalloc(n1*n2,sizeof(phydbl));
+  sig21          = (phydbl *)mCalloc(n2*n1,sizeof(phydbl));
   sig22          = (phydbl *)mCalloc(n2*n2,sizeof(phydbl));
-  ctrd_a         = (phydbl *)mCalloc(n2,    sizeof(phydbl)); 
+  ctrd_a         = (phydbl *)mCalloc(n2,   sizeof(phydbl)); 
 
   nr=0;
   For(i,n) { if(!is_1[i]) { ctrd_a[nr] = a[i]-mu[i]; nr++; } }
@@ -9615,9 +9592,7 @@ void Normal_Conditional(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is
   Free(buff);
 
   buff = Matrix_Mult(sig12_invsig22,sig21,n1,n2,n2,1);
-  For(i,n1)
-    For(j,n1)
-    cond_cov[i*n1+j] = sig11[i*n+j] - buff[i*n+j];
+  For(i,n1) For(j,n1) cond_cov[i*n1+j] = sig11[i*n1+j] - buff[i*n1+j];
   Free(buff);
 
   Free(mu1);

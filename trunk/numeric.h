@@ -52,6 +52,8 @@ phydbl *Hessian_Log(arbre *tree);
 void Recurr_Hessian_Log(node *a, node *d, int plus_minus, phydbl *inc, phydbl *res, int *is_ok, arbre *tree);
 phydbl Log_Det(int *is_ok, arbre *tree);
 phydbl Dnorm_Trunc(phydbl x, phydbl mean, phydbl sd, phydbl lo, phydbl up);
+phydbl Normal_Trunc_Mean(phydbl mu, phydbl sd, phydbl min, phydbl max);
+phydbl Constraint_Normal_Trunc_Mean(phydbl wanted_mu, phydbl sd, phydbl min, phydbl max);
 
 
 #endif //NUMERIC_H

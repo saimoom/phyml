@@ -172,7 +172,12 @@ phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max)
   u = cdf_min + (cdf_max-cdf_min) * Uni();
   ret_val = sd*PointNormal(u)+mean;
 
-/*   if(ret_val < min || ret_val > max) printf("\n. Numerical precision issue detected in Rnorm_Trunc.\n"); */
+/*   if(ret_val < min || ret_val > max)  */
+/*     { */
+/*       printf("\n. Numerical precision issue detected in Rnorm_Trunc."); */
+/*       printf("\n. mean=%f sd=%f min=%f max=%f",mean,sd,min,max); */
+/*       printf("\n. cdf_min=%f cdf_max=%f\n",cdf_min,cdf_max); */
+/*     } */
 
   if(ret_val < min) ret_val = min;
   if(ret_val > max) ret_val = max;
@@ -193,11 +198,9 @@ phydbl *Rnorm_Multid_Trunc(phydbl *mean, phydbl *cov, phydbl *min, phydbl *max, 
  
   L = Cholesky_Decomp(cov,dim);
   
-
   low = (min[0]-mean[0])/L[0*dim+0];
   up  = (max[0]-mean[0])/L[0*dim+0];
-  u[0] = Rnorm_Trunc(0.0,1.0,up,low);
-
+  u[0] = Rnorm_Trunc(0.0,1.0,low,up);
 
   for(i=1;i<dim;i++)
     {
@@ -205,12 +208,12 @@ phydbl *Rnorm_Multid_Trunc(phydbl *mean, phydbl *cov, phydbl *min, phydbl *max, 
       For(j,i) rec += L[i*dim+j] * u[j];
       low  = (min[i]-mean[i]-rec)/L[i*dim+i];
       up   = (max[i]-mean[i]-rec)/L[i*dim+i];
-      u[i] = Rnorm_Trunc(0.0,1.0,up,low);
+      u[i] = Rnorm_Trunc(0.0,1.0,low,up);
     }
 
   x = Matrix_Mult(L,u,dim,dim,dim,1);
 
-/*   printf(">>>\n"); */
+/*   printf("\n>>>\n"); */
 /*   For(i,dim) */
 /*     { */
 /*       For(j,dim) */
@@ -226,15 +229,8 @@ phydbl *Rnorm_Multid_Trunc(phydbl *mean, phydbl *cov, phydbl *min, phydbl *max, 
 
   
 /*   printf("\n"); */
-/*   For(i,dim) */
-/*     { */
-/*       For(j,dim) */
-/* 	{ */
-/* 	  printf("%10lf ",x[i*dim+j]); */
-/* 	} */
-/*       printf("\n"); */
-/*     } */
-/*   printf("<<<\n"); */
+/*   For(i,dim) printf("%10lf ",x[i]); */
+/*   printf("\n<<<\n"); */
 
   For(i,dim) x[i] += mean[i];
 
@@ -1477,6 +1473,54 @@ phydbl Log_Det(int *is_ok, arbre *tree)
 }
 
 /*********************************************************/
+
+phydbl Normal_Trunc_Mean(phydbl mu, phydbl sd, phydbl min, phydbl max)
+{
+  phydbl mean;
+
+  mean = mu + sd * 
+    (Dnorm((min-mu)/sd,0.,1.)-Dnorm((max-mu)/sd,0.,1.))/
+    (CDF_Normal((max-mu)/sd,0.,1.)-CDF_Normal((min-mu)/sd,0.,1.));
+  return mean;
+}
+
+/*********************************************************/
+
+phydbl Constraint_Normal_Trunc_Mean(phydbl wanted_mu, phydbl sd, phydbl min, phydbl max)
+{
+  int j;
+  phydbl dx,f,fmid,xmid,rtb;
+  phydbl x1, x2;
+
+  x1 = min;
+  x2 = max;
+
+  f    = Normal_Trunc_Mean(x1,sd,min,max) - wanted_mu;
+  fmid = Normal_Trunc_Mean(x2,sd,min,max) - wanted_mu;
+  
+  if(f*fmid >= 0.0)
+    {
+      PhyML_Printf("\n. Root must be bracketed for bisection!");
+      PhyML_Printf("\n. f=%f fmid=%f",f,fmid);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");
+    }
+
+  rtb = f < 0.0 ? (dx=x2-x1,x1) : (dx=x1-x2,x2);
+
+  For(j,100) 
+    {
+      xmid=rtb+(dx *= 0.5);
+      fmid=Normal_Trunc_Mean(xmid,sd,min,max)-wanted_mu;
+      if(fmid <= 0.0) rtb=xmid;
+      if(fmid > -1.E-10 && fmid < 1.E-10) return rtb;
+    }
+
+  Exit("Too many bisections in RTBIS");
+  return(-1.);
+}
+
+
 /*********************************************************/
 /*********************************************************/
 /*********************************************************/

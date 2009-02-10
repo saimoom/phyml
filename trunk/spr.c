@@ -3545,7 +3545,6 @@ void Speed_Spr_Loop(arbre *tree)
 
   if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n. Maximizing likelihood (using SPR moves)...\n");
   
-
   Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
   tree->best_lnL = tree->c_lnL;
 
@@ -3563,8 +3562,6 @@ void Speed_Spr_Loop(arbre *tree)
   while(1);
   /*****************************/
 
-
-
   /*****************************/
   if(tree->mod->datatype == NT)
     {
@@ -3581,8 +3578,6 @@ void Speed_Spr_Loop(arbre *tree)
       while(1);
     }
   /*****************************/
-
-
 
   /*****************************/
   lk_old = UNLIKELY;
