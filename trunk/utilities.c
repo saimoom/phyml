@@ -1167,11 +1167,10 @@ seq **Read_Seq_Interleaved(FILE *in, int *n_otu)
 
 int Read_One_Line_Seq(seq ***data, int num_otu, FILE *in)
 {
-  char c;
-  int nchar;
+  char c = ' ';
+  int nchar = 0;
+  const char badSymbol[28]= "ABCDEFGHIKLMNOPQRSTUVWXYZ?-.";
   
-  nchar = 0;
-  c=' ';
   while(1)
     {
 /*       if((c == EOF) || (c == '\n') || (c == '\r')) break; */
@@ -1204,11 +1203,10 @@ int Read_One_Line_Seq(seq ***data, int num_otu, FILE *in)
 	}
 
       nchar++;
-      
       Uppercase(&c);
-      
 
-      if (strchr("ABCDEFGHIKLMNOPQRSTUVWXYZ?-.", c) == NULL)
+//      if (strchr("ABCDEFGHIKLMNOPQRSTUVWXYZ?-.", c) == NULL)
+      if (strchr(badSymbol, c) == NULL)
 	{
 	  PhyML_Printf("\n. Err: bad symbol: \"%c\" at position %d of species %s\n",
 		       c,(*data)[num_otu]->len,(*data)[num_otu]->name);
