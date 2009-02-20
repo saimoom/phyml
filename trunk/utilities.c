@@ -9215,18 +9215,14 @@ phydbl Get_Tree_Size(arbre *tree)
   phydbl tree_size;
 
   tree_size = 0.0;
-  
   For(i,2*tree->n_otu-3) tree_size += tree->t_edges[i]->l;
-
   tree->size = tree_size;
-
   return tree_size;
-
 }
 
 /*********************************************************/
 
-/* check whther target_bip can be found within tree. WARNING: target_bip names
+/* check whether target_bip can be found within tree. WARNING: target_bip names
    must be sorted in alphabetical order */
 int Find_Bipartition(char **target_bip, int bip_size, arbre *tree)
 {
