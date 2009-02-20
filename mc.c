@@ -281,33 +281,28 @@ int MC_main(int argc, char **argv)
 		  Get_Tree_Size(tree);
 
 /* 		  IMPORTANCE SAMPLING STUFF */
-/* 		  Round_Optimize(tree,tree->data,1000); */
-		  RATES_Adjust_Clock_Rate(tree);
-		  printf("\n. Mean rate = %f",RATES_Check_Mean_Rates(tree));
 		  RATES_Update_Ml_Bl(tree);
 		  printf("\n. Computing Hessian...\n");
 		  cov = Hessian(tree);
 		  For(i,(2*tree->n_otu-3)*(2*tree->n_otu-3)) cov[i] = -cov[i];
 		  Matinv(cov,2*tree->n_otu-3,2*tree->n_otu-3);
 		  Free(tree->rates->cov); tree->rates->cov = cov;
-/* 		  RATES_Get_Cov_Matrix_Rooted(cov,tree); */
-/* 		  For(i,2*tree->n_otu-2) tree->rates->ml_l[i] = tree->rates->cur_l[i]; */
 		  printf("\n. Gibbs sampling...\n");
-		  MCMC_Randomize_Rates(tree);
-		  MCMC_Randomize_Node_Times(tree);
-/* 		  For(j,2*tree->n_otu-2) printf("%12lf ",tree->rates->ml_l[j]); */
-/* 		  For(j,2*tree->n_otu-2) printf("%12lf ",tree->rates->true_r[j]); */
-		  For(j,2*tree->n_otu-2) if(!tree->noeud[j]->tax) fprintf(fpout,"%12lf ",tree->rates->true_t[j]);
+/* 		  MCMC_Randomize_Rates(tree); */
+/* 		  MCMC_Randomize_Node_Times(tree); */
 		  fprintf(fpout,"\n");
 		  For(i,1000)
 		    {
 		      RATES_Posterior_Times(tree);
 		      RATES_Posterior_Rates(tree);
 		      RATES_Adjust_Clock_Rate(tree);
-/* 		      For(j,2*tree->n_otu-2) printf("%12lf ",tree->rates->cur_l[j]); */
-/* 		      For(j,2*tree->n_otu-2) printf("%12lf ",tree->rates->nd_r[j]); */
-		      For(j,2*tree->n_otu-2) if(!tree->noeud[j]->tax) fprintf(fpout,"%12lf ",tree->rates->nd_t[j]);
+		      RATES_Update_Cur_Bl(tree);
+
+		      For(j,2*tree->n_otu-2) 
+			if(!tree->noeud[j]->tax) 
+			  fprintf(fpout,"%12lf ",tree->rates->nd_t[j]-tree->rates->true_t[j]);
 		      fprintf(fpout,"\n");
+
 		    }
 		  fclose(fpout);
 /* 		  END OF IMPORTANCE SAMPLING STUFF */

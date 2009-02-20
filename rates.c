@@ -1299,9 +1299,7 @@ phydbl RATES_Adjust_Clock_Rate(arbre *tree)
 
   mean = 0.0;
   For(i,2*tree->n_otu-2)
-    mean += 
-    (tree->rates->nd_t[tree->noeud[i]->num] - tree->rates->nd_t[tree->noeud[i]->anc->num]) * 
-    tree->rates->nd_r[tree->noeud[i]->num];
+    mean += (tree->rates->nd_t[tree->noeud[i]->num] - tree->rates->nd_t[tree->noeud[i]->anc->num]) * tree->rates->nd_r[tree->noeud[i]->num];
 
   tree->rates->clock_r = tree->size/mean;
 
@@ -1533,7 +1531,7 @@ void RATES_Posterior_Times_Pre3(node *a, node *d, edge *b, arbre *tree)
   phydbl EL1,EL2,EL3;
   phydbl U1,U2,U3;
   phydbl T0,T1,T2,T3;
-  phydbl *Y;
+  phydbl X,Y;
   int    dir1,dir2;
   int    i;
   phydbl *mu, *cov;
@@ -1541,7 +1539,7 @@ void RATES_Posterior_Times_Pre3(node *a, node *d, edge *b, arbre *tree)
   phydbl *new_L;
   phydbl *min, *max;
   short int *is_1;
-  phydbl sig11, sig12, sig22, sig13, sig23, sig33, sig1Y, sig2Y, sigYY;
+  phydbl sig11, sig1X, sig1Y, sigXX, sigXY, sigYY;
   int nb;
 
   if(d->tax) return;
@@ -1551,7 +1549,6 @@ void RATES_Posterior_Times_Pre3(node *a, node *d, edge *b, arbre *tree)
 
       mu       = (phydbl *)mCalloc(3,sizeof(phydbl));
       cov      = (phydbl *)mCalloc(9,sizeof(phydbl));
-      Y        = (phydbl *)mCalloc(3,sizeof(phydbl));
       cond_mu  = (phydbl *)mCalloc(3,sizeof(phydbl));
       cond_cov = (phydbl *)mCalloc(9,sizeof(phydbl));
       is_1     = (short int *)mCalloc(3,sizeof(short int));
@@ -1583,43 +1580,50 @@ void RATES_Posterior_Times_Pre3(node *a, node *d, edge *b, arbre *tree)
       L1    = tree->rates->cur_l[d->num];
       L2    = tree->rates->cur_l[d->v[dir1]->num];
       L3    = tree->rates->cur_l[d->v[dir2]->num];
-      
-      Y[2]  = (T2+T3)/2.-T0;
-      
+
+      X = L1/U1 + T0 + L2/U2 - T2;
+      Y = L1/U1 + T0 + L3/U3 - T3;
+            
       sig11 = tree->rates->cov[b->num*nb+b->num];
-      sig12 = tree->rates->cov[b->num*nb+d->b[dir1]->num];
-      sig22 = tree->rates->cov[d->b[dir1]->num*nb+d->b[dir1]->num];
-      sig13 = tree->rates->cov[b->num*nb+d->b[dir2]->num];
-      sig23 = tree->rates->cov[d->b[dir1]->num*nb+d->b[dir2]->num];
-      sig33 = tree->rates->cov[d->b[dir2]->num*nb+d->b[dir2]->num];
-      
-      sig1Y = sig11/U1 + sig12/(2.*U2) + sig13/(2.*U3);
-      sig2Y = sig12/U1 + sig22/(2.*U2) + sig23/(2.*U3);
-      sigYY = sig11/pow(U1,2) + sig22/(4.*pow(U2,2)) + sig33/(4.*pow(U3,2));
+      sig1X = (1./U1) * tree->rates->cov[b->num*nb+b->num] + (1./U2) * tree->rates->cov[b->num*nb+d->b[dir1]->num];
+      sig1Y = (1./U1) * tree->rates->cov[b->num*nb+b->num] + (1./U3) * tree->rates->cov[b->num*nb+d->b[dir2]->num];
+      sigXX = 1./(U1*U1) * tree->rates->cov[b->num*nb+b->num] + 1./(U2*U2) * tree->rates->cov[d->b[dir1]->num*nb+d->b[dir1]->num];
+      sigYY = 1./(U1*U1) * tree->rates->cov[b->num*nb+b->num] + 1./(U3*U3) * tree->rates->cov[d->b[dir2]->num*nb+d->b[dir2]->num];
+      sigXY = 1./(U1*U1) * tree->rates->cov[b->num*nb+b->num]          + 1./(U1*U2) * tree->rates->cov[b->num*nb+d->b[dir1]->num] + 
+	      1./(U1*U3) * tree->rates->cov[b->num*nb+d->b[dir2]->num] + 1./(U2*U3) * tree->rates->cov[d->b[dir1]->num*nb+d->b[dir2]->num];
       
       mu[0] = EL1;
-      mu[1] = EL2;
-      mu[2] = EL1/U1 + (EL2/U2 + EL3/U3)/2.;  
+      mu[1] = 0.0;
+      mu[2] = 0.0;  
       
-      cov[0*3+0] = sig11; cov[0*3+1] = sig12; cov[0*3+2] = sig1Y;
-      cov[1*3+0] = sig12; cov[1*3+1] = sig22; cov[1*3+2] = sig2Y;
-      cov[2*3+0] = sig1Y; cov[2*3+1] = sig2Y; cov[2*3+2] = sigYY;
+      cov[0*3+0] = sig11; cov[0*3+1] = sig1X; cov[0*3+2] = sig1Y;
+      cov[1*3+0] = sig1X; cov[1*3+1] = sigXX; cov[1*3+2] = sigXY;
+      cov[2*3+0] = sig1Y; cov[2*3+1] = sigXY; cov[2*3+2] = sigYY;
       
-      Normal_Conditional(mu,cov,Y,3,is_1,2,cond_mu,cond_cov);
+==      Normal_Conditional(mu,cov,Y,3,is_1,2,cond_mu,cond_cov);
       
       min[0] = 0;                  min[1] = U2*(T2-MIN(T2,T3));
       max[0] = U1*(MIN(T2,T3)-T0); max[1] = U2*(T2-T0);
       
       new_L = Rnorm_Multid_Trunc(cond_mu,cond_cov,min,max,2);
       L1 = new_L[0];  
+      L2 = new_L[1];  
       T1 = L1/U1 + T0;
+
+
+
+      printf("\n. L1/U1+T0=%f -L2/U2+T2=%f",L1/U1+T0,-L2/U2+T2);
       
-      if(T1 < T0)         T1 = T0;
-      if(T1 > MIN(T2,T3)) T1 = MIN(T2,T3);
+/*       if(T1 < T0)         T1 = T0; */
+/*       if(T1 > MIN(T2,T3)) T1 = MIN(T2,T3); */
       
       tree->rates->nd_t[d->num] = T1;
       
       RATES_Update_Cur_Bl(tree);
+
+/*       printf("\n. L1=%f L2=%f l1=%f l2=%f", */
+/* 	     new_L[0],new_L[1], */
+/* 	     tree->rates->cur_l[d->num],tree->rates->cur_l[d->v[dir1]->num]); */
       
       Free(mu);
       Free(cov);
@@ -1929,7 +1933,7 @@ void RATES_Update_Ml_Bl(arbre *tree)
   /* The root is considered to be in the middle of the branch */
   tree->rates->ml_l[tree->n_root->v[0]->num] = tree->t_edges[tree->e_root->num]->l / 2.;
   tree->rates->ml_l[tree->n_root->v[1]->num] = tree->t_edges[tree->e_root->num]->l / 2.;
-  tree->rates->u_ml_l[tree->e_root->num] = tree->t_edges[tree->e_root->num]->l;
+  tree->rates->u_ml_l[tree->e_root->num]     = tree->t_edges[tree->e_root->num]->l;
 }
 
 /*********************************************************/

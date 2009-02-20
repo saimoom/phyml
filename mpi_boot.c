@@ -208,7 +208,7 @@ printf ("task %d, receiving random from task %d done\n", Global_myRank, Stat.MPI
       else
 	{
 	  if(boot_tree->mod->s_opt->opt_num_param || boot_tree->mod->s_opt->opt_bl)
-	    Round_Optimize(boot_tree,boot_tree->data);
+	    Round_Optimize(boot_tree,boot_tree->data,N_ROUND_MAX);
 	  else
 	    Lk(boot_tree);
 	}

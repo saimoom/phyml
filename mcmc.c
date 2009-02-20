@@ -91,7 +91,7 @@ void MCMC(arbre *tree)
   MCMC_Print_Param(fp,tree);
   MCMC_Print_Param(stdout,tree);
 
-/*   MCMC_Randomize_Rates(tree); */
+  MCMC_Randomize_Rates(tree);
 /*   MCMC_Randomize_Nu(tree); */
 /*   MCMC_Randomize_Lexp(tree); */
 /*   MCMC_Randomize_Jumps(tree); */
@@ -108,7 +108,7 @@ void MCMC(arbre *tree)
 /*       MCMC_Lexp(tree);         tree->mcmc->run++; */
 /*       MCMC_Alpha(tree);        tree->mcmc->run++; */
 /*       MCMC_Nu(tree);           tree->mcmc->run++; */
-/*       MCMC_Rates_Local(tree);  tree->mcmc->run++; */
+      MCMC_Rates_Local(tree);  tree->mcmc->run++;
 /*       MCMC_Rates_Global(tree); tree->mcmc->run++;  */
       MCMC_Times_Local(tree);  tree->mcmc->run++;
 /*       MCMC_Times_Global(tree); tree->mcmc->run++;  */
