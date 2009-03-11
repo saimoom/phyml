@@ -276,15 +276,15 @@ int MC_main(int argc, char **argv)
 		  tree->mcmc->sample_interval = 1;
 
 		  tree->rates->bl_from_rt = 1;
-		  MCMC_Randomize_Rates(tree);
-/* 		  MCMC_Randomize_Node_Times(tree); */
+/* 		  MCMC_Randomize_Rates(tree); */
+		  MCMC_Randomize_Node_Times(tree);
 		  RATES_Update_Cur_Bl(tree);
 
 		  For(tree->mcmc->run,50000)
 		    {
 		      MCMC_Print_Param(fpout,tree);
-/* 		      RATES_Posterior_Times(tree); */
-		      RATES_Posterior_Rates(tree);
+		      RATES_Posterior_Times(tree);
+/* 		      RATES_Posterior_Rates(tree); */
 		    }
 		  fclose(fpout);
 
