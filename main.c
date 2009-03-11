@@ -156,12 +156,6 @@ int main(int argc, char **argv)
 		  Get_Tree_Size(tree);
 		  PhyML_Printf("\n. Log likelihood of the current tree: %f.\n",tree->c_lnL);
 
-		  char *s;
-		  s=Write_Tree(tree);
-		  printf("\n%s\n",s);
-		  Free(s);
-
-
 		  /* Print the tree estimated using the current random (or BioNJ) starting tree */
 		  if(io->mod->s_opt->n_rand_starts > 1)
 		    {

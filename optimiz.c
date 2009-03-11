@@ -1111,7 +1111,7 @@ void Round_Optimize(arbre *tree, allseq *data, int n_round_max)
             
       tree->both_sides = 1;
       Lk(tree);
-      
+
       if((tree->mod->s_opt->print) && (!tree->io->quiet)) Print_Lk(tree,"[Branch lengths     ]");
 
       if(!each)
@@ -1147,15 +1147,11 @@ void Optimize_Br_Len_Serie(node *a, node *d, edge *b_fcus, arbre *tree, allseq *
   
   l_infa = l_max  = l_infb = BL_MIN;
  
-  l_infa = 10.*b_fcus->l;
+/*   l_infa = 10.*b_fcus->l; */
+  l_infa = BL_MAX;
   l_max  = b_fcus->l;
   l_infb = BL_MIN;
   
-/*   Br_Len_Brent(l_infa,l_max,l_infb, */
-/* 	       1.e-3, */
-/* 	       &(b_fcus->l), */
-/* 	       b_fcus,tree,500); */
-
   Br_Len_Brent(l_infa,l_max,l_infb,
 	       tree->mod->s_opt->min_diff_lk_local,
 	       b_fcus,tree,
