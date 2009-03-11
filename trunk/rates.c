@@ -1694,7 +1694,10 @@ void RATES_Posterior_Times_Pre3(node *a, node *d, edge *b, arbre *tree)
 	}
     }
 
-  L1 = Rnorm_Trunc(cond_mu[0],sqrt(cond_cov[0*3+0]),BL_MIN,U1*(MIN(T2,T3)-T0));
+  if(a == tree->n_root)
+    L1 = Rnorm_Trunc(cond_mu[0],sqrt(cond_cov[0*3+0]),u1*dt1*tree->rates->clock_r,BL_MAX);
+  else
+    L1 = Rnorm_Trunc(cond_mu[0],sqrt(cond_cov[0*3+0]),BL_MIN,U1*(MIN(T2,T3)-T0));
 
   T1 = L1/U1 + T0;
 
