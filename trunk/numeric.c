@@ -294,6 +294,38 @@ phydbl Dnorm_Trunc(phydbl x, phydbl mean, phydbl sd, phydbl lo, phydbl up)
 
 /*********************************************************/
 
+phydbl Dnorm_Multi(phydbl *x, phydbl *mu, phydbl *cov, int size)
+{
+  phydbl *xmmu,*invcov;
+  phydbl *buff1,*buff2;
+  int i;
+  phydbl det,density;
+
+  xmmu   = (phydbl *)mCalloc(size,sizeof(phydbl));
+  invcov = (phydbl *)mCalloc(size*size,sizeof(phydbl));
+
+  For(i,size) xmmu[i] = x[i] - mu[i];
+  For(i,size*size) invcov[i] = cov[i];
+  
+  Matinv(invcov,size,size);
+  
+  buff1 = Matrix_Mult(xmmu,invcov,1,size,size,size);
+  buff2 = Matrix_Mult(buff1,xmmu,1,size,size,1);
+  
+  det = Matrix_Det(cov,size);
+  
+  density = (1./(pow(2.*PI,size/2.)*sqrt(fabs(det)))) * exp(-0.5*buff2[0]);
+
+  Free(xmmu);
+  Free(invcov);
+  Free(buff1);
+  Free(buff2);
+  
+  return density;
+}
+
+/*********************************************************/
+
 phydbl Pbinom(int N, int ni, phydbl p)
 {
   return Bico(N,ni)*pow(p,ni)*pow(1-p,N-ni);
@@ -915,7 +947,7 @@ phydbl *Hessian(arbre *tree)
   For(i,dim) 
     {
 /*       if(tree->t_edges[i]->l > 3.0/(phydbl)tree->data->init_len) */
-      if(tree->t_edges[i]->l > 0.01)
+      if(tree->t_edges[i]->l > 0.001)
 /*       if(tree->t_edges[i]->l > 2.*BL_MIN) */
 /*       if(tree->t_edges[i]->l > 1.E-7/eps) */
 	{

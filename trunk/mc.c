@@ -137,105 +137,58 @@ int MC_main(int argc, char **argv)
 		  tree->both_sides  = 1;
 		  tree->n_pattern   = tree->data->crunch_len/tree->mod->stepsize;
 
-
-		  /****************************************/
-		  /****************************************/
-		  /****************************************/
-		  /****************************************/
-		  /****************************************/
-		  /****************************************/
-		  /* Test constrained multivariate normal */
-
-
-/* 		  phydbl m1,m2,v11,v12,v22; */
-/* 		  phydbl *mu,*cov; */
-/* 		  phydbl *cd_mu, *cd_var; */
-/* 		  phydbl *cnstrt; */
-/* 		  int    *is_1; */
-
-/* 		  mu     = (phydbl *)mCalloc(2,sizeof(phydbl)); */
-/* 		  cov    = (phydbl *)mCalloc(4,sizeof(phydbl)); */
-/* 		  cd_mu  = (phydbl *)mCalloc(1,sizeof(phydbl)); */
-/* 		  cd_var = (phydbl *)mCalloc(1,sizeof(phydbl)); */
-/* 		  cnstrt = (phydbl *)mCalloc(2,sizeof(phydbl)); */
-/* 		  is_1   = (int *)mCalloc(2,sizeof(int)); */
-
-/* 		  is_1[0] = 1; */
-/* 		  is_1[1] = 0; */
-
-/* 		  cnstrt[1] = 50.0; */
-
-/* 		  m1=1.; m2=2.; */
-/* 		  v11 = 2.; v12 = 1.; v22 = 3.; */
-
-/* 		  mu[0] = m1;  */
-/* 		  mu[1] = m2; */
-		  
-/* 		  cov[0*2+0] = v11;  cov[0*2+1] = v12; */
-/* 		  cov[1*2+0] = v12;  cov[1*2+1] = v22; */
-		  
-/* 		  Normal_Conditional(mu,cov,cnstrt,2,is_1,1,cd_mu,cd_var); */
-
-/* 		  printf("\n. mean=%f var=%f",cd_mu[0],cd_var[0]); */
-/* 		  Exit("\n"); */
-
-		  /****************************************/
-		  /****************************************/
-		  /****************************************/
-		  /****************************************/
-		  /****************************************/
-		  /****************************************/
-
-
-
-
-
-
-
-
-/* 		  Prepare_Tree_For_Lk(tree); */
-/* 		  printf("\n. lk=%f",Return_Lk(tree)); */
-/* 		  Round_Optimize(tree,tree->data,ROUND_MAX); */
-/* 		  printf("\n. lk=%f",Return_Lk(tree)); */
-/* 		  printf("\n%s\n",Write_Tree(tree)); */
-
-/* 		  int i,j; */
-/* 		  phydbl *cov; */
-/* 		  printf("\n. Computing Hessian...\n"); */
-/* 		  cov = Hessian(tree); */
-/* 		  For(i,(2*tree->n_otu-3)*(2*tree->n_otu-3)) cov[i] = -cov[i]; */
-/* 		  Matinv(cov,2*tree->n_otu-3,2*tree->n_otu-3); */
-
-/* 		  For(i,2*tree->n_otu-3) */
-/* 		    { */
-/* 		      printf("[%15lf] ",tree->t_edges[i]->l); */
-/* /\* 		      For(j,i+1) *\/ */
-/* /\* 			{			   *\/ */
-/* 			  printf("%15lf ",cov[i*(2*tree->n_otu-3)+i]); */
-/* /\* 			} *\/ */
-/* 		      printf("\n"); */
-/* 		    } */
-
-
-/* 		  Exit("\n"); */
-
-
 		  if(!tree) continue;
 
 		  time(&t_beg);
 		  time(&(tree->t_beg));
 
 
-		  /************************************/
-		  /************************************/
-		  /************************************/
-		  /************************************/
+		  int i;
+		  phydbl *cov;
+		 
 		  /************************************/
 
+/* 		  tree->mod         = mod; */
+/* 		  tree->io          = io; */
+/* 		  tree->data        = alldata; */
+/* 		  tree->both_sides  = 1; */
+/* 		  tree->n_pattern   = tree->data->crunch_len/tree->mod->stepsize; */
+
+/* 		  Fill_Dir_Table(tree); */
+/* 		  Update_Dirs(tree); */
+/* 		  Make_Tree_4_Pars(tree,alldata,alldata->init_len); */
+/* 		  Make_Tree_4_Lk(tree,alldata,alldata->init_len); */
+
+/* 		  tree->n_root = NULL; */
+
+/* 		  Round_Optimize(tree,tree->data,ROUND_MAX); */
+
+/* 		  Record_Br_Len(NULL,tree); */
+/* 		  printf("\n. Computing Hessian...\n"); */
+/* 		  cov = Hessian(tree); */
+/* 		  For(i,(2*tree->n_otu-3)*(2*tree->n_otu-3)) cov[i] = -cov[i]; */
+/* 		  Matinv(cov,2*tree->n_otu-3,2*tree->n_otu-3); */
+
+/* 		  printf("\n"); */
+/* 		  For(i,2*tree->n_otu-3) */
+/* 		    { */
+/* 		      printf("[%12f]",tree->t_edges[i]->l); */
+/* 		      For(j,2*tree->n_otu-3) */
+/* 			{ */
+/* 			  printf("%12f ",cov[i*(2*tree->n_otu-3)+j]); */
+/* 			} */
+/* 		      printf("\n"); */
+/* 		    } */
+/* 		  printf("\n"); */
+		  
+/* 		  Restore_Br_Len(NULL,tree); */
+		  
+/* 		  Bootstrap(tree); */
+/* 		  Exit("\n"); */
+
+		  /************************************/
 
 		  int n_otu;
-		  int i,j;
-		  phydbl *cov;
 		  int pid;
 		  FILE *fpout;
 		  char *filename;
@@ -247,15 +200,15 @@ int MC_main(int argc, char **argv)
 		  strcpy(filename,"gibbs");
 		  sprintf(filename+strlen(filename),".%d",pid);
 		  fpout=fopen(filename,"w");
-		  Free(filename);
+
+
 
 		  printf("\n. pid=%d",pid);
 
-		  n_otu = 51;
+		  n_otu = 3;
 
 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1);
 		  
-
 		  tree->mod         = mod;
 		  tree->io          = io;
 		  tree->data        = alldata;
@@ -278,93 +231,71 @@ int MC_main(int argc, char **argv)
 		  For(i,2*tree->n_otu-1) tree->rates->true_t[i] = tree->rates->nd_t[i];
 		  For(i,2*tree->n_otu-2) tree->rates->true_r[i] = tree->rates->nd_r[i];
 
-		  Get_Tree_Size(tree);
+		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
+		  MCMC_Init_MCMC_Struct(tree->mcmc);
+
+
+		  /************************************/
+		  /************************************/
+		  /************************************/
+		  /************************************/
 
 /* 		  IMPORTANCE SAMPLING STUFF */
-		  RATES_Update_Ml_Bl(tree);
+		  node *buff;
+		  buff = tree->n_root;
+		  tree->n_root = NULL;
+
+		  printf("\n%s\n",Write_Tree(tree));
+
+		  Round_Optimize(tree,tree->data,ROUND_MAX);
+
+		  printf("\n%s\n",Write_Tree(tree));
+
+		  tree->n_root = buff;
+
+		  printf("\n. lnL_data = %f\n",Return_Lk(tree));
+
+		  Record_Br_Len(NULL,tree);
 		  printf("\n. Computing Hessian...\n");
+		  tree->rates->bl_from_rt = 0;
 		  cov = Hessian(tree);
 		  For(i,(2*tree->n_otu-3)*(2*tree->n_otu-3)) cov[i] = -cov[i];
 		  Matinv(cov,2*tree->n_otu-3,2*tree->n_otu-3);
 		  Free(tree->rates->cov); tree->rates->cov = cov;
+		  Restore_Br_Len(NULL,tree);
+
+		  RATES_Bl_To_Ml(tree);
+		  
+		  RATES_Print_Rates(tree);
+
+		  printf("\n. lnL_data = %f\n",Return_Lk(tree));
+		  printf("\n. lnL_rates = %f\n",log(Dnorm_Multi(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->cov,2*tree->n_otu-3)));
+		  printf("\n. Tree size = %f\n",Get_Tree_Size(tree));		  
+		  printf("\n. Clock rate = %f",tree->rates->clock_r);
 		  printf("\n. Gibbs sampling...\n");
-/* 		  MCMC_Randomize_Rates(tree); */
+		  tree->mcmc->sample_interval = 1;
+
+		  tree->rates->bl_from_rt = 1;
+		  MCMC_Randomize_Rates(tree);
 /* 		  MCMC_Randomize_Node_Times(tree); */
-		  fprintf(fpout,"\n");
-		  For(i,1000)
+		  RATES_Update_Cur_Bl(tree);
+
+		  For(tree->mcmc->run,50000)
 		    {
-		      RATES_Posterior_Times(tree);
+		      MCMC_Print_Param(fpout,tree);
+/* 		      RATES_Posterior_Times(tree); */
 		      RATES_Posterior_Rates(tree);
-		      RATES_Adjust_Clock_Rate(tree);
-		      RATES_Update_Cur_Bl(tree);
-
-		      For(j,2*tree->n_otu-2) 
-			if(!tree->noeud[j]->tax) 
-			  fprintf(fpout,"%12lf ",tree->rates->nd_t[j]-tree->rates->true_t[j]);
-		      fprintf(fpout,"\n");
-
 		    }
 		  fclose(fpout);
+
 /* 		  END OF IMPORTANCE SAMPLING STUFF */
 
+		  /************************************/
+		  /************************************/
+		  /************************************/
+		  /************************************/
 
 		  /* COMPOUND POISSON */
-
-/* 		  /\***********************************\/ */
-/*  		  tree->rates->approx = 1; */
-/* 		  printf("\n. USING APPROX %d",tree->rates->approx); */
-/* 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree); */
-/* 		  MCMC_Init_MCMC_Struct(tree->mcmc); */
-/* 		  tree->both_sides = 1; */
-/* 		  tree->rates->model = COMPOUND_COR; */
-/* 		  Lk(tree); */
-/* 		  RATES_Lk_Rates(tree); */
-/* 		  printf("\n. CORRELATED lnL_data = %f lnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL); */
-/* 		  tree->rates->bl_from_rt = 1; */
-/* 		  MCMC(tree); */
-/* 		  /\***********************************\/ */
-
-/* 		  /\***********************************\/ */
-/*  		  tree->rates->approx = 2; */
-/* 		  printf("\n. USING APPROX %d",tree->rates->approx); */
-/* 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree); */
-/* 		  MCMC_Init_MCMC_Struct(tree->mcmc); */
-/* 		  tree->both_sides = 1; */
-/* 		  tree->rates->model = COMPOUND_COR; */
-/* 		  Lk(tree); */
-/* 		  RATES_Lk_Rates(tree); */
-/* 		  printf("\n. CORRELATED lnL_data = %f lnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL); */
-/* 		  tree->rates->bl_from_rt = 1; */
-/* 		  MCMC(tree); */
-/* 		  /\***********************************\/ */
-
-/* 		  /\***********************************\/ */
-/* 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree); */
-/* 		  MCMC_Init_MCMC_Struct(tree->mcmc); */
-/* 		  tree->both_sides = 1; */
-/* 		  tree->rates->model = COMPOUND_NOCOR; */
-/* 		  Lk(tree); */
-/* 		  RATES_Lk_Rates(tree); */
-/* 		  printf("\n. NOT CORRELATED lnL_data = %f lnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL); */
-/* 		  tree->rates->bl_from_rt = 1; */
-/* 		  MCMC(tree); */
-/* 		  /\***********************************\/ */
-
-/* 		  /\***********************************\/ */
-/* 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree); */
-/* 		  MCMC_Init_MCMC_Struct(tree->mcmc); */
-/* 		  tree->both_sides = 1; */
-/* 		  tree->rates->model = EXPONENTIAL; */
-/* 		  Lk(tree); */
-/* 		  RATES_Lk_Rates(tree); */
-/* 		  printf("\n. EXPONENTIAL lnL_data = %f lnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL); */
-/* 		  tree->rates->bl_from_rt = 1; */
-/* 		  MCMC(tree); */
-/* 		  /\***********************************\/ */
-
-		  /***********************************/
-		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
-		  MCMC_Init_MCMC_Struct(tree->mcmc);
 		  tree->both_sides = 1;
 		  tree->rates->model = THORNE;
 		  Lk(tree);
@@ -372,19 +303,12 @@ int MC_main(int argc, char **argv)
 		  printf("\n. lnL_data = %f lnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL);
 		  tree->rates->bl_from_rt = 1;
 		  MCMC(tree);
-		  /***********************************/
-
-
-/* 		  Exit("\n"); */
-
 		  /* END OF COMPOUND POISSON STUFF */
 
 		  /************************************/
 		  /************************************/
 		  /************************************/
 		  /************************************/
-		  /************************************/
-
 
 		  /* Print the tree estimated using the current random (or BioNJ) starting tree */
 		  if(io->mod->s_opt->n_rand_starts > 1)

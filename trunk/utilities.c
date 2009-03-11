@@ -8043,8 +8043,6 @@ arbre *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
 
   available_nodes[0] = 2*n_otu-2;
 
-
-
   /* Node times are generated according to a Birth-death process.
      Formulae are as described by Yang and Rannala (1997) */
   phydbl    phi;
@@ -8134,7 +8132,6 @@ arbre *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
   /* Unroot the tree */
   root->v[1]->v[0] = root->v[2];
   root->v[2]->v[0] = root->v[1];
-
 
   n_internal = n_external = 0;
   For(i,2*tree->n_otu-2)
@@ -9357,6 +9354,21 @@ phydbl *Matrix_Transpose(phydbl *A, int dim)
 
 /*********************************************************/
 
+phydbl Matrix_Det(phydbl *A, int size)
+{
+  phydbl *triA;
+  int i;
+  phydbl det;
+
+  triA = Cholesky_Decomp(A,size);
+  det = 0.0;
+  For(i,size) det += log(triA[i*size+i]);
+  det = exp(det);
+  return det*det;
+}
+
+/*********************************************************/
+
 /* http://en.wikipedia.org/wiki/Multivariate_normal_distribution (Conditional distributions), where mu1 is a scalar */
 void Normal_Conditional_1(phydbl *a, phydbl *mu, phydbl *cov, int dim, int elem, phydbl *cond_mu, phydbl *cond_cov)
 {
@@ -9534,7 +9546,7 @@ void Normal_Conditional(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is
 	    {
 	      if(!is_1[j])
 		{
-		  sig12[nr*n1+nc] = cov[i*n+j];
+		  sig12[nr*n2+nc] = cov[i*n+j];
 		  nc++;
 		}
 	    }
@@ -9560,6 +9572,7 @@ void Normal_Conditional(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is
 	}
     }
 
+
   nr=0; nc=0;
   For(i,n)
     {
@@ -9570,13 +9583,14 @@ void Normal_Conditional(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is
 	    {
 	      if(!is_1[j])
 		{
-		  sig22[nr*n1+nc] = cov[i*n+j];
+		  sig22[nr*n2+nc] = cov[i*n+j];
 		  nc++;
 		}
 	    }
 	  nr++;
 	}
     }
+
 
   Matinv(sig22,n2,n2);
   sig12_invsig22 = Matrix_Mult(sig12,sig22,n1,n2,n2,n2);
@@ -9585,9 +9599,8 @@ void Normal_Conditional(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is
   For(i,n1) cond_mu[i] = mu1[i]+buff[i];
   Free(buff);
 
-  buff = Matrix_Mult(sig12_invsig22,sig21,n1,n2,n2,1);
+  buff = Matrix_Mult(sig12_invsig22,sig21,n1,n2,n2,n1);
   For(i,n1) For(j,n1) cond_cov[i*n1+j] = sig11[i*n1+j] - buff[i*n1+j];
-  Free(buff);
 
   Free(mu1);
   Free(mu2);

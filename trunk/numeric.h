@@ -54,6 +54,7 @@ phydbl Log_Det(int *is_ok, arbre *tree);
 phydbl Dnorm_Trunc(phydbl x, phydbl mean, phydbl sd, phydbl lo, phydbl up);
 phydbl Normal_Trunc_Mean(phydbl mu, phydbl sd, phydbl min, phydbl max);
 phydbl Constraint_Normal_Trunc_Mean(phydbl wanted_mu, phydbl sd, phydbl min, phydbl max);
+phydbl Dnorm_Multi(phydbl *x, phydbl *mu, phydbl *cov, int size);
 
 
 #endif //NUMERIC_H

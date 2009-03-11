@@ -1149,5 +1149,6 @@ phydbl *Matrix_Transpose(phydbl *A, int dim);
 void Normal_Conditional_1(phydbl *a, phydbl *mu, phydbl *cov, int dim, int elem, phydbl *cond_mu, phydbl *cond_var);
 void Normal_Conditional_2(phydbl *a, phydbl *mu, phydbl *cov, int dim, int elem, phydbl *cond_mu, phydbl *cond_var);
 void Normal_Conditional(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is_1, int n1, phydbl *cond_mu, phydbl *cond_var);
+phydbl Matrix_Det(phydbl *A, int size);
 
 #endif
