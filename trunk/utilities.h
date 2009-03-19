@@ -83,7 +83,6 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #endif
 
 #define  N_MAX_OPTIONS        100
-#define  MIN_DT               1.0
 #define  H_MCMC_RATES         0.5
 #define  H_MCMC_LEXP          0.5
 #define  H_MCMC_NU            0.5
@@ -106,7 +105,11 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  MNBRAK_TINY       1.e-20
 #define  ALPHA_MIN           0.04
 #define  ALPHA_MAX            100
+#ifdef PHYML
 #define  BL_MIN            1.e-10
+#else
+#define  BL_MIN             1.e-8
+#endif
 #define  BL_START          1.e-04
 #define  BL_MAX             100.0
 #define  GOLDEN_R      0.61803399
@@ -133,6 +136,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  MAX_PARS        1000000000
 
 #define  MIN_CLOCK_RATE   1.E-10
+#define  MIN_VAR_BL        BL_MIN
 
 #define JC69       1
 #define K80        2
@@ -848,6 +852,8 @@ typedef struct __Trate {
   phydbl *u_ml_l; /* ML edge lengths (unrooted) */
   phydbl *u_cur_l; /* Current edge lengths (unrooted) */
   phydbl *cov;
+  phydbl *invcov;
+  phydbl covdet;
 }trate;
 
 /*********************************************************/

@@ -9364,6 +9364,13 @@ phydbl Matrix_Det(phydbl *A, int size)
   det = 0.0;
   For(i,size) det += log(triA[i*size+i]);
   det = exp(det);
+
+  if(det*det < MDBL_MIN) 
+    {
+      PhyML_Printf("\n. WARNING: determinant not different from zero ! \n");      
+      det = 1.E-5;
+    }
+  Free(triA);
   return det*det;
 }
 

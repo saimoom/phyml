@@ -209,6 +209,7 @@ int Matinv(double *x, int n, int m)
 	  Free(irow);
 	  PhyML_Printf("\n. Determinant becomes zero at %3d!\t\n", i+1);
 	  PhyML_Printf("\n. Failed to invert the matrix.\n");
+	  Exit("\n");
 	  return(0);
 	}
       if (irow[i] != i)
