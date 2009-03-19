@@ -107,20 +107,18 @@ phydbl RATES_Compound_Core_Marginal(phydbl mu1, phydbl mu2, phydbl dt1, phydbl d
 				    phydbl beta, phydbl lexp, phydbl eps, int approx);
 phydbl RATES_Lk_Jumps(arbre *tree);
 void RATES_Posterior_Rates(arbre *tree);
-void RATES_Posterior_Rates_Pre(node *a, node *d, edge *b, arbre *tree);
+void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree);
 void Free_Rates(trate *r);
 void RATES_Initialize_True_Rates(arbre *tree);
 void RATES_Posterior_Times(arbre *tree);
-void RATES_Posterior_Times_Pre(node *a, node *d, edge *b, arbre *tree);
+void RATES_Posterior_Times_Pre(node *a, node *d, arbre *tree);
 void RATES_Update_Cur_Bl(arbre *tree);
 void RATES_Update_Cur_Bl_Pre(node *a, node *d, edge *b, arbre *tree);
-void RATES_Posterior_Rates_And_Times_Pre(node *a, node *d, edge *b, arbre *tree);
-void RATES_Posterior_Rates_And_Times(arbre *tree);
-void RATES_Posterior_Times_Pre2(node *a, node *d, edge *b, arbre *tree);
-void RATES_Posterior_Times_Pre3(node *a, node *d, edge *b, arbre *tree);
 void RATES_Get_Cov_Matrix_Rooted(phydbl *unroot_cov, arbre *tree);
 void RATES_Get_Cov_Matrix_Rooted_Pre(node *a, node *d, edge *b, phydbl *cov, arbre *tree);
 void RATES_Bl_To_Ml(arbre *tree);
 void RATES_Bl_To_Ml_Pre(node *a, node *d, edge *b, arbre *tree);
+void RATES_Check_Node_Times(arbre *tree);
+void RATES_Check_Node_Times_Pre(node *a, node *d, arbre *tree);
 
 #endif

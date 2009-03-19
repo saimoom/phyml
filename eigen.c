@@ -937,7 +937,7 @@ double *Cholesky_Decomp(double *A,  int dim)
   phydbl sum;
   phydbl *L;
 
-  L   = (phydbl *)mCalloc(dim*dim,sizeof(phydbl));
+  L = (phydbl *)mCalloc(dim*dim,sizeof(phydbl));
 
   For(i,dim)
     {
@@ -950,11 +950,11 @@ double *Cholesky_Decomp(double *A,  int dim)
 	    }
 	  if(i == j)
 	    {
-	      if(sum < 1.E-10)
+	      if(sum < 1.E-20)
 		{
-		  sum = 1.E-10;
-/* 		  PhyML_Printf("\n. sum=%G i=%d j=%d",sum,i,j); */
-/* 		  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
+		  sum = 1.E-20;
+		  PhyML_Printf("\n. sum=%G i=%d j=%d",sum,i,j);
+		  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
 /* 		  Warn_And_Exit(""); */
 		}
 	      L[j*dim+i] = sqrt(sum);

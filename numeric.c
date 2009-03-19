@@ -147,9 +147,7 @@ phydbl *Rnorm_Multid(phydbl *mu, phydbl *cov, int dim)
   x = (phydbl *)mCalloc(dim,sizeof(phydbl));
   y = (phydbl *)mCalloc(dim,sizeof(phydbl));
 
-
   L = (phydbl *)Cholesky_Decomp(cov,dim);
-
 
   For(i,dim) x[i]=Rnorm(0.0,1.0);
   For(i,dim) For(j,dim) y[i] += L[i*dim+j]*x[j];
@@ -172,15 +170,15 @@ phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max)
   u = cdf_min + (cdf_max-cdf_min) * Uni();
   ret_val = sd*PointNormal(u)+mean;
 
-/*   if(ret_val < min || ret_val > max)  */
-/*     { */
-/*       printf("\n. Numerical precision issue detected in Rnorm_Trunc."); */
-/*       printf("\n. mean=%f sd=%f min=%f max=%f",mean,sd,min,max); */
-/*       printf("\n. cdf_min=%f cdf_max=%f\n",cdf_min,cdf_max); */
-/*     } */
+  if(ret_val < min || ret_val > max)
+    {
+      printf("\n. Numerical precision issue detected in Rnorm_Trunc.");
+      printf("\n. mean=%f sd=%f min=%f max=%f",mean,sd,min,max);
+      printf("\n. cdf_min=%f cdf_max=%f\n",cdf_min,cdf_max);
+    }
 
-  if(ret_val < min) ret_val = min;
-  if(ret_val > max) ret_val = max;
+/*   if(ret_val < min) ret_val = min; */
+/*   if(ret_val > max) ret_val = max; */
 
   return(ret_val);
 }
@@ -308,20 +306,70 @@ phydbl Dnorm_Multi(phydbl *x, phydbl *mu, phydbl *cov, int size)
   For(i,size*size) invcov[i] = cov[i];
   
   Matinv(invcov,size,size);
-  
+
   buff1 = Matrix_Mult(xmmu,invcov,1,size,size,size);
   buff2 = Matrix_Mult(buff1,xmmu,1,size,size,1);
   
   det = Matrix_Det(cov,size);
-  
+    
   density = (1./(pow(2.*PI,size/2.)*sqrt(fabs(det)))) * exp(-0.5*buff2[0]);
 
   Free(xmmu);
   Free(invcov);
   Free(buff1);
   Free(buff2);
-  
+
   return density;
+}
+
+/*********************************************************/
+
+phydbl Prop_Log_Dnorm_Multi_Given_InvCov_Det(phydbl *x, phydbl *mu, phydbl *invcov, phydbl det, int size)
+{
+  phydbl *xmmu;
+  phydbl *buff1,*buff2;
+  int i;
+  phydbl density;
+
+  xmmu = (phydbl *)mCalloc(size,sizeof(phydbl));
+
+  For(i,size) xmmu[i] = x[i] - mu[i];
+  
+  buff1 = Matrix_Mult(xmmu,invcov,1,size,size,size);
+  buff2 = Matrix_Mult(buff1,xmmu,1,size,size,1);
+
+  density = -buff2[0];
+
+  Free(xmmu);
+  Free(buff1);
+  Free(buff2);
+  
+  return density; 
+}
+
+/*********************************************************/
+
+phydbl Dnorm_Multi_Given_InvCov_Det(phydbl *x, phydbl *mu, phydbl *invcov, phydbl det, int size)
+{
+  phydbl *xmmu;
+  phydbl *buff1,*buff2;
+  int i;
+  phydbl density;
+
+  xmmu = (phydbl *)mCalloc(size,sizeof(phydbl));
+
+  For(i,size) xmmu[i] = x[i] - mu[i];
+  
+  buff1 = Matrix_Mult(xmmu,invcov,1,size,size,size);
+  buff2 = Matrix_Mult(buff1,xmmu,1,size,size,1);
+
+  density = (1./(pow(2.*PI,size/2.)*sqrt(fabs(det)))) * exp(-0.5*buff2[0]);
+  
+  Free(xmmu);
+  Free(buff1);
+  Free(buff2);
+  
+  return density; 
 }
 
 /*********************************************************/
@@ -922,6 +970,7 @@ phydbl *Hessian(arbre *tree)
   int i,j;
   phydbl eps;
   phydbl lk;
+  phydbl lnL,lnL1,lnL2;
 
   dim = 2*tree->n_otu-3;
   eps = 0.001;
@@ -938,6 +987,8 @@ phydbl *Hessian(arbre *tree)
   ok_edges    = (int *)mCalloc((int)dim,sizeof(int));
   is_ok       = (int *)mCalloc((int)dim,sizeof(int));
 
+  lnL = lnL1 = lnL2 = UNLIKELY;
+
   tree->both_sides = 1;
   Lk(tree);
 
@@ -946,10 +997,10 @@ phydbl *Hessian(arbre *tree)
   n_ok_edges = 0;
   For(i,dim) 
     {
-/*       if(tree->t_edges[i]->l > 3.0/(phydbl)tree->data->init_len) */
-      if(tree->t_edges[i]->l > 0.001)
-/*       if(tree->t_edges[i]->l > 2.*BL_MIN) */
-/*       if(tree->t_edges[i]->l > 1.E-7/eps) */
+      /* Proba. that the number of subst/site is greater than 1 */
+/*       if(1.-exp(-tree->t_edges[i]->l)-tree->t_edges[i]->l*exp(-tree->t_edges[i]->l) > 1.E-6)  */
+/*       if(tree->t_edges[i]->l > 0.001) */
+      if(tree->t_edges[i]->l*(1.-eps) > BL_MIN)
 	{
 	  inc[i] = eps * tree->t_edges[i]->l;
 	  ok_edges[n_ok_edges] = i;
@@ -1100,7 +1151,25 @@ phydbl *Hessian(arbre *tree)
   For(i,dim)
     if(inc[i] < 0.0)
       {
-	hessian[i*dim+i] = 1./pow(tree->data->init_len,2);
+/* 	lnL  = tree->c_lnL; */
+/* 	tree->t_edges[i]->l += eps; */
+/* 	lnL1 = Lk_At_Given_Edge(tree->t_edges[i],tree); */
+/* 	tree->t_edges[i]->l += eps; */
+/* 	lnL2 = Lk_At_Given_Edge(tree->t_edges[i],tree); */
+
+/* 	hessian[i*dim+i] = (lnL2 - 2*lnL1 + lnL) / pow(eps,2); */
+/* 	hessian[i*dim+i] = -1.0 / hessian[i*dim+i];  */
+	
+	hessian[i*dim+i] = (tree->t_edges[i]->l * (1.-tree->t_edges[i]->l))/tree->data->init_len;
+      }
+
+  For(i,dim)
+    if(hessian[i*dim+i] < MIN_VAR_BL)
+      {
+	hessian[i*dim+i] = MIN_VAR_BL;
+	PhyML_Printf("\n. l=%G var=%G",tree->t_edges[i]->l,hessian[i*dim+i]);
+/* 	PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
+/* 	Exit("\n"); */
       }
 
   Matinv(hessian,dim,dim);
@@ -1126,7 +1195,7 @@ phydbl *Hessian(arbre *tree)
 /*       printf("[%f] ",tree->t_edges[i]->l); */
 /*       For(j,i+1) */
 /* 	{ */
-/* 	  printf("%12lf ",hessian[i*dim+j]); */
+/* 	  printf("%12lf ",-hessian[i*dim+j]); */
 /* 	} */
 /*       printf("\n"); */
 /*     } */
