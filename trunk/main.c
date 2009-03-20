@@ -208,7 +208,7 @@ int main(int argc, char **argv)
 
                   #ifdef MPI
 		  MPI_Bcast (most_likely_tree, strlen(most_likely_tree)+1, MPI_CHAR, 0, MPI_COMM_WORLD);
-		  if(!io->quiet)  PhyML_Printf("\n. The bootstrap analysis will use %d CPUs.",Global_numTask);
+		  if(!io->quiet)  PhyML_Printf("\n. The bootstrap analysis will use %d CPUs.\n",Global_numTask);
 		  #endif
 
 		  most_likely_tree = Bootstrap_From_String(most_likely_tree,alldata,mod,io);
