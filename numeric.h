@@ -57,6 +57,7 @@ phydbl Constraint_Normal_Trunc_Mean(phydbl wanted_mu, phydbl sd, phydbl min, phy
 phydbl Dnorm_Multi(phydbl *x, phydbl *mu, phydbl *cov, int size);
 phydbl Dnorm_Multi_Given_InvCov_Det(phydbl *x, phydbl *mu, phydbl *incov, phydbl det, int size);
 phydbl Prop_Log_Dnorm_Multi_Given_InvCov_Det(phydbl *x, phydbl *mu, phydbl *invcov, phydbl det, int size);
+phydbl Log_Dnorm(phydbl x, phydbl mean, phydbl sd);
 
 
 #endif //NUMERIC_H

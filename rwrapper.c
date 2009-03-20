@@ -10,6 +10,13 @@
 /*********************************************************/
 /*********************************************************/
 
+void RWRAPPER_Log_Dnorm(phydbl *x, phydbl *mean, phydbl *sd,  phydbl *res)
+{
+  *res = Log_Dnorm(*x,*mean,*sd);
+}
+
+/*********************************************************/
+
 void RWRAPPER_Rnorm_Trunc(phydbl *mean, phydbl *sd, phydbl *min, phydbl *max, phydbl *res)
 {
   *res = Rnorm_Trunc(*mean,*sd,*min,*max);

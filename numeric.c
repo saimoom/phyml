@@ -258,12 +258,18 @@ phydbl Dnorm_Moments(phydbl x, phydbl mean, phydbl var)
 
 phydbl Dnorm(phydbl x, phydbl mean, phydbl sd)
 {
-  phydbl dens,pi;
+  phydbl dens;
+  dens = -(.5*log(2.*PI)+log(sd))  - .5*pow(x-mean,2)/pow(sd,2);
+  return exp(dens);
+}
 
-  pi = 3.141593;
+/*********************************************************/
 
-  dens = 1./(sqrt(2*pi)*sd)*exp(-((x-mean)*(x-mean)/(2.*sd*sd)));
-
+phydbl Log_Dnorm(phydbl x, phydbl mean, phydbl sd)
+{
+  phydbl dens;
+/*   dens = -(.5*log(2.*PI)+log(sd))  - .5*pow(x-mean,2)/pow(sd,2); */
+  dens = - .5*pow(x-mean,2)/pow(sd,2);
   return dens;
 }
 
@@ -334,11 +340,11 @@ phydbl Prop_Log_Dnorm_Multi_Given_InvCov_Det(phydbl *x, phydbl *mu, phydbl *invc
   xmmu = (phydbl *)mCalloc(size,sizeof(phydbl));
 
   For(i,size) xmmu[i] = x[i] - mu[i];
-  
+
   buff1 = Matrix_Mult(xmmu,invcov,1,size,size,size);
   buff2 = Matrix_Mult(buff1,xmmu,1,size,size,1);
-
-  density = -buff2[0];
+ 
+  density = -.5*buff2[0];
 
   Free(xmmu);
   Free(buff1);
@@ -998,7 +1004,7 @@ phydbl *Hessian(arbre *tree)
   For(i,dim) 
     {
       /* Proba. that the number of subst/site is greater than 1 */
-/*       if(1.-exp(-tree->t_edges[i]->l)-tree->t_edges[i]->l*exp(-tree->t_edges[i]->l) > 1.E-6)  */
+      /*       if(1.-exp(-tree->t_edges[i]->l)-tree->t_edges[i]->l*exp(-tree->t_edges[i]->l) > 1.E-6)  */
 /*       if(tree->t_edges[i]->l > 0.001) */
       if(tree->t_edges[i]->l*(1.-eps) > BL_MIN)
 	{
@@ -1151,16 +1157,17 @@ phydbl *Hessian(arbre *tree)
   For(i,dim)
     if(inc[i] < 0.0)
       {
-/* 	lnL  = tree->c_lnL; */
-/* 	tree->t_edges[i]->l += eps; */
-/* 	lnL1 = Lk_At_Given_Edge(tree->t_edges[i],tree); */
-/* 	tree->t_edges[i]->l += eps; */
-/* 	lnL2 = Lk_At_Given_Edge(tree->t_edges[i],tree); */
+	lnL  = tree->c_lnL;
+	tree->t_edges[i]->l += eps;
+	lnL1 = Lk_At_Given_Edge(tree->t_edges[i],tree);
+	tree->t_edges[i]->l += eps;
+	lnL2 = Lk_At_Given_Edge(tree->t_edges[i],tree);
 
-/* 	hessian[i*dim+i] = (lnL2 - 2*lnL1 + lnL) / pow(eps,2); */
-/* 	hessian[i*dim+i] = -1.0 / hessian[i*dim+i];  */
+	hessian[i*dim+i] = (lnL2 - 2*lnL1 + lnL) / pow(eps,2);
+	hessian[i*dim+i] = -1.0 / hessian[i*dim+i];
 	
-	hessian[i*dim+i] = (tree->t_edges[i]->l * (1.-tree->t_edges[i]->l))/tree->data->init_len;
+/* 	hessian[i*dim+i] = (tree->t_edges[i]->l * (1.-tree->t_edges[i]->l))/tree->data->init_len; */
+/* 	hessian[i*dim+i] = 1./pow(tree->data->init_len,2); */
       }
 
   For(i,dim)
