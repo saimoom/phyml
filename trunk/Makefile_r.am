@@ -2,9 +2,9 @@ bin_PROGRAMS = rwrapper
 PROG = RWRAPPER
 
 rwrapper_SOURCES = main.c utilities.c optimiz.c lk.c bionj.c models.c free.c\
-options.c simu.c eigen.c pars.c alrt.c interface.c cl.c spr.c draw.c rates.c rwrapper.c numeric.c
+options.c simu.c eigen.c pars.c alrt.c interface.c cl.c spr.c draw.c rates.c rwrapper.c numeric.c mcmc.c
 rwrapper_LDADD = main.o utilities.o optimiz.o lk.o bionj.o models.o free.o\
-options.o simu.o eigen.o pars.o alrt.o interface.o cl.o spr.o draw.o rates.o rwrapper.o numeric.o
+options.o simu.o eigen.o pars.o alrt.o interface.o cl.o spr.o draw.o rates.o rwrapper.o numeric.o mcmc.o
 
 
 AM_CFLAGS=-fPIC -Wall
@@ -81,3 +81,6 @@ rwrapper.o: rwrapper.c
 
 numeric.o: numeric.c
 	$(SCOMPILE) -c numeric.c
+
+mcmc.o: mcmc.c
+	$(SCOMPILE) -c mcmc.c

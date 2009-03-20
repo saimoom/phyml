@@ -98,11 +98,13 @@ void MCMC(arbre *tree)
 /*   MCMC_Randomize_Lexp(tree); */
 /*   MCMC_Randomize_Jumps(tree); */
 /*   MCMC_Randomize_Alpha(tree); */
-  MCMC_Randomize_Node_Times(tree);
+/*   MCMC_Randomize_Node_Times(tree); */
 
-  RATES_Lk_Rates(tree);
+/*   RATES_Lk_Rates(tree); */
   /*   Lk(tree); */
-  tree->c_lnL = Prop_Log_Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3);
+/*   tree->c_lnL = Prop_Log_Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3); */
+/*   tree->c_lnL = log(Dnorm_Multi(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->cov,2*tree->n_otu-3)); */
+/*   tree->c_lnL = log(Dnorm(tree->rates->u_cur_l[tree->e_root->num],tree->rates->u_ml_l[tree->e_root->num],sqrt(tree->rates->cov[tree->e_root->num*(2*tree->n_otu-3)+tree->e_root->num]))); */
   
   n_moves = 11;
   do
@@ -111,9 +113,9 @@ void MCMC(arbre *tree)
 /*       MCMC_Lexp(tree);         tree->mcmc->run++; */
 /*       MCMC_Alpha(tree);        tree->mcmc->run++; */
 /*       MCMC_Nu(tree);           tree->mcmc->run++; */
-/*       MCMC_Rates_Local(tree);  tree->mcmc->run++; */
+      MCMC_Rates_Local(tree);  tree->mcmc->run++;
 /*       MCMC_Rates_Global(tree); tree->mcmc->run++;  */
-      MCMC_Times_Local(tree);  tree->mcmc->run++;
+/*       MCMC_Times_Local(tree);  tree->mcmc->run++; */
 /*       MCMC_Times_Global(tree); tree->mcmc->run++;  */
 /*       MCMC_Stick_Rates(tree);  tree->mcmc->run++;  */
 /*       MCMC_Mixing_Step(tree);  tree->mcmc->run++; */
@@ -123,7 +125,7 @@ void MCMC(arbre *tree)
       if(tree->mcmc->run > 0)
 	{
 	  MCMC_Print_Param(fp,tree);
-	  MCMC_Print_Param(stdout,tree);
+/* 	  MCMC_Print_Param(stdout,tree); */
 	}
 
 /*       if(!(tree->mcmc->run%100)) */
@@ -134,7 +136,7 @@ void MCMC(arbre *tree)
 /* 	  Lk(tree); */
 /* 	} */
     }
-  while(tree->mcmc->run < 100000);
+  while(tree->mcmc->run < 1000000);
 
   fclose(fp);
   Free(filename);
@@ -307,9 +309,7 @@ void MCMC_Rates_Local(arbre *tree)
 
   /*   tree->both_sides = 1; */
   /*   Lk(tree); */
-
-  RATES_Update_Cur_Bl(tree);
-  tree->c_lnL = Prop_Log_Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3);
+  tree->c_lnL  = Prop_Log_Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3);
 
   local = 1;
   MCMC_Rates_Pre(tree->n_root,tree->n_root->v[0],local,tree);
@@ -344,6 +344,7 @@ void MCMC_Rates_Global(arbre *tree)
 /*   new_lnL_data = Return_Lk(tree); */
   RATES_Update_Cur_Bl(tree);
   new_lnL_data  = Prop_Log_Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3);
+/*   new_lnL_data = log(Dnorm_Multi(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->cov,2*tree->n_otu-3)); */
   tree->c_lnL = new_lnL_data;
   
   ratio = (new_lnL_data + new_lnL_rate ) - (cur_lnL_data + cur_lnL_rate ) + log(hr);
@@ -360,6 +361,7 @@ void MCMC_Rates_Global(arbre *tree)
 /*       Lk(tree); */
       RATES_Update_Cur_Bl(tree);
       new_lnL_data  = Prop_Log_Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3);
+/*       new_lnL_data = log(Dnorm_Multi(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->cov,2*tree->n_otu-3)); */
       tree->c_lnL = new_lnL_data;
 
 
@@ -482,39 +484,45 @@ void MCMC_Rates_Pre(node *a, node *d, int local, arbre *tree)
   int i;
   edge *b;
 
+
   b = NULL;
   
   cur_mu       = tree->rates->nd_r[d->num];
   cur_lnL_data = tree->c_lnL;
   cur_lnL_rate = tree->rates->c_lnL;
-  
+
   if(a == tree->n_root) b = tree->e_root;
   else For(i,3) if(d->v[i] == a) {b = d->b[i]; break;}
-  
-  u = Uni();
-  
-  new_mu = cur_mu * exp(H_MCMC_RATES*(u-0.5));
+    
+  do
+    {
+      u = Uni();
+      new_mu = cur_mu * exp(H_MCMC_RATES*(u-0.5));
+    }
+  while((new_mu > tree->rates->max_rate) || (new_mu < tree->rates->min_rate));
 
-/*   printf("\n. cur=%f new=%f",cur_mu,new_mu); */
-
-  if((new_mu > tree->rates->max_rate) || (new_mu < tree->rates->min_rate)) return;
 
   if(local)
     {
       tree->rates->nd_r[d->num] = new_mu;
       RATES_Update_Cur_Bl(tree);
 
+      /*       new_lnL_data = Lk_At_Given_Edge(b,tree); */
+      /*       new_lnL_data = log(Dnorm_Multi(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->cov,2*tree->n_otu-3)); */
+      new_lnL_data = Prop_Log_Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3);
+ /*      new_lnL_data = Log_Dnorm(tree->rates->u_cur_l[tree->e_root->num],tree->rates->u_ml_l[tree->e_root->num],sqrt(tree->rates->cov[tree->e_root->num*(2*tree->n_otu-3)+tree->e_root->num])); */
+      tree->c_lnL  = new_lnL_data;
+      
       /*       new_lnL_rate = RATES_Lk_Change_One_Rate(d,new_mu,tree); */
       new_lnL_rate = RATES_Lk_Rates(tree);
-
-      /*       new_lnL_data = Lk_At_Given_Edge(b,tree); */
-      RATES_Update_Cur_Bl(tree);
-      new_lnL_data  = Prop_Log_Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3);
-      tree->c_lnL = new_lnL_data;
-      
+	    
       ratio =
 	(new_lnL_data + new_lnL_rate + log(new_mu)) -
 	(cur_lnL_data + cur_lnL_rate + log(cur_mu));
+
+/*       ratio = */
+/*       	(new_lnL_rate + log(new_mu)) - */
+/*       	(cur_lnL_rate + log(cur_mu)); */
 
       ratio = exp(ratio);	
       alpha = MIN(1.,ratio);
@@ -524,38 +532,39 @@ void MCMC_Rates_Pre(node *a, node *d, int local, arbre *tree)
       if(u > alpha) /* Reject */
 	{
 	  tree->rates->nd_r[d->num] = cur_mu;
+	  RATES_Update_Cur_Bl(tree);
+
+	  new_lnL_data = Prop_Log_Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3);
+/* 	  new_lnL_data = Log_Dnorm(tree->rates->u_cur_l[tree->e_root->num],tree->rates->u_ml_l[tree->e_root->num],sqrt(tree->rates->cov[tree->e_root->num*(2*tree->n_otu-3)+tree->e_root->num])); */
+	  tree->c_lnL  = new_lnL_data;
 	  
 	  /* 	  RATES_Lk_Change_One_Rate(d,cur_mu,tree); */
 	  RATES_Lk_Rates(tree);
 	  /* 	  Lk_At_Given_Edge(b,tree); */
 
-	  RATES_Update_Cur_Bl(tree);
-	  new_lnL_data  = Prop_Log_Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3);
-	  tree->c_lnL   = new_lnL_data;
-	  
-	  if((tree->mcmc->run > 10) && ((fabs(cur_lnL_data - tree->c_lnL) > 1.E-3) || (fabs(cur_lnL_rate - tree->rates->c_lnL) > 1.E-0)))
-	    {
-	      printf("\n. Run=%d a=%d d=%d lexp=%f alpha=%f mu(d)=%f n(d)=%d mu(a)=%f n(a)=%d dt=(%f); cur_lnL_data = %f vs %f ; cur_lnL_rates = %f vs %f",
-		     tree->mcmc->run,
-		     d->anc->num,d->num,
-		     tree->rates->lexp,
-		     tree->rates->alpha,
-		     tree->rates->nd_r[d->num],tree->rates->n_jps[d->num],
-		     tree->rates->nd_r[d->anc->num],tree->rates->n_jps[d->anc->num],
-		     fabs(tree->rates->nd_t[a->num] - tree->rates->nd_t[d->num]),
-		     cur_lnL_data,tree->c_lnL,
-		     cur_lnL_rate,tree->rates->c_lnL);
+/* 	  if((tree->mcmc->run > 10) && ((fabs(cur_lnL_data - tree->c_lnL) > 1.E-3) || (fabs(cur_lnL_rate - tree->rates->c_lnL) > 1.E-0))) */
+/* 	    { */
+/* 	      printf("\n. Run=%d a=%d d=%d lexp=%f alpha=%f mu(d)=%f n(d)=%d mu(a)=%f n(a)=%d dt=(%f); cur_lnL_data = %f vs %f ; cur_lnL_rates = %f vs %f", */
+/* 		     tree->mcmc->run, */
+/* 		     d->anc->num,d->num, */
+/* 		     tree->rates->lexp, */
+/* 		     tree->rates->alpha, */
+/* 		     tree->rates->nd_r[d->num],tree->rates->n_jps[d->num], */
+/* 		     tree->rates->nd_r[d->anc->num],tree->rates->n_jps[d->anc->num], */
+/* 		     fabs(tree->rates->nd_t[a->num] - tree->rates->nd_t[d->num]), */
+/* 		     cur_lnL_data,tree->c_lnL, */
+/* 		     cur_lnL_rate,tree->rates->c_lnL); */
 	      
-	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-	      Warn_And_Exit("");
-	    }
+/* 	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
+/* 	      Warn_And_Exit(""); */
+/* 	    } */
 	  
-	  if(fabs(cur_lnL_rate - tree->rates->c_lnL) > 1.E-3)
-	    {
-	      printf("\n. WARNING: numerical precision issue detected (diff=%G). Reseting the likelihood.\n",cur_lnL_rate - tree->rates->c_lnL);
-	      RATES_Lk_Rates(tree);
-	      Lk(tree);
-	    }
+/* 	  if(fabs(cur_lnL_rate - tree->rates->c_lnL) > 1.E-3) */
+/* 	    { */
+/* 	      printf("\n. WARNING: numerical precision issue detected (diff=%G). Reseting the likelihood.\n",cur_lnL_rate - tree->rates->c_lnL); */
+/* 	      RATES_Lk_Rates(tree); */
+/* 	      Lk(tree); */
+/* 	    } */
 	}
       else
 	{
@@ -935,7 +944,7 @@ void MCMC_Print_Param(FILE *fp, arbre *tree)
 {
   int i;
   
-  RATES_Update_Cur_Bl(tree);
+/*   RATES_Update_Cur_Bl(tree); */
 
   if(!(tree->mcmc->run%tree->mcmc->sample_interval)) 
     {
@@ -955,7 +964,7 @@ void MCMC_Print_Param(FILE *fp, arbre *tree)
 		{
 		  if(i == tree->n_root->num)
 		    {
-		      fprintf(fp,"XXT%d [%4.1f]\t",i,tree->rates->true_t[i]);
+		      fprintf(fp,"XXT%d[%f]\t",i,tree->rates->true_t[i]);
 		    }
 		  else
 		    {
@@ -973,14 +982,14 @@ void MCMC_Print_Param(FILE *fp, arbre *tree)
 
 		      if(tree->noeud[i] == tree->n_root->v[0] || tree->noeud[i] == tree->n_root->v[1])
 			{
-			  fprintf(fp,"**T%d [%4.1f<%4.1f<%4.1f]\t",i,
+			  fprintf(fp,"**T%d[%f<%f<%f]\t",i,
 				  -100.,
 				  tree->rates->true_t[i],
 				  min_t);
 			}
 		      else
 			{
-			  fprintf(fp,"  T%d [%4.1f<%4.1f<%4.1f]\t",
+			  fprintf(fp,"  T%d[%f<%f<%f]\t",
 				  i,
 				  tree->rates->true_t[tree->noeud[i]->anc->num],
 				  tree->rates->true_t[i],
@@ -996,26 +1005,32 @@ void MCMC_Print_Param(FILE *fp, arbre *tree)
 		 (tree->noeud[i] == tree->n_root->v[0] && tree->noeud[i]->tax) ||
 		 (tree->noeud[i] == tree->n_root->v[1] && tree->noeud[i]->tax)
 		 )
-		fprintf(fp,"00R%3d [%12f]\t",i,tree->rates->true_r[i]);
+		fprintf(fp,"00R%d[%f]\t",i,tree->rates->true_r[i]);
 	      else if((tree->noeud[i] == tree->n_root->v[0]) || (tree->noeud[i] == tree->n_root->v[1]))
-		fprintf(fp,"11R%3d [%12f]\t",i,tree->rates->true_r[i]);
-	      else fprintf(fp,"  R%3d [%12f]\t",i,tree->rates->true_r[i]);
+		fprintf(fp,"11R%d[%f]\t",i,tree->rates->true_r[i]);
+	      else fprintf(fp,"  R%d[%f]\t",i,tree->rates->true_r[i]);
 
 	  if(fp != stdout) 
 	    for(i=0;i<2*tree->n_otu-3;i++) 
 	      {
-		if(tree->t_edges[i] == tree->e_root) fprintf(fp,"**L%3d [%12f]\t",i,tree->rates->u_ml_l[i]);
-		else fprintf(fp,"  L%3d [%12f]\t",i,tree->rates->u_ml_l[i]);
+		if(tree->t_edges[i] == tree->e_root) fprintf(fp,"**L%d[%f,%G]\t",i,tree->rates->u_ml_l[i],tree->rates->cov[i*(2*tree->n_otu-3)+i]);
+		else fprintf(fp,"  L%d[%f,%G]\t",i,tree->rates->u_ml_l[i],tree->rates->cov[i*(2*tree->n_otu-3)+i]);
 	      }	  
 	}
 
       fprintf(fp,"\n");
       fprintf(fp,"%6d\t",tree->mcmc->run);
 /*       fprintf(fp,"%4.2f\t",RATES_Check_Mean_Rates(tree)); */
-      fprintf(fp,"%4.2f\t",Get_Tree_Size(tree));
+      fprintf(fp,"%4.2f\t",10.);
+/*       fprintf(fp,"%4.2f\t",Get_Tree_Size(tree)); */
 /*       fprintf(fp,"%15.2f\t",Return_Lk(tree)); */
 /*       fprintf(fp,"%15.2f\t",-10.); */
-      phydbl lnL = Prop_Log_Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3);
+
+      phydbl lnL;
+/*       RATES_Update_Cur_Bl(tree); */
+/*       lnL = Prop_Log_Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3); */
+/*       lnL = log(Dnorm_Multi(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->cov,2*tree->n_otu-3)); */
+      lnL = 10.;
       fprintf(fp,"%15lf\t",(isinf(lnL))?(111.):(lnL));
       fprintf(fp,"%15lf\t",10.);
       fprintf(fp,"%15lf\t",tree->rates->cur_l[tree->n_root->v[0]->num] / tree->rates->u_cur_l[tree->e_root->num]-tree->n_root_pos);

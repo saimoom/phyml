@@ -258,24 +258,30 @@ int Matinv(double *x, int n, int m)
 /*          overwriting previous contents of a.  On exit, matrix a */
 /*          contains the inverse.*\/ */
 /*   lower = 0; */
-/*   upper = nsize; */
-/*   for (i = lower; i <= upper; i++) { */
-/*     temp = 1.0 / a[i*n+i]; */
-/*     a[i*n+i] = 1.0; */
-/*     for (j = lower; j <= upper; j++) { */
-/*       a[i*n+j] *= temp; */
-/*     } */
-/*     for (j = lower; j <= upper; j++) { */
-/*       if (j != i) { */
-/* 	temp = a[j*n+i]; */
-/* 	a[j*n+i] = 0.0; */
-/* 	for (k = lower; k <= upper; k++) { */
-/* 	  a[j*n+k] -= temp * a[i*n+k]; */
+/*   upper = nsize-1; */
+/*   for(i = lower; i <= upper; i++)  */
+/*     { */
+/*       temp = 1.0 / a[i*n+i]; */
+/*       a[i*n+i] = 1.0; */
+/*       for (j = lower; j <= upper; j++)  */
+/* 	{ */
+/* 	  a[i*n+j] *= temp; */
 /* 	} */
-/*       } */
+/*       for (j = lower; j <= upper; j++)  */
+/* 	{ */
+/* 	  if (j != i)  */
+/* 	    { */
+/* 	      temp = a[j*n+i]; */
+/* 	      a[j*n+i] = 0.0; */
+/* 	      for (k = lower; k <= upper; k++)  */
+/* 		{ */
+/* 		  a[j*n+k] -= temp * a[i*n+k]; */
+/* 		}	       */
+/* 	    } */
+/* 	} */
 /*     } */
-/*   } */
-/*   return(1); */
+
+  return(1);
 
 }
 
