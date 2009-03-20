@@ -10,17 +10,7 @@ the GNU public licence. See http://www.opensource.org for details.
 
 */
 
-#include "utilities.h"
-#include "free.h"
-#include "lk.h"
-#include "models.h"
-#include "optimiz.h"
-#include "pars.h"
-#include "simu.h"
-#include "spr.h"
-#include "bionj.h"
 #include "mpi_boot.h"
-#include "numeric.h"
 
 #ifdef MPI
 
@@ -64,14 +54,17 @@ void Bootstrap_MPI(arbre *tree)
   boot_data = Copy_Cseq(tree->data, tree->data->crunch_len, tree->mod->ns);
 
   if (Global_myRank == 0)
-    printf("\n\n. Non parametric bootstrap analysis \n\n");
+    printf("\n. Non parametric bootstrap analysis \n");
   
   //number of bootstraps for each process
   if (tree->mod->bootstrap%Global_numTask != 0) 
     {
-      nbRep = tree->mod->bootstrap/Global_numTask;
-      if (Global_myRank < tree->mod->bootstrap - (nbRep * Global_numTask))
-	nbRep++;
+      nbRep = (tree->mod->bootstrap / Global_numTask) + 1;
+      tree->mod->bootstrap = nbRep * Global_numTask;
+      if (Global_myRank == 0) {
+        PhyML_Printf("\n. The number of replicates is not a multiple of %d CPUs.\n", Global_numTask);
+        PhyML_Printf("\n. Will run %d replicates analysis.\n", tree->mod->bootstrap);
+      }
     }
   else
     nbRep = tree->mod->bootstrap/Global_numTask;
@@ -91,7 +84,7 @@ void Bootstrap_MPI(arbre *tree)
     score_par[i] = 0;
 
   if (Global_myRank == 0)
-    PhyML_Printf("  [");
+    PhyML_Printf("\n  [");
 
   For(replicate, nbRep)
     {
@@ -124,7 +117,8 @@ void Bootstrap_MPI(arbre *tree)
 	  if (i < nbElem-1) {
 	    MPI_Ssend (boot_data->wght, boot_data->crunch_len, MPI_INT, i+1, Global_myRank, MPI_COMM_WORLD);
 #ifdef MPI_DEBUG
-printf ("task %d, sending random to %d done\n", Global_myRank, i+1);
+fprintf (stderr, "\ntask %d, sending random to %d done\n", Global_myRank, i+1);
+fflush(stderr);
 #endif
 	  }
 	  randomRecv++;
@@ -133,7 +127,8 @@ printf ("task %d, sending random to %d done\n", Global_myRank, i+1);
       else {
         MPI_Recv (boot_data->wght, boot_data->crunch_len, MPI_INT, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &Stat);
 #ifdef MPI_DEBUG
-printf ("task %d, receiving random from task %d done\n", Global_myRank, Stat.MPI_SOURCE);
+fprintf (stderr, "\ntask %d, receiving random from task %d done\n", Global_myRank, Stat.MPI_SOURCE);
+fflush(stderr);
 #endif
       }
 
@@ -237,7 +232,8 @@ printf ("task %d, receiving random from task %d done\n", Global_myRank, Stat.MPI
             fprintf(tree->io->fp_out_boot_tree,"%s\n",s);
             fprintf(tree->io->fp_out_boot_stats,"%s\n",t);
             bootRecv++;
-            printf(".");
+            PhyML_Printf(".");
+            // Compute number of bootstraps to receive
             if (tree->mod->bootstrap - bootRecv > Global_numTask)
               nbElem = Global_numTask;
             else
@@ -247,7 +243,8 @@ printf ("task %d, receiving random from task %d done\n", Global_myRank, Stat.MPI
             for (i=1; i<nbElem; i++) {
               MPI_Recv (bootStr, T_MAX_LINE, MPI_CHAR, i, MPI_ANY_TAG, MPI_COMM_WORLD, &Stat);
 #ifdef MPI_DEBUG
-printf ("task %d, receiving bootstrap from task %d tag %d done\n", Global_myRank, Stat.MPI_SOURCE, Stat.MPI_TAG);
+fprintf (stderr, "\ntask %d, receiving bootstrap from task %d tag %d done\n", Global_myRank, Stat.MPI_SOURCE, Stat.MPI_TAG);
+fflush(stderr);
 #endif
               if (Stat.MPI_TAG == BootTreeTag)
                 fprintf(tree->io->fp_out_boot_tree,"%s\n", bootStr);
@@ -256,7 +253,8 @@ printf ("task %d, receiving bootstrap from task %d tag %d done\n", Global_myRank
 
               MPI_Recv (bootStr, T_MAX_LINE, MPI_CHAR, i, MPI_ANY_TAG, MPI_COMM_WORLD, &Stat);
 #ifdef MPI_DEBUG
-printf ("task %d, receiving bootstrap from task %d tag %d done\n", Global_myRank, Stat.MPI_SOURCE, Stat.MPI_TAG);
+fprintf (stderr, "\ntask %d, receiving bootstrap from task %d tag %d done\n", Global_myRank, Stat.MPI_SOURCE, Stat.MPI_TAG);
+fflush(stderr);
 #endif
               if (Stat.MPI_TAG == BootTreeTag)
                 fprintf(tree->io->fp_out_boot_tree,"%s\n", bootStr);
@@ -264,7 +262,7 @@ printf ("task %d, receiving bootstrap from task %d tag %d done\n", Global_myRank
                 fprintf(tree->io->fp_out_boot_stats,"%s\n", bootStr);
 
               bootRecv++;
-              printf(".");
+              PhyML_Printf(".");
               if(!((bootRecv)%20)) {
 	        printf("] %4d/%4d\n  ",bootRecv,tree->mod->bootstrap);
 	        if(bootRecv != tree->mod->bootstrap) printf("[");
@@ -276,7 +274,8 @@ printf ("task %d, receiving bootstrap from task %d tag %d done\n", Global_myRank
              MPI_Ssend (s, T_MAX_LINE, MPI_CHAR, 0, BootTreeTag, MPI_COMM_WORLD);
              MPI_Ssend (t, T_MAX_LINE, MPI_CHAR, 0, BootStatTag, MPI_COMM_WORLD);
 #ifdef MPI_DEBUG
-printf ("task %d, sending bootstraps done\n", Global_myRank);
+fprintf (stderr, "\ntask %d, sending bootstraps done\n", Global_myRank);
+fflush(stderr);
 #endif
           }
           Free (t);
