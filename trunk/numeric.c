@@ -22,11 +22,65 @@ the GNU public licence. See http://www.opensource.org for details.
 /* RANDOM VARIATES GENERATORS */
 /*********************************************************/
 
+/*********************************************************************/
+/* A C-function for TT800 : July 8th 1996 Version */
+/* by M. Matsumoto, email: matumoto@math.keio.ac.jp */
+/* tt800() generate one pseudorandom number with double precision */
+/* which is uniformly distributed on [0,1]-interval */
+/* for each call.  One may choose any initial 25 seeds */
+/* except all zeros. */
+
+/* See: ACM Transactions on Modelling and Computer Simulation, */
+/* Vol. 4, No. 3, 1994, pages 254-266. */
+
+phydbl tt800()
+{
+  int M=7;
+  unsigned long y;
+  static int k = 0;
+  static unsigned long x[25]={ /* initial 25 seeds, change as you wish */
+    0x95f24dab, 0x0b685215, 0xe76ccae7, 0xaf3ec239, 0x715fad23,
+    0x24a590ad, 0x69e4b5ef, 0xbf456141, 0x96bc1b7b, 0xa7bdf825,
+    0xc1de75b7, 0x8858a9c9, 0x2da87693, 0xb657f9dd, 0xffdc8a9f,
+    0x8121da71, 0x8b823ecb, 0x885d05f5, 0x4e20cd47, 0x5a9ad5d9,
+    0x512c0c03, 0xea857ccd, 0x4cc1d30f, 0x8891a8a1, 0xa6b7aadb
+  };
+  static unsigned long mag01[2]={ 
+    0x0, 0x8ebfd028 /* this is magic vector `a', don't change */
+  };
+  if (k==25) { /* generate 25 words at one time */
+    int kk;
+    for (kk=0;kk<25-M;kk++) {
+      x[kk] = x[kk+M] ^ (x[kk] >> 1) ^ mag01[x[kk] % 2];
+    }
+    for (; kk<25;kk++) {
+      x[kk] = x[kk+(M-25)] ^ (x[kk] >> 1) ^ mag01[x[kk] % 2];
+    }
+    k=0;
+  }
+  y = x[k];
+  y ^= (y << 7) & 0x2b5b2500; /* s and b, magic vectors */
+  y ^= (y << 15) & 0xdb8b0000; /* t and c, magic vectors */
+  y &= 0xffffffff; /* you may delete this line if word size = 32 */
+  /* 
+     the following line was added by Makoto Matsumoto in the 1996 version
+     to improve lower bit's corellation.
+     Delete this line to o use the code published in 1994.
+  */
+  y ^= (y >> 16); /* added to the 1994 version */
+  k++;
+  return( (double) y / (unsigned long) 0xffffffff);
+}
+
+/*********************************************************************/
+
 double Uni()
 {
   double r; 
-  r=rand();
-  r/=RAND_MAX;
+/*   r=rand(); */
+/*   r/=RAND_MAX; */
+/*   r = drand48(); */
+  r = tt800();
   return r;
 }
 
@@ -166,7 +220,7 @@ phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max)
   phydbl cdf_min, cdf_max, u, ret_val;
 
   cdf_min = CDF_Normal(min,mean,sd);
-  cdf_max = CDF_Normal(max,mean,sd);  
+  cdf_max = CDF_Normal(max,mean,sd);
   u = cdf_min + (cdf_max-cdf_min) * Uni();
   ret_val = sd*PointNormal(u)+mean;
 
@@ -268,8 +322,16 @@ phydbl Dnorm(phydbl x, phydbl mean, phydbl sd)
 phydbl Log_Dnorm(phydbl x, phydbl mean, phydbl sd)
 {
   phydbl dens;
-/*   dens = -(.5*log(2.*PI)+log(sd))  - .5*pow(x-mean,2)/pow(sd,2); */
-  dens = - .5*pow(x-mean,2)/pow(sd,2);
+  phydbl xmm;
+
+  xmm = x-mean;
+
+  dens = -(.5*log(2.*PI)+log(sd))  - .5*pow(x-mean,2)/pow(sd,2);
+
+
+/*   dens = - .5*xmm*xmm; */
+/*   dens /= sd*sd; */
+
   return dens;
 }
 
@@ -298,7 +360,7 @@ phydbl Dnorm_Trunc(phydbl x, phydbl mean, phydbl sd, phydbl lo, phydbl up)
 
 /*********************************************************/
 
-phydbl Dnorm_Multi(phydbl *x, phydbl *mu, phydbl *cov, int size)
+phydbl Dnorm_Multi(phydbl *x, phydbl *mu, phydbl *cov, int size, int _log)
 {
   phydbl *xmmu,*invcov;
   phydbl *buff1,*buff2;
@@ -317,45 +379,23 @@ phydbl Dnorm_Multi(phydbl *x, phydbl *mu, phydbl *cov, int size)
   buff2 = Matrix_Mult(buff1,xmmu,1,size,size,1);
   
   det = Matrix_Det(cov,size);
-    
-  density = (1./(pow(2.*PI,size/2.)*sqrt(fabs(det)))) * exp(-0.5*buff2[0]);
+
+  density = size * LOG2PI + log(det) + buff2[0];
+  density /= -2.;
+
+/*   density = (1./(pow(2.*PI,size/2.)*sqrt(fabs(det)))) * exp(-0.5*buff2[0]); */
 
   Free(xmmu);
   Free(invcov);
   Free(buff1);
   Free(buff2);
 
-  return density;
+  return (_log)?(density):(exp(density));
 }
 
 /*********************************************************/
 
-phydbl Prop_Log_Dnorm_Multi_Given_InvCov_Det(phydbl *x, phydbl *mu, phydbl *invcov, phydbl det, int size)
-{
-  phydbl *xmmu;
-  phydbl *buff1,*buff2;
-  int i;
-  phydbl density;
-
-  xmmu = (phydbl *)mCalloc(size,sizeof(phydbl));
-
-  For(i,size) xmmu[i] = x[i] - mu[i];
-
-  buff1 = Matrix_Mult(xmmu,invcov,1,size,size,size);
-  buff2 = Matrix_Mult(buff1,xmmu,1,size,size,1);
- 
-  density = -.5*buff2[0];
-
-  Free(xmmu);
-  Free(buff1);
-  Free(buff2);
-  
-  return density; 
-}
-
-/*********************************************************/
-
-phydbl Dnorm_Multi_Given_InvCov_Det(phydbl *x, phydbl *mu, phydbl *invcov, phydbl det, int size)
+phydbl Dnorm_Multi_Given_InvCov_Det(phydbl *x, phydbl *mu, phydbl *invcov, phydbl det, int size, int _log)
 {
   phydbl *xmmu;
   phydbl *buff1,*buff2;
@@ -369,13 +409,16 @@ phydbl Dnorm_Multi_Given_InvCov_Det(phydbl *x, phydbl *mu, phydbl *invcov, phydb
   buff1 = Matrix_Mult(xmmu,invcov,1,size,size,size);
   buff2 = Matrix_Mult(buff1,xmmu,1,size,size,1);
 
-  density = (1./(pow(2.*PI,size/2.)*sqrt(fabs(det)))) * exp(-0.5*buff2[0]);
+/*   density = (1./(pow(2.*PI,size/2.)*sqrt(fabs(det)))) * exp(-0.5*buff2[0]); */
+  density = size * LOG2PI + log(det) + buff2[0];
+  density /= -2.;
   
+
   Free(xmmu);
   Free(buff1);
   Free(buff2);
   
-  return density; 
+  return (_log)?(density):(exp(density));
 }
 
 /*********************************************************/
@@ -534,28 +577,187 @@ phydbl Dpois(phydbl x, phydbl param)
 
 phydbl CDF_Normal(phydbl x, phydbl mean, phydbl sd)
 {
-  const double b1 =  0.319381530;
-  const double b2 = -0.356563782;
-  const double b3 =  1.781477937;
-  const double b4 = -1.821255978;
-  const double b5 =  1.330274429;
-  const double p  =  0.2316419;
-  const double c  =  0.39894228;
+/*   const double b1 =  0.319381530; */
+/*   const double b2 = -0.356563782; */
+/*   const double b3 =  1.781477937; */
+/*   const double b4 = -1.821255978; */
+/*   const double b5 =  1.330274429; */
+/*   const double p  =  0.2316419; */
+/*   const double c  =  0.39894228; */
   
   x = (x-mean)/sd;
   
-  if(x >= 0.0) 
-    {
-      double t = 1.0 / ( 1.0 + p * x );
-      return (1.0 - c * exp( -x * x / 2.0 ) * t *
-	      ( t *( t * ( t * ( t * b5 + b4 ) + b3 ) + b2 ) + b1 ));
+/*   if(x >= 0.0)  */
+/*     { */
+/*       double t = 1.0 / ( 1.0 + p * x ); */
+/*       return (1.0 - c * exp( -x * x / 2.0 ) * t * */
+/* 	      ( t *( t * ( t * ( t * b5 + b4 ) + b3 ) + b2 ) + b1 )); */
+/*     } */
+/*   else  */
+/*     { */
+/*       double t = 1.0 / ( 1.0 - p * x ); */
+/*       return ( c * exp( -x * x / 2.0 ) * t * */
+/* 	       ( t *( t * ( t * ( t * b5 + b4 ) + b3 ) + b2 ) + b1 )); */
+/*     } */
+
+/* i_tail in {0,1,2} means: "lower", "upper", or "both" :
+   if(lower) return  *cum := P[X <= x]
+   if(upper) return *ccum := P[X >  x] = 1 - P[X <= x]
+*/
+
+  return Pnorm_Ihaka_Derived_From_Cody(x);
+}
+
+
+/* Stolen from R source code */
+#define SIXTEN 16
+
+double Pnorm_Ihaka_Derived_From_Cody(double x)
+{
+
+    const static double a[5] = {
+	2.2352520354606839287,
+	161.02823106855587881,
+	1067.6894854603709582,
+	18154.981253343561249,
+	0.065682337918207449113
+    };
+    const static double b[4] = {
+	47.20258190468824187,
+	976.09855173777669322,
+	10260.932208618978205,
+	45507.789335026729956
+    };
+    const static double c[9] = {
+	0.39894151208813466764,
+	8.8831497943883759412,
+	93.506656132177855979,
+	597.27027639480026226,
+	2494.5375852903726711,
+	6848.1904505362823326,
+	11602.651437647350124,
+	9842.7148383839780218,
+	1.0765576773720192317e-8
+    };
+    const static double d[8] = {
+	22.266688044328115691,
+	235.38790178262499861,
+	1519.377599407554805,
+	6485.558298266760755,
+	18615.571640885098091,
+	34900.952721145977266,
+	38912.003286093271411,
+	19685.429676859990727
+    };
+    const static double p[6] = {
+	0.21589853405795699,
+	0.1274011611602473639,
+	0.022235277870649807,
+	0.001421619193227893466,
+	2.9112874951168792e-5,
+	0.02307344176494017303
+    };
+    const static double q[5] = {
+	1.28426009614491121,
+	0.468238212480865118,
+	0.0659881378689285515,
+	0.00378239633202758244,
+	7.29751555083966205e-5
+    };
+
+    double xden, xnum, temp, del, eps, xsq, y;
+    int i, lower, upper;
+    double cum,ccum;
+    int i_tail;
+    
+    i_tail = 0;
+    cum = ccum = 0.0;
+
+    if(isnan(x)) { cum = ccum = x; return cum; }
+
+    /* Consider changing these : */
+    eps = DBL_EPSILON * 0.5;
+
+    /* i_tail in {0,1,2} =^= {lower, upper, both} */
+    lower = i_tail != 1;
+    upper = i_tail != 0;
+
+    y = fabs(x);
+    if (y <= 0.67448975) { /* qnorm(3/4) = .6744.... -- earlier had 0.66291 */
+	if (y > eps) {
+	    xsq = x * x;
+	    xnum = a[4] * xsq;
+	    xden = xsq;
+	    for (i = 0; i < 3; ++i) {
+		xnum = (xnum + a[i]) * xsq;
+		xden = (xden + b[i]) * xsq;
+	    }
+	} else xnum = xden = 0.0;
+
+	temp = x * (xnum + a[3]) / (xden + b[3]);
+	if(lower)  cum = 0.5 + temp;
+	if(upper) ccum = 0.5 - temp;
+	}    
+    else if (y <= M_SQRT_32) {
+
+	/* Evaluate pnorm for 0.674.. = qnorm(3/4) < |x| <= sqrt(32) ~= 5.657 */
+
+	xnum = c[8] * y;
+	xden = y;
+	for (i = 0; i < 7; ++i) {
+	    xnum = (xnum + c[i]) * y;
+	    xden = (xden + d[i]) * y;
+	}
+	temp = (xnum + c[7]) / (xden + d[7]);
+
+#define do_del(X)							\
+	xsq = trunc(X * SIXTEN) / SIXTEN;				\
+	del = (X - xsq) * (X + xsq);					\
+	cum = exp(-xsq * xsq * 0.5) * exp(-del * 0.5) * temp;		\
+	ccum = 1.0 - cum;						\
+	
+#define swap_tail						\
+	if (x > 0.) {/* swap  ccum <--> cum */			\
+	    temp = cum; if(lower) cum = ccum; ccum = temp;	\
+	}
+
+	do_del(y);
+	swap_tail;
     }
-  else 
-    {
-      double t = 1.0 / ( 1.0 - p * x );
-      return ( c * exp( -x * x / 2.0 ) * t *
-	       ( t *( t * ( t * ( t * b5 + b4 ) + b3 ) + b2 ) + b1 ));
-    }
+
+/* else	  |x| > sqrt(32) = 5.657 :
+ * the next two case differentiations were really for lower=T, log=F
+ * Particularly	 *not*	for  log_p !
+
+ * Cody had (-37.5193 < x  &&  x < 8.2924) ; R originally had y < 50
+ *
+ * Note that we do want symmetry(0), lower/upper -> hence use y
+ */
+    else if((lower && -37.5193 < x  &&  x < 8.2924) || (upper && -8.2924  < x  &&  x < 37.5193)) 
+      {
+	
+	/* Evaluate pnorm for x in (-37.5, -5.657) union (5.657, 37.5) */
+	xsq = 1.0 / (x * x);
+	xnum = p[5] * xsq;
+	xden = xsq;
+	for (i = 0; i < 4; ++i) {
+	    xnum = (xnum + p[i]) * xsq;
+	    xden = (xden + q[i]) * xsq;
+	}
+	temp = xsq * (xnum + p[4]) / (xden + q[4]);
+	temp = (M_1_SQRT_2PI - temp) / y;
+
+	do_del(x);
+	swap_tail;
+      }
+    else 
+      { /* no log_p , large x such that probs are 0 or 1 */
+	if(x > 0) {	cum = 1.; ccum = 0.;	}
+	else {	        cum = 0.; ccum = 1.;	}
+      }
+    return cum;
+
+
 }
 
 /*********************************************************/
@@ -645,7 +847,7 @@ l4:
 
 /*********************************************************/
 
-phydbl PointNormal (phydbl prob)
+phydbl PointNormal (phydbl p)
 {
 /* returns z so that Prob{x<z}=prob where x ~ N(0,1) and (1e-12)<prob<1-(1e-12)
    returns (-9999) if in error
@@ -659,18 +861,134 @@ phydbl PointNormal (phydbl prob)
        points of the normal distribution.  26: 118-121.
 
 */
-   phydbl a0=-.322232431088, a1=-1, a2=-.342242088547, a3=-.0204231210245;
-   phydbl a4=-.453642210148e-4, b0=.0993484626060, b1=.588581570495;
-   phydbl b2=.531103462366, b3=.103537752850, b4=.0038560700634;
-   phydbl y, z=0, p=prob, p1;
+/*    phydbl a0=-.322232431088, a1=-1, a2=-.342242088547, a3=-.0204231210245; */
+/*    phydbl a4=-.453642210148e-4, b0=.0993484626060, b1=.588581570495; */
+/*    phydbl b2=.531103462366, b3=.103537752850, b4=.0038560700634; */
+/*    phydbl y, z=0, p=prob, p1; */
 
-   p1 = (p<0.5 ? p : 1-p);
+/*    p1 = (p<0.5 ? p : 1-p); */
 /*    if (p1<1e-20) return (-INFINITY); */
-   if (p1<1e-20) return (-999.);
+/* /\*    if (p1<1e-20) return (-999.); *\/ */
 
-   y = sqrt ((phydbl)log(1/(p1*p1)));
-   z = y + ((((y*a4+a3)*y+a2)*y+a1)*y+a0) / ((((y*b4+b3)*y+b2)*y+b1)*y+b0);
-   return (p<0.5 ? -z : z);
+/*    y = sqrt ((phydbl)log(1/(p1*p1))); */
+/*    z = y + ((((y*a4+a3)*y+a2)*y+a1)*y+a0) / ((((y*b4+b3)*y+b2)*y+b1)*y+b0); */
+/*    return (p<0.5 ? -z : z); */
+
+  static double zero = 0.0, one = 1.0, half = 0.5;
+  static double split1 = 0.425, split2 = 5.0;
+  static double const1 = 0.180625, const2 = 1.6;
+  
+  /* coefficients for p close to 0.5 */
+  static double a[8] = {
+    3.3871328727963666080e0,
+    1.3314166789178437745e+2,
+    1.9715909503065514427e+3,
+    1.3731693765509461125e+4,
+    4.5921953931549871457e+4,
+    6.7265770927008700853e+4,
+    3.3430575583588128105e+4,
+    2.5090809287301226727e+3
+  };
+  static double b[8] = { 
+    0.0,
+    4.2313330701600911252e+1,
+    6.8718700749205790830e+2,
+    5.3941960214247511077e+3,
+    2.1213794301586595867e+4,
+    3.9307895800092710610e+4,
+    2.8729085735721942674e+4,
+    5.2264952788528545610e+3
+  };
+  
+  /* hash sum ab    55.8831928806149014439 */
+  /* coefficients for p not close to 0, 0.5 or 1. */
+  static double c[8] = {
+    1.42343711074968357734e0,
+    4.63033784615654529590e0,
+    5.76949722146069140550e0,
+    3.64784832476320460504e0,
+    1.27045825245236838258e0,
+    2.41780725177450611770e-1,
+    2.27238449892691845833e-2,
+    7.74545014278341407640e-4
+  };
+  static double d[8] = { 
+    0.0,
+    2.05319162663775882187e0,
+    1.67638483018380384940e0,
+    6.89767334985100004550e-1,
+    1.48103976427480074590e-1,
+    1.51986665636164571966e-2,
+    5.47593808499534494600e-4,
+    1.05075007164441684324e-9
+  };
+  
+  /* hash sum cd    49.33206503301610289036 */
+  /* coefficients for p near 0 or 1. */
+  static double e[8] = {
+    6.65790464350110377720e0,
+    5.46378491116411436990e0,
+    1.78482653991729133580e0,
+    2.96560571828504891230e-1,
+    2.65321895265761230930e-2,
+    1.24266094738807843860e-3,
+    2.71155556874348757815e-5,
+    2.01033439929228813265e-7
+  };
+  static double f[8] = { 
+    0.0,
+    5.99832206555887937690e-1,
+    1.36929880922735805310e-1,
+    1.48753612908506148525e-2,
+    7.86869131145613259100e-4,
+    1.84631831751005468180e-5,
+    1.42151175831644588870e-7,
+    2.04426310338993978564e-15
+  };
+  
+  /* hash sum ef    47.52583317549289671629 */
+  double q, r, ret;
+  
+  q = p - half;
+  if (fabs(q) <= split1) {
+    r = const1 - q * q;
+    ret = q * (((((((a[7] * r + a[6]) * r + a[5]) * r + a[4]) * r + a[3])
+		 * r + a[2]) * r + a[1]) * r + a[0]) /
+      (((((((b[7] * r + b[6]) * r + b[5]) * r + b[4]) * r + b[3])
+	 * r + b[2]) * r + b[1]) * r + one);
+    
+    return ret;
+  }
+  /* else */
+  
+  if (q < zero)
+    r = p;
+  else
+    r = one - p;
+  
+  if (r <= zero)
+    return zero;
+  
+  r = sqrt(-log(r));
+  if (r <= split2) {
+    r -= const2;
+    ret = (((((((c[7] * r + c[6]) * r + c[5]) * r + c[4]) * r + c[3])
+	     * r + c[2]) * r + c[1]) * r + c[0]) /
+      (((((((d[7] * r + d[6]) * r + d[5]) * r + d[4]) * r + d[3])
+	 * r + d[2]) * r + d[1]) * r + one);
+  }
+  else {
+    r -= split2;
+    ret = (((((((e[7] * r + e[6]) * r + e[5]) * r + e[4]) * r + e[3])
+	     * r + e[2]) * r + e[1]) * r + e[0]) /
+      (((((((f[7] * r + f[6]) * r + f[5]) * r + f[4]) * r + f[3])
+	 * r + f[2]) * r + f[1]) * r + one);
+  }
+  
+  if (q < zero)
+    ret = -ret;
+  
+  return ret;
 }
 
 /*********************************************************/

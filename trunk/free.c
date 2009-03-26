@@ -21,6 +21,9 @@ void Free_All_Nodes_Light(arbre *tree)
   int i;
   For(i,2*tree->n_otu-2) 
     Free_Node(tree->noeud[i]);
+
+  if(tree->n_root)
+    Free_Node(tree->noeud[i+1]);
 }
 
 /*********************************************************/
@@ -116,6 +119,9 @@ void Free_Tree(arbre *tree)
       n = tree->noeud[i];
       Free_Node(n);
     }
+
+  if(tree->n_root) Free_Node(tree->noeud[i+1]);
+
   Free(tree->noeud);
 
   Free(tree);

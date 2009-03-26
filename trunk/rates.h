@@ -108,7 +108,7 @@ phydbl RATES_Compound_Core_Marginal(phydbl mu1, phydbl mu2, phydbl dt1, phydbl d
 phydbl RATES_Lk_Jumps(arbre *tree);
 void RATES_Posterior_Rates(arbre *tree);
 void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree);
-void Free_Rates(trate *r);
+void Free_Rates(trate *rates);
 void RATES_Initialize_True_Rates(arbre *tree);
 void RATES_Posterior_Times(arbre *tree);
 void RATES_Posterior_Times_Pre(node *a, node *d, arbre *tree);
@@ -120,5 +120,8 @@ void RATES_Bl_To_Ml(arbre *tree);
 void RATES_Bl_To_Ml_Pre(node *a, node *d, edge *b, arbre *tree);
 void RATES_Check_Node_Times(arbre *tree);
 void RATES_Check_Node_Times_Pre(node *a, node *d, arbre *tree);
+void RATES_Covariance_Mu(arbre *tree);
+void RATES_Covariance_Mu_Pre(node *a, node *d, arbre *tree);
+void RATES_Fill_Lca_Table(arbre *tree);
 
 #endif

@@ -955,7 +955,7 @@ double *Cholesky_Decomp(double *A,  int dim)
 		  sum = 1.E-20;
 		  PhyML_Printf("\n. sum=%G i=%d j=%d",sum,i,j);
 		  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-/* 		  Warn_And_Exit(""); */
+		  Warn_And_Exit("");
 		}
 	      L[j*dim+i] = sqrt(sum);
 	    }

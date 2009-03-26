@@ -2355,10 +2355,9 @@ void Make_All_Tree_Nodes(arbre *tree)
 {
   int i;
 
-  tree->noeud          = (node **)mCalloc(2*tree->n_otu-2,sizeof(node *));
-/*   tree->t_dead_nodes   = (node **)mCalloc(2*tree->n_otu-2,sizeof(node *)); */
+  tree->noeud = (node **)mCalloc(2*tree->n_otu-1,sizeof(node *));
 
-  For(i,2*tree->n_otu-2)
+  For(i,2*tree->n_otu-1)
     {
       tree->noeud[i] = (node *)Make_Node_Light(i);
       if(i < tree->n_otu) tree->noeud[i]->tax = 1;
@@ -7954,6 +7953,8 @@ void Add_Root(edge *target, arbre *tree)
       tree->n_root = (node *)Make_Node_Light(2*tree->n_otu-2);
     }
 
+  tree->noeud[2*tree->n_otu-2] = tree->n_root;
+
   tree->n_root->tax = 0;
 
   /* Set the position of the root */
@@ -9618,3 +9619,61 @@ void Normal_Conditional(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is
   Free(ctrd_a);
   Free(sig12_invsig22);
 }
+
+
+/*********************************************************/
+
+/* Find the Last Common Ancestor of n1 and n2 */
+node *Find_Lca(node *n1, node *n2, arbre *tree)
+{
+  node **list1, **list2, *lca;
+  int size1, size2;
+
+  if(!tree->n_root)
+    {
+      PhyML_Printf("\n. The tree must be rooted in this function.");
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+
+  list1 = (node **)mCalloc(2*tree->n_otu-1,sizeof(node *));
+  list2 = (node **)mCalloc(2*tree->n_otu-1,sizeof(node *));
+
+  Get_List_Of_Ancestors(n1,list1,&size1,tree);
+  Get_List_Of_Ancestors(n2,list2,&size2,tree);
+
+  while(list1[size1] == list2[size2])
+    {
+      size1--;
+      size2--;
+
+      if(size1 < 0 || size2 < 0) break;
+    }
+  
+  lca = list1[size1+1];
+
+  Free(list1);
+  Free(list2);
+
+  return lca;
+}
+
+/*********************************************************/
+
+/* Returns the list of the ancestors of ref_node from ref_node to the root included */
+void Get_List_Of_Ancestors(node *ref_node, node **list, int *size, arbre *tree)
+{
+  node *n;
+
+  *size = 0;
+  n = ref_node;
+  list[0] = n;
+
+  while(n != tree->n_root)
+    {
+      n = n->anc;
+      *size = *size+1;
+      list[*size] = n;
+    }
+}
+/*********************************************************/
