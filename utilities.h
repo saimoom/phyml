@@ -21,6 +21,7 @@ the GNU public licence. See http://www.opensource.org for details.
 #include <ctype.h>
 #include <string.h>
 #include <time.h>
+#include <float.h>
 
 #define VERSION "v3.0"
 
@@ -60,8 +61,11 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  SPR_MOVE            1
 #define  BEST_OF_NNI_AND_SPR 2
 
-#define  PI      3.141593
-#define  SQRT2PI 2.506628
+#define  M_1_SQRT_2PI   0.398942280401432677939946059934
+#define  M_SQRT_32      5.656854249492380195206754896838 
+#define  PI             3.14159265358979311600
+#define  SQRT2PI        2.50662827463100024161
+#define  LOG2PI         1.83787706640934533908
 
 #define  YES 1
 #define  NO  0
@@ -83,9 +87,9 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #endif
 
 #define  N_MAX_OPTIONS        100
-#define  H_MCMC_RATES         0.5
+#define  H_MCMC_RATES         1.0
 #define  H_MCMC_LEXP          0.5
-#define  H_MCMC_NU            0.5
+#define  H_MCMC_NU            1.0
 
 #define  T_MAX_FILE           500
 #define  T_MAX_LINE       2000000
@@ -847,13 +851,16 @@ typedef struct __Trate {
   int model; /* Model number */
   phydbl nu; /* Parameter of the Exponential distribution for the corresponding model */
 
-  phydbl *ml_l; /* ML edge lengths (rooted) */
-  phydbl *cur_l; /* Current edge lengths (rooted) */
-  phydbl *u_ml_l; /* ML edge lengths (unrooted) */
-  phydbl *u_cur_l; /* Current edge lengths (unrooted) */
-  phydbl *cov;
-  phydbl *invcov;
-  phydbl covdet;
+  phydbl        *ml_l; /* ML edge lengths (rooted) */
+  phydbl       *cur_l; /* Current edge lengths (rooted) */
+  phydbl      *u_ml_l; /* ML edge lengths (unrooted) */
+  phydbl     *u_cur_l; /* Current edge lengths (unrooted) */
+  phydbl         *cov;
+  phydbl      *invcov;
+  phydbl       covdet;
+  phydbl      *cov_mu;
+  phydbl     *mean_mu;
+  struct __Node **lca; /* 2-way table of common ancestral nodes for each pari of nodes */
 }trate;
 
 /*********************************************************/
@@ -1156,5 +1163,7 @@ void Normal_Conditional_1(phydbl *a, phydbl *mu, phydbl *cov, int dim, int elem,
 void Normal_Conditional_2(phydbl *a, phydbl *mu, phydbl *cov, int dim, int elem, phydbl *cond_mu, phydbl *cond_var);
 void Normal_Conditional(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is_1, int n1, phydbl *cond_mu, phydbl *cond_var);
 phydbl Matrix_Det(phydbl *A, int size);
+void Get_List_Of_Ancestors(node *ref_nod, node **list, int *size, arbre *tree);
+node *Find_Lca(node *n1, node *n2, arbre *tree);
 
 #endif

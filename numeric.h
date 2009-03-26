@@ -54,10 +54,12 @@ phydbl Log_Det(int *is_ok, arbre *tree);
 phydbl Dnorm_Trunc(phydbl x, phydbl mean, phydbl sd, phydbl lo, phydbl up);
 phydbl Normal_Trunc_Mean(phydbl mu, phydbl sd, phydbl min, phydbl max);
 phydbl Constraint_Normal_Trunc_Mean(phydbl wanted_mu, phydbl sd, phydbl min, phydbl max);
-phydbl Dnorm_Multi(phydbl *x, phydbl *mu, phydbl *cov, int size);
-phydbl Dnorm_Multi_Given_InvCov_Det(phydbl *x, phydbl *mu, phydbl *incov, phydbl det, int size);
+phydbl Dnorm_Multi(phydbl *x, phydbl *mu, phydbl *cov, int size, int _log);
+phydbl Dnorm_Multi_Given_InvCov_Det(phydbl *x, phydbl *mu, phydbl *invcov, phydbl det, int size, int _log);
 phydbl Prop_Log_Dnorm_Multi_Given_InvCov_Det(phydbl *x, phydbl *mu, phydbl *invcov, phydbl det, int size);
 phydbl Log_Dnorm(phydbl x, phydbl mean, phydbl sd);
+phydbl tt800();
+double Pnorm_Ihaka_Derived_From_Cody(double x);
 
 
 #endif //NUMERIC_H
