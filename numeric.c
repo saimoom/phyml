@@ -17,6 +17,7 @@ the GNU public licence. See http://www.opensource.org for details.
 #include "models.h"
 #include "eigen.h"
 #include "numeric.h"
+#include <math.h>
 
 /*********************************************************/
 /* RANDOM VARIATES GENERATORS */
@@ -711,7 +712,7 @@ double Pnorm_Ihaka_Derived_From_Cody(double x)
 	temp = (xnum + c[7]) / (xden + d[7]);
 
 #define do_del(X)							\
-	xsq = trunc(X * SIXTEN) / SIXTEN;				\
+	xsq = floor(X * SIXTEN) / SIXTEN;			\
 	del = (X - xsq) * (X + xsq);					\
 	cum = exp(-xsq * xsq * 0.5) * exp(-del * 0.5) * temp;		\
 	ccum = 1.0 - cum;						\
