@@ -121,7 +121,7 @@ void RATES_Bl_To_Ml_Pre(node *a, node *d, edge *b, arbre *tree);
 void RATES_Check_Node_Times(arbre *tree);
 void RATES_Check_Node_Times_Pre(node *a, node *d, arbre *tree);
 void RATES_Covariance_Mu(arbre *tree);
-void RATES_Covariance_Mu_Pre(node *a, node *d, arbre *tree);
+void RATES_Variance_Mu_Pre(node *a, node *d, arbre *tree);
 void RATES_Fill_Lca_Table(arbre *tree);
 
 #endif

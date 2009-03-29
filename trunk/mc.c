@@ -167,10 +167,11 @@ int MC_main(int argc, char **argv)
 
 		  printf("\n. pid=%d",pid);
 
-		  n_otu = 10;
+		  n_otu = 20;
 
 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1);
-		  
+
+	 
 
 /* 		  tree->rates->nd_t[tree->n_root->v[0]->tax ? tree->n_root->v[1]->num : tree->n_root->v[0]->num] = -10.0; */
 /* /\* 		  tree->rates->nd_t[tree->n_root->v[0]->num] = 0.0; *\/ */
@@ -209,6 +210,9 @@ int MC_main(int argc, char **argv)
 /* 		  For(i,2*tree->n_otu-2) tree->rates->true_r[i] = tree->rates->nd_r[i]; */
 
 /* 		  RATES_Update_Cur_Bl(tree); */
+
+
+
 		  
 		  RATES_Print_Rates(tree);
 
@@ -250,7 +254,7 @@ int MC_main(int argc, char **argv)
 		  buff = tree->n_root;
 		  tree->n_root = NULL;
 
-/* 		  Round_Optimize(tree,tree->data,ROUND_MAX); */
+		  Round_Optimize(tree,tree->data,ROUND_MAX);
 
 		  tree->n_root = buff;
 
@@ -268,17 +272,6 @@ int MC_main(int argc, char **argv)
 		  tree->rates->covdet = Matrix_Det(tree->rates->cov,2*tree->n_otu-3);
 		  Restore_Br_Len(NULL,tree);
 
-		  For(i,3)
-		    {
-		      For(j,3)
-			{
-			  if(i != j) tree->rates->cov[i*3+j] = 0.0;
-			  printf("%f ",tree->rates->cov[i*3+j]);
-			}
-		      printf("\n");
-		    }
-
-
 		  RATES_Bl_To_Ml(tree);
 
 		  Lk(tree);
@@ -293,50 +286,16 @@ int MC_main(int argc, char **argv)
 		  tree->mcmc->sample_interval = 1;
 
 		  tree->rates->bl_from_rt = 1;
-/* 		  MCMC_Randomize_Rates(tree); */
-/* 		  MCMC_Randomize_Node_Times(tree); */
+		  MCMC_Randomize_Rates(tree);
+		  MCMC_Randomize_Node_Times(tree);
 /* 		  MCMC_Randomize_Nu(tree); */
 		  RATES_Update_Cur_Bl(tree);
-
-/* 		  phydbl new_t; */
-/* 		  For(tree->mcmc->run,1) */
-/* 		    { */
-/* 		      new_t = Uni()*100.; */
-/* 		      new_t = -new_t; */
-/* 		      if(tree->n_root->v[0]->tax) tree->rates->nd_t[tree->n_root->v[1]->num] = new_t; */
-/* 		      else                        tree->rates->nd_t[tree->n_root->v[0]->num] = new_t; */
-
-/* 		      RATES_Update_Cur_Bl(tree); */
-
-/* 		      RATES_Covariance_Mu(tree); */
-
-/* 		      printf("\n. new_t = %f",new_t); */
-/* 		      printf("["); */
-/* 		      For(i,2*tree->n_otu-2) */
-/* 			{ */
-/* 			  For(j,2*tree->n_otu-2) */
-/* 			    { */
-/* 			      printf("%f,",tree->rates->cov_mu[i*(2*tree->n_otu-2)+j]); */
-/* /\* 			      if(i != j) tree->rates->cov_mu[i*(2*tree->n_otu-2)+j] = 0.0; *\/ */
-/* 			    } */
-/* /\* 			  printf("\n"); *\/ */
-/*  			} */
-/* 		      printf("]\n"); */
-/* /\* 		      Matinv(tree->rates->cov_mu,2*tree->n_otu-2,2*tree->n_otu-2); *\/ */
 		      
-/* 		      printf("%f %f\n", */
-/* 			     Dnorm_Multi(tree->rates->nd_r,tree->rates->mean_mu,tree->rates->cov_mu,2*tree->n_otu-2,YES), */
-/* /\* 			     Prop_Log_Dnorm_Multi_Given_InvCov_Det(tree->rates->nd_r,tree->rates->mean_mu,tree->rates->cov_mu,0.0,2*tree->n_otu-2), *\/ */
-/* 			     RATES_Lk_Rates(tree)); */
-/* 		    } */
-/* 		  Exit("\n"); */
-
-		      
-		  For(tree->mcmc->run,10000)
+		  For(tree->mcmc->run,1000000)
 		    {
 		      if(!(tree->mcmc->run%(2*tree->n_otu-2))) MCMC_Print_Param(fpout,tree);
 /* 		      MCMC_Print_Param(fpout,tree); */
-/* 		      RATES_Posterior_Times(tree); */
+		      RATES_Posterior_Times(tree);
 		      RATES_Posterior_Rates(tree);
 /* 		      For(i,10) MCMC_Nu(tree); */
 		    }

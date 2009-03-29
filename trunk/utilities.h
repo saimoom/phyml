@@ -858,8 +858,8 @@ typedef struct __Trate {
   phydbl         *cov;
   phydbl      *invcov;
   phydbl       covdet;
-  phydbl      *cov_mu;
-  phydbl     *mean_mu;
+  phydbl       *cov_r;
+  phydbl      *mean_r;
   struct __Node **lca; /* 2-way table of common ancestral nodes for each pari of nodes */
 }trate;
 
