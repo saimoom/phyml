@@ -1086,6 +1086,7 @@ void MCMC_Print_Param(FILE *fp, arbre *tree)
 	      RATES_Lk_Rates(tree)-
 	      Dnorm_Multi(tree->rates->nd_r,tree->rates->mean_r,tree->rates->cov_r,2*tree->n_otu-2,YES));
 
+
       fprintf(fp,"%15lf\t",tree->rates->cur_l[tree->n_root->v[0]->num] / tree->rates->u_cur_l[tree->e_root->num]-tree->n_root_pos);
       fprintf(fp,"%15lf\t",tree->rates->nu);
       if(fp != stdout) for(i=tree->n_otu;i<2*tree->n_otu-1;i++) fprintf(fp,"%8f\t",tree->rates->nd_t[i]-tree->rates->true_t[i]);

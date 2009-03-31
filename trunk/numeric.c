@@ -380,6 +380,7 @@ phydbl Dnorm_Multi(phydbl *x, phydbl *mu, phydbl *cov, int size, int _log)
   buff2 = Matrix_Mult(buff1,xmmu,1,size,size,1);
   
   det = Matrix_Det(cov,size);
+  /* det_1D(cov,size,&det); */
 
   density = size * LOG2PI + log(det) + buff2[0];
   density /= -2.;
