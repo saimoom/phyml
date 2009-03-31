@@ -14,8 +14,8 @@ the GNU public licence. See http://www.opensource.org for details.
 #define UTILITIES_H
 
 
-#include <stdarg.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include <stdlib.h>
 #include <math.h>
 #include <ctype.h>

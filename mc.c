@@ -167,7 +167,7 @@ int MC_main(int argc, char **argv)
 
 		  printf("\n. pid=%d",pid);
 
-		  n_otu = 20;
+		  n_otu = 30;
 
 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1);
 
@@ -210,8 +210,6 @@ int MC_main(int argc, char **argv)
 /* 		  For(i,2*tree->n_otu-2) tree->rates->true_r[i] = tree->rates->nd_r[i]; */
 
 /* 		  RATES_Update_Cur_Bl(tree); */
-
-
 
 		  
 		  RATES_Print_Rates(tree);
