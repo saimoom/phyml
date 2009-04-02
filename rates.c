@@ -715,6 +715,7 @@ void RATES_Init_Rate_Struct(trate *rates, int n_otu)
   rates->nu            = 1.E-3;
   rates->approx        = 1;
   rates->bl_from_rt    = 0;
+  rates->lk_approx     = NORMAL;
 
   For(i,2*n_otu-2) 
     {
@@ -1484,7 +1485,6 @@ void RATES_Posterior_Rates(arbre *tree)
 
 void RATES_Posterior_Times(arbre *tree)
 {
-
 /*   RATES_Posterior_Times_Pre(tree->n_root,tree->n_root->v[0],tree); */
 /*   RATES_Posterior_Times_Pre(tree->n_root,tree->n_root->v[1],tree); */
 
@@ -2008,10 +2008,10 @@ void RATES_Posterior_Times_Pre(node *a, node *d, arbre *tree)
   L2XY[2] = 0.0; /* constraint 2 (Y=0) */
   
 
-  if((T1 - T0) > (T2 - T1))
+/*   if((T1 - T0) > (T2 - T1)) */
     mu[0] = EL1;
-  else
-    mu[0] = EL2;
+/*   else */
+/*     mu[0] = EL2; */
 
   mu[1] = EL1/U1 + T0 + EL2/U2 - T2;
   mu[2] = EL1/U1 + T0 + EL3/U3 - T3;
@@ -2041,18 +2041,18 @@ void RATES_Posterior_Times_Pre(node *a, node *d, arbre *tree)
   sigYY = 1./(U1*U1) * cov11 + 1./(U3*U3) * cov33 + 2./(U1*U3) * cov13;
   sigXY = 1./(U1*U1) * cov11 + 1./(U1*U2) * cov12 + 1./(U1*U3) * cov13 + 1./(U2*U3) * cov23;
 
-  if((T1 - T0) > (T2 - T1))
-    {
+/*   if((T1 - T0) > (T2 - T1)) */
+/*     { */
       cov[0*3+0] = sig11; cov[0*3+1] = sig1X; cov[0*3+2] = sig1Y;
       cov[1*3+0] = sig1X; cov[1*3+1] = sigXX; cov[1*3+2] = sigXY;
       cov[2*3+0] = sig1Y; cov[2*3+1] = sigXY; cov[2*3+2] = sigYY;
-    }
-  else
-    {
-      cov[0*3+0] = sig22; cov[0*3+1] = sig2X; cov[0*3+2] = sig2Y;
-      cov[1*3+0] = sig2X; cov[1*3+1] = sigXX; cov[1*3+2] = sigXY;
-      cov[2*3+0] = sig2Y; cov[2*3+1] = sigXY; cov[2*3+2] = sigYY;
-    }
+/*     } */
+/*   else */
+/*     { */
+/*       cov[0*3+0] = sig22; cov[0*3+1] = sig2X; cov[0*3+2] = sig2Y; */
+/*       cov[1*3+0] = sig2X; cov[1*3+1] = sigXX; cov[1*3+2] = sigXY; */
+/*       cov[2*3+0] = sig2Y; cov[2*3+1] = sigXY; cov[2*3+2] = sigYY; */
+/*     } */
 
   Normal_Conditional(mu,cov,L2XY,3,is_1,1,cond_mu,cond_cov);
   
@@ -2076,8 +2076,8 @@ void RATES_Posterior_Times_Pre(node *a, node *d, arbre *tree)
     }
 
   
-  if((T1 - T0) > (T2 - T1))
-    {
+/*   if((T1 - T0) > (T2 - T1)) */
+/*     { */
       if(a == tree->n_root)
 	{
 	  L1 = Rnorm_Trunc(cond_mu[0],sqrt(cond_cov[0*3+0]),l_opp,U1*(MIN(T2,T3)-T0)+l_opp);
@@ -2088,12 +2088,12 @@ void RATES_Posterior_Times_Pre(node *a, node *d, arbre *tree)
 	  L1 = Rnorm_Trunc(cond_mu[0],sqrt(cond_cov[0*3+0]),BL_MIN,U1*(MIN(T2,T3)-T0));
 	  T1 = L1/U1 + T0;
 	}
-    }
-  else
-    {
-      L2 = Rnorm_Trunc(cond_mu[0],sqrt(cond_cov[0*3+0]),U2*(T2-T3),U2*(T2-T0));
-      T1 = -L2/U2 + T2;
-    }
+/*     } */
+/*   else */
+/*     { */
+/*       L2 = Rnorm_Trunc(cond_mu[0],sqrt(cond_cov[0*3+0]),U2*(T2-T3),U2*(T2-T0)); */
+/*       T1 = -L2/U2 + T2; */
+/*     } */
 
 
   if(T1 < T0)

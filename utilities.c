@@ -2172,9 +2172,9 @@ void Print_Seq(seq **data, int n_otu)
 
 void Print_CSeq(FILE *fp, allseq *alldata)
 {
-    int i,j,k;
+  int i,j,k;
   int n_otu;
-
+  
   n_otu = alldata->n_otu;
   PhyML_Fprintf(fp,"%d\t%d\n",n_otu,alldata->init_len);
   For(i,n_otu)
@@ -8303,6 +8303,8 @@ void Evolve(allseq *data, model *mod, arbre *tree)
 {
   int root_state, root_rate_class;
   int site,i;
+
+  data->n_otu = tree->n_otu;
 
   if(mod->use_m4mod) tree->print_labels = 1;
   

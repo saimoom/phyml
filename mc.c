@@ -167,11 +167,8 @@ int MC_main(int argc, char **argv)
 
 		  printf("\n. pid=%d",pid);
 
-		  n_otu = 30;
-
+		  n_otu = 4;
 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1);
-
-	 
 
 /* 		  tree->rates->nd_t[tree->n_root->v[0]->tax ? tree->n_root->v[1]->num : tree->n_root->v[0]->num] = -10.0; */
 /* /\* 		  tree->rates->nd_t[tree->n_root->v[0]->num] = 0.0; *\/ */
@@ -210,7 +207,6 @@ int MC_main(int argc, char **argv)
 /* 		  For(i,2*tree->n_otu-2) tree->rates->true_r[i] = tree->rates->nd_r[i]; */
 
 /* 		  RATES_Update_Cur_Bl(tree); */
-
 		  
 		  RATES_Print_Rates(tree);
 
@@ -238,9 +234,7 @@ int MC_main(int argc, char **argv)
 		  For(i,2*tree->n_otu-1) tree->rates->true_t[i] = tree->rates->nd_t[i];
 		  For(i,2*tree->n_otu-2) tree->rates->true_r[i] = tree->rates->nd_r[i];
 
-		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
-		  MCMC_Init_MCMC_Struct(tree->mcmc);
-
+		  Print_CSeq(stdout,tree->data);
 
 		  /************************************/
 		  /************************************/
@@ -281,33 +275,30 @@ int MC_main(int argc, char **argv)
 
 
 		  printf("\n. Gibbs sampling...\n");
-		  tree->mcmc->sample_interval = 1;
 
 		  tree->rates->bl_from_rt = 1;
-		  MCMC_Randomize_Rates(tree);
+/* 		  MCMC_Randomize_Rates(tree); */
 		  MCMC_Randomize_Node_Times(tree);
 /* 		  MCMC_Randomize_Nu(tree); */
 		  RATES_Update_Cur_Bl(tree);
 		      
-		  For(tree->mcmc->run,1000000)
+		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
+		  MCMC_Init_MCMC_Struct("gibbs",tree->mcmc);
+		  tree->mcmc->out_fp = fopen(tree->mcmc->out_filename,"w");
+		  tree->mcmc->sample_interval = 1;
+		  tree->rates->lk_approx = NORMAL;
+
+		  For(tree->mcmc->run,10)
 		    {
 		      if(!(tree->mcmc->run%(2*tree->n_otu-2))) MCMC_Print_Param(fpout,tree);
 /* 		      MCMC_Print_Param(fpout,tree); */
 		      RATES_Posterior_Times(tree);
-		      RATES_Posterior_Rates(tree);
+/* 		      RATES_Posterior_Rates(tree); */
 /* 		      For(i,10) MCMC_Nu(tree); */
 		    }
 		  fclose(fpout);
 
-/* 		  For(tree->mcmc->run,10000) */
-/* 		    { */
-/* 		      MCMC_Print_Param(fpout2,tree); */
-/* 		      RATES_Posterior_Times(tree); */
-/* 		      RATES_Posterior_Rates(tree); */
-/* 		      For(i,1000) MCMC_Nu(tree); */
-/* 		    } */
-/* 		  fclose(fpout2); */
-
+		  MCMC_Free_MCMC(tree);
 
 /* 		  END OF IMPORTANCE SAMPLING STUFF */
 
@@ -321,10 +312,21 @@ int MC_main(int argc, char **argv)
 		  tree->rates->model = THORNE;
 		  Lk(tree);
 		  RATES_Lk_Rates(tree);
+		  printf("coucou\n");
 		  printf("\n. LnL_data = %f\n. LnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL);		  
-		  printf("\n. Approx lnL = %f\n",Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES));
 		  tree->rates->bl_from_rt = 1;
-		  MCMC(tree);
+		  tree->rates->lk_approx = NORMAL;
+		  MCMC("thorne.normal",tree);
+
+		  tree->both_sides = 1;
+		  tree->rates->model = THORNE;
+		  Lk(tree);
+		  RATES_Lk_Rates(tree);
+		  printf("\n. LnL_data = %f\n. LnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL);		  
+		  tree->rates->bl_from_rt = 1;
+		  tree->rates->lk_approx = EXACT;
+		  MCMC("thorne.exact",tree);
+
 		  /* END OF COMPOUND POISSON STUFF */
 
 		  /************************************/

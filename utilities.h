@@ -67,6 +67,9 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  SQRT2PI        2.50662827463100024161
 #define  LOG2PI         1.83787706640934533908
 
+#define  NORMAL 1
+#define  EXACT  2
+
 #define  YES 1
 #define  NO  0
 
@@ -861,6 +864,7 @@ typedef struct __Trate {
   phydbl       *cov_r;
   phydbl      *mean_r;
   struct __Node **lca; /* 2-way table of common ancestral nodes for each pari of nodes */
+  int       lk_approx;
 }trate;
 
 /*********************************************************/
@@ -879,6 +883,10 @@ typedef struct __Tmcmc {
   phydbl *t_rate_jumps;
   int    *t_rank;
   phydbl *r_path;
+
+  char *out_filename;
+  FILE *out_fp;
+
 }tmcmc;
 
 /*********************************************************/
