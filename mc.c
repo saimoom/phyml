@@ -298,7 +298,7 @@ int MC_main(int argc, char **argv)
 		    }
 		  fclose(fpout);
 
-		  MCMC_Free_MCMC(tree);
+		  MCMC_Free_MCMC(tree->mcmc);
 
 /* 		  END OF IMPORTANCE SAMPLING STUFF */
 
