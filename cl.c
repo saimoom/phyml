@@ -1082,7 +1082,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
     if(io->mod->s_opt->random_input_tree)
       {
 	strcpy(io->out_trees_file,io->in_seq_file);
-	strcat(io->out_trees_file,"_phyml_trees");
+	strcat(io->out_trees_file,"_phyml_rand_trees");
 	if(io->append_run_ID) { strcat(io->out_trees_file,"_"); strcat(io->out_trees_file,io->run_id_string); }
 	strcat(io->out_trees_file,".txt");
 	io->fp_out_trees = Openfile(io->out_trees_file,1);
