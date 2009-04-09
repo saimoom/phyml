@@ -314,7 +314,7 @@ phydbl Dnorm_Moments(phydbl x, phydbl mean, phydbl var)
 phydbl Dnorm(phydbl x, phydbl mean, phydbl sd)
 {
   phydbl dens;
-  dens = -(.5*log(2.*PI)+log(sd))  - .5*pow(x-mean,2)/pow(sd,2);
+  dens = -(.5*LOG2PI+log(sd))  - .5*pow(x-mean,2)/pow(sd,2);
   return exp(dens);
 }
 
@@ -327,8 +327,12 @@ phydbl Log_Dnorm(phydbl x, phydbl mean, phydbl sd)
 
   xmm = x-mean;
 
-  dens = -(.5*log(2.*PI)+log(sd))  - .5*pow(x-mean,2)/pow(sd,2);
+  dens = -(.5*LOG2PI+log(sd))  - .5*pow(x-mean,2)/pow(sd,2);
 
+  if(dens < -10000.)
+    {
+      printf("\n. dens=%f -- x=%f mean=%f sd=%f\n",dens,x,mean,sd);
+    }
 
 /*   dens = - .5*xmm*xmm; */
 /*   dens /= sd*sd; */

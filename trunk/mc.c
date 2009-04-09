@@ -146,28 +146,10 @@ int MC_main(int argc, char **argv)
 
 		  phydbl *cov;
 		  int n_otu;
-		  int pid;
-		  FILE *fpout,*fpout2;
-		  char *filename;
 		  int i,j;
-		  int dir1,dir2;
+/* 		  int dir1,dir2; */
 
-		  filename=(char *)mCalloc(100,sizeof(char));
-		  		  
-		  pid = getpid();
-
-		  strcpy(filename,"gibbs");
-		  sprintf(filename+strlen(filename),".%d",pid);
-		  fpout=fopen(filename,"w");
-
-		  strcpy(filename,"gibbs");
-		  sprintf(filename+strlen(filename),".%d.2",pid);
-		  fpout2=fopen(filename,"w");
-
-
-		  printf("\n. pid=%d",pid);
-
-		  n_otu = 4;
+		  n_otu = 5;
 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1);
 
 /* 		  tree->rates->nd_t[tree->n_root->v[0]->tax ? tree->n_root->v[1]->num : tree->n_root->v[0]->num] = -10.0; */
@@ -274,31 +256,62 @@ int MC_main(int argc, char **argv)
 		  printf("\n. Best LnL_rates = %f",tree->rates->c_lnL);
 
 
-		  printf("\n. Gibbs sampling...\n");
 
 		  tree->rates->bl_from_rt = 1;
-/* 		  MCMC_Randomize_Rates(tree); */
-		  MCMC_Randomize_Node_Times(tree);
-/* 		  MCMC_Randomize_Nu(tree); */
-		  RATES_Update_Cur_Bl(tree);
 		      
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
-		  MCMC_Init_MCMC_Struct("gibbs",tree->mcmc);
-		  tree->mcmc->out_fp = fopen(tree->mcmc->out_filename,"w");
-		  tree->mcmc->sample_interval = 1;
-		  tree->rates->lk_approx = NORMAL;
+		  MCMC_Init_MCMC_Struct("gibbs.approx",tree->mcmc);
 
-		  For(tree->mcmc->run,10)
+		  tree->mcmc->out_fp            = fopen(tree->mcmc->out_filename,"w");
+		  tree->mcmc->sample_interval   = 2*tree->n_otu-2;
+		  tree->rates->lk_approx        = NORMAL;
+		  tree->rates->met_within_gibbs = NO;
+
+		  MCMC_Print_Param(tree->mcmc->out_fp,tree);
+		  MCMC_Randomize_Rates(tree);
+		  MCMC_Randomize_Node_Times(tree);
+		  MCMC_Randomize_Nu(tree);
+		  RATES_Update_Cur_Bl(tree);
+
+		  printf("\n. Gibbs sampling (approx)...\n");
+		  do
 		    {
-		      if(!(tree->mcmc->run%(2*tree->n_otu-2))) MCMC_Print_Param(fpout,tree);
-/* 		      MCMC_Print_Param(fpout,tree); */
 		      RATES_Posterior_Times(tree);
-/* 		      RATES_Posterior_Rates(tree); */
-/* 		      For(i,10) MCMC_Nu(tree); */
+		      RATES_Posterior_Rates(tree);
+		      /* MCMC_Nu(tree); */
 		    }
-		  fclose(fpout);
+		  while(tree->mcmc->run < 1E+6);
 
+		  fclose(tree->mcmc->out_fp);
 		  MCMC_Free_MCMC(tree->mcmc);
+
+		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
+		  MCMC_Init_MCMC_Struct("gibbs.exact",tree->mcmc);
+
+		  tree->mcmc->out_fp            = fopen(tree->mcmc->out_filename,"w");
+		  tree->mcmc->sample_interval   = 2*tree->n_otu-2;
+		  tree->rates->lk_approx        = NORMAL;
+		  tree->rates->met_within_gibbs = YES;
+
+		  MCMC_Print_Param(tree->mcmc->out_fp,tree);
+		  MCMC_Randomize_Rates(tree);
+		  MCMC_Randomize_Node_Times(tree);
+		  MCMC_Randomize_Nu(tree);
+		  RATES_Update_Cur_Bl(tree);
+
+		  printf("\n. Gibbs sampling (exact)...\n");
+		  do
+		    {
+		      RATES_Posterior_Times(tree);
+		      RATES_Posterior_Rates(tree);
+		      /* MCMC_Nu(tree); */
+		    }
+		  while(tree->mcmc->run < 1E+6);
+
+		  fclose(tree->mcmc->out_fp);
+		  MCMC_Free_MCMC(tree->mcmc);
+
+
 
 /* 		  END OF IMPORTANCE SAMPLING STUFF */
 
@@ -309,22 +322,21 @@ int MC_main(int argc, char **argv)
 
 		  /* COMPOUND POISSON */
 		  tree->both_sides = 1;
-		  tree->rates->model = THORNE;
+		  tree->rates->model     = THORNE;
+		  tree->rates->lk_approx = NORMAL;
 		  Lk(tree);
 		  RATES_Lk_Rates(tree);
-		  printf("coucou\n");
 		  printf("\n. LnL_data = %f\n. LnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL);		  
 		  tree->rates->bl_from_rt = 1;
-		  tree->rates->lk_approx = NORMAL;
 		  MCMC("thorne.normal",tree);
 
 		  tree->both_sides = 1;
-		  tree->rates->model = THORNE;
+		  tree->rates->model     = THORNE;
+		  tree->rates->lk_approx = EXACT;
 		  Lk(tree);
 		  RATES_Lk_Rates(tree);
 		  printf("\n. LnL_data = %f\n. LnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL);		  
 		  tree->rates->bl_from_rt = 1;
-		  tree->rates->lk_approx = EXACT;
 		  MCMC("thorne.exact",tree);
 
 		  /* END OF COMPOUND POISSON STUFF */

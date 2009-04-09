@@ -854,6 +854,8 @@ typedef struct __Trate {
   int model; /* Model number */
   phydbl nu; /* Parameter of the Exponential distribution for the corresponding model */
 
+  int met_within_gibbs;
+
   phydbl        *ml_l; /* ML edge lengths (rooted) */
   phydbl       *cur_l; /* Current edge lengths (rooted) */
   phydbl      *u_ml_l; /* ML edge lengths (unrooted) */
