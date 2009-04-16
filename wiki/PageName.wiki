@@ -1,6 +1,6 @@
-#summary PhyML TODO page.
+*PhyML TODO page*
 
-= TO DO =
+=*TO DO*=
 
   # Add version number to sources.
   # Create a forum for users.
