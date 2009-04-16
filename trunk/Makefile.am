@@ -33,7 +33,7 @@ SLINK = $(SCCLD) $(AM_CFLAGS) $(SLDFLAGS) $(LDFLAGS) $(INCLUDES) $(AM_LDFLAGS)
 
 
 intro:
-	@echo "== Building PhyML version $(VERSION) =="
+	@echo "** Building PhyML version $(VERSION) **"
 
 putversion:
 	sed -e 's/#define VERSION.*/#define VERSION \"$(VERSION)\"/' utilities.h > new_utilities.h
