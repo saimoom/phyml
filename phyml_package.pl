@@ -11,7 +11,8 @@ mkdir("./phyml/bin");
 mkdir("./phyml/examples");
 
 # Put your path to the svn sources here
-$phyml_dir = "/home/lefort/homedir/home/ATGC/phyml/src/svn/phyml/";
+# $phyml_dir = "/home/lefort/homedir/home/ATGC/phyml/src/svn/phyml/";
+$phyml_dir = "/Users/guindon/cvshome/phyml/";
 chdir $phyml_dir;
 
 open(SVNVERSION,"| svnversion > version");
@@ -76,7 +77,7 @@ copy("/Users/guindon/data/phyml_example/nucleic",$output_dir."/phyml/examples/")
 copy("/Users/guindon/data/phyml_example/proteic",$output_dir."/phyml/examples/") || die "Could not copy example file 'proteic'";
 
 
-chdir($output_dir);
+chdir($output_dir."/phyml/src");
 
 system("sed -e 's/#define VERSION.*/#define VERSION \"v3.0 '`head -n 1 version`'\"/' utilities.h > new_utilities.h");
 rename("new_utilities.h", "utilities.h");
@@ -86,5 +87,5 @@ my @abbr = qw( January February March April May June July August September Octob
 $year = $year+1900;
 $tarfile = "phyml_".$mday.$abbr[$mon].$year.".tar.gz";
 chdir $output_dir;
-system("tar -zcvf $tarfile ./phyml/");
+system("tar -zcvf $tarfile ./phyml/ &> /dev/null");
 print "<$mday>", "<$abbr[$mon]>", "<$year>","\n";
