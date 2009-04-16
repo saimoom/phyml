@@ -5,3 +5,4 @@
   # Add version number to sources.
   # Create a forum for users.
   # MPI version of the random starting tree option.
+  # Add data partitions (multi-gene analysis).
