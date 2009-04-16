@@ -79,8 +79,8 @@ copy("/Users/guindon/data/phyml_example/proteic",$output_dir."/phyml/examples/")
 
 chdir($output_dir."/phyml/src");
 
-system("sed -e 's/#define VERSION.*/#define VERSION \"v3.0 '`head -n 1 version`'\"/' utilities.h > new_utilities.h");
-rename("new_utilities.h", "utilities.h");
+# system("sed -e 's/#define VERSION.*/#define VERSION \"v3.0 '`head -n 1 version`'\"/' utilities.h > new_utilities.h");
+# rename("new_utilities.h", "utilities.h");
 
 ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
 my @abbr = qw( January February March April May June July August September October November December );
