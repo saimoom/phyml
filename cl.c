@@ -84,6 +84,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
       {"run_id",            required_argument,NULL,46},
       {"pars",              no_argument,NULL,47},
       {"quiet",             no_argument,NULL,48},
+      {"version",           no_argument,NULL,49},
       {0,0,0,0}
     };
 
@@ -94,6 +95,14 @@ void Read_Command_Line(option *io, int argc, char **argv)
       {
 	switch(c)
 	  {
+	  
+	  case 49:
+	    {
+	      PhyML_Printf("%s\n",VERSION);
+	      Exit("");
+	      break;
+	    }
+
 	  case 48 : 
 	    {
 	      io->quiet = 1;
