@@ -16,7 +16,6 @@ AM_LDFLAGS=-lm
 
 DEFS=-DUNIX -D$(PROG) -DDEBUG
 
-
 bin_PROGRAMS = phyml
 EXTRA_PROGRAMS = m4 mg mc
 PROG = PHYML
@@ -32,8 +31,17 @@ SCOMPILE = $(CC) $(SDEFS) $(DEFS) $(INCLUDES) $(AM_CFLAGS) $(SCFLAGS)
 SCCLD = $(CC) $(LIBS)
 SLINK = $(SCCLD) $(AM_CFLAGS) $(SLDFLAGS) $(LDFLAGS) $(INCLUDES) $(AM_LDFLAGS)
 
-phyml$(EXEEXT): $(phyml_LDADD) $(phyml_SOURCES)
+
+intro:
+	@echo "== Building PhyML version $(VERSION) =="
+
+putversion:
+	sed -e 's/#define VERSION.*/#define VERSION \"$(VERSION)\"/' utilities.h > new_utilities.h
+	cp new_utilities.h utilities.h
+
+phyml$(EXEEXT): intro putversion $(phyml_LDADD) $(phyml_SOURCES)
 	$(SLINK) $(phyml_LDADD) -o $@
+	@echo "Done."
 
 main.o: main.c
 	$(SCOMPILE) -c main.c

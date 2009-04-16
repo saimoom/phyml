@@ -7499,6 +7499,7 @@ void Print_Settings(option *io)
   PhyML_Printf("\n                . Optimise substitution model parameters : \t %s", (answer) ? "yes" : "no");
 
   PhyML_Printf("\n                . Run ID : \t\t\t\t\t %s", (io->append_run_ID) ? (io->run_id_string) : ("none"));
+  PhyML_Printf("\n                . Version : \t\t\t\t\t %s", VERSION);
 
 
   PhyML_Printf("\n\n oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo\n");

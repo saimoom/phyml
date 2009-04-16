@@ -23,7 +23,7 @@ the GNU public licence. See http://www.opensource.org for details.
 #include <time.h>
 #include <float.h>
 
-#define VERSION "v3.0"
+#define VERSION "v3.0 211M"
 
 #define For(i,n)                     for(i=0; i<n; i++)
 #define Fors(i,n,s)                  for(i=0; i<n; i+=s)
