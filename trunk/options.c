@@ -58,7 +58,7 @@ void Usage()
 	 "%s\tStephane Guindon and Olivier Gascuel,\n"
 	 "%s\tSystematic Biology 52(5):696-704, 2003.\n\n"
 	 "%s\tPlease cite this paper if you use this software in your publications.\n",BOLD,FLAT,VERSION,FLAT,FLAT,FLAT,FLAT,FLAT);
-  
+
   PhyML_Printf("%s\nSYNOPSIS:\n\n"
 	 "%s\tphyml %s[command args]\n",BOLD,BOLD,BOLD);
   PhyML_Printf("%s\n\tAll the options below are optional (except '%s-i%s' if you want to use the command-line interface).\n\n",FLAT,BOLD,FLAT); 
@@ -284,9 +284,11 @@ option *Get_Input(int argc, char **argv)
 /* #endif */
 
       break;
+/*
     case 2:
       Usage();
       break;
+*/
     default:
       Read_Command_Line(io,argc,argv);
     }
