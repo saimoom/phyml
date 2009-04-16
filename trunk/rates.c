@@ -1542,10 +1542,12 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
 	  }
     }
 
-  T0  = tree->rates->nd_t[a->num];
-  T1  = tree->rates->nd_t[d->num];
-  U0  = tree->rates->nd_r[a->num];
-  U1  = tree->rates->nd_r[d->num];
+  T3 = T2 = 0.0;
+  T0 = tree->rates->nd_t[a->num];
+  T1 = tree->rates->nd_t[d->num];
+  U0 = tree->rates->nd_r[a->num];
+  U1 = tree->rates->nd_r[d->num];
+  U3 = U2 = -1.0;
 
   if(!d->tax)
     {
@@ -1667,49 +1669,44 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
 
 
 
-  if(Log_Dnorm(U1,U0,sqrt(tree->rates->nu*(T1-T0))) < -2.84)
-    {
-      PhyML_Printf("\n. RATES i.\n");
-      PhyML_Printf("\n. a is root -> %s",(a == tree->n_root)?("YES"):("NO"));
-      PhyML_Printf("\n. U0 = %f U1 = %f U2 = %f U3 = %f",U0,U1,U2,U3);
-      PhyML_Printf("\n. T0 = %f T1 = %f T1 = %f T2 = %f T3 = %f MIN(T2,T3)=%f",T0,T1,T1,T2,T3,MIN(T2,T3));
-      PhyML_Printf("\n. (T1-T0)=%f (T2-T1)=%f (T1-T0)=%f",T1-T0,T2-T1,T1-T0);
-      PhyML_Printf("\n. Low variance detected --> %f",Log_Dnorm(U1,U0,sqrt(tree->rates->nu*(T1-T0))));
-      PhyML_Printf("\n. %f %f %f",U1,U0,sqrt(tree->rates->nu*(T1-T0)));
-      Exit("\n");
-    }
+/*   if(Log_Dnorm(U1,U0,sqrt(tree->rates->nu*(T1-T0))) < -2.84) */
+/*     { */
+/*       PhyML_Printf("\n. RATES i.\n"); */
+/*       PhyML_Printf("\n. a is root -> %s",(a == tree->n_root)?("YES"):("NO")); */
+/*       PhyML_Printf("\n. U0 = %f U1 = %f U2 = %f U3 = %f",U0,U1,U2,U3); */
+/*       PhyML_Printf("\n. T0 = %f T1 = %f T1 = %f T2 = %f T3 = %f MIN(T2,T3)=%f",T0,T1,T1,T2,T3,MIN(T2,T3)); */
+/*       PhyML_Printf("\n. (T1-T0)=%f (T2-T1)=%f (T1-T0)=%f",T1-T0,T2-T1,T1-T0); */
+/*       PhyML_Printf("\n. Low variance detected --> %f",Log_Dnorm(U1,U0,sqrt(tree->rates->nu*(T1-T0)))); */
+/*       PhyML_Printf("\n. %f %f %f",U1,U0,sqrt(tree->rates->nu*(T1-T0))); */
+/*       Exit("\n"); */
+/*     } */
 
-  if(!d->tax)
-    {
-      if(Log_Dnorm(U2,U1,sqrt(tree->rates->nu*(T2-T1))) < -2.84)
-	{
-	  PhyML_Printf("\n. RATES ii.\n");
-	  PhyML_Printf("\n. a is root -> %s",(a == tree->n_root)?("YES"):("NO"));
-	  PhyML_Printf("\n. U0 = %f U1 = %f U2 = %f U3 = %f",U0,U1,U2,U3);
-	  PhyML_Printf("\n. T0 = %f T1 = %f T1 = %f T2 = %f T3 = %f MIN(T2,T3)=%f",T0,T1,T1,T2,T3,MIN(T2,T3));
-	  PhyML_Printf("\n. (T1-T0)=%f (T2-T1)=%f (T2-T1)=%f",T1-T0,T2-T1,T2-T1);
-	  PhyML_Printf("\n. Low variance detected --> %f",Log_Dnorm(U2,U1,sqrt(tree->rates->nu*(T2-T1))));
-	  PhyML_Printf("\n. %f %f %f",U2,U1,sqrt(tree->rates->nu*(T2-T1)));
-	  Exit("\n");
-	}
+/*   if(!d->tax) */
+/*     { */
+/*       if(Log_Dnorm(U2,U1,sqrt(tree->rates->nu*(T2-T1))) < -2.84) */
+/* 	{ */
+/* 	  PhyML_Printf("\n. RATES ii.\n"); */
+/* 	  PhyML_Printf("\n. a is root -> %s",(a == tree->n_root)?("YES"):("NO")); */
+/* 	  PhyML_Printf("\n. U0 = %f U1 = %f U2 = %f U3 = %f",U0,U1,U2,U3); */
+/* 	  PhyML_Printf("\n. T0 = %f T1 = %f T1 = %f T2 = %f T3 = %f MIN(T2,T3)=%f",T0,T1,T1,T2,T3,MIN(T2,T3)); */
+/* 	  PhyML_Printf("\n. (T1-T0)=%f (T2-T1)=%f (T2-T1)=%f",T1-T0,T2-T1,T2-T1); */
+/* 	  PhyML_Printf("\n. Low variance detected --> %f",Log_Dnorm(U2,U1,sqrt(tree->rates->nu*(T2-T1)))); */
+/* 	  PhyML_Printf("\n. %f %f %f",U2,U1,sqrt(tree->rates->nu*(T2-T1))); */
+/* 	  Exit("\n"); */
+/* 	} */
 
-      if(Log_Dnorm(U3,U1,sqrt(tree->rates->nu*(T3-T1))) < -2.84)
-	{
-	  PhyML_Printf("\n. RATES iii.\n");
-	  PhyML_Printf("\n. a is root -> %s",(a == tree->n_root)?("YES"):("NO"));
-	  PhyML_Printf("\n. U0 = %f U1 = %f U2 = %f U3 = %f",U0,U1,U2,U3);
-	  PhyML_Printf("\n. T0 = %f T1 = %f T1 = %f T2 = %f T3 = %f MIN(T2,T3)=%f",T0,T1,T1,T2,T3,MIN(T2,T3));
-	  PhyML_Printf("\n. (T1-T0)=%f (T2-T1)=%f (T3-T1)=%f",T1-T0,T2-T1,T3-T1);
-	  PhyML_Printf("\n. Low variance detected --> %f",Log_Dnorm(U3,U1,sqrt(tree->rates->nu*(T3-T1))));
-	  PhyML_Printf("\n. %f %f %f",U3,U1,sqrt(tree->rates->nu*(T3-T1)));
-	  Exit("\n");
-	}
-    }
-
-
-
-
-
+/*       if(Log_Dnorm(U3,U1,sqrt(tree->rates->nu*(T3-T1))) < -2.84) */
+/* 	{ */
+/* 	  PhyML_Printf("\n. RATES iii.\n"); */
+/* 	  PhyML_Printf("\n. a is root -> %s",(a == tree->n_root)?("YES"):("NO")); */
+/* 	  PhyML_Printf("\n. U0 = %f U1 = %f U2 = %f U3 = %f",U0,U1,U2,U3); */
+/* 	  PhyML_Printf("\n. T0 = %f T1 = %f T1 = %f T2 = %f T3 = %f MIN(T2,T3)=%f",T0,T1,T1,T2,T3,MIN(T2,T3)); */
+/* 	  PhyML_Printf("\n. (T1-T0)=%f (T2-T1)=%f (T3-T1)=%f",T1-T0,T2-T1,T3-T1); */
+/* 	  PhyML_Printf("\n. Low variance detected --> %f",Log_Dnorm(U3,U1,sqrt(tree->rates->nu*(T3-T1)))); */
+/* 	  PhyML_Printf("\n. %f %f %f",U3,U1,sqrt(tree->rates->nu*(T3-T1))); */
+/* 	  Exit("\n"); */
+/* 	} */
+/*     } */
 
 
 
@@ -1945,7 +1942,6 @@ void RATES_Posterior_Times_Pre(node *a, node *d, arbre *tree)
 	  L1 = Rnorm_Trunc(cond_mu[0],sqrt(cond_cov[0*3+0]),BL_LIM_INF,BL_LIM_SUP);
 	  T1_new = L1/U1 + T0;
 	}
-
     }
   else
     {
@@ -1962,6 +1958,8 @@ void RATES_Posterior_Times_Pre(node *a, node *d, arbre *tree)
       PhyML_Printf("\n. a is root -> %s",(a == tree->n_root)?("YES"):("NO"));
       PhyML_Printf("\n. T0 = %f T1_new = %f T1 = %f",T0,T1_new,T1);
       PhyML_Printf("\n. T1_LIM_INF=%f T1_LIM_SUP=%f",T1_LIM_INF,T1_LIM_SUP);
+      PhyML_Printf("\n. L1 = %f",L1);
+      PhyML_Printf("\n. BL_LIM_INF = %f BL_LIM_SUP = %f",BL_LIM_INF,BL_LIM_SUP);
       PhyML_Printf("\n. (T1-T0)=%f (T2-T1)=%f",T1-T0,T2-T1);
       PhyML_Printf("\n. L1 = %f L2 = %f cov11=%f cov22=%f cov33=%f",L1,L2,cov11,cov22,cov33);
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
@@ -1972,6 +1970,8 @@ void RATES_Posterior_Times_Pre(node *a, node *d, arbre *tree)
       PhyML_Printf("\n. a is root -> %s",(a == tree->n_root)?("YES"):("NO"));
       PhyML_Printf("\n. T0 = %f T1_new = %f T1 = %f T2 = %f T3 = %f MIN(T2,T3)=%f",T0,T1_new,T1,T2,T3,MIN(T2,T3));
       PhyML_Printf("\n. T1_LIM_INF=%f T1_LIM_SUP=%f",T1_LIM_INF,T1_LIM_SUP);
+      PhyML_Printf("\n. L2 = %f",L2);
+      PhyML_Printf("\n. BL_LIM_INF = %f BL_LIM_SUP = %f",BL_LIM_INF,BL_LIM_SUP);
       PhyML_Printf("\n. (T1-T0)=%f (T2-T1)=%f",T1-T0,T2-T1);
       PhyML_Printf("\n. L1 = %f L2 = %f cov11=%f cov22=%f cov33=%f",L1,L2,cov11,cov22,cov33);
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);

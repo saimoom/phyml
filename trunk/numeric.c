@@ -230,6 +230,7 @@ phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max)
       printf("\n. Numerical precision issue detected in Rnorm_Trunc.");
       printf("\n. mean=%f sd=%f min=%f max=%f",mean,sd,min,max);
       printf("\n. cdf_min=%f cdf_max=%f\n",cdf_min,cdf_max);
+      ret_val = min + (max-min)/2.;
     }
 
 /*   if(ret_val < min) ret_val = min; */

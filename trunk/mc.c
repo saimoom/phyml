@@ -149,7 +149,7 @@ int MC_main(int argc, char **argv)
 		  int i,j;
 /* 		  int dir1,dir2; */
 
-		  n_otu = 5;
+		  n_otu = 20;
 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1);
 
 /* 		  tree->rates->nd_t[tree->n_root->v[0]->tax ? tree->n_root->v[1]->num : tree->n_root->v[0]->num] = -10.0; */
@@ -287,6 +287,8 @@ int MC_main(int argc, char **argv)
 
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
 		  MCMC_Init_MCMC_Struct("gibbs.exact",tree->mcmc);
+		  Lk(tree);
+		  RATES_Lk_Rates(tree);
 
 		  tree->mcmc->out_fp            = fopen(tree->mcmc->out_filename,"w");
 		  tree->mcmc->sample_interval   = 2*tree->n_otu-2;

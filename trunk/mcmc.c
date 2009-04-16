@@ -391,7 +391,13 @@ void MCMC_Rates_Pre(node *a, node *d, int local, arbre *tree)
 	  
 	  if(fabs(cur_lnL_rate - tree->rates->c_lnL) > 1.E-3)
 	    {
-	      printf("\n. WARNING: numerical precision issue detected (diff=%G). Reseting the likelihood.\n",cur_lnL_rate - tree->rates->c_lnL);
+	      printf("\n. WARNING: numerical precision issue detected (diff=%G run=%d). Reseting the likelihood.\n",cur_lnL_rate - tree->rates->c_lnL,tree->mcmc->run);
+
+	      if(tree->rates->lk_approx == NORMAL)
+		tree->c_lnL = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES);
+	      else
+		tree->c_lnL = Return_Lk(tree);
+
 
 	      if(tree->rates->lk_approx == NORMAL)
 		tree->c_lnL = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES);
@@ -792,6 +798,7 @@ void MCMC_Stick_Rates_Pre(node *a, node *d, arbre *tree)
 
 /*********************************************************/
 
+
 void MCMC_Print_Param(FILE *fp, arbre *tree)
 {
   int i;
@@ -1143,7 +1150,7 @@ void MCMC_Mixing_Step(arbre *tree)
 
       if(fabs(cur_lnL_rate - tree->rates->c_lnL) > 1.E-3)
 	{
-	  printf("\n. WARNING: numerical precision issue detected (diff=%G). Reseting the likelihood.\n",cur_lnL_rate - tree->rates->c_lnL);
+	  printf("\n. WARNING: numerical precision issue detected (diff=%G run=%d). Reseting the likelihood.\n",cur_lnL_rate - tree->rates->c_lnL,tree->mcmc->run);
 	  RATES_Lk_Rates(tree);
 	  Lk(tree);
 	}
