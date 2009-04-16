@@ -7639,7 +7639,7 @@ void Print_Banner(FILE *fp)
   PhyML_Fprintf(fp,"\n");
   PhyML_Fprintf(fp," oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo\n");
   PhyML_Fprintf(fp,"                                                                                                  \n");
-  PhyML_Fprintf(fp,"                                   ---  PhyML %s  ---                                             \n",VERSION);
+  PhyML_Fprintf(fp,"                                 ---  PhyML %s  ---                                             \n",VERSION);
   PhyML_Fprintf(fp,"                                                                                                  \n");
   PhyML_Fprintf(fp,"    A simple, fast, and accurate algorithm to estimate large phylogenies by maximum likelihood    \n");
   PhyML_Fprintf(fp,"                            Stephane Guindon & Olivier Gascuel                                      \n");
@@ -7657,7 +7657,7 @@ void Print_Banner_Small(FILE *fp)
 {
   PhyML_Fprintf(fp,"\n");
   PhyML_Fprintf(fp," oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo\n");
-  PhyML_Fprintf(fp,"                                    ---  PhyML %s  ---                                             \n",VERSION);
+  PhyML_Fprintf(fp,"                                  ---  PhyML %s  ---                                             \n",VERSION);
   PhyML_Fprintf(fp,"                            http://www.atgc-montpellier.fr/phyml                                          \n");
   PhyML_Fprintf(fp,"                         Copyright CNRS - Universite Montpellier II                                 \n");
   PhyML_Fprintf(fp," oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo\n");

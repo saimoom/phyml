@@ -1,4 +1,4 @@
-AC_INIT([mc], [1.0])
+AC_INIT([mc],esyscmd([sh -c "head -n version"]))
 AC_CONFIG_AUX_DIR([.])
 AM_INIT_AUTOMAKE
 AC_PROG_CC

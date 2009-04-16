@@ -1,16 +1,8 @@
-dnl AC_INIT(configure.ac)
-dnl PACKAGE=phyml
-dnl VERSION=3.0
-dnl AM_INIT_AUTOMAKE($PACKAGE, $VERSION)
-dnl AC_PROG_CXX
-dnl AC_PROG_CC
-dnl AC_OUTPUT(Makefile)
-
-AC_INIT([phyml], [3.0])
+dnl AC_INIT([phyml],m4_esyscmd([sh -c "head -n 1 version | sed -e 's|M|V|g' | tr -d '\n'"]))
+AC_INIT([phyml],m4_esyscmd([sh -c "head -n 1 version | sed -e 's|^|v3.0 |g' | tr -d '\n'"]))
 AC_CONFIG_AUX_DIR([.])
 AM_INIT_AUTOMAKE
 AC_PROG_CC
 AC_PROG_CXX
 AC_CONFIG_FILES([Makefile])
-dnl AC_CONFIG_SUBDIRS([mc])
 AC_OUTPUT
