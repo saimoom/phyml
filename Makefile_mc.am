@@ -26,7 +26,16 @@ SCOMPILE = $(CC) $(SDEFS) $(DEFS) $(INCLUDES) $(AM_CFLAGS) $(SCFLAGS)
 SCCLD = $(CC) $(LIBS)
 SLINK = $(SCCLD) $(AM_CFLAGS) $(SLDFLAGS) $(LDFLAGS) $(INCLUDES) $(AM_LDFLAGS)
 
-mc$(EXEEXT): $(mc_LDADD) $(mc_SOURCES)
+intro:	
+	@echo ""
+	@echo "** Building MC version $(VERSION) **"
+	@echo ""
+
+putversion:
+	sed -e 's/#define VERSION.*/#define VERSION \"$(VERSION)\"/' utilities.h > new_utilities.h
+	cp new_utilities.h utilities.h
+
+mc$(EXEEXT): intro putversion $(mc_LDADD) $(mc_SOURCES)
 	$(SLINK) $(mc_LDADD) -o $@
 
 main.o: main.c
