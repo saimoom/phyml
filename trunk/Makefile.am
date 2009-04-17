@@ -32,8 +32,12 @@ SCCLD = $(CC) $(LIBS)
 SLINK = $(SCCLD) $(AM_CFLAGS) $(SLDFLAGS) $(LDFLAGS) $(INCLUDES) $(AM_LDFLAGS)
 
 
-intro:
-	@echo "** Building PhyML version $(VERSION) **"
+intro:	
+	@echo ""
+	@echo ""
+	@echo ":: Building PhyML version $(VERSION) ::"
+	@echo ""
+	@echo ""
 
 putversion:
 	sed -e 's/#define VERSION.*/#define VERSION \"$(VERSION)\"/' utilities.h > new_utilities.h
@@ -41,6 +45,7 @@ putversion:
 
 phyml$(EXEEXT): intro putversion $(phyml_LDADD) $(phyml_SOURCES)
 	$(SLINK) $(phyml_LDADD) -o $@
+	@echo ""
 	@echo "Done."
 
 main.o: main.c
