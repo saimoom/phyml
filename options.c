@@ -272,6 +272,10 @@ option *Get_Input(int argc, char **argv)
   Set_Defaults_Model(io->mod);
   Set_Defaults_Optimiz(io->mod->s_opt);
 
+#ifdef MPI
+  Read_Command_Line(io,argc,argv);
+#else
+
   putchar('\n');
 
   switch (argc)
@@ -292,6 +296,7 @@ option *Get_Input(int argc, char **argv)
     default:
       Read_Command_Line(io,argc,argv);
     }
+#endif
 
   Print_Settings(io);
   return io;
