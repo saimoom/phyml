@@ -216,10 +216,11 @@ phydbl *Rnorm_Multid(phydbl *mu, phydbl *cov, int dim)
 
 /*********************************************************/
 
-phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max)
+phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max, int *error)
 {
   phydbl cdf_min, cdf_max, u, ret_val;
-
+  *error = 0;
+  
   cdf_min = CDF_Normal(min,mean,sd);
   cdf_max = CDF_Normal(max,mean,sd);
   u = cdf_min + (cdf_max-cdf_min) * Uni();
@@ -227,6 +228,7 @@ phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max)
 
   if(ret_val < min || ret_val > max)
     {
+      *error = 1;
       printf("\n. Numerical precision issue detected in Rnorm_Trunc.");
       printf("\n. mean=%f sd=%f min=%f max=%f",mean,sd,min,max);
       printf("\n. cdf_min=%f cdf_max=%f\n",cdf_min,cdf_max);
@@ -246,6 +248,7 @@ phydbl *Rnorm_Multid_Trunc(phydbl *mean, phydbl *cov, phydbl *min, phydbl *max, 
   int i,j;
   phydbl *L,*x, *u;
   phydbl up, low, rec;
+  int err;
   
   u = (phydbl *)mCalloc(dim,sizeof(dim)); 
   x = (phydbl *)mCalloc(dim,sizeof(dim));
@@ -254,7 +257,7 @@ phydbl *Rnorm_Multid_Trunc(phydbl *mean, phydbl *cov, phydbl *min, phydbl *max, 
   
   low = (min[0]-mean[0])/L[0*dim+0];
   up  = (max[0]-mean[0])/L[0*dim+0];
-  u[0] = Rnorm_Trunc(0.0,1.0,low,up);
+  u[0] = Rnorm_Trunc(0.0,1.0,low,up,&err);
 
   for(i=1;i<dim;i++)
     {
@@ -262,7 +265,7 @@ phydbl *Rnorm_Multid_Trunc(phydbl *mean, phydbl *cov, phydbl *min, phydbl *max, 
       For(j,i) rec += L[i*dim+j] * u[j];
       low  = (min[i]-mean[i]-rec)/L[i*dim+i];
       up   = (max[i]-mean[i]-rec)/L[i*dim+i];
-      u[i] = Rnorm_Trunc(0.0,1.0,low,up);
+      u[i] = Rnorm_Trunc(0.0,1.0,low,up,&err);
     }
 
   x = Matrix_Mult(L,u,dim,dim,dim,1);
@@ -330,10 +333,10 @@ phydbl Log_Dnorm(phydbl x, phydbl mean, phydbl sd)
 
   dens = -(.5*LOG2PI+log(sd))  - .5*pow(x-mean,2)/pow(sd,2);
 
-  if(dens < -10000.)
-    {
-      printf("\n. dens=%f -- x=%f mean=%f sd=%f\n",dens,x,mean,sd);
-    }
+/*   if(dens < -10000.) */
+/*     { */
+/*       printf("\n. dens=%f -- x=%f mean=%f sd=%f\n",dens,x,mean,sd); */
+/*     } */
 
 /*   dens = - .5*xmm*xmm; */
 /*   dens /= sd*sd; */

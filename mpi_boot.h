@@ -10,16 +10,6 @@ the GNU public licence. See http://www.opensource.org for details.
 
 */
 
-#include "utilities.h"
-#include "free.h"
-#include "lk.h"
-#include "models.h"
-#include "optimiz.h"
-#include "pars.h"
-#include "simu.h"
-#include "spr.h"
-#include "bionj.h"
-
 
 #ifdef MPI
 

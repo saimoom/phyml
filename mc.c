@@ -270,7 +270,7 @@ int MC_main(int argc, char **argv)
 		  MCMC_Print_Param(tree->mcmc->out_fp,tree);
 		  MCMC_Randomize_Rates(tree);
 		  MCMC_Randomize_Node_Times(tree);
-		  MCMC_Randomize_Nu(tree);
+/* 		  MCMC_Randomize_Nu(tree); */
 		  RATES_Update_Cur_Bl(tree);
 
 		  printf("\n. Gibbs sampling (approx)...\n");
@@ -298,7 +298,7 @@ int MC_main(int argc, char **argv)
 		  MCMC_Print_Param(tree->mcmc->out_fp,tree);
 		  MCMC_Randomize_Rates(tree);
 		  MCMC_Randomize_Node_Times(tree);
-		  MCMC_Randomize_Nu(tree);
+/* 		  MCMC_Randomize_Nu(tree); */
 		  RATES_Update_Cur_Bl(tree);
 
 		  printf("\n. Gibbs sampling (exact)...\n");

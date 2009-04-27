@@ -2339,9 +2339,9 @@ int Optimiz_Alpha_And_Pinv(arbre *tree)
   phydbl best_lnL;
 
 
-  lk_final   = UNLIKELY;
-  lk_b       = UNLIKELY;
-  lk_a       = UNLIKELY;
+  lk_final = UNLIKELY;
+  lk_b     = UNLIKELY;
+  lk_a     = UNLIKELY;
 
 
 /*   PhyML_Printf("\n\n. Init lnL = %f alpha=%f pinv=%f", */

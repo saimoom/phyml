@@ -72,6 +72,7 @@ copy "ChangeLog",$output_dir."/phyml/src" || die "Could not copy file ChangeLog.
 copy "version",$output_dir."/phyml/src" || die "Could not copy file version.\n";
 
 copy "phyml.bat",$output_dir."/phyml/bin" || die "Could not copy file phyml.bat.\n";
+system("ps2pdf /Users/guindon/latex/phyml/phyml_manual.ps /Users/guindon/latex/phyml/phyml_manual.pdf");
 copy("/Users/guindon/latex/phyml/phyml_manual.pdf",$output_dir."/phyml/doc") || die "Could not copy file phyml_manual.pdf.\n";
 copy("/Users/guindon/data/phyml_example/nucleic",$output_dir."/phyml/examples/") || die "Could not copy example file 'nucleic'";
 copy("/Users/guindon/data/phyml_example/proteic",$output_dir."/phyml/examples/") || die "Could not copy example file 'proteic'";
@@ -83,7 +84,8 @@ chdir($output_dir."/phyml/src");
 # rename("new_utilities.h", "utilities.h");
 
 ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
-my @abbr = qw( January February March April May June July August September October November December );
+# my @abbr = qw( January February March April May June July August September October November December );
+my @abbr = qw( 01 02 03 04 05 06 07 08 09 10 11 12 );
 $year = $year+1900;
 $tarfile = "phyml_".$mday.$abbr[$mon].$year.".tar.gz";
 chdir $output_dir;

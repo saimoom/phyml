@@ -55,9 +55,9 @@ void MCMC(char *filename, arbre *tree)
 
   MCMC_Randomize_Rates(tree);
   /* MCMC_Randomize_Nu(tree); */
-/*   MCMC_Randomize_Lexp(tree); */
-/*   MCMC_Randomize_Jumps(tree); */
-/*   MCMC_Randomize_Alpha(tree); */
+  /*   MCMC_Randomize_Lexp(tree); */
+  /*   MCMC_Randomize_Jumps(tree); */
+  /*   MCMC_Randomize_Alpha(tree); */
   MCMC_Randomize_Node_Times(tree);
 
   RATES_Lk_Rates(tree);
@@ -71,16 +71,16 @@ void MCMC(char *filename, arbre *tree)
   do
     {            
 
-/*       MCMC_Lexp(tree);         */
-/*       MCMC_Alpha(tree);        */
+      /*       MCMC_Lexp(tree);         */
+      /*       MCMC_Alpha(tree);        */
       /* MCMC_Nu(tree); */
       MCMC_Rates_Local(tree);
-/*       MCMC_Rates_Global(tree); */
+      /*       MCMC_Rates_Global(tree); */
       MCMC_Times_Local(tree);
-/*       MCMC_Times_Global(tree); */
-/*       MCMC_Stick_Rates(tree);  */
-/*       MCMC_Mixing_Step(tree);  */
-/*       MCMC_Jumps_Local(tree);  */
+      /*       MCMC_Times_Global(tree); */
+      /*       MCMC_Stick_Rates(tree);  */
+      /*       MCMC_Mixing_Step(tree);  */
+      /*       MCMC_Jumps_Local(tree);  */
     }
   while(tree->mcmc->run < 1E+6);
 
@@ -454,11 +454,12 @@ void MCMC_Times_Pre(node *a, node *d, int local, arbre *tree)
   RATES_Record_Rates(tree);
 
   cur_lnL_data  = tree->c_lnL;
-  cur_lnL_rate  = tree->rates->c_lnL;
   cur_t         = tree->rates->nd_t[d->num];
   cur_lnL_times = RATES_Yule(tree);
+  cur_lnL_rate  = tree->rates->c_lnL;
   new_lnL_data  = cur_lnL_data;
   new_lnL_times = cur_lnL_times;
+  new_lnL_rate  = cur_lnL_rate;
 
   buff_n = v2 = v3 = NULL;
   For(i,3)
@@ -494,6 +495,7 @@ void MCMC_Times_Pre(node *a, node *d, int local, arbre *tree)
   
   if(t_max < t_min)
     {
+      PhyML_Printf("\n. U0=%f U1=%f U2=%f U3=%f",u0,u1,u2,u3);
       PhyML_Printf("\n. t_max = %f t_min=%f",t_max,t_min);
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Exit("\n");
@@ -524,7 +526,7 @@ void MCMC_Times_Pre(node *a, node *d, int local, arbre *tree)
   
   if(local)
     {
-      new_lnL_rate  = RATES_Lk_Rates(tree);
+/*       new_lnL_rate  = RATES_Lk_Rates(tree); */
 
       if(tree->rates->lk_approx == NORMAL)
 	{
@@ -537,11 +539,7 @@ void MCMC_Times_Pre(node *a, node *d, int local, arbre *tree)
 	}
 
       tree->c_lnL = new_lnL_data;
-      
-      /* ratio = */
-      /* 	(new_lnL_data + new_lnL_rate) - */
-      /* 	(cur_lnL_data + cur_lnL_rate); */
-      
+            
       ratio = new_lnL_data - cur_lnL_data;
       
       ratio = exp(ratio);
@@ -554,9 +552,9 @@ void MCMC_Times_Pre(node *a, node *d, int local, arbre *tree)
       if(u > alpha) /* Reject */
 	{
 	  RATES_Reset_Times(tree);
-	  RATES_Reset_Rates(tree);
+/* 	  RATES_Reset_Rates(tree); */
 	  
-	  RATES_Lk_Rates(tree);
+/* 	  RATES_Lk_Rates(tree); */
 
 	  if(tree->rates->lk_approx == NORMAL)
 	    {
@@ -595,6 +593,7 @@ void MCMC_Times_Pre(node *a, node *d, int local, arbre *tree)
 	}
       else
 	{
+	  RATES_Lk_Rates(tree); /* Rates likelihood needs to be updated here */
 	  tree->mcmc->acc_times++;
 	}
     }
