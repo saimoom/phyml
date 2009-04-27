@@ -46,7 +46,7 @@ phydbl Dpois(phydbl x, phydbl param);
 phydbl Rand_Normal_Deviate(phydbl mean, phydbl sd);
 phydbl Rnorm(phydbl mean, phydbl sd);
 phydbl *Rnorm_Multid(phydbl *mu, phydbl *cov, int dim);
-phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max);
+phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max, int *err);
 phydbl *Rnorm_Multid_Trunc(phydbl *mean, phydbl *cov, phydbl *min, phydbl *max, int dim);
 phydbl *Hessian_Log(arbre *tree);
 void Recurr_Hessian_Log(node *a, node *d, int plus_minus, phydbl *inc, phydbl *res, int *is_ok, arbre *tree);

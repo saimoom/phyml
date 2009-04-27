@@ -11,6 +11,14 @@ the GNU public licence. See http://www.opensource.org for details.
 */
 
 #include "mpi_boot.h"
+#include "utilities.h"
+#include "bionj.h"
+#include "lk.h"
+#include "pars.h"
+#include "free.h"
+#include "models.h"
+#include "simu.h"
+#include "spr.h"
 
 #ifdef MPI
 

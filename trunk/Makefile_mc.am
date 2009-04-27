@@ -33,10 +33,12 @@ intro:
 
 putversion:
 	sed -e 's/#define VERSION.*/#define VERSION \"$(VERSION)\"/' utilities.h > new_utilities.h
-	cp new_utilities.h utilities.h
+	mv new_utilities.h utilities.h
 
-mc$(EXEEXT): intro putversion $(mc_LDADD) $(mc_SOURCES)
+mc$(EXEEXT): intro $(mc_LDADD) $(mc_SOURCES)
 	$(SLINK) $(mc_LDADD) -o $@
+	@echo ""
+	@echo "Done."
 
 main.o: main.c
 	$(SCOMPILE) -c main.c
