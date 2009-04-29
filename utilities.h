@@ -23,7 +23,7 @@ the GNU public licence. See http://www.opensource.org for details.
 #include <time.h>
 #include <float.h>
 
-#define VERSION "v3.0 (211:217M)"
+#define VERSION "v3.0 (219M)"
 
 #define For(i,n)                     for(i=0; i<n; i++)
 #define Fors(i,n,s)                  for(i=0; i<n; i+=s)
@@ -115,7 +115,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #ifdef PHYML
 #define  BL_MIN            1.e-10
 #else
-#define  BL_MIN             1.e-8
+#define  BL_MIN             1.e-6
 #endif
 #define  BL_START          1.e-04
 #define  BL_MAX             100.0
@@ -143,7 +143,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  MAX_PARS        1000000000
 
 #define  MIN_CLOCK_RATE   1.E-10
-#define  MIN_VAR_BL        BL_MIN
+#define  MIN_VAR_BL        1.E-7
 
 #define JC69       1
 #define K80        2
@@ -841,6 +841,10 @@ typedef struct __Trate {
   phydbl birth_rate;
   phydbl min_rate;
   phydbl max_rate;
+  phydbl min_clock;
+  phydbl max_clock;
+  phydbl min_nu;
+  phydbl max_nu;
   phydbl min_dt;
   phydbl step_rate;
   phydbl  *nd_r;  /* Current rates at nodes and the corresponding incoming edges */
@@ -873,6 +877,7 @@ typedef struct __Trate {
 
 typedef struct __Tmcmc {
   int run;
+  int n_tot_run;
   int sample_interval;
   int acc_lexp;
   int acc_rates;
@@ -1175,5 +1180,6 @@ void Normal_Conditional(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is
 phydbl Matrix_Det(phydbl *A, int size);
 void Get_List_Of_Ancestors(node *ref_nod, node **list, int *size, arbre *tree);
 node *Find_Lca(node *n1, node *n2, arbre *tree);
+int Edge_Num_To_Node_Num(int edge_num, arbre *tree);
 
 #endif

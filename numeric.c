@@ -78,10 +78,9 @@ phydbl tt800()
 double Uni()
 {
   double r; 
-/*   r=rand(); */
-/*   r/=RAND_MAX; */
-/*   r = drand48(); */
-  r = tt800();
+  r=rand();
+  r/=RAND_MAX;
+/*   r = tt800(); */
   return r;
 }
 
@@ -1328,14 +1327,12 @@ phydbl *Hessian(arbre *tree)
 
   For(i,dim) ori_bl[i] = tree->t_edges[i]->l;
 
+
   n_ok_edges = 0;
   For(i,dim) 
     {
-      /* Proba. that the number of subst/site is greater than 1 */
-      /*       if(1.-exp(-tree->t_edges[i]->l)-tree->t_edges[i]->l*exp(-tree->t_edges[i]->l) > 1.E-6)  */
-/*       if(tree->t_edges[i]->l > 0.001) */
       if(tree->t_edges[i]->l*(1.-eps) > BL_MIN)
-	{
+	{	  
 	  inc[i] = eps * tree->t_edges[i]->l;
 	  ok_edges[n_ok_edges] = i;
 	  n_ok_edges++;
@@ -1347,6 +1344,7 @@ phydbl *Hessian(arbre *tree)
 	  is_ok[i] = 0;
 	}
     }
+
   /* zero zero */  
   zero_zero = tree->c_lnL;
 
@@ -1426,7 +1424,12 @@ phydbl *Hessian(arbre *tree)
       if(is_ok[i])
 	{
 	  tree->t_edges[i]->l -= inc[i];
-	  tree->t_edges[i]->l = fabs(tree->t_edges[i]->l);
+
+	  if(tree->t_edges[i]->l < BL_MIN)
+	    {
+	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	      Exit("\n");
+	    }
 	  
 	  Update_PMat_At_Given_Edge(tree->t_edges[i],tree);
 	  
@@ -1493,28 +1496,55 @@ phydbl *Hessian(arbre *tree)
 
 	hessian[i*dim+i] = (lnL2 - 2*lnL1 + lnL) / pow(eps,2);
 	hessian[i*dim+i] = -1.0 / hessian[i*dim+i];
-	
-/* 	hessian[i*dim+i] = (tree->t_edges[i]->l * (1.-tree->t_edges[i]->l))/tree->data->init_len; */
-/* 	hessian[i*dim+i] = 1./pow(tree->data->init_len,2); */
       }
 
   For(i,dim)
     if(hessian[i*dim+i] < MIN_VAR_BL)
       {
-	hessian[i*dim+i] = MIN_VAR_BL;
+	lnL  = tree->c_lnL;
+	tree->t_edges[i]->l += eps;
+	lnL1 = Lk_At_Given_Edge(tree->t_edges[i],tree);
+	tree->t_edges[i]->l += eps;
+	lnL2 = Lk_At_Given_Edge(tree->t_edges[i],tree);
+
+	hessian[i*dim+i] = (lnL2 - 2*lnL1 + lnL) / pow(eps,2);
+	hessian[i*dim+i] = -1.0 / hessian[i*dim+i];
+      }
+
+
+  For(i,dim)
+    if(hessian[i*dim+i] < MIN_VAR_BL)
+      {
 	PhyML_Printf("\n. l=%G var=%G",tree->t_edges[i]->l,hessian[i*dim+i]);
-/* 	PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
-/* 	Exit("\n"); */
+	hessian[i*dim+i] = MIN_VAR_BL;
+	PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	Exit("\n");
       }
 
   Matinv(hessian,dim,dim);
 
   For(i,dim*dim) hessian[i] = -1.0*hessian[i];
 
+  For(i,dim)
+    {
+      For(j,dim)
+	{
+	  if(fabs(hessian[i*dim+j]-hessian[j*dim+i]) > 1.E-3)
+	    {
+	      PhyML_Printf("\n. Hessian not symmetrical.");
+	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	      Exit("\n");
+	    }
+	  hessian[i*dim+j] = (hessian[i*dim+j] + hessian[j*dim+i]) / 2.; 
+	  hessian[j*dim+i] = hessian[i*dim+j];  
+	}
+    }
+  
+
 /*   For(i,dim) */
 /*     { */
 /*       printf("[%f] ",tree->t_edges[i]->l); */
-/*       For(j,i+1) */
+/*       For(j,dim) */
 /* 	{ */
 /* 	  printf("%12lf ",hessian[i*dim+j]); */
 /* 	} */
@@ -1528,7 +1558,7 @@ phydbl *Hessian(arbre *tree)
 /*   For(i,dim) */
 /*     { */
 /*       printf("[%f] ",tree->t_edges[i]->l); */
-/*       For(j,i+1) */
+/*       For(j,dim) */
 /* 	{ */
 /* 	  printf("%12lf ",-hessian[i*dim+j]); */
 /* 	} */

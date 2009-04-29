@@ -711,6 +711,10 @@ void RATES_Init_Rate_Struct(trate *rates, int n_otu)
   rates->birth_rate    = 0.001;
   rates->max_rate      = 1.E+2;
   rates->min_rate      = 1.E-2;
+  rates->max_clock     = 1.E-0;
+  rates->min_clock     = 1.E-8;
+  rates->max_nu        = 1.E-0;
+  rates->min_nu        = 1.E-7;
   rates->min_dt        = 1.E-8;
   rates->step_rate     = 1.E-4;
   rates->nu            = 1.E-3;
@@ -985,6 +989,8 @@ void RATES_Expect_Number_Subst(phydbl t_beg, phydbl t_end, phydbl r_beg,  int *n
 	sd = sqrt(rates->nu*fabs(t_beg-t_end));
 
 	*mean_r = Rnorm_Trunc(r_beg,sd,rates->min_rate,rates->max_rate,&err);
+
+	if(err) PhyML_Printf("\n. %s %d %d",__FILE__,__LINE__,tree->mcmc->run);	  
 
 	*r_end  = *mean_r;
 	
@@ -1473,6 +1479,76 @@ phydbl RATES_Lk_Jumps(arbre *tree)
 
 /*********************************************************/
 
+
+void RATES_Posterior_Clock_Rate(arbre *tree)
+{
+  int i,j,dim,err;
+  phydbl sumcov,denom,mean,var,summean;
+  phydbl Ri,DTi,Rj,DTj;
+
+
+  dim = 2*tree->n_otu-3;
+  Ri = DTi = Rj = DTj = 0.0;
+
+  summean = 0.0;
+  For(i,dim) summean += tree->rates->u_ml_l[i];
+
+  sumcov = 0.0;
+  For(i,dim*dim) sumcov += tree->rates->cov[i];
+
+  denom = 0;
+  For(i,dim)
+    {
+      if(tree->t_edges[i] != tree->e_root)
+	{
+	  Ri  = tree->rates->nd_r[Edge_Num_To_Node_Num(i,tree)];
+	  DTi = fabs(tree->rates->nd_t[tree->t_edges[i]->left->num] - tree->rates->nd_t[tree->t_edges[i]->rght->num]);
+	}
+      else
+	{
+	  Ri  =
+	    tree->rates->nd_r[tree->n_root->v[0]->num] * (tree->rates->nd_t[tree->n_root->v[0]->num] - tree->rates->nd_t[tree->n_root->num]) +
+	    tree->rates->nd_r[tree->n_root->v[1]->num] * (tree->rates->nd_t[tree->n_root->v[1]->num] - tree->rates->nd_t[tree->n_root->num]);
+
+	  DTi =
+	    (tree->rates->nd_t[tree->n_root->v[0]->num] - tree->rates->nd_t[tree->n_root->num]) +
+	    (tree->rates->nd_t[tree->n_root->v[1]->num] - tree->rates->nd_t[tree->n_root->num]) ;
+
+	  Ri /= DTi;
+	}
+      denom += Ri * DTi;
+    }
+
+  mean = summean / denom;
+  var  = sumcov / pow(denom,2);
+
+  tree->rates->clock_r = Rnorm_Trunc(mean,sqrt(var),tree->rates->min_clock,tree->rates->max_clock,&err);
+
+  if(err)
+    {
+      PhyML_Printf("\n. %s %d %d",__FILE__,__LINE__,tree->mcmc->run);
+      PhyML_Printf("\n. mean=%f var=%f sampled=%f",mean,var,tree->rates->clock_r);
+    }
+
+  if(isnan(tree->rates->clock_r))
+    {
+      PhyML_Printf("\n. mean=%f var=%f",mean,var);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");
+    }
+
+  RATES_Update_Cur_Bl(tree);
+
+  /* Optional here but useful for monitoring ESS for likelihoods */
+  tree->c_lnL        = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES);
+  tree->rates->c_lnL = RATES_Lk_Rates(tree);
+
+  tree->mcmc->run++;
+  MCMC_Print_Param(tree->mcmc->out_fp,tree);
+}
+
+/*********************************************************/
+
 void RATES_Posterior_Rates(arbre *tree)
 {
 /*   RATES_Posterior_Rates_Pre(tree->n_root,tree->n_root->v[0],tree); */
@@ -1577,7 +1653,6 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
   cer    = -1.0; /* conditional rate expectation */
   cvr    = -1.0; /* conditional rate variance */
 
-
   l_opp  = -1.0;
   if(a == tree->n_root)
     {
@@ -1608,13 +1683,11 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
       cvl = cond_cov[b->num*(2*tree->n_otu-3)+b->num];
     }
 
+  if(cel < BL_MIN) cel = BL_MIN;
+  if(cel > BL_MAX) cel = BL_MAX;
+
   like_mean = cel;
   like_var  = cvl;
- 
-  if(like_mean < BL_MIN) like_mean = BL_MIN;
-  if(like_mean > BL_MAX) like_mean = BL_MAX;
-
-
  
   /* Prior */
   if(!d->tax)
@@ -1658,17 +1731,44 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
   post_sd   = sqrt(post_var);
 
 
-  if(post_mean < 0.0)
+  if(a == tree->n_root)
     {
-      printf("\n. post_mean = %f prior_mean = %f lk_mean = %f prior_var = %f lk_var = %f",post_mean,prior_mean,like_mean,prior_var,like_var);
+      new_l = Rnorm_Trunc(post_mean,post_sd,l_opp+BL_MIN,BL_MAX,&err);
+      
+      if(err)
+	{
+	  PhyML_Printf("\n. %s %d %d",__FILE__,__LINE__,tree->mcmc->run);
+	  PhyML_Printf("\n. prior_mean = %f prior_var = %f",prior_mean,prior_var);
+	  PhyML_Printf("\n. like_mean = %f like_var = %f",like_mean,like_var);
+	  PhyML_Printf("\n. post_mean = %f post_var = %f",post_mean,post_var);
+	  PhyML_Printf("\n. l_opp = %f",l_opp);
+	  PhyML_Printf("\n. l_root = %f",tree->t_edges[tree->e_root->num]->l);
+	  PhyML_Printf("\n. clock_r = %f",tree->rates->clock_r);
+	  PhyML_Printf("\n. T1=%f T2=%f",
+		       tree->rates->nd_t[tree->n_root->v[0]->num],
+		       tree->rates->nd_t[tree->n_root->v[1]->num]);
+	  PhyML_Printf("\n. U1=%f U2=%f",
+		       tree->rates->nd_r[tree->n_root->v[0]->num],
+		       tree->rates->nd_r[tree->n_root->v[1]->num]);
+	  Exit("\n");
+	}
+    }
+  else
+    {
+      new_l = Rnorm_Trunc(post_mean,post_sd,BL_MIN,BL_MAX,&err);
+
+      if(err)
+	{
+	  PhyML_Printf("\n. %s %d %d",__FILE__,__LINE__,tree->mcmc->run);
+	  PhyML_Printf("\n. prior_mean = %f prior_var = %f",prior_mean,prior_var);
+	  PhyML_Printf("\n. like_mean = %f like_var = %f",like_mean,like_var);
+	  PhyML_Printf("\n. post_mean = %f post_var = %f",post_mean,post_var);
+	  PhyML_Printf("\n. clock_r = %f",tree->rates->clock_r);
+	  Exit("\n");
+	}
     }
 
 
-  if(a == tree->n_root)
-    new_l = Rnorm_Trunc(post_mean,post_sd,l_opp+BL_MIN,BL_MAX,&err);
-  else
-    new_l = Rnorm_Trunc(post_mean,post_sd,BL_MIN,BL_MAX,&err);
-    
   if(a == tree->n_root)
     rd = (new_l-l_opp)/(dt*cr);
   else
@@ -1907,10 +2007,12 @@ void RATES_Posterior_Times_Pre(node *a, node *d, arbre *tree)
       PhyML_Printf("\n. T0=%f T2=%f T3=%f",T0,T2,T3);
       PhyML_Printf("\n. U0=%f U1=%f U2=%f U3=%f",U0,U1,U2,U3);
       PhyML_Printf("\n. T1_LIM_SUP = %f T1_LIM_INF=%f",T1_LIM_SUP,T1_LIM_INF);
+      PhyML_Printf("\n. T3 - (1./tree->rates->nu)*pow((U1-U3)/1.96,2)=%f",T3 - (1./tree->rates->nu)*pow((U1-U3)/1.96,2));
+      PhyML_Printf("\n. T2 - (1./tree->rates->nu)*pow((U1-U2)/1.96,2)=%f",T2 - (1./tree->rates->nu)*pow((U1-U2)/1.96,2));
+      PhyML_Printf("\n. Clock rate = %f",tree->rates->clock_r);
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Exit("\n");
     }
-
 
   l_opp = -1.;
   if(a == tree->n_root)
@@ -2014,14 +2116,17 @@ void RATES_Posterior_Times_Pre(node *a, node *d, arbre *tree)
 
       if(err)
 	{
-	  PhyML_Printf("\n. %s %d",__FILE__,__LINE__);
+	  PhyML_Printf("\n. Root ? %s",(tree->n_root==a)?("yes"):("no")); 
+	  PhyML_Printf("\n. %s %d %d",__FILE__,__LINE__,tree->mcmc->run);
 	  PhyML_Printf("\n. T0=%f T1=%f T2=%f T3=%f",T0,T1,T2,T3);
+	  PhyML_Printf("\n. T1_LIM_INF=%f T1_LIM_SUP=%f",T1_LIM_INF,T1_LIM_SUP);
 	  PhyML_Printf("\n. BL_LIM_INF=%f BL_LIM_SUP=%f",BL_LIM_INF,BL_LIM_SUP);
 	  PhyML_Printf("\n. cond_mu[0]=%f cond_cov[0]=%f",cond_mu[0],sqrt(cond_cov[0*3+0]));
 	  PhyML_Printf("\n. EL1=%f EL2=%f EL3=%f",EL1,EL2,EL3);
 	  PhyML_Printf("\n. L1=%f L2=%f L3=%f",L1,L2,L3);
 	  PhyML_Printf("\n. U0=%f U1=%f U2=%f U3=%f",U0,U1,U2,U3);
 	  PhyML_Printf("\n. COV11=%f COV22=%f",cov11,cov22);
+	  PhyML_Printf("\n. Clock rate = %f",tree->rates->clock_r);
 	  Exit("\n");
 	}
     }
@@ -2034,14 +2139,16 @@ void RATES_Posterior_Times_Pre(node *a, node *d, arbre *tree)
       
       if(err)
 	{
-	  PhyML_Printf("\n. %s %d",__FILE__,__LINE__);
+	  PhyML_Printf("\n. %s %d %d",__FILE__,__LINE__,tree->mcmc->run);
 	  PhyML_Printf("\n. T0=%f T1=%f T2=%f T3=%f",T0,T1,T2,T3);
+	  PhyML_Printf("\n. T1_LIM_INF=%f T1_LIM_SUP=%f",T1_LIM_INF,T1_LIM_SUP);
 	  PhyML_Printf("\n. BL_LIM_INF=%f BL_LIM_SUP=%f",BL_LIM_INF,BL_LIM_SUP);
 	  PhyML_Printf("\n. cond_mu[0]=%f cond_cov[0]=%f",cond_mu[0],sqrt(cond_cov[0*3+0]));
 	  PhyML_Printf("\n. EL1=%f EL2=%f EL3=%f",EL1,EL2,EL3);
 	  PhyML_Printf("\n. L1=%f L2=%f L3=%f",L1,L2,L3);
 	  PhyML_Printf("\n. U0=%f U1=%f U2=%f U3=%f",U0,U1,U2,U3);
 	  PhyML_Printf("\n. COV11=%f COV22=%f",cov11,cov22);
+	  PhyML_Printf("\n. Clock rate = %f",tree->rates->clock_r);
 	  Exit("\n");
 	}
 
@@ -2198,8 +2305,6 @@ void RATES_Update_Cur_Bl_Pre(node *a, node *d, edge *b, arbre *tree)
       Exit("\n");
     }
   
-
-
   if(d->tax) return;
   else
     {
