@@ -17,8 +17,8 @@ void MCMC_Lexp(arbre *tree);
 void MCMC_Print_Param(FILE *fp, arbre *tree);
 tmcmc *MCMC_Make_MCMC_Struct();
 void MCMC_Free_MCMC(tmcmc *mcmc);
-void MCMC_Init_MCMC_Struct(char *filename, tmcmc *mcmc);
-void MCMC(char *filename, arbre *tree);
+void MCMC_Init_MCMC_Struct(char *filename, tmcmc *mcmc, arbre *tree);
+void MCMC(arbre *tree);
 void MCMC_Alpha(arbre *tree);
 void MCMC_Randomize_Branch_Lengths(arbre *tree);
 void MCMC_Randomize_Node_Times(arbre *tree);
@@ -47,6 +47,8 @@ void MCMC_Rates_Pre(node *a, node *d, int local, arbre *tree);
 void MCMC_Mixing_Step(arbre *tree);
 void MCMC_Jumps_Local(arbre *tree);
 void MCMC_Jumps_Pre(node *a, node *d, int local, arbre *tree);
+void MCMC_Randomize_Clock_Rate(arbre *tree);
+void MCMC_Clock_Rate(arbre *tree);
 
 
 

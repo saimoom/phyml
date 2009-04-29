@@ -9706,4 +9706,22 @@ void Get_List_Of_Ancestors(node *ref_node, node **list, int *size, arbre *tree)
       list[*size] = n;
     }
 }
+
+/*********************************************************/
+
+int Edge_Num_To_Node_Num(int edge_num, arbre *tree)
+{
+  int node_num;
+  edge *b;
+
+  b = tree->t_edges[edge_num];
+
+  node_num = (b->left == b->rght->anc)?(b->rght->num):(b->left->num);
+  
+  return node_num;
+}
+
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
 /*********************************************************/
