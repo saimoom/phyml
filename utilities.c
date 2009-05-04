@@ -10,30 +10,7 @@ the GNU public licence. See http://www.opensource.org for details.
 
 */
 
-#include "spr.h"
 #include "utilities.h"
-#include "lk.h"
-#include "optimiz.h"
-#include "models.h"
-#include "free.h"
-#include "bionj.h"
-#include "simu.h"
-#include "eigen.h"
-#include "pars.h"
-#include "alrt.h"
-#include "m4.h"
-#include "mc.h"
-#include "rates.h"
-#include "numeric.h"
-
-#ifdef MPI
-#include "mpi_boot.h"
-#endif
-
-#ifdef MG
-#include "mg.h"
-#endif
-
 
 
 /*********************************************************/

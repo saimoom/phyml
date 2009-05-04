@@ -23,7 +23,7 @@ the GNU public licence. See http://www.opensource.org for details.
 #include <time.h>
 #include <float.h>
 
-#define VERSION "v3.0 (219M)"
+
 
 #define For(i,n)                     for(i=0; i<n; i++)
 #define Fors(i,n,s)                  for(i=0; i<n; i+=s)
@@ -1181,5 +1181,38 @@ phydbl Matrix_Det(phydbl *A, int size);
 void Get_List_Of_Ancestors(node *ref_nod, node **list, int *size, arbre *tree);
 node *Find_Lca(node *n1, node *n2, arbre *tree);
 int Edge_Num_To_Node_Num(int edge_num, arbre *tree);
+
+
+#include "free.h"
+#include "spr.h"
+#include "lk.h"
+#include "optimiz.h"
+#include "models.h"
+#include "bionj.h"
+#include "simu.h"
+#include "eigen.h"
+#include "pars.h"
+#include "alrt.h"
+#include "numeric.h"
+
+#include <config.h>
+
+
+#ifdef MPI
+#include "mpi_boot.h"
+#endif
+
+#ifdef MG
+#include "mg.h"
+#endif
+
+#ifdef MC
+#include "mc.h"
+#include "rates.h"
+#endif
+
+#ifdef _NOT_NEEDED_A_PRIORI
+#include "m4.h"
+#endif
 
 #endif

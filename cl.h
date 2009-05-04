@@ -10,10 +10,17 @@ the GNU public licence.  See http://www.opensource.org for details.
 
 */
 
-#include "utilities.h"
-
 #ifndef CL_H
 #define CL_H
+
+#include <unistd.h>
+#include <getopt.h>
+#include "utilities.h"
+#include "options.h"
+#include "models.h"
+#include "free.h"
+#include "interface.h"
+
 
 void Read_Command_Line(option *input, int argc, char **argv);
 

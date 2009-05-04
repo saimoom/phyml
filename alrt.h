@@ -13,6 +13,14 @@ the GNU public licence.  See http://www.opensource.org for details.
 #ifndef ALRT_H
 #define ALRT_H
 
+#include "utilities.h"
+#include "lk.h"
+#include "optimiz.h"
+#include "models.h"
+#include "free.h"
+#include "simu.h"
+
+
 void aLRT(arbre *tree);
 int Check_NNI_Five_Branches(arbre *tree);
 int Compute_Likelihood_Ratio_Test(edge *tested_edge, arbre *tree);

@@ -20,7 +20,7 @@ on a simple model of sequence data." (1997) O. Gascuel. Mol Biol Evol.
 */
 
 #include "bionj.h"
-#include "free.h"
+
 
 void Bionj(matrix *mat)
 {

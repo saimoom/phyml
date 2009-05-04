@@ -13,6 +13,13 @@ the GNU public licence. See http://www.opensource.org for details.
 #ifndef INTERFACE_H
 #define INTERFACE_H
 
+#include "utilities.h"
+#include "options.h"
+#include "models.h"
+#include "free.h"
+#include "options.h"
+
+
 void Launch_Interface(option *input);
 void Clear();
 void Launch_Interface_Input(option *input);

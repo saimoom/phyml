@@ -8,6 +8,13 @@
 #define _SPR_H_
 
 #include "utilities.h"
+#include "models.h"
+#include "lk.h"
+#include "free.h"
+#include "optimiz.h"
+#include "alrt.h"
+#include "pars.h"
+#include "simu.h"
 
 #define ALL   1
 #define BEST  2

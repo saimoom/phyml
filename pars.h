@@ -13,6 +13,12 @@ the GNU public licence.  See http://www.opensource.org for details.
 #ifndef PARS_H
 #define PARS_H
 
+#include "utilities.h"
+#include "lk.h"
+#include "optimiz.h"
+#include "models.h"
+#include "free.h"
+
 void Make_Tree_4_Pars(arbre *tree, allseq *alldata, int n_site);
 int  Pars(arbre *tree);
 void Post_Order_Pars(node *a, node *d, arbre *tree);

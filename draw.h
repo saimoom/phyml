@@ -1,6 +1,8 @@
 #ifndef DRAW_H
 #define DRAW_H
 
+#include "utilities.h"
+
 void DR_Dist_To_Root_Pre(node *a, node *d, edge *b, arbre *tree);
 void DR_Dist_To_Root(node *n_root, arbre *tree);
 void DR_Get_X_Coord_Pre(node *a, node *d, edge *b, tdraw *w, arbre *tree);
