@@ -1,0 +1,65 @@
+#                                               -*- Autoconf -*-
+# Process this file with autoconf to produce a configure script.
+
+AC_PREREQ(2.61)
+AC_INIT([PhyML],m4_esyscmd([sh -c "head -n 1 version | sed -e 's|^|v3.0_|g' | sed -e 's|$||g' | tr -d '\n'"]), [guindon@stat.auckland.ac.nz])
+AC_CONFIG_SRCDIR([simu.c])
+AC_CONFIG_HEADER([config.h])
+
+AM_INIT_AUTOMAKE
+AC_CANONICAL_HOST
+
+# Checks for programs.
+AC_PROG_CC
+
+# Checks for libraries.
+AC_CHECK_LIB([m], [log])
+
+# Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS([float.h stdlib.h string.h unistd.h])
+
+# Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_C_INLINE
+AC_TYPE_SIZE_T
+
+# Checks for library functions.
+AC_FUNC_MALLOC
+AC_FUNC_REALLOC
+AC_FUNC_SETVBUF_REVERSED
+AC_FUNC_VPRINTF
+AC_CHECK_FUNCS([floor pow rint sqrt strchr strstr])
+
+
+# Added for cross-compilation (thanks to Alban Mancheron)
+MACOS_BASE="/Developer"
+AC_ARG_WITH([macos_base],
+            [AS_HELP_STRING([--with-macos-base@<:@=MACOS_BASE@:>@],
+                            Path to the MACOS base directory @<:@/Developer@:>@)],
+            [MACOS_BASE="$withval"],
+            [])
+ 
+MACOS_SDK="$MACOS_BASE/SDKs/MacOSX10.4u.sdk/"
+AC_ARG_WITH([macos_sdk],
+            [AS_HELP_STRING([--with-macos-sdk@<:@=MACOS_SDK@:>@],
+                            Path to the MACOS SDKs directory @<:@$(MACOS_BASE)/SDKs/MacOSX10.4u.sdk/@:>@)],
+            [MACOS_SDK="$withval"],
+            [])
+
+case $host_os in
+  darwin*)  CFLAGS+=" -I$MACOS_SDK/usr/include/gcc/                                    \
+                      -I$MACOS_BASE/include/                                           \
+                      -arch i386 -arch ppc                                             \
+                      -Wno-long-long -Wno-variadic-macros"
+            LDFLAGS+=" -arch i386 -arch ppc";;
+  mingw32*) CFLAGS+=" -std=gnu99";;
+  linux*|*) :;;
+esac
+# End of cross-compilation macros
+
+CFLAGS+=" -O3 -fomit-frame-pointer -funroll-loops -Wall"
+
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT
+
