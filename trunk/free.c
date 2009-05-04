@@ -10,9 +10,8 @@ the GNU public licence.  See http://www.opensource.org for details.
 
 */
 
-#include "utilities.h"
 #include "free.h"
-#include "m4.h"
+
 
 /*********************************************************/
 

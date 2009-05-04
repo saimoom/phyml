@@ -10,15 +10,7 @@ the GNU public licence.  See http://www.opensource.org for details.
 
 */
 
-#include "utilities.h"
-#include "lk.h"
-#include "optimiz.h"
-#include "models.h"
-#include "free.h"
 #include "simu.h"
-#include "spr.h"
-#include "pars.h"
-#include "alrt.h"
 
 
 /*********************************************************/

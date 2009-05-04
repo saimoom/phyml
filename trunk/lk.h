@@ -13,6 +13,11 @@ the GNU public licence.  See http://www.opensource.org for details.
 #ifndef ML_H
 #define ML_H
 
+#include "utilities.h"
+#include "optimiz.h"
+#include "models.h"
+#include "free.h"
+
 
 void Init_Tips_At_One_Site_Nucleotides_Float(char state, int pos, plkflt *p_lk);
 void Init_Tips_At_One_Site_AA_Float(char aa, int pos, plkflt *p_lk);

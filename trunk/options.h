@@ -13,6 +13,13 @@ the GNU public licence. See http://www.opensource.org for details.
 #ifndef OPTIONS_H
 #define OPTIONS_H
 
+#include "utilities.h"
+#include "cl.h"
+#include "models.h"
+#include "free.h"
+#include "interface.h"
+
+
 void Usage();
 option *Get_Input(int argc, char **argv);
 void Init_Optimiz(optimiz *s_opt);

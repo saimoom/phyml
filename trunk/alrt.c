@@ -18,14 +18,8 @@ Authors : Jean-Francois Dufayard & Stephane Guindon.
 
 */
 
-
-#include "utilities.h"
-#include "lk.h"
-#include "optimiz.h"
-#include "models.h"
-#include "free.h"
-#include "simu.h"
 #include "alrt.h"
+
 
 /*********************************************************/
 

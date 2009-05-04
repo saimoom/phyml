@@ -1,6 +1,13 @@
 #ifndef EIGEN_H
 #define EIGEN_H
 
+#include "utilities.h"
+#include "free.h"
+
+#ifdef RWRAPPER
+#include <R.h>
+#endif
+
 int ludcmp_1D(double *a, int n, double *d);
 void det_1D(double *a, int n, double *d);
 

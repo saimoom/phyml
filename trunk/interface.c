@@ -10,15 +10,7 @@ the GNU public licence. See http://www.opensource.org for details.
 
 */
 
-#include "utilities.h"
-#include "options.h"
-#include "models.h"
-#include "free.h"
-#include "options.h"
 #include "interface.h"
-#ifdef MG
-#include "multigene.h"
-#endif
 
 
 void Launch_Interface(option *io)

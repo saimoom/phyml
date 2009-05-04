@@ -10,16 +10,9 @@ the GNU public licence. See http://www.opensource.org for details.
 
 */
 
-#include <stdlib.h>
-#include "cl.h"
-#include "utilities.h"
+
 #include "options.h"
-#include "models.h"
-#include "free.h"
-#include "interface.h"
-#ifdef MG
-#include "mg.h"
-#endif
+
 
 /* int  T_MAX_FILE; */
 /* phydbl MDBL_MIN; */

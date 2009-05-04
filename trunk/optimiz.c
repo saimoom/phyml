@@ -10,13 +10,8 @@ the GNU public licence.  See http://www.opensource.org for details.
 
 */
 
-#include "utilities.h"
 #include "optimiz.h"
-#include "lk.h"
-#include "free.h"
-#include "models.h"
-#include "mc.h"
-#include "rates.h"
+
 
 /*********************************************************/
 

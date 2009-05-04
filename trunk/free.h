@@ -13,6 +13,9 @@ the GNU public licence.  See http://www.opensource.org for details.
 #ifndef FREE_H
 #define FREE_H
 
+#include "utilities.h"
+
+
 void Free_All_Nodes_Light(arbre *tree);
 void Free_All_Edges_Light(arbre *tree);
 void Free_Mat(matrix *mat);

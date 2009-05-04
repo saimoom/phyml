@@ -10,16 +10,7 @@ the GNU public licence. See http://www.opensource.org for details.
 
 */
 
-#include <unistd.h>
-#include <getopt.h>
-#include "utilities.h"
-#include "options.h"
 #include "cl.h"
-#include "models.h"
-#include "free.h"
-#include "interface.h"
-#include "mg.h"
-#include "m4.h"
 
 
 /*********************************************************/

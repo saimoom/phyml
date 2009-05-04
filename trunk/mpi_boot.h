@@ -14,8 +14,19 @@ the GNU public licence. See http://www.opensource.org for details.
 #ifdef MPI
 
 #include "mpi.h"
+
+#include "utilities.h"
+#include "bionj.h"
+#include "lk.h"
+#include "pars.h"
+#include "free.h"
+#include "models.h"
+#include "simu.h"
+#include "spr.h"
+
 #define BootTreeTag 0
 #define BootStatTag 1
+
 int Global_numTask, Global_myRank;
 
 

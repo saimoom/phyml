@@ -13,6 +13,12 @@ the GNU public licence.  See http://www.opensource.org for details.
 #ifndef OPTIMIZ_H
 #define OPTIMIZ_H
 
+#include "utilities.h"
+#include "lk.h"
+#include "free.h"
+#include "models.h"
+
+
 void      Optimiz_Ext_Br(arbre *tree);
 void      Optimize_Alpha(arbre *tree);
 void      Optimize_Kappa(arbre *tree);

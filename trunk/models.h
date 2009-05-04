@@ -13,6 +13,11 @@ the GNU public licence.  See http://www.opensource.org for details.
 #ifndef MODELS_H
 #define MODELS_H
 
+#include "utilities.h"
+#include "eigen.h"
+#include "free.h"
+
+
 void  PMat(phydbl l, model *mod, int pos, double *Pij);
 void  PMat_K80(phydbl l,phydbl kappa, int pos, double *Pij);
 void  PMat_TN93(phydbl l, model *mod, int pos, double *Pij);

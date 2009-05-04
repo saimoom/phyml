@@ -15,7 +15,7 @@ the GNU public licence. See http://www.opensource.org for details.
 
 #include "utilities.h"
 #include "optimiz.h"
-/*#include "tools.h"*/
+#include "free.h"
 
 void   Bionj(matrix *mat);
 void   Finish(matrix *mat);

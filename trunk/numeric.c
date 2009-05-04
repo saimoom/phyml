@@ -10,14 +10,8 @@ the GNU public licence. See http://www.opensource.org for details.
 
 */
 
-#include "utilities.h"
-#include "free.h"
-#include "lk.h"
-#include "optimiz.h"
-#include "models.h"
-#include "eigen.h"
 #include "numeric.h"
-#include <math.h>
+
 
 /*********************************************************/
 /* RANDOM VARIATES GENERATORS */

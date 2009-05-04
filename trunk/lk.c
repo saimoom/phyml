@@ -10,17 +10,8 @@ the GNU public licence. See http://www.opensource.org for details.
 
 */
 
-#include "utilities.h"
 #include "lk.h"
-#include "optimiz.h"
-#include "models.h"
-#include "free.h"
-#include "m4.h"
-#include "mc.h"
 
-#ifdef MC
-#include "rates.h"
-#endif
 
 /* int    LIM_SCALE; */
 /* phydbl LIM_SCALE_VAL; */

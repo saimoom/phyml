@@ -13,6 +13,15 @@ the GNU public licence.  See http://www.opensource.org for details.
 #ifndef CURR_H
 #define CURR_H
 
+#include "utilities.h"
+#include "lk.h"
+#include "optimiz.h"
+#include "models.h"
+#include "free.h"
+#include "spr.h"
+#include "pars.h"
+#include "alrt.h"
+
 void Simu_Loop(arbre *tree);
 int Simu(arbre *tree,int n_step_max);
 void Select_Edges_To_Swap(arbre *tree,edge **sorted_b,int *n_neg);

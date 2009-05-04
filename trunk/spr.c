@@ -17,15 +17,7 @@ the GNU public licence. See http://www.opensource.org for details.
 ** Stephane Guindon 2007
 */
 
-#include "utilities.h"
-#include "models.h"
-#include "lk.h"
-#include "free.h"
-#include "optimiz.h"
 #include "spr.h"
-#include "alrt.h"
-#include "pars.h"
-#include "simu.h"
 
 
 /*
