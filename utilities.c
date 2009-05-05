@@ -9593,7 +9593,6 @@ void Normal_Conditional(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is
   buff = Matrix_Mult(sig12_invsig22,sig21,n1,n2,n2,n1);
   For(i,n1) For(j,n1) cond_cov_norder[i*n1+j] = sig11[i*n1+j] - buff[i*n1+j];
 
-  /* TO DO: put things a the right position */
 
   nr = 0;
   For(i,n) if(is_1[i]) { cond_mu[i] = cond_mu_norder[nr]; nr++; }
@@ -9603,6 +9602,7 @@ void Normal_Conditional(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is
     {
       if(is_1[i]) 
 	{ 
+	  nc = 0;
 	  For(j,n)
 	    {
 	      if(is_1[j]) 
@@ -9613,6 +9613,27 @@ void Normal_Conditional(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is
 	    }
 	  nr++;
 	}
+    }
+
+  For(i,n1)
+    {
+      For(j,n1)
+	if(fabs(cond_cov_norder[i*n1+j] - cond_cov_norder[j*n1+i]) > 1.E-3)
+	  {
+	    PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	    Warn_And_Exit("");
+	  }
+    }
+
+
+  For(i,n)
+    {
+      For(j,n)
+	if(fabs(cond_cov[i*n+j] - cond_cov[j*n+i]) > 1.E-3)
+	  {
+	    PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	    Warn_And_Exit("");
+	  }
     }
 
   Free(mu1);
