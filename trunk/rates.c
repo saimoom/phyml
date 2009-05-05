@@ -664,7 +664,13 @@ trate *RATES_Make_Rate_Struct(int n_otu)
   rates->cov_r        = (phydbl *)mCalloc((2*n_otu-2)*(2*n_otu-2),sizeof(phydbl));
   rates->mean_r       = (phydbl *)mCalloc(2*n_otu-2,sizeof(phydbl));
   rates->lca          = (node **)mCalloc((2*n_otu-1)*(2*n_otu-1),sizeof(node *));
-      
+  rates->_2n_vect1    = (phydbl *)mCalloc(2*n_otu,sizeof(phydbl));
+  rates->_2n_vect2    = (phydbl *)mCalloc(2*n_otu,sizeof(phydbl));
+  rates->_2n_vect3    = (phydbl *)mCalloc(2*n_otu,sizeof(phydbl));
+  rates->_2n_vect4    = (phydbl *)mCalloc(2*n_otu,sizeof(phydbl));
+  rates->_2n_vect5    = (short int *)mCalloc(2*n_otu,sizeof(short int));
+  rates->_2n2n_vect1  = (phydbl *)mCalloc(4*n_otu*n_otu,sizeof(phydbl));
+  rates->_2n2n_vect2  = (phydbl *)mCalloc(4*n_otu*n_otu,sizeof(phydbl));
   return rates;
 }
 
@@ -691,6 +697,13 @@ void Free_Rates(trate *rates)
   Free(rates->u_cur_l);
   Free(rates->cov_r);
   Free(rates->lca);
+  Free(rates->_2n_vect1);
+  Free(rates->_2n_vect2);
+  Free(rates->_2n_vect3);
+  Free(rates->_2n_vect4);
+  Free(rates->_2n_vect5);
+  Free(rates->_2n2n_vect1);
+  Free(rates->_2n2n_vect2);
 }
 
 /*********************************************************/
@@ -701,7 +714,7 @@ void RATES_Init_Rate_Struct(trate *rates, int n_otu)
 
   rates->met_within_gibbs = NO;
   rates->model         = THORNE;
-  rates->clock_r       = 1.E-3;
+  rates->clock_r       = 1.E-2;
   rates->c_lnL         = -INFINITY;
   rates->c_lnL_jps     = -INFINITY;
   rates->adjust_rates  = 0;
@@ -1479,63 +1492,116 @@ phydbl RATES_Lk_Jumps(arbre *tree)
 
 /*********************************************************/
 
-
 void RATES_Posterior_Clock_Rate(arbre *tree)
 {
   int i,j,dim,err;
-  phydbl sumcov,denom,mean,var,summean;
-  phydbl Ri,DTi,Rj,DTj;
-
+  phydbl *z,*z_mean,*z_cov;
+  phydbl *r,*dt;
+  phydbl *cond_mu, *cond_cov;
+  short int *is_1;
 
   dim = 2*tree->n_otu-3;
-  Ri = DTi = Rj = DTj = 0.0;
 
-  summean = 0.0;
-  For(i,dim) summean += tree->rates->u_ml_l[i];
+  r        = (phydbl *)mCalloc(dim,sizeof(phydbl));
+  dt       = (phydbl *)mCalloc(dim,sizeof(phydbl));
 
-  sumcov = 0.0;
-  For(i,dim*dim) sumcov += tree->rates->cov[i];
+  z        = tree->rates->_2n_vect1;
+  z_mean   = tree->rates->_2n_vect2;
+  cond_mu  = tree->rates->_2n_vect3;
+  is_1     = tree->rates->_2n_vect5;
+  z_cov    = tree->rates->_2n2n_vect1;
+  cond_cov = tree->rates->_2n2n_vect2;
 
-  denom = 0;
   For(i,dim)
     {
       if(tree->t_edges[i] != tree->e_root)
 	{
-	  Ri  = tree->rates->nd_r[Edge_Num_To_Node_Num(i,tree)];
-	  DTi = fabs(tree->rates->nd_t[tree->t_edges[i]->left->num] - tree->rates->nd_t[tree->t_edges[i]->rght->num]);
+	  r[i]  = tree->rates->nd_r[Edge_Num_To_Node_Num(i,tree)];
+	  dt[i] = fabs(tree->rates->nd_t[tree->t_edges[i]->left->num] - tree->rates->nd_t[tree->t_edges[i]->rght->num]);
 	}
       else
 	{
-	  Ri  =
+	  r[i]  =
 	    tree->rates->nd_r[tree->n_root->v[0]->num] * (tree->rates->nd_t[tree->n_root->v[0]->num] - tree->rates->nd_t[tree->n_root->num]) +
 	    tree->rates->nd_r[tree->n_root->v[1]->num] * (tree->rates->nd_t[tree->n_root->v[1]->num] - tree->rates->nd_t[tree->n_root->num]);
 
-	  DTi =
+	  dt[i] =
 	    (tree->rates->nd_t[tree->n_root->v[0]->num] - tree->rates->nd_t[tree->n_root->num]) +
 	    (tree->rates->nd_t[tree->n_root->v[1]->num] - tree->rates->nd_t[tree->n_root->num]) ;
 
-	  Ri /= DTi;
+	  r[i] /= dt[i];
 	}
-      denom += Ri * DTi;
     }
 
-  mean = summean / denom;
-  var  = sumcov / pow(denom,2);
+  For(i,dim) z_mean[i] = tree->rates->u_ml_l[0]/(r[0]*dt[0]) - tree->rates->u_ml_l[i]/(r[i]*dt[i]); 
+  z_mean[0] = tree->rates->u_ml_l[0];
 
-  tree->rates->clock_r = Rnorm_Trunc(mean,sqrt(var),tree->rates->min_clock,tree->rates->max_clock,&err);
+  For(i,dim) 
+    {
+      For(j,dim)
+	{
+	  z_cov[i*dim+j] = 
+	    tree->rates->cov[0*dim+0] / (r[0]*dt[0]*r[0]*dt[0]) - 
+	    tree->rates->cov[0*dim+j] / (r[0]*dt[0]*r[j]*dt[j]) - 
+	    tree->rates->cov[0*dim+i] / (r[0]*dt[0]*r[i]*dt[i]) + 
+	    tree->rates->cov[i*dim+j] / (r[i]*dt[i]*r[j]*dt[j]) ; 
+	}
+    }
+  
+  For(i,dim)
+    {
+      z_cov[0*dim+i] = 
+	tree->rates->cov[0*dim+0] / (r[0]*dt[0]) -
+	tree->rates->cov[0*dim+i] / (r[i]*dt[i]) ;
+
+      z_cov[i*dim+0] = z_cov[0*dim+i];
+    }
+
+  z_cov[0*dim+0] = tree->rates->cov[0*dim+0];
+
+
+/*   printf("\n"); */
+/*   For(i,dim)  */
+/*     { */
+/*       printf("[%13G]  ",z_mean[i]); */
+/*       For(j,dim) */
+/* 	{ */
+/* 	  printf("%13G ",z_cov[i*dim+j]); */
+/* 	} */
+/*       printf("\n"); */
+/*     } */
+/*   printf("\n"); */
+
+
+  For(i,dim) is_1[i] = 0;
+  is_1[0] = 1;
+  For(i,dim) z[i] = .0;
+  z[0] = tree->rates->u_cur_l[0];
+  Normal_Conditional(z_mean,z_cov,z,dim,is_1,1,cond_mu,cond_cov);
+
+/*   printf("\n. L0=%G COND_L0=%G VAR_L0=%G", */
+/* 	 tree->rates->u_cur_l[0], */
+/* 	 cond_mu[0], */
+/* 	 sqrt(cond_cov[0])); */
+
+  tree->rates->clock_r = Rnorm_Trunc(cond_mu[0],sqrt(cond_cov[0]),BL_MIN,BL_MAX,&err);
+  tree->rates->clock_r /= (r[0]*dt[0]);
+
+  Free(r);
+  Free(dt);
+
+  /**************************************************************/
+  /**************************************************************/
+  /**************************************************************/
+  /**************************************************************/
+  /**************************************************************/
 
   if(err)
     {
       PhyML_Printf("\n. %s %d %d",__FILE__,__LINE__,tree->mcmc->run);
-      PhyML_Printf("\n. mean=%f var=%f sampled=%f",mean,var,tree->rates->clock_r);
-    }
-
-  if(isnan(tree->rates->clock_r))
-    {
-      PhyML_Printf("\n. mean=%f var=%f",mean,var);
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Exit("\n");
     }
+
 
   RATES_Update_Cur_Bl(tree);
 
@@ -1584,7 +1650,7 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
   phydbl post_mean, post_var, post_sd;
   phydbl dt,el,vl,ra,rd,min_r,max_r,cr,nu,min_dt,cel,cvl,cer,cvr;
   phydbl new_l;
-  int nb;
+  int dim;
   short int *is_1;
   phydbl *cond_mu, *cond_cov; 
   phydbl l_opp; /* length of the branch connected to the root, opposite to the one connected to d */
@@ -1596,11 +1662,15 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
   phydbl V1,V2,V3;
   int err;
 
-/*   if(a != tree->n_root) return; */
+  dim = 2*tree->n_otu-3;
 
-  is_1     = (short int *)mCalloc(2*tree->n_otu-2,sizeof(short int));
-  cond_mu  = (phydbl *)mCalloc(2*tree->n_otu-3,sizeof(phydbl));
-  cond_cov = (phydbl *)mCalloc((2*tree->n_otu-3)*(2*tree->n_otu-3),sizeof(phydbl));
+/*   is_1     = (short int *)mCalloc(2*tree->n_otu-3,sizeof(short int)); */
+/*   cond_mu  = (phydbl *)mCalloc(2*tree->n_otu-3,sizeof(phydbl)); */
+/*   cond_cov = (phydbl *)mCalloc((2*tree->n_otu-3)*(2*tree->n_otu-3),sizeof(phydbl)); */
+
+  is_1     = tree->rates->_2n_vect5;
+  cond_mu  = tree->rates->_2n_vect1;
+  cond_cov = tree->rates->_2n2n_vect1;
 
   b = NULL;
   if(a == tree->n_root) b = NULL;
@@ -1633,14 +1703,14 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
       U3  = tree->rates->nd_r[v3->num];
     }
 
-  V1     = tree->rates->nu * (T1 - T0);
-  V2     = tree->rates->nu * (T2 - T1);
-  V3     = tree->rates->nu * (T3 - T1);
+  V1 = (T1 - T0 > 1.E-10)?(tree->rates->nu * (T1 - T0)):(tree->rates->nu * (T1 - T0 + 1.E-10));
+  V2 = (T2 - T1 > 1.E-10)?(tree->rates->nu * (T2 - T1)):(tree->rates->nu * (T2 - T1 + 1.E-10));
+  V3 = (T3 - T1 > 1.E-10)?(tree->rates->nu * (T3 - T1)):(tree->rates->nu * (T3 - T1 + 1.E-10));
 
-  nb     = 2*tree->n_otu-3;
+
   dt     = tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num];
   el     = (b)?(tree->rates->u_ml_l[b->num]):(tree->rates->u_ml_l[tree->e_root->num]);
-  vl     = (b)?(tree->rates->cov[b->num*nb+b->num]):(tree->rates->cov[tree->e_root->num*nb+tree->e_root->num]);
+  vl     = (b)?(tree->rates->cov[b->num*dim+b->num]):(tree->rates->cov[tree->e_root->num*dim+tree->e_root->num]);
   ra     = tree->rates->nd_r[a->num];
   rd     = tree->rates->nd_r[d->num];
   min_r  = tree->rates->min_rate;
@@ -1666,21 +1736,25 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
 	}
     }
   
+  For(i,dim) is_1[i] = 0;
   if(a == tree->n_root) is_1[tree->e_root->num] = 1;
   else                  is_1[b->num] = 1;
 
   /* Likelihood */
-  Normal_Conditional(tree->rates->u_ml_l,tree->rates->cov,tree->rates->u_cur_l,2*tree->n_otu-3,is_1,1,cond_mu,cond_cov);
+  For(i,dim*dim) cond_cov[i] = 0.0;
+  For(i,dim)     cond_mu[i]  = 0.0;
+  Normal_Conditional(tree->rates->u_ml_l,tree->rates->cov,tree->rates->u_cur_l,dim,is_1,1,cond_mu,cond_cov);
+
   
   if(a == tree->n_root)
     {
       cel = cond_mu[tree->e_root->num];
-      cvl = cond_cov[tree->e_root->num*(2*tree->n_otu-3)+tree->e_root->num];
+      cvl = cond_cov[tree->e_root->num*dim+tree->e_root->num];
     }
   else
     {
       cel = cond_mu[b->num];
-      cvl = cond_cov[b->num*(2*tree->n_otu-3)+b->num];
+      cvl = cond_cov[b->num*dim+b->num];
     }
 
   if(cel < BL_MIN) cel = BL_MIN;
@@ -1701,6 +1775,7 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
       cer = U0;
     }
 
+
   /* Other solution (deprecated) */
   /*   For(i,2*tree->n_otu-2) is_1[i] = 0; */
   /*   is_1[d->num] = 1; */
@@ -1715,7 +1790,6 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
   /* End of other solution */
   
   
-
   prior_mean = log(cer) + log(dt) + log(cr);
   prior_mean = exp(prior_mean);
   if(a == tree->n_root) prior_mean += l_opp;
@@ -1723,13 +1797,11 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
   prior_var = log(cvr) + 2.*log(dt) + 2.*log(cr) ;
   prior_var = exp(prior_var);
   
-
   /* Posterior */
   post_mean = (prior_mean/prior_var + like_mean/like_var)/(1./prior_var + 1./like_var);
 
   post_var  = 1./(1./prior_var + 1./like_var);
   post_sd   = sqrt(post_var);
-
 
   if(a == tree->n_root)
     {
@@ -1737,19 +1809,18 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
       
       if(err)
 	{
+	  PhyML_Printf("\n. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 	  PhyML_Printf("\n. %s %d %d",__FILE__,__LINE__,tree->mcmc->run);
-	  PhyML_Printf("\n. prior_mean = %f prior_var = %f",prior_mean,prior_var);
-	  PhyML_Printf("\n. like_mean = %f like_var = %f",like_mean,like_var);
-	  PhyML_Printf("\n. post_mean = %f post_var = %f",post_mean,post_var);
+	  PhyML_Printf("\n. cvr=%G dt=%G cr=%G",cvr,dt,cr);
+	  PhyML_Printf("\n. prior_mean = %G prior_var = %G",prior_mean,prior_var);
+	  PhyML_Printf("\n. like_mean = %G like_var = %G",like_mean,like_var);
+	  PhyML_Printf("\n. post_mean = %G post_var = %G",post_mean,post_var);
 	  PhyML_Printf("\n. l_opp = %f",l_opp);
 	  PhyML_Printf("\n. l_root = %f",tree->t_edges[tree->e_root->num]->l);
 	  PhyML_Printf("\n. clock_r = %f",tree->rates->clock_r);
-	  PhyML_Printf("\n. T1=%f T2=%f",
-		       tree->rates->nd_t[tree->n_root->v[0]->num],
-		       tree->rates->nd_t[tree->n_root->v[1]->num]);
-	  PhyML_Printf("\n. U1=%f U2=%f",
-		       tree->rates->nd_r[tree->n_root->v[0]->num],
-		       tree->rates->nd_r[tree->n_root->v[1]->num]);
+	  PhyML_Printf("\n. T0=%f T1=%f T2=%f T3=%f",T0,T1,T2,T3);
+	  PhyML_Printf("\n. U0=%f U1=%f U2=%f U3=%f",U0,U1,U2,U3);
+	  PhyML_Printf("\n. <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
 	  Exit("\n");
 	}
     }
@@ -1759,11 +1830,16 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
 
       if(err)
 	{
+	  PhyML_Printf("\n. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
 	  PhyML_Printf("\n. %s %d %d",__FILE__,__LINE__,tree->mcmc->run);
-	  PhyML_Printf("\n. prior_mean = %f prior_var = %f",prior_mean,prior_var);
-	  PhyML_Printf("\n. like_mean = %f like_var = %f",like_mean,like_var);
-	  PhyML_Printf("\n. post_mean = %f post_var = %f",post_mean,post_var);
+	  PhyML_Printf("\n. cvr=%G dt=%G cr=%G",cvr,dt,cr);
+	  PhyML_Printf("\n. prior_mean = %G prior_var = %G",prior_mean,prior_var);
+	  PhyML_Printf("\n. like_mean = %G like_var = %G",like_mean,like_var);
+	  PhyML_Printf("\n. post_mean = %G post_var = %G",post_mean,post_var);
 	  PhyML_Printf("\n. clock_r = %f",tree->rates->clock_r);
+	  PhyML_Printf("\n. T0=%f T1=%f T2=%f T3=%f",T0,T1,T2,T3);
+	  PhyML_Printf("\n. U0=%f U1=%f U2=%f U3=%f",U0,U1,U2,U3);
+	  PhyML_Printf("\n. <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
 	  Exit("\n");
 	}
     }
@@ -1804,17 +1880,11 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
   RATES_Update_Cur_Bl(tree);
 
   /* Optional here but useful for monitoring ESS for likelihoods */
-  tree->c_lnL        = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES);
-  tree->rates->c_lnL = RATES_Lk_Rates(tree);
+/*   tree->c_lnL        = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES); */
+/*   tree->rates->c_lnL = RATES_Lk_Rates(tree); */
 
   tree->mcmc->run++;
   MCMC_Print_Param(tree->mcmc->out_fp,tree);
-
-  Free(is_1);
-  Free(cond_mu);
-  Free(cond_cov);
-
-
 
 /*   if(Log_Dnorm(U1,U0,sqrt(tree->rates->nu*(T1-T0))) < -2.84) */
 /*     { */
@@ -1866,6 +1936,12 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
 /* 	if((d->v[i] != a) && (d->b[i] != tree->e_root)) */
 /* 	  RATES_Posterior_Rates_Pre(d,d->v[i],tree); */
 /*     } */
+
+
+/*   Free(is_1); */
+/*   Free(cond_mu); */
+/*   Free(cond_cov); */
+
 }
 
 /*********************************************************/
@@ -1901,7 +1977,7 @@ void RATES_Posterior_Times_Pre(node *a, node *d, arbre *tree)
   short int *is_1;
   phydbl sig11, sig1X, sig1Y, sig22, sig2X, sig2Y, sigXX, sigXY, sigYY;
   phydbl cov11,cov12,cov13,cov22,cov23,cov33;
-  int nb;
+  int dim;
   edge *b1, *b2, *b3;
   node *v2,*v3;
   phydbl *L2XY;
@@ -1910,18 +1986,27 @@ void RATES_Posterior_Times_Pre(node *a, node *d, arbre *tree)
   node *buff_n;
   int err;
 
+  dim = 2*tree->n_otu-3;
+
   if(d->tax) return;
 
   b = NULL;
   if(a == tree->n_root) b = NULL;
   else For(i,3) if(d->v[i] == a) { b = d->b[i]; break; }
 
-  L2XY     = (phydbl *)mCalloc(3,sizeof(phydbl));
-  mu       = (phydbl *)mCalloc(3,sizeof(phydbl));
-  cov      = (phydbl *)mCalloc(9,sizeof(phydbl));
-  cond_mu  = (phydbl *)mCalloc(2*tree->n_otu-3,sizeof(phydbl));
-  cond_cov = (phydbl *)mCalloc((2*tree->n_otu-3)*(2*tree->n_otu-3),sizeof(phydbl));
-  is_1     = (short int *)mCalloc(2*tree->n_otu-3,sizeof(short int));
+/*   L2XY     = (phydbl *)mCalloc(3,sizeof(phydbl)); */
+/*   mu       = (phydbl *)mCalloc(3,sizeof(phydbl)); */
+/*   cov      = (phydbl *)mCalloc(9,sizeof(phydbl)); */
+/*   cond_mu  = (phydbl *)mCalloc(2*tree->n_otu-3,sizeof(phydbl)); */
+/*   cond_cov = (phydbl *)mCalloc((2*tree->n_otu-3)*(2*tree->n_otu-3),sizeof(phydbl)); */
+/*   is_1     = (short int *)mCalloc(2*tree->n_otu-3,sizeof(short int)); */
+
+  L2XY     = tree->rates->_2n_vect2;
+  mu       = tree->rates->_2n_vect3;
+  cov      = tree->rates->_2n2n_vect1;
+  cond_mu  = tree->rates->_2n_vect1;
+  cond_cov = tree->rates->_2n2n_vect2;
+  is_1     = tree->rates->_2n_vect5;
 
   if(b) b1 = b;
   else  b1 = tree->e_root;
@@ -1950,42 +2035,32 @@ void RATES_Posterior_Times_Pre(node *a, node *d, arbre *tree)
       b3     = buff_b;
     }
   
-  nb = 2*tree->n_otu-3;
     
-  T0    = tree->rates->nd_t[a->num];
-  T1    = tree->rates->nd_t[d->num];
-  T2    = tree->rates->nd_t[v2->num];
-  T3    = tree->rates->nd_t[v3->num];
-  U0    = tree->rates->nd_r[a->num]*tree->rates->clock_r;
-  U1    = tree->rates->nd_r[d->num]*tree->rates->clock_r;
-  U2    = tree->rates->nd_r[v2->num]*tree->rates->clock_r;
-  U3    = tree->rates->nd_r[v3->num]*tree->rates->clock_r;
-  L1    = tree->rates->cur_l[d->num];
-  L2    = tree->rates->cur_l[v2->num];
-  L3    = tree->rates->cur_l[v3->num];
-  cr    = tree->rates->clock_r;
-  cov11 = tree->rates->cov[b1->num*nb+b1->num];
-  cov12 = tree->rates->cov[b1->num*nb+b2->num];
-  cov13 = tree->rates->cov[b1->num*nb+b3->num];
-  cov23 = tree->rates->cov[b2->num*nb+b3->num];
-  cov22 = tree->rates->cov[b2->num*nb+b2->num];
-  cov33 = tree->rates->cov[b3->num*nb+b3->num];
-   
+  T0 = tree->rates->nd_t[a->num];
+  T1 = tree->rates->nd_t[d->num];
+  T2 = tree->rates->nd_t[v2->num];
+  T3 = tree->rates->nd_t[v3->num];
+  U0 = tree->rates->nd_r[a->num]*tree->rates->clock_r;
+  U1 = tree->rates->nd_r[d->num]*tree->rates->clock_r;
+  U2 = tree->rates->nd_r[v2->num]*tree->rates->clock_r;
+  U3 = tree->rates->nd_r[v3->num]*tree->rates->clock_r;
+  L1 = tree->rates->cur_l[d->num];
+  L2 = tree->rates->cur_l[v2->num];
+  L3 = tree->rates->cur_l[v3->num];
+  cr = tree->rates->clock_r;
 
-/*   EL1 = tree->rates->u_ml_l[b1->num]; */
-/*   EL2 = tree->rates->u_ml_l[b2->num]; */
-/*   EL3 = tree->rates->u_ml_l[b3->num]; */
-
+  For(i,dim) is_1[i] = 0;
   is_1[b1->num] = 1;
   is_1[b2->num] = 1;
   is_1[b3->num] = 1;
 
-  Normal_Conditional(tree->rates->u_ml_l,tree->rates->cov,tree->rates->u_cur_l,2*tree->n_otu-3,is_1,3,cond_mu,cond_cov);
-
+  For(i,dim)     cond_mu[i]  = 0.0;
+  For(i,dim*dim) cond_cov[i] = 0.0;
+  Normal_Conditional(tree->rates->u_ml_l,tree->rates->cov,tree->rates->u_cur_l,dim,is_1,3,cond_mu,cond_cov);
+  
   EL1 = cond_mu[b1->num];
   EL2 = cond_mu[b2->num];
   EL3 = cond_mu[b3->num];
-
 
   if(EL1 < BL_MIN) EL1 = BL_MIN;
   if(EL2 < BL_MIN) EL2 = BL_MIN;
@@ -1995,6 +2070,15 @@ void RATES_Posterior_Times_Pre(node *a, node *d, arbre *tree)
   if(EL2 > BL_MAX) EL2 = BL_MAX;
   if(EL3 > BL_MAX) EL3 = BL_MAX;
 
+  cov11 = cond_cov[b1->num*dim+b1->num];
+  cov12 = cond_cov[b1->num*dim+b2->num];
+  cov13 = cond_cov[b1->num*dim+b3->num];
+  cov23 = cond_cov[b2->num*dim+b3->num];
+  cov22 = cond_cov[b2->num*dim+b2->num];
+  cov33 = cond_cov[b3->num*dim+b3->num];
+
+/*   printf("\n<> cov11=%f cov12=%f cov13=%f cov23=%f cov22=%f cov33=%f",cov11,cov12,cov13,cov23,cov22,cov33); */
+/*   printf("\n<> dim=%d",dim); */
 
   T1_new = +1;
   T1_LIM_INF = T0 + (1./tree->rates->nu)*pow((U1-U0)/1.96,2);
@@ -2051,7 +2135,6 @@ void RATES_Posterior_Times_Pre(node *a, node *d, arbre *tree)
       mu[2] = EL1/U1 + T0 + EL3/U3 - T3;
     }
 
-
   sig11 = cov11;
   sig22 = cov22;
   sig1X = (1./U1) * cov11 + (1./U2) * cov12;
@@ -2075,27 +2158,40 @@ void RATES_Posterior_Times_Pre(node *a, node *d, arbre *tree)
       cov[2*3+0] = sig2Y; cov[2*3+1] = sigXY; cov[2*3+2] = sigYY;
     }
   
-  is_1[b1->num] = is_1[b2->num] = is_1[b3->num] = 0;
+/*   printf("\n"); */
+/*   For(i,3) */
+/*     { */
+/*       For(j,3) */
+/* 	{ */
+/* 	  printf("%f ",cov[i*3+j]); */
+/* 	} */
+/*       printf("\n"); */
+/*     } */
+/*   printf("\n"); */
+
+  For(i,9) cond_cov[i] = 0.0;
+  For(i,3) cond_mu[i]  = 0.0;
+  is_1[0] = is_1[1] = is_1[2] = 0;
   is_1[0] = 1;
   Normal_Conditional(mu,cov,L2XY,3,is_1,1,cond_mu,cond_cov);
 
   if(cond_cov[0*3+0] < 0.0)
     {
-      cond_cov[0*3+0] = 1.E-10;
-
       PhyML_Printf("\n. Conditional mean=%G var=%G",cond_mu[0],cond_cov[0*3+0]);
       PhyML_Printf("\n. T0=%G T1=%f T2=%f L1=%G L2=%G EL1=%G EL2=%G Nu=%G",T0,T1,T2,L1,L2,EL1,EL2,tree->rates->nu);
-      
+      PhyML_Printf("\n. COV11=%f COV12=%f COV13=%f COV22=%f COV23=%f COV33=%f",cov11,cov12,cov13,cov22,cov23,cov33);
       printf("\n");
       For(i,3)
 	{
-	  printf(".mu%d=%12lf\t",i,mu[i]);
+	  printf(". mu%d=%12lf\t",i,mu[i]);
 	  For(j,3)
 	    {
 	      printf("%12lf ",cov[i*3+j]);
 	    }
 	  printf("\n");
 	}
+      
+      cond_cov[0*3+0] = 1.E-10;
     }
 
   if(cov11 > cov22)
@@ -2232,18 +2328,18 @@ void RATES_Posterior_Times_Pre(node *a, node *d, arbre *tree)
   tree->rates->nd_t[d->num] = T1_new;
   RATES_Update_Cur_Bl(tree);
   
-  tree->c_lnL        = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES);
-  tree->rates->c_lnL = RATES_Lk_Rates(tree);
+/*   tree->c_lnL        = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES); */
+/*   tree->rates->c_lnL = RATES_Lk_Rates(tree); */
 
   tree->mcmc->run++;
   MCMC_Print_Param(tree->mcmc->out_fp,tree);
 
-  Free(mu);
-  Free(cov);
-  Free(cond_mu);
-  Free(cond_cov);
-  Free(is_1);
-  Free(L2XY);
+/*   Free(mu); */
+/*   Free(cov); */
+/*   Free(cond_mu); */
+/*   Free(cond_cov); */
+/*   Free(is_1); */
+/*   Free(L2XY); */
 
   For(i,3)
     if((d->v[i] != a) && (d->b[i] != tree->e_root))

@@ -87,7 +87,7 @@ chdir($output_dir."/phyml/src");
 # my @abbr = qw( January February March April May June July August September October November December );
 my @abbr = qw( 01 02 03 04 05 06 07 08 09 10 11 12 );
 $year = $year+1900;
-$tarfile = "phyml_".$mday.$abbr[$mon].$year.".tar.gz";
+$tarfile = "phyml_".$year.$abbr[$mon].$mday.".tar.gz";
 chdir $output_dir;
 system("tar -zcvf $tarfile ./phyml/ &> /dev/null");
 print "<$mday>", "<$abbr[$mon]>", "<$year>","\n";

@@ -79,7 +79,9 @@ int MC_main(int argc, char **argv)
 
   io = (option *)Get_Input(argc,argv);
   r_seed = (io->r_seed < 0)?(time(NULL)):(io->r_seed);
-  r_seed = 1240962641;
+/*   r_seed = 1241139728; */
+/*   r_seed = 1241141276; */
+/*   r_seed = 1241224481; */
   srand(r_seed); rand();
   printf("\n. Seed = %d",r_seed);
   Make_Model_Complete(io->mod);
@@ -149,7 +151,7 @@ int MC_main(int argc, char **argv)
 		  int i,j;
 /* 		  int dir1,dir2; */
 
-		  n_otu = 5;
+		  n_otu = 3;
 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1);
 
 /* 		  tree->rates->nd_t[tree->n_root->v[0]->tax ? tree->n_root->v[1]->num : tree->n_root->v[0]->num] = -10.0; */
@@ -253,16 +255,14 @@ int MC_main(int argc, char **argv)
 		  printf("\n. Best Approx lnL = %f",tree->c_lnL);
 		  RATES_Lk_Rates(tree);
 		  printf("\n. Best LnL_rates = %f",tree->rates->c_lnL);
-		  printf("\n. clock_r = %f",tree->rates->clock_r);
 
 		  tree->rates->bl_from_rt = 1;
-
 
 		  PhyML_Printf("\n. Burnin...\n");
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
 		  MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree);
 		  tree->rates->lk_approx = NORMAL;
-		  tree->mcmc->n_tot_run  = 1E+6;
+		  tree->mcmc->n_tot_run  = 1E+2;
 		  MCMC(tree);
 		  fclose(tree->mcmc->out_fp);
 		  MCMC_Free_MCMC(tree->mcmc);
@@ -279,61 +279,19 @@ int MC_main(int argc, char **argv)
 		  tree->mcmc->n_tot_run  = 1E+6;
 		  do
 		    {
-		      RATES_Posterior_Times(tree);
+/* 		      RATES_Posterior_Times(tree); */
 		      RATES_Posterior_Rates(tree);
 /* 		      MCMC_Nu(tree); */
-		      RATES_Posterior_Clock_Rate(tree);
+/* 		      RATES_Posterior_Clock_Rate(tree); */
 		    }
 		  while(tree->mcmc->run < tree->mcmc->n_tot_run);
 
 		  fclose(tree->mcmc->out_fp);
 		  MCMC_Free_MCMC(tree->mcmc);
-		  Exit("\n");
-
-
-
-		  Lk(tree);
-		  RATES_Lk_Rates(tree);
-
-		  tree->mcmc->out_fp            = fopen(tree->mcmc->out_filename,"w");
-		  tree->mcmc->sample_interval   = 2*tree->n_otu-2;
-		  tree->rates->lk_approx        = NORMAL;
-		  tree->rates->met_within_gibbs = YES;
-
-		  MCMC_Print_Param(tree->mcmc->out_fp,tree);
-		  MCMC_Randomize_Rates(tree);
-		  MCMC_Randomize_Node_Times(tree);
-/* 		  MCMC_Randomize_Nu(tree); */
-		  MCMC_Randomize_Clock_Rate(tree);
-
-		  RATES_Update_Cur_Bl(tree);
-
-		  PhyML_Printf("\n. Burnin...\n");
-		  MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree);
-		  tree->mcmc->n_tot_run = 100;
-		  MCMC(tree);
-		  fclose(tree->mcmc->out_fp);
-		  MCMC_Free_MCMC(tree->mcmc);
-
-		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
-		  MCMC_Init_MCMC_Struct("gibbs.exact",tree->mcmc,tree);
-
-		  printf("\n. Gibbs sampling (exact)...\n");
-		  do
-		    {
-		      RATES_Posterior_Times(tree);
-		      RATES_Posterior_Rates(tree);
-		      /* MCMC_Nu(tree); */
-		      RATES_Posterior_Clock_Rate(tree);
-		    }
-		  while(tree->mcmc->run < tree->mcmc->n_tot_run);
-
-		  fclose(tree->mcmc->out_fp);
-		  MCMC_Free_MCMC(tree->mcmc);
-
 
 
 /* 		  END OF IMPORTANCE SAMPLING STUFF */
+
 
 		  /************************************/
 		  /************************************/
@@ -348,8 +306,8 @@ int MC_main(int argc, char **argv)
 		  RATES_Lk_Rates(tree);
 		  printf("\n. LnL_data = %f\n. LnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL);		  
 		  tree->rates->bl_from_rt = 1;
-		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
 
+		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
 		  MCMC_Init_MCMC_Struct("thorne.normal",tree->mcmc,tree);
 		  MCMC(tree);
 		  fclose(tree->mcmc->out_fp);
@@ -364,13 +322,12 @@ int MC_main(int argc, char **argv)
 		  printf("\n. LnL_data = %f\n. LnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL);		  
 		  tree->rates->bl_from_rt = 1;
 
+		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
 		  MCMC_Init_MCMC_Struct("thorne.exact",tree->mcmc,tree);
 		  MCMC(tree);
 		  fclose(tree->mcmc->out_fp);
 		  MCMC_Free_MCMC(tree->mcmc);
-
 		  /* END OF COMPOUND POISSON STUFF */
-
 		  /************************************/
 		  /************************************/
 		  /************************************/

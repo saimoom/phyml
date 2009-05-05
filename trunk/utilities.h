@@ -871,6 +871,15 @@ typedef struct __Trate {
   phydbl      *mean_r;
   struct __Node **lca; /* 2-way table of common ancestral nodes for each pari of nodes */
   int       lk_approx;
+
+  /* spare vectors */
+  phydbl     *_2n_vect1;
+  phydbl     *_2n_vect2;
+  phydbl     *_2n_vect3;
+  phydbl     *_2n_vect4;
+  short int  *_2n_vect5;
+  phydbl   *_2n2n_vect1;
+  phydbl   *_2n2n_vect2;
 }trate;
 
 /*********************************************************/

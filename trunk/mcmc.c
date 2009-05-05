@@ -38,18 +38,18 @@ the GNU public licence. See http://www.opensource.org for details.
 
 void MCMC(arbre *tree)
 {
-  int n_moves,i;
+  int n_moves;
 
 
   MCMC_Print_Param(tree->mcmc->out_fp,tree);
 
-/*   MCMC_Randomize_Nu(tree); */
 /*   MCMC_Randomize_Lexp(tree); */
 /*   MCMC_Randomize_Jumps(tree); */
 /*   MCMC_Randomize_Alpha(tree); */
-/*   MCMC_Randomize_Rates(tree); */
 /*   MCMC_Randomize_Node_Times(tree); */
-  MCMC_Randomize_Clock_Rate(tree);
+  MCMC_Randomize_Rates(tree);
+/*   MCMC_Randomize_Nu(tree); */
+/*   MCMC_Randomize_Clock_Rate(tree); */
 
   RATES_Lk_Rates(tree);
 
@@ -68,12 +68,12 @@ void MCMC(arbre *tree)
   do
     {            
 
-/*       MCMC_Rates_Local(tree); */
 /*       MCMC_Times_Local(tree); */
-      MCMC_Clock_Rate(tree);
+      MCMC_Rates_Local(tree);
+/*       MCMC_Clock_Rate(tree); */
+/*       MCMC_Nu(tree); */
 /*       MCMC_Lexp(tree); */
 /*       MCMC_Alpha(tree); */
-/*       MCMC_Nu(tree); */
 /*       MCMC_Rates_Global(tree); */
 /*       MCMC_Times_Global(tree); */
 /*       MCMC_Stick_Rates(tree); */
@@ -188,20 +188,16 @@ void MCMC_Nu(arbre *tree)
       Warn_And_Exit("");
     }
 
-  tree->rates->nu = new_nu;
-  
-  new_lnL = RATES_Lk_Rates(tree);
-  
-  ratio = (new_lnL-cur_lnL) + log(new_nu/cur_nu);
-  
+  tree->rates->nu = new_nu;  
+  new_lnL = RATES_Lk_Rates(tree);  
+  ratio = (new_lnL-cur_lnL) + log(new_nu/cur_nu);  
   ratio = exp(ratio);
-  
   alpha = MIN(1.,ratio);
   
   u = Uni();
   if(u > alpha) /* Reject */
     {
-      tree->rates->nu  = cur_nu;
+      tree->rates->nu = cur_nu;
       RATES_Lk_Rates(tree);
     }
   else
@@ -573,16 +569,25 @@ void MCMC_Times_Pre(node *a, node *d, int local, arbre *tree)
   u3 = tree->rates->nd_r[v3->num] * tree->rates->clock_r;
 
   t_min = t0 + (1./tree->rates->nu)*pow((u1-u0)/1.96,2);
-  t_max = t3 - (1./tree->rates->nu)*pow((u1-u3)/1.96,2);
+  t_max = MIN(t2 - (1./tree->rates->nu)*pow((u1-u2)/1.96,2), t3 - (1./tree->rates->nu)*pow((u1-u3)/1.96,2));
+
   /* t_min = t0; */
   /* t_max = t3; */
   
   if(t_max < t_min)
     {
+      PhyML_Printf("\n. WARNING: detected inconsistency in setting max and/or min time.");
+      PhyML_Printf("\n. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+      PhyML_Printf("\n. NU=%f",tree->rates->nu);
+      PhyML_Printf("\n. T0=%f T1=%f T2=%f T3=%f",t0,t1,t2,t3);
       PhyML_Printf("\n. U0=%f U1=%f U2=%f U3=%f",u0,u1,u2,u3);
-      PhyML_Printf("\n. t_max = %f t_min=%f",t_max,t_min);
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-      Exit("\n");
+      PhyML_Printf("\n. T_MAX=%f T_MIN=%f",t_max,t_min);
+      PhyML_Printf("\n. <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+      PhyML_Printf("\n");
+      t_max = MIN(t2,t3);
+      t_min = t0;
+/*       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
+/*       Exit("\n"); */
     }
 
 
