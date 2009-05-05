@@ -58,7 +58,7 @@ case $host_os in
 esac
 # End of cross-compilation macros
 
-CFLAGS+=" -O3 -fomit-frame-pointer -funroll-loops -Wall"
+CFLAGS=" -O3 -fomit-frame-pointer -funroll-loops -Wall"
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
