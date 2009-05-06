@@ -3,8 +3,9 @@
 
 AC_PREREQ(2.61)
 AC_INIT([PhyML],m4_esyscmd([sh -c "head -n 1 version | sed -e 's|^|v3.0_|g' | sed -e 's|$||g' | tr -d '\n'"]), [guindon@stat.auckland.ac.nz])
-AC_CONFIG_SRCDIR([simu.c])
-AC_CONFIG_HEADER([config.h])
+dnl AC_CONFIG_SRCDIR([simu.c])
+AC_CONFIG_SRCDIR([src/simu.c])
+AC_CONFIG_HEADER([src/config.h])
 
 AM_INIT_AUTOMAKE
 AC_CANONICAL_HOST
