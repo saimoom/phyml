@@ -3,105 +3,108 @@ PROG = MC
 
 mc_SOURCES = main.c utilities.c optimiz.c lk.c bionj.c models.c free.c\
 options.c simu.c eigen.c pars.c alrt.c interface.c cl.c spr.c mc.c m4.c draw.c rates.c mcmc.c numeric.c
-mc_LDADD = main.o utilities.o optimiz.o lk.o bionj.o models.o free.o\
-options.o simu.o eigen.o pars.o alrt.o interface.o cl.o spr.o mc.o m4.o draw.o rates.o mcmc.o numeric.o
 
+mc_LDADD = -lm
 
 # AM_CFLAGS=-mpowerpc
-AM_CFLAGS=-O3 -fomit-frame-pointer -funroll-loops -Wall -m64
+# AM_CFLAGS=-O3 -fomit-frame-pointer -funroll-loops -Wall -m64
 # AM_CFLAGS=-O2 -Wall
 # AM_CFLAGS=-m64
 # AM_CFLAGS=-g -Wall
 
-AM_LDFLAGS=-lm
+# AM_LDFLAGS=-lm
 
-DEFS=-DUNIX -D$(PROG) -DDEBUG
+# DEFS=-DUNIX -D$(PROG) -DDEBUG
 # DEFS = -DUNIX -D$(PROG) -DDEBUG -DBATCH -DQUIET
 # DEFS=-DUNIX -D$(PROG) -DDEBUG
 # DEFS=-DUNIX -D$(PROG) 
 # DEFS = -DUNIX -D$(PROG)
 
 
-SCOMPILE = $(CC) $(SDEFS) $(DEFS) $(INCLUDES) $(AM_CFLAGS) $(SCFLAGS)
-SCCLD = $(CC) $(LIBS)
-SLINK = $(SCCLD) $(AM_CFLAGS) $(SLDFLAGS) $(LDFLAGS) $(INCLUDES) $(AM_LDFLAGS)
+# SCOMPILE = $(CC) $(SDEFS) $(DEFS) $(INCLUDES) $(AM_CFLAGS) $(SCFLAGS)
+# SCCLD = $(CC) $(LIBS)
+# SLINK = $(SCCLD) $(AM_CFLAGS) $(SLDFLAGS) $(LDFLAGS) $(INCLUDES) $(AM_LDFLAGS)
+
+all: intro mc$(EXEEXT)
+	@echo ""
+	@echo "Done."
 
 intro:	
 	@echo ""
 	@echo "** Building MC version $(VERSION) **"
 	@echo ""
 
-putversion:
-	sed -e 's/#define VERSION.*/#define VERSION \"$(VERSION)\"/' utilities.h > new_utilities.h
-	mv new_utilities.h utilities.h
+# putversion:
+# 	sed -e 's/#define VERSION.*/#define VERSION \"$(VERSION)\"/' utilities.h > new_utilities.h
+# 	mv new_utilities.h utilities.h
 
-mc$(EXEEXT): intro $(mc_LDADD) $(mc_SOURCES)
-	$(SLINK) $(mc_LDADD) -o $@
-	@echo ""
-	@echo "Done."
+# mc$(EXEEXT): intro $(mc_LDADD) $(mc_SOURCES)
+# 	$(SLINK) $(mc_LDADD) -o $@
+# 	@echo ""
+# 	@echo "Done."
 
-main.o: main.c
-	$(SCOMPILE) -c main.c
+# main.o: main.c
+# 	$(SCOMPILE) -c main.c
 
-utilities.o: utilities.c utilities.h
-	$(SCOMPILE) -c utilities.c
+# utilities.o: utilities.c utilities.h
+# 	$(SCOMPILE) -c utilities.c
 
-optimiz.o: optimiz.c optimiz.h
-	$(SCOMPILE) -c optimiz.c
+# optimiz.o: optimiz.c optimiz.h
+# 	$(SCOMPILE) -c optimiz.c
 
-lk.o: lk.c lk.h
-	$(SCOMPILE) -c lk.c
+# lk.o: lk.c lk.h
+# 	$(SCOMPILE) -c lk.c
 
-bionj.o: bionj.c bionj.h
-	$(SCOMPILE) -c bionj.c
+# bionj.o: bionj.c bionj.h
+# 	$(SCOMPILE) -c bionj.c
 
-models.o: models.c models.h
-	$(SCOMPILE) -c models.c
+# models.o: models.c models.h
+# 	$(SCOMPILE) -c models.c
 
-free.o: free.c free.h
-	$(SCOMPILE) -c free.c
+# free.o: free.c free.h
+# 	$(SCOMPILE) -c free.c
 
-options.o: options.c options.h
-	$(SCOMPILE) -c options.c
+# options.o: options.c options.h
+# 	$(SCOMPILE) -c options.c
 
-simu.o: simu.c simu.h
-	$(SCOMPILE) -c simu.c
+# simu.o: simu.c simu.h
+# 	$(SCOMPILE) -c simu.c
 
-eigen.o: eigen.c eigen.h
-	$(SCOMPILE) -c eigen.c
+# eigen.o: eigen.c eigen.h
+# 	$(SCOMPILE) -c eigen.c
 
-pars.o: pars.c pars.h
-	$(SCOMPILE) -c pars.c
+# pars.o: pars.c pars.h
+# 	$(SCOMPILE) -c pars.c
 
-alrt.o: alrt.c alrt.h
-	$(SCOMPILE) -c alrt.c
+# alrt.o: alrt.c alrt.h
+# 	$(SCOMPILE) -c alrt.c
 
-interface.o: interface.c interface.h
-	$(SCOMPILE) -c interface.c
+# interface.o: interface.c interface.h
+# 	$(SCOMPILE) -c interface.c
 
-cl.o: cl.c cl.h
-	$(SCOMPILE) -c cl.c
+# cl.o: cl.c cl.h
+# 	$(SCOMPILE) -c cl.c
 
-spr.o: spr.c spr.h
-	$(SCOMPILE) -c spr.c
+# spr.o: spr.c spr.h
+# 	$(SCOMPILE) -c spr.c
 
-m4.o: m4.c
-	$(SCOMPILE) -c m4.c
+# m4.o: m4.c
+# 	$(SCOMPILE) -c m4.c
 
-mg.o: mg.c
-	$(SCOMPILE) -c mg.c
+# mg.o: mg.c
+# 	$(SCOMPILE) -c mg.c
 
-mc.o: mc.c
-	$(SCOMPILE) -c mc.c
+# mc.o: mc.c
+# 	$(SCOMPILE) -c mc.c
 
-draw.o: draw.c
-	$(SCOMPILE) -c draw.c
+# draw.o: draw.c
+# 	$(SCOMPILE) -c draw.c
 
-rates.o: rates.c
-	$(SCOMPILE) -c rates.c
+# rates.o: rates.c
+# 	$(SCOMPILE) -c rates.c
 
-mcmc.o: mcmc.c
-	$(SCOMPILE) -c mcmc.c
+# mcmc.o: mcmc.c
+# 	$(SCOMPILE) -c mcmc.c
 
-numeric.o: numeric.c
-	$(SCOMPILE) -c numeric.c
+# numeric.o: numeric.c
+# 	$(SCOMPILE) -c numeric.c
