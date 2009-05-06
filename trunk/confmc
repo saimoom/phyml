@@ -1,10 +1,10 @@
 #!/bin/bash -x
 
 aclocal;
-autoconf -f ./configure_mc.ac > ./configure;
-chmod u+x ./configure;
+autoconf -f ./configure_mc.in > ./configure;
+autoheader;
 automake -f ./Makefile_mc;
+chmod u+x ./configure;
 ./configure;
 make -f ./Makefile_mc clean;
-make -f ./Makefile_mc putversion;
 make -f ./Makefile_mc;

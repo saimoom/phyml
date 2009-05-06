@@ -9515,11 +9515,12 @@ void Normal_Conditional(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is
       if(is_1[i])
 	{
 	  nc = 0;
-	  For(j,n)
+	  for(j=i;j<n;j++)
 	    {
 	      if(is_1[j])
 		{
 		  sig11[nr*n1+nc] = cov[i*n+j];
+		  sig11[nc*n1+nr] = cov[i*n+j];
 		  nc++;
 		}
 	    }
@@ -9533,11 +9534,12 @@ void Normal_Conditional(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is
       if(is_1[i])
 	{
 	  nc = 0;
-	  For(j,n)
+	  for(j=i;j<n;j++)
 	    {
 	      if(!is_1[j])
 		{
 		  sig12[nr*n2+nc] = cov[i*n+j];
+		  sig12[nc*n2+nr] = cov[i*n+j];
 		  nc++;
 		}
 	    }
@@ -9551,11 +9553,12 @@ void Normal_Conditional(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is
       if(!is_1[i])
 	{
 	  nc = 0;
-	  For(j,n)
+	  for(j=i;j<n;j++)
 	    {
 	      if(is_1[j])
 		{
 		  sig21[nr*n1+nc] = cov[i*n+j];
+		  sig21[nc*n1+nr] = cov[i*n+j];
 		  nc++;
 		}
 	    }
@@ -9570,11 +9573,12 @@ void Normal_Conditional(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is
       if(!is_1[i])
 	{
 	  nc = 0;
-	  For(j,n)
+	  for(j=i;j<n;j++)
 	    {
 	      if(!is_1[j])
 		{
 		  sig22[nr*n2+nc] = cov[i*n+j];
+		  sig22[nc*n2+nr] = cov[i*n+j];
 		  nc++;
 		}
 	    }
