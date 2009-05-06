@@ -4,6 +4,6 @@ aclocal;
 autoheader;
 autoconf -f;
 automake -f;
-./configure --enable-mc;
+./configure;
 make clean;
 make;
