@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.61)
-AC_INIT([PhyML],m4_esyscmd([sh -c "head -n 1 version | sed -e 's|^|v3.0_|g' | sed -e 's|$||g' | tr -d '\n'"]), [guindon@stat.auckland.ac.nz])
+AC_INIT([PhyML(beta)],m4_esyscmd([sh -c "head -n 1 version | sed -e 's|^|v3.0_|g' | sed -e 's|$||g' | tr -d '\n'"]), [guindon@stat.auckland.ac.nz])
 dnl AC_CONFIG_SRCDIR([simu.c])
 AC_CONFIG_SRCDIR([src/simu.c])
 AC_CONFIG_HEADER([config.h])
@@ -59,7 +59,8 @@ case $host_os in
 esac
 # End of cross-compilation macros
 
-CFLAGS=" -O3 -fomit-frame-pointer -funroll-loops -Wall"
+CFLAGS="-O3 -fomit-frame-pointer -funroll-loops -Wall"
+dnl CFLAGS="-g -Wall"
 
 AC_ARG_ENABLE([mc],[  --enable-mc    Compile mc],[mc=yes])
 

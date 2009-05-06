@@ -42,7 +42,7 @@ int main(int argc, char **argv)
   time_t t_beg,t_end;
   phydbl best_lnL,most_likely_size,tree_size;
   int r_seed;
-  char *most_likely_tree;
+  char *most_likely_tree=NULL;
 
   
 #ifdef MPI
@@ -169,6 +169,7 @@ int main(int argc, char **argv)
 		    {
 		      best_lnL = tree->c_lnL;
 		      Br_Len_Involving_Invar(tree);
+		      if(most_likely_tree) Free(most_likely_tree);
 		      most_likely_tree = Write_Tree(tree);
 		      most_likely_size = Get_Tree_Size(tree);
 		    }
@@ -225,7 +226,6 @@ int main(int argc, char **argv)
 	      if(io->n_data_sets == 1) rewind(io->fp_out_tree);
 	      PhyML_Fprintf(io->fp_out_tree,"%s\n",most_likely_tree);
 	      
-	      Free(most_likely_tree);
 
 	      if(io->n_trees > 1 && io->n_data_sets > 1) break;
 	    }
@@ -233,6 +233,7 @@ int main(int argc, char **argv)
 	}
     }
 
+  if(most_likely_tree) Free(most_likely_tree);
 
   if(io->mod->s_opt->n_rand_starts > 1) PhyML_Printf("\n\n. Best log likelihood : %f\n",best_lnL);
 
