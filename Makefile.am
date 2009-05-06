@@ -38,15 +38,15 @@ phyml_SOURCES = main.c \
 phyml_LDADD = -lm
 
 
-all: intro phyml$(EXEEXT)
-	@echo ""
-	@echo "Done."
+# all:	intro phyml$(EXEEXT)
+# 	@echo ""
+# 	@echo "Done."
 
-intro:	
-	@echo ""
-	@echo ""
-	@echo ":: Building PhyML version $(VERSION) ::"
-	@echo ""
-	@echo ""
+# intro:	
+# 	@echo ""
+# 	@echo ""
+# 	@echo ":: Building PhyML version $(VERSION) ::"
+# 	@echo ""
+# 	@echo ""
 
 
