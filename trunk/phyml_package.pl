@@ -72,10 +72,10 @@ copy "ChangeLog",$output_dir."/phyml/src" || die "Could not copy file ChangeLog.
 copy "version",$output_dir."/phyml/src" || die "Could not copy file version.\n";
 
 copy "phyml.bat",$output_dir."/phyml/bin" || die "Could not copy file phyml.bat.\n";
-system("ps2pdf /Users/guindon/latex/phyml/phyml_manual.ps /Users/guindon/latex/phyml/phyml_manual.pdf");
-copy("/Users/guindon/latex/phyml/phyml_manual.pdf",$output_dir."/phyml/doc") || die "Could not copy file phyml_manual.pdf.\n";
-copy("/Users/guindon/data/phyml_example/nucleic",$output_dir."/phyml/examples/") || die "Could not copy example file 'nucleic'";
-copy("/Users/guindon/data/phyml_example/proteic",$output_dir."/phyml/examples/") || die "Could not copy example file 'proteic'";
+system("ps2pdf ./phyml_manual.ps ./phyml_manual.pdf");
+copy("./phyml_manual.pdf",$output_dir."/phyml/doc") || die "Could not copy file phyml_manual.pdf.\n";
+copy("./nucleic",$output_dir."/phyml/examples/") || die "Could not copy example file 'nucleic'";
+copy("./proteic",$output_dir."/phyml/examples/") || die "Could not copy example file 'proteic'";
 
 
 chdir($output_dir."/phyml/src");
