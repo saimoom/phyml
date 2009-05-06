@@ -61,6 +61,10 @@ esac
 
 CFLAGS=" -O3 -fomit-frame-pointer -funroll-loops -Wall"
 
+AC_ARG_ENABLE([mc],[  --enable-mc    Compile mc],[mc=yes])
+
+AM_CONDITIONAL([WANT_MC], [test "$mc" = yes]) 
+
 AC_CONFIG_FILES([Makefile src/Makefile])
 AC_OUTPUT
 
