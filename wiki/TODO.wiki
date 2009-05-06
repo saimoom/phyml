@@ -2,7 +2,7 @@
 
 =*TO DO*=
 
-  # Add version number to sources.
+  # Add version number to sources. *DONE*
   # Create a forum for users.
   # MPI version of the random starting tree option.
   # Add data partitions (multi-gene analysis).
