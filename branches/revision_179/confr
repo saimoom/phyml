@@ -1,0 +1,9 @@
+#!/bin/bash -x
+
+aclocal;
+autoconf -f ./configure_r.ac > ./configure;
+chmod u+x ./configure
+automake -f ./Makefile_r;
+./configure;
+make -f ./Makefile_r clean;
+make -f ./Makefile_r;
