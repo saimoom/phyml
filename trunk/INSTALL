@@ -12,23 +12,13 @@ automake.
 
 
 Once you have automake installed, type:
+
 aclocal;
-autoconf -f;
-automake -f;
+autoconf;
+autoheader;
+automake;
 ./configure;
 make;
-
-
-Installing other programs from these sources
-============================================
-
-To install program XX, In a command-line window, type:
-aclocal;
-autoconf -f ./configure_XX.ac > ./configure;
-automake -f ./Makefile_XX;
-./configure;
-make -f Makefile_XX;
-
 
 
 Generic installation instructions
