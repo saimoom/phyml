@@ -5,20 +5,13 @@ Basic Installation
 Installing PhyML
 ================
 
-You first need to have 'automake' installed on your machine (see http://en.wikipedia.org/wiki/Automake).
-To check whether autmake is not already installed on your machine (which is likely...), type the command
-'aclocal' in a commmand-line window. If this command is not found, it means that you have to install
-automake.
+In a terminal window, type:
 
-
-Once you have automake installed, type:
-
-aclocal;
-autoconf;
-autoheader;
-automake;
+tar -zxvf ./phyml-v3.0_XXX.tar.gz
+cd ./phyml-v3.0_XXX
 ./configure;
 make;
+
 
 
 Generic installation instructions
