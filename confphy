@@ -2,8 +2,9 @@
 
 aclocal;
 autoconf -f;
-chmod u+x ./configure
+autoheader;
 automake -f;
+chmod u+x ./configure
 ./configure;
 make clean;
 make;
