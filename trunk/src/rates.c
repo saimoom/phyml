@@ -1648,7 +1648,7 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
   phydbl like_mean, like_var;
   phydbl prior_mean, prior_var;
   phydbl post_mean, post_var, post_sd;
-  phydbl dt,el,vl,ra,rd,min_r,max_r,cr,nu,min_dt,cel,cvl,cer,cvr;
+  phydbl dt,el,vl,ra,rd,min_r,max_r,cr,nu,cel,cvl,cer,cvr;
   phydbl new_l;
   int dim;
   short int *is_1;
@@ -1661,6 +1661,7 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
   phydbl U0,U1,U2,U3;
   phydbl V1,V2,V3;
   int err;
+  phydbl eps_dt;
 
   dim = 2*tree->n_otu-3;
 
@@ -1703,9 +1704,11 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
       U3  = tree->rates->nd_r[v3->num];
     }
 
-  V1 = (T1 - T0 > 1.E-10)?(tree->rates->nu * (T1 - T0)):(tree->rates->nu * (T1 - T0 + 1.E-10));
-  V2 = (T2 - T1 > 1.E-10)?(tree->rates->nu * (T2 - T1)):(tree->rates->nu * (T2 - T1 + 1.E-10));
-  V3 = (T3 - T1 > 1.E-10)?(tree->rates->nu * (T3 - T1)):(tree->rates->nu * (T3 - T1 + 1.E-10));
+  eps_dt = 1.E-1;
+
+  V1 = (T1 - T0 > eps_dt)?(tree->rates->nu * (T1 - T0)):(tree->rates->nu * (T1 - T0 + eps_dt));
+  V2 = (T2 - T1 > eps_dt)?(tree->rates->nu * (T2 - T1)):(tree->rates->nu * (T2 - T1 + eps_dt));
+  V3 = (T3 - T1 > eps_dt)?(tree->rates->nu * (T3 - T1)):(tree->rates->nu * (T3 - T1 + eps_dt));
 
 
   dt     = tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num];
@@ -1717,11 +1720,12 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
   max_r  = tree->rates->max_rate;
   cr     = tree->rates->clock_r;
   nu     = tree->rates->nu;
-  min_dt = tree->rates->min_dt;
   cel    = el;   /* conditional branch length expectation */
   cvl    = vl;   /* conditional branch length variance */
   cer    = -1.0; /* conditional rate expectation */
   cvr    = -1.0; /* conditional rate variance */
+
+  if(dt < eps_dt) dt = eps_dt;
 
   l_opp  = -1.0;
   if(a == tree->n_root)
@@ -1744,7 +1748,6 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
   For(i,dim*dim) cond_cov[i] = 0.0;
   For(i,dim)     cond_mu[i]  = 0.0;
   Normal_Conditional(tree->rates->u_ml_l,tree->rates->cov,tree->rates->u_cur_l,dim,is_1,1,cond_mu,cond_cov);
-
   
   if(a == tree->n_root)
     {
@@ -2062,6 +2065,10 @@ void RATES_Posterior_Times_Pre(node *a, node *d, arbre *tree)
   EL2 = cond_mu[b2->num];
   EL3 = cond_mu[b3->num];
 
+/*   EL1 = tree->rates->u_ml_l[b1->num]; */
+/*   EL2 = tree->rates->u_ml_l[b2->num]; */
+/*   EL3 = tree->rates->u_ml_l[b3->num]; */
+
   if(EL1 < BL_MIN) EL1 = BL_MIN;
   if(EL2 < BL_MIN) EL2 = BL_MIN;
   if(EL3 < BL_MIN) EL3 = BL_MIN;
@@ -2076,6 +2083,13 @@ void RATES_Posterior_Times_Pre(node *a, node *d, arbre *tree)
   cov23 = cond_cov[b2->num*dim+b3->num];
   cov22 = cond_cov[b2->num*dim+b2->num];
   cov33 = cond_cov[b3->num*dim+b3->num];
+
+/*   cov11 = tree->rates->cov[b1->num*dim+b1->num]; */
+/*   cov12 = tree->rates->cov[b1->num*dim+b2->num]; */
+/*   cov13 = tree->rates->cov[b1->num*dim+b3->num]; */
+/*   cov23 = tree->rates->cov[b2->num*dim+b3->num]; */
+/*   cov22 = tree->rates->cov[b2->num*dim+b2->num]; */
+/*   cov33 = tree->rates->cov[b3->num*dim+b3->num]; */
 
 /*   printf("\n<> cov11=%f cov12=%f cov13=%f cov23=%f cov22=%f cov33=%f",cov11,cov12,cov13,cov23,cov22,cov33); */
 /*   printf("\n<> dim=%d",dim); */
