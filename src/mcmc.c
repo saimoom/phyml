@@ -46,8 +46,8 @@ void MCMC(arbre *tree)
 /*   MCMC_Randomize_Lexp(tree); */
 /*   MCMC_Randomize_Jumps(tree); */
 /*   MCMC_Randomize_Alpha(tree); */
-/*   MCMC_Randomize_Node_Times(tree); */
-  MCMC_Randomize_Rates(tree);
+  MCMC_Randomize_Node_Times(tree);
+/*   MCMC_Randomize_Rates(tree); */
 /*   MCMC_Randomize_Nu(tree); */
 /*   MCMC_Randomize_Clock_Rate(tree); */
 
@@ -63,12 +63,10 @@ void MCMC(arbre *tree)
 					       2*tree->n_otu-3,YES);
   else Lk(tree);
 
-  tree->mcmc->sample_interval = 2*tree->n_otu-2;
   n_moves = 11;
   do
-    {            
-
-/*       MCMC_Times_Local(tree); */
+    {
+      MCMC_Times_Local(tree);
       MCMC_Rates_Local(tree);
 /*       MCMC_Clock_Rate(tree); */
 /*       MCMC_Nu(tree); */

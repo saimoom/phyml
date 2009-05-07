@@ -79,9 +79,8 @@ int MC_main(int argc, char **argv)
 
   io = (option *)Get_Input(argc,argv);
   r_seed = (io->r_seed < 0)?(time(NULL)):(io->r_seed);
-/*   r_seed = 1241139728; */
-/*   r_seed = 1241141276; */
-/*   r_seed = 1241224481; */
+/*   r_seed = 1241644898; */
+/*   r_seed = 1241664319; */
   srand(r_seed); rand();
   printf("\n. Seed = %d",r_seed);
   Make_Model_Complete(io->mod);
@@ -151,7 +150,17 @@ int MC_main(int argc, char **argv)
 		  int i,j;
 /* 		  int dir1,dir2; */
 
-		  n_otu = 3;
+
+
+/* 		  int err; */
+/* 		  For(i,10000) */
+/* 		    { */
+/* 		      printf("%f\n",Rnorm_Trunc(1.,.1,1.,3.,&err)); */
+/* 		    } */
+/* 		  Exit("\n"); */
+
+
+		  n_otu = 20;
 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1);
 
 /* 		  tree->rates->nd_t[tree->n_root->v[0]->tax ? tree->n_root->v[1]->num : tree->n_root->v[0]->num] = -10.0; */
@@ -223,6 +232,7 @@ int MC_main(int argc, char **argv)
 		  /************************************/
 		  /************************************/
 
+
 /* 		  IMPORTANCE SAMPLING STUFF */
 		  node *buff;
 		  buff = tree->n_root;
@@ -279,7 +289,7 @@ int MC_main(int argc, char **argv)
 		  tree->mcmc->n_tot_run  = 1E+6;
 		  do
 		    {
-/* 		      RATES_Posterior_Times(tree); */
+		      RATES_Posterior_Times(tree);
 		      RATES_Posterior_Rates(tree);
 /* 		      MCMC_Nu(tree); */
 /* 		      RATES_Posterior_Clock_Rate(tree); */

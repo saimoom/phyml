@@ -211,30 +211,138 @@ phydbl *Rnorm_Multid(phydbl *mu, phydbl *cov, int dim)
 
 phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max, int *error)
 {
-  phydbl cdf_min, cdf_max, u, ret_val,eps;
-  
-  eps = (max-min)/1E+6;
+
+  phydbl u, ret_val,eps;
+/*   int iter; */
+  phydbl z,rz;
+  phydbl cdf_min, cdf_max;
+  phydbl z_min,z_max;
+
+  z      = 0.0;
+  rz     = 0.0;
+  u      = -1.0;
   *error = 0;
   
-  cdf_min = CDF_Normal(min,mean,sd);
-  cdf_max = CDF_Normal(max,mean,sd);
-  u = cdf_min + (cdf_max-cdf_min) * Uni();
-  ret_val = sd*PointNormal(u)+mean;
+  z_min = (min - mean)/sd;
+  z_max = (max - mean)/sd;
 
-  if(ret_val < min-eps || ret_val > max+eps)
+  eps = (z_max-z_min)/1E+6;
+
+  if(sd < 1.E-10)
     {
+      PhyML_Printf("\n. Small variance detected in Rnorm_Trunc.");
+      PhyML_Printf("\n. mean=%f sd=%f min=%f max=%f",mean,sd,min,max);
       *error = 1;
-      printf("\n. Numerical precision issue detected in Rnorm_Trunc.");
-      printf("\n. ret_val = %f",ret_val);
-      printf("\n. mean=%f sd=%f min=%f max=%f",mean,sd,min,max);
-      printf("\n. cdf_min=%f cdf_max=%f\n",cdf_min,cdf_max);
-      ret_val = min + (max-min)/2.;
+      return -1.0;
     }
 
-/*   if(ret_val < min) ret_val = min; */
-/*   if(ret_val > max) ret_val = max; */
+  /* Simple inversion method. Seems to work well. Needs more thorough testing though... */
+  if((z_min < -5.) && (z_max > +5.)) /* cdf < 1.E-6, we should be safe. */
+    {
+      z = Rnorm(0.0,1.0);
+    }
+  else
+    {
+      cdf_min = CDF_Normal(z_min,0.0,1.0);
+      cdf_max = CDF_Normal(z_max,0.0,1.0);
+      u = cdf_min + (cdf_max-cdf_min) * Uni();
+      z = PointNormal(u);
+    }
 
-  return(ret_val);
+
+  /* Adapted from Christian Robert "Simulation of truncated variables" */
+  /* Statistics and Computing. (1995) 5, 121-125. */
+
+/*   if((z_min < -5.) && (z_max > +5.)) */
+/*     { */
+/*       z = Rnorm(0.0,1.0); */
+/*     } */
+/*   else if(z_min > 5.) */
+/*     { */
+/*       z = z_min; */
+/*       *error = 1; */
+/*     } */
+/*   else */
+/*     { */
+/*       if(z_min*z_max < 0.0) */
+/* 	{ */
+/* 	  iter = 0; */
+/* 	  do */
+/* 	    { */
+/* 	      iter++; */
+/* 	      z = Uni(); */
+/* 	      z = z*(z_max-z_min)+z_min; */
+/* 	      rz = exp(-(z*z)/2.); */
+/* 	      u = Uni(); */
+/* 	      if(iter > 1000) */
+/* 		{ */
+/* 		  PhyML_Printf("\n. Too many iterations in Rnorm_Trunc."); */
+/* 		  *error = 1; */
+/* 		  break; */
+/* 		} */
+/* 	    } */
+/* 	  while(u > rz); */
+/* 	} */
+/*       else if(z_max < 0.0) */
+/* 	{ */
+/* 	  phydbl z_maxz_max = z_max*z_max; */
+/* 	  iter = 0; */
+/* 	  do */
+/* 	    { */
+/* 	      iter++; */
+/* 	      z = Uni(); */
+/* 	      z = z*(z_max-z_min)+z_min; */
+/* 	      rz = exp((z_maxz_max-(z*z))/2.); */
+/* 	      u = Uni(); */
+/* 	      if(iter > 1000) */
+/* 		{ */
+/* 		  PhyML_Printf("\n. Too many iterations in Rnorm_Trunc."); */
+/* 		  *error = 1; */
+/* 		  break; */
+/* 		} */
+/* 	    } */
+/* 	  while(u > rz); */
+/* 	} */
+/*       else if(z_min > 0.0) */
+/* 	{ */
+/* 	  phydbl z_minz_min = z_min*z_min; */
+/* 	  iter = 0; */
+/* 	  do */
+/* 	    { */
+/* 	      iter++; */
+/* 	      z = Uni(); */
+/* 	      z = z*(z_max-z_min)+z_min; */
+/* 	      rz = exp((z_minz_min-(z*z))/2.); */
+/* 	      u = Uni(); */
+/* 	      if(iter > 1000) */
+/* 		{ */
+/* 		  PhyML_Printf("\n. Too many iterations in Rnorm_Trunc."); */
+/* 		  *error = 1; */
+/* 		  break; */
+/* 		} */
+/* 	    } */
+/* 	  while(u > rz); */
+/* 	} */
+/*       else */
+/* 	{ */
+/* 	  if(z_min < 0.0) { z = Rnorm(0.0,1.0); z = -fabs(z); } */
+/* 	  else            { z = Rnorm(0.0,1.0); z =  fabs(z); } */
+/* 	} */
+/*     } */
+
+	
+   if((z < z_min-eps) || (z > z_max+eps))
+    {
+      *error = 1;
+      PhyML_Printf("\n. Numerical precision issue detected in Rnorm_Trunc.");
+      PhyML_Printf("\n. z = %f",z);
+      PhyML_Printf("\n. mean=%f sd=%f z_min=%f z_max=%f",mean,sd,z_min,z_max);
+      ret_val = min;
+    }
+
+  ret_val = z*sd+mean;
+
+  return ret_val;
 }
 
 /*********************************************************/

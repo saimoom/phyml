@@ -9514,8 +9514,10 @@ void Normal_Conditional(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is
     {
       if(is_1[i])
 	{
-	  nc = 0;
-	  for(j=i;j<n;j++)
+	  nc = nr;
+ 	  for(j=i;j<n;j++)
+/* 	  nc = 0; */
+/* 	  For(j,n) */
 	    {
 	      if(is_1[j])
 		{
@@ -9528,18 +9530,21 @@ void Normal_Conditional(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is
 	}
     }
 
+
   nr=0; nc=0;
   For(i,n)
     {
       if(is_1[i])
 	{
+/* 	  nc = nr; */
+/*  	  for(j=i;j<n;j++) */
 	  nc = 0;
-	  for(j=i;j<n;j++)
+	  For(j,n)
 	    {
 	      if(!is_1[j])
 		{
 		  sig12[nr*n2+nc] = cov[i*n+j];
-		  sig12[nc*n2+nr] = cov[i*n+j];
+/* 		  sig12[nc*n2+nr] = cov[i*n+j]; */
 		  nc++;
 		}
 	    }
@@ -9552,13 +9557,15 @@ void Normal_Conditional(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is
     {
       if(!is_1[i])
 	{
+/* 	  nc = nr; */
+/* 	  for(j=i;j<n;j++) */
 	  nc = 0;
-	  for(j=i;j<n;j++)
+	  For(j,n)
 	    {
 	      if(is_1[j])
 		{
 		  sig21[nr*n1+nc] = cov[i*n+j];
-		  sig21[nc*n1+nr] = cov[i*n+j];
+/* 		  sig21[nc*n1+nr] = cov[i*n+j]; */
 		  nc++;
 		}
 	    }
@@ -9572,13 +9579,15 @@ void Normal_Conditional(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is
     {
       if(!is_1[i])
 	{
-	  nc = 0;
+	  nc = nr;
 	  for(j=i;j<n;j++)
+/* 	  nc = 0; */
+/* 	  For(j,n) */
 	    {
 	      if(!is_1[j])
 		{
 		  sig22[nr*n2+nc] = cov[i*n+j];
-		  sig22[nc*n2+nr] = cov[i*n+j];
+ 		  sig22[nc*n2+nr] = cov[i*n+j];
 		  nc++;
 		}
 	    }
@@ -9619,20 +9628,20 @@ void Normal_Conditional(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is
 	}
     }
 
-  For(i,n1)
-    {
-      For(j,n1)
-	if(fabs(cond_cov_norder[i*n1+j] - cond_cov_norder[j*n1+i]) > 1.E-3)
-	  {
-	    PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-	    Warn_And_Exit("");
-	  }
-    }
+/*   For(i,n1) */
+/*     { */
+/*       for(j=i;j<n1;j++) */
+/* 	if(fabs(cond_cov_norder[i*n1+j] - cond_cov_norder[j*n1+i]) > 1.E-3) */
+/* 	  { */
+/* 	    PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
+/* 	    Warn_And_Exit(""); */
+/* 	  } */
+/*     } */
 
 
   For(i,n)
     {
-      For(j,n)
+      for(j=i+1;j<n;j++)
 	if(fabs(cond_cov[i*n+j] - cond_cov[j*n+i]) > 1.E-3)
 	  {
 	    PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
