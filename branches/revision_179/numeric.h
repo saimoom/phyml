@@ -50,4 +50,4 @@ phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max);
 phydbl *Rnorm_Multid_Trunc(phydbl *mean, phydbl *cov, phydbl *min, phydbl *max, int dim);
 
 
-#endif NUMERIC_H
+#endif
