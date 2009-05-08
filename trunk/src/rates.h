@@ -13,6 +13,25 @@ the GNU public licence. See http://www.opensource.org for details.
 #ifndef RATES_H
 #define RATES_H
 
+#include "utilities.h"
+#include "spr.h"
+#include "lk.h"
+#include "optimiz.h"
+#include "bionj.h"
+#include "models.h"
+#include "free.h"
+#include "options.h"
+#include "simu.h"
+#include "eigen.h"
+#include "pars.h"
+#include "alrt.h"
+#include "mc.h"
+#include "m4.h"
+#include "draw.h"
+#include "mcmc.h"
+#include "numeric.h"
+
+
 void RATES_Monte_Carlo_Mean_Rates(arbre *tree);
 void RATES_Monte_Carlo_Mean_Rates_Pre(node *a, node *d, edge *b, phydbl curr_rate, arbre *tree);
 void RATES_Print_Rates(arbre *tree);
