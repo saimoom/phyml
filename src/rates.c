@@ -14,24 +14,7 @@ the GNU public licence. See http://www.opensource.org for details.
 /* Routines for molecular clock trees and molecular dating */
 #if defined (MC) ||  defined (RWRAPPER)
 
-#include "utilities.h"
-#include "spr.h"
-#include "lk.h"
-#include "optimiz.h"
-#include "bionj.h"
-#include "models.h"
-#include "free.h"
-#include "options.h"
-#include "simu.h"
-#include "eigen.h"
-#include "pars.h"
-#include "alrt.h"
-#include "mc.h"
-#include "m4.h"
-#include "draw.h"
 #include "rates.h"
-#include "mcmc.h"
-#include "numeric.h"
 
 #ifdef RWRAPPER
 #include <R.h>
@@ -1674,9 +1657,8 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
   cond_cov = tree->rates->_2n2n_vect1;
 
   b = NULL;
-  if(a == tree->n_root) b = NULL;
+  if(a == tree->n_root) b = tree->e_root;
   else For(i,3) if(d->v[i] == a) { b = d->b[i]; break; }
-
   
   v2 = v3 = NULL;
   if(!d->tax)
@@ -1710,10 +1692,9 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
   V2 = (T2 - T1 > eps_dt)?(tree->rates->nu * (T2 - T1)):(tree->rates->nu * (T2 - T1 + eps_dt));
   V3 = (T3 - T1 > eps_dt)?(tree->rates->nu * (T3 - T1)):(tree->rates->nu * (T3 - T1 + eps_dt));
 
-
   dt     = tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num];
-  el     = (b)?(tree->rates->u_ml_l[b->num]):(tree->rates->u_ml_l[tree->e_root->num]);
-  vl     = (b)?(tree->rates->cov[b->num*dim+b->num]):(tree->rates->cov[tree->e_root->num*dim+tree->e_root->num]);
+  el     = tree->rates->u_ml_l[b->num];
+  vl     = tree->rates->cov[b->num*dim+b->num];
   ra     = tree->rates->nd_r[a->num];
   rd     = tree->rates->nd_r[d->num];
   min_r  = tree->rates->min_rate;
@@ -1741,24 +1722,19 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
     }
   
   For(i,dim) is_1[i] = 0;
-  if(a == tree->n_root) is_1[tree->e_root->num] = 1;
-  else                  is_1[b->num] = 1;
+  is_1[b->num] = 1;
 
   /* Likelihood */
-  For(i,dim*dim) cond_cov[i] = 0.0;
-  For(i,dim)     cond_mu[i]  = 0.0;
-  Normal_Conditional(tree->rates->u_ml_l,tree->rates->cov,tree->rates->u_cur_l,dim,is_1,1,cond_mu,cond_cov);
+/*   For(i,dim*dim) cond_cov[i] = 0.0; */
+/*   For(i,dim)     cond_mu[i]  = 0.0; */
+/*   Normal_Conditional(tree->rates->u_ml_l,tree->rates->cov,tree->rates->u_cur_l,dim,is_1,1,cond_mu,cond_cov); */
   
-  if(a == tree->n_root)
-    {
-      cel = cond_mu[tree->e_root->num];
-      cvl = cond_cov[tree->e_root->num*dim+tree->e_root->num];
-    }
-  else
-    {
-      cel = cond_mu[b->num];
-      cvl = cond_cov[b->num*dim+b->num];
-    }
+/*   cel = cond_mu[b->num]; */
+/*   cvl = cond_cov[b->num*dim+b->num]; */
+
+  cel = tree->rates->u_ml_l[b->num];
+  cvl = tree->rates->cov[b->num*dim+b->num];
+
 
   if(cel < BL_MIN) cel = BL_MIN;
   if(cel > BL_MAX) cel = BL_MAX;
@@ -2057,17 +2033,17 @@ void RATES_Posterior_Times_Pre(node *a, node *d, arbre *tree)
   is_1[b2->num] = 1;
   is_1[b3->num] = 1;
 
-  For(i,dim)     cond_mu[i]  = 0.0;
-  For(i,dim*dim) cond_cov[i] = 0.0;
-  Normal_Conditional(tree->rates->u_ml_l,tree->rates->cov,tree->rates->u_cur_l,dim,is_1,3,cond_mu,cond_cov);
+/*   For(i,dim)     cond_mu[i]  = 0.0; */
+/*   For(i,dim*dim) cond_cov[i] = 0.0; */
+/*   Normal_Conditional(tree->rates->u_ml_l,tree->rates->cov,tree->rates->u_cur_l,dim,is_1,3,cond_mu,cond_cov); */
   
-  EL1 = cond_mu[b1->num];
-  EL2 = cond_mu[b2->num];
-  EL3 = cond_mu[b3->num];
+/*   EL1 = cond_mu[b1->num]; */
+/*   EL2 = cond_mu[b2->num]; */
+/*   EL3 = cond_mu[b3->num]; */
 
-/*   EL1 = tree->rates->u_ml_l[b1->num]; */
-/*   EL2 = tree->rates->u_ml_l[b2->num]; */
-/*   EL3 = tree->rates->u_ml_l[b3->num]; */
+  EL1 = tree->rates->u_ml_l[b1->num];
+  EL2 = tree->rates->u_ml_l[b2->num];
+  EL3 = tree->rates->u_ml_l[b3->num];
 
   if(EL1 < BL_MIN) EL1 = BL_MIN;
   if(EL2 < BL_MIN) EL2 = BL_MIN;
@@ -2077,19 +2053,19 @@ void RATES_Posterior_Times_Pre(node *a, node *d, arbre *tree)
   if(EL2 > BL_MAX) EL2 = BL_MAX;
   if(EL3 > BL_MAX) EL3 = BL_MAX;
 
-  cov11 = cond_cov[b1->num*dim+b1->num];
-  cov12 = cond_cov[b1->num*dim+b2->num];
-  cov13 = cond_cov[b1->num*dim+b3->num];
-  cov23 = cond_cov[b2->num*dim+b3->num];
-  cov22 = cond_cov[b2->num*dim+b2->num];
-  cov33 = cond_cov[b3->num*dim+b3->num];
+/*   cov11 = cond_cov[b1->num*dim+b1->num]; */
+/*   cov12 = cond_cov[b1->num*dim+b2->num]; */
+/*   cov13 = cond_cov[b1->num*dim+b3->num]; */
+/*   cov23 = cond_cov[b2->num*dim+b3->num]; */
+/*   cov22 = cond_cov[b2->num*dim+b2->num]; */
+/*   cov33 = cond_cov[b3->num*dim+b3->num]; */
 
-/*   cov11 = tree->rates->cov[b1->num*dim+b1->num]; */
-/*   cov12 = tree->rates->cov[b1->num*dim+b2->num]; */
-/*   cov13 = tree->rates->cov[b1->num*dim+b3->num]; */
-/*   cov23 = tree->rates->cov[b2->num*dim+b3->num]; */
-/*   cov22 = tree->rates->cov[b2->num*dim+b2->num]; */
-/*   cov33 = tree->rates->cov[b3->num*dim+b3->num]; */
+  cov11 = tree->rates->cov[b1->num*dim+b1->num];
+  cov12 = tree->rates->cov[b1->num*dim+b2->num];
+  cov13 = tree->rates->cov[b1->num*dim+b3->num];
+  cov23 = tree->rates->cov[b2->num*dim+b3->num];
+  cov22 = tree->rates->cov[b2->num*dim+b2->num];
+  cov33 = tree->rates->cov[b3->num*dim+b3->num];
 
 /*   printf("\n<> cov11=%f cov12=%f cov13=%f cov23=%f cov22=%f cov33=%f",cov11,cov12,cov13,cov23,cov22,cov33); */
 /*   printf("\n<> dim=%d",dim); */

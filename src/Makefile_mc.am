@@ -21,7 +21,7 @@ DEFS=-DUNIX -D$(PROG) -DDEBUG
 mc_SOURCES = main.c utilities.c optimiz.c lk.c bionj.c models.c free.c\
 options.c simu.c eigen.c pars.c alrt.c interface.c cl.c spr.c mc.c m4.c draw.c rates.c mcmc.c numeric.c
 
-mc_LDADD = -lm
+# mc_LDADD = -lm
 
 
 # SCOMPILE = $(CC) $(SDEFS) $(DEFS) $(INCLUDES) $(AM_CFLAGS) $(SCFLAGS)

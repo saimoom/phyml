@@ -81,6 +81,7 @@ int MC_main(int argc, char **argv)
   r_seed = (io->r_seed < 0)?(time(NULL)):(io->r_seed);
 /*   r_seed = 1241644898; */
 /*   r_seed = 1241664319; */
+/*   r_seed = 1241731534; */
   srand(r_seed); rand();
   printf("\n. Seed = %d",r_seed);
   Make_Model_Complete(io->mod);
