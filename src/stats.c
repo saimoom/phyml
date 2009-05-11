@@ -10,7 +10,7 @@ the GNU public licence. See http://www.opensource.org for details.
 
 */
 
-#include "numeric.h"
+#include "stats.h"
 
 
 /*********************************************************/
@@ -2091,7 +2091,436 @@ phydbl Constraint_Normal_Trunc_Mean(phydbl wanted_mu, phydbl sd, phydbl min, phy
   return(-1.);
 }
 
+/*********************************************************/
+
+int Matinv(double *x, int n, int m)
+{
+
+/* x[n*m]  ... m>=n
+*/
+
+   int i,j,k;
+   int *irow;
+   double ee, t,t1,xmax;
+   double det;
+
+   ee = 1.0E-10;
+   det = 1.0;
+   
+   irow = (int *)mCalloc(n,sizeof(int));
+
+   For (i,n)
+     {
+       xmax = 0.;
+       for (j=i; j<n; j++)
+         if (xmax < fabs(x[j*m+i]))
+	   {
+	     xmax = fabs(x[j*m+i]);
+	     irow[i]=j;
+	   }
+
+      det *= xmax;
+      if (xmax < ee)
+	{
+	  Free(irow);
+	  PhyML_Printf("\n. Determinant becomes zero at %3d!\t\n", i+1);
+	  PhyML_Printf("\n. Failed to invert the matrix.\n");
+	  Exit("\n");
+	  return(0);
+	}
+      if (irow[i] != i)
+	{
+	  For (j,m)
+	    {
+	      t = x[i*m+j];
+	      x[i*m+j] = x[irow[i]*m+j];
+	      x[irow[i]*m+j] = t;
+	    }
+	}
+      t = 1./x[i*m+i];
+      For (j,n)
+	{
+	  if (j == i) continue;
+	  t1 = t*x[j*m+i];
+	  For(k,m)  x[j*m+k] -= t1*x[i*m+k];
+	  x[j*m+i] = -t1;
+	}
+      For(j,m)   x[i*m+j] *= t;
+      x[i*m+i] = t;
+   }                            /* i  */
+   for (i=n-1; i>=0; i--)
+     {
+       if (irow[i] == i) continue;
+       For(j,n)
+	 {
+	   t = x[j*m+i];
+	   x[j*m+i] = x[j*m + irow[i]];
+	   x[j*m + irow[i]] = t;
+	 }
+     }
+
+   Free(irow);
+   return (1);
+
+/*   int i, j, k, lower, upper; */
+/*   double temp; */
+/*   phydbl *a; */
+/*   int nsize; */
+
+/*   nsize = n; */
+/*   a = x; */
+  
+/*   /\*Gauss-Jordan reduction -- invert matrix a in place, */
+/*          overwriting previous contents of a.  On exit, matrix a */
+/*          contains the inverse.*\/ */
+/*   lower = 0; */
+/*   upper = nsize-1; */
+/*   for(i = lower; i <= upper; i++)  */
+/*     { */
+/*       temp = 1.0 / a[i*n+i]; */
+/*       a[i*n+i] = 1.0; */
+/*       for (j = lower; j <= upper; j++)  */
+/* 	{ */
+/* 	  a[i*n+j] *= temp; */
+/* 	} */
+/*       for (j = lower; j <= upper; j++)  */
+/* 	{ */
+/* 	  if (j != i)  */
+/* 	    { */
+/* 	      temp = a[j*n+i]; */
+/* 	      a[j*n+i] = 0.0; */
+/* 	      for (k = lower; k <= upper; k++)  */
+/* 		{ */
+/* 		  a[j*n+k] -= temp * a[i*n+k]; */
+/* 		}	       */
+/* 	    } */
+/* 	} */
+/*     } */
+
+  return(1);
+
+}
 
 /*********************************************************/
 /*********************************************************/
+
+phydbl *Matrix_Mult(phydbl *A, phydbl *B, int nra, int nca, int nrb, int ncb)
+{
+  int i,j,k;
+  phydbl *C;
+
+  C = (phydbl *)mCalloc(nra*ncb,sizeof(phydbl));
+
+  if(nca != nrb)
+    {
+      PhyML_Printf("\n. Matrices dimensions don't match.");
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");      
+    }
+  
+  For(i,nra)
+    For(j,ncb)
+       For(k,nca)
+         C[i*ncb+j] += A[i*nca+k] * B[k*ncb+j];
+  
+  return C;
+}
+
+/*********************************************************/
+
+phydbl *Matrix_Transpose(phydbl *A, int dim)
+{
+  phydbl *tA,buff;
+  int i,j;
+
+  tA = (phydbl *)mCalloc(dim*dim,sizeof(phydbl));
+
+  For(i,dim*dim) tA[i]=A[i];
+
+  For(i,dim) for(j=i+1;j<dim;j++) 
+    {
+      buff        = tA[i*dim+j];
+      tA[i*dim+j] = tA[j*dim+i];
+      tA[j*dim+i]  = buff;
+    }
+
+  return tA;
+}
+
+/*********************************************************/
+
+phydbl Matrix_Det(phydbl *A, int size)
+{
+  phydbl *triA;
+  int i;
+  phydbl det;
+
+  triA = Cholesky_Decomp(A,size);
+  det = 0.0;
+  For(i,size) det += log(triA[i*size+i]);
+  det = exp(det);
+
+  if(det*det < MDBL_MIN) 
+    {
+      PhyML_Printf("\n. WARNING: determinant not different from zero ! \n");      
+      det = 1.E-5;
+    }
+  Free(triA);
+  return det*det;
+}
+
+/*********************************************************/
+
+/* http://en.wikipedia.org/wiki/Multivariate_normal_distribution (Conditional distributions) */
+void Normal_Conditional(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is_1, int n1, phydbl *cond_mu, phydbl *cond_cov)
+{
+  phydbl *mu1,*mu2;
+  phydbl *sig11,*sig12,*sig21,*sig22,*sig12_invsig22,*buff;
+  phydbl *ctrd_a;
+  phydbl *cond_cov_norder,*cond_mu_norder;
+  int    n2;
+  int i,j,nr,nc;
+
+  n2 = n-n1;
+
+  mu1             = (phydbl *)mCalloc(n1,   sizeof(phydbl));
+  mu2             = (phydbl *)mCalloc(n2,   sizeof(phydbl));
+  sig11           = (phydbl *)mCalloc(n1*n1,sizeof(phydbl));
+  sig12           = (phydbl *)mCalloc(n1*n2,sizeof(phydbl));
+  sig21           = (phydbl *)mCalloc(n2*n1,sizeof(phydbl));
+  sig22           = (phydbl *)mCalloc(n2*n2,sizeof(phydbl));
+  ctrd_a          = (phydbl *)mCalloc(n2,   sizeof(phydbl)); 
+  cond_cov_norder = (phydbl *)mCalloc(n1*n1,sizeof(phydbl));
+  cond_mu_norder  = (phydbl *)mCalloc(n1*n1,sizeof(phydbl));
+
+  nr=0;
+  For(i,n) { if(!is_1[i]) { ctrd_a[nr] = a[i]-mu[i]; nr++; } }
+
+  nr=0;
+  For(i,n) { if( is_1[i]) { mu1[nr] = mu[i]; nr++; } }
+
+  nr=0;
+  For(i,n) { if(!is_1[i]) { mu2[nr] = mu[i]; nr++; } }
+
+  nr=0; nc=0;
+  For(i,n)
+    {
+      if(is_1[i])
+	{
+	  nc = nr;
+ 	  for(j=i;j<n;j++)
+/* 	  nc = 0; */
+/* 	  For(j,n) */
+	    {
+	      if(is_1[j])
+		{
+		  sig11[nr*n1+nc] = cov[i*n+j];
+		  sig11[nc*n1+nr] = cov[i*n+j];
+		  nc++;
+		}
+	    }
+	  nr++;
+	}
+    }
+
+
+  nr=0; nc=0;
+  For(i,n)
+    {
+      if(is_1[i])
+	{
+/* 	  nc = nr; */
+/*  	  for(j=i;j<n;j++) */
+	  nc = 0;
+	  For(j,n)
+	    {
+	      if(!is_1[j])
+		{
+		  sig12[nr*n2+nc] = cov[i*n+j];
+/* 		  sig12[nc*n2+nr] = cov[i*n+j]; */
+		  nc++;
+		}
+	    }
+	  nr++;
+	}
+    }
+
+  nr=0; nc=0;
+  For(i,n)
+    {
+      if(!is_1[i])
+	{
+/* 	  nc = nr; */
+/* 	  for(j=i;j<n;j++) */
+	  nc = 0;
+	  For(j,n)
+	    {
+	      if(is_1[j])
+		{
+		  sig21[nr*n1+nc] = cov[i*n+j];
+/* 		  sig21[nc*n1+nr] = cov[i*n+j]; */
+		  nc++;
+		}
+	    }
+	  nr++;
+	}
+    }
+
+
+  nr=0; nc=0;
+  For(i,n)
+    {
+      if(!is_1[i])
+	{
+	  nc = nr;
+	  for(j=i;j<n;j++)
+/* 	  nc = 0; */
+/* 	  For(j,n) */
+	    {
+	      if(!is_1[j])
+		{
+		  sig22[nr*n2+nc] = cov[i*n+j];
+ 		  sig22[nc*n2+nr] = cov[i*n+j];
+		  nc++;
+		}
+	    }
+	  nr++;
+	}
+    }
+
+  Matinv(sig22,n2,n2);
+  sig12_invsig22 = Matrix_Mult(sig12,sig22,n1,n2,n2,n2);
+
+  buff = Matrix_Mult(sig12_invsig22,ctrd_a,n1,n2,n2,1);
+  For(i,n1) cond_mu_norder[i] = mu1[i]+buff[i];
+  Free(buff);
+
+  buff = Matrix_Mult(sig12_invsig22,sig21,n1,n2,n2,n1);
+  For(i,n1) For(j,n1) cond_cov_norder[i*n1+j] = sig11[i*n1+j] - buff[i*n1+j];
+
+
+  nr = 0;
+  For(i,n) if(is_1[i]) { cond_mu[i] = cond_mu_norder[nr]; nr++; }
+
+  nr = nc = 0;
+  For(i,n) 
+    {
+      if(is_1[i]) 
+	{ 
+	  nc = 0;
+	  For(j,n)
+	    {
+	      if(is_1[j]) 
+		{		  
+		  cond_cov[i*n+j] = cond_cov_norder[nr*n1+nc]; 
+		  nc++;
+		}
+	    }
+	  nr++;
+	}
+    }
+
+/*   For(i,n1) */
+/*     { */
+/*       for(j=i;j<n1;j++) */
+/* 	if(fabs(cond_cov_norder[i*n1+j] - cond_cov_norder[j*n1+i]) > 1.E-3) */
+/* 	  { */
+/* 	    PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
+/* 	    Warn_And_Exit(""); */
+/* 	  } */
+/*     } */
+
+
+  For(i,n)
+    {
+      for(j=i+1;j<n;j++)
+	if(fabs(cond_cov[i*n+j] - cond_cov[j*n+i]) > 1.E-3)
+	  {
+	    PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	    Warn_And_Exit("");
+	  }
+    }
+
+  Free(mu1);
+  Free(mu2);
+  Free(sig11);
+  Free(sig12);
+  Free(sig21);
+  Free(sig22);
+  Free(ctrd_a);
+  Free(sig12_invsig22);
+  Free(cond_cov_norder);
+  Free(cond_mu_norder);
+}
+
+
+/*********************************************************/
+
+/* http://en.wikipedia.org/wiki/Multivariate_normal_distribution (Conditional distributions) */
+void Get_Reg_Coeff(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is_1, int n1, phydbl *reg_coeff)
+{
+  phydbl *sig12,*sig22,*sig12_invsig22;
+  int    n2;
+  int    i,j,nr,nc;
+
+  n2 = n-n1;
+
+  sig12 = (phydbl *)mCalloc(n1*n2,sizeof(phydbl));
+  sig22 = (phydbl *)mCalloc(n2*n2,sizeof(phydbl));
+
+  nr=0; nc=0;
+  For(i,n)
+    {
+      if(is_1[i])
+	{
+	  nc = 0;
+	  For(j,n)
+	    {
+	      if(!is_1[j])
+		{
+		  sig12[nr*n2+nc] = cov[i*n+j];
+		  nc++;
+		}
+	    }
+	  nr++;
+	}
+    }
+
+
+  nr=0; nc=0;
+  For(i,n)
+    {
+      if(!is_1[i])
+	{
+	  nc = nr;
+	  for(j=i;j<n;j++)
+	    {
+	      if(!is_1[j])
+		{
+		  sig22[nr*n2+nc] = cov[i*n+j];
+ 		  sig22[nc*n2+nr] = cov[i*n+j];
+		  nc++;
+		}
+	    }
+	  nr++;
+	}
+    }
+
+
+  Matinv(sig22,n2,n2);
+  sig12_invsig22 = Matrix_Mult(sig12,sig22,n1,n2,n2,n2);
+
+
+  For(i,n) reg_coeff[i] = 0.0;
+
+  nr = 0;
+  For(i,n) if(!is_1[i]) { reg_coeff[i] = sig12_invsig22[nr]; nr++; }
+
+
+  Free(sig12);
+  Free(sig22);
+  Free(sig12_invsig22);
+}
+
+
 /*********************************************************/

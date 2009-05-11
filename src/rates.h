@@ -29,7 +29,7 @@ the GNU public licence. See http://www.opensource.org for details.
 #include "m4.h"
 #include "draw.h"
 #include "mcmc.h"
-#include "numeric.h"
+#include "stats.h"
 
 
 void RATES_Monte_Carlo_Mean_Rates(arbre *tree);
@@ -143,5 +143,8 @@ void RATES_Covariance_Mu(arbre *tree);
 void RATES_Variance_Mu_Pre(node *a, node *d, arbre *tree);
 void RATES_Fill_Lca_Table(arbre *tree);
 void RATES_Posterior_Clock_Rate(arbre *tree);
+void RATES_Get_Conditional_Variances(arbre *tree);
+void RATES_Get_All_Reg_Coeff(arbre *tree);
+void RATES_Posterior_Time_Root(arbre *tree);
 
 #endif

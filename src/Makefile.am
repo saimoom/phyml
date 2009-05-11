@@ -40,7 +40,7 @@ m4.c m4.h\
 draw.c draw.h\
 rates.c rates.h\
 mcmc.c mcmc.h\
-numeric.c numeric.h
+stats.c stats.h
 mc_LDADD = -lm
 else
 phyml_SOURCES = main.c \
@@ -60,7 +60,7 @@ cl.c  cl.h\
 spr.c spr.h\
 draw.c  draw.h\
 mpi_boot.c  mpi_boot.h\
-numeric.c numeric.h
+stats.c stats.h
 phyml_LDADD = -lm
 endif
 

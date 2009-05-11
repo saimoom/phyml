@@ -15,26 +15,7 @@ the GNU public licence. See http://www.opensource.org for details.
 
 #ifdef MC
 
-#include "spr.h"
-#include "utilities.h"
-#include "lk.h"
-#include "optimiz.h"
-#include "bionj.h"
-#include "models.h"
-#include "free.h"
-#include "options.h"
-#include "simu.h"
-#include "eigen.h"
-#include "pars.h"
-#include "alrt.h"
 #include "mc.h"
-#include "m4.h"
-#include "draw.h"
-#include "rates.h"
-#include "mcmc.h"
-#include "numeric.h"
-#include <stdlib.h>
-#include <unistd.h>
 
 /*********************************************************/
 
@@ -82,6 +63,9 @@ int MC_main(int argc, char **argv)
 /*   r_seed = 1241644898; */
 /*   r_seed = 1241664319; */
 /*   r_seed = 1241731534; */
+/*   r_seed = 1241754410; */
+/*   r_seed = 1242002759; */
+  r_seed = 1242007604;
   srand(r_seed); rand();
   printf("\n. Seed = %d",r_seed);
   Make_Model_Complete(io->mod);
@@ -163,6 +147,10 @@ int MC_main(int argc, char **argv)
 
 		  n_otu = 20;
 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1);
+		  tree->rates->t_has_prior[tree->n_root->num] = 1;
+		  tree->rates->t_prior_min[tree->n_root->num] = -105.;
+		  tree->rates->t_prior_max[tree->n_root->num] = -95.;
+
 
 /* 		  tree->rates->nd_t[tree->n_root->v[0]->tax ? tree->n_root->v[1]->num : tree->n_root->v[0]->num] = -10.0; */
 /* /\* 		  tree->rates->nd_t[tree->n_root->v[0]->num] = 0.0; *\/ */
@@ -257,6 +245,8 @@ int MC_main(int argc, char **argv)
 		  tree->rates->covdet = Matrix_Det(tree->rates->cov,2*tree->n_otu-3);
 		  Restore_Br_Len(NULL,tree);
 		  RATES_Bl_To_Ml(tree);
+		  RATES_Get_Conditional_Variances(tree);
+		  RATES_Get_All_Reg_Coeff(tree);
 
 
 		  Lk(tree);
@@ -273,7 +263,7 @@ int MC_main(int argc, char **argv)
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
 		  MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree);
 		  tree->rates->lk_approx = NORMAL;
-		  tree->mcmc->n_tot_run  = 1E+2;
+		  tree->mcmc->n_tot_run  = 1E+3;
 		  MCMC(tree);
 		  fclose(tree->mcmc->out_fp);
 		  MCMC_Free_MCMC(tree->mcmc);
@@ -285,9 +275,10 @@ int MC_main(int argc, char **argv)
 		  tree->rates->met_within_gibbs = NO;
 		  
 		  MCMC_Print_Param(tree->mcmc->out_fp,tree);
-
+		  
+		  time(&t_beg);
 		  printf("\n. Gibbs sampling (approx)...\n");
-		  tree->mcmc->n_tot_run  = 1E+6;
+		  tree->mcmc->n_tot_run  = 1E+7;
 		  do
 		    {
 		      RATES_Posterior_Times(tree);
@@ -296,6 +287,8 @@ int MC_main(int argc, char **argv)
 /* 		      RATES_Posterior_Clock_Rate(tree); */
 		    }
 		  while(tree->mcmc->run < tree->mcmc->n_tot_run);
+		  time(&t_end);
+		  Print_Time_Info(t_beg,t_end);
 
 		  fclose(tree->mcmc->out_fp);
 		  MCMC_Free_MCMC(tree->mcmc);
@@ -320,7 +313,11 @@ int MC_main(int argc, char **argv)
 
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
 		  MCMC_Init_MCMC_Struct("thorne.normal",tree->mcmc,tree);
+		  tree->mcmc->n_tot_run  = 1E+7;
+		  time(&t_beg);
 		  MCMC(tree);
+		  time(&t_end);
+		  Print_Time_Info(t_beg,t_end);
 		  fclose(tree->mcmc->out_fp);
 		  MCMC_Free_MCMC(tree->mcmc);
 
@@ -335,7 +332,10 @@ int MC_main(int argc, char **argv)
 
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
 		  MCMC_Init_MCMC_Struct("thorne.exact",tree->mcmc,tree);
+		  time(&t_beg);
 		  MCMC(tree);
+		  time(&t_end);
+		  Print_Time_Info(t_beg,t_end);
 		  fclose(tree->mcmc->out_fp);
 		  MCMC_Free_MCMC(tree->mcmc);
 		  /* END OF COMPOUND POISSON STUFF */
