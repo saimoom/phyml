@@ -10,8 +10,8 @@ the GNU public licence. See http://www.opensource.org for details.
 
 */
 
-#ifndef NUMERIC_H
-#define NUMERIC_H
+#ifndef STATS_H
+#define STATS_H
 
 #include "utilities.h"
 #include "free.h"
@@ -68,6 +68,12 @@ phydbl Prop_Log_Dnorm_Multi_Given_InvCov_Det(phydbl *x, phydbl *mu, phydbl *invc
 phydbl Log_Dnorm(phydbl x, phydbl mean, phydbl sd);
 phydbl tt800();
 double Pnorm_Ihaka_Derived_From_Cody(double x);
+int Matinv(double *x, int n, int m);
+phydbl *Matrix_Mult(phydbl *A, phydbl *B, int nra, int nca, int nrb, int ncb);
+phydbl *Matrix_Transpose(phydbl *A, int dim);
+void Normal_Conditional(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is_1, int n1, phydbl *cond_mu, phydbl *cond_var);
+phydbl Matrix_Det(phydbl *A, int size);
+void Get_Reg_Coeff(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is_1, int n1, phydbl *reg_coeff);
 
 
-#endif //NUMERIC_H
+#endif

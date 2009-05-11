@@ -880,6 +880,15 @@ typedef struct __Trate {
   short int  *_2n_vect5;
   phydbl   *_2n2n_vect1;
   phydbl   *_2n2n_vect2;
+
+  phydbl *cond_var;
+  phydbl *reg_coeff;
+
+  phydbl        *t_prior;
+  phydbl    *t_prior_min;
+  phydbl    *t_prior_max;
+  short int *t_has_prior;
+
 }trate;
 
 /*********************************************************/
@@ -1179,14 +1188,6 @@ int Is_Duplication_Node(node *n, char **tax_set, int n_tax, arbre *tree);
 phydbl Dexp(phydbl x, phydbl param);
 int Sort_Edges_Depth(arbre *tree, edge **sorted_edges, int n_elem);
 char *Basename(char *path);
-phydbl Rnorm(phydbl mean, phydbl sd);
-phydbl *Rnorm_Multid(phydbl *mu, phydbl *cov, int dim);
-phydbl *Matrix_Mult(phydbl *A, phydbl *B, int nra, int nca, int nrb, int ncb);
-phydbl *Matrix_Transpose(phydbl *A, int dim);
-void Normal_Conditional_1(phydbl *a, phydbl *mu, phydbl *cov, int dim, int elem, phydbl *cond_mu, phydbl *cond_var);
-void Normal_Conditional_2(phydbl *a, phydbl *mu, phydbl *cov, int dim, int elem, phydbl *cond_mu, phydbl *cond_var);
-void Normal_Conditional(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is_1, int n1, phydbl *cond_mu, phydbl *cond_var);
-phydbl Matrix_Det(phydbl *A, int size);
 void Get_List_Of_Ancestors(node *ref_nod, node **list, int *size, arbre *tree);
 node *Find_Lca(node *n1, node *n2, arbre *tree);
 int Edge_Num_To_Node_Num(int edge_num, arbre *tree);
@@ -1202,7 +1203,7 @@ int Edge_Num_To_Node_Num(int edge_num, arbre *tree);
 #include "eigen.h"
 #include "pars.h"
 #include "alrt.h"
-#include "numeric.h"
+#include "stats.h"
 
 #include <config.h>
 

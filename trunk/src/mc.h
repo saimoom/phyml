@@ -13,6 +13,26 @@ the GNU public licence. See http://www.opensource.org for details.
 #ifndef MC_H
 #define MC_H
 
+#include "spr.h"
+#include "utilities.h"
+#include "lk.h"
+#include "optimiz.h"
+#include "bionj.h"
+#include "models.h"
+#include "free.h"
+#include "options.h"
+#include "simu.h"
+#include "eigen.h"
+#include "pars.h"
+#include "alrt.h"
+#include "m4.h"
+#include "draw.h"
+#include "rates.h"
+#include "mcmc.h"
+#include "stats.h"
+#include <stdlib.h>
+#include <unistd.h>
+
 void MC_Least_Square_Node_Times_Pre(node *a, node *d, phydbl *A, phydbl *b, int n, arbre *tree);
 int  MC_main(int argc, char **argv);
 void MC_Bl_From_T_Post(node *a, node *d, edge *b, arbre *tree);

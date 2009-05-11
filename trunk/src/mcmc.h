@@ -13,6 +13,27 @@ the GNU public licence. See http://www.opensource.org for details.
 #ifndef MCMC_H
 #define MCMC_H
 
+#include "spr.h"
+#include "utilities.h"
+#include "lk.h"
+#include "optimiz.h"
+#include "bionj.h"
+#include "models.h"
+#include "free.h"
+#include "options.h"
+#include "simu.h"
+#include "eigen.h"
+#include "pars.h"
+#include "alrt.h"
+#include "mc.h"
+#include "m4.h"
+#include "draw.h"
+#include "rates.h"
+#include "stats.h"
+#include <stdlib.h>
+#include <unistd.h>
+
+
 void MCMC_Lexp(arbre *tree);
 void MCMC_Print_Param(FILE *fp, arbre *tree);
 tmcmc *MCMC_Make_MCMC_Struct();
@@ -49,6 +70,7 @@ void MCMC_Jumps_Local(arbre *tree);
 void MCMC_Jumps_Pre(node *a, node *d, int local, arbre *tree);
 void MCMC_Randomize_Clock_Rate(arbre *tree);
 void MCMC_Clock_Rate(arbre *tree);
+void MCMC_Time_Root(arbre *tree);
 
 
 
