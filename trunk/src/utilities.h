@@ -494,6 +494,7 @@ typedef struct __AllSeq {
   int        *sitepatt;             /* this array maps the position of the patterns in the
 				       compressed alignment to the positions in the uncompressed
 				       one */
+  int           format;             /* 0 (default): PHYLIP. 1: NEXUS. */
 }allseq;
 
 /*********************************************************/
@@ -881,8 +882,11 @@ typedef struct __Trate {
   phydbl   *_2n2n_vect1;
   phydbl   *_2n2n_vect2;
 
-  phydbl *cond_var;
+  phydbl  *cond_var;
   phydbl *reg_coeff;
+
+  phydbl  *trip_cond_cov;
+  phydbl *trip_reg_coeff;
 
   phydbl        *t_prior;
   phydbl    *t_prior_min;
@@ -910,7 +914,8 @@ typedef struct __Tmcmc {
   phydbl *r_path;
 
   char *out_filename;
-  FILE *out_fp;
+  FILE *out_fp_stats;
+  FILE *out_fp_trees;
 
 }tmcmc;
 
@@ -1191,6 +1196,8 @@ char *Basename(char *path);
 void Get_List_Of_Ancestors(node *ref_nod, node **list, int *size, arbre *tree);
 node *Find_Lca(node *n1, node *n2, arbre *tree);
 int Edge_Num_To_Node_Num(int edge_num, arbre *tree);
+void Branch_Lengths_To_Time_Lengths(arbre *tree);
+void Branch_Lengths_To_Time_Lengths_Pre(node *a, node *d, arbre *tree);
 
 
 #include "free.h"

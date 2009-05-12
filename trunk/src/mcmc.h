@@ -35,7 +35,7 @@ the GNU public licence. See http://www.opensource.org for details.
 
 
 void MCMC_Lexp(arbre *tree);
-void MCMC_Print_Param(FILE *fp, arbre *tree);
+void MCMC_Print_Param(tmcmc *mcmc, arbre *tree);
 tmcmc *MCMC_Make_MCMC_Struct();
 void MCMC_Free_MCMC(tmcmc *mcmc);
 void MCMC_Init_MCMC_Struct(char *filename, tmcmc *mcmc, arbre *tree);
