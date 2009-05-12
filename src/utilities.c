@@ -453,10 +453,6 @@ char *Write_Tree(arbre *tree)
   #endif
 
   
-#ifdef MC
-  if((tree->rates) && (tree->rates->bl_from_rt)) RATES_Update_Cur_Bl(tree);
-#endif
-
   if(!tree->n_root)
     {
       i = 0;
@@ -506,12 +502,10 @@ void R_wtree(node *pere, node *fils, char *s_tree, arbre *tree)
 
 	  strcat(s_tree,":");
 
-	  if(pere != tree->n_root)
+	  if(!tree->n_root)
 	    sprintf(s_tree+(int)strlen(s_tree),"%.10f",fils->b[0]->l);
 	  else
-	    {
-	      sprintf(s_tree+(int)strlen(s_tree),"%.10f",tree->rates->cur_l[fils->num]);
-	    }
+	    sprintf(s_tree+(int)strlen(s_tree),"%.10f",tree->rates->cur_l[fils->num]);
 	}
       sprintf(s_tree+(int)strlen(s_tree),",");
    }
@@ -556,12 +550,10 @@ void R_wtree(node *pere, node *fils, char *s_tree, arbre *tree)
 
 	  strcat(s_tree,":");
 
-	  if(pere != tree->n_root)
+	  if(!tree->n_root)
 	    sprintf(s_tree+(int)strlen(s_tree),"%.10f",fils->b[p]->l);
 	  else
-	    {
-	      sprintf(s_tree+(int)strlen(s_tree),"%.10f",tree->rates->cur_l[fils->num]);
-	    }
+	    sprintf(s_tree+(int)strlen(s_tree),"%.10f",tree->rates->cur_l[fils->num]);
 	}
       strcat(s_tree,",");
     }
@@ -2153,16 +2145,27 @@ void Print_CSeq(FILE *fp, allseq *alldata)
   int n_otu;
   
   n_otu = alldata->n_otu;
-  PhyML_Fprintf(fp,"%d\t%d\n",n_otu,alldata->init_len);
+  if(alldata->format == 0)
+    {
+      PhyML_Fprintf(fp,"%d\t%d\n",n_otu,alldata->init_len);
+    }
+  else
+    {
+      PhyML_Fprintf(fp,"#NEXUS\n");
+      PhyML_Fprintf(fp,"begin data\n");
+      PhyML_Fprintf(fp,"dimensions ntax=%d nchar=%d;\n",n_otu,alldata->init_len);
+      PhyML_Fprintf(fp,"format sequential datatype=dna;\n");
+      PhyML_Fprintf(fp,"matrix\n");
+    }
   For(i,n_otu)
     {
       For(j,50)
 	{
 	  if(j<(int)strlen(alldata->c_seq[i]->name))
-	     fputc(alldata->c_seq[i]->name[j],fp);
+	    fputc(alldata->c_seq[i]->name[j],fp);
 	  else fputc(' ',fp);
 	}
-
+      
       For(j,alldata->crunch_len)
 	{
 	  For(k,alldata->wght[j])
@@ -2171,6 +2174,13 @@ void Print_CSeq(FILE *fp, allseq *alldata)
       PhyML_Fprintf(fp,"\n");
     }
   PhyML_Fprintf(fp,"\n");
+
+  if(alldata->format == 1)
+    {
+      PhyML_Fprintf(fp,";\n");
+      PhyML_Fprintf(fp,"END;\n");
+    }
+
 
 /*   PhyML_Printf("\t"); */
 /*   For(j,alldata->crunch_len) */
@@ -3144,6 +3154,7 @@ allseq *Make_Cseq(int n_otu, int crunch_len, int init_len, char **sp_names)
   alldata->ambigu                = (short int *)mCalloc(crunch_len,sizeof(short int));
   alldata->invar                 = (short int *)mCalloc(crunch_len,sizeof(short int));
   alldata->sitepatt              = (int *)mCalloc(  init_len,sizeof(int ));
+  alldata->format                = 0;
 
   alldata->crunch_len = crunch_len;
   alldata->init_len   = init_len;
@@ -9360,6 +9371,29 @@ int Edge_Num_To_Node_Num(int edge_num, arbre *tree)
 }
 
 /*********************************************************/
+
+void Branch_Lengths_To_Time_Lengths(arbre *tree)
+{
+  Branch_Lengths_To_Time_Lengths_Pre(tree->n_root,tree->n_root->v[0],tree);
+  Branch_Lengths_To_Time_Lengths_Pre(tree->n_root,tree->n_root->v[1],tree);
+}
+
 /*********************************************************/
+
+void Branch_Lengths_To_Time_Lengths_Pre(node *a, node *d, arbre *tree)
+{
+  int i;
+
+  tree->rates->cur_l[d->num] = tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num];
+
+  if(d->tax) return;
+  else
+    {
+      For(i,3)
+	if((d->v[i] != a) && (d->b[i] != tree->e_root))
+	  Branch_Lengths_To_Time_Lengths_Pre(d,d->v[i],tree);
+    }
+}
+
 /*********************************************************/
 /*********************************************************/

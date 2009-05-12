@@ -2457,6 +2457,144 @@ void Normal_Conditional(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is
 /*********************************************************/
 
 /* http://en.wikipedia.org/wiki/Multivariate_normal_distribution (Conditional distributions) */
+void Normal_Conditional_Unsorted(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is_1, int n1, phydbl *cond_mu, phydbl *cond_cov)
+{
+  phydbl *mu1,*mu2;
+  phydbl *sig11,*sig12,*sig21,*sig22,*sig12_invsig22,*buff;
+  phydbl *ctrd_a;
+  int    n2;
+  int i,j,nr,nc;
+
+  n2 = n-n1;
+
+  mu1             = (phydbl *)mCalloc(n1,   sizeof(phydbl));
+  mu2             = (phydbl *)mCalloc(n2,   sizeof(phydbl));
+  sig11           = (phydbl *)mCalloc(n1*n1,sizeof(phydbl));
+  sig12           = (phydbl *)mCalloc(n1*n2,sizeof(phydbl));
+  sig21           = (phydbl *)mCalloc(n2*n1,sizeof(phydbl));
+  sig22           = (phydbl *)mCalloc(n2*n2,sizeof(phydbl));
+  ctrd_a          = (phydbl *)mCalloc(n2,   sizeof(phydbl)); 
+
+  nr=0;
+  For(i,n) { if(!is_1[i]) { ctrd_a[nr] = a[i]-mu[i]; nr++; } }
+
+  nr=0;
+  For(i,n) { if( is_1[i]) { mu1[nr] = mu[i]; nr++; } }
+
+  nr=0;
+  For(i,n) { if(!is_1[i]) { mu2[nr] = mu[i]; nr++; } }
+
+  nr=0; nc=0;
+  For(i,n)
+    {
+      if(is_1[i])
+	{
+	  nc = nr;
+ 	  for(j=i;j<n;j++)
+/* 	  nc = 0; */
+/* 	  For(j,n) */
+	    {
+	      if(is_1[j])
+		{
+		  sig11[nr*n1+nc] = cov[i*n+j];
+		  sig11[nc*n1+nr] = cov[i*n+j];
+		  nc++;
+		}
+	    }
+	  nr++;
+	}
+    }
+
+
+  nr=0; nc=0;
+  For(i,n)
+    {
+      if(is_1[i])
+	{
+/* 	  nc = nr; */
+/*  	  for(j=i;j<n;j++) */
+	  nc = 0;
+	  For(j,n)
+	    {
+	      if(!is_1[j])
+		{
+		  sig12[nr*n2+nc] = cov[i*n+j];
+/* 		  sig12[nc*n2+nr] = cov[i*n+j]; */
+		  nc++;
+		}
+	    }
+	  nr++;
+	}
+    }
+
+  nr=0; nc=0;
+  For(i,n)
+    {
+      if(!is_1[i])
+	{
+/* 	  nc = nr; */
+/* 	  for(j=i;j<n;j++) */
+	  nc = 0;
+	  For(j,n)
+	    {
+	      if(is_1[j])
+		{
+		  sig21[nr*n1+nc] = cov[i*n+j];
+/* 		  sig21[nc*n1+nr] = cov[i*n+j]; */
+		  nc++;
+		}
+	    }
+	  nr++;
+	}
+    }
+
+
+  nr=0; nc=0;
+  For(i,n)
+    {
+      if(!is_1[i])
+	{
+	  nc = nr;
+	  for(j=i;j<n;j++)
+/* 	  nc = 0; */
+/* 	  For(j,n) */
+	    {
+	      if(!is_1[j])
+		{
+		  sig22[nr*n2+nc] = cov[i*n+j];
+ 		  sig22[nc*n2+nr] = cov[i*n+j];
+		  nc++;
+		}
+	    }
+	  nr++;
+	}
+    }
+
+  Matinv(sig22,n2,n2);
+  sig12_invsig22 = Matrix_Mult(sig12,sig22,n1,n2,n2,n2);
+
+  buff = Matrix_Mult(sig12_invsig22,ctrd_a,n1,n2,n2,1);
+  For(i,n1) cond_mu[i] = mu1[i]+buff[i];
+  Free(buff);
+
+  buff = Matrix_Mult(sig12_invsig22,sig21,n1,n2,n2,n1);
+  For(i,n1) For(j,n1) cond_cov[i*n1+j] = sig11[i*n1+j] - buff[i*n1+j];
+
+
+  Free(mu1);
+  Free(mu2);
+  Free(sig11);
+  Free(sig12);
+  Free(sig21);
+  Free(sig22);
+  Free(ctrd_a);
+  Free(sig12_invsig22);
+}
+
+
+/*********************************************************/
+
+/* http://en.wikipedia.org/wiki/Multivariate_normal_distribution (Conditional distributions) */
 void Get_Reg_Coeff(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is_1, int n1, phydbl *reg_coeff)
 {
   phydbl *sig12,*sig22,*sig12_invsig22;
@@ -2513,8 +2651,29 @@ void Get_Reg_Coeff(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is_1, i
 
   For(i,n) reg_coeff[i] = 0.0;
 
+/*   nr = 0; */
+/*   For(i,n) if(!is_1[i]) { reg_coeff[i] = sig12_invsig22[nr]; nr++; } */
+
+  nc = 0;
   nr = 0;
-  For(i,n) if(!is_1[i]) { reg_coeff[i] = sig12_invsig22[nr]; nr++; }
+  For(i,n1) 
+    {
+      nc = 0;
+      For(j,n)
+	if(!is_1[j]) 
+	  { 
+	    reg_coeff[i*n+j] = sig12_invsig22[nr*n2+nc]; 
+	    nc++; 
+	  }
+      nr++;
+    }
+
+
+  if(nc != n2 || nr != n1)
+    {
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");
+    }
 
 
   Free(sig12);
