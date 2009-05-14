@@ -1146,16 +1146,12 @@ void Optimize_Br_Len_Serie(node *a, node *d, edge *b_fcus, arbre *tree, allseq *
   lk_init = tree->c_lnL;
   
   l_infa = l_max  = l_infb = BL_MIN;
- 
-  l_infa = 10.*b_fcus->l;
+
+/*   l_infa = 10.*b_fcus->l; */
+  l_infa = BL_MAX;
   l_max  = b_fcus->l;
   l_infb = BL_MIN;
   
-/*   Br_Len_Brent(l_infa,l_max,l_infb, */
-/* 	       1.e-3, */
-/* 	       &(b_fcus->l), */
-/* 	       b_fcus,tree,500); */
-
   Br_Len_Brent(l_infa,l_max,l_infb,
 	       tree->mod->s_opt->min_diff_lk_local,
 	       b_fcus,tree,
@@ -1168,7 +1164,7 @@ void Optimize_Br_Len_Serie(node *a, node *d, edge *b_fcus, arbre *tree, allseq *
       PhyML_Printf("\n. %f -- %f",lk_init,tree->c_lnL);
       Warn_And_Exit("\n. Err. in Optimize_Br_Len_Serie\n");
     }
-    
+
   if(d->tax) return;
   else For(i,3) if(d->v[i] != a)
     {
