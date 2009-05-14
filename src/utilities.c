@@ -5152,6 +5152,8 @@ void Alloc_Bip(arbre *tree)
 {
   int i,j,k;
 
+  if(tree->has_bip) return;
+
   tree->has_bip = 1;
 
   For(i,2*tree->n_otu-2)
@@ -9395,5 +9397,167 @@ void Branch_Lengths_To_Time_Lengths_Pre(node *a, node *d, arbre *tree)
     }
 }
 
+/*********************************************************/
+
+int Find_Clade(char **tax_name_list, int list_size, arbre *tree)
+{
+  if(list_size == tree->n_otu)
+    {
+      int i,j;
+      int score;
+      
+      score = 0;
+      For(i,list_size)
+	{
+	  For(j,tree->n_otu)
+	    {
+	      if(!strcmp(tax_name_list[i],tree->noeud[j]->name)) score++;
+	    }
+	}
+
+      if(score == tree->n_otu) return tree->n_root->num;
+      else return -1;
+    }
+  else
+    {
+      int num;
+      num = -1;
+      Alloc_Bip(tree);
+      Get_Bip(tree->noeud[0],tree->noeud[0]->v[0],tree);
+      Find_Clade_Pre(tree->n_root,tree->n_root->v[0],tax_name_list,list_size,&num,tree);
+      Find_Clade_Pre(tree->n_root,tree->n_root->v[1],tax_name_list,list_size,&num,tree);
+      return num;
+    }
+  return -1;
+}
+
+/*********************************************************/
+
+void Find_Clade_Pre(node *a, node *d, char **tax_name_list, int list_size, int *num, arbre *tree)
+{
+  int i,j,k;
+  int score;
+  
+  
+  For(i,3) 
+    if((d->v[i] == a) || (d->b[i] == tree->e_root))
+      {
+	if(list_size == d->bip_size[i])
+	  {
+	    score = 0;
+	    For(j,d->bip_size[i])
+	      {
+		For(k,list_size)
+		  {
+/* 		    printf("\n>> %s",d->bip_name[i][j]); */
+		    if(!strcmp(tax_name_list[k],d->bip_name[i][j]))
+		      {
+			score++;
+			break;
+		      }
+		  }
+	      }
+	    if(score == list_size) *num = d->num;
+	  }
+	break;
+      }
+
+  if(d->tax) return;
+  else
+    For(i,3)
+      if((d->v[i] != a) && (d->b[i] != tree->e_root))
+	Find_Clade_Pre(d,d->v[i],tax_name_list,list_size,num, tree);
+}
+
+/*********************************************************/
+
+void Read_Clade_Priors(char *file_name, arbre *tree)
+{
+  FILE *fp;
+  char *s,*line;
+  int n_clade_priors;
+  int clade_size;
+  char **clade_list;
+  int i,pos;
+  phydbl prior_low,prior_up;
+  int node_num;
+
+  line = (char *)mCalloc(T_MAX_LINE,sizeof(char));
+  s    = (char *)mCalloc(T_MAX_LINE,sizeof(char));
+
+  clade_list = (char **)mCalloc(tree->n_otu,sizeof(char *));
+  For(i,tree->n_otu) clade_list[i] = (char *)mCalloc(T_MAX_NAME,sizeof(char));
+
+  fp = Openfile(file_name,0);
+  
+  n_clade_priors = 0;  
+  do
+    {
+      if(!fgets(line,T_MAX_LINE,fp)) break;
+      clade_size = 0;
+      pos = 0;
+      do
+	{
+	  i = 0;
+	  while((line[pos] != ' ') && (line[pos] != '\n') && line[pos] != '#')
+	    {
+	      s[i] = line[pos];
+	      i++;
+	      pos++;
+	    }
+	  s[i] = '\0';
+/* 	  printf("\n. s = %s\n",s); */
+	  
+	  if(line[pos] == '\n' || line[pos] == '#') break;
+	  pos++;
+
+	  if(strcmp(s,"|"))
+	    {
+	      strcpy(clade_list[clade_size],s);
+	      clade_size++;
+	    }
+	  else break;	    
+	}
+      while(1);
+      if(line[pos] != '#')
+	{
+	  sscanf(line+pos,"%lf %lf",&prior_up,&prior_low);
+	  node_num = -1;
+	  node_num = Find_Clade(clade_list, clade_size, tree);
+	  
+	  if(node_num < 0)
+	    {
+	      PhyML_Printf("\n. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+	      PhyML_Printf("\n. Could not find any clade in the tree with the following taxa names:");
+	      For(i,clade_size) PhyML_Printf("\n. \"%s\"",clade_list[i]);
+	      PhyML_Printf("\n. <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+	      Exit("\n");
+	    }
+	  else
+	    {	      
+	      tree->rates->t_has_prior[node_num] = 1;
+	      tree->rates->t_prior_min[node_num] = MIN(prior_low,prior_up);
+	      tree->rates->t_prior_max[node_num] = MAX(prior_low,prior_up);
+	      PhyML_Printf("\n. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+	      PhyML_Printf("\n. Node %4d matches the clade with the following taxa names:",node_num);
+	      For(i,clade_size) PhyML_Printf("\n. - \"%s\"",clade_list[i]);
+	      PhyML_Printf("\n. Lower bound set to: %15f time units.",MIN(prior_low,prior_up)); 
+	      PhyML_Printf("\n. Upper bound set to: %15f time units.",MAX(prior_low,prior_up)); 
+	      PhyML_Printf("\n. <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+	    }
+	}
+    }
+  while(1);
+
+  For(i,tree->n_otu) Free(clade_list[i]);
+  Free(clade_list);
+  Free(line);
+  Free(s);
+  fclose(fp);
+}
+
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
 /*********************************************************/
 /*********************************************************/

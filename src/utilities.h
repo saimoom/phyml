@@ -115,7 +115,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #ifdef PHYML
 #define  BL_MIN            1.e-10
 #else
-#define  BL_MIN             1.e-6
+#define  BL_MIN             1.e-4
 #endif
 #define  BL_START          1.e-04
 #define  BL_MAX             100.0
@@ -1198,6 +1198,9 @@ node *Find_Lca(node *n1, node *n2, arbre *tree);
 int Edge_Num_To_Node_Num(int edge_num, arbre *tree);
 void Branch_Lengths_To_Time_Lengths(arbre *tree);
 void Branch_Lengths_To_Time_Lengths_Pre(node *a, node *d, arbre *tree);
+int Find_Clade(char **tax_name_list, int list_size, arbre *tree);
+void Find_Clade_Pre(node *a, node *d, char **tax_name_list, int list_size, int *num, arbre *tree);
+void Read_Clade_Priors(char *file_name, arbre *tree);
 
 
 #include "free.h"
