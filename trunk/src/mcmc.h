@@ -71,6 +71,8 @@ void MCMC_Jumps_Pre(node *a, node *d, int local, arbre *tree);
 void MCMC_Randomize_Clock_Rate(arbre *tree);
 void MCMC_Clock_Rate(arbre *tree);
 void MCMC_Time_Root(arbre *tree);
+void MCMC_Randomize_Node_Times_Bottom_Up(node *a, node *d, arbre *tree);
+void MCMC_Randomize_Node_Times_Top_Down(node *a, node *d, arbre *tree);
 
 
 

@@ -523,7 +523,6 @@ phydbl Dnorm_Multi_Given_InvCov_Det(phydbl *x, phydbl *mu, phydbl *invcov, phydb
   buff1 = Matrix_Mult(xmmu,invcov,1,size,size,size);
   buff2 = Matrix_Mult(buff1,xmmu,1,size,size,1);
 
-/*   density = (1./(pow(2.*PI,size/2.)*sqrt(fabs(det)))) * exp(-0.5*buff2[0]); */
   density = size * LOG2PI + log(det) + buff2[0];
   density /= -2.;
   

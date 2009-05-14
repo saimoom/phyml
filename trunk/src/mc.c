@@ -137,9 +137,6 @@ int MC_main(int argc, char **argv)
 
 		  n_otu = 20;
 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1);
-		  tree->rates->t_has_prior[tree->n_root->num] = 1;
-		  tree->rates->t_prior_min[tree->n_root->num] = -115.;
-		  tree->rates->t_prior_max[tree->n_root->num] = -85.;
 
 		  RATES_Fill_Lca_Table(tree);
 
@@ -173,6 +170,10 @@ int MC_main(int argc, char **argv)
 		  PhyML_Fprintf(stdout,"TREE %8d [%f] = %s\n",0,0.0,s);
 		  Free(s);
 
+
+		  Read_Clade_Priors("clade_list",tree);
+
+
 		  /************************************/
 
 /* 		  IMPORTANCE SAMPLING STUFF */
@@ -195,6 +196,7 @@ int MC_main(int argc, char **argv)
 		  Free(tree->rates->cov); tree->rates->cov = cov;
 		  For(i,(2*tree->n_otu-3)*(2*tree->n_otu-3)) tree->rates->invcov[i] = tree->rates->cov[i];
 		  Matinv(tree->rates->invcov,2*tree->n_otu-3,2*tree->n_otu-3);
+
 		  tree->rates->covdet = Matrix_Det(tree->rates->cov,2*tree->n_otu-3);
 		  Restore_Br_Len(NULL,tree);
 		  RATES_Bl_To_Ml(tree);
@@ -202,7 +204,6 @@ int MC_main(int argc, char **argv)
 		  RATES_Get_All_Reg_Coeff(tree);
 		  RATES_Get_Trip_Conditional_Variances(tree);
 		  RATES_Get_All_Trip_Reg_Coeff(tree);
-
 
 		  Lk(tree);
 		  printf("\n. Best LnL_data = %f",tree->c_lnL);
@@ -234,13 +235,13 @@ int MC_main(int argc, char **argv)
 		  
 		  time(&t_beg);
 		  printf("\n. Gibbs sampling (approx)...\n");
-		  tree->mcmc->n_tot_run  = 1E+7;
+		  tree->mcmc->n_tot_run  = 1E+6;
 		  do
 		    {
 		      RATES_Posterior_Times(tree);
 		      RATES_Posterior_Rates(tree);
-/* 		      MCMC_Nu(tree); */
 		      RATES_Posterior_Clock_Rate(tree);
+		      MCMC_Nu(tree);
 		    }
 		  while(tree->mcmc->run < tree->mcmc->n_tot_run);
 		  time(&t_end);
@@ -270,7 +271,7 @@ int MC_main(int argc, char **argv)
 
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
 		  MCMC_Init_MCMC_Struct("thorne.normal",tree->mcmc,tree);
-		  tree->mcmc->n_tot_run  = 1E+7;
+		  tree->mcmc->n_tot_run  = 1E+6;
 		  time(&t_beg);
 		  MCMC(tree);
 		  time(&t_end);
