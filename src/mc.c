@@ -73,7 +73,7 @@ int MC_main(int argc, char **argv)
   if(io->in_tree == 2) Test_Multiple_Data_Set_Format(io);
   else io->n_trees = 1;
 
-  io->compress_seq = 0;
+/*   io->compress_seq = 0; */
 
   mat = NULL;
   tree_line_number = 0;
@@ -116,13 +116,6 @@ int MC_main(int argc, char **argv)
 		  if(!io->in_tree) tree = Dist_And_BioNJ(alldata,mod,io);
 		  /* A user-given tree is used here instead of BioNJ */
 		  else             tree = Read_User_Tree(alldata,mod,io);
-		  
-
-		  tree->mod         = mod;
-		  tree->io          = io;
-		  tree->data        = alldata;
-		  tree->both_sides  = 1;
-		  tree->n_pattern   = tree->data->crunch_len/tree->mod->stepsize;
 
 		  if(!tree) continue;
 
@@ -130,13 +123,20 @@ int MC_main(int argc, char **argv)
 		  time(&(tree->t_beg));
 
 
-		  phydbl *cov;
-		  int n_otu;
+/* 		  int n_otu; */
 		  int i;
-/* 		  int dir1,dir2; */
+/* /\* 		  int dir1,dir2; *\/ */
+		  edge *root_edge;
 
-		  n_otu = 20;
-		  tree = Generate_Random_Tree_From_Scratch(n_otu,1);
+/* 		  n_otu = 20; */
+/* 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1); */
+
+		  tree->rates = RATES_Make_Rate_Struct(tree->n_otu);
+		  RATES_Init_Rate_Struct(tree->rates,tree->n_otu);
+
+		  root_edge = Find_Root_Edge(io->fp_in_tree,tree);
+		  Add_Root(root_edge,tree);
+		  PhyML_Printf("%s\n",Write_Tree(tree));
 
 		  RATES_Fill_Lca_Table(tree);
 
@@ -146,14 +146,14 @@ int MC_main(int argc, char **argv)
 		  tree->both_sides  = 1;
 		  tree->n_pattern   = tree->data->crunch_len/tree->mod->stepsize;
 
-		  For(i,tree->n_otu) strcpy(tree->noeud[i]->name,alldata->c_seq[i]->name);
+/* 		  For(i,tree->n_otu) strcpy(tree->noeud[i]->name,alldata->c_seq[i]->name); */
 
 		  Fill_Dir_Table(tree);
 		  Update_Dirs(tree);
 		  Make_Tree_4_Pars(tree,alldata,alldata->init_len);
 		  Make_Tree_4_Lk(tree,alldata,alldata->init_len);
 
-		  Evolve(tree->data,tree->mod,tree);
+/* 		  Evolve(tree->data,tree->mod,tree); */
 		  Init_Ui_Tips(tree);
 		  Init_P_Pars_Tips(tree);
 		  if(tree->mod->s_opt->greedy) Init_P_Lk_Tips_Double(tree);
@@ -162,14 +162,13 @@ int MC_main(int argc, char **argv)
 		  For(i,2*tree->n_otu-1) tree->rates->true_t[i] = tree->rates->nd_t[i];
 		  For(i,2*tree->n_otu-2) tree->rates->true_r[i] = tree->rates->nd_r[i];
 
-		  tree->data->format = 1;
-		  Print_CSeq(stdout,tree->data);
-		  char *s;     
-		  Branch_Lengths_To_Time_Lengths(tree);
-		  s = Write_Tree(tree);
-		  PhyML_Fprintf(stdout,"TREE %8d [%f] = %s\n",0,0.0,s);
-		  Free(s);
-
+/* 		  tree->data->format = 1; */
+/* 		  Print_CSeq(stdout,tree->data); */
+/* 		  char *s;      */
+/* 		  Branch_Lengths_To_Time_Lengths(tree); */
+/* 		  s = Write_Tree(tree); */
+/* 		  PhyML_Fprintf(stdout,"TREE %8d [%f] = %s\n",0,0.0,s); */
+/* 		  Free(s); */
 
 		  Read_Clade_Priors("clade_list",tree);
 
@@ -190,10 +189,12 @@ int MC_main(int argc, char **argv)
 		  Record_Br_Len(NULL,tree);
 		  printf("\n. Computing Hessian...\n");
 		  tree->rates->bl_from_rt = 0;
+		  phydbl *cov;
 		  cov = Hessian(tree);
-		  For(i,(2*tree->n_otu-3)*(2*tree->n_otu-3)) cov[i] = -cov[i];
+		  For(i,(2*tree->n_otu-3)*(2*tree->n_otu-3)) cov[i] *= -1.0;
 		  Matinv(cov,2*tree->n_otu-3,2*tree->n_otu-3);
-		  Free(tree->rates->cov); tree->rates->cov = cov;
+		  Free(tree->rates->cov); 
+		  tree->rates->cov = cov;
 		  For(i,(2*tree->n_otu-3)*(2*tree->n_otu-3)) tree->rates->invcov[i] = tree->rates->cov[i];
 		  Matinv(tree->rates->invcov,2*tree->n_otu-3,2*tree->n_otu-3);
 
@@ -210,8 +211,8 @@ int MC_main(int argc, char **argv)
 		  For(i,2*tree->n_otu-3) tree->rates->u_cur_l[i] = tree->t_edges[i]->l;
 		  tree->c_lnL = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES);
 		  printf("\n. Best Approx lnL = %f",tree->c_lnL);
-		  RATES_Lk_Rates(tree);
-		  printf("\n. Best LnL_rates = %f",tree->rates->c_lnL);
+/* 		  RATES_Lk_Rates(tree); */
+/* 		  printf("\n. Best LnL_rates = %f",tree->rates->c_lnL); */
 
 		  tree->rates->bl_from_rt = 1;
 
@@ -235,13 +236,14 @@ int MC_main(int argc, char **argv)
 		  
 		  time(&t_beg);
 		  printf("\n. Gibbs sampling (approx)...\n");
-		  tree->mcmc->n_tot_run  = 1E+6;
+		  tree->mcmc->n_tot_run  = 1E+7;
 		  do
 		    {
 		      RATES_Posterior_Times(tree);
 		      RATES_Posterior_Rates(tree);
 		      RATES_Posterior_Clock_Rate(tree);
 		      MCMC_Nu(tree);
+		      RATES_Adjust_Clock_Rate(tree);
 		    }
 		  while(tree->mcmc->run < tree->mcmc->n_tot_run);
 		  time(&t_end);
@@ -271,7 +273,7 @@ int MC_main(int argc, char **argv)
 
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
 		  MCMC_Init_MCMC_Struct("thorne.normal",tree->mcmc,tree);
-		  tree->mcmc->n_tot_run  = 1E+6;
+		  tree->mcmc->n_tot_run  = 1E+7;
 		  time(&t_beg);
 		  MCMC(tree);
 		  time(&t_end);

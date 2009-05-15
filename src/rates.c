@@ -26,7 +26,6 @@ the GNU public licence. See http://www.opensource.org for details.
 
 phydbl RATES_Lk_Rates(arbre *tree)
 {
-  
   RATES_Set_Node_Times(tree);
   RATES_Init_Triplets(tree);
 
@@ -712,7 +711,6 @@ void RATES_Init_Rate_Struct(trate *rates, int n_otu)
 
   rates->met_within_gibbs = NO;
   rates->model         = THORNE;
-  rates->clock_r       = 1.E-2;
   rates->c_lnL         = -INFINITY;
   rates->c_lnL_jps     = -INFINITY;
   rates->adjust_rates  = 0;
@@ -722,12 +720,15 @@ void RATES_Init_Rate_Struct(trate *rates, int n_otu)
   rates->birth_rate    = 0.001;
   rates->max_rate      = 1.E+2;
   rates->min_rate      = 1.E-2;
+
+  rates->clock_r       = 1.E-2;
   rates->max_clock     = 1.E-0;
   rates->min_clock     = 1.E-8;
+
   rates->nu            = 1.E-3;
-  rates->max_nu        = 1.E-2;
+  rates->max_nu        = 1.E-0;
   rates->min_nu        = 1.E-7;
-  rates->min_dt        = 1.E-3;
+  rates->min_dt        = 0.E-0;
   rates->step_rate     = 1.E-4;
   rates->approx        = 1;
   rates->bl_from_rt    = 0;
@@ -1133,8 +1134,16 @@ void RATES_Set_Node_Times_Pre(node *a, node *d, arbre *tree)
 	  Warn_And_Exit("");
 	}
             
-      if(tree->rates->nd_t[d->num] > t_inf)      tree->rates->nd_t[d->num] = t_inf;
-      else if(tree->rates->nd_t[d->num] < t_sup) tree->rates->nd_t[d->num] = t_sup;
+      if(tree->rates->nd_t[d->num] > t_inf)      
+	{
+	  tree->rates->nd_t[d->num] = t_inf;
+	  PhyML_Printf("\n. Time for node %d is larger than should be. Set it to %f",d->num,tree->rates->nd_t[d->num]);
+	}
+      else if(tree->rates->nd_t[d->num] < t_sup) 
+	{
+	  tree->rates->nd_t[d->num] = t_sup;
+	  PhyML_Printf("\n. Time for node %d is lower than should be. Set it to %f",d->num,tree->rates->nd_t[d->num]);
+	}
 
       For(i,3)
 	{
@@ -1378,11 +1387,24 @@ phydbl RATES_Adjust_Clock_Rate(arbre *tree)
   int i;
   phydbl mean;
 
+  
   mean = 0.0;
   For(i,2*tree->n_otu-2) mean += tree->rates->nd_r[i];
   mean /= (phydbl)(2*tree->n_otu-2);
-  For(i,2*tree->n_otu-2) tree->rates->nd_r[i] /= mean;
-  tree->rates->clock_r *= mean;
+  if(mean < 0.5 || mean > 1.5) 
+    {
+      For(i,2*tree->n_otu-2) tree->rates->nd_r[i] /= mean;
+      PhyML_Printf("\n. Mean relative rate is corrected at cycle %8d (was %10f).",tree->mcmc->run,mean);
+
+      RATES_Update_Cur_Bl(tree);
+      if(tree->rates->lk_approx == NORMAL)
+	tree->c_lnL = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES);
+      else
+	tree->c_lnL = Return_Lk(tree);
+
+      RATES_Lk_Rates(tree);
+    }
+/*   tree->rates->clock_r *= mean; */
 
 /*   mean = 0.0; */
 /*   For(i,2*tree->n_otu-2) */
@@ -1671,7 +1693,7 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
   phydbl prior_mean, prior_var;
   phydbl post_mean, post_var, post_sd;
   phydbl dt,el,vl,ra,rd,min_r,max_r,cr,nu,cel,cvl,cer,cvr;
-  phydbl new_l;
+  phydbl cur_l,new_l;
   int dim;
   short int *is_1;
   phydbl *cond_mu, *cond_cov; 
@@ -1744,6 +1766,7 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
   cvl    = vl;   /* conditional branch length variance */
   cer    = -1.0; /* conditional rate expectation */
   cvr    = -1.0; /* conditional rate variance */
+  cur_l  = tree->rates->u_cur_l[b->num];
 
   if(dt < eps_dt) dt = eps_dt;
 
@@ -1850,7 +1873,8 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
 	  PhyML_Printf("\n. T0=%f T1=%f T2=%f T3=%f",T0,T1,T2,T3);
 	  PhyML_Printf("\n. U0=%f U1=%f U2=%f U3=%f",U0,U1,U2,U3);
 	  PhyML_Printf("\n. <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
-	  Exit("\n");
+	  new_l = cur_l;
+/* 	  Exit("\n"); */
 	}
     }
   else
@@ -1869,7 +1893,8 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
 	  PhyML_Printf("\n. T0=%f T1=%f T2=%f T3=%f",T0,T1,T2,T3);
 	  PhyML_Printf("\n. U0=%f U1=%f U2=%f U3=%f",U0,U1,U2,U3);
 	  PhyML_Printf("\n. <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
-	  Exit("\n");
+	  new_l = cur_l;
+/* 	  Exit("\n"); */
 	}
     }
 
@@ -2160,8 +2185,11 @@ void RATES_Posterior_Times_Pre(node *a, node *d, arbre *tree)
 
 
   T1_new = +1;
-  T1_LIM_INF = T0 + (1./tree->rates->nu)*pow((U1-U0)/1.96,2);
-  T1_LIM_SUP = MIN(T3 - (1./tree->rates->nu)*pow((U1-U3)/1.96,2),T2 - (1./tree->rates->nu)*pow((U1-U2)/1.96,2));
+/*   T1_LIM_INF = T0 + (1./tree->rates->nu)*pow((U1-U0)/1.96,2); */
+/*   T1_LIM_SUP = MIN(T3 - (1./tree->rates->nu)*pow((U1-U3)/1.96,2),T2 - (1./tree->rates->nu)*pow((U1-U2)/1.96,2)); */
+  T1_LIM_INF = T0 + MAX((1./tree->rates->nu)*pow((U1-U0)/1.96,2),tree->rates->min_dt);
+  T1_LIM_SUP = MIN(T3 - MAX((1./tree->rates->nu)*pow((U1-U3)/1.96,2),tree->rates->min_dt),
+		   T2 - MAX((1./tree->rates->nu)*pow((U1-U2)/1.96,2),tree->rates->min_dt));
 
   T1_LIM_INF = MAX(T1_LIM_INF,tree->rates->t_prior_min[d->num]);
   T1_LIM_SUP = MIN(T1_LIM_SUP,tree->rates->t_prior_max[d->num]);
@@ -2205,10 +2233,8 @@ void RATES_Posterior_Times_Pre(node *a, node *d, arbre *tree)
   L2XY[1] = 0.0; /* constraint 1 (X=0) */
   L2XY[2] = 0.0; /* constraint 2 (Y=0) */
    
-  if(cov11 > cov22)
-    mu[0] = EL1;
-  else
-    mu[0] = EL2;
+  if(cov11 > cov22) mu[0] = EL1;
+  else              mu[0] = EL2;
 
   if(a == tree->n_root)
     {
@@ -2255,8 +2281,6 @@ void RATES_Posterior_Times_Pre(node *a, node *d, arbre *tree)
 /*     } */
 /*   printf("\n"); */
 
-  For(i,9) cond_cov[i] = 0.0;
-  For(i,3) cond_mu[i]  = 0.0;
   is_1[0] = is_1[1] = is_1[2] = 0;
   is_1[0] = 1;
   Normal_Conditional(mu,cov,L2XY,3,is_1,1,cond_mu,cond_cov);
@@ -2335,8 +2359,7 @@ void RATES_Posterior_Times_Pre(node *a, node *d, arbre *tree)
 	  PhyML_Printf("\n. COV11=%f COV22=%f",cov11,cov22);
 	  PhyML_Printf("\n. Clock rate = %f",tree->rates->clock_r);
 	  PhyML_Printf("\n. Setting T1_new to %f",T1);
-	  T1_new = T1;
-	  
+	  T1_new = T1;	  
 /* 	  Exit("\n"); */
 	}
 
