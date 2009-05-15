@@ -100,7 +100,7 @@ void R_rtree(char *s_tree_a, char *s_tree_d, node *a, arbre *tree, int *n_int, i
   node *d;
   int n_otu = tree->n_otu;
 
-  if(strstr(s_tree_a," ")) Warn_And_Exit("\n Err : tree must not contain a ' ' character\n");
+  if(strstr(s_tree_a," ")) Warn_And_Exit("\n Err: the tree must not contain a ' ' character\n");
 
   if(s_tree_d[0] == '(')
     {
@@ -1698,19 +1698,19 @@ arbre *Read_Tree_File(FILE *fp_input_tree)
   char c;
 
   line = (char *)mCalloc(T_MAX_LINE,sizeof(char));
-
+  
   do
     {
       c=fgetc(fp_input_tree);
     }
   while((c != '(') && (c != EOF));
-
+  
   if(c==EOF)
-      {
-          Free(line);
-          return NULL;
-      }
-
+    {
+      Free(line);
+      return NULL;
+    }
+  
   i=0;
   for(;;)
     {
@@ -1720,13 +1720,13 @@ arbre *Read_Tree_File(FILE *fp_input_tree)
 	  if(c==EOF) break;
 	  else continue;
 	}
-
+      
       line[i]=c;
       i++;
       c=fgetc(fp_input_tree);
       if(c==EOF || c==';') break;
     }
-
+  
   tree = Read_Tree(line);
   Free(line);
   return tree;
@@ -7955,6 +7955,7 @@ void Add_Root(edge *target, arbre *tree)
   tree->n_root->b[0] = tree->e_root;
   tree->n_root->b[1] = tree->e_root;
 
+
   if(tree->n_root_pos > -1.0)
     {
       if(tree->n_root_pos < 1.E-6 &&  tree->n_root_pos > -1.E-6)
@@ -9206,7 +9207,13 @@ phydbl Get_Tree_Size(arbre *tree)
   phydbl tree_size;
 
   tree_size = 0.0;
-  For(i,2*tree->n_otu-3) tree_size += tree->t_edges[i]->l;
+/*   For(i,2*tree->n_otu-3) tree_size += tree->t_edges[i]->l; */
+
+  For(i,2*tree->n_otu-3) 
+    tree_size += 
+    fabs(tree->rates->nd_t[tree->t_edges[i]->left->num] - 
+	 tree->rates->nd_t[tree->t_edges[i]->rght->num]);
+
   tree->size = tree_size;
   return tree_size;
 }
@@ -9519,11 +9526,12 @@ void Read_Clade_Priors(char *file_name, arbre *tree)
 	  else break;	    
 	}
       while(1);
-      if(line[pos] != '#')
+      if(line[pos] != '#' && line[pos] != '\n')
 	{
 	  sscanf(line+pos,"%lf %lf",&prior_up,&prior_low);
 	  node_num = -1;
-	  node_num = Find_Clade(clade_list, clade_size, tree);
+	  if(!strcmp("@root@",clade_list[0])) node_num = tree->n_root->num;
+	  else node_num = Find_Clade(clade_list, clade_size, tree);
 	  
 	  if(node_num < 0)
 	    {
@@ -9557,6 +9565,96 @@ void Read_Clade_Priors(char *file_name, arbre *tree)
 }
 
 /*********************************************************/
+
+edge *Find_Root_Edge(FILE *fp_input_tree, arbre *tree)
+{
+  char **subs;
+  int degree;
+  int i,j;
+  node *left, *rght;
+  int l_r, r_l;
+  int score;
+  char *line;
+  char c;
+  edge *root_edge;
+
+  line = (char *)mCalloc(T_MAX_LINE,sizeof(char));
+
+  rewind(fp_input_tree);
+
+  do c=fgetc(fp_input_tree);
+  while((c != '(') && (c != EOF));
+  
+  if(c==EOF)
+    {
+      Free(line);
+      return NULL;
+    }
+  
+  i=0;
+  for(;;)
+    {
+      if((c == ' ') || (c == '\n'))
+	{
+	  c=fgetc(fp_input_tree);
+	  if(c==EOF) break;
+	  else continue;
+	}
+      
+      line[i]=c;
+      i++;
+      c=fgetc(fp_input_tree);
+      if(c==EOF || c==';') break;
+    }
+  
+
+  Alloc_Bip(tree);
+  Get_Bip(tree->noeud[0],tree->noeud[0]->v[0],tree);
+
+  subs = Sub_Trees(line,&degree);
+  Clean_Multifurcation(subs,degree,3);
+  if(degree != 2) 
+    {
+      PhyML_Printf("\n. The tree does not seem to be rooted...");
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+
+  left = rght = NULL;
+  l_r = r_l = -1;
+
+  For(i,2*tree->n_otu-3)
+    {
+      left = tree->t_edges[i]->left;
+      rght = tree->t_edges[i]->rght;
+      l_r  = tree->t_edges[i]->l_r;
+      r_l  = tree->t_edges[i]->r_l;
+      
+      score = 0;
+      For(j,left->bip_size[l_r]) if(strstr(subs[1],left->bip_name[l_r][j])) score++;
+      if(score == left->bip_size[l_r]) break;
+
+      score = 0;
+      For(j,rght->bip_size[r_l]) if(strstr(subs[1],rght->bip_name[r_l][j])) score++;
+      if(score == rght->bip_size[r_l]) break;
+    }
+
+  root_edge = tree->t_edges[i];
+
+  For(i,NODE_DEG_MAX) Free(subs[i]);
+  Free(subs);
+  Free(line);
+
+  if(i == 2*tree->n_otu-3)
+    {
+      PhyML_Printf("\n. Could not find the root edge...");
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+  
+  return root_edge;
+}
+
 /*********************************************************/
 /*********************************************************/
 /*********************************************************/

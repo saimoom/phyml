@@ -1201,6 +1201,7 @@ void Branch_Lengths_To_Time_Lengths_Pre(node *a, node *d, arbre *tree);
 int Find_Clade(char **tax_name_list, int list_size, arbre *tree);
 void Find_Clade_Pre(node *a, node *d, char **tax_name_list, int list_size, int *num, arbre *tree);
 void Read_Clade_Priors(char *file_name, arbre *tree);
+edge *Find_Root_Edge(FILE *fp_input_tree, arbre *tree);
 
 
 #include "free.h"

@@ -2261,7 +2261,7 @@ phydbl Matrix_Det(phydbl *A, int size)
 
   if(det*det < MDBL_MIN) 
     {
-      PhyML_Printf("\n. WARNING: determinant not different from zero ! \n");      
+      PhyML_Printf("\n. WARNING: determinant not different from zero ! (log(det)=%G)\n",log(det));      
       det = 1.E-5;
     }
   Free(triA);
