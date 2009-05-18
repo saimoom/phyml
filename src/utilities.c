@@ -9207,12 +9207,14 @@ phydbl Get_Tree_Size(arbre *tree)
   phydbl tree_size;
 
   tree_size = 0.0;
-/*   For(i,2*tree->n_otu-3) tree_size += tree->t_edges[i]->l; */
+  For(i,2*tree->n_otu-3) tree_size += tree->t_edges[i]->l;
+/*   tree_size = 0.0; */
+/*   For(i,2*tree->n_otu-3) tree_size += tree->rates->u_cur_l[i]; */
 
-  For(i,2*tree->n_otu-3) 
-    tree_size += 
-    fabs(tree->rates->nd_t[tree->t_edges[i]->left->num] - 
-	 tree->rates->nd_t[tree->t_edges[i]->rght->num]);
+/*   For(i,2*tree->n_otu-3)  */
+/*     tree_size +=  */
+/*     fabs(tree->rates->nd_t[tree->t_edges[i]->left->num] -  */
+/* 	 tree->rates->nd_t[tree->t_edges[i]->rght->num]); */
 
   tree->size = tree_size;
   return tree_size;
