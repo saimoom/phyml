@@ -236,99 +236,99 @@ phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max, int *error)
       return -1.0;
     }
 
-  /* Simple inversion method. Seems to work well. Needs more thorough testing though... */
-  if((z_min < -5.) && (z_max > +5.)) /* cdf < 1.E-6, we should be safe. */
-    {
-      z = Rnorm(0.0,1.0);
-    }
-  else
-    {
-      cdf_min = CDF_Normal(z_min,0.0,1.0);
-      cdf_max = CDF_Normal(z_max,0.0,1.0);
-      u = cdf_min + (cdf_max-cdf_min) * Uni();
-      z = PointNormal(u);
-    }
+/*   if((z_min < -5.) && (z_max > +5.)) /\* cdf < 1.E-6, we should be safe. *\/ */
+/*     { */
+/*       z = Rnorm(0.0,1.0); */
+/*     } */
+/*   else */
+/*     { */
+/*       /\* Simple inversion method. Seems to work well. Needs more thorough testing though... *\/ */
+/*       cdf_min = CDF_Normal(z_min,0.0,1.0); */
+/*       cdf_max = CDF_Normal(z_max,0.0,1.0); */
+/*       u = cdf_min + (cdf_max-cdf_min) * Uni(); */
+/*       z = PointNormal(u); */
+/*     } */
 
 
   /* Adapted from Christian Robert "Simulation of truncated variables" */
   /* Statistics and Computing. (1995) 5, 121-125. */
-
-/*   if((z_min < -5.) && (z_max > +5.)) */
-/*     { */
-/*       z = Rnorm(0.0,1.0); */
-/*     } */
-/*   else if(z_min > 5.) */
-/*     { */
-/*       z = z_min; */
-/*       *error = 1; */
-/*     } */
-/*   else */
-/*     { */
-/*       if(z_min*z_max < 0.0) */
-/* 	{ */
-/* 	  iter = 0; */
-/* 	  do */
-/* 	    { */
-/* 	      iter++; */
-/* 	      z = Uni(); */
-/* 	      z = z*(z_max-z_min)+z_min; */
-/* 	      rz = exp(-(z*z)/2.); */
-/* 	      u = Uni(); */
-/* 	      if(iter > 1000) */
-/* 		{ */
-/* 		  PhyML_Printf("\n. Too many iterations in Rnorm_Trunc."); */
-/* 		  *error = 1; */
-/* 		  break; */
-/* 		} */
-/* 	    } */
-/* 	  while(u > rz); */
-/* 	} */
-/*       else if(z_max < 0.0) */
-/* 	{ */
-/* 	  phydbl z_maxz_max = z_max*z_max; */
-/* 	  iter = 0; */
-/* 	  do */
-/* 	    { */
-/* 	      iter++; */
-/* 	      z = Uni(); */
-/* 	      z = z*(z_max-z_min)+z_min; */
-/* 	      rz = exp((z_maxz_max-(z*z))/2.); */
-/* 	      u = Uni(); */
-/* 	      if(iter > 1000) */
-/* 		{ */
-/* 		  PhyML_Printf("\n. Too many iterations in Rnorm_Trunc."); */
-/* 		  *error = 1; */
-/* 		  break; */
-/* 		} */
-/* 	    } */
-/* 	  while(u > rz); */
-/* 	} */
-/*       else if(z_min > 0.0) */
-/* 	{ */
-/* 	  phydbl z_minz_min = z_min*z_min; */
-/* 	  iter = 0; */
-/* 	  do */
-/* 	    { */
-/* 	      iter++; */
-/* 	      z = Uni(); */
-/* 	      z = z*(z_max-z_min)+z_min; */
-/* 	      rz = exp((z_minz_min-(z*z))/2.); */
-/* 	      u = Uni(); */
-/* 	      if(iter > 1000) */
-/* 		{ */
-/* 		  PhyML_Printf("\n. Too many iterations in Rnorm_Trunc."); */
-/* 		  *error = 1; */
-/* 		  break; */
-/* 		} */
-/* 	    } */
-/* 	  while(u > rz); */
-/* 	} */
-/*       else */
-/* 	{ */
-/* 	  if(z_min < 0.0) { z = Rnorm(0.0,1.0); z = -fabs(z); } */
-/* 	  else            { z = Rnorm(0.0,1.0); z =  fabs(z); } */
-/* 	} */
-/*     } */
+  int iter;
+  if((z_min < -5.) && (z_max > +5.))
+    {
+      z = Rnorm(0.0,1.0);
+    }
+  else if(z_min > 5.)
+    {
+      z = z_min;
+      *error = 1;
+    }
+  else
+    {
+      if(z_min*z_max < 0.0)
+	{
+	  iter = 0;
+	  do
+	    {
+	      iter++;
+	      z = Uni();
+	      z = z*(z_max-z_min)+z_min;
+	      rz = exp(-(z*z)/2.);
+	      u = Uni();
+	      if(iter > 1000)
+		{
+		  PhyML_Printf("\n. Too many iterations in Rnorm_Trunc.");
+		  *error = 1;
+		  break;
+		}
+	    }
+	  while(u > rz);
+	}
+      else if(z_max < 0.0)
+	{
+	  phydbl z_maxz_max = z_max*z_max;
+	  iter = 0;
+	  do
+	    {
+	      iter++;
+	      z = Uni();
+	      z = z*(z_max-z_min)+z_min;
+	      rz = exp((z_maxz_max-(z*z))/2.);
+	      u = Uni();
+	      if(iter > 1000)
+		{
+		  PhyML_Printf("\n. Too many iterations in Rnorm_Trunc.");
+		  *error = 1;
+		  break;
+		}
+	    }
+	  while(u > rz);
+	}
+      else if(z_min > 0.0)
+	{
+	  phydbl z_minz_min = z_min*z_min;
+	  iter = 0;
+	  do
+	    {
+	      iter++;
+	      z = Uni();
+	      z = z*(z_max-z_min)+z_min;
+	      rz = exp((z_minz_min-(z*z))/2.);
+	      u = Uni();
+	      if(iter > 1000)
+		{
+		  PhyML_Printf("\n. Too many iterations in Rnorm_Trunc.");
+		  *error = 1;
+		  break;
+		}
+	    }
+	  while(u > rz);
+	}
+      else
+	{
+	  if(z_min < 0.0) { z = Rnorm(0.0,1.0); z = -fabs(z); }
+	  else            { z = Rnorm(0.0,1.0); z =  fabs(z); }
+	}
+    }
 
 	
    if((z < z_min-eps) || (z > z_max+eps))
@@ -437,10 +437,10 @@ phydbl Log_Dnorm(phydbl x, phydbl mean, phydbl sd)
 
   dens = -(.5*LOG2PI+log(sd))  - .5*pow(x-mean,2)/pow(sd,2);
 
-/*   if(dens < -10000.) */
-/*     { */
-/*       printf("\n. dens=%f -- x=%f mean=%f sd=%f\n",dens,x,mean,sd); */
-/*     } */
+  if(dens < -500.)
+    {
+      printf("\n. dens=%f -- x=%f mean=%f sd=%f\n",dens,x,mean,sd);
+    }
 
 /*   dens = - .5*xmm*xmm; */
 /*   dens /= sd*sd; */
@@ -491,7 +491,7 @@ phydbl Dnorm_Multi(phydbl *x, phydbl *mu, phydbl *cov, int size, int _log)
   buff1 = Matrix_Mult(xmmu,invcov,1,size,size,size);
   buff2 = Matrix_Mult(buff1,xmmu,1,size,size,1);
   
-  det = Matrix_Det(cov,size);
+  det = Matrix_Det(cov,size,NO);
   /* det_1D(cov,size,&det); */
 
   density = size * LOG2PI + log(det) + buff2[0];
@@ -509,7 +509,7 @@ phydbl Dnorm_Multi(phydbl *x, phydbl *mu, phydbl *cov, int size, int _log)
 
 /*********************************************************/
 
-phydbl Dnorm_Multi_Given_InvCov_Det(phydbl *x, phydbl *mu, phydbl *invcov, phydbl det, int size, int _log)
+phydbl Dnorm_Multi_Given_InvCov_Det(phydbl *x, phydbl *mu, phydbl *invcov, phydbl log_det, int size, int _log)
 {
   phydbl *xmmu;
   phydbl *buff1,*buff2;
@@ -523,9 +523,8 @@ phydbl Dnorm_Multi_Given_InvCov_Det(phydbl *x, phydbl *mu, phydbl *invcov, phydb
   buff1 = Matrix_Mult(xmmu,invcov,1,size,size,size);
   buff2 = Matrix_Mult(buff1,xmmu,1,size,size,1);
 
-  density = size * LOG2PI + log(det) + buff2[0];
+  density = size * LOG2PI + log_det + buff2[0];
   density /= -2.;
-  
 
   Free(xmmu);
   Free(buff1);
@@ -1521,7 +1520,6 @@ phydbl *Hessian(arbre *tree)
 	}
     }
 
-
   /* minus minus */  
   For(i,dim)
     {
@@ -1614,7 +1612,6 @@ phydbl *Hessian(arbre *tree)
 	hessian[i*dim+i] = (lnL2 - 2*lnL1 + lnL) / pow(eps,2);
 	hessian[i*dim+i] = -1.0 / hessian[i*dim+i];
       }
-
 
   For(i,dim)
     if(hessian[i*dim+i] < MIN_VAR_BL)
@@ -2248,7 +2245,7 @@ phydbl *Matrix_Transpose(phydbl *A, int dim)
 
 /*********************************************************/
 
-phydbl Matrix_Det(phydbl *A, int size)
+phydbl Matrix_Det(phydbl *A, int size, int _log)
 {
   phydbl *triA;
   int i;
@@ -2257,15 +2254,17 @@ phydbl Matrix_Det(phydbl *A, int size)
   triA = Cholesky_Decomp(A,size);
   det = 0.0;
   For(i,size) det += log(triA[i*size+i]);
-  det = exp(det);
-
-  if(det*det < MDBL_MIN) 
-    {
-      PhyML_Printf("\n. WARNING: determinant not different from zero ! (log(det)=%G)\n",log(det));      
-      det = 1.E-5;
-    }
   Free(triA);
-  return det*det;
+ 
+  if(_log == NO)
+    {
+      det = exp(det);
+      return det*det;
+    }
+  else
+    {
+      return 2.*det;
+    }
 }
 
 /*********************************************************/

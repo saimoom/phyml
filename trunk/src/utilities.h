@@ -846,6 +846,7 @@ typedef struct __Trate {
   phydbl max_clock;
   phydbl min_nu;
   phydbl max_nu;
+  phydbl lbda_nu;
   phydbl min_dt;
   phydbl step_rate;
   phydbl  *nd_r;  /* Current rates at nodes and the corresponding incoming edges */
@@ -893,6 +894,7 @@ typedef struct __Trate {
   phydbl    *t_prior_max;
   short int *t_has_prior;
 
+  phydbl   true_tree_size;
 }trate;
 
 /*********************************************************/

@@ -65,7 +65,9 @@ int MC_main(int argc, char **argv)
 /*   r_seed = 1241731534; */
 /*   r_seed = 1241754410; */
 /*   r_seed = 1242002759; */
-  r_seed = 1242007604;
+/*   r_seed = 1242007604; */
+/*   r_seed = 1242618909; */
+  r_seed = 1242619737;
   srand(r_seed); rand();
   printf("\n. Seed = %d",r_seed);
   Make_Model_Complete(io->mod);
@@ -73,7 +75,7 @@ int MC_main(int argc, char **argv)
   if(io->in_tree == 2) Test_Multiple_Data_Set_Format(io);
   else io->n_trees = 1;
 
-/*   io->compress_seq = 0; */
+  io->compress_seq = 0; /* Do not compress sites if you're using Evolve function */
 
   mat = NULL;
   tree_line_number = 0;
@@ -123,20 +125,22 @@ int MC_main(int argc, char **argv)
 		  time(&(tree->t_beg));
 
 
-/* 		  int n_otu; */
-		  int i;
+		  int n_otu;
+		  int i,j;
 /* /\* 		  int dir1,dir2; *\/ */
-		  edge *root_edge;
+/* 		  edge *root_edge; */
 
-/* 		  n_otu = 20; */
-/* 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1); */
 
-		  tree->rates = RATES_Make_Rate_Struct(tree->n_otu);
-		  RATES_Init_Rate_Struct(tree->rates,tree->n_otu);
+		  n_otu = 3;
+		  tree = Generate_Random_Tree_From_Scratch(n_otu,1);
 
-		  root_edge = Find_Root_Edge(io->fp_in_tree,tree);
-		  Add_Root(root_edge,tree);
-		  PhyML_Printf("%s\n",Write_Tree(tree));
+
+/* 		  tree->rates = RATES_Make_Rate_Struct(tree->n_otu); */
+/* 		  RATES_Init_Rate_Struct(tree->rates,tree->n_otu); */
+/* 		  root_edge = Find_Root_Edge(io->fp_in_tree,tree); */
+/* 		  Add_Root(root_edge,tree); */
+/* 		  PhyML_Printf("%s\n",Write_Tree(tree)); */
+
 
 		  RATES_Fill_Lca_Table(tree);
 
@@ -146,14 +150,14 @@ int MC_main(int argc, char **argv)
 		  tree->both_sides  = 1;
 		  tree->n_pattern   = tree->data->crunch_len/tree->mod->stepsize;
 
-/* 		  For(i,tree->n_otu) strcpy(tree->noeud[i]->name,alldata->c_seq[i]->name); */
+		  For(i,tree->n_otu) strcpy(tree->noeud[i]->name,alldata->c_seq[i]->name);
 
 		  Fill_Dir_Table(tree);
 		  Update_Dirs(tree);
 		  Make_Tree_4_Pars(tree,alldata,alldata->init_len);
 		  Make_Tree_4_Lk(tree,alldata,alldata->init_len);
 
-/* 		  Evolve(tree->data,tree->mod,tree); */
+		  Evolve(tree->data,tree->mod,tree);
 		  Init_Ui_Tips(tree);
 		  Init_P_Pars_Tips(tree);
 		  if(tree->mod->s_opt->greedy) Init_P_Lk_Tips_Double(tree);
@@ -164,7 +168,7 @@ int MC_main(int argc, char **argv)
 
 /* 		  tree->data->format = 1; */
 /* 		  Print_CSeq(stdout,tree->data); */
-/* 		  char *s;      */
+/* 		  char *s; */
 /* 		  Branch_Lengths_To_Time_Lengths(tree); */
 /* 		  s = Write_Tree(tree); */
 /* 		  PhyML_Fprintf(stdout,"TREE %8d [%f] = %s\n",0,0.0,s); */
@@ -177,11 +181,10 @@ int MC_main(int argc, char **argv)
 
 /* 		  IMPORTANCE SAMPLING STUFF */
 		  node *buff;
+
 		  buff = tree->n_root;
 		  tree->n_root = NULL;
-
 		  Round_Optimize(tree,tree->data,ROUND_MAX);
-
 		  tree->n_root = buff;
 
 		  printf("\n. lnL_data = %f\n",Return_Lk(tree));
@@ -197,9 +200,11 @@ int MC_main(int argc, char **argv)
 		  tree->rates->cov = cov;
 		  For(i,(2*tree->n_otu-3)*(2*tree->n_otu-3)) tree->rates->invcov[i] = tree->rates->cov[i];
 		  Matinv(tree->rates->invcov,2*tree->n_otu-3,2*tree->n_otu-3);
-
-		  tree->rates->covdet = Matrix_Det(tree->rates->cov,2*tree->n_otu-3);
+		  tree->rates->covdet = Matrix_Det(tree->rates->cov,2*tree->n_otu-3,YES);
 		  Restore_Br_Len(NULL,tree);
+
+
+		  tree->rates->true_tree_size = Get_Tree_Size(tree);
 		  RATES_Bl_To_Ml(tree);
 		  RATES_Get_Conditional_Variances(tree);
 		  RATES_Get_All_Reg_Coeff(tree);
@@ -211,48 +216,48 @@ int MC_main(int argc, char **argv)
 		  For(i,2*tree->n_otu-3) tree->rates->u_cur_l[i] = tree->t_edges[i]->l;
 		  tree->c_lnL = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES);
 		  printf("\n. Best Approx lnL = %f",tree->c_lnL);
-/* 		  RATES_Lk_Rates(tree); */
-/* 		  printf("\n. Best LnL_rates = %f",tree->rates->c_lnL); */
+
+		  RATES_Lk_Rates(tree);
+		  printf("\n. Best LnL_rates = %f",tree->rates->c_lnL);
 
 		  tree->rates->bl_from_rt = 1;
 
-		  PhyML_Printf("\n. Burnin...\n");
-		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
-		  MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree);
-		  tree->rates->lk_approx = NORMAL;
-		  tree->mcmc->n_tot_run  = 1E+3;
-		  MCMC(tree);
-		  fclose(tree->mcmc->out_fp_trees);
-		  fclose(tree->mcmc->out_fp_stats);
-		  MCMC_Free_MCMC(tree->mcmc);
+/* 		  PhyML_Printf("\n. Burnin...\n"); */
+/* 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree); */
+/* 		  MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree); */
+/* 		  tree->rates->lk_approx = NORMAL; */
+/* 		  tree->mcmc->n_tot_run  = 1E+3; */
+/* 		  MCMC(tree); */
+/* 		  fclose(tree->mcmc->out_fp_trees); */
+/* 		  fclose(tree->mcmc->out_fp_stats); */
+/* 		  MCMC_Free_MCMC(tree->mcmc); */
 
-		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
-		  MCMC_Init_MCMC_Struct("gibbs.approx",tree->mcmc,tree);
+/* 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree); */
+/* 		  MCMC_Init_MCMC_Struct("gibbs.approx",tree->mcmc,tree); */
 		  
-		  tree->rates->lk_approx        = NORMAL;
-		  tree->rates->met_within_gibbs = NO;
+/* 		  tree->rates->lk_approx        = NORMAL; */
+/* 		  tree->rates->met_within_gibbs = NO; */
 		  
-		  MCMC_Print_Param(tree->mcmc,tree);
+/* 		  MCMC_Print_Param(tree->mcmc,tree); */
 		  
-		  time(&t_beg);
-		  printf("\n. Gibbs sampling (approx)...\n");
-		  tree->mcmc->n_tot_run  = 1E+7;
-		  do
-		    {
-		      RATES_Posterior_Times(tree);
-		      RATES_Posterior_Rates(tree);
-		      RATES_Posterior_Clock_Rate(tree);
-		      MCMC_Nu(tree);
-		      RATES_Adjust_Clock_Rate(tree);
-		    }
-		  while(tree->mcmc->run < tree->mcmc->n_tot_run);
-		  time(&t_end);
-		  Print_Time_Info(t_beg,t_end);
-
-		  fclose(tree->mcmc->out_fp_stats);
-		  fclose(tree->mcmc->out_fp_trees);
-		  MCMC_Free_MCMC(tree->mcmc);
-
+/* 		  time(&t_beg); */
+/* 		  printf("\n. Gibbs sampling (approx)...\n"); */
+/* 		  tree->mcmc->n_tot_run  = 1E+6; */
+/* 		  do */
+/* 		    { */
+/* /\* 		      RATES_Posterior_Times(tree); *\/ */
+/* 		      RATES_Posterior_Rates(tree); */
+/* /\* 		      RATES_Posterior_Clock_Rate(tree); *\/ */
+/* /\* 		      MCMC_Nu(tree); *\/ */
+/* /\* 		      RATES_Adjust_Clock_Rate(tree); *\/ */
+/* 		    } */
+/* 		  while(tree->mcmc->run < tree->mcmc->n_tot_run); */
+/* 		  time(&t_end); */
+/* 		  Print_Time_Info(t_beg,t_end); */
+		  
+/* 		  fclose(tree->mcmc->out_fp_stats); */
+/* 		  fclose(tree->mcmc->out_fp_trees); */
+/* 		  MCMC_Free_MCMC(tree->mcmc); */
 
 /* 		  END OF IMPORTANCE SAMPLING STUFF */
 
@@ -273,7 +278,7 @@ int MC_main(int argc, char **argv)
 
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
 		  MCMC_Init_MCMC_Struct("thorne.normal",tree->mcmc,tree);
-		  tree->mcmc->n_tot_run  = 1E+7;
+		  tree->mcmc->n_tot_run  = 1E+6;
 		  time(&t_beg);
 		  MCMC(tree);
 		  time(&t_end);
