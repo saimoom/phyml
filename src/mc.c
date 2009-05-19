@@ -71,6 +71,7 @@ int MC_main(int argc, char **argv)
 /*   r_seed = 1242624868; */
   srand(r_seed); rand();
   printf("\n. Seed = %d",r_seed);
+  printf("\n. Pid = %d",getpid());
   Make_Model_Complete(io->mod);
   mod = io->mod;
   if(io->in_tree == 2) Test_Multiple_Data_Set_Format(io);
