@@ -624,6 +624,8 @@ typedef struct __Option { /* mostly used in 'options.c' */
   char                  *out_ps_file; /* name of the file in which tree(s) is(are) written */
   FILE                    *fp_out_ps;
 
+  char              *clade_list_file;
+
   int               print_boot_trees; /* =1 if the bootstrapped trees are printed in output */
   int       out_stats_file_open_mode; /* opening file mode for statistics file */
   int        out_tree_file_open_mode; /* opening file mode for tree file */

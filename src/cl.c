@@ -76,6 +76,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
       {"pars",              no_argument,NULL,47},
       {"quiet",             no_argument,NULL,48},
       {"version",           no_argument,NULL,49},
+      {"clade_file",        required_argument,NULL,50},
       {0,0,0,0}
     };
 
@@ -86,7 +87,11 @@ void Read_Command_Line(option *io, int argc, char **argv)
       {
 	switch(c)
 	  {
-	  
+	  case 50:
+	    {
+	      strcpy(io->clade_list_file,optarg);
+	      break;
+	    }
 	  case 49:
 	    {
 	      PhyML_Printf("%s\n",VERSION);
