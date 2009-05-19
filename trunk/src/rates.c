@@ -724,9 +724,9 @@ void RATES_Init_Rate_Struct(trate *rates, int n_otu)
   rates->birth_rate    = 0.001;
 
   rates->max_rate      = 1.E+1;
-  rates->min_rate      = 1.E-1;
+  rates->min_rate      = 1.E-2;
 
-  rates->clock_r       = 1.E-2;
+  rates->clock_r       = 2.E-3;
   rates->max_clock     = 1.E-0;
   rates->min_clock     = 1.E-8;
 
@@ -1020,11 +1020,8 @@ void RATES_Expect_Number_Subst(phydbl t_beg, phydbl t_end, phydbl r_beg,  int *n
 	int err;
 
 	sd = sqrt(rates->nu*fabs(t_beg-t_end));
-
 	*mean_r = Rnorm_Trunc(r_beg,sd,rates->min_rate,rates->max_rate,&err);
-
-	if(err) PhyML_Printf("\n. %s %d %d",__FILE__,__LINE__,tree->mcmc->run);	  
-
+	if(err) PhyML_Printf("\n. %s %d %d",__FILE__,__LINE__,tree->mcmc->run);
 	*r_end  = *mean_r;
 	
 	break;
@@ -1052,12 +1049,6 @@ void RATES_Get_Mean_Rates_Pre(node *a, node *d, edge *b, phydbl r_a, arbre *tree
   d_t = tree->rates->nd_t[d->num];
       
   RATES_Expect_Number_Subst(a_t,d_t,r_a,&n_jumps,&mean_r,&r_d,tree->rates,tree);
-
-/*   if(a == tree->n_root) */
-/*     { */
-/*       mean_r = 1.0; */
-/*       PhyML_Printf("\n. Rate on root EDGE set to 1.0\n"); */
-/*     } */
 
   tree->rates->nd_r[d->num]   = mean_r;
   tree->rates->true_r[d->num] = mean_r;
@@ -1878,6 +1869,13 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
 
   post_var  = 1./(1./prior_var + 1./like_var);
   post_sd   = sqrt(post_var);
+
+  /* if(b->num == 21) printf("\n. DT0=%f DT2=%f DT3=%f %f %f %f %f %f %f %f", */
+  /* 			  T1-T0,T2-T1,T3-T1, */
+  /* 			  tree->rates->u_ml_l[b->num], */
+  /* 			  prior_mean,prior_var, */
+  /* 			  like_mean,like_var, */
+  /* 			  post_mean,post_var); */
 
   if(a == tree->n_root)
     {

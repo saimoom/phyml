@@ -4848,6 +4848,7 @@ option *Make_Input()
   io->out_trace_file       = (char *)mCalloc(T_MAX_FILE,sizeof(char));
   io->nt_or_cd             = (char *)mCalloc(T_MAX_FILE,sizeof(char));
   io->run_id_string        = (char *)mCalloc(T_MAX_OPTION,sizeof(char));
+  io->clade_list_file      = (char *)mCalloc(T_MAX_FILE,sizeof(char));
 
   return io;
 }
