@@ -64,7 +64,6 @@ int main(int argc, char **argv)
   tree             = NULL;
   mod              = NULL;
   data             = NULL;
-  most_likely_tree = NULL;
   best_lnL         = UNLIKELY;
   most_likely_size = -1.0;
   tree_size        = -1.0;
