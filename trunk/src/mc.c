@@ -75,6 +75,7 @@ int MC_main(int argc, char **argv)
 /*   r_seed = 1243303617; */
 /*   r_seed = 1243382807; */
 /*   r_seed = 1243385255; */
+  r_seed = 1243463280;
   srand(r_seed); rand();
   printf("\n. Seed = %d",r_seed);
   printf("\n. Pid = %d",getpid());
