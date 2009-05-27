@@ -270,7 +270,7 @@ void MCMC_Clock_Rate(arbre *tree)
   cur_cr  = tree->rates->clock_r;
   
   u = Uni();
-  new_cr = cur_cr * exp(0.1*(u-0.5));
+  new_cr = cur_cr * exp(H_MCMC_CLOCK*(u-0.5));
 
   if(new_cr < tree->rates->min_clock)
     {
