@@ -223,12 +223,7 @@ phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max, int *error)
   u      = -1.0;
   *error = 0;
   
-  z_min = (min - mean)/sd;
-  z_max = (max - mean)/sd;
-
-  eps = (z_max-z_min)/1E+6;
-
-  if(sd < 1.E-10)
+  if(sd < 1.E-100)
     {
       PhyML_Printf("\n. Small variance detected in Rnorm_Trunc.");
       PhyML_Printf("\n. mean=%f sd=%f min=%f max=%f",mean,sd,min,max);
@@ -236,7 +231,13 @@ phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max, int *error)
       return -1.0;
     }
 
-  if((z_min < -5.) && (z_max > +5.)) /* cdf < 1.E-6, we should be safe. */
+  z_min = (min - mean)/sd;
+  z_max = (max - mean)/sd;
+
+  eps = (z_max-z_min)/1E+6;
+
+
+  if((z_min < -10.) && (z_max > +10.)) /* cdf < 1.E-6, we should be safe. */
     {
       z = Rnorm(0.0,1.0);
     }
@@ -428,18 +429,20 @@ phydbl Dnorm(phydbl x, phydbl mean, phydbl sd)
 
 /*********************************************************/
 
-phydbl Log_Dnorm(phydbl x, phydbl mean, phydbl sd)
+phydbl Log_Dnorm(phydbl x, phydbl mean, phydbl sd, int *err)
 {
   phydbl dens;
   phydbl xmm;
 
+  *err = 0;
   xmm = x-mean;
 
   dens = -(.5*LOG2PI+log(sd))  - .5*pow(x-mean,2)/pow(sd,2);
 
-  if(dens < -500.)
+  if(dens < -5000.)
     {
       printf("\n. dens=%f -- x=%f mean=%f sd=%f\n",dens,x,mean,sd);
+      *err = 1;
     }
 
 /*   dens = - .5*xmm*xmm; */
