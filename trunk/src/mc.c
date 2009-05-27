@@ -246,7 +246,7 @@ int MC_main(int argc, char **argv)
 		  
 		  time(&t_beg);
 		  printf("\n. Gibbs sampling (approx)...\n");
-		  tree->mcmc->n_tot_run  = 1E+6;
+		  tree->mcmc->n_tot_run  = 1E+7;
 		  do
 		    {
 		      RATES_Posterior_Times(tree);
@@ -293,7 +293,7 @@ int MC_main(int argc, char **argv)
 
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
 		  MCMC_Init_MCMC_Struct("thorne.normal",tree->mcmc,tree);
-		  tree->mcmc->n_tot_run  = 1E+6;
+		  tree->mcmc->n_tot_run  = 1E+7;
 		  time(&t_beg);
 		  printf("\n. Thorne (approx)...\n");
 		  MCMC(tree);
@@ -327,7 +327,7 @@ int MC_main(int argc, char **argv)
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
 		  MCMC_Init_MCMC_Struct("thorne.exact",tree->mcmc,tree);
 		  tree->rates->lk_approx = EXACT;
-		  tree->mcmc->n_tot_run  = 1E+6;
+		  tree->mcmc->n_tot_run  = 1E+7;
 		  time(&t_beg);
 		  printf("\n. Thorne (exact)...\n");
 		  MCMC(tree);
