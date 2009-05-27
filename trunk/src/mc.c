@@ -69,6 +69,12 @@ int MC_main(int argc, char **argv)
 /*   r_seed = 1242618909; */
 /*   r_seed = 1242619737; */
 /*   r_seed = 1242624868; */
+/*   r_seed = 1243229219; */
+/*   r_seed = 1243231023; */
+/*   r_seed = 1243232094; */
+/*   r_seed = 1243303617; */
+/*   r_seed = 1243382807; */
+/*   r_seed = 1243385255; */
   srand(r_seed); rand();
   printf("\n. Seed = %d",r_seed);
   printf("\n. Pid = %d",getpid());
@@ -77,11 +83,10 @@ int MC_main(int argc, char **argv)
   if(io->in_tree == 2) Test_Multiple_Data_Set_Format(io);
   else io->n_trees = 1;
 
-  io->compress_seq = 0; /* Do not compress sites if you're using Evolve function */
+  io->compress_seq = 1; /* Do not compress sites if you're using Evolve function */
 
   mat = NULL;
   tree_line_number = 0;
-
 
   if((io->n_data_sets > 1) && (io->n_trees > 1))
     {
@@ -90,7 +95,6 @@ int MC_main(int argc, char **argv)
     }
 
   
-
   For(num_data_set,io->n_data_sets)
     {
       n_otu = 0;
@@ -132,7 +136,7 @@ int MC_main(int argc, char **argv)
 		  edge *root_edge;
 
 
-/* 		  n_otu = 60; */
+/* 		  n_otu = 10; */
 /* 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1); */
 
 
@@ -242,14 +246,13 @@ int MC_main(int argc, char **argv)
 		  
 		  time(&t_beg);
 		  printf("\n. Gibbs sampling (approx)...\n");
-		  tree->mcmc->n_tot_run  = 1E+7;
+		  tree->mcmc->n_tot_run  = 1E+6;
 		  do
 		    {
 		      RATES_Posterior_Times(tree);
 		      RATES_Posterior_Rates(tree);
 		      RATES_Posterior_Clock_Rate(tree);
 		      MCMC_Nu(tree);
-/* 		      RATES_Adjust_Clock_Rate(tree); */
 		    }
 		  while(tree->mcmc->run < tree->mcmc->n_tot_run);
 		  time(&t_end);
@@ -259,6 +262,8 @@ int MC_main(int argc, char **argv)
 		  fclose(tree->mcmc->out_fp_trees);
 		  MCMC_Free_MCMC(tree->mcmc);
 
+		  printf("\n. End of Gibbs sampling (approx)...\n");
+		  system("sleep 3s");
 /* 		  END OF IMPORTANCE SAMPLING STUFF */
 
 
@@ -276,11 +281,24 @@ int MC_main(int argc, char **argv)
 		  printf("\n. LnL_data = %f\n. LnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL);		  
 		  tree->rates->bl_from_rt = 1;
 
+		  PhyML_Printf("\n. Burnin...\n");
+		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
+		  MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree);
+		  tree->rates->lk_approx = NORMAL;
+		  tree->mcmc->n_tot_run  = 1E+3;
+		  MCMC(tree);
+		  fclose(tree->mcmc->out_fp_trees);
+		  fclose(tree->mcmc->out_fp_stats);
+		  MCMC_Free_MCMC(tree->mcmc);
+
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
 		  MCMC_Init_MCMC_Struct("thorne.normal",tree->mcmc,tree);
-		  tree->mcmc->n_tot_run  = 1E+7;
+		  tree->mcmc->n_tot_run  = 1E+6;
 		  time(&t_beg);
+		  printf("\n. Thorne (approx)...\n");
 		  MCMC(tree);
+		  printf("\n. End of Thorne (approx)...\n");
+		  system("sleep 3s");
 		  time(&t_end);
 		  Print_Time_Info(t_beg,t_end);
 		  fclose(tree->mcmc->out_fp_stats);
@@ -296,11 +314,24 @@ int MC_main(int argc, char **argv)
 		  printf("\n. LnL_data = %f\n. LnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL);		  
 		  tree->rates->bl_from_rt = 1;
 
+		  PhyML_Printf("\n. Burnin...\n");
+		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
+		  MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree);
+		  tree->rates->lk_approx = NORMAL;
+		  tree->mcmc->n_tot_run  = 1E+3;
+		  MCMC(tree);
+		  fclose(tree->mcmc->out_fp_trees);
+		  fclose(tree->mcmc->out_fp_stats);
+		  MCMC_Free_MCMC(tree->mcmc);
+
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
 		  MCMC_Init_MCMC_Struct("thorne.exact",tree->mcmc,tree);
-		  tree->mcmc->n_tot_run  = 1E+7;
+		  tree->rates->lk_approx = EXACT;
+		  tree->mcmc->n_tot_run  = 1E+6;
 		  time(&t_beg);
+		  printf("\n. Thorne (exact)...\n");
 		  MCMC(tree);
+		  printf("\n. End of Thorne (exact)...\n");
 		  time(&t_end);
 		  Print_Time_Info(t_beg,t_end);
 		  fclose(tree->mcmc->out_fp_stats);

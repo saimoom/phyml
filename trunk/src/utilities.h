@@ -92,7 +92,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  N_MAX_OPTIONS        100
 #define  H_MCMC_RATES         1.0
 #define  H_MCMC_LEXP          0.5
-#define  H_MCMC_NU            1.0
+#define  H_MCMC_NU            0.1
 
 #define  T_MAX_FILE           500
 #define  T_MAX_LINE       2000000
@@ -896,7 +896,10 @@ typedef struct __Trate {
   phydbl    *t_prior_max;
   short int *t_has_prior;
 
-  phydbl   true_tree_size;
+  phydbl  true_tree_size;
+
+  phydbl           z_max;
+
 }trate;
 
 /*********************************************************/

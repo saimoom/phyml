@@ -65,7 +65,7 @@ phydbl Constraint_Normal_Trunc_Mean(phydbl wanted_mu, phydbl sd, phydbl min, phy
 phydbl Dnorm_Multi(phydbl *x, phydbl *mu, phydbl *cov, int size, int _log);
 phydbl Dnorm_Multi_Given_InvCov_Det(phydbl *x, phydbl *mu, phydbl *invcov, phydbl det, int size, int _log);
 phydbl Prop_Log_Dnorm_Multi_Given_InvCov_Det(phydbl *x, phydbl *mu, phydbl *invcov, phydbl det, int size);
-phydbl Log_Dnorm(phydbl x, phydbl mean, phydbl sd);
+phydbl Log_Dnorm(phydbl x, phydbl mean, phydbl sd, int *err);
 phydbl tt800();
 double Pnorm_Ihaka_Derived_From_Cody(double x);
 int Matinv(double *x, int n, int m);
