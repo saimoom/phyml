@@ -1841,7 +1841,7 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
   cvl    = vl;   /* conditional branch length variance */
   cer    = -1.0; /* conditional rate expectation */
   cvr    = -1.0; /* conditional rate variance */
-  cur_l  = tree->rates->u_cur_l[b->num];
+  cur_l  = tree->rates->cur_l[d->num];
 
 
   l_opp  = -1.0;
@@ -1980,6 +1980,8 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
 	  PhyML_Printf("\n. T0=%f T1=%f T2=%f T3=%f",T0,T1,T2,T3);
 	  PhyML_Printf("\n. U0=%f U1=%f U2=%f U3=%f",U0,U1,U2,U3);
 	  PhyML_Printf("\n. l_min=%f l_max=%f",l_min,l_max);
+	  PhyML_Printf("\n. Setting edge length to %f",cur_l);
+	  new_l = cur_l;
 /* 	  Exit("\n"); */
 	}
     }
@@ -1999,6 +2001,8 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
 	  PhyML_Printf("\n. T0=%f T1=%f T2=%f T3=%f",T0,T1,T2,T3);
 	  PhyML_Printf("\n. U0=%f U1=%f U2=%f U3=%f",U0,U1,U2,U3);
 	  PhyML_Printf("\n. l_min=%f l_max=%f",l_min,l_max);
+	  PhyML_Printf("\n. Setting edge length to %f",cur_l);
+	  new_l = cur_l;
 /* 	  Exit("\n"); */
 	}
     }
