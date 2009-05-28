@@ -665,6 +665,7 @@ trate *RATES_Make_Rate_Struct(int n_otu)
   rates->old_t          = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
   rates->nd_t           = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
   rates->true_t         = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
+  rates->t_mean         = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
   rates->t_prior        = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
   rates->t_prior_min    = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
   rates->t_prior_max    = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
@@ -702,12 +703,13 @@ void Free_Rates(trate *rates)
 {
   Free(rates->br_r);
   Free(rates->old_r);     
-  Free(rates->nd_r);    
-  Free(rates->true_r);     
-  Free(rates->old_t);   
-  Free(rates->nd_t);   
+  Free(rates->nd_r);
+  Free(rates->true_r);
+  Free(rates->old_t);
+  Free(rates->nd_t);
   Free(rates->true_t);
-  Free(rates->t_prior);     
+  Free(rates->t_prior);
+  Free(rates->t_mean);
   Free(rates->t_prior_min);
   Free(rates->t_prior_max);
   Free(rates->t_has_prior);
