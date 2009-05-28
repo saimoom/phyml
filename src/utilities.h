@@ -716,9 +716,6 @@ typedef struct __Optimiz { /* parameters to be optimised (mostly used in 'optimi
   int           wim_n_optim;
   int            wim_n_best;
   int        wim_inside_opt;
-
-
-
 }optimiz;
 
 /*********************************************************/
@@ -896,6 +893,8 @@ typedef struct __Trate {
   phydbl    *t_prior_min;
   phydbl    *t_prior_max;
   short int *t_has_prior;
+  phydbl         *t_mean;
+
 
   phydbl  true_tree_size;
 
@@ -924,7 +923,8 @@ typedef struct __Tmcmc {
   char *out_filename;
   FILE *out_fp_stats;
   FILE *out_fp_trees;
-
+  FILE *out_fp_means;
+  FILE *out_fp_last;
 }tmcmc;
 
 /*********************************************************/

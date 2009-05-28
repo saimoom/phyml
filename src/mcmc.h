@@ -74,6 +74,8 @@ void MCMC_Time_Root(arbre *tree);
 void MCMC_Randomize_Node_Times_Bottom_Up(node *a, node *d, arbre *tree);
 void MCMC_Randomize_Node_Times_Top_Down(node *a, node *d, arbre *tree);
 void MCMC_Randomize_Rates_Pre(node *a, node *d, arbre *tree);
+void MCMC_Print_Means(tmcmc *mcmc, arbre *tree);
+void MCMC_Print_Last(tmcmc *mcmc, arbre *tree);
 
 
 
