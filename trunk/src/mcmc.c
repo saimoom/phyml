@@ -1351,11 +1351,7 @@ void MCMC_Print_Means(tmcmc *mcmc, arbre *tree)
 
       PhyML_Fprintf(mcmc->out_fp_means,"\n");      
 
-      for(i=tree->n_otu;i<2*tree->n_otu-1;i++)
-	{
-	  tree->rates->t_mean[i] *= (phydbl)(mcmc->run / mcmc->sample_interval);
-	}
-
+      for(i=tree->n_otu;i<2*tree->n_otu-1;i++) tree->rates->t_mean[i] *= (phydbl)(mcmc->run / mcmc->sample_interval);
 
       for(i=tree->n_otu;i<2*tree->n_otu-1;i++)
 	{
@@ -1443,7 +1439,8 @@ void MCMC_Init_MCMC_Struct(char *filename, tmcmc *mcmc, arbre *tree)
   if(filename) 
     {
       char *s;
-      s = (char *)mCalloc(10,sizeof(char));
+
+      s = (char *)mCalloc(T_MAX_NAME,sizeof(char));
 
       tree->mcmc->out_fp_stats = fopen(tree->mcmc->out_filename,"w");
 
@@ -1468,6 +1465,16 @@ void MCMC_Init_MCMC_Struct(char *filename, tmcmc *mcmc, arbre *tree)
       tree->mcmc->out_fp_means = stderr;
       tree->mcmc->out_fp_last  = stderr;
     }
+}
+
+/*********************************************************/
+
+void MCMC_Close_MCMC(tmcmc *mcmc)
+{
+  fclose(mcmc->out_fp_trees);
+  fclose(mcmc->out_fp_stats);
+  fclose(mcmc->out_fp_means);
+  fclose(mcmc->out_fp_last);
 }
 
 /*********************************************************/
