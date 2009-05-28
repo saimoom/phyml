@@ -235,6 +235,8 @@ int MC_main(int argc, char **argv)
 		  MCMC(tree);
 		  fclose(tree->mcmc->out_fp_trees);
 		  fclose(tree->mcmc->out_fp_stats);
+		  fclose(tree->mcmc->out_fp_means);
+		  fclose(tree->mcmc->out_fp_last);
 		  MCMC_Free_MCMC(tree->mcmc);
 
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
@@ -261,6 +263,8 @@ int MC_main(int argc, char **argv)
 		  
 		  fclose(tree->mcmc->out_fp_stats);
 		  fclose(tree->mcmc->out_fp_trees);
+		  fclose(tree->mcmc->out_fp_means);
+		  fclose(tree->mcmc->out_fp_last);
 		  MCMC_Free_MCMC(tree->mcmc);
 
 		  printf("\n. End of Gibbs sampling (approx)...\n");
@@ -290,6 +294,8 @@ int MC_main(int argc, char **argv)
 		  MCMC(tree);
 		  fclose(tree->mcmc->out_fp_trees);
 		  fclose(tree->mcmc->out_fp_stats);
+		  fclose(tree->mcmc->out_fp_means);
+		  fclose(tree->mcmc->out_fp_last);
 		  MCMC_Free_MCMC(tree->mcmc);
 
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
@@ -304,6 +310,8 @@ int MC_main(int argc, char **argv)
 		  Print_Time_Info(t_beg,t_end);
 		  fclose(tree->mcmc->out_fp_stats);
 		  fclose(tree->mcmc->out_fp_trees);
+		  fclose(tree->mcmc->out_fp_means);
+		  fclose(tree->mcmc->out_fp_last);
 		  MCMC_Free_MCMC(tree->mcmc);
 
 
@@ -323,6 +331,8 @@ int MC_main(int argc, char **argv)
 		  MCMC(tree);
 		  fclose(tree->mcmc->out_fp_trees);
 		  fclose(tree->mcmc->out_fp_stats);
+		  fclose(tree->mcmc->out_fp_means);
+		  fclose(tree->mcmc->out_fp_last);
 		  MCMC_Free_MCMC(tree->mcmc);
 
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
@@ -337,6 +347,8 @@ int MC_main(int argc, char **argv)
 		  Print_Time_Info(t_beg,t_end);
 		  fclose(tree->mcmc->out_fp_stats);
 		  fclose(tree->mcmc->out_fp_trees);
+		  fclose(tree->mcmc->out_fp_means);
+		  fclose(tree->mcmc->out_fp_last);
 		  MCMC_Free_MCMC(tree->mcmc);
 		  /* END OF COMPOUND POISSON STUFF */
 		  /************************************/
