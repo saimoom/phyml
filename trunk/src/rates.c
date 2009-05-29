@@ -2043,14 +2043,14 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
   tree->rates->c_lnL = RATES_Lk_Rates(tree);
 
 
-  RATES_Check_Lk_Rates(tree,&err);
+/*   RATES_Check_Lk_Rates(tree,&err); */
   
-  if(err)
-    {
-      PhyML_Printf("\n. Small lk detected");
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-      Exit("\n");
-    }
+/*   if(err) */
+/*     { */
+/*       PhyML_Printf("\n. Small lk detected"); */
+/*       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
+/*       Exit("\n"); */
+/*     } */
 
 
   tree->mcmc->run++;
@@ -2475,14 +2475,14 @@ void RATES_Posterior_Times_Pre(node *a, node *d, arbre *tree)
   tree->c_lnL        = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES);
   tree->rates->c_lnL = RATES_Lk_Rates(tree);
 
-  RATES_Check_Lk_Rates(tree,&err);
+/*   RATES_Check_Lk_Rates(tree,&err); */
 
-  if(err)
-    {
-      PhyML_Printf("\n. Small lk detected");
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-      Exit("\n");
-    }
+/*   if(err) */
+/*     { */
+/*       PhyML_Printf("\n. Small lk detected"); */
+/*       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
+/*       Exit("\n"); */
+/*     } */
 
 
   tree->mcmc->run++;
@@ -2594,14 +2594,14 @@ void RATES_Posterior_Time_Root(arbre *tree)
   tree->c_lnL        = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES);
   tree->rates->c_lnL = RATES_Lk_Rates(tree);
 
-  RATES_Check_Lk_Rates(tree,&err);
+/*   RATES_Check_Lk_Rates(tree,&err); */
 
-  if(err)
-    {
-      PhyML_Printf("\n. Small lk detected");
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-      Exit("\n");
-    }
+/*   if(err) */
+/*     { */
+/*       PhyML_Printf("\n. Small lk detected"); */
+/*       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
+/*       Exit("\n"); */
+/*     } */
 
   tree->mcmc->run++;
   MCMC_Print_Param(tree->mcmc,tree);
