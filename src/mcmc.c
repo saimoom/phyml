@@ -33,17 +33,17 @@ void MCMC(arbre *tree)
   MCMC_Randomize_Clock_Rate(tree);
 
 
-  int err;
+/*   int err; */
 
-  RATES_Check_Lk_Rates(tree,&err);
+/*   RATES_Check_Lk_Rates(tree,&err); */
 
-  if(err)
-    {
-      PhyML_Printf("\n. Small lk detected");
-      PhyML_Printf("\n. Run = %d",tree->mcmc->run);
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-      Exit("\n");
-    }
+/*   if(err) */
+/*     { */
+/*       PhyML_Printf("\n. Small lk detected"); */
+/*       PhyML_Printf("\n. Run = %d",tree->mcmc->run); */
+/*       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
+/*       Exit("\n"); */
+/*     } */
 
   RATES_Lk_Rates(tree);
   RATES_Update_Cur_Bl(tree);
@@ -236,17 +236,17 @@ void MCMC_Nu(arbre *tree)
       tree->mcmc->acc_nu++;
     }
 
-  int err;
+/*   int err; */
 
-  RATES_Check_Lk_Rates(tree,&err);
+/*   RATES_Check_Lk_Rates(tree,&err); */
 
-  if(err)
-    {
-      PhyML_Printf("\n. Small lk detected");
-      PhyML_Printf("\n. min_nu=%f new_nu=%f cur_nu=%f",min_nu,new_nu,cur_nu);
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-      Exit("\n");
-    }
+/*   if(err) */
+/*     { */
+/*       PhyML_Printf("\n. Small lk detected"); */
+/*       PhyML_Printf("\n. min_nu=%f new_nu=%f cur_nu=%f",min_nu,new_nu,cur_nu); */
+/*       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
+/*       Exit("\n"); */
+/*     } */
 
   tree->mcmc->run++;
   MCMC_Print_Param(tree->mcmc,tree);
@@ -325,16 +325,16 @@ void MCMC_Clock_Rate(arbre *tree)
       tree->c_lnL = new_lnL;
     }
 
-  int err;
+/*   int err; */
 
-  RATES_Check_Lk_Rates(tree,&err);
+/*   RATES_Check_Lk_Rates(tree,&err); */
 
-  if(err)
-    {
-      PhyML_Printf("\n. Small lk detected");
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-      Exit("\n");
-    }
+/*   if(err) */
+/*     { */
+/*       PhyML_Printf("\n. Small lk detected"); */
+/*       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
+/*       Exit("\n"); */
+/*     } */
 
   tree->mcmc->run++;
   MCMC_Print_Param(tree->mcmc,tree);
@@ -615,16 +615,16 @@ void MCMC_Rates_Pre(node *a, node *d, int local, arbre *tree)
 	}
     }
       
-  int err;
+/*   int err; */
 
-  RATES_Check_Lk_Rates(tree,&err);
+/*   RATES_Check_Lk_Rates(tree,&err); */
 
-  if(err)
-    {
-      PhyML_Printf("\n. Small lk detected");
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-      Exit("\n");
-    }
+/*   if(err) */
+/*     { */
+/*       PhyML_Printf("\n. Small lk detected"); */
+/*       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
+/*       Exit("\n"); */
+/*     } */
 
   tree->mcmc->run++;
   MCMC_Print_Param(tree->mcmc,tree);
@@ -817,17 +817,17 @@ void MCMC_Times_Pre(node *a, node *d, int local, arbre *tree)
 	}
     }
 
-  int err;
+/*   int err; */
 
-  RATES_Check_Lk_Rates(tree,&err);
+/*   RATES_Check_Lk_Rates(tree,&err); */
 
-  if(err)
-    {
-      PhyML_Printf("\n. Small lk detected");
-      PhyML_Printf("\n. Run = %d",tree->mcmc->run);
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-      Exit("\n");
-    }
+/*   if(err) */
+/*     { */
+/*       PhyML_Printf("\n. Small lk detected"); */
+/*       PhyML_Printf("\n. Run = %d",tree->mcmc->run); */
+/*       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
+/*       Exit("\n"); */
+/*     } */
 
   tree->mcmc->run++;
   MCMC_Print_Param(tree->mcmc,tree);
@@ -1006,16 +1006,16 @@ void MCMC_Time_Root(arbre *tree)
       tree->mcmc->acc_times++;
     }
     
-  int err;
+/*   int err; */
 
-  RATES_Check_Lk_Rates(tree,&err);
+/*   RATES_Check_Lk_Rates(tree,&err); */
 
-  if(err)
-    {
-      PhyML_Printf("\n. Small lk detected");
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-      Exit("\n");
-    }
+/*   if(err) */
+/*     { */
+/*       PhyML_Printf("\n. Small lk detected"); */
+/*       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
+/*       Exit("\n"); */
+/*     } */
 
 
   tree->mcmc->run++;
