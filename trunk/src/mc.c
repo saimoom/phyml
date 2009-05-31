@@ -140,12 +140,10 @@ int MC_main(int argc, char **argv)
 /* 		  n_otu = 5; */
 /* 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1); */
 
-
 		  tree->rates = RATES_Make_Rate_Struct(tree->n_otu);
 		  RATES_Init_Rate_Struct(tree->rates,tree->n_otu);
 		  root_edge = Find_Root_Edge(io->fp_in_tree,tree);
 		  Add_Root(root_edge,tree);
-
 
 		  RATES_Fill_Lca_Table(tree);
 
@@ -305,7 +303,7 @@ int MC_main(int argc, char **argv)
 		  MCMC_Free_MCMC(tree->mcmc);
 
 
-		  tree->both_sides = 1;
+		  tree->both_sides = 0;
 		  tree->rates->model     = THORNE;
 		  tree->rates->lk_approx = EXACT;
 		  Lk(tree);

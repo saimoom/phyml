@@ -920,10 +920,6 @@ typedef struct __Tmcmc {
   int    *t_rank;
   phydbl *r_path;
   
-  time_t last_time;
-  time_t this_time;
-
-
   char *out_filename;
   FILE *out_fp_stats;
   FILE *out_fp_trees;

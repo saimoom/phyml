@@ -309,10 +309,12 @@ void MCMC_Clock_Rate(arbre *tree)
 
       RATES_Update_Cur_Bl(tree);
       
-      if(tree->rates->lk_approx == NORMAL)
-	new_lnL = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES);
-      else 
-	new_lnL = Return_Lk(tree);
+/*       if(tree->rates->lk_approx == NORMAL) */
+/* 	new_lnL = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES); */
+/*       else  */
+/* 	new_lnL = Return_Lk(tree); */
+
+      new_lnL = cur_lnL;
 
       if(fabs(new_lnL - cur_lnL) > 1.E-3)
 	{
@@ -551,7 +553,8 @@ void MCMC_Rates_Pre(node *a, node *d, int local, arbre *tree)
 
       tree->c_lnL  = new_lnL_data;
       
-      new_lnL_rate = RATES_Lk_Rates(tree);
+/*       new_lnL_rate = RATES_Lk_Rates(tree); */
+      new_lnL_rate = cur_lnL_rate;
 	    
       ratio =
 	(new_lnL_data + new_lnL_rate + log(new_mu)) -
@@ -569,16 +572,19 @@ void MCMC_Rates_Pre(node *a, node *d, int local, arbre *tree)
       if(u > alpha) /* Reject */
 	{
 	  tree->rates->nd_r[d->num] = cur_mu;
+
 	  RATES_Update_Cur_Bl(tree);
 
-	  if(tree->rates->lk_approx == NORMAL)
-	    new_lnL_data = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES);
-	  else
-	    new_lnL_data = Return_Lk(tree);
+/* 	  if(tree->rates->lk_approx == NORMAL) */
+/* 	    new_lnL_data = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES); */
+/* 	  else */
+/* 	    new_lnL_data = Return_Lk(tree); */
+	  new_lnL_data = cur_lnL_data;
 
 	  tree->c_lnL = new_lnL_data;
 	  
-	  RATES_Lk_Rates(tree);
+/* 	  RATES_Lk_Rates(tree); */
+	  tree->rates->c_lnL = cur_lnL_rate;
 
 	  if((tree->mcmc->run > 10) && ((fabs(cur_lnL_data - tree->c_lnL) > 1.E-3) || (fabs(cur_lnL_rate - tree->rates->c_lnL) > 1.E-0)))
 	    {
@@ -774,20 +780,23 @@ void MCMC_Times_Pre(node *a, node *d, int local, arbre *tree)
 	{
 	  RATES_Reset_Times(tree);
 
-	  RATES_Lk_Rates(tree);
-	  
-	  if(tree->rates->lk_approx == NORMAL)
-	    {
-	      RATES_Update_Cur_Bl(tree);
-	      new_lnL_data = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES);
-	    }
-	  else
-	    {
-	      new_lnL_data = Return_Lk(tree);
-	    }
+/*  	  if(tree->rates->lk_approx == NORMAL) */
+/* 	    { */
+/* 	      RATES_Update_Cur_Bl(tree); */
+/* 	      new_lnL_data = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES); */
+/* 	    } */
+/* 	  else */
+/* 	    { */
+/* 	      new_lnL_data = Return_Lk(tree); */
+/* 	    } */
+
+	  new_lnL_data = cur_lnL_data;
 
 	  tree->c_lnL = new_lnL_data;
 	  
+/* 	  RATES_Lk_Rates(tree); */
+	  tree->rates->c_lnL = cur_lnL_rate;
+
 	  if((tree->mcmc->run > 10) && ((fabs(cur_lnL_data - tree->c_lnL) > 1.E-3) || (fabs(cur_lnL_rate - tree->rates->c_lnL) > 1.E-3)))
 	    {
 	      printf("\n. Run=%d",tree->mcmc->run);
@@ -963,21 +972,24 @@ void MCMC_Time_Root(arbre *tree)
   if(u > alpha) /* Reject */
     {
       RATES_Reset_Times(tree);
-      
-      RATES_Lk_Rates(tree);
-      
-      if(tree->rates->lk_approx == NORMAL)
-	{
-	  RATES_Update_Cur_Bl(tree);
-	  new_lnL_data = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES);
-	}
-      else
-	{
-	  new_lnL_data = Return_Lk(tree);
-	}
-      
+
+/*       if(tree->rates->lk_approx == NORMAL) */
+/* 	{ */
+/* 	  RATES_Update_Cur_Bl(tree); */
+/* 	  new_lnL_data = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES); */
+/* 	} */
+/*       else */
+/* 	{ */
+/* 	  new_lnL_data = Return_Lk(tree); */
+/* 	} */
+
+      new_lnL_data = cur_lnL_data;
+
       tree->c_lnL = new_lnL_data;
       
+/*       RATES_Lk_Rates(tree); */
+      tree->rates->c_lnL = cur_lnL_rate;
+
       if((tree->mcmc->run > 10) && ((fabs(cur_lnL_data - tree->c_lnL) > 1.E-3) || (fabs(cur_lnL_rate - tree->rates->c_lnL) > 1.E-3)))
 	{
 	  printf("\n. Run=%d",tree->mcmc->run);
@@ -1872,7 +1884,8 @@ void MCMC_Mixing_Step(arbre *tree)
       RATES_Reset_Times(tree);
       tree->rates->clock_r *= multiplier;
 
-      RATES_Lk_Rates(tree);
+/*       RATES_Lk_Rates(tree); */
+      tree->rates->c_lnL = cur_lnL_rate;
       
       if(fabs(cur_lnL_rate - tree->rates->c_lnL) > 1.E-0)
 	{
