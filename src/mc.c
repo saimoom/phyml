@@ -303,35 +303,35 @@ int MC_main(int argc, char **argv)
 		  MCMC_Free_MCMC(tree->mcmc);
 
 
-		  tree->both_sides = 0;
-		  tree->rates->model     = THORNE;
-		  tree->rates->lk_approx = EXACT;
-		  Lk(tree);
-		  RATES_Lk_Rates(tree);
-		  printf("\n. LnL_data = %f\n. LnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL);		  
-		  tree->rates->bl_from_rt = 1;
+/* 		  tree->both_sides = 0; */
+/* 		  tree->rates->model     = THORNE; */
+/* 		  tree->rates->lk_approx = EXACT; */
+/* 		  Lk(tree); */
+/* 		  RATES_Lk_Rates(tree); */
+/* 		  printf("\n. LnL_data = %f\n. LnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL);		   */
+/* 		  tree->rates->bl_from_rt = 1; */
 
-		  PhyML_Printf("\n. Burnin...\n");
-		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
-		  MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree);
-		  tree->rates->lk_approx = NORMAL;
-		  tree->mcmc->n_tot_run  = 1E+3;
-		  MCMC(tree);
-		  MCMC_Close_MCMC(tree->mcmc);
-		  MCMC_Free_MCMC(tree->mcmc);
+/* 		  PhyML_Printf("\n. Burnin...\n"); */
+/* 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree); */
+/* 		  MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree); */
+/* 		  tree->rates->lk_approx = NORMAL; */
+/* 		  tree->mcmc->n_tot_run  = 1E+3; */
+/* 		  MCMC(tree); */
+/* 		  MCMC_Close_MCMC(tree->mcmc); */
+/* 		  MCMC_Free_MCMC(tree->mcmc); */
 
-		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
-		  MCMC_Init_MCMC_Struct("thorne.exact",tree->mcmc,tree);
-		  tree->rates->lk_approx = EXACT;
-		  tree->mcmc->n_tot_run  = 1E+7;
-		  time(&t_beg);
-		  printf("\n. Thorne (exact)...\n");
-		  MCMC(tree);
-		  printf("\n. End of Thorne (exact)...\n");
-		  time(&t_end);
-		  Print_Time_Info(t_beg,t_end);
-		  MCMC_Close_MCMC(tree->mcmc);
-		  MCMC_Free_MCMC(tree->mcmc);
+/* 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree); */
+/* 		  MCMC_Init_MCMC_Struct("thorne.exact",tree->mcmc,tree); */
+/* 		  tree->rates->lk_approx = EXACT; */
+/* 		  tree->mcmc->n_tot_run  = 1E+7; */
+/* 		  time(&t_beg); */
+/* 		  printf("\n. Thorne (exact)...\n"); */
+/* 		  MCMC(tree); */
+/* 		  printf("\n. End of Thorne (exact)...\n"); */
+/* 		  time(&t_end); */
+/* 		  Print_Time_Info(t_beg,t_end); */
+/* 		  MCMC_Close_MCMC(tree->mcmc); */
+/* 		  MCMC_Free_MCMC(tree->mcmc); */
 		  /* END OF COMPOUND POISSON STUFF */
 		  /************************************/
 		  /************************************/
