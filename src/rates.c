@@ -1708,8 +1708,8 @@ void RATES_Posterior_Clock_Rate(arbre *tree)
       RATES_Update_Cur_Bl(tree);
       
       /* Optional here but useful for monitoring ESS for likelihoods */
-/*       tree->c_lnL        = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES); */
-/*       tree->rates->c_lnL = RATES_Lk_Rates(tree); */
+      tree->c_lnL        = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES);
+      tree->rates->c_lnL = RATES_Lk_Rates(tree);
       
       tree->mcmc->run++;
       MCMC_Print_Param(tree->mcmc,tree);
@@ -2039,8 +2039,8 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
   RATES_Update_Cur_Bl(tree);
 
   /* Optional here but useful for monitoring ESS for likelihoods */
-/*   tree->c_lnL        = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES); */
-/*   tree->rates->c_lnL = RATES_Lk_Rates(tree); */
+  tree->c_lnL        = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES);
+  tree->rates->c_lnL = RATES_Lk_Rates(tree);
 
 
 /*   RATES_Check_Lk_Rates(tree,&err); */
@@ -2472,8 +2472,8 @@ void RATES_Posterior_Times_Pre(node *a, node *d, arbre *tree)
   tree->rates->nd_t[d->num] = T1_new;
   RATES_Update_Cur_Bl(tree);
   
-/*   tree->c_lnL        = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES); */
-/*   tree->rates->c_lnL = RATES_Lk_Rates(tree); */
+  tree->c_lnL        = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES);
+  tree->rates->c_lnL = RATES_Lk_Rates(tree);
 
 /*   RATES_Check_Lk_Rates(tree,&err); */
 
@@ -2591,8 +2591,8 @@ void RATES_Posterior_Time_Root(arbre *tree)
 
   RATES_Update_Cur_Bl(tree);
   
-/*   tree->c_lnL        = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES); */
-/*   tree->rates->c_lnL = RATES_Lk_Rates(tree); */
+  tree->c_lnL        = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES);
+  tree->rates->c_lnL = RATES_Lk_Rates(tree);
 
 /*   RATES_Check_Lk_Rates(tree,&err); */
 
