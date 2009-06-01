@@ -1226,7 +1226,6 @@ void MCMC_Print_Param(tmcmc *mcmc, arbre *tree)
   fp = mcmc->out_fp_stats;
   
 
-
   MCMC_Print_Means(mcmc,tree);
   MCMC_Print_Last(mcmc,tree);
 
@@ -1236,9 +1235,12 @@ void MCMC_Print_Param(tmcmc *mcmc, arbre *tree)
       
       if(tree->mcmc->run == 0)
 	{
+	  time(&mcmc->t_beg);
+
 
 	  PhyML_Fprintf(fp,"\n");
 	  PhyML_Fprintf(fp,"Run\t");
+	  PhyML_Fprintf(fp,"Time\t");
 	  PhyML_Fprintf(fp,"TreeSize\t");
 	  PhyML_Fprintf(fp,"LnLSeq\t");
 	  PhyML_Fprintf(fp,"LnLRate\t");
@@ -1309,6 +1311,8 @@ void MCMC_Print_Param(tmcmc *mcmc, arbre *tree)
 
       PhyML_Fprintf(fp,"\n");
       PhyML_Fprintf(fp,"%6d\t",tree->mcmc->run);
+      time(&mcmc->t_cur);
+      PhyML_Fprintf(fp,"%6d\t",mcmc->t_cur-mcmc->t_beg);
 /*       PhyML_Fprintf(fp,"%4.2f\t",RATES_Check_Mean_Rates(tree)); */
       
       RATES_Update_Cur_Bl(tree);
