@@ -699,7 +699,7 @@ void MCMC_Times_Pre(node *a, node *d, int local, arbre *tree)
   t_min = MAX(t_min,tree->rates->t_prior_min[d->num]);
   t_max = MIN(t_max,tree->rates->t_prior_max[d->num]);
 
-  if(fabs(t_min - t_max) < tree->rates->min_dt) return;
+  if(fabs(t_min - t_max) < 1.E-10) return;
   
   tree->rates->t_prior[d->num] = Uni() * (t_max - t_min) + t_min;
 
@@ -898,7 +898,7 @@ void MCMC_Time_Root(arbre *tree)
   t_min = MAX(t_min,tree->rates->t_prior_min[root->num]);
   t_max = MIN(t_max,tree->rates->t_prior_max[root->num]);
   
-  if(fabs(t_min - t_max) < tree->rates->min_dt) return;
+  if(fabs(t_min - t_max) < 1.E-10) return;
 
   tree->rates->t_prior[root->num] = Uni() * (t_max - t_min) + t_min;
   
