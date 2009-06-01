@@ -919,7 +919,10 @@ typedef struct __Tmcmc {
   phydbl *t_rate_jumps;
   int    *t_rank;
   phydbl *r_path;
-  
+  time_t t_beg;
+  time_t t_cur;
+
+
   char *out_filename;
   FILE *out_fp_stats;
   FILE *out_fp_trees;

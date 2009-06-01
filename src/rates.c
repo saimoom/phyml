@@ -2252,9 +2252,8 @@ void RATES_Posterior_Times_Pre(node *a, node *d, arbre *tree)
   T1_LIM_INF = MAX(T1_LIM_INF,tree->rates->t_prior_min[d->num]);
   T1_LIM_SUP = MIN(T1_LIM_SUP,tree->rates->t_prior_max[d->num]);
   
-  if(fabs(T1_LIM_SUP - T1_LIM_INF) < tree->rates->min_dt) return;
+  if(fabs(T1_LIM_SUP - T1_LIM_INF) < 1.E-10) return;
   
-
   tree->rates->t_prior[d->num] = Uni()*(T1_LIM_SUP - T1_LIM_INF) + T1_LIM_INF;
 
   BL_LIM_INF = BL_LIM_SUP = -1.0;
