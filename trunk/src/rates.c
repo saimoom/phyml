@@ -2536,7 +2536,7 @@ void RATES_Posterior_Time_Root(arbre *tree)
   U1 *= cr;
   U2 *= cr;
 
-  if(fabs(T0_LIM_SUP - T0_LIM_INF) < tree->rates->min_dt) return;
+  if(fabs(T0_LIM_SUP - T0_LIM_INF) < 1.E-10) return;
 
   CEL=0.0;
   For(i,dim) if(i != b->num) CEL += tree->rates->reg_coeff[b->num*dim+i] * (tree->rates->u_cur_l[i] - tree->rates->u_ml_l[i]);
