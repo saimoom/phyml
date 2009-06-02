@@ -1111,8 +1111,6 @@ void Update_PMat_At_Given_Edge(edge *b_fcus, arbre *tree)
   if(b_fcus->l < BL_MIN)      b_fcus->l = BL_MIN;
   else if(b_fcus->l > BL_MAX) b_fcus->l = BL_MAX;
 
-
-
   For(i,tree->mod->n_catg)
     {
       if(b_fcus->has_zero_br_len) len = -1.0;

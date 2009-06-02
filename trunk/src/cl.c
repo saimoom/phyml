@@ -881,7 +881,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	    {
 	      char *tmp;
 	      tmp = (char *)mCalloc(T_MAX_FILE, sizeof(char));
-	      if (strlen (optarg) > T_MAX_FILE -11)
+	      if(strlen(optarg) > T_MAX_FILE -11)
 		{
 		  char choix;
 		  strcpy (tmp, "\n. The file name'");

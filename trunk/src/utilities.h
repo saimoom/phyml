@@ -931,6 +931,14 @@ typedef struct __Tmcmc {
 }tmcmc;
 
 /*********************************************************/
+
+typedef struct __Tpart {
+  int *ns;         /* number of states at each site (e.g., 2, 4, 3) */
+  int *cum_ns;     /* cumulative number of states (e.g., 0, 2, 6) */
+  int ns_max;
+}part;
+
+/*********************************************************/
 /*********************************************************/
 
 phydbl Rand_Normal_Deviate(phydbl mean, phydbl sd);
