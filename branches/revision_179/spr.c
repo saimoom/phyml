@@ -3261,7 +3261,7 @@ void Spr_Subtree(edge *b, node *link, arbre *tree)
 		  tree->best_pars = tree->c_pars;
 		  if(tree->best_pars != best_pars_move->pars)
 		    {
-		      printf("\n. best_pars = %d move_pars = %d",tree->best_pars,best_pars_move->pars);
+//		      printf("\n. best_pars = %d move_pars = %d",tree->best_pars,best_pars_move->pars);
 		      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
 		      Warn_And_Exit("");			  
 		    }
@@ -3991,7 +3991,7 @@ int Try_One_Spr_Move_Triple(spr *move, arbre *tree)
       if((tree->mod->s_opt->print) && (!tree->io->quiet)) 
 	{
 	  Print_Lk_And_Pars(tree);
-	  printf(" [depth=%5d]",move->depth_path); fflush(NULL);
+//	  printf(" [depth=%5d]",move->depth_path); fflush(NULL);
 	}
 
       tree->n_improvements++;
