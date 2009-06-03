@@ -3387,9 +3387,16 @@ void Print_Fp_Out(FILE *fp_out, time_t t_beg, time_t t_end, arbre *tree, option 
   PhyML_Fprintf(fp_out,"\n\n. Initial tree: \t\t\t%s",s);
   Free(s);
 
-  (tree->mod->datatype == NT)?
-    (fprintf(fp_out,"\n\n. Model of nucleotides substitution: \t%s",io->mod->modelname)):
-    (fprintf(fp_out,"\n\n. Model of amino acids substitution: \t%s",io->mod->modelname));
+  if(tree->mod->datatype == NT)
+    {
+      fprintf(fp_out,"\n\n. Model of nucleotides substitution: \t%s",io->mod->modelname);
+      if(io->mod->whichmodel == CUSTOM)
+      fprintf(fp_out," (%s)",io->mod->custom_mod_string);
+    }
+  else
+    {
+      fprintf(fp_out,"\n\n. Model of amino acids substitution: \t%s",io->mod->modelname);
+    }
 
 
   PhyML_Fprintf(fp_out,"\n\n. Number of taxa: \t\t\t%d",tree->n_otu);/*added FLT*/
@@ -3974,9 +3981,9 @@ int Is_Ambigu(char *state, int datatype, int stepsize)
 	    default : { val=1; break; }
 	    }
 	  if(val == 1) break;
-	  /*       if(strchr("MRWSYKBDHVNXO?-.",(int)state)) return 1; */
 	}
     }
+/*   else if(datatype == AA) */
   else
     {
       switch(state[0])
@@ -3984,8 +3991,15 @@ int Is_Ambigu(char *state, int datatype, int stepsize)
 	case 'X' : case '?' : case '-' : case '.' : {val=1; break; }
 	default : { val=0; break; }
 	}
-/*       if(strchr("X?-.",(int)state)) return 1; */
     }
+/*   else if(datatype == DIGITS) */
+/*     { */
+/*       switch(state[0]) */
+/* 	{ */
+/* 	case 'X' : case '?' : case '-' : case '.' : {val=1; break; } */
+/* 	default : {val = 0; break;} */
+/* 	}       */
+/*     } */
 
   return val;
 }
@@ -4713,17 +4727,14 @@ model *Make_Model_Basic()
 
 void Make_Model_Complete(model *mod)
 {
-
-  mod->pi             = (phydbl *)mCalloc(mod->ns,sizeof(phydbl));
-  mod->gamma_r_proba  = (phydbl *)mCalloc(mod->n_catg,sizeof(phydbl));
-  mod->gamma_rr       = (phydbl *)mCalloc(mod->n_catg,sizeof(phydbl));
-  mod->pi_unscaled    = (phydbl *)mCalloc(mod->ns,sizeof(phydbl));
-
-  mod->Pij_rr   = (double *)mCalloc(mod->n_catg*mod->ns*mod->ns,sizeof(double));
-  
-  mod->qmat      = (double *)mCalloc(mod->ns*mod->ns,sizeof(double));
-  mod->qmat_buff = (double *)mCalloc(mod->ns*mod->ns,sizeof(double));
-  mod->eigen     = (eigen *)Make_Eigen_Struct(mod);
+  mod->pi            = (phydbl *)mCalloc(mod->ns,sizeof(phydbl));
+  mod->gamma_r_proba = (phydbl *)mCalloc(mod->n_catg,sizeof(phydbl));
+  mod->gamma_rr      = (phydbl *)mCalloc(mod->n_catg,sizeof(phydbl));
+  mod->pi_unscaled   = (phydbl *)mCalloc(mod->ns,sizeof(phydbl));
+  mod->Pij_rr        = (double *)mCalloc(mod->n_catg*mod->ns*mod->ns,sizeof(double));
+  mod->qmat          = (double *)mCalloc(mod->ns*mod->ns,sizeof(double));
+  mod->qmat_buff     = (double *)mCalloc(mod->ns*mod->ns,sizeof(double));
+  mod->eigen         = (eigen *)Make_Eigen_Struct(mod->ns);
   
   if(mod->n_rr_branch)
     {
@@ -6819,21 +6830,20 @@ void Fast_Br_Len(edge *b, arbre *tree, int approx)
 
 /*********************************************************/
 
-eigen *Make_Eigen_Struct(model *mod)
+eigen *Make_Eigen_Struct(int ns)
 {
   eigen *eig;
 
-
   eig              = (eigen *)mCalloc(1,sizeof(eigen));
-  eig->size        = mod->ns;
-  eig->space       = (double *)mCalloc(2*mod->ns,sizeof(double));
-  eig->space_int   = (int *)mCalloc(2*mod->ns,sizeof(int));
-  eig->e_val       = (double *)mCalloc(mod->ns,sizeof(double));
-  eig->e_val_im    = (double *)mCalloc(mod->ns,sizeof(double));
-  eig->r_e_vect    = (double *)mCalloc(mod->ns*mod->ns,sizeof(double));
-  eig->r_e_vect_im = (double *)mCalloc(mod->ns*mod->ns,sizeof(double));
-  eig->l_e_vect    = (double *)mCalloc(mod->ns*mod->ns,sizeof(double));
-  eig->q           = (double *)mCalloc(mod->ns*mod->ns,sizeof(double));
+  eig->size        = ns;
+  eig->space       = (double *)mCalloc(2*ns,sizeof(double));
+  eig->space_int   = (int *)mCalloc(2*ns,sizeof(int));
+  eig->e_val       = (double *)mCalloc(ns,sizeof(double));
+  eig->e_val_im    = (double *)mCalloc(ns,sizeof(double));
+  eig->r_e_vect    = (double *)mCalloc(ns*ns,sizeof(double));
+  eig->r_e_vect_im = (double *)mCalloc(ns*ns,sizeof(double));
+  eig->l_e_vect    = (double *)mCalloc(ns*ns,sizeof(double));
+  eig->q           = (double *)mCalloc(ns*ns,sizeof(double));
 
   return eig;
 }
@@ -6856,7 +6866,7 @@ triplet *Make_Triplet_Struct(model *mod)
   triplet_struct->core            = (phydbl ****)mCalloc(mod->n_catg,sizeof(phydbl ***));
   triplet_struct->p_one_site      = (phydbl ***)mCalloc(mod->ns,sizeof(phydbl **));
   triplet_struct->sum_p_one_site  = (phydbl ***)mCalloc(mod->ns,sizeof(phydbl **));
-  triplet_struct->eigen_struct    = (eigen *)Make_Eigen_Struct(mod);
+  triplet_struct->eigen_struct    = (eigen *)Make_Eigen_Struct(mod->ns);
   triplet_struct->mod             = mod;
 
   For(k,mod->n_catg)

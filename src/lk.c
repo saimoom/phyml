@@ -534,7 +534,7 @@ matrix *ML_Dist(allseq *data, model *mod)
   tmpdata->b_frq      = (phydbl *)mCalloc(mod->ns,sizeof(phydbl));
   tmpdata->ambigu     = (short int *)mCalloc(data->crunch_len,sizeof(short int));
   F                   = (phydbl *)mCalloc(mod->ns*mod->ns,sizeof(phydbl ));
-  eigen_struct        = (eigen *)Make_Eigen_Struct(mod);
+  eigen_struct        = (eigen *)Make_Eigen_Struct(mod->ns);
 
   tmpdata->n_otu      = 2;
 

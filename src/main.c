@@ -273,6 +273,13 @@ int main(int argc, char **argv)
   return 1;
 }
 
+#elif(PART)
+int main(int argc, char **argv)
+{
+  PART_main(argc, argv);
+  return 1;
+}
+
 #elif(MC)
 #include "mc.h"
 int main(int argc, char **argv)
