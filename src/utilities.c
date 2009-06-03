@@ -3518,7 +3518,7 @@ void Print_Fp_Out_Lines(FILE *fp_out, time_t t_beg, time_t t_end, arbre *tree, o
   if (n_data_set==1)
       {
 
-	fprintf(fp_out,". Sequence file : [%s]\n\n", io->in_seq_file);
+	fprintf(fp_out,". Sequence file : [%s]\n\n", Basename(io->in_seq_file));
 
 	(tree->mod->datatype == NT)?
 	  (fprintf(fp_out,". Model of nucleotides substitution : %s\n\n",io->mod->modelname)):

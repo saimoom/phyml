@@ -333,7 +333,7 @@ void Print_Fp_Out_Lines_MPI(arbre *tree, option *io, int n_data_set, char *bootS
   tmp=(char *)mCalloc(T_MAX_LINE,sizeof(char));
   
   if (Global_myRank == 0 && n_data_set == 1) {
-    snprintf(tmp, T_MAX_LINE, ". Sequence file : [%s]\n\n", io->in_seq_file); strncat (s, tmp, T_MAX_LINE);
+    snprintf(tmp, T_MAX_LINE, ". Sequence file : [%s]\n\n", Basename(io->in_seq_file)); strncat (s, tmp, T_MAX_LINE);
     
     (tree->mod->datatype == NT)?
 	(snprintf(tmp, T_MAX_LINE, ". Model of nucleotides substitution : %s\n\n", io->mod->modelname)):
