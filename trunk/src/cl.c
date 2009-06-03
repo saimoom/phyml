@@ -694,12 +694,24 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	      if ((!atoi(optarg)) || (atoi(optarg) < 0))
 		{
 		  char choix;
-		  PhyML_Printf("\n. Unknown argument to -c option: the number of categories must be a positive integer\n");
+		  PhyML_Printf("\n. Unknown argument to -c option: the number of rate categories must be a positive integer\n");
 		  PhyML_Printf("\n. Type any key to exit.\n");
-		  if(!scanf("%c",&choix)) Exit("\n");
+		  if(!scanf("%c",&choix)) Exit("\n");		  
 		  Exit("\n");
 		}
-	      else io->mod->n_catg = atoi(optarg);
+	      else 
+		{
+		  io->mod->n_catg = atoi(optarg);
+		  if(io->mod->n_catg < 1) 
+		    {
+		      PhyML_Printf("\n. The number of rate categories must be a positive integer\n");
+		      Exit("\n");
+		    }
+		  if(io->mod->n_catg == 1)
+		    {
+		      io->mod->s_opt->opt_alpha = 0;
+		    }		    
+		}
 	      break;
 	    }
 	case 'f':
@@ -734,7 +746,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 
 		io->mod->s_opt->opt_state_freq  = 0;
 		io->mod->s_opt->user_state_freq = 1;
-				
+		
 		sscanf(optarg,"%lf,%lf,%lf,%lf",
 		       io->mod->user_b_freq,
 		       io->mod->user_b_freq+1,
@@ -918,11 +930,13 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	      if ((strcmp (optarg, "e") == 0) ||
 		  (strcmp (optarg, "E") == 0) ||
 		  (strcmp (optarg, "estimated") == 0) ||
-		  (strcmp (optarg, "ESTIMATED") == 0)) {
-		io->mod->s_opt->opt_num_param = 1;
-		io->mod->s_opt->opt_pinvar    = 1;
-		io->mod->invar                = 1;
-	      }
+		  (strcmp (optarg, "ESTIMATED") == 0)) 
+		{
+		  io->mod->s_opt->opt_num_param = 1;
+		  io->mod->s_opt->opt_pinvar    = 1;
+		  io->mod->invar                = 1;
+		}
+
 	      else if ((atof(optarg) < 0.0) || (atof(optarg) > 1.0))
 		{
 		  char choix;

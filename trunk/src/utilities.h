@@ -933,9 +933,12 @@ typedef struct __Tmcmc {
 /*********************************************************/
 
 typedef struct __Tpart {
-  int *ns;         /* number of states at each site (e.g., 2, 4, 3) */
+  int *ns;         /* number of states for each partition (e.g., 2, 4, 3) */
   int *cum_ns;     /* cumulative number of states (e.g., 0, 2, 6) */
-  int ns_max;
+  int ns_max;      /* maximum number of states */
+  int ns_min;      /* minimum number of states */
+  int n_partitions; /* number of partitions */
+  struct __Eigen    *eigen;
 }part;
 
 /*********************************************************/
@@ -1103,7 +1106,7 @@ void Print_Tree(FILE *fp, arbre *tree);
 void Found_In_Subtree(node *a, node *d, node *target, int *match, arbre *tree);
 void Random_Tree(arbre *tree);
 void Copy_Dist(phydbl **cpy, phydbl **orig, int n);
-eigen *Make_Eigen_Struct(model *mod);
+eigen *Make_Eigen_Struct(int ns);
 void Random_NNI(int n_moves, arbre *tree);
 void Make_Edge_Pars(edge *b, arbre *tree);
 void Make_Tree_Path(arbre *tree);
