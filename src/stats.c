@@ -213,9 +213,8 @@ phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max, int *error)
 {
 
   phydbl u, ret_val,eps;
-/*   int iter; */
+  int iter;
   phydbl z,rz;
-/*   phydbl cdf_min, cdf_max; */
   phydbl z_min,z_max;
 
   z      = 0.0;
@@ -237,14 +236,35 @@ phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max, int *error)
   eps = (z_max-z_min)/1E+6;
 
   /* Damien and Walker (2001) method */
-  phydbl y;
+  phydbl y,slice_min,slice_max;
 
-  y = Uni(); /* z is considered as being equal to 0 here. Hence exp(-(z*z)/2) = 1. */
-  min = MAX(z_min,-sqrt(-2.*log(y)));
-  max = MIN(z_max, sqrt(-2.*log(y)));
-  z = Uni()*(max - min) + min;
+  if((z_min < -10.) && (z_max > +10.)) /* cdf < 1.E-6, we should be safe. */
+    {
+      z = Rnorm(0.0,1.0);
+    }
+  else
+    {
+      iter = 0;
+      do
+	{
+	  y   = Uni()*exp(-(z*z)/2.);
+	  slice_min = MAX(z_min,-sqrt(-2.*log(y)));
+	  slice_max = MIN(z_max, sqrt(-2.*log(y)));
+	  z   = Uni()*(slice_max - slice_min) + slice_min;
+	  iter++;
+	  if(iter == 100) break;
+	}
+      while(slice_max < slice_min);
+      
+      if(iter == 100)
+	{
+	  PhyML_Printf("\n. Too many iterations in Rnorm_Trunc...");
+	  *error = 1;
+	}
+    }
 
 
+/*   phydbl cdf_min, cdf_max; */
 /*   if((z_min < -10.) && (z_max > +10.)) /\* cdf < 1.E-6, we should be safe. *\/ */
 /*     { */
 /*       z = Rnorm(0.0,1.0); */
@@ -345,8 +365,9 @@ phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max, int *error)
       *error = 1;
       PhyML_Printf("\n. Numerical precision issue detected in Rnorm_Trunc.");
       PhyML_Printf("\n. z = %f",z);
-      PhyML_Printf("\n. mean=%f sd=%f z_min=%f z_max=%f",mean,sd,z_min,z_max);
-      ret_val = min;
+      PhyML_Printf("\n. mean=%f sd=%f z_min=%f z_max=%f min=%f max=%f",mean,sd,z_min,z_max,min,max);
+      ret_val = (max - min)/2.;
+      Exit("\n");
     }
 
   ret_val = z*sd+mean;
