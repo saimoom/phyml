@@ -236,12 +236,13 @@ phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max, int *error)
 
   eps = (z_max-z_min)/1E+6;
 
-  /* Damien and Wilks (2001) method */
+  /* Damien and Walker (2001) method */
   phydbl y;
+
   y = Uni(); /* z is considered as being equal to 0 here. Hence exp(-(z*z)/2) = 1. */
-  min = MAX(min,-sqrt(-2.*log(y)));
-  max = MIN(max, sqrt(-2.*log(y)));
-  z = Uni()*(max - min) + min;
+  z_min = MAX(z_min,-sqrt(-2.*log(y)));
+  z_max = MIN(z_max, sqrt(-2.*log(y)));
+  z = Uni()*(z_max - z_min) + z_min;
 
 
 /*   if((z_min < -10.) && (z_max > +10.)) /\* cdf < 1.E-6, we should be safe. *\/ */
