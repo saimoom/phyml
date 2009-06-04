@@ -215,7 +215,7 @@ phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max, int *error)
   phydbl u, ret_val,eps;
 /*   int iter; */
   phydbl z,rz;
-  phydbl cdf_min, cdf_max;
+/*   phydbl cdf_min, cdf_max; */
   phydbl z_min,z_max;
 
   z      = 0.0;
@@ -236,19 +236,26 @@ phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max, int *error)
 
   eps = (z_max-z_min)/1E+6;
 
+  /* Damien and Wilks (2001) method */
+  phydbl y;
+  y = Uni(); /* z is considered as being equal to 0 here. Hence exp(-(z*z)/2) = 1. */
+  min = MAX(min,-sqrt(-2.*log(y)));
+  max = MIN(max, sqrt(-2.*log(y)));
+  z = Uni()*(max - min) + min;
 
-  if((z_min < -10.) && (z_max > +10.)) /* cdf < 1.E-6, we should be safe. */
-    {
-      z = Rnorm(0.0,1.0);
-    }
-  else
-    {
-      /* Simple inversion method. Seems to work well. Needs more thorough testing though... */
-      cdf_min = CDF_Normal(z_min,0.0,1.0);
-      cdf_max = CDF_Normal(z_max,0.0,1.0);
-      u = cdf_min + (cdf_max-cdf_min) * Uni();
-      z = PointNormal(u);
-    }
+
+/*   if((z_min < -10.) && (z_max > +10.)) /\* cdf < 1.E-6, we should be safe. *\/ */
+/*     { */
+/*       z = Rnorm(0.0,1.0); */
+/*     } */
+/*   else */
+/*     { */
+/*       /\* Simple inversion method. Seems to work well. Needs more thorough testing though... *\/ */
+/*       cdf_min = CDF_Normal(z_min,0.0,1.0); */
+/*       cdf_max = CDF_Normal(z_max,0.0,1.0); */
+/*       u = cdf_min + (cdf_max-cdf_min) * Uni(); */
+/*       z = PointNormal(u); */
+/*     } */
 
 
   /* Adapted from Christian Robert "Simulation of truncated variables" */
