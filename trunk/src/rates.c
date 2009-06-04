@@ -1743,7 +1743,6 @@ void RATES_Posterior_Times(arbre *tree)
   
   For(i,2*tree->n_otu-2)
     {
-
       node_num = Rand_Int(tree->n_otu,2*tree->n_otu-2);
   
       if(tree->noeud[node_num] == tree->n_root)
