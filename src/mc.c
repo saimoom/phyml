@@ -137,13 +137,13 @@ int MC_main(int argc, char **argv)
 		  edge *root_edge;
 
 
-		  n_otu = 5;
-		  tree = Generate_Random_Tree_From_Scratch(n_otu,1);
+/* 		  n_otu = 5; */
+/* 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1); */
 
-/* 		  tree->rates = RATES_Make_Rate_Struct(tree->n_otu); */
-/* 		  RATES_Init_Rate_Struct(tree->rates,tree->n_otu); */
-/* 		  root_edge = Find_Root_Edge(io->fp_in_tree,tree); */
-/* 		  Add_Root(root_edge,tree); */
+		  tree->rates = RATES_Make_Rate_Struct(tree->n_otu);
+		  RATES_Init_Rate_Struct(tree->rates,tree->n_otu);
+		  root_edge = Find_Root_Edge(io->fp_in_tree,tree);
+		  Add_Root(root_edge,tree);
 
 		  RATES_Fill_Lca_Table(tree);
 
@@ -153,14 +153,14 @@ int MC_main(int argc, char **argv)
 		  tree->both_sides  = 1;
 		  tree->n_pattern   = tree->data->crunch_len/tree->mod->stepsize;
 
-		  For(i,tree->n_otu) strcpy(tree->noeud[i]->name,alldata->c_seq[i]->name);
+/* 		  For(i,tree->n_otu) strcpy(tree->noeud[i]->name,alldata->c_seq[i]->name); */
 
 		  Fill_Dir_Table(tree);
 		  Update_Dirs(tree);
 		  Make_Tree_4_Pars(tree,alldata,alldata->init_len);
 		  Make_Tree_4_Lk(tree,alldata,alldata->init_len);
 
-		  Evolve(tree->data,tree->mod,tree);
+/* 		  Evolve(tree->data,tree->mod,tree); */
 		  Init_Ui_Tips(tree);
 		  Init_P_Pars_Tips(tree);
 		  if(tree->mod->s_opt->greedy) Init_P_Lk_Tips_Double(tree);
