@@ -84,7 +84,7 @@ int MC_main(int argc, char **argv)
   if(io->in_tree == 2) Test_Multiple_Data_Set_Format(io);
   else io->n_trees = 1;
 
-  io->compress_seq = 1; /* Do not compress sites if you're using Evolve function */
+  io->compress_seq = 0; /* Do not compress sites if you're using Evolve function */
 
   mat = NULL;
   tree_line_number = 0;
@@ -130,7 +130,6 @@ int MC_main(int argc, char **argv)
 
 		  time(&t_beg);
 		  time(&(tree->t_beg));
-
 
 		  int n_otu;
 		  int i,j;
