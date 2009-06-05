@@ -1400,7 +1400,7 @@ phydbl RATES_Yule(arbre *tree)
 
   sumti = 0.0;
   for(i=tree->n_otu;i<2*tree->n_otu-1;i++) sumti += tree->rates->nd_t[i];
-  sumti -= tree->rates->nd_t[i];
+  sumti -= tree->rates->nd_t[i-1];
 
   lambda = tree->rates->birth_rate;
   n = tree->n_otu;
