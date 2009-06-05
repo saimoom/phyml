@@ -1390,6 +1390,7 @@ void MCMC_Print_Last(tmcmc *mcmc, arbre *tree)
     {
       rewind(mcmc->out_fp_last);
 
+
       PhyML_Fprintf(tree->mcmc->out_fp_last,"Time\t");
 
       for(i=tree->n_otu;i<2*tree->n_otu-1;i++)
@@ -1397,9 +1398,11 @@ void MCMC_Print_Last(tmcmc *mcmc, arbre *tree)
 
       PhyML_Fprintf(tree->mcmc->out_fp_last,"\n");
 
-
-      time(&(mcmc->t_cur));
-      PhyML_Fprintf(tree->mcmc->out_fp_last,"%d\t",(int)(mcmc->t_cur-mcmc->t_beg));
+      if(mcmc->run) 
+	{
+	  time(&(mcmc->t_cur));
+	  PhyML_Fprintf(tree->mcmc->out_fp_last,"%d\t",(int)(mcmc->t_cur-mcmc->t_beg));
+	}
 
       for(i=tree->n_otu;i<2*tree->n_otu-1;i++)
 	PhyML_Fprintf(tree->mcmc->out_fp_last,"%.1f\t",tree->rates->nd_t[i]);	  
