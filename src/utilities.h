@@ -922,7 +922,6 @@ typedef struct __Tmcmc {
   time_t t_beg;
   time_t t_cur;
 
-
   char *out_filename;
   FILE *out_fp_stats;
   FILE *out_fp_trees;

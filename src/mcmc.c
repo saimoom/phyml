@@ -1231,12 +1231,10 @@ void MCMC_Print_Param(tmcmc *mcmc, arbre *tree)
 
 
   if(!(mcmc->run%mcmc->sample_interval)) 
-    {
-      
+    {      
       if(tree->mcmc->run == 0)
 	{
-	  time(&mcmc->t_beg);
-
+	  time(&(mcmc->t_beg));
 
 	  PhyML_Fprintf(fp,"\n");
 	  PhyML_Fprintf(fp,"Run\t");
@@ -1312,7 +1310,7 @@ void MCMC_Print_Param(tmcmc *mcmc, arbre *tree)
       PhyML_Fprintf(fp,"\n");
       PhyML_Fprintf(fp,"%6d\t",tree->mcmc->run);
       time(&mcmc->t_cur);
-      PhyML_Fprintf(fp,"%6d\t",mcmc->t_cur-mcmc->t_beg);
+      PhyML_Fprintf(fp,"%6d\t",(int)(mcmc->t_cur-mcmc->t_beg));
 /*       PhyML_Fprintf(fp,"%4.2f\t",RATES_Check_Mean_Rates(tree)); */
       
       RATES_Update_Cur_Bl(tree);
@@ -1377,6 +1375,8 @@ void MCMC_Print_Means(tmcmc *mcmc, arbre *tree)
 /* 	  PhyML_Fprintf(tree->mcmc->out_fp_means,"%d\t",tree->mcmc->run / tree->mcmc->sample_interval);	   */
 	  PhyML_Fprintf(tree->mcmc->out_fp_means,"%.1f\t",tree->rates->t_mean[i]);
 	}
+
+      PhyML_Fprintf(tree->mcmc->out_fp_means,"\n");
     }
 }
 
@@ -1386,23 +1386,25 @@ void MCMC_Print_Last(tmcmc *mcmc, arbre *tree)
 {
   int i;
 
-
   if(!(mcmc->run%mcmc->sample_interval)) 
     {
       rewind(mcmc->out_fp_last);
 
-      PhyML_Fprintf(tree->mcmc->out_fp_last,"Time\t");	  
+      PhyML_Fprintf(tree->mcmc->out_fp_last,"Time\t");
 
       for(i=tree->n_otu;i<2*tree->n_otu-1;i++)
-	PhyML_Fprintf(tree->mcmc->out_fp_last,"T%d\t",i);	  
+	PhyML_Fprintf(tree->mcmc->out_fp_last,"T%d\t",i);
 
-      PhyML_Fprintf(tree->mcmc->out_fp_last,"\n");	  
+      PhyML_Fprintf(tree->mcmc->out_fp_last,"\n");
 
-      time(&mcmc->t_cur);
-      PhyML_Fprintf(tree->mcmc->out_fp_last,"%6d\t",mcmc->t_cur-mcmc->t_beg);
+
+      time(&(mcmc->t_cur));
+      PhyML_Fprintf(tree->mcmc->out_fp_last,"%d\t",(int)(mcmc->t_cur-mcmc->t_beg));
 
       for(i=tree->n_otu;i<2*tree->n_otu-1;i++)
 	PhyML_Fprintf(tree->mcmc->out_fp_last,"%.1f\t",tree->rates->nd_t[i]);	  
+
+      PhyML_Fprintf(tree->mcmc->out_fp_last,"\n");
     }
 }
 
