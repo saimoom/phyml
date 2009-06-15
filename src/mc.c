@@ -61,21 +61,8 @@ int MC_main(int argc, char **argv)
   io = (option *)Get_Input(argc,argv);
   r_seed = (io->r_seed < 0)?(time(NULL)):(io->r_seed);
 /*   r_seed = 1241644898; */
-/*   r_seed = 1241664319; */
-/*   r_seed = 1241731534; */
-/*   r_seed = 1241754410; */
-/*   r_seed = 1242002759; */
-/*   r_seed = 1242007604; */
-/*   r_seed = 1242618909; */
-/*   r_seed = 1242619737; */
-/*   r_seed = 1242624868; */
-/*   r_seed = 1243229219; */
-/*   r_seed = 1243231023; */
-/*   r_seed = 1243232094; */
-/*   r_seed = 1243303617; */
-/*   r_seed = 1243382807; */
-/*   r_seed = 1243385255; */
-/*   r_seed = 1243463280; */
+/*   r_seed = 1244480699; */
+/*   r_seed = 1244624234; */
   srand(r_seed); rand();
   printf("\n. Seed = %d",r_seed);
   printf("\n. Pid = %d",getpid());
@@ -136,13 +123,13 @@ int MC_main(int argc, char **argv)
 		  edge *root_edge;
 
 
-/* 		  n_otu = 10; */
-/* 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1); */
+		  n_otu = 10;
+		  tree = Generate_Random_Tree_From_Scratch(n_otu,1);
 
-		  tree->rates = RATES_Make_Rate_Struct(tree->n_otu);
-		  RATES_Init_Rate_Struct(tree->rates,tree->n_otu);
-		  root_edge = Find_Root_Edge(io->fp_in_tree,tree);
-		  Add_Root(root_edge,tree);
+/* 		  tree->rates = RATES_Make_Rate_Struct(tree->n_otu); */
+/* 		  RATES_Init_Rate_Struct(tree->rates,tree->n_otu); */
+/* 		  root_edge = Find_Root_Edge(io->fp_in_tree,tree); */
+/* 		  Add_Root(root_edge,tree); */
 
 		  RATES_Fill_Lca_Table(tree);
 
@@ -152,14 +139,14 @@ int MC_main(int argc, char **argv)
 		  tree->both_sides  = 1;
 		  tree->n_pattern   = tree->data->crunch_len/tree->mod->stepsize;
 
-/* 		  For(i,tree->n_otu) strcpy(tree->noeud[i]->name,alldata->c_seq[i]->name); */
+ 		  For(i,tree->n_otu) strcpy(tree->noeud[i]->name,alldata->c_seq[i]->name);
 
 		  Fill_Dir_Table(tree);
 		  Update_Dirs(tree);
 		  Make_Tree_4_Pars(tree,alldata,alldata->init_len);
 		  Make_Tree_4_Lk(tree,alldata,alldata->init_len);
 
-/* 		  Evolve(tree->data,tree->mod,tree); */
+		  Evolve(tree->data,tree->mod,tree);
 		  Init_Ui_Tips(tree);
 		  Init_P_Pars_Tips(tree);
 		  if(tree->mod->s_opt->greedy) Init_P_Lk_Tips_Double(tree);
@@ -205,7 +192,6 @@ int MC_main(int argc, char **argv)
 		  tree->rates->covdet = Matrix_Det(tree->rates->cov,2*tree->n_otu-3,YES);
 		  Restore_Br_Len(NULL,tree);
 
-
 		  tree->rates->true_tree_size = Get_Tree_Size(tree);
 		  RATES_Bl_To_Ml(tree);
 		  RATES_Get_Conditional_Variances(tree);
@@ -228,7 +214,8 @@ int MC_main(int argc, char **argv)
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
 		  MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree);
 		  tree->rates->lk_approx = NORMAL;
-		  tree->mcmc->n_tot_run  = 1E+4;
+		  tree->mcmc->n_tot_run  = 1E+3;
+		  tree->rates->z_max     = 10.;
 		  MCMC(tree);
 		  MCMC_Close_MCMC(tree->mcmc);
 		  MCMC_Free_MCMC(tree->mcmc);
@@ -241,7 +228,7 @@ int MC_main(int argc, char **argv)
 		  
 		  time(&t_beg);
 		  printf("\n. Gibbs sampling (approx)...\n");
-		  tree->mcmc->n_tot_run  = 1E+7;
+		  tree->mcmc->n_tot_run = 1E+7;
 		  do
 		    {
 		      RATES_Posterior_Times(tree);
@@ -278,7 +265,7 @@ int MC_main(int argc, char **argv)
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
 		  MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree);
 		  tree->rates->lk_approx = NORMAL;
-		  tree->mcmc->n_tot_run  = 1E+4;
+		  tree->mcmc->n_tot_run  = 1E+3;
 		  MCMC(tree);
 		  MCMC_Close_MCMC(tree->mcmc);
 		  MCMC_Free_MCMC(tree->mcmc);

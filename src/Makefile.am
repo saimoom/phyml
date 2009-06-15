@@ -9,15 +9,17 @@
 
 DEFS=-DUNIX -D$(PROG) -DDEBUG
 
-
 if WANT_MC
 bin_PROGRAMS = mc
 PROG = MC
-else
+else 
+# if WANT_PART
+# bin_programs = part
+# PROG = PART
+# else
 bin_PROGRAMS = phyml
 PROG = PHYML
 endif
-
 
 if WANT_MC
 mc_SOURCES = main.c \
@@ -42,7 +44,32 @@ rates.c rates.h\
 mcmc.c mcmc.h\
 stats.c stats.h
 mc_LDADD = -lm
-else
+else 
+# if WANT_PART
+# part_SOURCES = main.c \
+# utilities.c utilities.h\
+# optimiz.c optimiz.h\
+# lk.c lk.h\
+# bionj.c bionj.h\
+# models.c models.h\
+# free.c free.h\
+# options.c options.h\
+# simu.c simu.h\
+# eigen.c eigen.h\
+# pars.c pars.h\
+# alrt.c alrt.h\
+# interface.c interface.h\
+# cl.c cl.h\
+# mg.c mg.h\
+# spr.c spr.h\
+# mc.c mc.h\
+# m4.c m4.h\
+# draw.c draw.h\
+# rates.c rates.h\
+# mcmc.c mcmc.h\
+# stats.c stats.h
+# part_LDADD = -lm
+# else
 phyml_SOURCES = main.c \
 utilities.c  utilities.h\
 optimiz.c  optimiz.h\
