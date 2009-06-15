@@ -236,46 +236,46 @@ phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max, int *error)
   eps = (z_max-z_min)/1E+6;
 
   /* Damien and Walker (2001) method */
-  phydbl y,slice_min,slice_max;
+/*   phydbl y,slice_min,slice_max; */
 
-  if((z_min < -10.) && (z_max > +10.)) /* cdf < 1.E-6, we should be safe. */
-    {
-      z = Rnorm(0.0,1.0);
-    }
-  else
-    {
-      iter = 0;
-      do
-	{
-	  y   = Uni()*exp(-(z*z)/2.);
-	  slice_min = MAX(z_min,-sqrt(-2.*log(y)));
-	  slice_max = MIN(z_max, sqrt(-2.*log(y)));
-	  z   = Uni()*(slice_max - slice_min) + slice_min;
-	  iter++;
-	  if(iter == 100) break;
-	}
-      while(slice_max < slice_min);
-      
-      if(iter == 100)
-	{
-	  PhyML_Printf("\n. Too many iterations in Rnorm_Trunc...");
-	  *error = 1;
-	}
-    }
-
-
-/*   phydbl cdf_min, cdf_max; */
 /*   if((z_min < -10.) && (z_max > +10.)) /\* cdf < 1.E-6, we should be safe. *\/ */
 /*     { */
 /*       z = Rnorm(0.0,1.0); */
 /*     } */
 /*   else */
 /*     { */
-/*       /\* Simple inversion method. Seems to work well. Needs more thorough testing though... *\/ */
-/*       cdf_min = CDF_Normal(z_min,0.0,1.0); */
-/*       cdf_max = CDF_Normal(z_max,0.0,1.0); */
-/*       u = cdf_min + (cdf_max-cdf_min) * Uni(); */
-/*       z = PointNormal(u); */
+/*       iter = 0; */
+/*       do */
+/* 	{ */
+/* 	  y   = Uni()*exp(-(z*z)/2.); */
+/* 	  slice_min = MAX(z_min,-sqrt(-2.*log(y))); */
+/* 	  slice_max = MIN(z_max, sqrt(-2.*log(y))); */
+/* 	  z   = Uni()*(slice_max - slice_min) + slice_min; */
+/* 	  iter++; */
+/* 	  if(iter > 100) break; */
+/* 	} */
+/*       while(slice_max < slice_min || iter < 30); */
+      
+/*       if(iter > 100) */
+/* 	{ */
+/* 	  PhyML_Printf("\n. Too many iterations in Rnorm_Trunc..."); */
+/* 	  *error = 1; */
+/* 	} */
+/*     } */
+
+  /* Inverson method */
+  phydbl cdf_min, cdf_max;
+/*   if((z_min < -10.) && (z_max > +10.)) /\* cdf < 1.E-6, we should be safe. *\/ */
+/*     { */
+/*       z = Rnorm(0.0,1.0); */
+/*     } */
+/*   else */
+/*     { */
+      /* Simple inversion method. Seems to work well. Needs more thorough testing though... */
+      cdf_min = CDF_Normal(z_min,0.0,1.0);
+      cdf_max = CDF_Normal(z_max,0.0,1.0);
+      u = cdf_min + (cdf_max-cdf_min) * Uni();
+      z = PointNormal(u);
 /*     } */
 
 

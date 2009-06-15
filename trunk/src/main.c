@@ -257,7 +257,7 @@ int main(int argc, char **argv)
   return 0;
 }
 
-#elif(MG)
+#elif(PART)
 #include "mg.h"
 int main(int argc, char **argv)
 {
