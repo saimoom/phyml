@@ -7682,7 +7682,7 @@ void Check_Memory_Amount(arbre *tree)
 {
   /* Rough estimate of the amount of memory that has to be used */
 
-  int nbytes;
+  long int nbytes;
   model *mod;
 
   mod = tree->mod;
@@ -7708,7 +7708,7 @@ void Check_Memory_Amount(arbre *tree)
   if(((phydbl)nbytes/(1.E+06)) > 256.)
     {
       char answer;
-      PhyML_Printf("\n. WARNING: this analysis requires at least %.0fMo of memory space.\n",(phydbl)nbytes/(1.E+06));
+      PhyML_Printf("\n. WARNING: this analysis requires at least %.0f Mo of memory space.\n",(phydbl)nbytes/(1.E+06));
 #ifndef BATCH
       if (! tree->io->quiet) {
         PhyML_Printf("\n. Do you really want to continue ? [Y/n] ");
@@ -7727,11 +7727,11 @@ void Check_Memory_Amount(arbre *tree)
     }
   else if(((phydbl)nbytes/(1.E+06)) > 100.)
     {
-      if(!tree->io->quiet) PhyML_Printf("\n. WARNING: this analysis will use at least %.0fMo of memory space...\n",(phydbl)nbytes/(1.E+06));
+      if(!tree->io->quiet) PhyML_Printf("\n. WARNING: this analysis will use at least %.0f Mo of memory space...\n",(phydbl)nbytes/(1.E+06));
     }
   else
     {
-      if(!tree->io->quiet) PhyML_Printf("\n. This analysis requires at least %.0fMo of memory space.\n",(phydbl)nbytes/(1.E+06));
+      if(!tree->io->quiet) PhyML_Printf("\n. This analysis requires at least %.0f Mo of memory space.\n",(phydbl)nbytes/(1.E+06));
     }
 }
 
