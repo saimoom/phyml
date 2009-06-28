@@ -60,9 +60,10 @@ int MC_main(int argc, char **argv)
 
   io = (option *)Get_Input(argc,argv);
   r_seed = (io->r_seed < 0)?(time(NULL)):(io->r_seed);
-/*   r_seed = 1241644898; */
-/*   r_seed = 1244480699; */
 /*   r_seed = 1244624234; */
+/*   r_seed = 1245264475; */
+/*   r_seed = 1245433404; */
+/*   r_seed = 1245437196; */
   srand(r_seed); rand();
   printf("\n. Seed = %d",r_seed);
   printf("\n. Pid = %d",getpid());
@@ -123,13 +124,13 @@ int MC_main(int argc, char **argv)
 		  edge *root_edge;
 
 
-		  n_otu = 10;
-		  tree = Generate_Random_Tree_From_Scratch(n_otu,1);
+/* 		  n_otu = 10; */
+/* 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1); */
 
-/* 		  tree->rates = RATES_Make_Rate_Struct(tree->n_otu); */
-/* 		  RATES_Init_Rate_Struct(tree->rates,tree->n_otu); */
-/* 		  root_edge = Find_Root_Edge(io->fp_in_tree,tree); */
-/* 		  Add_Root(root_edge,tree); */
+		  tree->rates = RATES_Make_Rate_Struct(tree->n_otu);
+		  RATES_Init_Rate_Struct(tree->rates,tree->n_otu);
+		  root_edge = Find_Root_Edge(io->fp_in_tree,tree);
+		  Add_Root(root_edge,tree);
 
 		  RATES_Fill_Lca_Table(tree);
 
@@ -139,14 +140,14 @@ int MC_main(int argc, char **argv)
 		  tree->both_sides  = 1;
 		  tree->n_pattern   = tree->data->crunch_len/tree->mod->stepsize;
 
- 		  For(i,tree->n_otu) strcpy(tree->noeud[i]->name,alldata->c_seq[i]->name);
+/*  		  For(i,tree->n_otu) strcpy(tree->noeud[i]->name,alldata->c_seq[i]->name); */
 
 		  Fill_Dir_Table(tree);
 		  Update_Dirs(tree);
 		  Make_Tree_4_Pars(tree,alldata,alldata->init_len);
 		  Make_Tree_4_Lk(tree,alldata,alldata->init_len);
 
-		  Evolve(tree->data,tree->mod,tree);
+/* 		  Evolve(tree->data,tree->mod,tree); */
 		  Init_Ui_Tips(tree);
 		  Init_P_Pars_Tips(tree);
 		  if(tree->mod->s_opt->greedy) Init_P_Lk_Tips_Double(tree);
@@ -208,14 +209,16 @@ int MC_main(int argc, char **argv)
 /* 		  RATES_Lk_Rates(tree); */
 /* 		  printf("\n. Best LnL_rates = %f",tree->rates->c_lnL); */
 
+/* 		  r_seed = (io->r_seed < 0)?(time(NULL)):(io->r_seed); */
+/* 		  srand(r_seed); rand(); */
+
 		  tree->rates->bl_from_rt = 1;
 
 		  PhyML_Printf("\n. Burnin...\n");
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
 		  MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree);
 		  tree->rates->lk_approx = NORMAL;
-		  tree->mcmc->n_tot_run  = 1E+3;
-		  tree->rates->z_max     = 10.;
+		  tree->mcmc->n_tot_run  = 1E+5;
 		  MCMC(tree);
 		  MCMC_Close_MCMC(tree->mcmc);
 		  MCMC_Free_MCMC(tree->mcmc);
@@ -223,7 +226,7 @@ int MC_main(int argc, char **argv)
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
 		  MCMC_Init_MCMC_Struct("gibbs.approx",tree->mcmc,tree);
 		  
-		  tree->rates->lk_approx = NORMAL;		  
+		  tree->rates->lk_approx = NORMAL;		  		  
 		  MCMC_Print_Param(tree->mcmc,tree);
 		  
 		  time(&t_beg);
@@ -231,8 +234,8 @@ int MC_main(int argc, char **argv)
 		  tree->mcmc->n_tot_run = 1E+7;
 		  do
 		    {
-		      RATES_Posterior_Times(tree);
 		      RATES_Posterior_Rates(tree);
+ 		      RATES_Posterior_Times(tree);
 		      RATES_Posterior_Clock_Rate(tree);
 		      MCMC_Nu(tree);
 		    }
@@ -243,7 +246,7 @@ int MC_main(int argc, char **argv)
 		  MCMC_Free_MCMC(tree->mcmc);
 
 		  printf("\n. End of Gibbs sampling (approx)...\n");
-		  system("sleep 3s");
+		  system("sleep 1s");
 /* 		  END OF IMPORTANCE SAMPLING STUFF */
 
 
@@ -265,7 +268,7 @@ int MC_main(int argc, char **argv)
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
 		  MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree);
 		  tree->rates->lk_approx = NORMAL;
-		  tree->mcmc->n_tot_run  = 1E+3;
+		  tree->mcmc->n_tot_run  = 1E+5;
 		  MCMC(tree);
 		  MCMC_Close_MCMC(tree->mcmc);
 		  MCMC_Free_MCMC(tree->mcmc);
@@ -273,6 +276,7 @@ int MC_main(int argc, char **argv)
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
 		  MCMC_Init_MCMC_Struct("thorne.normal",tree->mcmc,tree);
 		  tree->mcmc->n_tot_run  = 1E+7;
+		  tree->mcmc->randomize = 0;
 		  time(&t_beg);
 		  printf("\n. Thorne (approx)...\n");
 		  MCMC(tree);

@@ -913,6 +913,7 @@ typedef struct __Tmcmc {
   int acc_times;
   int acc_nu;
   int n_rate_jumps;
+  int randomize;
 
   phydbl *dt_prop;
   phydbl *p_no_jump;
