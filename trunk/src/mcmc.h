@@ -32,7 +32,7 @@ the GNU public licence. See http://www.opensource.org for details.
 #include "stats.h"
 #include <stdlib.h>
 #include <unistd.h>
-
+#include <stdio.h>
 
 void MCMC_Lexp(arbre *tree);
 void MCMC_Print_Param(tmcmc *mcmc, arbre *tree);

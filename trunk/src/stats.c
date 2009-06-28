@@ -209,6 +209,56 @@ phydbl *Rnorm_Multid(phydbl *mu, phydbl *cov, int dim)
 
 /*********************************************************/
 
+phydbl Rnorm_Trunc_Inverse(phydbl mean, phydbl sd, phydbl min, phydbl max, int *error)
+{
+
+  phydbl u, ret_val,eps;
+  phydbl z,rz;
+  phydbl z_min,z_max;
+  phydbl cdf_min, cdf_max;
+
+  z      = 0.0;
+  rz     = 0.0;
+  u      = -1.0;
+  *error = 0;
+  
+  if(sd < 1.E-100)
+    {
+      PhyML_Printf("\n. Small variance detected in Rnorm_Trunc.");
+      PhyML_Printf("\n. mean=%f sd=%f min=%f max=%f",mean,sd,min,max);
+      *error = 1;
+      return -1.0;
+    }
+
+  z_min = (min - mean)/sd;
+  z_max = (max - mean)/sd;
+
+  eps = (z_max-z_min)/1E+6;
+
+
+  /*       Simple inversion method. Seems to work well. Needs more thorough testing though... */
+  cdf_min = CDF_Normal(z_min,0.0,1.0);
+  cdf_max = CDF_Normal(z_max,0.0,1.0);
+  u = cdf_min + (cdf_max-cdf_min) * Uni();
+  z = PointNormal(u);
+	
+  if((z < z_min-eps) || (z > z_max+eps))
+    {
+      *error = 1;
+      PhyML_Printf("\n. Numerical precision issue detected in Rnorm_Trunc.");
+      PhyML_Printf("\n. z = %f",z);
+      PhyML_Printf("\n. mean=%f sd=%f z_min=%f z_max=%f min=%f max=%f",mean,sd,z_min,z_max,min,max);
+      ret_val = (max - min)/2.;
+      Exit("\n");
+    }
+  
+  ret_val = z*sd+mean;
+  
+  return ret_val;
+}
+
+/*********************************************************/
+
 phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max, int *error)
 {
 
@@ -230,13 +280,21 @@ phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max, int *error)
       return -1.0;
     }
 
+  if(max < min)
+    {
+      PhyML_Printf("\n. Max < Min");
+      PhyML_Printf("\n. mean=%f sd=%f min=%f max=%f",mean,sd,min,max);
+      *error = 1;
+      return -1.0;
+    }
+
   z_min = (min - mean)/sd;
   z_max = (max - mean)/sd;
 
   eps = (z_max-z_min)/1E+6;
 
   /* Damien and Walker (2001) method */
-/*   phydbl y,slice_min,slice_max; */
+  phydbl y,slice_min,slice_max;
 
 /*   if((z_min < -10.) && (z_max > +10.)) /\* cdf < 1.E-6, we should be safe. *\/ */
 /*     { */
@@ -244,23 +302,23 @@ phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max, int *error)
 /*     } */
 /*   else */
 /*     { */
-/*       iter = 0; */
-/*       do */
-/* 	{ */
-/* 	  y   = Uni()*exp(-(z*z)/2.); */
-/* 	  slice_min = MAX(z_min,-sqrt(-2.*log(y))); */
-/* 	  slice_max = MIN(z_max, sqrt(-2.*log(y))); */
-/* 	  z   = Uni()*(slice_max - slice_min) + slice_min; */
-/* 	  iter++; */
-/* 	  if(iter > 100) break; */
-/* 	} */
-/*       while(slice_max < slice_min || iter < 30); */
-      
-/*       if(iter > 100) */
-/* 	{ */
-/* 	  PhyML_Printf("\n. Too many iterations in Rnorm_Trunc..."); */
-/* 	  *error = 1; */
-/* 	} */
+      iter = 0;
+      do
+	{
+	  y   = Uni()*exp(-(z*z)/2.);
+	  slice_min = MAX(z_min,-sqrt(-2.*log(y)));
+	  slice_max = MIN(z_max, sqrt(-2.*log(y)));
+	  z   = Uni()*(slice_max - slice_min) + slice_min;
+	  iter++;
+	  if(iter > 1000) break;
+	}
+      while(slice_max < slice_min || iter < 20);
+
+      if(iter > 1000)
+	{
+	  PhyML_Printf("\n. Too many iterations in Rnorm_Trunc...");
+	  *error = 1;
+	}
 /*     } */
 
   /* Inverson method */
@@ -271,95 +329,14 @@ phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max, int *error)
 /*     } */
 /*   else */
 /*     { */
-      /* Simple inversion method. Seems to work well. Needs more thorough testing though... */
-      cdf_min = CDF_Normal(z_min,0.0,1.0);
-      cdf_max = CDF_Normal(z_max,0.0,1.0);
-      u = cdf_min + (cdf_max-cdf_min) * Uni();
-      z = PointNormal(u);
+/*       Simple inversion method. Seems to work well. Needs more thorough testing though... */
+/*       cdf_min = CDF_Normal(z_min,0.0,1.0); */
+/*       cdf_max = CDF_Normal(z_max,0.0,1.0); */
+/*       u = cdf_min + (cdf_max-cdf_min) * Uni(); */
+/*       z = PointNormal(u); */
 /*     } */
 
 
-  /* Adapted from Christian Robert "Simulation of truncated variables" */
-  /* Statistics and Computing. (1995) 5, 121-125. */
-/*   int iter; */
-/*   if((z_min < -5.) && (z_max > +5.)) */
-/*     { */
-/*       z = Rnorm(0.0,1.0); */
-/*     } */
-/*   else if(z_min > 5.) */
-/*     { */
-/*       z = z_min; */
-/*       *error = 1; */
-/*     } */
-/*   else */
-/*     { */
-/*       if(z_min*z_max < 0.0) */
-/* 	{ */
-/* 	  iter = 0; */
-/* 	  do */
-/* 	    { */
-/* 	      iter++; */
-/* 	      z = Uni(); */
-/* 	      z = z*(z_max-z_min)+z_min; */
-/* 	      rz = exp(-(z*z)/2.); */
-/* 	      u = Uni(); */
-/* 	      if(iter > 1000) */
-/* 		{ */
-/* 		  PhyML_Printf("\n. Too many iterations in Rnorm_Trunc."); */
-/* 		  *error = 1; */
-/* 		  break; */
-/* 		} */
-/* 	    } */
-/* 	  while(u > rz); */
-/* 	} */
-/*       else if(z_max < 0.0) */
-/* 	{ */
-/* 	  phydbl z_maxz_max = z_max*z_max; */
-/* 	  iter = 0; */
-/* 	  do */
-/* 	    { */
-/* 	      iter++; */
-/* 	      z = Uni(); */
-/* 	      z = z*(z_max-z_min)+z_min; */
-/* 	      rz = exp((z_maxz_max-(z*z))/2.); */
-/* 	      u = Uni(); */
-/* 	      if(iter > 1000) */
-/* 		{ */
-/* 		  PhyML_Printf("\n. Too many iterations in Rnorm_Trunc."); */
-/* 		  *error = 1; */
-/* 		  break; */
-/* 		} */
-/* 	    } */
-/* 	  while(u > rz); */
-/* 	} */
-/*       else if(z_min > 0.0) */
-/* 	{ */
-/* 	  phydbl z_minz_min = z_min*z_min; */
-/* 	  iter = 0; */
-/* 	  do */
-/* 	    { */
-/* 	      iter++; */
-/* 	      z = Uni(); */
-/* 	      z = z*(z_max-z_min)+z_min; */
-/* 	      rz = exp((z_minz_min-(z*z))/2.); */
-/* 	      u = Uni(); */
-/* 	      if(iter > 1000) */
-/* 		{ */
-/* 		  PhyML_Printf("\n. Too many iterations in Rnorm_Trunc."); */
-/* 		  *error = 1; */
-/* 		  break; */
-/* 		} */
-/* 	    } */
-/* 	  while(u > rz); */
-/* 	} */
-/*       else */
-/* 	{ */
-/* 	  if(z_min < 0.0) { z = Rnorm(0.0,1.0); z = -fabs(z); } */
-/* 	  else            { z = Rnorm(0.0,1.0); z =  fabs(z); } */
-/* 	} */
-/*     } */
-
-	
    if((z < z_min-eps) || (z > z_max+eps))
     {
       *error = 1;

@@ -32,6 +32,7 @@ the GNU public licence. See http://www.opensource.org for details.
 #include "stats.h"
 #include <stdlib.h>
 #include <unistd.h>
+#include <stdio.h>
 
 void MC_Least_Square_Node_Times_Pre(node *a, node *d, phydbl *A, phydbl *b, int n, arbre *tree);
 int  MC_main(int argc, char **argv);
