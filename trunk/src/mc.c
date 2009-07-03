@@ -232,12 +232,27 @@ int MC_main(int argc, char **argv)
 		  time(&t_beg);
 		  printf("\n. Gibbs sampling (approx)...\n");
 		  tree->mcmc->n_tot_run = 1E+7;
+		  phydbl u;
 		  do
 		    {
-		      RATES_Posterior_Rates(tree);
- 		      RATES_Posterior_Times(tree);
-		      RATES_Posterior_Clock_Rate(tree);
-		      MCMC_Nu(tree);
+		      u = Uni();
+
+		      if(u < 0.1)
+			{
+			  RATES_Posterior_Rates(tree);
+			  RATES_Posterior_Times(tree);
+			}
+		      else
+			{
+			  tree->c_lnL        = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,
+									    tree->rates->u_ml_l,
+									    tree->rates->invcov,
+									    tree->rates->covdet,
+									    2*tree->n_otu-3,YES);
+			  tree->rates->c_lnL = RATES_Lk_Rates(tree);
+			  RATES_Posterior_Clock_Rate(tree);
+			  MCMC_Nu(tree);
+			}
 		    }
 		  while(tree->mcmc->run < tree->mcmc->n_tot_run);
 		  time(&t_end);

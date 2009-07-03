@@ -164,7 +164,9 @@ void Launch_Interface(option *io)
       strcat(io->out_tree_file,".txt");
       strcat(io->out_stats_file,".txt");
     }
-  
+
+  if(io->mod->n_catg == 1) io->mod->s_opt->opt_alpha = 0;
+
   io->fp_out_tree  = Openfile(io->out_tree_file,1);
   io->fp_out_stats = Openfile(io->out_stats_file,1);
 }

@@ -1726,8 +1726,8 @@ void RATES_Posterior_Rates(arbre *tree)
   int node_num;
   int i;
   
-/*   For(i,2*tree->n_otu-2) */
-  For(i,1)
+  For(i,2*tree->n_otu-2)
+/*   For(i,1) */
     {
       node_num = Rand_Int(0,2*tree->n_otu-3);
       RATES_Posterior_Rates_Pre(tree->noeud[node_num]->anc,tree->noeud[node_num],tree);
@@ -1742,8 +1742,8 @@ void RATES_Posterior_Times(arbre *tree)
 
   int i;
   
-/*   For(i,2*tree->n_otu-1) */
-  For(i,1)
+  For(i,2*tree->n_otu-1)
+/*   For(i,1) */
     {
       node_num = Rand_Int(tree->n_otu,2*tree->n_otu-2);
       
@@ -2051,8 +2051,8 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
   RATES_Update_Cur_Bl(tree);
 
   /* Optional here but useful for monitoring ESS for likelihoods */
-  tree->c_lnL        = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES);
-  tree->rates->c_lnL = RATES_Lk_Rates(tree);
+/*   tree->c_lnL        = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES); */
+/*   tree->rates->c_lnL = RATES_Lk_Rates(tree); */
 
 /*   RATES_Check_Lk_Rates(tree,&err); */
   
@@ -2482,8 +2482,8 @@ void RATES_Posterior_Times_Pre(node *a, node *d, arbre *tree)
   tree->rates->nd_t[d->num] = T1_new;
   RATES_Update_Cur_Bl(tree);
   
-  tree->c_lnL        = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES);
-  tree->rates->c_lnL = RATES_Lk_Rates(tree);
+/*   tree->c_lnL        = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES); */
+/*   tree->rates->c_lnL = RATES_Lk_Rates(tree); */
 
 /*   RATES_Check_Lk_Rates(tree,&err); */
 
