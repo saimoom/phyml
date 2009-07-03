@@ -707,10 +707,6 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		      PhyML_Printf("\n. The number of rate categories must be a positive integer\n");
 		      Exit("\n");
 		    }
-		  if(io->mod->n_catg == 1)
-		    {
-		      io->mod->s_opt->opt_alpha = 0;
-		    }		    
 		}
 	      break;
 	    }
@@ -1131,6 +1127,8 @@ void Read_Command_Line(option *io, int argc, char **argv)
       }
     strcat(io->out_tree_file,".txt");
     strcat(io->out_stats_file,".txt");
+
+    if(io->mod->n_catg == 1) io->mod->s_opt->opt_alpha = 0;
 
     io->fp_out_tree  = Openfile(io->out_tree_file,writemode);
     io->fp_out_stats = Openfile(io->out_stats_file,writemode);
