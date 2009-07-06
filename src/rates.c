@@ -762,7 +762,7 @@ void RATES_Init_Rate_Struct(trate *rates, int n_otu)
   rates->min_clock     = 1.E-8;
 
   rates->nu            = 2.E-3;
-  rates->max_nu        = 1.E-0;
+  rates->max_nu        = 1.E-2;
   rates->min_nu        = 1.E-7;
   rates->lbda_nu       = 1.E+3;
 
@@ -773,7 +773,7 @@ void RATES_Init_Rate_Struct(trate *rates, int n_otu)
   rates->bl_from_rt    = 0;
   rates->lk_approx     = NORMAL;
 
-/*   rates->z_max         = 1000.; */
+/*   rates->z_max         = 100.; */
   rates->z_max         = 1.96;
 
   rates->true_tree_size = 0.0;

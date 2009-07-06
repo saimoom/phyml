@@ -60,21 +60,12 @@ void MCMC(arbre *tree)
   else Lk(tree);
 
   n_moves = 11;
-  phydbl u;
   do
     {
-      u = Uni();
-
-      if(u < 0.1)
-	{
-	  MCMC_Rates_Local(tree);
-	  MCMC_Times_Local(tree);
-	}
-      else
-	{
-	  MCMC_Clock_Rate(tree);
-	  MCMC_Nu(tree);
-	}
+      MCMC_Rates_Local(tree);
+      MCMC_Times_Local(tree);
+      MCMC_Clock_Rate(tree);
+      MCMC_Nu(tree);
     }
   while(tree->mcmc->run < tree->mcmc->n_tot_run);
 }
@@ -170,6 +161,9 @@ void MCMC_Nu(arbre *tree)
   cur_lnL = tree->rates->c_lnL;
   cur_nu  = tree->rates->nu;
   
+
+  min_nu = 1.E-10;
+
   /* The minimum value nu can take is the largest value of (ui - u_anc(i))^2/(tree->rates->z_max^2*(Ti-T_anc(i))) */
   min_nu = nu = -1.E+10;
   For(i,2*tree->n_otu-2)
@@ -183,6 +177,7 @@ void MCMC_Nu(arbre *tree)
 
       if(nu > min_nu) min_nu = nu;
     }
+
 
   if(min_nu < 0.0)
     {
@@ -204,7 +199,9 @@ void MCMC_Nu(arbre *tree)
   if(fabs(min_nu-max_nu) < MDBL_MIN) return;
 
   u = Uni();
-  new_nu = cur_nu * exp(H_MCMC_NU*(u-0.5));
+  new_nu = u*(max_nu - min_nu) + min_nu;
+/*   new_nu = cur_nu * exp(H_MCMC_NU*(u-0.5)); */
+
 
   if(new_nu < min_nu)
     {
@@ -224,7 +221,9 @@ void MCMC_Nu(arbre *tree)
 
   tree->rates->nu = new_nu;  
   new_lnL = RATES_Lk_Rates(tree);  
-  ratio = (new_lnL - cur_lnL) - tree->rates->lbda_nu*(new_nu - cur_nu) + log(new_nu) - log(cur_nu);  
+/*   ratio = (new_lnL - cur_lnL) - tree->rates->lbda_nu*(new_nu - cur_nu) + log(new_nu) - log(cur_nu); */
+/*   ratio = (new_lnL - cur_lnL) + log(new_nu) - log(cur_nu); */
+  ratio = (new_lnL - cur_lnL);
   ratio = exp(ratio);
   alpha = MIN(1.,ratio);
   
