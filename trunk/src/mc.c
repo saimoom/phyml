@@ -124,13 +124,13 @@ int MC_main(int argc, char **argv)
 		  edge *root_edge;
 
 
-/* 		  n_otu = 10; */
-/* 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1); */
+		  n_otu = 10;
+		  tree = Generate_Random_Tree_From_Scratch(n_otu,1);
 
-		  tree->rates = RATES_Make_Rate_Struct(tree->n_otu);
-		  RATES_Init_Rate_Struct(tree->rates,tree->n_otu);
-		  root_edge = Find_Root_Edge(io->fp_in_tree,tree);
-		  Add_Root(root_edge,tree);
+/* 		  tree->rates = RATES_Make_Rate_Struct(tree->n_otu); */
+/* 		  RATES_Init_Rate_Struct(tree->rates,tree->n_otu); */
+/* 		  root_edge = Find_Root_Edge(io->fp_in_tree,tree); */
+/* 		  Add_Root(root_edge,tree); */
 
 		  RATES_Fill_Lca_Table(tree);
 
@@ -140,14 +140,14 @@ int MC_main(int argc, char **argv)
 		  tree->both_sides  = 1;
 		  tree->n_pattern   = tree->data->crunch_len/tree->mod->stepsize;
 
-/*  		  For(i,tree->n_otu) strcpy(tree->noeud[i]->name,alldata->c_seq[i]->name); */
+ 		  For(i,tree->n_otu) strcpy(tree->noeud[i]->name,alldata->c_seq[i]->name);
 
 		  Fill_Dir_Table(tree);
 		  Update_Dirs(tree);
 		  Make_Tree_4_Pars(tree,alldata,alldata->init_len);
 		  Make_Tree_4_Lk(tree,alldata,alldata->init_len);
 
-/* 		  Evolve(tree->data,tree->mod,tree); */
+		  Evolve(tree->data,tree->mod,tree);
 		  Init_Ui_Tips(tree);
 		  Init_P_Pars_Tips(tree);
 		  if(tree->mod->s_opt->greedy) Init_P_Lk_Tips_Double(tree);
@@ -231,28 +231,20 @@ int MC_main(int argc, char **argv)
 		  
 		  time(&t_beg);
 		  printf("\n. Gibbs sampling (approx)...\n");
-		  tree->mcmc->n_tot_run = 1E+7;
-		  phydbl u;
+		  tree->mcmc->n_tot_run = 1E+8;
 		  do
 		    {
-		      u = Uni();
 
-		      if(u < 0.1)
-			{
-			  RATES_Posterior_Rates(tree);
-			  RATES_Posterior_Times(tree);
-			}
-		      else
-			{
-			  tree->c_lnL        = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,
-									    tree->rates->u_ml_l,
-									    tree->rates->invcov,
-									    tree->rates->covdet,
-									    2*tree->n_otu-3,YES);
-			  tree->rates->c_lnL = RATES_Lk_Rates(tree);
-			  RATES_Posterior_Clock_Rate(tree);
-			  MCMC_Nu(tree);
-			}
+		      RATES_Posterior_Rates(tree);
+		      RATES_Posterior_Times(tree);
+		      tree->c_lnL        = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,
+									tree->rates->u_ml_l,
+									tree->rates->invcov,
+									tree->rates->covdet,
+									2*tree->n_otu-3,YES);
+		      tree->rates->c_lnL = RATES_Lk_Rates(tree);
+		      RATES_Posterior_Clock_Rate(tree);
+		      MCMC_Nu(tree);
 		    }
 		  while(tree->mcmc->run < tree->mcmc->n_tot_run);
 		  time(&t_end);
@@ -290,7 +282,7 @@ int MC_main(int argc, char **argv)
 
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
 		  MCMC_Init_MCMC_Struct("thorne.normal",tree->mcmc,tree);
-		  tree->mcmc->n_tot_run  = 1E+7;
+		  tree->mcmc->n_tot_run  = 1E+8;
 		  tree->mcmc->randomize = 0;
 		  time(&t_beg);
 		  printf("\n. Thorne (approx)...\n");
