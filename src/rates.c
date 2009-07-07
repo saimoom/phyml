@@ -754,14 +754,14 @@ void RATES_Init_Rate_Struct(trate *rates, int n_otu)
   rates->alpha         = 2.;
   rates->birth_rate    = 0.001;
 
-  rates->max_rate      = 100.;
-  rates->min_rate      = 0.001;
+  rates->max_rate      = 10.;
+  rates->min_rate      = 0.01;
 
-  rates->clock_r       = 2.E-3;
+  rates->clock_r       = 1.E-3;
   rates->max_clock     = 1.E-0;
   rates->min_clock     = 1.E-8;
 
-  rates->nu            = 2.E-3;
+  rates->nu            = 1.E-3;
   rates->max_nu        = 1.E-1;
   rates->min_nu        = 1.E-7;
   rates->lbda_nu       = 1.E+3;
@@ -774,7 +774,8 @@ void RATES_Init_Rate_Struct(trate *rates, int n_otu)
   rates->lk_approx     = NORMAL;
 
 /*   rates->z_max         = 100.; */
-  rates->z_max         = 1.96;
+/*   rates->z_max         = 1.96; */
+  rates->z_max         = 3.1; /* Quantile for p=0.001 */
 
   rates->true_tree_size = 0.0;
 

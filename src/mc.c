@@ -120,12 +120,13 @@ int MC_main(int argc, char **argv)
 		  time(&t_beg);
 		  time(&(tree->t_beg));
 
-		  int n_otu;
-		  int i,j;
+/* 		  int n_otu; */
+/* 		  int j; */
+		  int i;
 		  edge *root_edge;
 
 
-/* 		  n_otu = 10; */
+/* 		  n_otu = 20; */
 /* 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1); */
 
 		  tree->rates = RATES_Make_Rate_Struct(tree->n_otu);
