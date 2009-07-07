@@ -18,10 +18,6 @@ the GNU public licence. See http://www.opensource.org for details.
 
 void MCMC(arbre *tree)
 {
-  int n_moves;
-
-
-
   MCMC_Print_Param(tree->mcmc,tree);
 
   if(tree->mcmc->randomize)
@@ -34,7 +30,6 @@ void MCMC(arbre *tree)
       MCMC_Randomize_Nu(tree);
       MCMC_Randomize_Clock_Rate(tree);
     }
-
 
 /*   int err; */
 
@@ -59,13 +54,21 @@ void MCMC(arbre *tree)
 					       2*tree->n_otu-3,YES);
   else Lk(tree);
 
-  n_moves = 11;
+  phydbl u;
   do
     {
-      MCMC_Rates_Local(tree);
-      MCMC_Times_Local(tree);
-      MCMC_Clock_Rate(tree);
-      MCMC_Nu(tree);
+      u = Uni();
+
+      if(u < 0.3)
+	{
+	  MCMC_Rates_Local(tree);
+	  MCMC_Times_Local(tree);
+	}
+      else
+	{
+	  MCMC_Clock_Rate(tree);
+	  MCMC_Nu(tree);
+	}
     }
   while(tree->mcmc->run < tree->mcmc->n_tot_run);
 }
@@ -394,7 +397,6 @@ void MCMC_Times_Local(arbre *tree)
   local = 1;
   
   For(i,2*tree->n_otu-1)
-/*   For(i,1) */
     {
       node_num = Rand_Int(0,2*tree->n_otu-2);
 
@@ -419,7 +421,6 @@ void MCMC_Rates_Local(arbre *tree)
   local = 1;
   
   For(i,2*tree->n_otu-2)
-/*   For(i,1) */
     {
       node_num = Rand_Int(0,2*tree->n_otu-3);
       MCMC_Rates_Pre(tree->noeud[node_num]->anc,tree->noeud[node_num],local,tree);

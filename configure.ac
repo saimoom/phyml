@@ -63,8 +63,10 @@ CFLAGS="-O3 -fomit-frame-pointer -funroll-loops -Wall"
 dnl CFLAGS="-g -Wall"
 
 AC_ARG_ENABLE([mc],[  --enable-mc    Compile mc],[mc=yes])
-
 AM_CONDITIONAL([WANT_MC], [test "$mc" = yes]) 
+
+AC_ARG_ENABLE([part],[  --enable-part    Compile part],[part=yes])
+AM_CONDITIONAL([WANT_PART], [test "$part" = yes]) 
 
 AC_CONFIG_FILES([Makefile src/Makefile])
 AC_OUTPUT
