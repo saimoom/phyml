@@ -146,7 +146,6 @@ void MCMC_Nu(arbre *tree)
   phydbl u_anc;
   phydbl t,t_anc;
   phydbl min_nu,max_nu,nu;
-  phydbl min_u, max_u;
 
   if(
      (tree->rates->model == COMPOUND_COR)   || 
@@ -160,14 +159,11 @@ void MCMC_Nu(arbre *tree)
   cur_nu        = -1.0;
   new_nu        = -1.0;
   prior_mean_nu =  1.0;
-   ratio         = -1.0;
+  ratio         = -1.0;
 
   cur_lnL = tree->rates->c_lnL;
   cur_nu  = tree->rates->nu;
   
-
-  min_nu = 1.E-10;
-
   /* The minimum value nu can take is the largest value of (ui - u_anc(i))^2/(tree->rates->z_max^2*(Ti-T_anc(i))) */
   min_nu = nu = -1.E+10;
   For(i,2*tree->n_otu-2)
@@ -182,21 +178,6 @@ void MCMC_Nu(arbre *tree)
       if(nu > min_nu) min_nu = nu;
     }
 
-  max_nu = nu = +1.E+10;
-  max_u = tree->rates->max_rate;
-  min_u = tree->rates->min_rate;
-  For(i,2*tree->n_otu-2)
-    {
-      u_anc = tree->rates->nd_r[tree->noeud[i]->anc->num];
-      t     = tree->rates->nd_t[i];
-      t_anc = tree->rates->nd_t[tree->noeud[i]->anc->num];
-
-      nu = MIN(pow(max_u-u_anc,2) / ((t-t_anc) * pow(tree->rates->z_max,2)),
-	       pow(min_u-u_anc,2) / ((t-t_anc) * pow(tree->rates->z_max,2)));
-
-      if(nu < max_nu) max_nu = nu;
-    }
-
   if(min_nu < 0.0)
     {
       PhyML_Printf("\n. min_nu = %f",min_nu);
@@ -205,17 +186,14 @@ void MCMC_Nu(arbre *tree)
     }
 
   min_nu = MAX(min_nu,tree->rates->min_nu);
-/*   max_nu = tree->rates->max_nu; */
-  max_nu = MIN(max_nu,tree->rates->max_nu);
+  max_nu = tree->rates->max_nu;
 
 
   if(max_nu < min_nu)
     {
-/*       PhyML_Printf("\n. max_nu = %G min_nu = %G",max_nu,min_nu); */
-/*       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
-/*       Warn_And_Exit(""); */
-/*       max_nu = tree->rates->max_nu; */
-      max_nu = 2.*min_nu;
+      PhyML_Printf("\n. max_nu = %G min_nu = %G",max_nu,min_nu);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
     }
 
   if(fabs(min_nu-max_nu) < MDBL_MIN) return;
@@ -241,10 +219,10 @@ void MCMC_Nu(arbre *tree)
       Warn_And_Exit("");
     }
 
-  tree->rates->nu = new_nu;  
-  new_lnL = RATES_Lk_Rates(tree);  
+  tree->rates->nu = new_nu;
+
+  new_lnL = RATES_Lk_Rates(tree);
 /*   ratio = (new_lnL - cur_lnL) - tree->rates->lbda_nu*(new_nu - cur_nu) + log(new_nu) - log(cur_nu); */
-/*   ratio = (new_lnL - cur_lnL) + log(new_nu) - log(cur_nu); */
   ratio = (new_lnL - cur_lnL);
   ratio = exp(ratio);
   alpha = MIN(1.,ratio);
@@ -1519,7 +1497,7 @@ void MCMC_Init_MCMC_Struct(char *filename, tmcmc *mcmc, arbre *tree)
   mcmc->acc_times       = 0;
   mcmc->acc_nu          = 0;
   mcmc->run             = 0;
-  mcmc->sample_interval = 10000;
+  mcmc->sample_interval = 1000;
   mcmc->n_rate_jumps    = 0;
   mcmc->n_tot_run       = 1.E+6;
   mcmc->randomize       = 1;

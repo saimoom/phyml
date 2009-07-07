@@ -2238,7 +2238,6 @@ void Init_Model(allseq *data, model *mod)
 	    For(i,4) 
 	      {
 		mod->pi[i] = mod->user_b_freq[i];
-		printf("%f\n",mod->pi[i]);
 	      }
 	}
 

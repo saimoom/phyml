@@ -312,7 +312,7 @@ phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max, int *error)
 	  iter++;
 	  if(iter > 1000) break;
 	}
-      while(slice_max < slice_min || iter < 20);
+      while(slice_max < slice_min || iter < 5);
 
       if(iter > 1000)
 	{
@@ -322,7 +322,7 @@ phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max, int *error)
 /*     } */
 
   /* Inverson method */
-  phydbl cdf_min, cdf_max;
+/*   phydbl cdf_min, cdf_max; */
 /*   if((z_min < -10.) && (z_max > +10.)) /\* cdf < 1.E-6, we should be safe. *\/ */
 /*     { */
 /*       z = Rnorm(0.0,1.0); */
