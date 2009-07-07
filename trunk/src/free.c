@@ -411,7 +411,7 @@ void Free_St(superarbre *st)
   For(i,2*st->tree->n_otu-3) 
     Free(st->tree->t_edges[i]->nni);
 
-  For(i,st->n_gt) Free(st->match_st_node_in_gt[i]);
+  For(i,st->n_part) Free(st->match_st_node_in_gt[i]);
 
   Free(st->match_st_node_in_gt);
 

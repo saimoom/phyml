@@ -4887,7 +4887,7 @@ void Set_Defaults_Input(option* io)
   io->seq_len                    = -1;
   io->n_data_set_asked           = -1;
   io->print_boot_trees           = 1;
-  io->n_gt                       = 1;
+  io->n_part                     = 1;
   io->ratio_test		 = 4;
   io->multigene                  = 0;
   io->config_multigene           = 0;
@@ -9669,6 +9669,42 @@ edge *Find_Root_Edge(FILE *fp_input_tree, arbre *tree)
 }
 
 /*********************************************************/
+
+void Copy_Tree_Topology_With_Labels(arbre *ori, arbre *cpy)
+{
+  int i,j;
+
+  For(i,2*ori->n_otu-2)
+    {
+      For(j,3)
+        {
+          if(ori->noeud[i]->v[j])
+            {
+              cpy->noeud[i]->v[j] = cpy->noeud[ori->noeud[i]->v[j]->num];
+              cpy->noeud[i]->l[j] = ori->noeud[i]->l[j];
+            }
+          else
+            cpy->noeud[i]->v[j] = NULL;
+        }
+      cpy->noeud[i]->num = ori->noeud[i]->num;
+      cpy->noeud[i]->tax = 0;
+    }
+
+  For(i,2*ori->n_otu-3)
+    {
+      cpy->t_edges[i]->l = ori->t_edges[i]->l;
+    }
+
+  For(i,ori->n_otu)
+    {
+      cpy->noeud[i]->tax = 1;
+      strcpy(cpy->noeud[i]->name,ori->noeud[i]->name);
+    }
+
+}
+
+
+
 /*********************************************************/
 /*********************************************************/
 /*********************************************************/

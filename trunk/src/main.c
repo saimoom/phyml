@@ -257,13 +257,6 @@ int main(int argc, char **argv)
   return 0;
 }
 
-#elif(PART)
-#include "mg.h"
-int main(int argc, char **argv)
-{
-  MC_main(argc, argv);
-  return 1;
-}
 
 #elif(M4)
 #include "m4.h"
@@ -274,6 +267,7 @@ int main(int argc, char **argv)
 }
 
 #elif(PART)
+#include "mg.h"
 int main(int argc, char **argv)
 {
   PART_main(argc, argv);
