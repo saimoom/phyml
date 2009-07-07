@@ -146,6 +146,7 @@ void MCMC_Nu(arbre *tree)
   phydbl u_anc;
   phydbl t,t_anc;
   phydbl min_nu,max_nu,nu;
+  phydbl min_u, max_u;
 
   if(
      (tree->rates->model == COMPOUND_COR)   || 
@@ -181,6 +182,20 @@ void MCMC_Nu(arbre *tree)
       if(nu > min_nu) min_nu = nu;
     }
 
+  max_nu = nu = +1.E+10;
+  max_u = tree->rates->max_rate;
+  min_u = tree->rates->min_rate;
+  For(i,2*tree->n_otu-2)
+    {
+      u_anc = tree->rates->nd_r[tree->noeud[i]->anc->num];
+      t     = tree->rates->nd_t[i];
+      t_anc = tree->rates->nd_t[tree->noeud[i]->anc->num];
+
+      nu = MIN(pow(max_u-u_anc,2) / ((t-t_anc) * pow(tree->rates->z_max,2)),
+	       pow(min_u-u_anc,2) / ((t-t_anc) * pow(tree->rates->z_max,2)));
+
+      if(nu < max_nu) max_nu = nu;
+    }
 
   if(min_nu < 0.0)
     {
@@ -190,13 +205,17 @@ void MCMC_Nu(arbre *tree)
     }
 
   min_nu = MAX(min_nu,tree->rates->min_nu);
-  max_nu = tree->rates->max_nu;
+/*   max_nu = tree->rates->max_nu; */
+  max_nu = MIN(max_nu,tree->rates->max_nu);
+
 
   if(max_nu < min_nu)
     {
-      PhyML_Printf("\n. max_nu = %G min_nu = %G",max_nu,min_nu);
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-      Warn_And_Exit("");
+/*       PhyML_Printf("\n. max_nu = %G min_nu = %G",max_nu,min_nu); */
+/*       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
+/*       Warn_And_Exit(""); */
+/*       max_nu = tree->rates->max_nu; */
+      max_nu = 2.*min_nu;
     }
 
   if(fabs(min_nu-max_nu) < MDBL_MIN) return;

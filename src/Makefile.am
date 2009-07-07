@@ -63,11 +63,8 @@ interface.c interface.h\
 cl.c cl.h\
 mg.c mg.h\
 spr.c spr.h\
-mc.c mc.h\
 m4.c m4.h\
 draw.c draw.h\
-rates.c rates.h\
-mcmc.c mcmc.h\
 stats.c stats.h
 part_LDADD = -lm
 else

@@ -422,7 +422,7 @@ typedef struct __Super_Arbre {
    * closest_match[gt_num][st_node_num][dir]
    */
 
-  int                                         n_gt;
+  int                                         n_part;
   /* number of trees */
 
   phydbl                                      **bl;
@@ -637,7 +637,7 @@ typedef struct __Option { /* mostly used in 'options.c' */
   char                     *nt_or_cd; /* nucleotide or codon data ? (not used) */
   int                      multigene; /* if=1 -> analyse several partitions. */
   int               config_multigene;
-  int                           n_gt; /* number of gene trees */
+  int                         n_part; /* number of data partitions */
   int                        curr_gt;
   int                     ratio_test; /* from 1 to 4 for specific branch supports, 0 of not */
   int                    ready_to_go;
@@ -1224,6 +1224,7 @@ int Find_Clade(char **tax_name_list, int list_size, arbre *tree);
 void Find_Clade_Pre(node *a, node *d, char **tax_name_list, int list_size, int *num, arbre *tree);
 void Read_Clade_Priors(char *file_name, arbre *tree);
 edge *Find_Root_Edge(FILE *fp_input_tree, arbre *tree);
+void Copy_Tree_Topology_With_Labels(arbre *ori, arbre *cpy);
 
 
 #include "free.h"

@@ -29,7 +29,7 @@ int PART_main(int argc, char **argv)
   option *io;
   char *s_tree;
   FILE *fp_phyml_tree,*fp_phyml_stats,*fp_phyml_lk;
-  int set;
+  int part;
   time_t t_beg,t_end;
   div_t hour,min;
   int r_seed;
@@ -56,26 +56,26 @@ int PART_main(int argc, char **argv)
       arbrelist *treelist;
       superarbre *st;
 
-      data      = (seq ***)  mCalloc(io->n_gt,sizeof(seq **));
-      alldata   = (allseq **)mCalloc(io->n_gt,sizeof(allseq *));
-      mod       = (model **) mCalloc(io->n_gt,sizeof(model *));
-      mat       = (matrix **)mCalloc(io->n_gt,sizeof(matrix *));
+      data      = (seq ***)  mCalloc(io->n_part,sizeof(seq **));
+      alldata   = (allseq **)mCalloc(io->n_part,sizeof(allseq *));
+      mod       = (model **) mCalloc(io->n_part,sizeof(model *));
+      mat       = (matrix **)mCalloc(io->n_part,sizeof(matrix *));
 
-      /* Read the sequences (for each subdataset) */
-      For(set,io->n_gt)
+      /* Read the sequences (for each subdatapart) */
+      For(part,io->n_part)
 	{
-	  Make_Model_Complete(io->st->optionlist[set]->mod); /* Complete model for each data set */
-	  mod[set]  = io->st->optionlist[set]->mod;
-	  data[set] = Get_Seq(io->st->optionlist[set],0);
-	  printf("\n. Data set [#%d]\n",set+1);
+	  Make_Model_Complete(io->st->optionlist[part]->mod); /* Complete model for each data part */
+	  mod[part]  = io->st->optionlist[part]->mod;
+	  data[part] = Get_Seq(io->st->optionlist[part],0);
+	  printf("\n. Data part [#%d]\n",part+1);
 	  printf("\n. Compressing sequences...\n");
-	  alldata[set] = Compact_Seq(data[set],io->st->optionlist[set]);
-	  fclose(io->st->optionlist[set]->fp_in_seq);
-	  Free_Seq(data[set],alldata[set]->n_otu);
-	  Init_Model(alldata[set],mod[set]);
-	  Check_Ambiguities(alldata[set],
-			    io->st->optionlist[set]->mod->datatype,
-			    io->st->optionlist[set]->mod->stepsize);
+	  alldata[part] = Compact_Seq(data[part],io->st->optionlist[part]);
+	  fclose(io->st->optionlist[part]->fp_in_seq);
+	  Free_Seq(data[part],alldata[part]->n_otu);
+	  Init_Model(alldata[part],mod[part]);
+	  Check_Ambiguities(alldata[part],
+			    io->st->optionlist[part]->mod->datatype,
+			    io->st->optionlist[part]->mod->stepsize);
 	}
 
       PART_Make_Superarbre_Full(io->st,io,alldata);
@@ -84,51 +84,51 @@ int PART_main(int argc, char **argv)
       Fill_Dir_Table(st->tree);
       Update_Dirs(st->tree);
 
-      For(set,io->n_gt)
+      For(part,io->n_part)
 	{
-	  st->data_of_interest = alldata[set];
-	  if(!PART_Get_Species_Found_In_St(st,alldata[set])) break;
-	  treelist->tree[set] = Make_Tree_From_Scratch(st->tree->n_otu,NULL);
-	  Copy_Tree_Topology_With_Labels(st->tree,treelist->tree[set]);
- 	  treelist->tree[set]->num_curr_branch_available = 0;
-	  Connect_Edges_To_Nodes_Recur(treelist->tree[set]->noeud[0],
-				       treelist->tree[set]->noeud[0]->v[0],
-				       treelist->tree[set]);
-	  PART_Prune_St_Topo(treelist->tree[set],alldata[set],st);
+	  st->data_of_interest = alldata[part];
+	  if(!PART_Get_Species_Found_In_St(st,alldata[part])) break;
+	  treelist->tree[part] = Make_Tree_From_Scratch(st->tree->n_otu,NULL);
+	  Copy_Tree_Topology_With_Labels(st->tree,treelist->tree[part]);
+ 	  treelist->tree[part]->num_curr_branch_available = 0;
+	  Connect_Edges_To_Nodes_Recur(treelist->tree[part]->noeud[0],
+				       treelist->tree[part]->noeud[0]->v[0],
+				       treelist->tree[part]);
+	  PART_Prune_St_Topo(treelist->tree[part],alldata[part],st);
 
-	  if(treelist->tree[set]->n_otu != alldata[set]->n_otu)
+	  if(treelist->tree[part]->n_otu != alldata[part]->n_otu)
 	    {
-	      printf("\n. Problem with sequence file '%s'\n",io->st->optionlist[set]->in_seq_file);
+	      printf("\n. Problem with sequence file '%s'\n",io->st->optionlist[part]->in_seq_file);
 	      printf("\n. # taxa found in supertree restricted to '%s' taxa = %d\n",
-		     io->st->optionlist[set]->in_seq_file,
-		     treelist->tree[set]->n_otu);
+		     io->st->optionlist[part]->in_seq_file,
+		     treelist->tree[part]->n_otu);
 	      printf("\n. # sequences in '%s' = %d\n",
-		     io->st->optionlist[set]->in_seq_file,
-		     alldata[set]->n_otu);
+		     io->st->optionlist[part]->in_seq_file,
+		     alldata[part]->n_otu);
 	      Exit("\n");
 	    }
 
-	  treelist->tree[set]->dp         = set;
-	  treelist->tree[set]->n_otu      = alldata[set]->n_otu;
-	  treelist->tree[set]->mod        = mod[set];
-	  treelist->tree[set]->io         = io->st->optionlist[set];
-	  treelist->tree[set]->data       = alldata[set];
-	  treelist->tree[set]->both_sides = 1;
-	  treelist->tree[set]->n_pattern  = treelist->tree[set]->data->crunch_len/
-	                                     treelist->tree[set]->mod->stepsize;
+	  treelist->tree[part]->dp         = part;
+	  treelist->tree[part]->n_otu      = alldata[part]->n_otu;
+	  treelist->tree[part]->mod        = mod[part];
+	  treelist->tree[part]->io         = io->st->optionlist[part];
+	  treelist->tree[part]->data       = alldata[part];
+	  treelist->tree[part]->both_sides = 1;
+	  treelist->tree[part]->n_pattern  = treelist->tree[part]->data->crunch_len/
+	                                     treelist->tree[part]->mod->stepsize;
 
-	  Order_Tree_CSeq(treelist->tree[set],alldata[set]);
-	  Fill_Dir_Table(treelist->tree[set]);
-	  Update_Dirs(treelist->tree[set]);
-	  Make_Tree_4_Lk(treelist->tree[set],alldata[set],alldata[set]->init_len);
-	  Make_Tree_4_Pars(treelist->tree[set],alldata[set],alldata[set]->init_len);
-	  treelist->tree[set]->triplet_struct = Make_Triplet_Struct(treelist->tree[set]->mod);
+	  Order_Tree_CSeq(treelist->tree[part],alldata[part]);
+	  Fill_Dir_Table(treelist->tree[part]);
+	  Update_Dirs(treelist->tree[part]);
+	  Make_Tree_4_Lk(treelist->tree[part],alldata[part],alldata[part]->init_len);
+	  Make_Tree_4_Pars(treelist->tree[part],alldata[part],alldata[part]->init_len);
+	  treelist->tree[part]->triplet_struct = Make_Triplet_Struct(treelist->tree[part]->mod);
 	}
 
-      if(set != io->n_gt)
+      if(part != io->n_part)
 	{
-	  printf("\n. Sequence data set found in '%s' has one or more taxa not found in the '%s' tree file\n",
-		 io->st->optionlist[set]->in_seq_file,
+	  printf("\n. Sequence data part found in '%s' has one or more taxa not found in the '%s' tree file\n",
+		 io->st->optionlist[part]->in_seq_file,
 		 io->in_tree_file);
 	  Exit("\n");
 	}
@@ -136,16 +136,16 @@ int PART_main(int argc, char **argv)
       PART_Check_Extra_Taxa(st);
 	
       st->tree->c_lnL = .0;
-      For(set,io->n_gt)
+      For(part,io->n_part)
 	{
-	  Lk(treelist->tree[set]);
-	  Get_List_Of_Reachable_Tips(treelist->tree[set]);
-	  PART_Match_St_Nodes_In_Gt(treelist->tree[set],st);
-	  PART_Match_St_Edges_In_Gt(treelist->tree[set],st);
-	  PART_Map_St_Nodes_In_Gt(treelist->tree[set],st);
-	  PART_Map_St_Edges_In_Gt(treelist->tree[set],st);
-	  PART_Map_Gt_Edges_In_St(treelist->tree[set],st);
-	  st->tree->c_lnL += treelist->tree[set]->c_lnL;
+	  Lk(treelist->tree[part]);
+	  Get_List_Of_Reachable_Tips(treelist->tree[part]);
+	  PART_Match_St_Nodes_In_Gt(treelist->tree[part],st);
+	  PART_Match_St_Edges_In_Gt(treelist->tree[part],st);
+	  PART_Map_St_Nodes_In_Gt(treelist->tree[part],st);
+	  PART_Map_St_Edges_In_Gt(treelist->tree[part],st);
+	  PART_Map_Gt_Edges_In_St(treelist->tree[part],st);
+	  st->tree->c_lnL += treelist->tree[part]->c_lnL;
 	}
 
       PART_Initialise_Bl_Partition(st);
@@ -171,7 +171,7 @@ int PART_main(int argc, char **argv)
 /* 	  st->tree->both_sides = 1; */
 /* 	  PART_Lk(st); */
 /* 	  printf("\n. %f",st->tree->c_lnL); */
-/* /\* 	  For(set,st->n_gt) printf("\n. %s",Write_Tree(st->treelist->tree[set])); *\/ */
+/* /\* 	  For(part,st->n_part) printf("\n. %s",Write_Tree(st->treelist->tree[part])); *\/ */
 /* 	  n_iter++; */
 /* 	}while(n_iter < 5); */
 
@@ -202,14 +202,14 @@ int PART_main(int argc, char **argv)
 
 
       fprintf(fp_phyml_stats,"\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n");
-      fprintf(fp_phyml_stats,"\n. Number of partitions = %d\n\n",st->n_gt);
+      fprintf(fp_phyml_stats,"\n. Number of partitions = %d\n\n",st->n_part);
       fprintf(fp_phyml_stats,"\n. Full data set -- lnL = %f\n\n",st->tree->c_lnL);
       fprintf(fp_phyml_stats,"\n. Tree search algorithm : %s\n\n",(io->mod->s_opt->topo_search == NNI_MOVE)?("NNIs"):("SPRs"));
       fprintf(fp_phyml_stats,"\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n\n");
-      For(set,io->n_gt)
+      For(part,io->n_part)
 	{
-	  Print_Fp_Out(fp_phyml_stats,t_beg,t_end,st->treelist->tree[set],
-		       io->st->optionlist[set],1,1);
+	  Print_Fp_Out(fp_phyml_stats,t_beg,t_end,st->treelist->tree[part],
+		       io->st->optionlist[part],1,1);
 	}
 
 
@@ -221,25 +221,25 @@ int PART_main(int argc, char **argv)
       fprintf(fp_phyml_tree,"Supertree\n");
       fprintf(fp_phyml_tree,"%s\n",s_tree);
       Free(s_tree);
-      For(set,st->n_gt)
+      For(part,st->n_part)
 	{
-	  fprintf(fp_phyml_tree,"Gene tree number %d\n",set+1);
-	  s_tree = Write_Tree(st->treelist->tree[set]);
+	  fprintf(fp_phyml_tree,"Gene tree number %d\n",part+1);
+	  s_tree = Write_Tree(st->treelist->tree[part]);
 	  fprintf(fp_phyml_tree,"%s\n",s_tree);
 	  Free(s_tree);
 	}
 
 
-      For(set,st->n_gt)
+      For(part,st->n_part)
 	{
-	  if(io->mod->s_opt->topo_search == SPR_MOVE) Free_Spr_List(treelist->tree[set]);
-	  Free_Tree_Lk(treelist->tree[set]);
-	  Free_Tree_Pars(treelist->tree[set]);
-	  Free_Triplet(treelist->tree[set]->triplet_struct);
-	  Free_Tree(treelist->tree[set]);
-	  Free_Cseq(alldata[set]);
-	  Free_Model(mod[set]);
-	  Free_Input(io->st->optionlist[set]);
+	  if(io->mod->s_opt->topo_search == SPR_MOVE) Free_Spr_List(treelist->tree[part]);
+	  Free_Tree_Lk(treelist->tree[part]);
+	  Free_Tree_Pars(treelist->tree[part]);
+	  Free_Triplet(treelist->tree[part]->triplet_struct);
+	  Free_Tree(treelist->tree[part]);
+	  Free_Cseq(alldata[part]);
+	  Free_Model(mod[part]);
+	  Free_Input(io->st->optionlist[part]);
 
 	}
 
@@ -307,8 +307,8 @@ superarbre *PART_Make_Superarbre_Light(option *input)
   superarbre *st;
 
   st = (superarbre *)mCalloc(1,sizeof(superarbre));
-  st->optionlist = (option **)mCalloc(input->n_gt,sizeof(option *));
-  st->bl_partition = (int *)mCalloc(input->n_gt,sizeof(int ));
+  st->optionlist = (option **)mCalloc(input->n_part,sizeof(option *));
+  st->bl_partition = (int *)mCalloc(input->n_part,sizeof(int ));
   return st;
 }
 
@@ -337,13 +337,13 @@ void PART_Make_Superarbre_Full(superarbre *st, option *io, allseq **data)
     }
 
   st->tree->io      = io;
-  st->treelist      = (arbrelist *)Make_Treelist(io->n_gt);
-  st->n_gt          = io->n_gt;
+  st->treelist      = (arbrelist *)Make_Treelist(io->n_part);
+  st->n_part          = io->n_part;
   st->tree->mod     = io->mod;
   st->lock_br_len   = 0;
 
-  st->map_st_node_in_gt = (node *****)mCalloc(st->n_gt,sizeof(node ****));
-  For(i,st->n_gt) 
+  st->map_st_node_in_gt = (node *****)mCalloc(st->n_part,sizeof(node ****));
+  For(i,st->n_part) 
     {
       st->map_st_node_in_gt[i] = (node ****)mCalloc(2*st->tree->n_otu-2,sizeof(node ***));
       For(j,2*st->tree->n_otu-2) 
@@ -353,49 +353,49 @@ void PART_Make_Superarbre_Full(superarbre *st, option *io, allseq **data)
 	}
     }
 
-  st->map_st_edge_in_gt = (edge ***)mCalloc(st->n_gt,sizeof(edge **));
-  For(i,st->n_gt) st->map_st_edge_in_gt[i] = (edge **)mCalloc(2*st->tree->n_otu-3,sizeof(edge *));
+  st->map_st_edge_in_gt = (edge ***)mCalloc(st->n_part,sizeof(edge **));
+  For(i,st->n_part) st->map_st_edge_in_gt[i] = (edge **)mCalloc(2*st->tree->n_otu-3,sizeof(edge *));
 
-  st->map_gt_edge_in_st = (edge ****)mCalloc(st->n_gt,sizeof(edge ***));
-  For(i,st->n_gt)
+  st->map_gt_edge_in_st = (edge ****)mCalloc(st->n_part,sizeof(edge ***));
+  For(i,st->n_part)
     {
       st->map_gt_edge_in_st[i] = (edge ***)mCalloc(2*st->tree->n_otu-3,sizeof(edge **));
       For(j,2*st->tree->n_otu-3) st->map_gt_edge_in_st[i][j] = (edge **)mCalloc(2*st->tree->n_otu-3,sizeof(edge *));
     }
 
-  st->size_map_gt_edge_in_st = (int **)mCalloc(st->n_gt,sizeof(int *));
-  For(i,st->n_gt) st->size_map_gt_edge_in_st[i] = (int *)mCalloc(2*st->tree->n_otu-3,sizeof(int));
+  st->size_map_gt_edge_in_st = (int **)mCalloc(st->n_part,sizeof(int *));
+  For(i,st->n_part) st->size_map_gt_edge_in_st[i] = (int *)mCalloc(2*st->tree->n_otu-3,sizeof(int));
 
 
-  st->match_st_edge_in_gt = (edge ***)mCalloc(st->n_gt,sizeof(edge **));
-  For(i,st->n_gt) st->match_st_edge_in_gt[i] = (edge **)mCalloc(2*st->tree->n_otu-3,sizeof(edge *));
+  st->match_st_edge_in_gt = (edge ***)mCalloc(st->n_part,sizeof(edge **));
+  For(i,st->n_part) st->match_st_edge_in_gt[i] = (edge **)mCalloc(2*st->tree->n_otu-3,sizeof(edge *));
 
-  st->match_gt_edge_in_st = (edge ***)mCalloc(st->n_gt,sizeof(edge **));
-  For(i,st->n_gt) st->match_gt_edge_in_st[i] = (edge **)mCalloc(2*st->tree->n_otu-3,sizeof(edge *));
+  st->match_gt_edge_in_st = (edge ***)mCalloc(st->n_part,sizeof(edge **));
+  For(i,st->n_part) st->match_gt_edge_in_st[i] = (edge **)mCalloc(2*st->tree->n_otu-3,sizeof(edge *));
 
-  st->bl = (phydbl **)mCalloc(st->n_gt,sizeof(phydbl *));
-  For(i,st->n_gt) st->bl[i] = (phydbl *)mCalloc(2*st->tree->n_otu-3,sizeof(phydbl));
+  st->bl = (phydbl **)mCalloc(st->n_part,sizeof(phydbl *));
+  For(i,st->n_part) st->bl[i] = (phydbl *)mCalloc(2*st->tree->n_otu-3,sizeof(phydbl));
 
-  st->bl_cpy = (phydbl **)mCalloc(st->n_gt,sizeof(phydbl *));
-  For(i,st->n_gt) st->bl_cpy[i] = (phydbl *)mCalloc(2*st->tree->n_otu-3,sizeof(phydbl));
+  st->bl_cpy = (phydbl **)mCalloc(st->n_part,sizeof(phydbl *));
+  For(i,st->n_part) st->bl_cpy[i] = (phydbl *)mCalloc(2*st->tree->n_otu-3,sizeof(phydbl));
 
-  st->bl0 = (phydbl **)mCalloc(st->n_gt,sizeof(phydbl *));
-  For(i,st->n_gt) st->bl0[i] = (phydbl *)mCalloc(2*st->tree->n_otu-3,sizeof(phydbl));
+  st->bl0 = (phydbl **)mCalloc(st->n_part,sizeof(phydbl *));
+  For(i,st->n_part) st->bl0[i] = (phydbl *)mCalloc(2*st->tree->n_otu-3,sizeof(phydbl));
 
-  st->bl1 = (phydbl **)mCalloc(st->n_gt,sizeof(phydbl *));
-  For(i,st->n_gt) st->bl1[i] = (phydbl *)mCalloc(2*st->tree->n_otu-3,sizeof(phydbl));
+  st->bl1 = (phydbl **)mCalloc(st->n_part,sizeof(phydbl *));
+  For(i,st->n_part) st->bl1[i] = (phydbl *)mCalloc(2*st->tree->n_otu-3,sizeof(phydbl));
 
-  st->bl2 = (phydbl **)mCalloc(st->n_gt,sizeof(phydbl *));
-  For(i,st->n_gt) st->bl2[i] = (phydbl *)mCalloc(2*st->tree->n_otu-3,sizeof(phydbl));
+  st->bl2 = (phydbl **)mCalloc(st->n_part,sizeof(phydbl *));
+  For(i,st->n_part) st->bl2[i] = (phydbl *)mCalloc(2*st->tree->n_otu-3,sizeof(phydbl));
 
-  st->s_mod = (model **)mCalloc(st->n_gt,sizeof(model *));
+  st->s_mod = (model **)mCalloc(st->n_part,sizeof(model *));
 
   For(i,2*st->tree->n_otu-3) Make_Edge_NNI(st->tree->t_edges[i]);
 
   Get_List_Of_Reachable_Tips(st->tree);
 
-  st->match_st_node_in_gt = (node ***)mCalloc(io->n_gt,sizeof(node **));
-  For(i,io->n_gt) st->match_st_node_in_gt[i] = (node **)mCalloc(2*st->tree->n_otu-2,sizeof(node *));
+  st->match_st_node_in_gt = (node ***)mCalloc(io->n_part,sizeof(node **));
+  For(i,io->n_part) st->match_st_node_in_gt[i] = (node **)mCalloc(2*st->tree->n_otu-2,sizeof(node *));
 }
 
 /*********************************************************/
@@ -584,7 +584,7 @@ void PART_Match_St_Nodes_In_Gt(arbre *gt, superarbre *st)
 		 st->tree->noeud[0]->v[0],
 		 st->tree);
       printf(">>>>>>>\n");
-      For(i,st->n_gt)
+      For(i,st->n_part)
 	{
 	  Print_Node(st->treelist->tree[i]->noeud[0],
 		     st->treelist->tree[i]->noeud[0]->v[0],
@@ -752,7 +752,7 @@ void PART_Simu(superarbre *st)
   sorted_b = (edge **)mCalloc(st->tree->n_otu-3,sizeof(edge *));
   tested_b = (edge **)mCalloc(st->tree->n_otu-3,sizeof(edge *));
 
-  For(i,st->n_gt) Update_Dirs(st->treelist->tree[i]);
+  For(i,st->n_part) Update_Dirs(st->treelist->tree[i]);
   Update_Dirs(st->tree);
 
   each                = 4;
@@ -765,7 +765,7 @@ void PART_Simu(superarbre *st)
   st_b                = NULL; 
   do
     {
-      For(i,st->n_gt) Check_Dirs(st->treelist->tree[i]);
+      For(i,st->n_part) Check_Dirs(st->treelist->tree[i]);
 
       ++step;      
       each--;
@@ -775,14 +775,14 @@ void PART_Simu(superarbre *st)
       /* Compute the likelihood of the supertreee */
       st->tree->c_lnL  = PART_Lk(st);
       st->tree->c_pars = PART_Pars(st);
-/*       For(i,st->n_gt) printf("\n. %s",Write_Tree(st->treelist->tree[i])); */
+/*       For(i,st->n_part) printf("\n. %s",Write_Tree(st->treelist->tree[i])); */
 /*       printf("\n"); */
 
       time(&(st->tree->t_current));
       printf("\n. (%5d sec) [tot lnL=%15.5f] [# swaps=%3d]",
 	     (int)(st->tree->t_current-st->tree->t_beg),
 	     st->tree->c_lnL,n_tested);
-/*       For(i,st->n_gt) printf("\n[gt %3d lnL=%15.5f]",i,st->treelist->tree[i]->c_lnL); */
+/*       For(i,st->n_part) printf("\n[gt %3d lnL=%15.5f]",i,st->treelist->tree[i]->c_lnL); */
       
       if((fabs(old_loglk-st->tree->c_lnL) < st->tree->mod->s_opt->min_diff_lk_global) || 
 	 (n_without_swap > it_lim_without_swap)) break;
@@ -797,7 +797,7 @@ void PART_Simu(superarbre *st)
 	  if(!st->tree->n_swap) n_neg = 0;
 	    
 	  PART_Record_Br_Len(st);
-	  For(i,st->n_gt) Optimiz_All_Free_Param(st->treelist->tree[i],0);
+	  For(i,st->n_part) Optimiz_All_Free_Param(st->treelist->tree[i],0);
 	}
       else 
 	{
@@ -805,8 +805,8 @@ void PART_Simu(superarbre *st)
 	    {
 	      each = 4;
 	      /* Markov model parameters are free to vary across data partitions */
-	      For(i,st->n_gt) Optimiz_All_Free_Param(st->treelist->tree[i],0);	      
-	      For(i,st->n_gt) st->treelist->tree[i]->both_sides = 1;
+	      For(i,st->n_part) Optimiz_All_Free_Param(st->treelist->tree[i],0);	      
+	      For(i,st->n_part) st->treelist->tree[i]->both_sides = 1;
 	      st->tree->c_lnL  = PART_Lk(st);
 	      st->tree->c_pars = PART_Pars(st);
 	    }
@@ -831,7 +831,7 @@ void PART_Simu(superarbre *st)
 		{
 		  PART_Record_Br_Len(st);
 		  PART_Br_Len_Brent(st_b,st);
-		  For(j,st->n_gt) st->bl0[st->bl_partition[j]][st_b->num] = st->bl[st->bl_partition[j]][st_b->num];
+		  For(j,st->n_part) st->bl0[st->bl_partition[j]][st_b->num] = st->bl[st->bl_partition[j]][st_b->num];
 		  st_b->nni->score     = .0;
 		  st_b->nni->best_conf =  0;
 		  PART_Restore_Br_Len(st);
@@ -872,7 +872,7 @@ void PART_Simu(superarbre *st)
   if((n_without_swap > it_lim_without_swap))
     {
       printf("\n. Last optimization step...\n");
-      For(i,st->n_gt) Round_Optimize(st->treelist->tree[i],st->treelist->tree[i]->data);
+      For(i,st->n_part) Round_Optimize(st->treelist->tree[i],st->treelist->tree[i]->data,ROUND_MAX);
       st->tree->c_lnL = PART_Lk(st);
       PART_Simu(st);
     }
@@ -887,17 +887,17 @@ int PART_Mov_Backward_Topo_Bl(superarbre *st, phydbl lk_old, edge **tested_b, in
   edge *st_b;
   phydbl **l_init;
 
-  l_init = (phydbl **)mCalloc(st->n_gt,sizeof(phydbl *));
-  For(i,st->n_gt) l_init[i] = (phydbl *)mCalloc(2*st->tree->n_otu-3,sizeof(phydbl ));
+  l_init = (phydbl **)mCalloc(st->n_part,sizeof(phydbl *));
+  For(i,st->n_part) l_init[i] = (phydbl *)mCalloc(2*st->tree->n_otu-3,sizeof(phydbl ));
 
-  For(i,2*st->tree->n_otu-3) For(j,st->n_gt) l_init[st->bl_partition[j]][i] = st->bl[st->bl_partition[j]][i];
+  For(i,2*st->tree->n_otu-3) For(j,st->n_part) l_init[st->bl_partition[j]][i] = st->bl[st->bl_partition[j]][i];
 
   step = 2;
   do
     {
       For(i,2*st->tree->n_otu-3)
 	{
-	  For(j,st->n_gt)
+	  For(j,st->n_part)
 	    {
 	      st->bl[st->bl_partition[j]][i] = st->bl_cpy[st->bl_partition[j]][i] + 
 		(1./step) * (l_init[st->bl_partition[j]][i] - st->bl_cpy[st->bl_partition[j]][i]);
@@ -964,7 +964,7 @@ int PART_Mov_Backward_Topo_Bl(superarbre *st, phydbl lk_old, edge **tested_b, in
 
   if(step == 100)
     {
-      For(i,2*st->tree->n_otu-3) For(j,st->n_gt)
+      For(i,2*st->tree->n_otu-3) For(j,st->n_part)
 	st->bl[st->bl_partition[j]][i] = st->bl_cpy[st->bl_partition[j]][i];
     }
 
@@ -981,7 +981,7 @@ int PART_Mov_Backward_Topo_Bl(superarbre *st, phydbl lk_old, edge **tested_b, in
   else if(fabs(st->tree->c_lnL-lk_old) < st->tree->mod->s_opt->min_diff_lk_local) return -1;
   else                                                                            return  0;
 
-  For(i,st->n_gt) Free(l_init[i]);
+  For(i,st->n_part) Free(l_init[i]);
   Free(l_init);
 }
 
@@ -997,7 +997,7 @@ void PART_Check_Extra_Taxa(superarbre *st)
 
   For(i,st->tree->n_otu)
     {
-      For(j,st->n_gt)
+      For(j,st->n_part)
 	{
 	  For(k,st->treelist->tree[j]->n_otu) 
 	    if(!strcmp(st->treelist->tree[j]->noeud[k]->name,st->tree->noeud[i]->name)) break;
@@ -1309,11 +1309,10 @@ int PART_Pars(superarbre *st)
   int i;
   
   st->tree->c_pars = 0;
-  For(i,st->n_gt) 
+  For(i,st->n_part) 
     {
       st->treelist->tree[i]->both_sides = 1;	  
       Pars(st->treelist->tree[i]);
-/*       printf("\n. Tree %3d pars = %d",i+1,st->treelist->tree[i]->c_pars); */
       st->tree->c_pars += st->treelist->tree[i]->c_pars;
     }
 
@@ -1330,7 +1329,7 @@ int PART_Spr(phydbl init_lnL, superarbre *st)
   int move,best_move;
   node *gt_a, *gt_d;
 
-  st->tree->root       = st->tree->noeud[0];
+  st->tree->n_root     = st->tree->noeud[0];
   st->tree->both_sides = 1;
   pruned               = NULL;
   target               = NULL;
@@ -1338,18 +1337,17 @@ int PART_Spr(phydbl init_lnL, superarbre *st)
   gt_a                 = NULL;
   gt_d                 = NULL;
 
-
   For(i,2*st->tree->n_otu-3)
     {
       pruned            = st->tree->t_edges[i];
       st->tree->n_moves = 0;
 
       Reset_Spr_List(st->tree);
-      For(gt,st->n_gt) Reset_Spr_List(st->treelist->tree[gt]);
+      For(gt,st->n_part) Reset_Spr_List(st->treelist->tree[gt]);
       
       if(!pruned->rght->tax)
 	{
-	  For(gt,st->n_gt)
+	  For(gt,st->n_part)
 	    {
 	      /* Check constraints at prune site on gt tree */
  	      gt_a = st->map_st_node_in_gt[gt][pruned->rght->num][pruned->r_l][0];
@@ -1366,7 +1364,7 @@ int PART_Spr(phydbl init_lnL, superarbre *st)
 
       if(!pruned->left->tax)
 	{
-	  For(gt,st->n_gt)
+	  For(gt,st->n_part)
 	    {
 	      /* Check constraints at prune site on gt tree */	      
  	      gt_a = st->map_st_node_in_gt[gt][pruned->rght->num][pruned->r_l][0];
@@ -1427,13 +1425,13 @@ void PART_Speed_Spr(superarbre *st)
   phydbl old_lnL;
 
   Make_Spr_List(st->tree);
-  For(gt,st->n_gt) Make_Spr_List(st->treelist->tree[gt]);
+  For(gt,st->n_part) Make_Spr_List(st->treelist->tree[gt]);
 
   st->tree->both_sides = 1; 
-  For(gt,st->n_gt) 
+  For(gt,st->n_part) 
     {
       st->treelist->tree[gt]->both_sides = 1;
-      Record_Br_Len(st->treelist->tree[gt]);
+      Record_Br_Len(NULL,st->treelist->tree[gt]);
     }
   
   st->tree->c_pars = PART_Pars(st);
@@ -1462,7 +1460,7 @@ void PART_Speed_Spr(superarbre *st)
 	     PART_Lk(st),PART_Pars(st));
 
       /* Optimise parameters of the Markov model */
-      For(gt,st->n_gt) Optimiz_All_Free_Param(st->treelist->tree[gt],
+      For(gt,st->n_part) Optimiz_All_Free_Param(st->treelist->tree[gt],
 					      st->treelist->tree[gt]->mod->s_opt->print);
 
       time(&(st->tree->t_current));      
@@ -1471,7 +1469,7 @@ void PART_Speed_Spr(superarbre *st)
 	     PART_Lk(st),PART_Pars(st));
 
       /* Optimise branch lengths */
-      For(gt,st->n_gt)
+      For(gt,st->n_part)
 	{
 	  Optimize_Br_Len_Serie(st->treelist->tree[gt]->noeud[0],
 				st->treelist->tree[gt]->noeud[0]->v[0],
@@ -1503,7 +1501,7 @@ void PART_Speed_Spr(superarbre *st)
 	}
 
       /* Record the current best branch lengths  */
-      For(gt,st->n_gt) Record_Br_Len(st->treelist->tree[gt]);
+      For(gt,st->n_part) Record_Br_Len(NULL,st->treelist->tree[gt]);
 
       /* Exit if no improvements after complete optimization */
       if((!st->tree->n_improvements) || 
@@ -1568,7 +1566,7 @@ void PART_Test_One_Spr_Target(edge *st_p, edge *st_t, node *n_link, superarbre *
   st->tree->spr_list[st->tree->size_spr_list]->b_opp_to_link = st_p;
   st->tree->spr_list[st->tree->size_spr_list]->pars          = 0;
 
-  For(gt,st->n_gt)
+  For(gt,st->n_part)
     {
       move = Map_Spr_Move(st_p,st_t,n_link,st->treelist->tree[gt],st);
       
@@ -1663,7 +1661,7 @@ int PART_Test_List_Of_Regraft_Pos(spr **st_spr_list, int list_size, superarbre *
     {
       st->tree->spr_list[i]->lnL = .0;
 
-      For(gt,st->n_gt) 
+      For(gt,st->n_part) 
 	{
 	  move_num = Map_Spr_Move(st->tree->spr_list[i]->b_opp_to_link,
 				  st->tree->spr_list[i]->b_target,
@@ -1679,7 +1677,7 @@ int PART_Test_List_Of_Regraft_Pos(spr **st_spr_list, int list_size, superarbre *
 		  init_lnL = st->treelist->tree[gt]->c_lnL;
 
 		  /* Record edge lengths */
-		  Record_Br_Len(st->treelist->tree[gt]);
+		  Record_Br_Len(NULL,st->treelist->tree[gt]);
 		  
 		  /* Prune subtree */
 		  Prune_Subtree(move->n_link,
@@ -1689,7 +1687,7 @@ int PART_Test_List_Of_Regraft_Pos(spr **st_spr_list, int list_size, superarbre *
 				st->treelist->tree[gt]);
 
 		  /* Rough optimisation of the branch length */
-		  Fast_Br_Len(init_target,st->treelist->tree[gt]);
+		  Fast_Br_Len(init_target,st->treelist->tree[gt],0);
 		  
 		  /* Update the change proba matrix at prune position */
 		  Update_PMat_At_Given_Edge(init_target,st->treelist->tree[gt]);
@@ -1702,7 +1700,7 @@ int PART_Test_List_Of_Regraft_Pos(spr **st_spr_list, int list_size, superarbre *
 		  Graft_Subtree(move->b_target,move->n_link,b_residual,st->treelist->tree[gt]);
 	      
 		  /* Estimate the three edge lengths at the regraft site */
-		  Triple_Dist(move->n_link,st->treelist->tree[gt]);
+		  Triple_Dist(move->n_link,st->treelist->tree[gt],-1);
 	      
 		  /* Update the transition proba matrices along edges defining 
 		     the regraft site */
@@ -1755,7 +1753,7 @@ int PART_Test_List_Of_Regraft_Pos(spr **st_spr_list, int list_size, superarbre *
 				st->treelist->tree[gt]);
 		  
 		  /* Restore branch lengths */
-		  Restore_Br_Len(st->treelist->tree[gt]);
+		  Restore_Br_Len(NULL,st->treelist->tree[gt]);
 	      
 		  /* Update relevant change proba matrices */
 		  Update_PMat_At_Given_Edge(move->b_target,st->treelist->tree[gt]);
@@ -1798,13 +1796,13 @@ int PART_Try_One_Spr_Move(spr *st_move, superarbre *st)
   int n_moves;
 
   
-  init_target = (edge **)mCalloc(st->n_gt,sizeof(edge *));
-  b_residual  = (edge **)mCalloc(st->n_gt,sizeof(edge *));
-  gt_move     = (spr **)mCalloc(st->n_gt,sizeof(spr *));
+  init_target = (edge **)mCalloc(st->n_part,sizeof(edge *));
+  b_residual  = (edge **)mCalloc(st->n_part,sizeof(edge *));
+  gt_move     = (spr **)mCalloc(st->n_part,sizeof(spr *));
 
 
   n_moves = 0;
-  For(gt,st->n_gt) 
+  For(gt,st->n_part) 
     {
       gt_move_num = Map_Spr_Move(st_move->b_opp_to_link,
 				 st_move->b_target,
@@ -1820,7 +1818,7 @@ int PART_Try_One_Spr_Move(spr *st_move, superarbre *st)
 	  if(gt_move[gt]->b_target)
 	    {
 	      /* Record edge lengths */
-	      Record_Br_Len(st->treelist->tree[gt]);
+	      Record_Br_Len(NULL,st->treelist->tree[gt]);
 
 	      /* Prune subtree */
 	      Prune_Subtree(gt_move[gt]->n_link,
@@ -1830,7 +1828,7 @@ int PART_Try_One_Spr_Move(spr *st_move, superarbre *st)
 			    st->treelist->tree[gt]);
 	      
 	      /* Rough optimisation of the branch length */
-	      Fast_Br_Len(init_target[gt],st->treelist->tree[gt]);
+	      Fast_Br_Len(init_target[gt],st->treelist->tree[gt],0);
 	      
 	      /* Update the change proba matrix at prune position */
 	      Update_PMat_At_Given_Edge(init_target[gt],st->treelist->tree[gt]); /* TO DO : NECESSARY ?? */
@@ -1902,7 +1900,7 @@ int PART_Try_One_Spr_Move(spr *st_move, superarbre *st)
 	      printf("\n. st->tree->c_lnL = %f st_move->lnL = %f\n",
 		     st->tree->c_lnL,st_move->lnL);
 
-	      For(gt,st->n_gt)
+	      For(gt,st->n_part)
 		{
 		  printf("\n. truth -> %f ; move -> %f",
 			 Return_Lk(st->treelist->tree[gt]),
@@ -1914,13 +1912,13 @@ int PART_Try_One_Spr_Move(spr *st_move, superarbre *st)
 		 (int)(st->tree->t_current - st->tree->t_beg),
 		 st->tree->c_lnL,st->tree->c_pars);	  
 	  
-	  For(gt,st->n_gt)
+	  For(gt,st->n_part)
 	    printf("[%10.2f] ",st->treelist->tree[gt]->c_lnL);
 	  
 	  
 	  st->tree->n_improvements++;
 	  st->tree->best_lnL = st->tree->c_lnL;
-	  For(gt,st->n_gt) Record_Br_Len(st->treelist->tree[gt]);
+	  For(gt,st->n_part) Record_Br_Len(NULL,st->treelist->tree[gt]);
 	  
 	  Free(init_target);
 	  Free(b_residual);
@@ -1928,67 +1926,67 @@ int PART_Try_One_Spr_Move(spr *st_move, superarbre *st)
 	  
 	  return 1;
 	}
-      else
-	{
-	  For(gt,st->n_gt) 
-	    {
-	      if(gt_move[gt])
-		{
-		  Return_Lk(st->treelist->tree[gt]);
-		  Fast_Br_Len_Recur(st->treelist->tree[gt]->noeud[0],
-				    st->treelist->tree[gt]->noeud[0]->v[0],
-				    st->treelist->tree[gt]->noeud[0]->b[0],
-				    st->treelist->tree[gt]);
-		}
-	    }
+/*       else */
+/* 	{ */
+/* 	  For(gt,st->n_part)  */
+/* 	    { */
+/* 	      if(gt_move[gt]) */
+/* 		{ */
+/* 		  Return_Lk(st->treelist->tree[gt]); */
+/* 		  Fast_Br_Len_Recur(st->treelist->tree[gt]->noeud[0], */
+/* 				    st->treelist->tree[gt]->noeud[0]->v[0], */
+/* 				    st->treelist->tree[gt]->noeud[0]->b[0], */
+/* 				    st->treelist->tree[gt]); */
+/* 		} */
+/* 	    } */
 	  
-	  time(&(st->tree->t_current));
-	  st->tree->both_sides = 1;
-	  st->tree->c_lnL      = PART_Lk(st);
+/* 	  time(&(st->tree->t_current)); */
+/* 	  st->tree->both_sides = 1; */
+/* 	  st->tree->c_lnL      = PART_Lk(st); */
 	  
-	  if(st->tree->c_lnL > st->tree->best_lnL)
-	    {
-	      edge *st_target, *st_residual;
+/* 	  if(st->tree->c_lnL > st->tree->best_lnL) */
+/* 	    { */
+/* 	      edge *st_target, *st_residual; */
 	      
-	      /* Apply the move on the super-tree */
-	      Prune_Subtree(st_move->n_link,
-			    st_move->n_opp_to_link,			    
-			    &st_target,
-			    &st_residual,
-			    st->tree);
+/* 	      /\* Apply the move on the super-tree *\/ */
+/* 	      Prune_Subtree(st_move->n_link, */
+/* 			    st_move->n_opp_to_link,			     */
+/* 			    &st_target, */
+/* 			    &st_residual, */
+/* 			    st->tree); */
 	      
-	      Graft_Subtree(st_move->b_target,
-			    st_move->n_link,
-			    st_residual,
-			    st->tree);
+/* 	      Graft_Subtree(st_move->b_target, */
+/* 			    st_move->n_link, */
+/* 			    st_residual, */
+/* 			    st->tree); */
 	      
 	      
-	      /* Map gt and st nodes and edges */
-	      PART_Do_Mapping(st);
+/* 	      /\* Map gt and st nodes and edges *\/ */
+/* 	      PART_Do_Mapping(st); */
 
 
-	      st->tree->c_pars = PART_Pars(st);
-	      printf("\n. (%5d sec) [++] [%10.2f] [%5d] -- ",
-		     (int)(st->tree->t_current-st->tree->t_beg),
-		     st->tree->c_lnL,
-		     st->tree->c_pars);
-	      For(gt,st->n_gt)
-		printf("[%10.2f] ",st->treelist->tree[gt]->c_lnL);
+/* 	      st->tree->c_pars = PART_Pars(st); */
+/* 	      printf("\n. (%5d sec) [++] [%10.2f] [%5d] -- ", */
+/* 		     (int)(st->tree->t_current-st->tree->t_beg), */
+/* 		     st->tree->c_lnL, */
+/* 		     st->tree->c_pars); */
+/* 	      For(gt,st->n_part) */
+/* 		printf("[%10.2f] ",st->treelist->tree[gt]->c_lnL); */
 	      
-	      st->tree->n_improvements++;
-	      st->tree->best_lnL = st->tree->c_lnL;
-	      For(gt,st->n_gt) Record_Br_Len(st->treelist->tree[gt]);
+/* 	      st->tree->n_improvements++; */
+/* 	      st->tree->best_lnL = st->tree->c_lnL; */
+/* 	      For(gt,st->n_part) Record_Br_Len(NULL,st->treelist->tree[gt]); */
 
-	      Free(init_target);
-	      Free(b_residual);
-	      Free(gt_move);
+/* 	      Free(init_target); */
+/* 	      Free(b_residual); */
+/* 	      Free(gt_move); */
 
-	      return 1;
-	    }
-	}
+/* 	      return 1; */
+/* 	    } */
+/* 	} */
     }
   
-  For(gt,st->n_gt) 
+  For(gt,st->n_part) 
     {
       if(gt_move[gt])
 	{	  
@@ -2005,7 +2003,7 @@ int PART_Try_One_Spr_Move(spr *st_move, superarbre *st)
 			st->treelist->tree[gt]);	  
 
 	  /* Restore branch lengths */
-	  Restore_Br_Len(st->treelist->tree[gt]);
+	  Restore_Br_Len(NULL,st->treelist->tree[gt]);
 	}
     }
   
@@ -2019,7 +2017,7 @@ int PART_Try_One_Spr_Move(spr *st_move, superarbre *st)
 	 (int)(st->tree->t_current - st->tree->t_beg),
 	 st->tree->c_lnL,st->tree->c_pars);	  
   
-  For(gt,st->n_gt) printf("[%10.2f] ",st->treelist->tree[gt]->c_lnL);
+  For(gt,st->n_part) printf("[%10.2f] ",st->treelist->tree[gt]->c_lnL);
 
   Free(init_target);
   Free(b_residual);
@@ -2043,8 +2041,8 @@ void PART_NNI(edge *st_b, superarbre *st)
 
 
   init_bl = (double *)mCalloc(st->n_bl_partition,sizeof(double));
-  map_edge_bef_swap = (edge **)mCalloc(st->n_gt,sizeof(edge *));
-  map_edge_aft_swap = (edge **)mCalloc(st->n_gt,sizeof(edge *));
+  map_edge_bef_swap = (edge **)mCalloc(st->n_part,sizeof(edge *));
+  map_edge_aft_swap = (edge **)mCalloc(st->n_part,sizeof(edge *));
 
 
   v1 = st_b->left->v[st_b->l_v1];
@@ -2076,7 +2074,7 @@ void PART_NNI(edge *st_b, superarbre *st)
 /* 	     st->tree->noeud[0]->v[0], */
 /* 	     st->tree); */
 /*   printf(">>>>>>>\n"); */
-/*   For(i,st->n_gt) */
+/*   For(i,st->n_part) */
 /*     { */
 /*       Print_Node(st->treelist->tree[i]->noeud[0], */
 /* 		 st->treelist->tree[i]->noeud[0]->v[0], */
@@ -2087,8 +2085,8 @@ void PART_NNI(edge *st_b, superarbre *st)
   
   PART_Record_Br_Len(st);
 
-  For(i,st->n_gt) map_edge_bef_swap[i] = NULL;
-  For(i,st->n_gt) if(st->map_st_edge_in_gt[i][st_b->num]) map_edge_bef_swap[i] = st->map_st_edge_in_gt[i][st_b->num];
+  For(i,st->n_part) map_edge_bef_swap[i] = NULL;
+  For(i,st->n_part) if(st->map_st_edge_in_gt[i][st_b->num]) map_edge_bef_swap[i] = st->map_st_edge_in_gt[i][st_b->num];
 
   /* First alternative topological configuration */
   /* Swap */
@@ -2096,11 +2094,11 @@ void PART_NNI(edge *st_b, superarbre *st)
   Swap(v2,st_b->left,st_b->rght,v3,st->tree);
   PART_Do_Mapping(st);
   PART_Set_Bl(st->bl,st);
-  For(i,st->n_gt) map_edge_aft_swap[i] = NULL;
-  For(i,st->n_gt) if(st->map_st_edge_in_gt[i][st_b->num]) map_edge_aft_swap[i] = st->map_st_edge_in_gt[i][st_b->num];
-  For(i,st->n_gt) if(map_edge_bef_swap[i]) Update_PMat_At_Given_Edge(map_edge_bef_swap[i],st->treelist->tree[i]);
-  For(i,st->n_gt) if(map_edge_aft_swap[i]) Update_PMat_At_Given_Edge(map_edge_aft_swap[i],st->treelist->tree[i]);
-  For(i,st->n_gt) if(map_edge_bef_swap[i] && map_edge_aft_swap[i]) 
+  For(i,st->n_part) map_edge_aft_swap[i] = NULL;
+  For(i,st->n_part) if(st->map_st_edge_in_gt[i][st_b->num]) map_edge_aft_swap[i] = st->map_st_edge_in_gt[i][st_b->num];
+  For(i,st->n_part) if(map_edge_bef_swap[i]) Update_PMat_At_Given_Edge(map_edge_bef_swap[i],st->treelist->tree[i]);
+  For(i,st->n_part) if(map_edge_aft_swap[i]) Update_PMat_At_Given_Edge(map_edge_aft_swap[i],st->treelist->tree[i]);
+  For(i,st->n_part) if(map_edge_bef_swap[i] && map_edge_aft_swap[i]) 
     {
       For(j,3) if((map_edge_aft_swap[i]->left->v[j]) && 
 		  (map_edge_aft_swap[i]->left->b[j] == map_edge_bef_swap[i]) &&
@@ -2117,16 +2115,16 @@ void PART_NNI(edge *st_b, superarbre *st)
     }
   lk1_init = PART_Update_Lk_At_Given_Edge(st_b,st);
   lk1_opt  = PART_Br_Len_Brent(st_b,st);
-  For(i,st->n_gt) st->bl1[st->bl_partition[i]][st_b->num] = st->bl[st->bl_partition[i]][st_b->num];
+  For(i,st->n_part) st->bl1[st->bl_partition[i]][st_b->num] = st->bl[st->bl_partition[i]][st_b->num];
   /* Unswap */
   PART_Swap(v3,st_b->left,st_b->rght,v2,st);
   Swap(v3,st_b->left,st_b->rght,v2,st->tree);
   PART_Do_Mapping(st);
   PART_Restore_Br_Len(st);
   PART_Set_Bl(st->bl,st);
-  For(i,st->n_gt) if(map_edge_bef_swap[i]) Update_PMat_At_Given_Edge(map_edge_bef_swap[i],st->treelist->tree[i]);
-  For(i,st->n_gt) if(map_edge_aft_swap[i]) Update_PMat_At_Given_Edge(map_edge_aft_swap[i],st->treelist->tree[i]);
-  For(i,st->n_gt) if(map_edge_bef_swap[i] && map_edge_aft_swap[i]) 
+  For(i,st->n_part) if(map_edge_bef_swap[i]) Update_PMat_At_Given_Edge(map_edge_bef_swap[i],st->treelist->tree[i]);
+  For(i,st->n_part) if(map_edge_aft_swap[i]) Update_PMat_At_Given_Edge(map_edge_aft_swap[i],st->treelist->tree[i]);
+  For(i,st->n_part) if(map_edge_bef_swap[i] && map_edge_aft_swap[i]) 
     {
       For(j,3) if((map_edge_aft_swap[i]->left->v[j]) && 
 		  (map_edge_aft_swap[i]->left->b[j] == map_edge_bef_swap[i]) &&
@@ -2151,11 +2149,11 @@ void PART_NNI(edge *st_b, superarbre *st)
   Swap(v2,st_b->left,st_b->rght,v4,st->tree);
   PART_Do_Mapping(st);
   PART_Set_Bl(st->bl,st);
-  For(i,st->n_gt) map_edge_aft_swap[i] = NULL;
-  For(i,st->n_gt) if(st->map_st_edge_in_gt[i][st_b->num]) map_edge_aft_swap[i] = st->map_st_edge_in_gt[i][st_b->num];
-  For(i,st->n_gt) if(map_edge_bef_swap[i]) Update_PMat_At_Given_Edge(map_edge_bef_swap[i],st->treelist->tree[i]);
-  For(i,st->n_gt) if(map_edge_aft_swap[i]) Update_PMat_At_Given_Edge(map_edge_aft_swap[i],st->treelist->tree[i]);
-  For(i,st->n_gt) if(map_edge_bef_swap[i] && map_edge_aft_swap[i]) 
+  For(i,st->n_part) map_edge_aft_swap[i] = NULL;
+  For(i,st->n_part) if(st->map_st_edge_in_gt[i][st_b->num]) map_edge_aft_swap[i] = st->map_st_edge_in_gt[i][st_b->num];
+  For(i,st->n_part) if(map_edge_bef_swap[i]) Update_PMat_At_Given_Edge(map_edge_bef_swap[i],st->treelist->tree[i]);
+  For(i,st->n_part) if(map_edge_aft_swap[i]) Update_PMat_At_Given_Edge(map_edge_aft_swap[i],st->treelist->tree[i]);
+  For(i,st->n_part) if(map_edge_bef_swap[i] && map_edge_aft_swap[i]) 
     {
       For(j,3) if((map_edge_aft_swap[i]->left->v[j]) && 
 		  (map_edge_aft_swap[i]->left->b[j] == map_edge_bef_swap[i]) &&
@@ -2173,7 +2171,7 @@ void PART_NNI(edge *st_b, superarbre *st)
 
   lk2_init = PART_Update_Lk_At_Given_Edge(st_b,st);
   lk2_opt  = PART_Br_Len_Brent(st_b,st);
-  For(i,st->n_gt) st->bl2[st->bl_partition[i]][st_b->num] = st->bl[st->bl_partition[i]][st_b->num];
+  For(i,st->n_part) st->bl2[st->bl_partition[i]][st_b->num] = st->bl[st->bl_partition[i]][st_b->num];
   /*   printf("\n. lk2_init = %f lk2_opt = %f",lk2_init,lk2_opt); */
   /* Unswap */
   PART_Swap(v4,st_b->left,st_b->rght,v2,st);
@@ -2181,9 +2179,9 @@ void PART_NNI(edge *st_b, superarbre *st)
   PART_Do_Mapping(st);
   PART_Restore_Br_Len(st);
   PART_Set_Bl(st->bl,st);
-  For(i,st->n_gt) if(map_edge_bef_swap[i]) Update_PMat_At_Given_Edge(map_edge_bef_swap[i],st->treelist->tree[i]);
-  For(i,st->n_gt) if(map_edge_aft_swap[i]) Update_PMat_At_Given_Edge(map_edge_aft_swap[i],st->treelist->tree[i]);
-  For(i,st->n_gt) if(map_edge_bef_swap[i] && map_edge_aft_swap[i]) 
+  For(i,st->n_part) if(map_edge_bef_swap[i]) Update_PMat_At_Given_Edge(map_edge_bef_swap[i],st->treelist->tree[i]);
+  For(i,st->n_part) if(map_edge_aft_swap[i]) Update_PMat_At_Given_Edge(map_edge_aft_swap[i],st->treelist->tree[i]);
+  For(i,st->n_part) if(map_edge_bef_swap[i] && map_edge_aft_swap[i]) 
     {
       For(j,3) if((map_edge_aft_swap[i]->left->v[j]) && 
 		  (map_edge_aft_swap[i]->left->b[j] == map_edge_bef_swap[i]) &&
@@ -2206,18 +2204,18 @@ void PART_NNI(edge *st_b, superarbre *st)
   PART_Do_Mapping(st);
   PART_Set_Bl(st->bl,st);
   PART_Restore_Br_Len(st);
-  For(i,st->n_gt) map_edge_aft_swap[i] = NULL;
-  For(i,st->n_gt) if(st->map_st_edge_in_gt[i][st_b->num]) map_edge_aft_swap[i] = st->map_st_edge_in_gt[i][st_b->num];
-  For(i,st->n_gt) if(map_edge_bef_swap[i]) Update_PMat_At_Given_Edge(map_edge_bef_swap[i],st->treelist->tree[i]);
-  For(i,st->n_gt) if(map_edge_aft_swap[i]) Update_PMat_At_Given_Edge(map_edge_aft_swap[i],st->treelist->tree[i]);
+  For(i,st->n_part) map_edge_aft_swap[i] = NULL;
+  For(i,st->n_part) if(st->map_st_edge_in_gt[i][st_b->num]) map_edge_aft_swap[i] = st->map_st_edge_in_gt[i][st_b->num];
+  For(i,st->n_part) if(map_edge_bef_swap[i]) Update_PMat_At_Given_Edge(map_edge_bef_swap[i],st->treelist->tree[i]);
+  For(i,st->n_part) if(map_edge_aft_swap[i]) Update_PMat_At_Given_Edge(map_edge_aft_swap[i],st->treelist->tree[i]);
   lk0_init = PART_Update_Lk_At_Given_Edge(st_b,st);
   lk0_opt  = PART_Br_Len_Brent(st_b,st);
-  For(i,st->n_gt) st->bl0[st->bl_partition[i]][st_b->num] = st->bl[st->bl_partition[i]][st_b->num];
+  For(i,st->n_part) st->bl0[st->bl_partition[i]][st_b->num] = st->bl[st->bl_partition[i]][st_b->num];
 
   PART_Restore_Br_Len(st);
   PART_Set_Bl(st->bl,st);
-  For(i,st->n_gt) if(map_edge_bef_swap[i]) Update_PMat_At_Given_Edge(map_edge_bef_swap[i],st->treelist->tree[i]);
-  For(i,st->n_gt) if(map_edge_aft_swap[i]) Update_PMat_At_Given_Edge(map_edge_aft_swap[i],st->treelist->tree[i]);
+  For(i,st->n_part) if(map_edge_bef_swap[i]) Update_PMat_At_Given_Edge(map_edge_bef_swap[i],st->treelist->tree[i]);
+  For(i,st->n_part) if(map_edge_aft_swap[i]) Update_PMat_At_Given_Edge(map_edge_aft_swap[i],st->treelist->tree[i]);
   PART_Update_Lk_At_Given_Edge(st_b,st);
 
 
@@ -2325,7 +2323,7 @@ void PART_Swap(node *st_a, node *st_b, node *st_c, node *st_d, superarbre *st)
 
   gt_a = gt_b = gt_c = gt_d = NULL;
   
-  For(i,st->n_gt)
+  For(i,st->n_part)
     {
       gt_b = st->match_st_node_in_gt[i][st_b->num];
       gt_c = st->match_st_node_in_gt[i][st_c->num];
@@ -2360,7 +2358,7 @@ void PART_Set_Bl(double **bl, superarbre *st)
 						
   /* Set all the actual branch lengths to 0.0 
    */
-  For(i,st->n_gt)
+  For(i,st->n_part)
     {
       For(j,2*st->treelist->tree[i]->n_otu-3)
 	{
@@ -2373,7 +2371,7 @@ void PART_Set_Bl(double **bl, superarbre *st)
    */  
   For(i,2*st->tree->n_otu-3)
     {
-      For(j,st->n_gt)
+      For(j,st->n_part)
 	{
 	  gt_b = st->map_st_edge_in_gt[j][i];	
 	  
@@ -2392,7 +2390,7 @@ void PART_Set_Bl(double **bl, superarbre *st)
 void PART_Record_Br_Len(superarbre *st)
 {
   int i,j;
-  For(i,st->n_gt) For(j,2*st->tree->n_otu-3) st->bl_cpy[i][j] = st->bl[i][j];
+  For(i,st->n_part) For(j,2*st->tree->n_otu-3) st->bl_cpy[i][j] = st->bl[i][j];
 }
 
 /*********************************************************/
@@ -2400,7 +2398,7 @@ void PART_Record_Br_Len(superarbre *st)
 void PART_Restore_Br_Len(superarbre *st)
 {
   int i,j;
-  For(i,st->n_gt) For(j,2*st->tree->n_otu-3) st->bl[i][j] = st->bl_cpy[i][j];
+  For(i,st->n_part) For(j,2*st->tree->n_otu-3) st->bl[i][j] = st->bl_cpy[i][j];
 }
 
 /*********************************************************/
@@ -2413,7 +2411,7 @@ phydbl PART_Lk(superarbre *st)
   PART_Set_Bl(st->bl,st);  
 
   st->tree->c_lnL = .0;
-  For(i,st->n_gt) 
+  For(i,st->n_part) 
     {
       st->treelist->tree[i]->both_sides = 1;	  
       Lk(st->treelist->tree[i]);
@@ -2436,7 +2434,7 @@ phydbl PART_Lk_At_Given_Edge(edge *st_b, superarbre *st)
   gt_b = NULL;
   st->tree->c_lnL = .0;
   lnL = .0;
-  For(i,st->n_gt)
+  For(i,st->n_part)
     {      
       gt_b = st->map_st_edge_in_gt[i][st_b->num];
       lnL = Lk_At_Given_Edge(gt_b,st->treelist->tree[i]);
@@ -2457,7 +2455,7 @@ phydbl PART_Update_Lk_At_Given_Edge(edge *st_b, superarbre *st)
   
   gt_b = NULL;
   st->tree->c_lnL = .0;
-  For(i,st->n_gt)
+  For(i,st->n_part)
     {
       gt_b = st->map_st_edge_in_gt[i][st_b->num];
       if(gt_b) st->tree->c_lnL += Update_Lk_At_Given_Edge(gt_b,st->treelist->tree[i]);
@@ -2480,7 +2478,7 @@ void PART_Fill_Model_Partitions_Table(superarbre *st)
 
   c = (char *)mCalloc(10,sizeof(char));
   abc = (char *)mCalloc(20,sizeof(char));
-  encountered_vals = (int *)mCalloc(st->n_gt,sizeof(int));
+  encountered_vals = (int *)mCalloc(st->n_part,sizeof(int));
 
   strcpy(abc,"ABCDEFGHIJKLMNOP\0");
 
@@ -2489,13 +2487,13 @@ void PART_Fill_Model_Partitions_Table(superarbre *st)
   while(1)
     {
       printf("\n\n");
-      For(i,st->n_gt)
+      For(i,st->n_part)
 	printf(". Data set %3d : %s\n",i+1,st->optionlist[i]->in_seq_file);
 
       printf("\n. Data set             ");
-      For(i,st->n_gt) printf("%3d ",i+1);
+      For(i,st->n_part) printf("%3d ",i+1);
       printf("\n. -A- edge lengths     ");
-      For(i,st->n_gt) printf("%3d ",st->bl_partition[i]);
+      For(i,st->n_part) printf("%3d ",st->bl_partition[i]);
 
       if(lig == 1) break;
 
@@ -2517,7 +2515,7 @@ void PART_Fill_Model_Partitions_Table(superarbre *st)
 
       col++;
 
-      if(col == st->n_gt)
+      if(col == st->n_part)
 	{
 	  col = 0;
 	  lig++;
@@ -2525,7 +2523,7 @@ void PART_Fill_Model_Partitions_Table(superarbre *st)
     }
     
   n_groups = 0;
-  For(i,st->n_gt) 
+  For(i,st->n_part) 
     {
       For(j,n_groups)
 	if(encountered_vals[j] == st->bl_partition[i])
@@ -2714,7 +2712,7 @@ void PART_Update_P_Lk(edge *st_b, node *st_n, superarbre *st)
       Warn_And_Exit("");
     }
 
-  For(i,st->n_gt)
+  For(i,st->n_part)
     {
       if((st->map_st_node_in_gt[i][st_n->num][dir][0]) && (!st->map_st_node_in_gt[i][st_n->num][dir][0]->tax))
 	{	  
@@ -2767,7 +2765,7 @@ void PART_Update_Bl(phydbl fact, superarbre *st)
   
   For(i,2*st->tree->n_otu-3)
     {
-      For(j,st->n_gt)
+      For(j,st->n_part)
 	st->bl[st->bl_partition[j]][i] = 
 	st->bl_cpy[st->bl_partition[j]][i] + 
 	(st->bl0[st->bl_partition[j]][i] - st->bl_cpy[st->bl_partition[j]][i]) * fact;
@@ -2783,7 +2781,7 @@ void PART_Update_Bl_Swaped(edge **st_b, int n, superarbre *st)
   
   For(i,n)
     {
-      For(j,st->n_gt)
+      For(j,st->n_part)
 	{
 	  st->bl[st->bl_partition[j]][st_b[i]->num] = 
 	    (st_b[i]->nni->best_conf == 1)?
@@ -2801,7 +2799,7 @@ void PART_Do_Mapping(superarbre *st)
   int k;
 
   Fill_Dir_Table(st->tree);
-  For(k,st->n_gt)
+  For(k,st->n_part)
     {
       Fill_Dir_Table(st->treelist->tree[k]);
       PART_Match_St_Nodes_In_Gt(st->treelist->tree[k],st);	      
