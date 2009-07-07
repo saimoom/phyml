@@ -1727,7 +1727,6 @@ void RATES_Posterior_Rates(arbre *tree)
   int i;
   
   For(i,2*tree->n_otu-2)
-/*   For(i,1) */
     {
       node_num = Rand_Int(0,2*tree->n_otu-3);
       RATES_Posterior_Rates_Pre(tree->noeud[node_num]->anc,tree->noeud[node_num],tree);
@@ -1743,7 +1742,6 @@ void RATES_Posterior_Times(arbre *tree)
   int i;
   
   For(i,2*tree->n_otu-1)
-/*   For(i,1) */
     {
       node_num = Rand_Int(tree->n_otu,2*tree->n_otu-2);
       
