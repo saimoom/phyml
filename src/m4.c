@@ -29,7 +29,7 @@ the GNU public licence. See http://www.opensource.org for details.
 #include "m4.h"
 #include "mc.h"
 #include "draw.h"
-#ifdef MG
+#ifdef PART
 #include "mg.h"
 #endif
 

@@ -1497,7 +1497,7 @@ void MCMC_Init_MCMC_Struct(char *filename, tmcmc *mcmc, arbre *tree)
   mcmc->acc_times       = 0;
   mcmc->acc_nu          = 0;
   mcmc->run             = 0;
-  mcmc->sample_interval = 1000;
+  mcmc->sample_interval = 10000;
   mcmc->n_rate_jumps    = 0;
   mcmc->n_tot_run       = 1.E+6;
   mcmc->randomize       = 1;

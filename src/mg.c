@@ -35,6 +35,7 @@ int PART_main(int argc, char **argv)
   int r_seed;
   int i;
 
+
   fflush(NULL);
   io = (option *)Get_Input(argc,argv);
   r_seed = (io->r_seed < 0)?(time(NULL)):(io->r_seed);
@@ -61,7 +62,8 @@ int PART_main(int argc, char **argv)
       mod       = (model **) mCalloc(io->n_part,sizeof(model *));
       mat       = (matrix **)mCalloc(io->n_part,sizeof(matrix *));
 
-      /* Read the sequences (for each subdatapart) */
+
+      /* Read the sequences (for each partition) */
       For(part,io->n_part)
 	{
 	  Make_Model_Complete(io->st->optionlist[part]->mod); /* Complete model for each data part */
@@ -78,11 +80,14 @@ int PART_main(int argc, char **argv)
 			    io->st->optionlist[part]->mod->stepsize);
 	}
 
+
+
       PART_Make_Superarbre_Full(io->st,io,alldata);
       st = io->st;
       treelist = st->treelist;
       Fill_Dir_Table(st->tree);
       Update_Dirs(st->tree);
+
 
       For(part,io->n_part)
 	{
@@ -158,22 +163,22 @@ int PART_main(int argc, char **argv)
 	     PART_Lk(st),
 	     PART_Pars(st));
 
-      Exit("\n");
 
-/*       int n_iter=0; */
-/*       do */
-/* 	{ */
-/* 	  PART_Optimize_Br_Len_Serie(st->tree->noeud[0], */
-/* 				   st->tree->noeud[0]->v[0], */
-/* 				   st->tree->noeud[0]->b[0], */
-/* 				   st); */
+      int n_iter=0;
+      do
+	{
+	  PART_Optimize_Br_Len_Serie(st->tree->noeud[0],
+				   st->tree->noeud[0]->v[0],
+				   st->tree->noeud[0]->b[0],
+				   st);
 
-/* 	  st->tree->both_sides = 1; */
-/* 	  PART_Lk(st); */
-/* 	  printf("\n. %f",st->tree->c_lnL); */
-/* /\* 	  For(part,st->n_part) printf("\n. %s",Write_Tree(st->treelist->tree[part])); *\/ */
-/* 	  n_iter++; */
-/* 	}while(n_iter < 5); */
+	  st->tree->both_sides = 1;
+	  PART_Lk(st);
+	  printf("\n. %f",st->tree->c_lnL);
+/* 	  For(part,st->n_part) printf("\n. %s",Write_Tree(st->treelist->tree[part])); */
+	  n_iter++;
+	}while(n_iter < 5);
+/*       Exit("\n"); */
 
 
 /*       PART_Lk(st); */
