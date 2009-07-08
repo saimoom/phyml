@@ -11,12 +11,13 @@ the GNU public licence. See http://www.opensource.org for details.
 */
 
 #include "interface.h"
+#include "mg.h"
 
 
 void Launch_Interface(option *io)
 {
   Launch_Interface_Input(io);
-  io->ready_to_go = 0;
+  io->ready_to_go = 0;  
   do
     {
       switch(io->curr_interface)
@@ -234,7 +235,7 @@ void Launch_Interface_Input(option *io)
   io->fp_in_seq = Openfile(io->in_seq_file,0);
   PhyML_Printf("\n");
 
-#elif defined(PHYML) || defined(MG) || defined(PHYML_INSERT)
+#elif defined(PHYML) || defined(PART) || defined(PHYML_INSERT)
 
   PhyML_Printf("\n. Enter the sequence file name > "); fflush(NULL);
   Getstring_Stdin(io->in_seq_file);
@@ -243,7 +244,7 @@ void Launch_Interface_Input(option *io)
 #endif
 
 
-#if defined(PHYML) || defined(MG) || defined(PHYML_INSERT)
+#if defined(PHYML) || defined(PART) || defined(PHYML_INSERT)
 
   strcpy(io->out_stats_file,io->in_seq_file);
   strcat(io->out_stats_file,"_phyml_stats.txt");
@@ -263,7 +264,7 @@ void Launch_Interface_Input(option *io)
   if(Filexists("evolve_out.txt"));
 #elif OPTIMIZ
   if(Filexists("optimiz_out.txt"))
-#elif defined(PHYML) || defined(MG) || defined(PHYML_INSERT)
+#elif defined(PHYML) || defined(PART) || defined(PHYML_INSERT)
   if(Filexists(io->out_stats_file))
 #endif
 #elif UNIX
@@ -271,7 +272,7 @@ void Launch_Interface_Input(option *io)
   if(Filexists("evolve_out"));
 #elif OPTIMIZ
   if(Filexists("optimiz_out"))
-#elif defined(PHYML) || defined(MG) || defined(PHYML_INSERT)
+#elif defined(PHYML) || defined(PART) || defined(PHYML_INSERT)
    if(Filexists(io->out_stats_file))
 #endif
 #endif
@@ -281,7 +282,7 @@ void Launch_Interface_Input(option *io)
       PhyML_Printf("\n. A file 'evolve_out' already exists");
 #elif OPTIMIZ
       PhyML_Printf("\n. A file 'optimiz_out' already exists");
-#elif defined(PHYML) || defined(MG) || defined(PHYML_INSERT)
+#elif defined(PHYML) || defined(PART) || defined(PHYML_INSERT)
       PhyML_Printf("\n. A file '%s' already exists",io->out_stats_file);
 #endif
       PhyML_Printf("\n. Do you want to Replace it or Append to it ? ");
@@ -307,7 +308,7 @@ void Launch_Interface_Input(option *io)
   if(Filexists("evolve_seq.txt"))
 #elif OPTIMIZ
   if(Filexists("optimiz_tree.txt"))
-#elif defined(PHYML) || defined(MG) || defined(PHYML_INSERT)
+#elif defined(PHYML) || defined(PART) || defined(PHYML_INSERT)
   if(Filexists(io->out_tree_file))
 #endif
 #elif UNIX
@@ -315,7 +316,7 @@ void Launch_Interface_Input(option *io)
   if(Filexists("evolve_seq"))
 #elif OPTIMIZ
   if(Filexists("optimiz_tree"))
-#elif defined(PHYML) || defined(MG) || defined(PHYML_INSERT)
+#elif defined(PHYML) || defined(PART) || defined(PHYML_INSERT)
   if(Filexists(io->out_tree_file))
 #endif
 #endif
@@ -325,7 +326,7 @@ void Launch_Interface_Input(option *io)
       PhyML_Printf("\n. A file 'evolve_seq' already exists");
 #elif OPTIMIZ
       PhyML_Printf("\n. A file 'optimiz_tree' already exists");
-#elif defined(PHYML) || defined(MG) || defined(PHYML_INSERT)
+#elif defined(PHYML) || defined(PART) || defined(PHYML_INSERT)
       PhyML_Printf("\n. A file '%s' already exists",io->out_tree_file);
 #endif
       PhyML_Printf("\n. Do you want to Replace it or Append to it ? ");
@@ -450,7 +451,7 @@ void Launch_Interface_Data_Type(option *io)
 	  }
 	io->n_data_sets = atoi(c);
 
-	#ifdef MG
+	#ifdef PART
 	if(io->n_data_sets > 1) 
 	  {
 	    io->multigene = 1;
@@ -1776,18 +1777,18 @@ void Launch_Interface_Branch_Support(option *io)
 void Launch_Interface_Multigene(option *io)
 {
 
-#ifdef MG
+#ifdef PART
 
   if((io->n_data_sets > 1) && (io->multigene))
     {
       int set, n_trial;
       char choix;
       
-      io->n_gt     = io->n_data_sets;
-      io->st       = (superarbre *)Mg_Make_Superarbre_Light(io);
-      io->st->n_gt = io->n_data_sets;
+      io->n_part     = io->n_data_sets;
+      io->st       = (superarbre *)PART_Make_Superarbre_Light(io);
+      io->st->n_part = io->n_data_sets;
 
-      For(set,io->n_gt)
+      For(set,io->n_part)
 	{
 	  io->st->optionlist[set] = Make_Input();
 	  Set_Defaults_Input(io->st->optionlist[set]);
@@ -1820,7 +1821,7 @@ void Launch_Interface_Multigene(option *io)
 	case '\n' : break;
 	case 'Y' : case 'y' : 
 	  {
-	    io->in_tree = 1;
+	    io->in_tree = 2;
 	    PhyML_Printf("\n. Enter the name of the tree file > ");
 	    Getstring_Stdin(io->in_tree_file);
 	    io->fp_in_tree = Openfile(io->in_tree_file,0);
@@ -1862,9 +1863,9 @@ void Launch_Interface_Multigene(option *io)
 		}
 	    }while(!io->st->optionlist[io->curr_gt]->ready_to_go);
 	  io->curr_gt++;
-	}while(io->curr_gt < io->n_gt);      
+	}while(io->curr_gt < io->n_part);      
     }
   io->ready_to_go = 1;
-  Mg_Fill_Model_Partitions_Table(io->st);
+  PART_Fill_Model_Partitions_Table(io->st);
 #endif
 }

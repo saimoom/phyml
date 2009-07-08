@@ -121,7 +121,6 @@ int MC_main(int argc, char **argv)
 		  time(&(tree->t_beg));
 
 /* 		  int n_otu; */
-/* 		  int j; */
 		  int i;
 		  edge *root_edge;
 

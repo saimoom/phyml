@@ -274,18 +274,15 @@ option *Get_Input(int argc, char **argv)
   switch (argc)
     {
     case 1:
-/* #if defined(MG) || defined(USE_OLD_INTERFACE) */
-/*       Get_Input_Interactive(io); */
-/* #else */
-      Launch_Interface(io);
-/* #endif */
-
-      break;
-/*
-    case 2:
-      Usage();
-      break;
-*/
+      {
+	Launch_Interface(io);
+	break;
+      }
+      /*
+	case 2:
+	Usage();
+	break;
+      */
     default:
       Read_Command_Line(io,argc,argv);
     }

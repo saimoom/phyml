@@ -14,7 +14,25 @@ the GNU public licence.  See http://www.opensource.org for details.
 
 
 /*********************************************************/
+/* Handle any number of states (>1) */
+void PMat_JC69(phydbl l, int pos, double *Pij, model *mod)
+{
+  int ns;
+  int i,j;
 
+  ns = mod->ns;
+
+  For(i,ns) Pij[pos+ ns*i+i] = 1./ns + (ns-1.)/ns * exp(-ns*l);
+  For(i,ns-1) 
+    for(j=i+1;j<ns;j++) 
+      {
+	Pij[pos+ ns*i+j] = 1./ns - 1./ns * exp(-ns*l);
+	Pij[pos+ ns*j+i] = Pij[pos+ ns*i+j];
+      }
+}
+
+
+/*********************************************************/
 void PMat_K80(phydbl l, phydbl kappa, int pos, double *Pij)
 {
   phydbl Ts,Tv,e1,e2,aux;
@@ -415,7 +433,8 @@ void PMat(phydbl l, model *mod, int pos, double *Pij)
 		if((mod->whichmodel == JC69) ||  
 		   (mod->whichmodel == K80))  
 		  {
-		    PMat_K80(l,mod->kappa,pos,Pij);
+		    if(mod->ns == 4) PMat_K80(l,mod->kappa,pos,Pij);
+		    else             PMat_JC69(l,pos,Pij,mod);
 		  }
 		else
 		  {

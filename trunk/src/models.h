@@ -48,5 +48,6 @@ int Init_Qmat_HIVb(double *daa, double *pi);  // Added by Federico Abascal
 int Init_Qmat_HIVw(double *daa, double *pi);  // Added by Federico Abascal
 void Switch_From_Mod_To_M4mod(model *mod);
 void Switch_From_M4mod_To_Mod(model *mod);
+void PMat_JC69(phydbl l, int pos, double *Pij, model *mod);
 
 #endif
