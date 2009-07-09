@@ -469,6 +469,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		    }
 		  else
 		    {
+		      Make_Custom_Model(io->mod);
 		      Translate_Custom_Mod_String(io->mod);
 		    }
 

@@ -348,10 +348,6 @@ void Free_Model(model *mod)
   Free(mod->modelname);
   Free(mod->custom_mod_string);
   Free(mod->user_b_freq);
-  Free(mod->rr_num);
-  Free(mod->rr);
-  Free(mod->rr_val);
-  Free(mod->n_rr_per_cat);
   Free(mod->s_opt);
   Free(mod->pi);
   Free(mod->pi_unscaled);
@@ -360,13 +356,20 @@ void Free_Model(model *mod)
   Free(mod->qmat);
   Free(mod->qmat_buff);
   Free_Eigen(mod->eigen);
-
   Free(mod->Pij_rr);
 
   if(mod->n_rr_branch) 
     {
       Free(mod->rr_branch);
       Free(mod->p_rr_branch);
+    }
+
+  if(mod->rr)
+    {
+      Free(mod->rr_num);
+      Free(mod->rr);
+      Free(mod->rr_val);
+      Free(mod->n_rr_per_cat);
     }
 
   #ifdef M4

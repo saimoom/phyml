@@ -17,6 +17,7 @@ the GNU public licence.  See http://www.opensource.org for details.
 #include "lk.h"
 #include "free.h"
 #include "models.h"
+#include "mg.h"
 
 
 void      Optimiz_Ext_Br(arbre *tree);
@@ -130,7 +131,14 @@ phydbl Branch_Rate_Shape_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 phydbl Node_Time_Brent_Fixed_Br_Len(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 				    node *n, arbre *tree, int n_iter_max);
 
-phydbl Rates_Generic_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, phydbl *param, arbre *tree, int n_iter_max);
+phydbl Generic_Brent_Lk(phydbl *param, phydbl ax, phydbl cx, phydbl tol, 
+			int n_iter_max, int quickdirty,
+			phydbl (*obj_func)(edge *,arbre *,superarbre *), 
+			edge *branch, arbre *tree, superarbre *stree);
+phydbl Optwrap_Lk(edge *b, arbre *tree, superarbre *stree);
+phydbl Optwrap_Lk_At_Given_Edge(edge *b, arbre *tree, superarbre *stree);
+phydbl Optwrap_Part_Lk_At_Given_Edge(edge *b, arbre *tree, superarbre *stree);
+phydbl Optwrap_Part_Lk(edge *b, arbre *tree, superarbre *stree);
 
 #endif
 

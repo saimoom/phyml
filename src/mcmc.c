@@ -199,8 +199,8 @@ void MCMC_Nu(arbre *tree)
   if(fabs(min_nu-max_nu) < MDBL_MIN) return;
 
   u = Uni();
-  new_nu = u*(max_nu - min_nu) + min_nu;
-/*   new_nu = cur_nu * exp(H_MCMC_NU*(u-0.5)); */
+/*   new_nu = u*(max_nu - min_nu) + min_nu; */
+  new_nu = cur_nu * exp(H_MCMC_NU*(u-0.5));
 
 
   if(new_nu < min_nu)
@@ -222,8 +222,10 @@ void MCMC_Nu(arbre *tree)
   tree->rates->nu = new_nu;
 
   new_lnL = RATES_Lk_Rates(tree);
-/*   ratio = (new_lnL - cur_lnL) - tree->rates->lbda_nu*(new_nu - cur_nu) + log(new_nu) - log(cur_nu); */
-  ratio = (new_lnL - cur_lnL);
+  ratio = 
+    (new_lnL - cur_lnL) + 
+    (log(new_nu) - log(cur_nu));
+/*   ratio = (new_lnL - cur_lnL); */
   ratio = exp(ratio);
   alpha = MIN(1.,ratio);
   

@@ -503,7 +503,6 @@ phydbl Br_Len_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
       xm=0.5*(a+b);
       tol2=2.0*(tol1=tol*fabs(x)+BRENT_ZEPS);
 
-
       if((tree->c_lnL > init_lnL + tol) && (quickdirty))
 	{
 	  b_fcus->l = x;
@@ -511,7 +510,6 @@ phydbl Br_Len_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 /* 	  PhyML_Printf("\n> iter=%3d max=%3d v=%f lnL=%f init_lnL=%f tol=%f",iter,n_iter_max,(*xmin),tree->c_lnL,init_lnL,tol); */
 	  return tree->c_lnL;	  
 	}
-
 
       if(((fabs(tree->c_lnL-old_lnL) < tol) && 
 	  (tree->c_lnL > init_lnL - tol)) ||	 
@@ -1147,11 +1145,20 @@ void Optimize_Br_Len_Serie(node *a, node *d, edge *b_fcus, arbre *tree, allseq *
   l_max  = b_fcus->l;
   l_infb = BL_MIN;
   
-  Br_Len_Brent(l_infa,l_max,l_infb,
-	       tree->mod->s_opt->min_diff_lk_local,
-	       b_fcus,tree,
-	       tree->mod->s_opt->brent_it_max,
-	       tree->mod->s_opt->quickdirty);
+/*   Br_Len_Brent(l_infa,l_max,l_infb, */
+/* 	       tree->mod->s_opt->min_diff_lk_local, */
+/* 	       b_fcus,tree, */
+/* 	       tree->mod->s_opt->brent_it_max, */
+/* 	       tree->mod->s_opt->quickdirty); */
+
+
+  Generic_Brent_Lk(&(b_fcus->l),
+		   l_infa,l_infb,
+		   tree->mod->s_opt->min_diff_lk_global,
+		   tree->mod->s_opt->brent_it_max,
+		   tree->mod->s_opt->quickdirty,
+		   Optwrap_Lk_At_Given_Edge,b_fcus,tree,NULL);
+  
 
   if(tree->c_lnL < lk_init - tree->mod->s_opt->min_diff_lk_local)
     {
@@ -1241,11 +1248,19 @@ void Optimiz_All_Free_Param(arbre *tree, int verbose)
 	  For(i,tree->mod->n_diff_rr)
 	    if(i != 5)
 	      {
-		Optimize_Single_Param_Generic(tree,&(tree->mod->rr_val[i]),
-					      1.E-2,1.E+2,
-					      tree->mod->s_opt->min_diff_lk_global,
-					      tree->mod->s_opt->brent_it_max,
-					      tree->mod->s_opt->quickdirty);
+/* 		Optimize_Single_Param_Generic(tree,&(tree->mod->rr_val[i]), */
+/* 					      1.E-2,1.E+2, */
+/* 					      tree->mod->s_opt->min_diff_lk_global, */
+/* 					      tree->mod->s_opt->brent_it_max, */
+/* 					      tree->mod->s_opt->quickdirty); */
+
+		Generic_Brent_Lk(&(tree->mod->rr_val[i]),
+				 1.E-2,1.E+2,
+				 tree->mod->s_opt->min_diff_lk_global,
+				 tree->mod->s_opt->brent_it_max,
+				 tree->mod->s_opt->quickdirty,
+				 Optwrap_Lk,NULL,tree,NULL);
+		
 	      }
 
 	}
@@ -1256,11 +1271,19 @@ void Optimiz_All_Free_Param(arbre *tree, int verbose)
   if(tree->mod->s_opt->opt_kappa)
     {
       tree->mod->update_eigen = 1;
-      Optimize_Single_Param_Generic(tree,&(tree->mod->kappa),
-				    .1,100.,
-				    tree->mod->s_opt->min_diff_lk_global,
-				    tree->mod->s_opt->brent_it_max,
-				    tree->mod->s_opt->quickdirty);
+/*       Optimize_Single_Param_Generic(tree,&(tree->mod->kappa), */
+/* 				    .1,100., */
+/* 				    tree->mod->s_opt->min_diff_lk_global, */
+/* 				    tree->mod->s_opt->brent_it_max, */
+/* 				    tree->mod->s_opt->quickdirty); */
+
+      Generic_Brent_Lk(&(tree->mod->kappa),
+		       0.1,100.,
+		       tree->mod->s_opt->min_diff_lk_global,
+		       tree->mod->s_opt->brent_it_max,
+		       tree->mod->s_opt->quickdirty,
+		       Optwrap_Lk,NULL,tree,NULL);
+      
       if(verbose) 
 	{
 	  Print_Lk(tree,"[Ts/ts ratio        ]");
@@ -1271,10 +1294,17 @@ void Optimiz_All_Free_Param(arbre *tree, int verbose)
   
   if(tree->mod->s_opt->opt_lambda) 
     {
-      Optimize_Single_Param_Generic(tree,&(tree->mod->lambda),.001,100.,
-				    tree->mod->s_opt->min_diff_lk_global,
-				    tree->mod->s_opt->brent_it_max,
-				    tree->mod->s_opt->quickdirty);
+/*       Optimize_Single_Param_Generic(tree,&(tree->mod->lambda),.001,100., */
+/* 				    tree->mod->s_opt->min_diff_lk_global, */
+/* 				    tree->mod->s_opt->brent_it_max, */
+/* 				    tree->mod->s_opt->quickdirty); */
+      Generic_Brent_Lk(&(tree->mod->lambda),
+		       0.001,100.,
+		       tree->mod->s_opt->min_diff_lk_global,
+		       tree->mod->s_opt->brent_it_max,
+		       tree->mod->s_opt->quickdirty,
+		       Optwrap_Lk,NULL,tree,NULL);
+
       if(verbose) 
 	{
 	  Print_Lk(tree,"[Lambda             ]");
@@ -1297,11 +1327,19 @@ void Optimiz_All_Free_Param(arbre *tree, int verbose)
     {
       if(tree->mod->s_opt->opt_pinvar)
 	{
-	  Optimize_Single_Param_Generic(tree,&(tree->mod->pinvar),
-					.0001,0.9999,
-					tree->mod->s_opt->min_diff_lk_global,
-					tree->mod->s_opt->brent_it_max,
-					tree->mod->s_opt->quickdirty);
+/*  	  Optimize_Single_Param_Generic(tree,&(tree->mod->pinvar), */
+/* 					.0001,0.9999, */
+/* 					tree->mod->s_opt->min_diff_lk_global, */
+/* 					tree->mod->s_opt->brent_it_max, */
+/* 					tree->mod->s_opt->quickdirty); */
+
+	  Generic_Brent_Lk(&(tree->mod->pinvar),
+			   0.0001,0.9999,
+			   tree->mod->s_opt->min_diff_lk_global,
+			   tree->mod->s_opt->brent_it_max,
+			   tree->mod->s_opt->quickdirty,
+			   Optwrap_Lk,NULL,tree,NULL);
+
 	  if(verbose) 
 	    {
 	      Print_Lk(tree,"[P-inv              ]");
@@ -1312,12 +1350,19 @@ void Optimiz_All_Free_Param(arbre *tree, int verbose)
       if(tree->mod->s_opt->opt_alpha)
 	{
 	  if(tree->mod->n_catg > 1)
-	    Optimize_Single_Param_Generic(tree,&(tree->mod->alpha),
-/* 					  .01,100., */
-					  tree->mod->alpha/2.,tree->mod->alpha*2.,
-					  tree->mod->s_opt->min_diff_lk_global,
-					  tree->mod->s_opt->brent_it_max,
-					  tree->mod->s_opt->quickdirty);
+/* 	    Optimize_Single_Param_Generic(tree,&(tree->mod->alpha), */
+/* /\* 					  .01,100., *\/ */
+/* 					  tree->mod->alpha/2.,tree->mod->alpha*2., */
+/* 					  tree->mod->s_opt->min_diff_lk_global, */
+/* 					  tree->mod->s_opt->brent_it_max, */
+/* 					  tree->mod->s_opt->quickdirty); */
+
+	    Generic_Brent_Lk(&(tree->mod->alpha),
+			     tree->mod->alpha/2.,tree->mod->alpha*2.,
+			     tree->mod->s_opt->min_diff_lk_global,
+			     tree->mod->s_opt->brent_it_max,
+			     tree->mod->s_opt->quickdirty,
+			     Optwrap_Lk,NULL,tree,NULL);
 	  if(verbose) 
 	    {
 	      Print_Lk(tree,"[Alpha              ]");
@@ -1337,11 +1382,19 @@ void Optimiz_All_Free_Param(arbre *tree, int verbose)
         if(failed)
 	  {
 	    For(i,4) 
-	      Optimize_Single_Param_Generic(tree,&(tree->mod->pi_unscaled[i]),
-					    -1000.,1000.,
-					    tree->mod->s_opt->min_diff_lk_global,
-					    tree->mod->s_opt->brent_it_max,
-					    tree->mod->s_opt->quickdirty);
+	      {
+/* 		Optimize_Single_Param_Generic(tree,&(tree->mod->pi_unscaled[i]), */
+/* 					      -1000.,1000., */
+/* 					      tree->mod->s_opt->min_diff_lk_global, */
+/* 					      tree->mod->s_opt->brent_it_max, */
+/* 					      tree->mod->s_opt->quickdirty); */
+ 		Generic_Brent_Lk(&(tree->mod->pi_unscaled[i]),
+				 -1000.,1000.,
+				 tree->mod->s_opt->min_diff_lk_global,
+				 tree->mod->s_opt->brent_it_max,
+				 tree->mod->s_opt->quickdirty,
+				 Optwrap_Lk,NULL,tree,NULL);
+	      }
 	  }
 	if(verbose) Print_Lk(tree,"[Nucleotide freqs.  ]");
         tree->mod->update_eigen = 0;
@@ -1354,11 +1407,19 @@ void Optimiz_All_Free_Param(arbre *tree, int verbose)
       if(tree->mod->s_opt->opt_cov_delta) 
 	{
 	  tree->mod->update_eigen = 1;
-	  Optimize_Single_Param_Generic(tree,&(tree->mod->m4mod->delta),
-					0.01,10.,
-					tree->mod->s_opt->min_diff_lk_global,
-					tree->mod->s_opt->brent_it_max,
-					tree->mod->s_opt->quickdirty);
+/* 	  Optimize_Single_Param_Generic(tree,&(tree->mod->m4mod->delta), */
+/* 					0.01,10., */
+/* 					tree->mod->s_opt->min_diff_lk_global, */
+/* 					tree->mod->s_opt->brent_it_max, */
+/* 					tree->mod->s_opt->quickdirty); */
+
+	  Generic_Brent_Lk(&(tree->mod->m4mod->delta),
+			   0.01,10.,
+			   tree->mod->s_opt->min_diff_lk_global,
+			   tree->mod->s_opt->brent_it_max,
+			   tree->mod->s_opt->quickdirty,
+			   Optwrap_Lk,NULL,tree,NULL);
+
 	  if(verbose) 
 	    {
 	      Print_Lk(tree,"[Switching param.   ]");
@@ -1374,11 +1435,19 @@ void Optimiz_All_Free_Param(arbre *tree, int verbose)
 	  tree->mod->update_eigen = 1;
 	  For(rcat,tree->mod->m4mod->n_h)
 	    {
-	      Optimize_Single_Param_Generic(tree,&(tree->mod->m4mod->multipl_unscaled[rcat]),
-					    .01,10.,
-					    tree->mod->s_opt->min_diff_lk_global,
-					    tree->mod->s_opt->brent_it_max,
-					    tree->mod->s_opt->quickdirty);
+/* 	      Optimize_Single_Param_Generic(tree,&(tree->mod->m4mod->multipl_unscaled[rcat]), */
+/* 					    .01,10., */
+/* 					    tree->mod->s_opt->min_diff_lk_global, */
+/* 					    tree->mod->s_opt->brent_it_max, */
+/* 					    tree->mod->s_opt->quickdirty); */
+
+	      Generic_Brent_Lk(&(tree->mod->m4mod->multipl_unscaled[rcat]),
+			       0.01,10.,
+			       tree->mod->s_opt->min_diff_lk_global,
+			       tree->mod->s_opt->brent_it_max,
+			       tree->mod->s_opt->quickdirty,
+			       Optwrap_Lk,NULL,tree,NULL);
+
 	      
 	      if(verbose) 
 		{
@@ -1389,11 +1458,19 @@ void Optimiz_All_Free_Param(arbre *tree, int verbose)
 	  
 	  For(rcat,tree->mod->m4mod->n_h)
 	    {
-	      Optimize_Single_Param_Generic(tree,&(tree->mod->m4mod->h_fq_unscaled[rcat]),
-					    .01,100.,
-					    tree->mod->s_opt->min_diff_lk_global,
-					    tree->mod->s_opt->brent_it_max,
-					    tree->mod->s_opt->quickdirty);
+/*  	      Optimize_Single_Param_Generic(tree,&(tree->mod->m4mod->h_fq_unscaled[rcat]), */
+/* 					    .01,100., */
+/* 					    tree->mod->s_opt->min_diff_lk_global, */
+/* 					    tree->mod->s_opt->brent_it_max, */
+/* 					    tree->mod->s_opt->quickdirty); */
+
+	      Generic_Brent_Lk(&(tree->mod->m4mod->h_fq_unscaled[rcat]),
+			       0.01,100.,
+			       tree->mod->s_opt->min_diff_lk_global,
+			       tree->mod->s_opt->brent_it_max,
+			       tree->mod->s_opt->quickdirty,
+			       Optwrap_Lk,NULL,tree,NULL);
+
 	      
 	      if(verbose)
 		{
@@ -1407,11 +1484,20 @@ void Optimiz_All_Free_Param(arbre *tree, int verbose)
       if(tree->mod->s_opt->opt_cov_alpha) 
 	{
 	  tree->mod->update_eigen = 1;
-	  Optimize_Single_Param_Generic(tree,&(tree->mod->m4mod->alpha),
-					.01,10.,
-					tree->mod->s_opt->min_diff_lk_global,
-					tree->mod->s_opt->brent_it_max,
-					tree->mod->s_opt->quickdirty);
+/* 	  Optimize_Single_Param_Generic(tree,&(tree->mod->m4mod->alpha), */
+/* 					.01,10., */
+/* 					tree->mod->s_opt->min_diff_lk_global, */
+/* 					tree->mod->s_opt->brent_it_max, */
+/* 					tree->mod->s_opt->quickdirty); */
+
+	  Generic_Brent_Lk(&(tree->mod->m4mod->alpha),
+			   0.01,10.,
+			   tree->mod->s_opt->min_diff_lk_global,
+			   tree->mod->s_opt->brent_it_max,
+			   tree->mod->s_opt->quickdirty,
+			   Optwrap_Lk,NULL,tree,NULL);
+
+
 	  if(verbose) 
 	    {
 	      Print_Lk(tree,"[Alpha (covarion)   ]");
@@ -1435,11 +1521,19 @@ void Optimiz_All_Free_Param(arbre *tree, int verbose)
 	{
 	  For(i,5) 
 	    {
-	      Optimize_Single_Param_Generic(tree,&(tree->mod->m4mod->o_rr[i]),
-					    1.E-20,1.E+10,
-					    tree->mod->s_opt->min_diff_lk_global,
-					    tree->mod->s_opt->brent_it_max,
-					    tree->mod->s_opt->quickdirty);
+/* 	      Optimize_Single_Param_Generic(tree,&(tree->mod->m4mod->o_rr[i]), */
+/* 					    1.E-20,1.E+10, */
+/* 					    tree->mod->s_opt->min_diff_lk_global, */
+/* 					    tree->mod->s_opt->brent_it_max, */
+/* 					    tree->mod->s_opt->quickdirty); */
+
+	      Generic_Brent_Lk(&(tree->mod->m4mod->o_rr[i]),
+			       1.E-20,1.E+10,
+			       tree->mod->s_opt->min_diff_lk_global,
+			       tree->mod->s_opt->brent_it_max,
+			       tree->mod->s_opt->quickdirty,
+			       Optwrap_Lk,NULL,tree,NULL);
+	      
 	    }
 	}
       if(verbose) Print_Lk(tree,"[GTR parameters     ]");
@@ -2810,4 +2904,173 @@ phydbl Rates_Generic_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, phydbl *
   /* Not Reached ??  return fx; */
 }
 #endif
+
+/*********************************************************/
+
+phydbl Optwrap_Part_Lk_At_Given_Edge(edge *b, arbre *tree, superarbre *stree)
+{
+  return PART_Lk_At_Given_Edge(b,stree);;
+}
+
+/*********************************************************/
+
+phydbl Optwrap_Part_Lk(edge *b, arbre *tree, superarbre *stree)
+{
+  return PART_Lk(stree);
+}
+
+/*********************************************************/
+
+phydbl Optwrap_Lk(edge *b, arbre *tree, superarbre *stree)
+{
+  Lk(tree);
+  return tree->c_lnL;
+}
+
+/*********************************************************/
+
+phydbl Optwrap_Lk_At_Given_Edge(edge *b, arbre *tree, superarbre *stree)
+{
+  Lk_At_Given_Edge(b,tree);
+  return tree->c_lnL;
+}
+
+/*********************************************************/
+
+phydbl Generic_Brent_Lk(phydbl *param, phydbl ax, phydbl cx, phydbl tol, 
+			int n_iter_max, int quickdirty,
+			phydbl (*obj_func)(edge *,arbre *,superarbre *), 
+			edge *branch, arbre *tree, superarbre *stree)
+{
+  int iter;
+  phydbl a,b,d,etemp,fu,fv,fw,fx,p,q,r,tol1,tol2,u,v,w,x,xm;
+  phydbl e=0.0;
+  phydbl old_lnL,init_lnL;
+  phydbl bx = *param;
+
+  d=0.0;
+  a=((ax < cx) ? ax : cx);
+  b=((ax > cx) ? ax : cx);
+  x=w=v=bx;
+  old_lnL = UNLIKELY;
+  (*param) = fabs(bx);
+  fw=fv=fx=-(*obj_func)(branch,tree,stree);
+  init_lnL = -fw;
+
+/*   PhyML_Printf("\n. init_lnL = %f a=%f b=%f c=%f\n",init_lnL,ax,bx,cx); */
+
+  for(iter=1;iter<=BRENT_ITMAX;iter++) 
+    {
+      xm=0.5*(a+b);
+      tol2=2.0*(tol1=tol*fabs(x)+BRENT_ZEPS);
+
+      if(fabs(x - xm) <= (tol2 - 0.5 * (b - a)))
+	{
+	  *param = x;
+	  (*obj_func)(branch,tree,stree);
+	  
+	  if(!stree)
+	    {
+	      if(tree->c_lnL < init_lnL - tree->mod->s_opt->min_diff_lk_local)
+		{
+		  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+		  Warn_And_Exit("");
+		}
+	    }
+	  else
+	    {
+	      if(stree->tree->c_lnL < init_lnL - stree->tree->mod->s_opt->min_diff_lk_local)
+		{
+		  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+		  Warn_And_Exit("");
+		}
+	    }
+
+	  if(stree) return stree->tree->c_lnL;
+	  else      return tree->c_lnL;
+	}
+      
+      if(fabs(e) > tol1) 
+	{
+	  r=(x-w)*(fx-fv);
+	  q=(x-v)*(fx-fw);
+	  p=(x-v)*q-(x-w)*r;
+	  q=2.0*(q-r);
+	  if(q > 0.0) p = -p;
+	  q=fabs(q);
+	  etemp=e;
+	  e=d;
+	  if(fabs(p) >= fabs(0.5*q*etemp) || p <= q*(a-x) || p >= q*(b-x))
+	    {
+	      d=BRENT_CGOLD*(e=(x >= xm ? a-x : b-x));
+/* 	      PhyML_Printf("Golden section step\n"); */
+	    }
+	  else
+	    {
+	      d=p/q;
+	      u=x+d;
+	      if (u-a < tol2 || b-u < tol2) d=SIGN(tol1,xm-x);
+/* 	      PhyML_Printf("Parabolic step [e=%f]\n",e); */
+	    }
+        }
+      else
+	{
+	  d=BRENT_CGOLD*(e=(x >= xm ? a-x : b-x));
+/* 	  PhyML_Printf("Golden section step (default) [e=%f tol1=%f a=%f b=%f d=%f]\n",e,tol1,a,b,d); */
+	}
+      
+      u=(fabs(d) >= tol1 ? x+d : x+SIGN(tol1,d));
+      (*param) = fabs(u);
+      old_lnL = (!stree)?(tree->c_lnL):(stree->tree->c_lnL);
+      fu = -(*obj_func)(branch,tree,stree);
+      
+/*       PhyML_Printf("\n. iter=%d/%d param=%f loglk=%f",iter,BRENT_ITMAX,*param,tree->c_lnL); */
+
+      if(fu <= fx)
+/*       if(fu < fx)  */
+	{
+	  if(u >= x) a=x; else b=x;
+/* 	  if(u > x) a=x; else b=x; */
+	  SHFT(v,w,x,u)
+	  SHFT(fv,fw,fx,fu)
+	} 
+      else
+	{
+	  if (u < x) a=u; else b=u;
+	  if (fu <= fw || w == x)
+/* 	  if (fu < fw || fabs(w-x) < 1.E-10)  */
+	    {
+	      v=w;
+	      w=u;
+	      fv=fw;
+	      fw=fu;
+	    } 
+	  else if (fu <= fv || v == x || v == w)
+/* 	  else if (fu < fv || fabs(v-x) < 1.E-10 || fabs(v-w) < 1.E-10)  */
+	    {
+	      v=u;
+	      fv=fu;
+	    }
+	}
+    }
+
+  Exit("\n. Too many iterations in BRENT !");
+  return(-1);
+  /* Not Reached ??  *param=x;   */
+  /* Not Reached ??  return fx; */
+}
+
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
 /*********************************************************/
