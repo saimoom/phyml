@@ -43,7 +43,8 @@ m4.c m4.h\
 draw.c draw.h\
 rates.c rates.h\
 mcmc.c mcmc.h\
-stats.c stats.h
+stats.c stats.h\
+mg.c mg.h
 mc_LDADD = -lm
 else 
 if WANT_PART
@@ -85,7 +86,8 @@ cl.c  cl.h\
 spr.c spr.h\
 draw.c  draw.h\
 mpi_boot.c  mpi_boot.h\
-stats.c stats.h
+stats.c stats.h\
+mg.c mg.h
 phyml_LDADD = -lm
 endif
 endif

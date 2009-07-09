@@ -92,7 +92,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  N_MAX_OPTIONS        100
 #define  H_MCMC_RATES         1.0
 #define  H_MCMC_LEXP          0.5
-#define  H_MCMC_NU            0.5
+#define  H_MCMC_NU            0.1
 #define  H_MCMC_CLOCK         0.5
 
 #define  T_MAX_FILE           500
@@ -452,7 +452,7 @@ typedef struct __Super_Arbre {
   /* partition[gt_num] gives the edge partition number 
    * gt_num belongs to.
    */
-  int                               n_bl_partition;
+  int                                   n_bl_part;
 
   struct __Model                          **s_mod; /* substitution model */
 
@@ -1225,6 +1225,7 @@ void Find_Clade_Pre(node *a, node *d, char **tax_name_list, int list_size, int *
 void Read_Clade_Priors(char *file_name, arbre *tree);
 edge *Find_Root_Edge(FILE *fp_input_tree, arbre *tree);
 void Copy_Tree_Topology_With_Labels(arbre *ori, arbre *cpy);
+void Make_Custom_Model(model *mod);
 
 
 #include "free.h"

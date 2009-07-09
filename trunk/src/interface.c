@@ -771,6 +771,8 @@ void Launch_Interface_Model(option *io)
 	      }while(n_trial < 10);
 	    if(n_trial == 10) Exit("");
 
+
+	    if(!mod->rr) Make_Custom_Model(mod);
 	    Translate_Custom_Mod_String(io->mod);
 
 	    strcpy(rr_param[0],"A<->C");

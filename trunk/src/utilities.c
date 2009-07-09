@@ -4704,20 +4704,24 @@ void Copy_One_State(char *from, char *to, int state_size)
 
 /*********************************************************/
 
+void Make_Custom_Model(model *mod)
+{
+  mod->rr            = (phydbl *)mCalloc(mod->ns*(mod->ns-1)/2,sizeof(phydbl));
+  mod->rr_val        = (phydbl *)mCalloc(mod->ns*(mod->ns-1)/2,sizeof(phydbl));
+  mod->rr_num        = (int *)mCalloc(mod->ns*(mod->ns-1)/2,sizeof(int *));
+  mod->n_rr_per_cat  = (int *)mCalloc(mod->ns*(mod->ns-1)/2,sizeof(int));
+}
+
+/*********************************************************/
+
 model *Make_Model_Basic()
 {
   model *mod;
 
   mod                     = (model *)mCalloc(1,sizeof(model));
-
   mod->modelname          = (char *)mCalloc(T_MAX_NAME,sizeof(char));
   mod->custom_mod_string  = (char *)mCalloc(T_MAX_OPTION,sizeof(char));
   mod->user_b_freq        = (phydbl *)mCalloc(T_MAX_OPTION,sizeof(phydbl));
-
-  mod->rr                 = (phydbl *)mCalloc(6,sizeof(phydbl));
-  mod->rr_val             = (phydbl *)mCalloc(6,sizeof(phydbl));
-  mod->rr_num             = (int *)mCalloc(6,sizeof(int *));
-  mod->n_rr_per_cat       = (int *)mCalloc(6,sizeof(int));
   mod->s_opt              = (optimiz *)Alloc_Optimiz();
 
   return mod;
@@ -4735,6 +4739,7 @@ void Make_Model_Complete(model *mod)
   mod->qmat          = (double *)mCalloc(mod->ns*mod->ns,sizeof(double));
   mod->qmat_buff     = (double *)mCalloc(mod->ns*mod->ns,sizeof(double));
   mod->eigen         = (eigen *)Make_Eigen_Struct(mod->ns);
+
   
   if(mod->n_rr_branch)
     {
@@ -4908,8 +4913,6 @@ void Set_Defaults_Input(option* io)
 
 void Set_Defaults_Model(model *mod)
 {
-  int i;
-
   strcpy(mod->modelname,"HKY85");
   strcpy(mod->custom_mod_string,"000000");
   mod->whichmodel              = HKY85;
@@ -4923,33 +4926,14 @@ void Set_Defaults_Model(model *mod)
   mod->stepsize                = 1;
   mod->ns                      = 4;
   mod->n_diff_rr               = 0;
-  For(i,6) mod->rr_val[i]      = 1.0;
-  For(i,4) mod->user_b_freq[i] = -1.;
   mod->m4mod                   = NULL;
   mod->use_m4mod               = 0;
   mod->n_rr_branch             = 0;
   mod->rr_branch_alpha         = 0.1;
   mod->gamma_median            = 0;
-}
-
-/*********************************************************/
-
-void Reset_Model_Parameters(model *mod)
-{
-  int i;
-
-  PhyML_Printf("\n. Resetting model parameters... \n");
-
-  mod->kappa                   = 4.0;
-  mod->alpha                   = 1.0;
-  mod->lambda                  = 1.0;
-  mod->pinvar                  = 0.0;
-
-  For(i,6) 
-    {
-      mod->rr[i]     = 1.0;
-      mod->rr_val[i] = 1.0;
-    }
+  mod->rr                      = NULL;
+  mod->rr_val                  = NULL;
+  mod->n_rr_per_cat            = NULL;
 }
 
 /*********************************************************/
@@ -6826,7 +6810,6 @@ void Fast_Br_Len(edge *b, arbre *tree, int approx)
   else
     Lk_At_Given_Edge(b,tree);
 }
-
 
 /*********************************************************/
 

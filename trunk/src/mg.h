@@ -42,7 +42,7 @@ void PART_Record_Br_Len(superarbre *st);
 phydbl PART_Lk_At_Given_Edge(edge *st_b, superarbre *st);
 phydbl PART_Update_Lk_At_Given_Edge(edge *st_b, superarbre *st);
 void PART_Fill_Model_Partitions_Table(superarbre *st);
-phydbl PART_Br_Len_Brent(edge *st_b, superarbre *tree);
+phydbl PART_Br_Len_Brent(edge *st_b, int quickdirty, superarbre *tree);
 void PART_Initialise_Bl_Partition(superarbre *st);
 void PART_Update_P_Lk(edge *st_b, node *st_n, superarbre *st);
 void PART_Optimize_Br_Len_Serie(node *st_a, node *st_d, edge *st_b, superarbre *st);

@@ -2193,6 +2193,7 @@ void Init_Model(allseq *data, model *mod)
 	  mod->kappa  = 4.0;
 	  mod->lambda = 1.0;
 	}
+
       if(mod->s_opt->opt_rr)
 	{
 	  int i;
