@@ -136,6 +136,7 @@ int main(int argc, char **argv)
 
 		  if(io->in_tree == 1) Spr_Pars(tree);
 
+
 		  if(tree->mod->s_opt->opt_topo)
 		    {
 		      if(tree->mod->s_opt->topo_search      == NNI_MOVE) Simu_Loop(tree);
@@ -144,7 +145,7 @@ int main(int argc, char **argv)
 		    }
 		  else
 		    {
-		      if(tree->mod->s_opt->opt_num_param || 
+		      if(tree->mod->s_opt->opt_subst_param || 
 			 tree->mod->s_opt->opt_bl)                       Round_Optimize(tree,tree->data,ROUND_MAX);
 		      else                                               Lk(tree);
 		    }

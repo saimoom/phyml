@@ -478,7 +478,6 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		  strcpy(io->mod->modelname, "custom");
 		  io->mod->s_opt->opt_kappa     = 0;
 		  io->mod->s_opt->opt_rr        = 1;
-		  io->mod->s_opt->opt_num_param = 1;
 		}
 
 	      if (strcmp(optarg, "JC69") == 0)
@@ -633,7 +632,6 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		  (strcmp (optarg, "ESTIMATED") == 0))
 		{
 		  io->mod->s_opt->opt_alpha     = 1;
-		  io->mod->s_opt->opt_num_param = 1;
 		}
 	      else if ((!atof(optarg)) || (atof(optarg) < 1.E-10))
 		{
@@ -843,7 +841,6 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		      (strcmp(optarg, "ESTIMATED") == 0))
 		    {
 		      io->mod->kappa                 = 4.0;
-		      io->mod->s_opt->opt_num_param  = 1;
 		      io->mod->s_opt->opt_kappa      = 1;
 		      if (io->mod->whichmodel == TN93)
 			io->mod->s_opt->opt_lambda   = 1;
@@ -929,7 +926,6 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		  (strcmp (optarg, "estimated") == 0) ||
 		  (strcmp (optarg, "ESTIMATED") == 0)) 
 		{
-		  io->mod->s_opt->opt_num_param = 1;
 		  io->mod->s_opt->opt_pinvar    = 1;
 		  io->mod->invar                = 1;
 		}
@@ -957,13 +953,15 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	  {
 	    if(!strcmp(optarg,"tlr"))
 	      {
-		io->mod->s_opt->opt_topo = 1;
-		io->mod->s_opt->opt_bl   = 1;
+		io->mod->s_opt->opt_topo        = 1;
+		io->mod->s_opt->opt_bl          = 1;
+		io->mod->s_opt->opt_subst_param = 1;
 	      }
 	    else if(!strcmp(optarg,"tl"))
 	      {
-		io->mod->s_opt->opt_topo = 1;
-		io->mod->s_opt->opt_bl   = 1;
+		io->mod->s_opt->opt_topo        = 1;
+		io->mod->s_opt->opt_bl          = 1;
+		io->mod->s_opt->opt_subst_param = 0;
 	      }
 	    else if(!strcmp(optarg,"t"))
 	      {
@@ -971,23 +969,27 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	      }
 	    else if(!strcmp(optarg,"lr"))
 	      {
-		io->mod->s_opt->opt_topo = 0;
-		io->mod->s_opt->opt_bl   = 1;
+		io->mod->s_opt->opt_topo        = 0;
+		io->mod->s_opt->opt_bl          = 1;
+		io->mod->s_opt->opt_subst_param = 1;
 	      }
 	    else if(!strcmp(optarg,"l"))
 	      {
-		io->mod->s_opt->opt_topo = 0;
-		io->mod->s_opt->opt_bl   = 1;
+		io->mod->s_opt->opt_topo        = 0;
+		io->mod->s_opt->opt_bl          = 1;
+		io->mod->s_opt->opt_subst_param = 0;
 	      }
 	    else if(!strcmp(optarg,"r"))
 	      {
-		io->mod->s_opt->opt_topo = 0;
-		io->mod->s_opt->opt_bl   = 0;
+		io->mod->s_opt->opt_topo        = 0;
+		io->mod->s_opt->opt_bl          = 0;
+		io->mod->s_opt->opt_subst_param = 1;
 	      }
 	    else if(!strcmp(optarg,"none") || !strcmp(optarg,"n"))
 	      {
-		io->mod->s_opt->opt_topo = 0;
-		io->mod->s_opt->opt_bl   = 0;
+		io->mod->s_opt->opt_topo        = 0;
+		io->mod->s_opt->opt_bl          = 0;
+		io->mod->s_opt->opt_subst_param = 0;
 	      }
 	    else
 	      {
@@ -1130,6 +1132,15 @@ void Read_Command_Line(option *io, int argc, char **argv)
     strcat(io->out_stats_file,".txt");
 
     if(io->mod->n_catg == 1) io->mod->s_opt->opt_alpha = 0;
+
+    if(!io->mod->s_opt->opt_subst_param)
+      {
+	io->mod->s_opt->opt_alpha  = 0;
+	io->mod->s_opt->opt_kappa  = 0;
+	io->mod->s_opt->opt_lambda = 0;
+	io->mod->s_opt->opt_pinvar = 0;
+	io->mod->s_opt->opt_rr     = 0;	
+      }
 
     io->fp_out_tree  = Openfile(io->out_tree_file,writemode);
     io->fp_out_stats = Openfile(io->out_stats_file,writemode);
