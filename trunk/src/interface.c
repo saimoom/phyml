@@ -936,7 +936,7 @@ void Launch_Interface_Model(option *io)
 	  case 'Y' : case 'y' :
 	    {
 	      io->mod->s_opt->opt_alpha = 1;
-	      io->mod->s_opt->opt_num_param = 1;
+	      io->mod->s_opt->opt_subst_param = 1;
 	      break;
 	    }
 	  case 'N' : case 'n' :
@@ -1032,7 +1032,7 @@ void Launch_Interface_Model(option *io)
 	  {
 	  case 'Y' : case 'y' :
 	    {
-	      io->mod->s_opt->opt_num_param = 1;
+	      io->mod->s_opt->opt_subst_param = 1;
 	      io->mod->s_opt->opt_pinvar = 1;
 	      io->mod->pinvar = 0.2;
 	      io->mod->invar  = 1;
@@ -1121,7 +1121,7 @@ void Launch_Interface_Model(option *io)
 	  case 'Y' : case 'y' :
 	    {
 	      io->mod->kappa = 4.0;
-	      io->mod->s_opt->opt_num_param = 1;
+	      io->mod->s_opt->opt_subst_param = 1;
 	      io->mod->s_opt->opt_kappa = 1;
 	      if(io->mod->whichmodel == TN93)
 		io->mod->s_opt->opt_lambda = 1;
@@ -1327,12 +1327,8 @@ void Launch_Interface_Model(option *io)
      io->mod->s_opt->opt_kappa  ||
      io->mod->s_opt->opt_lambda ||
      io->mod->s_opt->opt_pinvar ||
-     io->mod->s_opt->opt_rr) io->mod->s_opt->opt_num_param = 1;
-  else                       io->mod->s_opt->opt_num_param = 0;
-
-
-
-
+     io->mod->s_opt->opt_rr) io->mod->s_opt->opt_subst_param = 1;
+  else                       io->mod->s_opt->opt_subst_param = 0;
 
   Free(s);
 }

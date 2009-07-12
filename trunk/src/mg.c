@@ -2556,14 +2556,7 @@ phydbl PART_Br_Len_Brent(edge *st_b, int quickdirty, superarbre *st)
   phydbl ax, bx, cx;
   int part;
   phydbl cur_l;
-/*   int iter, n_iter_max; */
-/*   phydbl a,b,d,etemp,fu,fv,fw,fx,p,q,r,tol1,tol2,u,v,w,x,xm; */
-/*   phydbl e=0.0; */
-/*   phydbl old_lnL, init_lnL; */
-/*   double tol; */
 
-/*   tol        = st->tree->mod->s_opt->min_diff_lk_local; */
-/*   n_iter_max = st->tree->mod->s_opt->brent_it_max; */
 
   For(part,st->n_bl_part)
     {
@@ -2575,105 +2568,11 @@ phydbl PART_Br_Len_Brent(edge *st_b, int quickdirty, superarbre *st)
 
       Generic_Brent_Lk(&(st->bl[part][st_b->num]),
 		       ax,cx,
-		       st->tree->mod->s_opt->min_diff_lk_global,
+		       st->tree->mod->s_opt->min_diff_lk_local,
 		       st->tree->mod->s_opt->brent_it_max,
 		       st->tree->mod->s_opt->quickdirty,
 		       Optwrap_Part_Lk_At_Given_Edge,st_b,NULL,st);
       
-/*       d=0.0; */
-/*       a=((ax < cx) ? ax : cx); */
-/*       b=((ax > cx) ? ax : cx); */
-/*       x=w=v=bx; */
-/*       old_lnL = UNLIKELY; */
-/*       st->bl[part][st_b->num] = fabs(bx); */
-/*       fw=fv=fx=fu=-PART_Lk_At_Given_Edge(st_b,st); */
-/* /\*       fw=fv=fx=fu=-Lk_At_Given_Edge(b_fcus,tree); *\/ */
-/*       init_lnL = -fw; */
-
-/*       for(iter=1;iter<=BRENT_ITMAX;iter++) */
-/* 	{ */
-/* 	  xm=0.5*(a+b); */
-/* 	  tol2=2.0*(tol1=tol*fabs(x)+BRENT_ZEPS); */
-	  
-/* 	  if((st->tree->c_lnL > init_lnL + tol) && (quickdirty)) */
-/* 	    { */
-/* 	      st->bl[part][st_b->num] = x; */
-/* 	      PART_Lk_At_Given_Edge(st_b,st); */
-/* 	      /\* 	  Lk_At_Given_Edge(b_fcus,tree); *\/ */
-/* 	      /\* 	  PhyML_Printf("\n> iter=%3d max=%3d v=%f lnL=%f init_lnL=%f tol=%f",iter,n_iter_max,(*xmin),st->tree->c_lnL,init_lnL,tol); *\/ */
-/* 	      return st->tree->c_lnL; */
-/* 	    } */
-	  
-/* 	  if(((fabs(st->tree->c_lnL-old_lnL) < tol) && */
-/* 	      (st->tree->c_lnL > init_lnL - tol)) || */
-/* 	     (iter > n_iter_max - 1)) */
-/* 	    { */
-/* 	      st->bl[part][st_b->num]=x; */
-/* 	      PART_Lk_At_Given_Edge(st_b,st); */
-/* /\* 	      Lk_At_Given_Edge(b_fcus,tree); *\/ */
-/* /\* 	      PhyML_Printf("\n. iter=%3d max=%3d l=%f lnL=%f init_lnL=%f", *\/ */
-/* /\* 			   iter,n_iter_max,st->bl[part][st_b->num], *\/ */
-/* /\* 			   st->tree->c_lnL,init_lnL); *\/ */
-/* 	      return st->tree->c_lnL; */
-/* 	    } */
-	  
-/* 	  if(fabs(e) > tol1) */
-/* 	    { */
-/* 	      r=(x-w)*(fx-fv); */
-/* 	      q=(x-v)*(fx-fw); */
-/* 	      p=(x-v)*q-(x-w)*r; */
-/* 	      q=2.0*(q-r); */
-/* 	      if(q > 0.0) p = -p; */
-/* 	      q=fabs(q); */
-/* 	      etemp=e; */
-/* 	      e=d; */
-/* 	      if(fabs(p) >= fabs(0.5*q*etemp) || p <= q*(a-x) || p >= q*(b-x)) */
-/* 		d=BRENT_CGOLD*(e=(x >= xm ? a-x : b-x)); */
-/* 	      else{ */
-/* 		d=p/q; */
-/* 		u=x+d; */
-/* 		if (u-a < tol2 || b-u < tol2) */
-/* 		  d=SIGN(tol1,xm-x); */
-/* 	      } */
-/* 	    } */
-/* 	  else */
-/* 	    { */
-/* 	      d=BRENT_CGOLD*(e=(x >= xm ? a-x : b-x)); */
-/* 	    } */
-/* 	  u=(fabs(d) >= tol1 ? x+d : x+SIGN(tol1,d)); */
-/* 	  if(u<BL_MIN) u = BL_MIN; */
-/* 	  st->bl[part][st_b->num]=fabs(u); */
-/* 	  old_lnL = st->tree->c_lnL; */
-/* 	  fu=-PART_Lk_At_Given_Edge(st_b,st); */
-/* /\* 	  fu=-Lk_At_Given_Edge(b_fcus,tree);	   *\/ */
-/* /\* 	  PhyML_Printf("\n. BRENT edge %3d l=%f lnL=%20f iter=%3d", *\/ */
-/* /\* 		       b_fcus->num,st->bl[part][st_b->num], *\/ */
-/* /\* 		       fu,iter); *\/ */
-	  
-/* 	  if(fu <= fx) */
-/* 	    { */
-/* 	      if(u >= x) a=x; else b=x; */
-/* 	      SHFT(v,w,x,u) */
-/* 	      SHFT(fv,fw,fx,fu) */
-/* 	    } */
-/* 	  else */
-/* 	    { */
-/* 	      if (u < x) a=u; else b=u; */
-/* 	      if (fu <= fw || w == x) */
-/* 		{ */
-/* 		  v=w; */
-/* 		  w=u; */
-/* 		  fv=fw; */
-/* 		  fw=fu; */
-/* 		} */
-/* 	      else if (fu <= fv || v == x || v == w) */
-/* 		{ */
-/* 		  v=u; */
-/* 		  fv=fu; */
-/* 		} */
-/* 	    } */
-/* 	} */
-/*       if(iter > BRENT_ITMAX) PhyML_Printf("\n. Too many iterations in BRENT (%d) (%f)",iter,st->bl[part][st_b->num]); */
     }
   return st->tree->c_lnL;
 }

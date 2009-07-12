@@ -668,7 +668,7 @@ typedef struct __Optimiz { /* parameters to be optimised (mostly used in 'optimi
   int            opt_pinvar; /* =1 -> the proportion of invariants is optimised */
   int        opt_state_freq; /* =1 -> the nucleotide frequencies are optimised */
   int                opt_rr; /* =1 -> the relative rate parameters of the GTR or the customn model are optimised */
-  int         opt_num_param; /* if opt_topo=0 and opt_num_param=1 -> the numerical parameters of the
+  int       opt_subst_param; /* if opt_topo=0 and opt_subst_param=1 -> the numerical parameters of the
 				model are optimised. if opt_topo=0 and opt_free_param=0 -> no parameter is
 				optimised */
   int         opt_cov_delta;

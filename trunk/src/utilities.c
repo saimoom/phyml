@@ -4422,7 +4422,7 @@ void Bootstrap(arbre *tree)
 	}
       else
 	{
-	  if(boot_tree->mod->s_opt->opt_num_param || boot_tree->mod->s_opt->opt_bl)
+	  if(boot_tree->mod->s_opt->opt_subst_param || boot_tree->mod->s_opt->opt_bl)
 	    Round_Optimize(boot_tree,boot_tree->data,ROUND_MAX);
 	  else
 	    Lk(boot_tree);
@@ -4942,12 +4942,12 @@ void Set_Defaults_Optimiz(optimiz *s_opt)
 {
   s_opt->print                = 1;
   s_opt->last_opt             = 1;
+  s_opt->opt_subst_param      = 1;
   s_opt->opt_alpha            = 1;
   s_opt->opt_kappa            = 1;
   s_opt->opt_bl               = 1;
   s_opt->opt_lambda           = 0;
   s_opt->opt_pinvar           = 0;
-  s_opt->opt_num_param        = 0;
   s_opt->opt_cov_delta        = 0;
   s_opt->opt_cov_alpha        = 0;
   s_opt->opt_cov_free_rates   = 0;
@@ -4999,7 +4999,7 @@ void Copy_Optimiz(optimiz *ori, optimiz *cpy)
   cpy->opt_bl               =   ori->opt_bl               ;  
   cpy->opt_lambda           =   ori->opt_lambda           ;  
   cpy->opt_pinvar           =   ori->opt_pinvar           ;  
-  cpy->opt_num_param        =   ori->opt_num_param        ;  
+  cpy->opt_subst_param      =   ori->opt_subst_param      ;  
   cpy->opt_cov_delta        =   ori->opt_cov_delta        ;  
   cpy->opt_cov_alpha        =   ori->opt_cov_alpha        ;  
   cpy->opt_cov_free_rates   =   ori->opt_cov_free_rates   ;  

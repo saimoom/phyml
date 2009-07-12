@@ -203,7 +203,7 @@ fflush(stderr);
 	}
       else
 	{
-	  if(boot_tree->mod->s_opt->opt_num_param || boot_tree->mod->s_opt->opt_bl)
+	  if(boot_tree->mod->s_opt->opt_subst_param || boot_tree->mod->s_opt->opt_bl)
 	    Round_Optimize(boot_tree,boot_tree->data,ROUND_MAX);
 	  else
 	    Lk(boot_tree);

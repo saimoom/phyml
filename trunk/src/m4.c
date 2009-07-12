@@ -228,7 +228,7 @@ int M4_main(int argc, char **argv)
 		    }
 		  else
 		    {
-		      if(tree->mod->s_opt->opt_num_param || tree->mod->s_opt->opt_bl) 
+		      if(tree->mod->s_opt->opt_subst_param || tree->mod->s_opt->opt_bl) 
 			{
 			  Round_Optimize(tree,tree->data);
 			}
