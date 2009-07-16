@@ -40,15 +40,15 @@ phydbl PointChi2 (phydbl prob, phydbl v);
 phydbl Bivariate_Normal_Density(phydbl x, phydbl y, phydbl mux, phydbl muy, phydbl sdx, phydbl sdy, phydbl rho);
 phydbl PointNormal (phydbl prob);
 int    DiscreteGamma (phydbl freqK[], phydbl rK[],phydbl alfa, phydbl beta, int K, int median);
-phydbl CDF_Normal(phydbl x, phydbl mean, phydbl var);
+phydbl Pnorm(phydbl x, phydbl mean, phydbl var);
 phydbl Dnorm_Moments(phydbl x, phydbl mean, phydbl var);
 phydbl Dnorm(phydbl x, phydbl mean, phydbl sd);
-phydbl CDF_Gamma(phydbl x, phydbl shape, phydbl scale);
+phydbl Pgamma(phydbl x, phydbl shape, phydbl scale);
 phydbl Dgamma_Moments(phydbl x, phydbl mean, phydbl var);
 phydbl Dgamma(phydbl x, phydbl shape, phydbl scale);
 phydbl LnFact(int n);
 int    Choose(int n, int k);
-phydbl CDF_Pois(phydbl x, phydbl param);
+phydbl Ppois(phydbl x, phydbl param);
 phydbl Dexp(phydbl x, phydbl param);
 phydbl Dpois(phydbl x, phydbl param);
 phydbl Rand_Normal_Deviate(phydbl mean, phydbl sd);
@@ -76,6 +76,8 @@ void Normal_Conditional_Unsorted(phydbl *mu, phydbl *cov, phydbl *a, int n, shor
 phydbl Matrix_Det(phydbl *A, int size, int _log);
 void Get_Reg_Coeff(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is_1, int n1, phydbl *reg_coeff);
 phydbl Rnorm_Trunc_Inverse(phydbl mean, phydbl sd, phydbl min, phydbl max, int *error);
+phydbl Cond_Var(phydbl mu, phydbl sd, phydbl a, phydbl b);
+phydbl Cond_Exp(phydbl mu, phydbl sd, phydbl a, phydbl b);
 
 
 #endif

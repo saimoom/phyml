@@ -950,8 +950,7 @@ double *Cholesky_Decomp(double *A,  int dim)
 		  PhyML_Printf("\n. sum=%G i=%d j=%d",sum,i,j);
 		  PhyML_Printf("\n. Numerical precision issue detected...");
 		  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-/* 		  Warn_And_Exit(""); */
-		  sum = 1.E-20;
+		  Warn_And_Exit("");
 		}
 	      L[j*dim+i] = sqrt(sum);
 	    }
