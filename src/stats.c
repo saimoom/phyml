@@ -237,8 +237,8 @@ phydbl Rnorm_Trunc_Inverse(phydbl mean, phydbl sd, phydbl min, phydbl max, int *
 
 
   /*       Simple inversion method. Seems to work well. Needs more thorough testing though... */
-  cdf_min = CDF_Normal(z_min,0.0,1.0);
-  cdf_max = CDF_Normal(z_max,0.0,1.0);
+  cdf_min = Pnorm(z_min,0.0,1.0);
+  cdf_max = Pnorm(z_max,0.0,1.0);
   u = cdf_min + (cdf_max-cdf_min) * Uni();
   z = PointNormal(u);
 	
@@ -330,8 +330,8 @@ phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max, int *error)
 /*   else */
 /*     { */
 /*       Simple inversion method. Seems to work well. Needs more thorough testing though... */
-/*       cdf_min = CDF_Normal(z_min,0.0,1.0); */
-/*       cdf_max = CDF_Normal(z_max,0.0,1.0); */
+/*       cdf_min = Pnorm(z_min,0.0,1.0); */
+/*       cdf_max = Pnorm(z_max,0.0,1.0); */
 /*       u = cdf_min + (cdf_max-cdf_min) * Uni(); */
 /*       z = PointNormal(u); */
 /*     } */
@@ -439,11 +439,22 @@ phydbl Log_Dnorm(phydbl x, phydbl mean, phydbl sd, int *err)
 {
   phydbl dens;
   phydbl xmm;
+  phydbl var;
+  phydbl ctrxsq;
 
   *err = 0;
   xmm = x-mean;
+  
+  var = sd*sd;
+  ctrxsq = (x-mean)*(x-mean);
 
-  dens = -(.5*LOG2PI+log(sd))  - .5*pow(x-mean,2)/pow(sd,2);
+  if(var < 1.E-60)
+    {
+      printf("\n. var=%.7G \n",var);
+      *err = 1;
+    }
+
+  dens = -(.5*LOG2PI+log(sd))  - .5*ctrxsq/var;
 
   if(dens < -5000.)
     {
@@ -465,8 +476,8 @@ phydbl Dnorm_Trunc(phydbl x, phydbl mean, phydbl sd, phydbl lo, phydbl up)
   phydbl cdf_up, cdf_lo;
 
   dens   = Dnorm(x,mean,sd);
-  cdf_up = CDF_Normal(up,mean,sd);
-  cdf_lo = CDF_Normal(lo,mean,sd);
+  cdf_up = Pnorm(up,mean,sd);
+  cdf_lo = Pnorm(lo,mean,sd);
 
   dens /= (cdf_up - cdf_lo);
 
@@ -696,7 +707,7 @@ phydbl Dpois(phydbl x, phydbl param)
 /* CDFs */
 /*********************************************************/
 
-phydbl CDF_Normal(phydbl x, phydbl mean, phydbl sd)
+phydbl Pnorm(phydbl x, phydbl mean, phydbl sd)
 {
 /*   const double b1 =  0.319381530; */
 /*   const double b2 = -0.356563782; */
@@ -884,14 +895,14 @@ double Pnorm_Ihaka_Derived_From_Cody(double x)
 /*********************************************************/
 
 
-phydbl CDF_Gamma(phydbl x, phydbl shape, phydbl scale)
+phydbl Pgamma(phydbl x, phydbl shape, phydbl scale)
 {
   return IncompleteGamma(x/scale,shape,LnGamma(shape));
 }
 
 /*********************************************************/
 
-phydbl CDF_Pois(phydbl x, phydbl param)
+phydbl Ppois(phydbl x, phydbl param)
 {
   /* Press et al. (1990) approximation of the CDF for the Poisson distribution */
   if(param < MDBL_MIN || x < 0.0) 
@@ -1418,7 +1429,7 @@ phydbl *Hessian(arbre *tree)
   phydbl lnL,lnL1,lnL2;
 
   dim = 2*tree->n_otu-3;
-  eps = 0.001;
+  eps = 0.01;
 
   hessian     = (phydbl *)mCalloc((int)dim*dim,sizeof(phydbl));
   ori_bl      = (phydbl *)mCalloc((int)dim,sizeof(phydbl));
@@ -2056,7 +2067,7 @@ phydbl Normal_Trunc_Mean(phydbl mu, phydbl sd, phydbl min, phydbl max)
 
   mean = mu + sd * 
     (Dnorm((min-mu)/sd,0.,1.)-Dnorm((max-mu)/sd,0.,1.))/
-    (CDF_Normal((max-mu)/sd,0.,1.)-CDF_Normal((min-mu)/sd,0.,1.));
+    (Pnorm((max-mu)/sd,0.,1.)-Pnorm((min-mu)/sd,0.,1.));
   return mean;
 }
 
@@ -2690,3 +2701,47 @@ void Get_Reg_Coeff(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is_1, i
 
 
 /*********************************************************/
+
+phydbl Cond_Var(phydbl mu, phydbl sd, phydbl a, phydbl b)
+{
+  phydbl pdfa, pdfb;
+  phydbl cdfa, cdfb;
+  phydbl ctra, ctrb;
+  phydbl cond_var;
+
+  ctra = (a - mu)/sd;
+  ctrb = (b - mu)/sd;
+
+  pdfa = Dnorm(ctra,0.0,1.0);
+  pdfb = Dnorm(ctrb,0.0,1.0);
+
+  cdfa = Pnorm(ctra,0.0,1.0);
+  cdfb = Pnorm(ctrb,0.0,1.0);
+  
+  cond_var = sd*sd*(1. + (ctra*pdfa - ctrb*pdfb)/(cdfb - cdfa) - pow((pdfa - pdfb)/(cdfb - cdfa),2));
+
+  return cond_var;
+}
+
+/*********************************************************/
+
+phydbl Cond_Exp(phydbl mu, phydbl sd, phydbl a, phydbl b)
+{
+  phydbl pdfa, pdfb;
+  phydbl cdfa, cdfb;
+  phydbl ctra, ctrb;
+  phydbl cond_mu;
+
+  ctra = (a - mu)/sd;
+  ctrb = (b - mu)/sd;
+
+  pdfa = Dnorm(ctra,0.0,1.0);
+  pdfb = Dnorm(ctrb,0.0,1.0);
+
+  cdfa = Pnorm(ctra,0.0,1.0);
+  cdfb = Pnorm(ctrb,0.0,1.0);
+  
+  cond_mu = mu + sd*(pdfa - pdfb)/(cdfb - cdfa);
+
+  return cond_mu;
+}

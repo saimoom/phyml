@@ -90,9 +90,9 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #endif
 
 #define  N_MAX_OPTIONS        100
-#define  H_MCMC_RATES         1.0
+#define  H_MCMC_RATES         0.5
 #define  H_MCMC_LEXP          0.5
-#define  H_MCMC_NU            0.1
+#define  H_MCMC_NU            0.5
 #define  H_MCMC_CLOCK         0.5
 
 #define  T_MAX_FILE           500
@@ -1168,8 +1168,6 @@ void Make_New_Edge_Label(edge *b);
 void Print_Qmat_AA(double *daa, phydbl *pi);
 trate *Make_Rate_Struct(arbre *tree);
 void Init_Rate_Struct(trate *rates, arbre *tree);
-phydbl CDF_Normal(phydbl x, phydbl mean, phydbl var);
-phydbl CDF_Gamma(phydbl x, phydbl mean, phydbl var);
 double Uni();
 double Ahrensdietergamma(double alpha);
 double Rgamma(double shape, double scale);

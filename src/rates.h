@@ -149,6 +149,7 @@ void RATES_Posterior_Time_Root(arbre *tree);
 void RATES_Get_Trip_Conditional_Variances(arbre *tree);
 void RATES_Get_All_Trip_Reg_Coeff(arbre *tree);
 void RATES_Check_Lk_Rates(arbre *tree, int *err);
+phydbl RATES_Expected_Tree_Length(arbre *tree);
 
 
 #endif
