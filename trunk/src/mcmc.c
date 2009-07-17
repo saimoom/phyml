@@ -513,8 +513,8 @@ void MCMC_Rates_Pre(node *a, node *d, int local, arbre *tree)
   if(fabs(r_min-r_max) < MDBL_MIN) return;
 
   u = Uni();
-  new_mu = cur_mu * exp(H_MCMC_RATES*(u-0.5));
-/*   new_mu = Uni() * (r_max - r_min) + r_min; */
+/*   new_mu = cur_mu * exp(H_MCMC_RATES*(u-0.5)); */
+  new_mu = Uni() * (r_max - r_min) + r_min;
 
   if(new_mu < r_min)
     {
@@ -546,13 +546,13 @@ void MCMC_Rates_Pre(node *a, node *d, int local, arbre *tree)
       
       new_lnL_rate = RATES_Lk_Rates(tree);
 	    
-      ratio =
-	(new_lnL_data + new_lnL_rate + log(new_mu)) -
-	(cur_lnL_data + cur_lnL_rate + log(cur_mu));
-
 /*       ratio = */
-/* 	(new_lnL_data + new_lnL_rate) - */
-/* 	(cur_lnL_data + cur_lnL_rate); */
+/* 	(new_lnL_data + new_lnL_rate + log(new_mu)) - */
+/* 	(cur_lnL_data + cur_lnL_rate + log(cur_mu)); */
+
+      ratio =
+	(new_lnL_data + new_lnL_rate) -
+	(cur_lnL_data + cur_lnL_rate);
 
       ratio = exp(ratio);	
       alpha = MIN(1.,ratio);
