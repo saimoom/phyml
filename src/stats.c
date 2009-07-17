@@ -2415,7 +2415,7 @@ void Normal_Conditional(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is
 
   buff = Matrix_Mult(sig12_invsig22,sig21,n1,n2,n2,n1);
   For(i,n1) For(j,n1) cond_cov_norder[i*n1+j] = sig11[i*n1+j] - buff[i*n1+j];
-
+  Free(buff);
 
   nr = 0;
   For(i,n) if(is_1[i]) { cond_mu[i] = cond_mu_norder[nr]; nr++; }
@@ -2466,9 +2466,9 @@ void Normal_Conditional(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is
   Free(sig21);
   Free(sig22);
   Free(ctrd_a);
-  Free(sig12_invsig22);
   Free(cond_cov_norder);
   Free(cond_mu_norder);
+  Free(sig12_invsig22);
 }
 
 

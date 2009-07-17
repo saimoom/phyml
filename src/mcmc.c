@@ -647,7 +647,6 @@ void MCMC_Times_Pre(node *a, node *d, int local, arbre *tree)
   new_lnL_times = cur_lnL_times;
   new_lnL_rate  = cur_lnL_rate;
   
-
   buff_n = v2 = v3 = NULL;
   For(i,3)
     if((d->v[i] != a) && (d->b[i] != tree->e_root))
@@ -716,8 +715,6 @@ void MCMC_Times_Pre(node *a, node *d, int local, arbre *tree)
   u = Uni();    
   new_t = u*(t_max-t_min)+t_min;
 /*   new_t = cur_t * exp(1.*(u-0.5)); */
-
-
 
   if(new_t < t_min)
     {
@@ -1216,10 +1213,8 @@ void MCMC_Print_Param(tmcmc *mcmc, arbre *tree)
 
   fp = mcmc->out_fp_stats;
   
-
   MCMC_Print_Means(mcmc,tree);
   MCMC_Print_Last(mcmc,tree);
-
 
   if(!(mcmc->run%mcmc->sample_interval)) 
     {      
@@ -1344,8 +1339,6 @@ void MCMC_Print_Param(tmcmc *mcmc, arbre *tree)
       PhyML_Fprintf(mcmc->out_fp_trees,"TREE %8d [%f] = [&R] %s\n",mcmc->run,tree->c_lnL,s);
       Free(s);
       RATES_Update_Cur_Bl(tree);
-
-
     }
 }
 
