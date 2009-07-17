@@ -1786,7 +1786,6 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
   phydbl l_min,l_max;
   int err;
   
-
   if(a == tree->n_root) { tree->rates->nd_r[d->num] = 1.0; return; }
 
   dim = 2*tree->n_otu-3;

@@ -42,7 +42,7 @@ int PART_main(int argc, char **argv)
   srand(r_seed);
   Make_Model_Complete(io->mod);
   fp_phyml_stats = Openfile(io->out_stats_file,io->out_stats_file_open_mode);
-  fprintf(fp_phyml_stats,"\n- PHYML %s -\n\n", VERSION);
+  PhyML_Fprintf(fp_phyml_stats,"\n- PHYML %s -\n\n", VERSION);
   fp_phyml_tree = Openfile(io->out_tree_file,io->out_tree_file_open_mode);
   fp_phyml_lk = fopen(io->out_lk_file,"w");
 
@@ -69,8 +69,8 @@ int PART_main(int argc, char **argv)
 	  Make_Model_Complete(io->st->optionlist[part]->mod); /* Complete model for each data part */
 	  mod[part]  = io->st->optionlist[part]->mod;
 	  data[part] = Get_Seq(io->st->optionlist[part],0);
-	  printf("\n. Data part [#%d]\n",part+1);
-	  printf("\n. Compressing sequences...\n");
+	  PhyML_Printf("\n. Data part [#%d]\n",part+1);
+	  PhyML_Printf("\n. Compressing sequences...\n");
 	  alldata[part] = Compact_Seq(data[part],io->st->optionlist[part]);
 	  fclose(io->st->optionlist[part]->fp_in_seq);
 	  Free_Seq(data[part],alldata[part]->n_otu);
@@ -80,14 +80,11 @@ int PART_main(int argc, char **argv)
 			    io->st->optionlist[part]->mod->stepsize);
 	}
 
-
-
       PART_Make_Superarbre_Full(io->st,io,alldata);
       st = io->st;
       treelist = st->treelist;
       Fill_Dir_Table(st->tree);
       Update_Dirs(st->tree);
-
 
       For(part,io->n_part)
 	{
@@ -103,11 +100,11 @@ int PART_main(int argc, char **argv)
 
 	  if(treelist->tree[part]->n_otu != alldata[part]->n_otu)
 	    {
-	      printf("\n. Problem with sequence file '%s'\n",io->st->optionlist[part]->in_seq_file);
-	      printf("\n. # taxa found in supertree restricted to '%s' taxa = %d\n",
+	      PhyML_Printf("\n. Problem with sequence file '%s'\n",io->st->optionlist[part]->in_seq_file);
+	      PhyML_Printf("\n. # taxa found in supertree restricted to '%s' taxa = %d\n",
 		     io->st->optionlist[part]->in_seq_file,
 		     treelist->tree[part]->n_otu);
-	      printf("\n. # sequences in '%s' = %d\n",
+	      PhyML_Printf("\n. # sequences in '%s' = %d\n",
 		     io->st->optionlist[part]->in_seq_file,
 		     alldata[part]->n_otu);
 	      Exit("\n");
@@ -132,7 +129,7 @@ int PART_main(int argc, char **argv)
 
       if(part != io->n_part)
 	{
-	  printf("\n. Sequence data part found in '%s' has one or more taxa not found in the '%s' tree file\n",
+	  PhyML_Printf("\n. Sequence data part found in '%s' has one or more taxa not found in the '%s' tree file\n",
 		 io->st->optionlist[part]->in_seq_file,
 		 io->in_tree_file);
 	  Exit("\n");
@@ -158,7 +155,7 @@ int PART_main(int argc, char **argv)
 
       time(&(st->tree->t_beg));
       time(&(st->tree->t_current));
-      printf("\n. (%5d sec) [00] [%10.2f] [%5d]\n",
+      PhyML_Printf("\n. (%5d sec) [00] [%10.2f] [%5d]\n",
 	     (int)(st->tree->t_current-st->tree->t_beg),
 	     PART_Lk(st),
 	     PART_Pars(st));
@@ -174,15 +171,15 @@ int PART_main(int argc, char **argv)
 
 	  st->tree->both_sides = 1;
 	  PART_Lk(st);
-	  printf("\n. %f",st->tree->c_lnL);
-/* 	  For(part,st->n_part) printf("\n. %s",Write_Tree(st->treelist->tree[part])); */
+	  PhyML_Printf("\n. %f",st->tree->c_lnL);
+/* 	  For(part,st->n_part) PhyML_Printf("\n. %s",Write_Tree(st->treelist->tree[part])); */
 	  n_iter++;
 	}while(n_iter < 5);
 /*       Exit("\n"); */
 
 
 /*       PART_Lk(st); */
-/*       printf("\n> %f",st->tree->c_lnL); */
+/*       PhyML_Printf("\n> %f",st->tree->c_lnL); */
 /*       For(i,2*st->tree->n_otu-3) */
 /* 	{ */
 /* 	  if((!st->tree->t_edges[i]->left->tax) && (!st->tree->t_edges[i]->rght->tax)) */
@@ -206,11 +203,11 @@ int PART_main(int argc, char **argv)
       min.quot -= hour.quot*60;
 
 
-      fprintf(fp_phyml_stats,"\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n");
-      fprintf(fp_phyml_stats,"\n. Number of partitions = %d\n\n",st->n_part);
-      fprintf(fp_phyml_stats,"\n. Full data set -- lnL = %f\n\n",st->tree->c_lnL);
-      fprintf(fp_phyml_stats,"\n. Tree search algorithm : %s\n\n",(io->mod->s_opt->topo_search == NNI_MOVE)?("NNIs"):("SPRs"));
-      fprintf(fp_phyml_stats,"\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n\n");
+      PhyML_Fprintf(fp_phyml_stats,"\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n");
+      PhyML_Fprintf(fp_phyml_stats,"\n. Number of partitions = %d\n\n",st->n_part);
+      PhyML_Fprintf(fp_phyml_stats,"\n. Full data set -- lnL = %f\n\n",st->tree->c_lnL);
+      PhyML_Fprintf(fp_phyml_stats,"\n. Tree search algorithm : %s\n\n",(io->mod->s_opt->topo_search == NNI_MOVE)?("NNIs"):("SPRs"));
+      PhyML_Fprintf(fp_phyml_stats,"\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n\n");
       For(part,io->n_part)
 	{
 	  Print_Fp_Out(fp_phyml_stats,t_beg,t_end,st->treelist->tree[part],
@@ -218,19 +215,19 @@ int PART_main(int argc, char **argv)
 	}
 
 
-      printf("\n\n. Time used %dh%dm%ds\n", hour.quot,min.quot,(int)(t_end-t_beg)%60);
-      printf("\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n");
+      PhyML_Printf("\n\n. Time used %dh%dm%ds\n", hour.quot,min.quot,(int)(t_end-t_beg)%60);
+      PhyML_Printf("\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n");
 
       For(i,2*st->tree->n_otu-3) st->tree->t_edges[i]->l = 0.1;
       s_tree = Write_Tree(st->tree);
-      fprintf(fp_phyml_tree,"Supertree\n");
-      fprintf(fp_phyml_tree,"%s\n",s_tree);
+      PhyML_Fprintf(fp_phyml_tree,"Supertree\n");
+      PhyML_Fprintf(fp_phyml_tree,"%s\n",s_tree);
       Free(s_tree);
       For(part,st->n_part)
 	{
-	  fprintf(fp_phyml_tree,"Gene tree number %d\n",part+1);
+	  PhyML_Fprintf(fp_phyml_tree,"Gene tree number %d\n",part+1);
 	  s_tree = Write_Tree(st->treelist->tree[part]);
-	  fprintf(fp_phyml_tree,"%s\n",s_tree);
+	  PhyML_Fprintf(fp_phyml_tree,"%s\n",s_tree);
 	  Free(s_tree);
 	}
 
@@ -279,25 +276,25 @@ int PART_main(int argc, char **argv)
 void PART_Print_Nodes(node *a, node *d, superarbre *st)
 {
   int i;
-  printf(">>>>>>>>>>>>>>>>>>>>\n");
-  printf("num node = %d\n",d->num);
-  if(d->tax) printf("name='%s'\n",d->name);
+  PhyML_Printf(">>>>>>>>>>>>>>>>>>>>\n");
+  PhyML_Printf("num node = %d\n",d->num);
+  if(d->tax) PhyML_Printf("name='%s'\n",d->name);
   else
     {
-      printf("n_of_reachable_tips : \n");
+      PhyML_Printf("n_of_reachable_tips : \n");
       For(i,3)
 	{
-/* 	  printf("dir%d=%d; ",i,st->n_of_reachable_tips[st->num_data_of_interest][d->num][i]); */
+/* 	  PhyML_Printf("dir%d=%d; ",i,st->n_of_reachable_tips[st->num_data_of_interest][d->num][i]); */
 /* 	  For(j,st->n_of_reachable_tips[st->num_data_of_interest][d->num][i]) */
 /* 	    { */
-/* 	      printf("%s ", */
+/* 	      PhyML_Printf("%s ", */
 /* 		     st->list_of_reachable_tips[st->num_data_of_interest][d->num][i][j]->name); */
 /* 	    } */
 	  
-	  printf("\n");
+	  PhyML_Printf("\n");
 	}
     }
-  printf("<<<<<<<<<<<<<<<<<<<\n\n");
+  PhyML_Printf("<<<<<<<<<<<<<<<<<<<\n\n");
   if(d->tax) return;
   else
     {
@@ -325,7 +322,7 @@ void PART_Make_Superarbre_Full(superarbre *st, option *io, allseq **data)
 
   if(io->in_tree == 2)
     {
-      printf("\n. Reading user tree...\n");
+      PhyML_Printf("\n. Reading user tree...\n");
       rewind(io->fp_in_tree);
       
       st->tree = Read_Tree_File(io->fp_in_tree);
@@ -446,8 +443,8 @@ void PART_Prune_St_Topo(arbre *tree, allseq *data, superarbre *st)
 
 	  if(not_found)	    
 	    {
-	      printf("\n. Taxon '%s'",st->tree->noeud[i]->name);
-	      printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	      PhyML_Printf("\n. Taxon '%s'",st->tree->noeud[i]->name);
+	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
 	      Warn_And_Exit("");
 	    }
 	}
@@ -524,9 +521,9 @@ void PART_Match_St_Nodes_In_Gt(arbre *gt, superarbre *st)
 
   if(n_matches != gt->n_otu)
     {
-      printf("\n");
-      printf("\n. n_matches = %d 2*gt->n_otu-2 = %d\n",n_matches,2*gt->n_otu-2);
-      printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n");
+      PhyML_Printf("\n. n_matches = %d 2*gt->n_otu-2 = %d\n",n_matches,2*gt->n_otu-2);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 #endif
@@ -559,8 +556,8 @@ void PART_Match_St_Nodes_In_Gt(arbre *gt, superarbre *st)
   if(n_matches != 2*gt->n_otu-2)
     {
       int j;
-      printf("\n");
-      printf("\n. n_matches = %d 2*gt->n_otu-2 = %d\n",n_matches,2*gt->n_otu-2);
+      PhyML_Printf("\n");
+      PhyML_Printf("\n. n_matches = %d 2*gt->n_otu-2 = %d\n",n_matches,2*gt->n_otu-2);
       For(j,2*gt->n_otu-2)
 	{
 	  For(i,2*st->tree->n_otu-2) 
@@ -569,7 +566,7 @@ void PART_Match_St_Nodes_In_Gt(arbre *gt, superarbre *st)
 
  	  if(i == 2*st->tree->n_otu-2)
 	    {
-	      printf("\n. Gt %3d node %3d (%3d %3d %3d) (%s %s %s) (%f %f %f) does not match\n",
+	      PhyML_Printf("\n. Gt %3d node %3d (%3d %3d %3d) (%s %s %s) (%f %f %f) does not match\n",
 		     gt->dp,
 		     gt->noeud[j]->num,
 		     gt->noeud[j]->v[0] ? gt->noeud[j]->v[0]->num : -1,
@@ -584,19 +581,19 @@ void PART_Match_St_Nodes_In_Gt(arbre *gt, superarbre *st)
 	    }
 	}
 
-      printf("oooooooo\n");
+      PhyML_Printf("oooooooo\n");
       Print_Node(st->tree->noeud[0],
 		 st->tree->noeud[0]->v[0],
 		 st->tree);
-      printf(">>>>>>>\n");
+      PhyML_Printf(">>>>>>>\n");
       For(i,st->n_part)
 	{
 	  Print_Node(st->treelist->tree[i]->noeud[0],
 		     st->treelist->tree[i]->noeud[0]->v[0],
 		     st->treelist->tree[i]);
-	  printf("<<<<<<<\n");
+	  PhyML_Printf("<<<<<<<\n");
 	}
-      printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 #endif
@@ -708,9 +705,9 @@ void PART_Match_St_Edges_In_Gt_Recurr(node *a_gt, node *d_gt, node *a_st, node *
 
   if(!d_gt)
     {
-      printf("\n");
-      printf("\n. a_gt->num = %d\n",a_gt->num);
-      printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n");
+      PhyML_Printf("\n. a_gt->num = %d\n",a_gt->num);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
@@ -775,26 +772,26 @@ void PART_Simu(superarbre *st)
       ++step;     
       each--;
 
-      PART_Print_Bl(st);
+/*       PART_Print_Bl(st); */
 
       /* Compute the likelihood of the supertreee */
       st->tree->c_lnL  = PART_Lk(st);
       st->tree->c_pars = PART_Pars(st);
-/*       For(i,st->n_part) printf("\n. %s",Write_Tree(st->treelist->tree[i])); */
-/*       printf("\n"); */
+/*       For(i,st->n_part) PhyML_Printf("\n. %s",Write_Tree(st->treelist->tree[i])); */
+/*       PhyML_Printf("\n"); */
 
       time(&(st->tree->t_current));
-      printf("\n. (%5d sec) [tot lnL=%15.5f] [# swaps=%3d]",
+      PhyML_Printf("\n. (%5d sec) [tot lnL=%15.5f] [# swaps=%3d]",
 	     (int)(st->tree->t_current-st->tree->t_beg),
 	     st->tree->c_lnL,n_tested);
-/*       For(i,st->n_part) printf("\n[gt %3d lnL=%15.5f]",i,st->treelist->tree[i]->c_lnL); */
+/*       For(i,st->n_part) PhyML_Printf("\n[gt %3d lnL=%15.5f]",i,st->treelist->tree[i]->c_lnL); */
       
       if((fabs(old_loglk-st->tree->c_lnL) < st->tree->mod->s_opt->min_diff_lk_global) || 
 	 (n_without_swap > it_lim_without_swap)) break;
 
       if(st->tree->c_lnL < old_loglk)
 	{
-	  printf("\n. Moving backward (topology + branch lengths) \n");
+	  PhyML_Printf("\n. Moving backward (topology + branch lengths) \n");
 	  
 	  if(!PART_Mov_Backward_Topo_Bl(st,old_loglk,tested_b,n_tested))
 	    Warn_And_Exit("\n. Err: mov_back failed\n");
@@ -870,13 +867,13 @@ void PART_Simu(superarbre *st)
     }
   while(1);
   
-  printf("\n\n. End of PART_Simu \n");
+  PhyML_Printf("\n\n. End of PART_Simu \n");
   Free(sorted_b);
   Free(tested_b);
 
   if((n_without_swap > it_lim_without_swap))
     {
-      printf("\n. Last optimization step...\n");
+      PhyML_Printf("\n. Last optimization step...\n");
       For(i,st->n_part) Round_Optimize(st->treelist->tree[i],st->treelist->tree[i]->data,ROUND_MAX);
       st->tree->c_lnL = PART_Lk(st);
       PART_Simu(st);
@@ -962,7 +959,7 @@ int PART_Mov_Backward_Topo_Bl(superarbre *st, phydbl lk_old, edge **tested_b, in
 
       PART_Lk(st);
 
-      printf("\n. lnL = %15.5f",st->tree->c_lnL);
+      PhyML_Printf("\n. lnL = %15.5f",st->tree->c_lnL);
       step++;
     }
   while((st->tree->c_lnL < lk_old) && (step < 100));
@@ -1014,7 +1011,7 @@ void PART_Check_Extra_Taxa(superarbre *st)
   For(i,st->tree->n_otu) if(st_taxa[i]) sum++;
   if(sum != st->tree->n_otu) 
     {
-      printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
   Free(st_taxa);
@@ -1129,7 +1126,7 @@ void PART_Map_St_Nodes_In_Gt_One_Edge(node *a_st, node *d_st, edge *b_st, arbre 
 #ifdef DEBUG
       if(b_st->rght != d_st)
 	{
-	  printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
 	  Warn_And_Exit("");
 	}
 #endif
@@ -1198,14 +1195,14 @@ void PART_Map_St_Nodes_In_Gt_One_Edge(node *a_st, node *d_st, edge *b_st, arbre 
 			     st->tree->noeud[0]->v[0],
 			     st->tree);
 		  
-		  printf("\n\n--------------------------\n\n");
+		  PhyML_Printf("\n\n--------------------------\n\n");
 		  Print_Node(gt->noeud[0],
 			     gt->noeud[0]->v[0],
 			     gt);
 
-		  printf("\n\n--------------------------\n\n");
+		  PhyML_Printf("\n\n--------------------------\n\n");
 		  
-		  printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+		  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
 		  Warn_And_Exit("");
 		}
 	    }
@@ -1266,7 +1263,7 @@ void PART_Map_St_Edges_In_Gt(arbre *gt, superarbre *st)
 	  #ifdef DEBUG
 	  if((!gt_a) || (!gt_d))
 	    {
-	      printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
 	      Warn_And_Exit("");
 	    }
 	  #endif
@@ -1450,7 +1447,7 @@ void PART_Speed_Spr(superarbre *st)
     {
       ++step;
 
-      printf("\n. Starting a SPR cycle... \n");
+      PhyML_Printf("\n. Starting a SPR cycle... \n");
 
       old_lnL = st->tree->c_lnL;
 
@@ -1460,7 +1457,7 @@ void PART_Speed_Spr(superarbre *st)
 
  
       time(&(st->tree->t_current));      
-      printf("\n. (%5d sec) [00] [%10.2f] [%5d]\n",
+      PhyML_Printf("\n. (%5d sec) [00] [%10.2f] [%5d]\n",
 	     (int)(st->tree->t_current-st->tree->t_beg),
 	     PART_Lk(st),PART_Pars(st));
 
@@ -1469,7 +1466,7 @@ void PART_Speed_Spr(superarbre *st)
 					      st->treelist->tree[gt]->mod->s_opt->print);
 
       time(&(st->tree->t_current));      
-      printf("\n. (%5d sec) [ 0] [%10.2f] [%5d]\n",
+      PhyML_Printf("\n. (%5d sec) [ 0] [%10.2f] [%5d]\n",
 	     (int)(st->tree->t_current-st->tree->t_beg),
 	     PART_Lk(st),PART_Pars(st));
 
@@ -1491,7 +1488,7 @@ void PART_Speed_Spr(superarbre *st)
       
       
       time(&(st->tree->t_current));      
-      printf("\n. (%5d sec) [**] [%10.2f] [%5d]\n",
+      PhyML_Printf("\n. (%5d sec) [**] [%10.2f] [%5d]\n",
 	     (int)(st->tree->t_current-st->tree->t_beg),
 	     st->tree->c_lnL,st->tree->c_pars);
 
@@ -1500,8 +1497,8 @@ void PART_Speed_Spr(superarbre *st)
 
       if(st->tree->c_lnL < old_lnL)
 	{
-	  printf("\n. old_lnL = %f c_lnL = %f\n",old_lnL,st->tree->c_lnL); 
-	  printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  PhyML_Printf("\n. old_lnL = %f c_lnL = %f\n",old_lnL,st->tree->c_lnL); 
+	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
 	  Warn_And_Exit("");
 	}
 
@@ -1654,8 +1651,8 @@ int PART_Test_List_Of_Regraft_Pos(spr **st_spr_list, int list_size, superarbre *
 #ifdef DEBUG
   if(!list_size)
     {
-      printf("\n\n. List size is 0 !");
-      printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n\n. List size is 0 !");
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit(""); 
     }
 #endif
@@ -1902,23 +1899,23 @@ int PART_Try_One_Spr_Move(spr *st_move, superarbre *st)
 	  
 	  if(fabs(st->tree->c_lnL - st_move->lnL) > st->tree->mod->s_opt->min_diff_lk_local)
 	    {
-	      printf("\n. st->tree->c_lnL = %f st_move->lnL = %f\n",
+	      PhyML_Printf("\n. st->tree->c_lnL = %f st_move->lnL = %f\n",
 		     st->tree->c_lnL,st_move->lnL);
 
 	      For(gt,st->n_part)
 		{
-		  printf("\n. truth -> %f ; move -> %f",
+		  PhyML_Printf("\n. truth -> %f ; move -> %f",
 			 Return_Lk(st->treelist->tree[gt]),
 			 gt_move[gt] ? gt_move[gt]->lnL : -1.);
 		}
 	    }
 	  
-	  printf("\n. (%5d sec) [+ ] [%10.2f] [%5d] -- ",
+	  PhyML_Printf("\n. (%5d sec) [+ ] [%10.2f] [%5d] -- ",
 		 (int)(st->tree->t_current - st->tree->t_beg),
 		 st->tree->c_lnL,st->tree->c_pars);	  
 	  
 	  For(gt,st->n_part)
-	    printf("[%10.2f] ",st->treelist->tree[gt]->c_lnL);
+	    PhyML_Printf("[%10.2f] ",st->treelist->tree[gt]->c_lnL);
 	  
 	  
 	  st->tree->n_improvements++;
@@ -1971,12 +1968,12 @@ int PART_Try_One_Spr_Move(spr *st_move, superarbre *st)
 
 
 /* 	      st->tree->c_pars = PART_Pars(st); */
-/* 	      printf("\n. (%5d sec) [++] [%10.2f] [%5d] -- ", */
+/* 	      PhyML_Printf("\n. (%5d sec) [++] [%10.2f] [%5d] -- ", */
 /* 		     (int)(st->tree->t_current-st->tree->t_beg), */
 /* 		     st->tree->c_lnL, */
 /* 		     st->tree->c_pars); */
 /* 	      For(gt,st->n_part) */
-/* 		printf("[%10.2f] ",st->treelist->tree[gt]->c_lnL); */
+/* 		PhyML_Printf("[%10.2f] ",st->treelist->tree[gt]->c_lnL); */
 	      
 /* 	      st->tree->n_improvements++; */
 /* 	      st->tree->best_lnL = st->tree->c_lnL; */
@@ -2018,11 +2015,11 @@ int PART_Try_One_Spr_Move(spr *st_move, superarbre *st)
 
   time(&(st->tree->t_current));
   
-  printf("\n. (%5d sec) [--] [%10.2f] [%5d] -- ",
+  PhyML_Printf("\n. (%5d sec) [--] [%10.2f] [%5d] -- ",
 	 (int)(st->tree->t_current - st->tree->t_beg),
 	 st->tree->c_lnL,st->tree->c_pars);	  
   
-  For(gt,st->n_part) printf("[%10.2f] ",st->treelist->tree[gt]->c_lnL);
+  For(gt,st->n_part) PhyML_Printf("[%10.2f] ",st->treelist->tree[gt]->c_lnL);
 
   Free(init_target);
   Free(b_residual);
@@ -2061,30 +2058,30 @@ void PART_NNI(edge *st_b, superarbre *st)
   if(v1->num < v2->num)
     {
       Check_Dirs(st->tree);
-      printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
   if(v3->num < v4->num)
     {
       Check_Dirs(st->tree);
-      printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
   lk_init = st->tree->c_lnL;
   
-/*   printf("oooooooo\n"); */
+/*   PhyML_Printf("oooooooo\n"); */
 /*   Print_Node(st->tree->noeud[0], */
 /* 	     st->tree->noeud[0]->v[0], */
 /* 	     st->tree); */
-/*   printf(">>>>>>>\n"); */
+/*   PhyML_Printf(">>>>>>>\n"); */
 /*   For(i,st->n_part) */
 /*     { */
 /*       Print_Node(st->treelist->tree[i]->noeud[0], */
 /* 		 st->treelist->tree[i]->noeud[0]->v[0], */
 /* 		 st->treelist->tree[i]); */
-/*       printf("<<<<<<<\n"); */
+/*       PhyML_Printf("<<<<<<<\n"); */
 /*     } */
 
   
@@ -2177,7 +2174,7 @@ void PART_NNI(edge *st_b, superarbre *st)
   lk2_init = PART_Update_Lk_At_Given_Edge(st_b,st);
   lk2_opt  = PART_Br_Len_Brent(st_b,0,st);
   For(i,st->n_part) st->bl2[st->bl_partition[i]][st_b->num] = st->bl[st->bl_partition[i]][st_b->num];
-  /*   printf("\n. lk2_init = %f lk2_opt = %f",lk2_init,lk2_opt); */
+  /*   PhyML_Printf("\n. lk2_init = %f lk2_opt = %f",lk2_init,lk2_opt); */
   /* Unswap */
   PART_Swap(v4,st_b->left,st_b->rght,v2,st);
   Swap(v4,st_b->left,st_b->rght,v2,st->tree);
@@ -2226,7 +2223,7 @@ void PART_NNI(edge *st_b, superarbre *st)
 
 
 /*   For(i,2*st->tree->n_otu-3) */
-/*     printf("\n. 3 Edge %3d --> lnL=%f",i,PART_Lk_At_Given_Edge(st->tree->t_edges[i],st)); */
+/*     PhyML_Printf("\n. 3 Edge %3d --> lnL=%f",i,PART_Lk_At_Given_Edge(st->tree->t_edges[i],st)); */
 
 
 
@@ -2246,15 +2243,15 @@ void PART_NNI(edge *st_b, superarbre *st)
 
   PART_Restore_Br_Len(st);
   PART_Update_Lk_At_Given_Edge(st_b,st); /* to replace by PART_Update_PMat_At_Given_Edge(st_b,st); */
-/*   printf("\n. lk_end = %f",st->tree->c_lnL); */
-/*   For(i,2*st->tree->n_otu-3) printf("\n. %f",PART_Lk_At_Given_Edge(st->tree->t_edges[i],st)); */
-/*   printf("\n. lk_end = %f",PART_Lk(st)); */
-/*   printf("\n"); */
+/*   PhyML_Printf("\n. lk_end = %f",st->tree->c_lnL); */
+/*   For(i,2*st->tree->n_otu-3) PhyML_Printf("\n. %f",PART_Lk_At_Given_Edge(st->tree->t_edges[i],st)); */
+/*   PhyML_Printf("\n. lk_end = %f",PART_Lk(st)); */
+/*   PhyML_Printf("\n"); */
 
-/*   printf("\n. Edge %3d, score = %20f",st_b->num,st_b->nni->score); */
+/*   PhyML_Printf("\n. Edge %3d, score = %20f",st_b->num,st_b->nni->score); */
 
   if(st_b->num == 90)
-    printf("\n. v1=%d v2=%d v3=%d v4=%d left-%d right-%d",
+    PhyML_Printf("\n. v1=%d v2=%d v3=%d v4=%d left-%d right-%d",
 	   v1->num,
 	   v2->num,
 	   v3->num,
@@ -2321,8 +2318,8 @@ void PART_Swap(node *st_a, node *st_b, node *st_c, node *st_d, superarbre *st)
 
   if(ab < 0 || ba < 0 || cd < 0 || dc < 0)
     {
-      printf("\n. Nodes %d %d %d %d\n",st_a->num,st_b->num,st_c->num,st_d->num);
-      printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Nodes %d %d %d %d\n",st_a->num,st_b->num,st_c->num,st_d->num);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
@@ -2341,7 +2338,7 @@ void PART_Swap(node *st_a, node *st_b, node *st_c, node *st_d, superarbre *st)
 	  For(j,3) if((gt_b->v[j]) && (gt_b->v[j] == gt_c)) break;
 	  if(j == 3)
 	    {
-	      printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
 	      Warn_And_Exit("");
 	    }
 #endif
@@ -2420,7 +2417,7 @@ phydbl PART_Lk(superarbre *st)
     {
       st->treelist->tree[i]->both_sides = 1;	  
       Lk(st->treelist->tree[i]);
-/*       printf("\n. Tree %3d lnL = %f",i+1,st->treelist->tree[i]->c_lnL); */
+/*       PhyML_Printf("\n. Tree %3d lnL = %f",i+1,st->treelist->tree[i]->c_lnL); */
       st->tree->c_lnL += st->treelist->tree[i]->c_lnL;
     }
   return st->tree->c_lnL;
@@ -2444,7 +2441,7 @@ phydbl PART_Lk_At_Given_Edge(edge *st_b, superarbre *st)
       gt_b = st->map_st_edge_in_gt[i][st_b->num];
       lnL = Lk_At_Given_Edge(gt_b,st->treelist->tree[i]);
       st->tree->c_lnL += lnL;
-/*       printf("\n. gt %d st edge %d gt edge %d lnL=%f l=%f ",i,st_b->num,gt_b->num,lnL,gt_b->l); */
+/*       PhyML_Printf("\n. gt %d st edge %d gt edge %d lnL=%f l=%f ",i,st_b->num,gt_b->num,lnL,gt_b->l); */
     }
   return st->tree->c_lnL;
 }
@@ -2487,22 +2484,22 @@ void PART_Fill_Model_Partitions_Table(superarbre *st)
 
   strcpy(abc,"ABCDEFGHIJKLMNOP\0");
 
-  printf("\n\n\n");
+  PhyML_Printf("\n\n\n");
   lig = col = 0;
   while(1)
     {
-      printf("\n\n");
+      PhyML_Printf("\n\n");
       For(i,st->n_part)
-	printf(". Data set %3d : %s\n",i+1,st->optionlist[i]->in_seq_file);
+	PhyML_Printf(". Data set %3d : %s\n",i+1,st->optionlist[i]->in_seq_file);
 
-      printf("\n. Data set             ");
-      For(i,st->n_part) printf("%3d ",i+1);
-      printf("\n. -A- edge lengths     ");
-      For(i,st->n_part) printf("%3d ",st->bl_partition[i]);
+      PhyML_Printf("\n. Data set             ");
+      For(i,st->n_part) PhyML_Printf("%3d ",i+1);
+      PhyML_Printf("\n. -A- edge lengths     ");
+      For(i,st->n_part) PhyML_Printf("%3d ",st->bl_partition[i]);
 
       if(lig == 1) break;
 
-      printf("\n. (%c-%2d)> ",abc[lig],col+1);
+      PhyML_Printf("\n. (%c-%2d)> ",abc[lig],col+1);
       Getstring_Stdin(c);
       
       switch(lig)
@@ -2605,8 +2602,8 @@ void PART_Optimize_Br_Len_Serie(node *st_a, node *st_d, edge *st_b, superarbre *
 
   if(st->tree->c_lnL < lk_init - st->tree->mod->s_opt->min_diff_lk_local)
     { 
-      printf("\n. %f -- %f",lk_init,st->tree->c_lnL);
-      printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. %f -- %f",lk_init,st->tree->c_lnL);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
     
@@ -2632,7 +2629,7 @@ void PART_Update_P_Lk(edge *st_b, node *st_n, superarbre *st)
   
   if(dir < 0)
     {
-      printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
@@ -2658,8 +2655,8 @@ void PART_Make_N_Swap(edge **st_b, int beg, int end, superarbre *st)
     {
       if(st_b[i]->left->tax || st_b[i]->rght->tax)
 	{
-	  printf("\n. Edge %d is external.",st_b[i]->num);
-	  printf("\n. Err in file %s at line %d.",__FILE__,__LINE__);
+	  PhyML_Printf("\n. Edge %d is external.",st_b[i]->num);
+	  PhyML_Printf("\n. Err in file %s at line %d.",__FILE__,__LINE__);
 	  Warn_And_Exit("");
 	}
       
@@ -2742,10 +2739,10 @@ void PART_Print_Bl(superarbre *st)
   
   For(j,2*st->tree->n_otu-3)
     { 
-      printf("\n. edge %4d ",j);
+      PhyML_Printf("\n. edge %4d ",j);
       For(i,st->n_bl_part)
 	{
-	  printf("%f ",st->bl[i][j]);
+	  PhyML_Printf("%f ",st->bl[i][j]);
 	}
     }
 }
