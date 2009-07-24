@@ -60,14 +60,15 @@ int MC_main(int argc, char **argv)
 
   io = (option *)Get_Input(argc,argv);
   r_seed = (io->r_seed < 0)?(time(NULL)):(io->r_seed);
-/*   r_seed = 1244624234; */
-/*   r_seed = 1247546417; */
-/*   r_seed = 1247615500; */
-/*   r_seed = 1247617196; */
-/*   r_seed = 1247640045; */
+/*   r_seed = 1248325214; */
+/*   r_seed = 1248410161; */
+/*   r_seed = 1248410882; */
+/*   r_seed = 1248411101; */
+/*   r_seed = 1248411927; */
+/*   r_seed = 1248412680; */
   srand(r_seed); rand();
-  printf("\n. Seed = %d",r_seed);
-  printf("\n. Pid = %d",getpid());
+  PhyML_Printf("\n. Seed: %d\n",r_seed);
+  PhyML_Printf("\n. Pid: %d\n",getpid());
   Make_Model_Complete(io->mod);
   mod = io->mod;
   if(io->in_tree == 2) Test_Multiple_Data_Set_Format(io);
@@ -124,7 +125,7 @@ int MC_main(int argc, char **argv)
 		  edge *root_edge;
 
 
-/* 		  n_otu = 10; */
+/* 		  n_otu = 60; */
 /* 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1); */
 
 		  tree->rates = RATES_Make_Rate_Struct(tree->n_otu);
@@ -181,10 +182,10 @@ int MC_main(int argc, char **argv)
 		  Free(s);
 		  tree->n_root = buff;
 
-		  printf("\n. lnL_data = %f\n",Return_Lk(tree));
+		  PhyML_Printf("\n. lnL_data = %f\n",Lk(tree));
 
 		  Record_Br_Len(NULL,tree);
-		  printf("\n. Computing Hessian...\n");
+		  PhyML_Printf("\n. Computing Hessian...\n");
 		  tree->rates->bl_from_rt = 0;
 		  phydbl *cov;
 		  cov = Hessian(tree);
@@ -205,11 +206,10 @@ int MC_main(int argc, char **argv)
 		  RATES_Get_All_Trip_Reg_Coeff(tree);
 
 		  Lk(tree);
-		  printf("\n. Best LnL_data = %f",tree->c_lnL);
+		  PhyML_Printf("\n. Best LnL_data = %f",tree->c_lnL);
 		  For(i,2*tree->n_otu-3) tree->rates->u_cur_l[i] = tree->t_edges[i]->l;
 		  tree->c_lnL = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES);
-		  printf("\n. Best Approx lnL = %f",tree->c_lnL);
-
+		  PhyML_Printf("\n. Best Approx lnL = %f",tree->c_lnL);
 
 		  tree->rates->bl_from_rt = 1;
 
@@ -230,20 +230,23 @@ int MC_main(int argc, char **argv)
 		  MCMC_Print_Param(tree->mcmc,tree);
 		  
 		  time(&t_beg);
-		  printf("\n. Gibbs sampling (approx)...\n");
+		  PhyML_Printf("\n. Gibbs sampling (approx)...\n");
 		  tree->mcmc->n_tot_run  = 1E+8;
+		  phydbl u;
 		  do
 		    {
-		      RATES_Posterior_Times(tree);
-		      RATES_Posterior_Rates(tree);
+		      u = Uni();
+
+		      tree->rates->c_lnL = RATES_Lk_Rates(tree);
+		      MCMC_Nu(tree);
 		      tree->c_lnL = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,
 								 tree->rates->u_ml_l,
 								 tree->rates->invcov,
 								 tree->rates->covdet,
 								 2*tree->n_otu-3,YES);
 		      RATES_Posterior_Clock_Rate(tree);
-		      tree->rates->c_lnL = RATES_Lk_Rates(tree);
-		      MCMC_Nu(tree);
+		      RATES_Posterior_Times(tree);
+		      RATES_Posterior_Rates(tree);
 		    }
 		  while(tree->mcmc->run < tree->mcmc->n_tot_run);
 		  time(&t_end);
@@ -251,7 +254,7 @@ int MC_main(int argc, char **argv)
 		  MCMC_Close_MCMC(tree->mcmc);
 		  MCMC_Free_MCMC(tree->mcmc);
 
-		  printf("\n. End of Gibbs sampling (approx)...\n");
+		  PhyML_Printf("\n. End of Gibbs sampling (approx)...\n");
 		  system("sleep 1s");
 /* 		  END OF IMPORTANCE SAMPLING STUFF */
 
@@ -267,7 +270,7 @@ int MC_main(int argc, char **argv)
 		  tree->rates->lk_approx = NORMAL;
 		  Lk(tree);
 		  RATES_Lk_Rates(tree);
-		  printf("\n. LnL_data = %f\n. LnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL);		  
+		  PhyML_Printf("\n. LnL_data = %f\n. LnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL);		  
 		  tree->rates->bl_from_rt = 1;
 
 		  PhyML_Printf("\n. Burnin...\n");
@@ -281,12 +284,13 @@ int MC_main(int argc, char **argv)
 
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
 		  MCMC_Init_MCMC_Struct("thorne.normal",tree->mcmc,tree);
-		  tree->mcmc->n_tot_run       = 1E+8;
+		  tree->rates->lk_approx = NORMAL;
+		  tree->mcmc->n_tot_run = 1E+8;
 		  tree->mcmc->randomize = 0;
 		  time(&t_beg);
-		  printf("\n. Thorne (approx)...\n");
+		  PhyML_Printf("\n. Thorne (approx)...\n");
 		  MCMC(tree);
-		  printf("\n. End of Thorne (approx)...\n");
+		  PhyML_Printf("\n. End of Thorne (approx)...\n");
 		  system("sleep 3s");
 		  time(&t_end);
 		  Print_Time_Info(t_beg,t_end);
@@ -299,7 +303,7 @@ int MC_main(int argc, char **argv)
 /* 		  tree->rates->lk_approx = EXACT; */
 /* 		  Lk(tree); */
 /* 		  RATES_Lk_Rates(tree); */
-/* 		  printf("\n. LnL_data = %f\n. LnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL);		   */
+/* 		  PhyML_Printf("\n. LnL_data = %f\n. LnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL);		   */
 /* 		  tree->rates->bl_from_rt = 1; */
 
 /* 		  PhyML_Printf("\n. Burnin...\n"); */
@@ -316,9 +320,9 @@ int MC_main(int argc, char **argv)
 /* 		  tree->rates->lk_approx = EXACT; */
 /* 		  tree->mcmc->n_tot_run  = 1E+7; */
 /* 		  time(&t_beg); */
-/* 		  printf("\n. Thorne (exact)...\n"); */
+/* 		  PhyML_Printf("\n. Thorne (exact)...\n"); */
 /* 		  MCMC(tree); */
-/* 		  printf("\n. End of Thorne (exact)...\n"); */
+/* 		  PhyML_Printf("\n. End of Thorne (exact)...\n"); */
 /* 		  time(&t_end); */
 /* 		  Print_Time_Info(t_beg,t_end); */
 /* 		  MCMC_Close_MCMC(tree->mcmc); */

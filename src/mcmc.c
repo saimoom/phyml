@@ -22,44 +22,23 @@ void MCMC(arbre *tree)
 
   if(tree->mcmc->randomize)
     {
-      /*   MCMC_Randomize_Lexp(tree); */
-      /*   MCMC_Randomize_Jumps(tree); */
-      /*   MCMC_Randomize_Alpha(tree); */
       MCMC_Randomize_Node_Times(tree);
       MCMC_Randomize_Rates(tree);
-      MCMC_Randomize_Nu(tree);
       MCMC_Randomize_Clock_Rate(tree);
+      MCMC_Randomize_Nu(tree);
     }
 
-/*   int err; */
 
-/*   RATES_Check_Lk_Rates(tree,&err); */
-
-/*   if(err) */
-/*     { */
-/*       PhyML_Printf("\n. Small lk detected"); */
-/*       PhyML_Printf("\n. Run = %d",tree->mcmc->run); */
-/*       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
-/*       Exit("\n"); */
-/*     } */
-
-  RATES_Lk_Rates(tree);
   RATES_Update_Cur_Bl(tree);
-
-  if(tree->rates->lk_approx == NORMAL)
-    tree->c_lnL = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,
-					       tree->rates->u_ml_l,
-					       tree->rates->invcov,
-					       tree->rates->covdet,
-					       2*tree->n_otu-3,YES);
-  else Lk(tree);
+  RATES_Lk_Rates(tree);
+  Lk(tree);
 
   do
     {
-      MCMC_Rates_Local(tree);
-      MCMC_Times_Local(tree);
+      MCMC_Nu(tree);
       MCMC_Clock_Rate(tree);
-      MCMC_Nu(tree);      
+      MCMC_Times_Local(tree);
+      MCMC_Rates_Local(tree);
     }
   while(tree->mcmc->run < tree->mcmc->n_tot_run);
 }
@@ -87,7 +66,7 @@ void MCMC_Lexp(arbre *tree)
 
   cur_lexp = tree->rates->lexp;
   
-  if(cur_lexp > 2.0) printf("\n. cur_lexp = %f iter=%d",cur_lexp,tree->mcmc->run);
+  if(cur_lexp > 2.0) PhyML_Printf("\n. cur_lexp = %f iter=%d",cur_lexp,tree->mcmc->run);
 
   u = Uni();
   new_lexp = cur_lexp * exp(H_MCMC_LEXP*(u-0.5));
@@ -133,10 +112,11 @@ void MCMC_Nu(arbre *tree)
 {
   phydbl cur_nu,new_nu,cur_lnL_rate,new_lnL_rate;
   phydbl u,alpha,prior_mean_nu,ratio;
-  int i;
-  phydbl u_anc;
-  phydbl t,t_anc;
-  phydbl min_nu,max_nu,nu;
+/*   int i; */
+/*   phydbl u_anc; */
+/*   phydbl t,t_anc; */
+/*   phydbl nu; */
+  phydbl min_nu,max_nu;
 
   if(
      (tree->rates->model == COMPOUND_COR)   || 
@@ -153,38 +133,8 @@ void MCMC_Nu(arbre *tree)
   cur_lnL_rate = tree->rates->c_lnL;
   cur_nu       = tree->rates->nu;
   
-  /* The minimum value nu can take is the largest value of (ui - u_anc(i))^2/(tree->rates->z_max^2*(Ti-T_anc(i))) */
-  min_nu = nu = -1.E+10;
-  For(i,2*tree->n_otu-2)
-    {
-      u     = tree->rates->nd_r[i];
-      u_anc = tree->rates->nd_r[tree->noeud[i]->anc->num];
-      t     = tree->rates->nd_t[i];
-      t_anc = tree->rates->nd_t[tree->noeud[i]->anc->num];
-
-      nu = pow(u-u_anc,2) / ((t-t_anc) * pow(tree->rates->z_max,2));
-
-      if(nu > min_nu) min_nu = nu;
-    }
-
-  if(min_nu < 0.0)
-    {
-      PhyML_Printf("\n. min_nu = %f",min_nu);
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-      Warn_And_Exit("");
-    }
-
-  min_nu = MAX(min_nu,tree->rates->min_nu);
+  min_nu = tree->rates->min_nu;
   max_nu = tree->rates->max_nu;
-
-  if(max_nu < min_nu)
-    {
-      PhyML_Printf("\n. max_nu = %G min_nu = %G",max_nu,min_nu);
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-      Warn_And_Exit("");
-    }
-
-  if(fabs(min_nu-max_nu) < MDBL_MIN) return;
 
   u = Uni();
 /*   new_nu = u*(max_nu - min_nu) + min_nu; */
@@ -214,10 +164,6 @@ void MCMC_Nu(arbre *tree)
   ratio =
     (new_lnL_rate - cur_lnL_rate) +
     (log(new_nu)  - log(cur_nu));
-
-/*   ratio = */
-/*     (new_lnL_rate - cur_lnL_rate) + */
-/*     (log(new_nu) - log(cur_nu)); */
 
 /*   ratio = (new_lnL_rate - cur_lnL_rate); */
 
@@ -249,6 +195,9 @@ void MCMC_Nu(arbre *tree)
 
   tree->mcmc->run++;
   MCMC_Print_Param(tree->mcmc,tree);
+
+  /* !!!!!!!!!!!!!!!!!! */
+  if(!(tree->mcmc->run%tree->mcmc->norm_freq)) RATES_Normalise_Rates(tree);
 }
 
 /*********************************************************/
@@ -290,10 +239,7 @@ void MCMC_Clock_Rate(arbre *tree)
   tree->rates->clock_r = new_cr;
   RATES_Update_Cur_Bl(tree);
 
-  if(tree->rates->lk_approx == NORMAL)
-    new_lnL = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES);
-  else 
-    new_lnL = Return_Lk(tree);
+  new_lnL = Lk(tree);
 
   tree->c_lnL = new_lnL;
 
@@ -333,6 +279,7 @@ void MCMC_Clock_Rate(arbre *tree)
 
   tree->mcmc->run++;
   MCMC_Print_Param(tree->mcmc,tree);
+  if(!(tree->mcmc->run%tree->mcmc->norm_freq)) RATES_Normalise_Rates(tree);
 }
 
 /*********************************************************/
@@ -373,6 +320,7 @@ void MCMC_Alpha(arbre *tree)
   
   tree->mcmc->run++;
   MCMC_Print_Param(tree->mcmc,tree);
+  if(!(tree->mcmc->run%tree->mcmc->norm_freq)) RATES_Normalise_Rates(tree);
 }
 
 /*********************************************************/
@@ -446,9 +394,8 @@ void MCMC_Rates_Pre(node *a, node *d, int local, arbre *tree)
   phydbl U0,U1,U2,U3;
   node *v2,*v3;
   phydbl nu;
-  
-  if(a == tree->n_root) { tree->rates->nd_r[d->num] = 1.0; return; }
 
+  
   b            = NULL;
   nu           = tree->rates->nu;
   cur_mu       = tree->rates->nd_r[d->num];
@@ -484,34 +431,33 @@ void MCMC_Rates_Pre(node *a, node *d, int local, arbre *tree)
       U3  = tree->rates->nd_r[v3->num];
     }
   
-  r_max = (U0 + tree->rates->z_max * sqrt(nu*(T1-T0)));
-  if(!d->tax)
+  if(T1 - T0 < tree->rates->min_dt)
     {
-      r_max = MIN(r_max,
-		  MIN((U2 + tree->rates->z_max * sqrt(nu*(T2-T1))),
-		      (U3 + tree->rates->z_max * sqrt(nu*(T3-T1)))));
-    }
-  r_max = MIN(r_max,tree->rates->max_rate);
- 
-  r_min = (U0 - tree->rates->z_max * sqrt(nu*(T1-T0)));
-  if(!d->tax)
-    {
-      r_min = MAX(r_min,
-		  MAX((U2 - tree->rates->z_max * sqrt(nu*(T2-T1))),
-		      (U3 - tree->rates->z_max * sqrt(nu*(T3-T1)))));
-    }
-  r_min = MAX(r_min,tree->rates->min_rate);
-  
-  if(r_min > r_max)
-    {
+      PhyML_Printf("\n. T1 = %f T0 = %f",T1,T0);
       PhyML_Printf("\n. %s %d %d",__FILE__,__LINE__,tree->mcmc->run);
-      PhyML_Printf("\n. T0=%f T1=%f T2=%f T3=%f",T0,T1,T2,T3);
-      PhyML_Printf("\n. U0=%f U1=%f U2=%f U3=%f",U0,U1,U2,U3);
       Exit("\n");
     }
 
-  if(fabs(r_min-r_max) < MDBL_MIN) return;
+  if(!d->tax)
+    {
+      if(T2 - T1 < tree->rates->min_dt)
+	{
+	  PhyML_Printf("\n. T2 = %f T1 = %f",T2,T1);
+	  PhyML_Printf("\n. %s %d %d",__FILE__,__LINE__,tree->mcmc->run);
+	  Exit("\n");
+	}
+      
+      if(T3 - T1 < tree->rates->min_dt)
+	{
+	  PhyML_Printf("\n. T3 = %f T1 = %f",T3,T1);
+	  PhyML_Printf("\n. %s %d %d",__FILE__,__LINE__,tree->mcmc->run);
+	  Exit("\n");
+	}
+    }
 
+  r_min = tree->rates->min_rate;
+  r_max = tree->rates->max_rate;
+  
   u = Uni();
 /*   new_mu = cur_mu * exp(H_MCMC_RATES*(u-0.5)); */
   new_mu = Uni() * (r_max - r_min) + r_min;
@@ -536,14 +482,7 @@ void MCMC_Rates_Pre(node *a, node *d, int local, arbre *tree)
       tree->rates->nd_r[d->num] = new_mu;
 
       RATES_Update_Cur_Bl(tree);
-
-      if(tree->rates->lk_approx == NORMAL)
-	new_lnL_data = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES);
-      else
-	new_lnL_data = Return_Lk(tree);
-
-      tree->c_lnL  = new_lnL_data;
-      
+      new_lnL_data = Lk(tree);      
       new_lnL_rate = RATES_Lk_Rates(tree);
 	    
 /*       ratio = */
@@ -570,7 +509,7 @@ void MCMC_Rates_Pre(node *a, node *d, int local, arbre *tree)
 
 	  if((tree->mcmc->run > 10) && ((fabs(cur_lnL_data - tree->c_lnL) > 1.E-3) || (fabs(cur_lnL_rate - tree->rates->c_lnL) > 1.E-0)))
 	    {
-	      printf("\n. Run=%d a=%d d=%d lexp=%f alpha=%f mu(d)=%f n(d)=%d mu(a)=%f n(a)=%d dt=(%f); cur_lnL_data = %f vs %f ; cur_lnL_rates = %f vs %f",
+	      PhyML_Printf("\n. Run=%d a=%d d=%d lexp=%f alpha=%f mu(d)=%f n(d)=%d mu(a)=%f n(a)=%d dt=(%f); cur_lnL_data = %f vs %f ; cur_lnL_rates = %f vs %f",
 		     tree->mcmc->run,
 		     d->anc->num,d->num,
 		     tree->rates->lexp,
@@ -587,13 +526,8 @@ void MCMC_Rates_Pre(node *a, node *d, int local, arbre *tree)
 	  
 	  if(fabs(cur_lnL_rate - tree->rates->c_lnL) > 1.E-3)
 	    {
-	      printf("\n. WARNING: numerical precision issue detected (diff=%G run=%d). Reseting the likelihood.\n",cur_lnL_rate - tree->rates->c_lnL,tree->mcmc->run);
-
-	      if(tree->rates->lk_approx == NORMAL)
-		tree->c_lnL = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES);
-	      else
-		tree->c_lnL = Return_Lk(tree);
-
+	      PhyML_Printf("\n. WARNING: numerical precision issue detected (diff=%G run=%d). Reseting the likelihood.\n",cur_lnL_rate - tree->rates->c_lnL,tree->mcmc->run);
+	      Lk(tree);
 	      RATES_Lk_Rates(tree);
 	    }
 	}
@@ -616,6 +550,7 @@ void MCMC_Rates_Pre(node *a, node *d, int local, arbre *tree)
 
   tree->mcmc->run++;
   MCMC_Print_Param(tree->mcmc,tree);
+  if(!(tree->mcmc->run%tree->mcmc->norm_freq)) RATES_Normalise_Rates(tree);
 }
 
 /*********************************************************/
@@ -635,6 +570,8 @@ void MCMC_Times_Pre(node *a, node *d, int local, arbre *tree)
   phydbl u0,u1,u2,u3;
 
   if(d->tax) return; /* Won't change time at tip */
+
+  if(fabs(tree->rates->t_prior_min[d->num] - tree->rates->t_prior_max[d->num]) < 1.E-10) return;
 
   RATES_Record_Times(tree);
   RATES_Record_Rates(tree);
@@ -674,9 +611,9 @@ void MCMC_Times_Pre(node *a, node *d, int local, arbre *tree)
   u2 = tree->rates->nd_r[v2->num];
   u3 = tree->rates->nd_r[v3->num];
 
-  t_min =     t0 + (1./tree->rates->nu)*pow((u1-u0)/tree->rates->z_max,2);
-  t_max = MIN(t2 - (1./tree->rates->nu)*pow((u1-u2)/tree->rates->z_max,2),
-	      t3 - (1./tree->rates->nu)*pow((u1-u3)/tree->rates->z_max,2));
+  t_min =     t0 + MAX((1./tree->rates->nu)*pow((u1-u0)/tree->rates->z_max,2),tree->rates->min_dt);
+  t_max = MIN(t2 - MAX((1./tree->rates->nu)*pow((u1-u2)/tree->rates->z_max,2),tree->rates->min_dt),
+	      t3 - MAX((1./tree->rates->nu)*pow((u1-u3)/tree->rates->z_max,2),tree->rates->min_dt));
 
   t_min = MAX(t_min,tree->rates->t_prior_min[d->num]);
   t_max = MIN(t_max,tree->rates->t_prior_max[d->num]);
@@ -687,24 +624,25 @@ void MCMC_Times_Pre(node *a, node *d, int local, arbre *tree)
 
   if(t_max < t_min)
     {
-      PhyML_Printf("\n. WARNING: detected inconsistency in setting max and/or min time.");
-      PhyML_Printf("\n. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-      PhyML_Printf("\n. %s %d",__FILE__,__LINE__);
-      PhyML_Printf("\n. Has prior: %s",tree->rates->t_has_prior[d->num] ? "yes" : "no");
-      PhyML_Printf("\n. Low=%f Up=%f",tree->rates->t_prior_min[d->num],tree->rates->t_prior_max[d->num]);
-      PhyML_Printf("\n. NU=%f",tree->rates->nu);
-      PhyML_Printf("\n. T0=%f T1=%f T2=%f T3=%f",t0,t1,t2,t3);
-      PhyML_Printf("\n. U0=%f U1=%f U2=%f U3=%f",u0,u1,u2,u3);
-      PhyML_Printf("\n. T_MAX=%f T_MIN=%f",t_max,t_min);
-      PhyML_Printf("\n. z2 = %f z3 = %f",fabs(u2-u1)/sqrt(tree->rates->nu*(t2-t1)),fabs(u3-u1)/sqrt(tree->rates->nu*(t3-t1)));		   
-      PhyML_Printf("\n. root_rate = %f",tree->rates->nd_r[a->num]);
-      PhyML_Printf("\n. clock_rate = %f",tree->rates->clock_r);
-      PhyML_Printf("\n. nu = %f",tree->rates->nu);
-      PhyML_Printf("\n. <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
-      PhyML_Printf("\n");
-      t_max = MIN(t2,t3);
-      t_min = t0;
+/*       PhyML_Printf("\n. WARNING: detected inconsistency in setting max and/or min time."); */
+/*       PhyML_Printf("\n. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"); */
+/*       PhyML_Printf("\n. %s %d",__FILE__,__LINE__); */
+/*       PhyML_Printf("\n. Run: %d",tree->mcmc->run); */
+/*       PhyML_Printf("\n. Has prior: %s",tree->rates->t_has_prior[d->num] ? "yes" : "no"); */
+/*       PhyML_Printf("\n. Low=%f Up=%f",tree->rates->t_prior_min[d->num],tree->rates->t_prior_max[d->num]); */
+/*       PhyML_Printf("\n. NU=%f",tree->rates->nu); */
+/*       PhyML_Printf("\n. T0=%f T1=%f T2=%f T3=%f",t0,t1,t2,t3); */
+/*       PhyML_Printf("\n. U0=%f U1=%f U2=%f U3=%f",u0,u1,u2,u3); */
+/*       PhyML_Printf("\n. T_MAX=%f T_MIN=%f",t_max,t_min); */
+/*       PhyML_Printf("\n. z2 = %f z3 = %f",fabs(u2-u1)/sqrt(tree->rates->nu*(t2-t1)),fabs(u3-u1)/sqrt(tree->rates->nu*(t3-t1)));		    */
+/*       PhyML_Printf("\n. root_rate = %f",tree->rates->nd_r[a->num]); */
+/*       PhyML_Printf("\n. clock_rate = %f",tree->rates->clock_r); */
+/*       PhyML_Printf("\n. <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"); */
+/*       PhyML_Printf("\n"); */
 /*       Exit("\n"); */
+/*       t_max = MIN(t2,t3); */
+/*       t_min = t0; */
+      return;
     }
 
   u0 *= tree->rates->clock_r;
@@ -720,15 +658,37 @@ void MCMC_Times_Pre(node *a, node *d, int local, arbre *tree)
     {
       new_t = t_max - fmod(fabs(new_t),fabs(t_max-t_min));
     }
+
   if(new_t > t_max)
     {
       new_t = t_min + fmod(fabs(new_t),fabs(t_max-t_min));
     }
+
   if(new_t < t_min || new_t > t_max)
     {
       PhyML_Printf("\n. Problem with setting new time.\n");
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
+    }
+
+  if(new_t - t0 < tree->rates->min_dt)
+    {
+      PhyML_Printf("\n. new_t = %f t0 = %f t2=%f t3=%f",new_t,t0,t2,t3);
+      PhyML_Printf("\n. %s %d %d",__FILE__,__LINE__,tree->mcmc->run);
+      Exit("\n");
+    }
+
+  if(t2 - new_t  < tree->rates->min_dt)
+    {
+      PhyML_Printf("\n. new_t = %f t0 = %f t2=%f t3=%f",new_t,t0,t2,t3);
+      PhyML_Printf("\n. %s %d %d",__FILE__,__LINE__,tree->mcmc->run);
+      Exit("\n");
+    }
+  if(t3 - new_t  < tree->rates->min_dt)
+    {
+      PhyML_Printf("\n. new_t = %f t0 = %f t2=%f t3=%f",new_t,t0,t2,t3);
+      PhyML_Printf("\n. %s %d %d",__FILE__,__LINE__,tree->mcmc->run);
+      Exit("\n");
     }
 
   
@@ -737,26 +697,13 @@ void MCMC_Times_Pre(node *a, node *d, int local, arbre *tree)
       tree->rates->nd_t[d->num] = new_t;
 
       RATES_Update_Cur_Bl(tree);
-
       new_lnL_rate = RATES_Lk_Rates(tree); /* Rates likelihood needs to be updated here */
-
-      if(tree->rates->lk_approx == NORMAL)
-	{
-	  new_lnL_data = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES);
-	}
-      else
-	{
-	  new_lnL_data = Return_Lk(tree);
-	}
-
-      if(new_t > -1.E-10) new_t = -1.E-10;
+      new_lnL_data = Lk(tree);
 
       tree->c_lnL = new_lnL_data;            
 
-/*       ratio = 1.0; */
-
-      ratio = new_lnL_data - cur_lnL_data ;
-
+      ratio = new_lnL_data - cur_lnL_data;
+      
 /*       ratio = */
 /* 	(new_lnL_data + log(fabs(new_t))) - */
 /* 	(cur_lnL_data + log(fabs(cur_t))); */
@@ -778,23 +725,22 @@ void MCMC_Times_Pre(node *a, node *d, int local, arbre *tree)
 /* 	    } */
 /* 	  else */
 /* 	    { */
-/* 	      cur_lnL_data = Return_Lk(tree); */
+/* 	      cur_lnL_data = Lk(tree); */
 /* 	    } */
-
-	  tree->c_lnL  = cur_lnL_data;
-	  
 /* 	  cur_lnL_rate = RATES_Lk_Rates(tree); */
+
+	  tree->c_lnL        = cur_lnL_data;	  
 	  tree->rates->c_lnL = cur_lnL_rate;
 
 	  if((tree->mcmc->run > 10) && ((fabs(cur_lnL_data - tree->c_lnL) > 1.E-3) || (fabs(cur_lnL_rate - tree->rates->c_lnL) > 1.E-3)))
 	    {
-	      printf("\n. Run=%d",tree->mcmc->run);
+	      PhyML_Printf("\n. Run=%d",tree->mcmc->run);
 	      
-	      printf("\n. lexp = %f alpha = %f",
+	      PhyML_Printf("\n. lexp = %f alpha = %f",
 		     tree->rates->lexp,
 		     tree->rates->alpha);
 	      	      
-	      printf("\n. cur_t = %f ; cur_lnL_data = %f vs %f ; cur_lnL_rates = %f vs %f",
+	      PhyML_Printf("\n. cur_t = %f ; cur_lnL_data = %f vs %f ; cur_lnL_rates = %f vs %f",
 		     cur_t,
 		     cur_lnL_data,tree->c_lnL,
 		     cur_lnL_rate,tree->rates->c_lnL);
@@ -805,7 +751,7 @@ void MCMC_Times_Pre(node *a, node *d, int local, arbre *tree)
 	  
 	  if(fabs(cur_lnL_rate - tree->rates->c_lnL) > 1.E-3)
 	    {
-	      printf("\n. WARNING: numerical precision issue detected (diff=%G). Reseting the likelihood.\n",cur_lnL_rate - tree->rates->c_lnL);
+	      PhyML_Printf("\n. WARNING: numerical precision issue detected (diff=%G). Reseting the likelihood.\n",cur_lnL_rate - tree->rates->c_lnL);
 	      RATES_Lk_Rates(tree);
 	    }
 	}
@@ -829,6 +775,7 @@ void MCMC_Times_Pre(node *a, node *d, int local, arbre *tree)
 
   tree->mcmc->run++;
   MCMC_Print_Param(tree->mcmc,tree);
+  if(!(tree->mcmc->run%tree->mcmc->norm_freq)) RATES_Normalise_Rates(tree);
 }
 
 /*********************************************************/
@@ -883,8 +830,8 @@ void MCMC_Time_Root(arbre *tree)
   u0 = 1.0;
 
   t_min = tree->rates->t_prior_min[root->num];
-  t_max = MIN(t2 - (1./tree->rates->nu)*pow((u0-u2)/tree->rates->z_max,2), 
-	      t3 - (1./tree->rates->nu)*pow((u0-u3)/tree->rates->z_max,2));
+  t_max = MIN(t2 - MAX((1./tree->rates->nu)*pow((u0-u2)/tree->rates->z_max,2),tree->rates->min_dt), 
+	      t3 - MAX((1./tree->rates->nu)*pow((u0-u3)/tree->rates->z_max,2),tree->rates->min_dt));
 
   t_min = MAX(t_min,tree->rates->t_prior_min[root->num]);
   t_max = MIN(t_max,tree->rates->t_prior_max[root->num]);
@@ -895,20 +842,19 @@ void MCMC_Time_Root(arbre *tree)
   
   if(t_max < t_min)
     {
-      PhyML_Printf("\n. WARNING: detected inconsistency in setting max and/or min time.");
-      PhyML_Printf("\n. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-      PhyML_Printf("\n. %s %d",__FILE__,__LINE__);
-      PhyML_Printf("\n. Run = %d",tree->mcmc->run);
-      PhyML_Printf("\n. NU=%f",tree->rates->nu);
-      PhyML_Printf("\n. T0=%f T2=%f T3=%f",t0,t2,t3);
-      PhyML_Printf("\n. U0=%f U2=%f U3=%f",u0,u2,u3);
-      PhyML_Printf("\n. T_MAX=%f T_MIN=%f",t_max,t_min);
-      PhyML_Printf("\n. <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
-      PhyML_Printf("\n");
-/*       t_max = MIN(t2,t3); */
-/*       t_min = tree->rates->t_prior_min[root->num]; */
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-      Exit("\n");
+/*       PhyML_Printf("\n. WARNING: detected inconsistency in setting max and/or min time."); */
+/*       PhyML_Printf("\n. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"); */
+/*       PhyML_Printf("\n. %s %d",__FILE__,__LINE__); */
+/*       PhyML_Printf("\n. Run = %d",tree->mcmc->run); */
+/*       PhyML_Printf("\n. NU=%f",tree->rates->nu); */
+/*       PhyML_Printf("\n. T0=%f T2=%f T3=%f",t0,t2,t3); */
+/*       PhyML_Printf("\n. U0=%f U2=%f U3=%f",u0,u2,u3); */
+/*       PhyML_Printf("\n. T_MAX=%f T_MIN=%f",t_max,t_min); */
+/*       PhyML_Printf("\n. <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"); */
+/*       PhyML_Printf("\n"); */
+/*       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
+/*       Exit("\n"); */
+      return;
     }
   
   u0 *= tree->rates->clock_r;
@@ -937,16 +883,7 @@ void MCMC_Time_Root(arbre *tree)
   tree->rates->nd_t[root->num] = new_t;
   
   new_lnL_rate = RATES_Lk_Rates(tree); /* Rates likelihood needs to be updated here because variances of rates have changed */
-
-  if(tree->rates->lk_approx == NORMAL)
-    {
-      RATES_Update_Cur_Bl(tree);
-      new_lnL_data = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES);
-    }
-  else
-    {
-      new_lnL_data = Return_Lk(tree);
-    }
+  new_lnL_data = Lk(tree);
   
   tree->c_lnL = new_lnL_data;            
 
@@ -961,32 +898,18 @@ void MCMC_Time_Root(arbre *tree)
     {
       RATES_Reset_Times(tree);
 
-/*       if(tree->rates->lk_approx == NORMAL) */
-/* 	{ */
-/* 	  RATES_Update_Cur_Bl(tree); */
-/* 	  new_lnL_data = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES); */
-/* 	} */
-/*       else */
-/* 	{ */
-/* 	  new_lnL_data = Return_Lk(tree); */
-/* 	} */
-
-      new_lnL_data = cur_lnL_data;
-
-      tree->c_lnL = new_lnL_data;
-      
-/*       RATES_Lk_Rates(tree); */
+      tree->c_lnL        = cur_lnL_data;
       tree->rates->c_lnL = cur_lnL_rate;
 
       if((tree->mcmc->run > 10) && ((fabs(cur_lnL_data - tree->c_lnL) > 1.E-3) || (fabs(cur_lnL_rate - tree->rates->c_lnL) > 1.E-3)))
 	{
-	  printf("\n. Run=%d",tree->mcmc->run);
+	  PhyML_Printf("\n. Run=%d",tree->mcmc->run);
 	  
-	  printf("\n. lexp = %f alpha = %f",
+	  PhyML_Printf("\n. lexp = %f alpha = %f",
 		 tree->rates->lexp,
 		 tree->rates->alpha);
 	  
-	  printf("\n. cur_t = %f ; cur_lnL_data = %f vs %f ; cur_lnL_rates = %f vs %f",
+	  PhyML_Printf("\n. cur_t = %f ; cur_lnL_data = %f vs %f ; cur_lnL_rates = %f vs %f",
 		 cur_t,
 		 cur_lnL_data,tree->c_lnL,
 		 cur_lnL_rate,tree->rates->c_lnL);
@@ -997,7 +920,7 @@ void MCMC_Time_Root(arbre *tree)
       
       if(fabs(cur_lnL_rate - tree->rates->c_lnL) > 1.E-3)
 	{
-	  printf("\n. WARNING: numerical precision issue detected (diff=%G). Reseting the likelihood.\n",cur_lnL_rate - tree->rates->c_lnL);
+	  PhyML_Printf("\n. WARNING: numerical precision issue detected (diff=%G). Reseting the likelihood.\n",cur_lnL_rate - tree->rates->c_lnL);
 	  RATES_Lk_Rates(tree);
 	}
     }
@@ -1020,6 +943,9 @@ void MCMC_Time_Root(arbre *tree)
 
   tree->mcmc->run++;
   MCMC_Print_Param(tree->mcmc,tree);
+
+  /* !!!!!!!!!!!!!!!!!! */
+  if(!(tree->mcmc->run%tree->mcmc->norm_freq)) RATES_Normalise_Rates(tree);
 }
 
 /*********************************************************/
@@ -1073,7 +999,7 @@ void MCMC_Jumps_Pre(node *a, node *d, int local, arbre *tree)
 	  
 	  if(fabs(cur_lnL_rate - tree->rates->c_lnL) > 1.E-0)
 	    {
-	      printf("\n. lexp=%f alpha=%f dt=(%f); cur_lnL_rates = %f vs %f",
+	      PhyML_Printf("\n. lexp=%f alpha=%f dt=(%f); cur_lnL_rates = %f vs %f",
 		     tree->rates->lexp,
 		     tree->rates->alpha,
 		     fabs(tree->rates->nd_t[a->num] - tree->rates->nd_t[d->num]),
@@ -1085,7 +1011,7 @@ void MCMC_Jumps_Pre(node *a, node *d, int local, arbre *tree)
 	  
 	  if(fabs(cur_lnL_rate - tree->rates->c_lnL) > 1.E-3)
 	    {
-	      printf("\n. WARNING: numerical precision issue detected (diff=%G). Reseting the likelihood.\n",cur_lnL_rate - tree->rates->c_lnL);
+	      PhyML_Printf("\n. WARNING: numerical precision issue detected (diff=%G). Reseting the likelihood.\n",cur_lnL_rate - tree->rates->c_lnL);
 	      RATES_Lk_Rates(tree);
 	    }
 	}
@@ -1162,7 +1088,7 @@ void MCMC_Stick_Rates_Pre(node *a, node *d, arbre *tree)
 	      
 	      if((fabs(cur_lnL_data - tree->c_lnL) > 1.E-3) || (fabs(cur_lnL_rate - tree->rates->c_lnL) > 1.E-0))
 		{
-		  printf("\n. lexp=%f alpha=%f b->l = (%f) dt=(%f); cur_lnL_data = %f vs %f ; cur_lnL_rates = %f vs %f",
+		  PhyML_Printf("\n. lexp=%f alpha=%f b->l = (%f) dt=(%f); cur_lnL_data = %f vs %f ; cur_lnL_rates = %f vs %f",
 			 tree->rates->lexp,
 			 tree->rates->alpha,
 			 b->l,
@@ -1176,7 +1102,7 @@ void MCMC_Stick_Rates_Pre(node *a, node *d, arbre *tree)
 	      
 	      if(fabs(cur_lnL_rate - tree->rates->c_lnL) > 1.E-3)
 		{
-		  printf("\n. WARNING: numerical precision issue detected (diff=%G). Reseting the likelihood.\n",cur_lnL_rate - tree->rates->c_lnL);
+		  PhyML_Printf("\n. WARNING: numerical precision issue detected (diff=%G). Reseting the likelihood.\n",cur_lnL_rate - tree->rates->c_lnL);
 		  RATES_Lk_Rates(tree);
 		  Lk(tree);
 		}
@@ -1226,7 +1152,7 @@ void MCMC_Print_Param(tmcmc *mcmc, arbre *tree)
 	  PhyML_Fprintf(fp,"Run\t");
 	  PhyML_Fprintf(fp,"Time\t");
 	  PhyML_Fprintf(fp,"TreeSize\t");
-	  PhyML_Fprintf(fp,"ExpTreeSize\t");
+	  PhyML_Fprintf(fp,"ExpTreeSize[%f]\t",RATES_Check_Mean_Rates_True(tree));
 	  PhyML_Fprintf(fp,"LnLSeq\t");
 	  PhyML_Fprintf(fp,"LnLRate\t");
 /* 	  PhyML_Fprintf(fp,"RootPos[%f]\t",tree->n_root_pos); */
@@ -1306,8 +1232,8 @@ void MCMC_Print_Param(tmcmc *mcmc, arbre *tree)
       
       RATES_Update_Cur_Bl(tree);
 /*       PhyML_Fprintf(fp,"%4.2f\t",Get_Tree_Size(tree)-tree->rates->true_tree_size); */
-      PhyML_Fprintf(fp,"%4.2f\t",RATES_Check_Mean_Rates(tree));
-      PhyML_Fprintf(fp,"%4.2f\t",RATES_Expected_Tree_Length(tree));
+      PhyML_Fprintf(fp,"%12lf\t",RATES_Check_Mean_Rates(tree));
+      PhyML_Fprintf(fp,"%12lf\t",RATES_Expected_Tree_Length(tree));
 
       PhyML_Fprintf(fp,"%12lf\t",tree->c_lnL);
 
@@ -1317,8 +1243,8 @@ void MCMC_Print_Param(tmcmc *mcmc, arbre *tree)
       PhyML_Fprintf(fp,"%12lf\t",tree->rates->nu);
       PhyML_Fprintf(fp,"%12lf\t",tree->rates->clock_r);
 /*       if(fp != stdout) for(i=tree->n_otu;i<2*tree->n_otu-1;i++) PhyML_Fprintf(fp,"%8f\t",tree->rates->t_prior[i] - tree->rates->true_t[i]); */
-/*       if(fp != stdout) for(i=tree->n_otu;i<2*tree->n_otu-1;i++) PhyML_Fprintf(fp,"%.1f\t",tree->rates->nd_t[i] - tree->rates->true_t[i]); */
-      if(fp != stdout) for(i=tree->n_otu;i<2*tree->n_otu-1;i++) PhyML_Fprintf(fp,"%.1f\t",tree->rates->nd_t[i]);
+      if(fp != stdout) for(i=tree->n_otu;i<2*tree->n_otu-1;i++) PhyML_Fprintf(fp,"%.1f\t",tree->rates->nd_t[i] - tree->rates->true_t[i]);
+/*       if(fp != stdout) for(i=tree->n_otu;i<2*tree->n_otu-1;i++) PhyML_Fprintf(fp,"%.1f\t",tree->rates->nd_t[i]); */
 /*       if(fp != stdout) for(i=tree->n_otu;i<2*tree->n_otu-1;i++) PhyML_Fprintf(fp,"%8f\t",tree->rates->t_prior[i]); */
       if(fp != stdout) for(i=0;i<2*tree->n_otu-2;i++) PhyML_Fprintf(fp,"%8f\t",tree->rates->nd_r[i]);
       if(fp != stdout) for(i=0;i<2*tree->n_otu-3;i++) PhyML_Fprintf(fp,"%8f\t",tree->rates->u_cur_l[i]-tree->rates->u_ml_l[i]);
@@ -1471,6 +1397,7 @@ void MCMC_Init_MCMC_Struct(char *filename, tmcmc *mcmc, arbre *tree)
   mcmc->n_rate_jumps    = 0;
   mcmc->n_tot_run       = 1.E+6;
   mcmc->randomize       = 1;
+  mcmc->norm_freq       = 1000;
 
   if(filename)
     {
@@ -1536,7 +1463,7 @@ void MCMC_Randomize_Branch_Lengths(arbre *tree)
 	}
       else
 	{
-	  printf("\n. Didn't randomize root edge.");
+	  PhyML_Printf("\n. Didn't randomize root edge.");
 	}
     }
 }
@@ -1668,6 +1595,10 @@ void MCMC_Randomize_Nu(arbre *tree)
   min_nu = MAX(min_nu,tree->rates->min_nu);
   max_nu = tree->rates->max_nu;
 
+  /* !!!!!!!!!!!! */
+  min_nu = tree->rates->min_nu;
+  max_nu = tree->rates->max_nu;
+
   if(max_nu < min_nu)
     {
       PhyML_Printf("\n. max_nu = %G min_nu = %G",max_nu,min_nu);
@@ -1676,7 +1607,8 @@ void MCMC_Randomize_Nu(arbre *tree)
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
-  
+
+
   u = Uni();
   tree->rates->nu = (max_nu - min_nu) * u + min_nu;
 }
@@ -1752,7 +1684,6 @@ void MCMC_Randomize_Node_Times(arbre *tree)
       tree->rates->nd_t[tree->n_root->num] = 10. * min_prior;
     }
   
-
   MCMC_Randomize_Node_Times_Top_Down(tree->n_root,tree->n_root->v[0],tree);
   MCMC_Randomize_Node_Times_Top_Down(tree->n_root,tree->n_root->v[1],tree);
 
@@ -1763,7 +1694,7 @@ void MCMC_Randomize_Node_Times(arbre *tree)
 	  tree->rates->t_prior_min[i] = 1.E+2 * tree->rates->nd_t[tree->n_root->num];
 	  tree->rates->t_prior_max[i] = 0.0;
 	}
-    }  
+    }
 }
 
 /*********************************************************/
@@ -1785,7 +1716,7 @@ void MCMC_Randomize_Node_Times_Bottom_Up(node *a, node *d, arbre *tree)
 	  u *= (t_sup - t_inf);
 	  u += t_inf;
 	  
-	  tree->rates->nd_t[d->num] = u;	  
+	  tree->rates->nd_t[d->num] = u;
 	}
       return;
     }
@@ -1826,7 +1757,8 @@ void MCMC_Randomize_Node_Times_Bottom_Up(node *a, node *d, arbre *tree)
       else
 	{
 	  tree->rates->t_prior_max[d->num] = 
-	    MIN(tree->rates->t_prior_max[v1->num],tree->rates->t_prior_max[v2->num]);
+	    MIN(tree->rates->t_prior_max[v1->num],
+		tree->rates->t_prior_max[v2->num]);
 	}
     }
 }
@@ -1909,7 +1841,7 @@ void MCMC_Mixing_Step(arbre *tree)
   
   new_lnL_rate = RATES_Lk_Rates(tree);
   new_lnL_time = RATES_Yule(tree);
-  /* new_lnL_data = Return_Lk(tree); */
+  /* new_lnL_data = Lk(tree); */
   
   ratio = (new_lnL_rate + new_lnL_time) - (cur_lnL_rate + cur_lnL_time) + log(hr);
   ratio = exp(ratio);
@@ -1927,7 +1859,7 @@ void MCMC_Mixing_Step(arbre *tree)
       
       if(fabs(cur_lnL_rate - tree->rates->c_lnL) > 1.E-0)
 	{
-	  printf("\n. lexp=%f alpha=%f ; cur_lnL_rates = %f vs %f",
+	  PhyML_Printf("\n. lexp=%f alpha=%f ; cur_lnL_rates = %f vs %f",
 		 tree->rates->lexp,
 		 tree->rates->alpha,
 		 cur_lnL_rate,tree->rates->c_lnL);
@@ -1938,14 +1870,14 @@ void MCMC_Mixing_Step(arbre *tree)
 
       if(fabs(cur_lnL_rate - tree->rates->c_lnL) > 1.E-3)
 	{
-	  printf("\n. WARNING: numerical precision issue detected (diff=%G run=%d). Reseting the likelihood.\n",cur_lnL_rate - tree->rates->c_lnL,tree->mcmc->run);
+	  PhyML_Printf("\n. WARNING: numerical precision issue detected (diff=%G run=%d). Reseting the likelihood.\n",cur_lnL_rate - tree->rates->c_lnL,tree->mcmc->run);
 	  RATES_Lk_Rates(tree);
 	  Lk(tree);
 	}
     }
   else
     {
-/*       printf("\n. Accept global times"); */
+/*       PhyML_Printf("\n. Accept global times"); */
     }
 }
 

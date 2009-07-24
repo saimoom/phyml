@@ -57,7 +57,7 @@ int Check_NNI_Five_Branches(arbre *tree)
       best_config   = -1;
 
       tree->both_sides = 1;
-      init_lnL = Return_Lk(tree);
+      init_lnL = Lk(tree);
 
       //For every branch
       For(i,2*tree->n_otu-3)

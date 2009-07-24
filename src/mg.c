@@ -329,7 +329,7 @@ void PART_Make_Superarbre_Full(superarbre *st, option *io, allseq **data)
       
       if(!st->tree->has_branch_lengths)
 	{
-	  printf("\n. Branch lengths are all set to 0.1...\n");
+	  PhyML_Printf("\n. Branch lengths are all set to 0.1...\n");
 	  For(i,2*st->tree->n_otu-3) st->tree->t_edges[i]->l = 0.1;
 	}
     }
@@ -1905,7 +1905,7 @@ int PART_Try_One_Spr_Move(spr *st_move, superarbre *st)
 	      For(gt,st->n_part)
 		{
 		  PhyML_Printf("\n. truth -> %f ; move -> %f",
-			 Return_Lk(st->treelist->tree[gt]),
+			 Lk(st->treelist->tree[gt]),
 			 gt_move[gt] ? gt_move[gt]->lnL : -1.);
 		}
 	    }
@@ -1934,7 +1934,7 @@ int PART_Try_One_Spr_Move(spr *st_move, superarbre *st)
 /* 	    { */
 /* 	      if(gt_move[gt]) */
 /* 		{ */
-/* 		  Return_Lk(st->treelist->tree[gt]); */
+/* 		  Lk(st->treelist->tree[gt]); */
 /* 		  Fast_Br_Len_Recur(st->treelist->tree[gt]->noeud[0], */
 /* 				    st->treelist->tree[gt]->noeud[0]->v[0], */
 /* 				    st->treelist->tree[gt]->noeud[0]->b[0], */

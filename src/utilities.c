@@ -1147,7 +1147,7 @@ int Read_One_Line_Seq(seq ***data, int num_otu, FILE *in)
 
       if((c == 13) || (c == 10)) 
 	{
-/* 	  printf("[%d %d]\n",c,nchar); fflush(NULL); */
+/* 	  PhyML_Printf("[%d %d]\n",c,nchar); fflush(NULL); */
 	  if(!nchar)
 	    {
 	      c=(char)fgetc(in);
@@ -1155,18 +1155,18 @@ int Read_One_Line_Seq(seq ***data, int num_otu, FILE *in)
 	    }
 	  else 
 	    { 
-/* 	      printf("break\n");  */
+/* 	      PhyML_Printf("break\n");  */
 	      break; 
 	    }
 	}
       else if(c == EOF)
 	{
-/* 	  printf("EOL\n"); */
+/* 	  PhyML_Printf("EOL\n"); */
 	  break;
 	}
       else if((c == ' ') || (c == '\t') || (c == 32)) 
 	{
-/* 	  printf("[%d]",c); */
+/* 	  PhyML_Printf("[%d]",c); */
 	  c=(char)fgetc(in); 
 	  continue;
 	}
@@ -1190,7 +1190,7 @@ int Read_One_Line_Seq(seq ***data, int num_otu, FILE *in)
 	}
       (*data)[num_otu]->state[(*data)[num_otu]->len]=c;
       (*data)[num_otu]->len++;
-/*       printf("%c",c); */
+/*       PhyML_Printf("%c",c); */
       c = (char)fgetc(in);
     }
 
@@ -2045,7 +2045,7 @@ void Print_Site_Lk(arbre *tree, FILE *fp)
       
       PhyML_Fprintf(fp,"Note : P(D|M) is the probability of site D given the model M (i.e., the site likelihood)\n");
       if(tree->mod->n_catg > 1 || tree->mod->invar)
-	fprintf(fp,"P(D|M,rr[x]) is the probability of site D given the model M and the relative rate\nof evolution rr[x], where x is the class of rate to be considered.\nWe have P(D|M) = \\sum_x P(x) x P(D|M,rr[x]).\n");
+	PhyML_Fprintf(fp,"P(D|M,rr[x]) is the probability of site D given the model M and the relative rate\nof evolution rr[x], where x is the class of rate to be considered.\nWe have P(D|M) = \\sum_x P(x) x P(D|M,rr[x]).\n");
       PhyML_Fprintf(fp,"\n\n");
       
       sprintf(s,"Site");
@@ -2081,7 +2081,7 @@ void Print_Site_Lk(arbre *tree, FILE *fp)
 	  if(tree->mod->n_catg > 1)
 	    {
 	      For(catg,tree->mod->n_catg)
-		fprintf(fp,"%-22g",(phydbl)exp(tree->log_site_lk_cat[catg][tree->data->sitepatt[site]]));
+		PhyML_Fprintf(fp,"%-22g",(phydbl)exp(tree->log_site_lk_cat[catg][tree->data->sitepatt[site]]));
 
 	      postmean = .0;
 	      For(catg,tree->mod->n_catg) 
@@ -2096,9 +2096,9 @@ void Print_Site_Lk(arbre *tree, FILE *fp)
 	  if(tree->mod->invar)
 	    {
 	      if((phydbl)tree->data->invar[tree->data->sitepatt[site]] > -0.5)
-		fprintf(fp,"%-16g",tree->mod->pi[tree->data->invar[tree->data->sitepatt[site]]]);
+		PhyML_Fprintf(fp,"%-16g",tree->mod->pi[tree->data->invar[tree->data->sitepatt[site]]]);
 	      else
-		fprintf(fp,"%-16g",0.0);
+		PhyML_Fprintf(fp,"%-16g",0.0);
 	    }
 	  PhyML_Fprintf(fp,"\n");
 	}
@@ -2107,7 +2107,7 @@ void Print_Site_Lk(arbre *tree, FILE *fp)
   else
     {
       For(site,tree->data->init_len)
-	fprintf(fp,"%.2f\t",tree->site_lk[tree->data->sitepatt[site]]);
+	PhyML_Fprintf(fp,"%.2f\t",tree->site_lk[tree->data->sitepatt[site]]);
       PhyML_Fprintf(fp,"\n");
     }
 }
@@ -2675,6 +2675,7 @@ void NNI(arbre *tree, edge *b_fcus, int do_swap)
   v3                     = b_fcus->rght->v[b_fcus->r_v1];
   v4                     = b_fcus->rght->v[b_fcus->r_v2];
 
+
   if(v1->num < v2->num)
     {
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
@@ -2715,7 +2716,7 @@ void NNI(arbre *tree, edge *b_fcus, int do_swap)
 
   if(lk1 < lk1_init - tree->mod->s_opt->min_diff_lk_local)
     {
-      PhyML_Printf("%f %f %f %f\n",l_infa,l_max,l_infb,b_fcus->l);
+      PhyML_Printf("%f %f %f %G\n",l_infa,l_max,l_infb,b_fcus->l);
       PhyML_Printf("%f -- %f \n",lk1_init,lk1);
       PhyML_Printf("\n. Err. in NNI (1)\n");
     }
@@ -2752,7 +2753,7 @@ void NNI(arbre *tree, edge *b_fcus, int do_swap)
 
   if(lk2 < lk2_init - tree->mod->s_opt->min_diff_lk_local)
     {
-      PhyML_Printf("%f %f %f %f\n",l_infa,l_max,l_infb,b_fcus->l);
+      PhyML_Printf("%f %f %f %G\n",l_infa,l_max,l_infb,b_fcus->l);
       PhyML_Printf("%f -- %f \n",lk2_init,lk2);
       PhyML_Printf("\n. Err. in NNI (2)\n");
    }
@@ -2765,17 +2766,19 @@ void NNI(arbre *tree, edge *b_fcus, int do_swap)
 
   /***********/
    b_fcus->l = bl_init;
+  if(b_fcus->l < BL_MIN) b_fcus->l = BL_MIN;
    tree->both_sides = 1;
 
    lk0_init = Update_Lk_At_Given_Edge(b_fcus,tree);
 
    if(fabs(lk0_init - lk_init) > tree->mod->s_opt->min_diff_lk_local)
      {
-       PhyML_Printf("\n. lk_init = %f; lk = %f diff = %f\n",
-	      lk_init,
-	      lk0_init,
-	      lk_init-lk0_init);
-       PhyML_Printf("\n. Curr_lnL = %f\n",Return_Lk(tree));
+       PhyML_Printf("\n. lk_init = %f; lk = %f diff = %f l = %G\n",
+		    lk_init,
+		    lk0_init,
+		    lk_init-lk0_init,
+		    b_fcus->l);
+       PhyML_Printf("\n. Curr_lnL = %f\n",Lk(tree));
        Warn_And_Exit("\n. Err. in NNI (3)\n");
      }
 
@@ -3518,11 +3521,11 @@ void Print_Fp_Out_Lines(FILE *fp_out, time_t t_beg, time_t t_end, arbre *tree, o
   if (n_data_set==1)
       {
 
-	fprintf(fp_out,". Sequence file : [%s]\n\n", Basename(io->in_seq_file));
+	PhyML_Fprintf(fp_out,". Sequence file : [%s]\n\n", Basename(io->in_seq_file));
 
 	(tree->mod->datatype == NT)?
-	  (fprintf(fp_out,". Model of nucleotides substitution : %s\n\n",io->mod->modelname)):
-	  (fprintf(fp_out,". Model of amino acids substitution : %s\n\n",io->mod->modelname));
+	  (PhyML_Fprintf(fp_out,". Model of nucleotides substitution : %s\n\n",io->mod->modelname)):
+	  (PhyML_Fprintf(fp_out,". Model of amino acids substitution : %s\n\n",io->mod->modelname));
 
 	s = (char *)mCalloc(100,sizeof(char));
 
@@ -3535,30 +3538,30 @@ void Print_Fp_Out_Lines(FILE *fp_out, time_t t_beg, time_t t_end, arbre *tree, o
 	            strcat(s,")");         break; }
 	  }
 
-	fprintf(fp_out,". Initial tree : [%s]\n\n",s);
+	PhyML_Fprintf(fp_out,". Initial tree : [%s]\n\n",s);
 
 	Free(s);
 
-	fprintf(fp_out,"\n");
+	PhyML_Fprintf(fp_out,"\n");
 
 	/*headline 1*/
-	fprintf(fp_out, ". Data\t");
+	PhyML_Fprintf(fp_out, ". Data\t");
 
-	fprintf(fp_out,"Nb of \t");
+	PhyML_Fprintf(fp_out,"Nb of \t");
 
-	fprintf(fp_out,"Likelihood\t");
+	PhyML_Fprintf(fp_out,"Likelihood\t");
 
-	fprintf(fp_out, "Discrete   \t");
+	PhyML_Fprintf(fp_out, "Discrete   \t");
 
 	if(tree->mod->n_catg > 1)
 	  PhyML_Fprintf(fp_out, "Number of \tGamma shape\t");
 
-	fprintf(fp_out,"Proportion of\t");
+	PhyML_Fprintf(fp_out,"Proportion of\t");
 
 	if(tree->mod->whichmodel <= 6)
 	  PhyML_Fprintf(fp_out,"Transition/ \t");
 
-	fprintf(fp_out,"Nucleotides frequencies               \t");
+	PhyML_Fprintf(fp_out,"Nucleotides frequencies               \t");
 
 	if((tree->mod->whichmodel == GTR) ||
 	   (tree->mod->whichmodel == CUSTOM))
@@ -3566,35 +3569,35 @@ void Print_Fp_Out_Lines(FILE *fp_out, time_t t_beg, time_t t_end, arbre *tree, o
 
 	/*    PhyML_Fprintf(fp_out,"Time\t");*/
 
-	fprintf(fp_out, "\n");
+	PhyML_Fprintf(fp_out, "\n");
 
 
 	/*headline 2*/
-	fprintf(fp_out, "  set\t");
+	PhyML_Fprintf(fp_out, "  set\t");
 
-	fprintf(fp_out,"taxa\t");
+	PhyML_Fprintf(fp_out,"taxa\t");
 
-	fprintf(fp_out,"loglk     \t");
+	PhyML_Fprintf(fp_out,"loglk     \t");
 
-	fprintf(fp_out, "gamma model\t");
+	PhyML_Fprintf(fp_out, "gamma model\t");
 
 	if(tree->mod->n_catg > 1)
 	  PhyML_Fprintf(fp_out, "categories\tparameter  \t");
 
-	fprintf(fp_out,"invariant    \t");
+	PhyML_Fprintf(fp_out,"invariant    \t");
 
 	if(tree->mod->whichmodel <= 6)
 	  PhyML_Fprintf(fp_out,"transversion\t");
 
-	fprintf(fp_out,"f(A)      f(C)      f(G)      f(T)    \t");
+	PhyML_Fprintf(fp_out,"f(A)      f(C)      f(G)      f(T)    \t");
 
 	if((tree->mod->whichmodel == GTR) ||
 	   (tree->mod->whichmodel == CUSTOM))
 	  PhyML_Fprintf(fp_out,"[A---------C---------G---------T------]\t");
 
-	/*    PhyML_Fprintf(fp_out,"used\t");*/
+	/*    PhyML_PhyML_Fprintf(fp_out,"used\t");*/
 
-	fprintf(fp_out, "\n");
+	PhyML_Fprintf(fp_out, "\n");
 
 
 	/*headline 3*/
@@ -4344,6 +4347,7 @@ void Bootstrap(arbre *tree)
     {
       For(j,boot_data->crunch_len) boot_data->wght[j] = 0;
 
+
       init_len = 0;
       For(j,boot_data->init_len)
 	{
@@ -4364,6 +4368,7 @@ void Bootstrap(arbre *tree)
 	(Get_AA_Freqs(boot_data));
 
       if(tree->io->random_boot_seq_order) Randomize_Sequence_Order(boot_data);
+
 
       boot_mod = Copy_Model(tree->mod);
       Init_Model(boot_data,boot_mod);
@@ -4763,7 +4768,7 @@ model *Copy_Model(model *ori)
   model *cpy;
 
   cpy = Make_Model_Basic();
-
+  
   Copy_Optimiz(ori->s_opt,cpy->s_opt);
 
   cpy->ns      = ori->ns;
@@ -4806,20 +4811,24 @@ void Record_Model(model *ori, model *cpy)
   cpy->stepsize     = ori->stepsize;
   cpy->n_diff_rr    = ori->n_diff_rr;
 
-  For(i,6) cpy->rr_num[i] = ori->rr_num[i];
 
-  For(i,6)
+  if(ori->whichmodel == CUSTOM)
     {
-      cpy->rr_val[i]  = ori->rr_val[i];
-      cpy->rr[i] = cpy->rr[i];
+      For(i,ori->ns*(ori->ns-1)/2) cpy->rr_num[i] = ori->rr_num[i];
+
+      For(i,ori->ns*(ori->ns-1)/2)
+	{
+	  cpy->rr_val[i]  = ori->rr_val[i];
+	  cpy->rr[i] = cpy->rr[i];
+	}
     }
   
   For(i,cpy->ns)
-      {
-	cpy->pi[i]          = ori->pi[i];
-	cpy->pi_unscaled[i] = ori->pi_unscaled[i];
-	cpy->user_b_freq[i] = ori->user_b_freq[i];
-      }
+    {
+      cpy->pi[i]          = ori->pi[i];
+      cpy->pi_unscaled[i] = ori->pi_unscaled[i];
+      cpy->user_b_freq[i] = ori->user_b_freq[i];
+    }
   
   For(i,cpy->ns*cpy->ns) cpy->qmat[i] = ori->qmat[i];
 
@@ -6274,7 +6283,7 @@ void Prune_Subtree(node *a, node *d, edge **target, edge **residual, arbre *tree
 #ifdef DEBUG
   if(b1->left->tax)
     {
-      printf("\n. b1->left->num = %d",b1->left->num);
+      PhyML_Printf("\n. b1->left->num = %d",b1->left->num);
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
@@ -8952,7 +8961,7 @@ arbre *Dist_And_BioNJ(allseq *alldata, model *mod, option *io)
 
   mat = ML_Dist(alldata,mod);
   Fill_Missing_Dist(mat);
-  
+
   if(!io->quiet) PhyML_Printf("\n. Building BioNJ tree...\n");
 
   mat->tree = Make_Tree_From_Scratch(alldata->n_otu,alldata);
@@ -9229,13 +9238,13 @@ int Find_Bipartition(char **target_bip, int bip_size, arbre *tree)
     {
       b = tree->t_edges[i];
 
-/*       printf("\n. %d %d",b->left->bip_size[b->l_r],b->rght->bip_size[b->r_l]); */
+/*       PhyML_Printf("\n. %d %d",b->left->bip_size[b->l_r],b->rght->bip_size[b->r_l]); */
 
       if(b->left->bip_size[b->l_r] == bip_size)
 	{
 	  For(j,bip_size)
 	    {
-/* 	      printf("%s %s\n",b->left->bip_name[b->l_r][j]); */
+/* 	      PhyML_Printf("%s %s\n",b->left->bip_name[b->l_r][j]); */
 	      if(strcmp(b->left->bip_name[b->l_r][j],target_bip[j])) break;
 	    }
 	  if(j == bip_size) score++;
@@ -9245,7 +9254,7 @@ int Find_Bipartition(char **target_bip, int bip_size, arbre *tree)
 	{
 	  For(j,bip_size)
 	    {
-/* 	      printf("%s %s\n",b->rght->bip_name[b->r_l][j]); */
+/* 	      PhyML_Printf("%s %s\n",b->rght->bip_name[b->r_l][j]); */
 	      if(strcmp(b->rght->bip_name[b->r_l][j],target_bip[j])) break;
 	    }
 	  if(j == bip_size) score++;
@@ -9452,7 +9461,7 @@ void Find_Clade_Pre(node *a, node *d, char **tax_name_list, int list_size, int *
 	      {
 		For(k,list_size)
 		  {
-/* 		    printf("\n>> %s",d->bip_name[i][j]); */
+/* 		    PhyML_Printf("\n>> %s",d->bip_name[i][j]); */
 		    if(!strcmp(tax_name_list[k],d->bip_name[i][j]))
 		      {
 			score++;
@@ -9509,7 +9518,7 @@ void Read_Clade_Priors(char *file_name, arbre *tree)
 	      pos++;
 	    }
 	  s[i] = '\0';
-/* 	  printf("\n. s = %s\n",s); */
+/* 	  PhyML_Printf("\n. s = %s\n",s); */
 	  
 	  if(line[pos] == '\n' || line[pos] == '#') break;
 	  pos++;

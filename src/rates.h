@@ -106,7 +106,6 @@ phydbl RATES_Dmu1_Given_V_And_N(phydbl mu1, phydbl v, int n, phydbl dt1, phydbl 
 phydbl RATES_Yule(arbre *tree);
 phydbl RATES_Check_Mean_Rates(arbre *tree);
 void RATES_Check_Mean_Rates_Pre(node *a, node *d, edge *b, phydbl *sum, arbre *tree);
-phydbl RATES_Adjust_Clock_Rate(arbre *tree);
 void RATES_Discretize_Rates(arbre *tree);
 void RATES_Discretize_Rates_Pre(node *a, node *d, edge *b, arbre *tree);
 phydbl RATES_Dmu_Given_V_And_MinN(phydbl mu, phydbl dt, phydbl v, int minn, phydbl a, phydbl b, phydbl lexp);
@@ -150,6 +149,9 @@ void RATES_Get_Trip_Conditional_Variances(arbre *tree);
 void RATES_Get_All_Trip_Reg_Coeff(arbre *tree);
 void RATES_Check_Lk_Rates(arbre *tree, int *err);
 phydbl RATES_Expected_Tree_Length(arbre *tree);
+void RATES_Expected_Tree_Length_Pre(node *a, node *d, phydbl eranc, phydbl *mean, int *n, arbre *tree);
+void RATES_Normalise_Rates(arbre *tree);
+phydbl RATES_Check_Mean_Rates_True(arbre *tree);
 
 
 #endif

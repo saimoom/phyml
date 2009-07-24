@@ -382,7 +382,7 @@ void Optim_SPR (arbre *tree, int max_size, int method)
   ** Calculate the current likelihood value.
   */
   tree->both_sides = 1;
-  cur_lk = Return_Lk (tree);
+  cur_lk = Lk (tree);
   time(&(tree->t_current));
   if(tree->mod->s_opt->print) Print_Lk(tree,"topology");
 
@@ -393,7 +393,7 @@ void Optim_SPR (arbre *tree, int max_size, int method)
   root = tree->noeud[0];
   Optimize_Br_Len_Serie (root, root->v[0], root->b[0], tree, tree->data);
   tree->both_sides = 1;
-  cur_lk = Return_Lk (tree);
+  cur_lk = Lk (tree);
   time(&(tree->t_current));
   if(tree->mod->s_opt->print) Print_Lk(tree,"topology");
 
@@ -505,7 +505,7 @@ int Perform_SPR_Moves (arbre *tree, int max_size)
 
 
 /*   PhyML_Printf("\n >>>>>>>>>>>>>>>>>>"); */
-/*   PhyML_Printf("\n. cur_lk = %f %f",cur_lk,Return_Lk(tree)); */
+/*   PhyML_Printf("\n. cur_lk = %f %f",cur_lk,Lk(tree)); */
 
 /*   PhyML_Printf ("\n. Trying SPR moves"); */
 /*   PhyML_Printf ("\n.  - calculating tree distances and estimating likelihoods"); */
@@ -541,7 +541,7 @@ int Perform_SPR_Moves (arbre *tree, int max_size)
 		  improvement = 1;
 		  Make_Move (rgrft_cand[candidate],0,tree);
 /* 		  PhyML_Printf("\n. Make simple move"); */
-/* 		  PhyML_Printf("\n. lk after simple move = %f",Return_Lk(tree)); */
+/* 		  PhyML_Printf("\n. lk after simple move = %f",Lk(tree)); */
 		}
 	    }
 	}
@@ -570,7 +570,7 @@ int Perform_SPR_Moves (arbre *tree, int max_size)
 		  improvement = 1;
 		  Make_Move (rgrft_cand[candidate],0,tree);
 /* 		  PhyML_Printf("\n. Make simple move"); */
-/* 		  PhyML_Printf("\n. lk after simple move = %f",Return_Lk(tree)); */
+/* 		  PhyML_Printf("\n. lk after simple move = %f",Lk(tree)); */
 		}
 	    }
 	}
@@ -581,7 +581,7 @@ int Perform_SPR_Moves (arbre *tree, int max_size)
   ** regraft position.
   */
 
-/*   PhyML_Printf("\n. before local = %f %f",tree->c_lnL,Return_Lk(tree)); */
+/*   PhyML_Printf("\n. before local = %f %f",tree->c_lnL,Lk(tree)); */
 
   if (!improvement)
     {
@@ -591,7 +591,7 @@ int Perform_SPR_Moves (arbre *tree, int max_size)
 /*  	  PhyML_Printf("\n. make local move"); */
 	  improvement = 1;
 	  Make_Move (optim_cand[candidate],1,tree);
-/* 	  PhyML_Printf("\n. lk after local move = %f",Return_Lk(tree)); */
+/* 	  PhyML_Printf("\n. lk after local move = %f",Lk(tree)); */
 	}
     }
   
@@ -599,7 +599,7 @@ int Perform_SPR_Moves (arbre *tree, int max_size)
   /*
   ** If there was still no improvement, try global edge length optimization.
   */
-/*   PhyML_Printf("\n. before global = %f %f",tree->c_lnL,Return_Lk(tree)); */
+/*   PhyML_Printf("\n. before global = %f %f",tree->c_lnL,Lk(tree)); */
 
   if (!improvement)
     {
@@ -609,22 +609,22 @@ int Perform_SPR_Moves (arbre *tree, int max_size)
 /*  	  PhyML_Printf("\n. make global move"); */
 	  improvement = 1;
 	  Make_Move (optim_cand[candidate],2,tree);
-/* 	  PhyML_Printf("\n. lk after global move = %f",Return_Lk(tree)); */
+/* 	  PhyML_Printf("\n. lk after global move = %f",Lk(tree)); */
 	}
     }
   
-/*   PhyML_Printf("\n. after all = %f %f",tree->c_lnL,Return_Lk(tree)); */
+/*   PhyML_Printf("\n. after all = %f %f",tree->c_lnL,Lk(tree)); */
 
   /*
   ** Optimize all edge lengths again to make sure we got an updated
   ** likelihood value.
   */
   tree->both_sides = 1;
-  cur_lk = Return_Lk (tree);
+  cur_lk = Lk (tree);
   root = tree->noeud[0];
   Optimize_Br_Len_Serie (root, root->v[0], root->b[0], tree, tree->data);
   tree->both_sides = 1;
-  cur_lk = Return_Lk (tree);
+  cur_lk = Lk (tree);
   time(&(tree->t_current));
   if(tree->mod->s_opt->print) Print_Lk(tree,"topology");
 
@@ -779,11 +779,11 @@ int Perform_Best_SPR (arbre *tree, int max_size)
   ** likelihood value.
   */
   tree->both_sides = 1;
-  cur_lk = Return_Lk (tree);
+  cur_lk = Lk (tree);
   root = tree->noeud[0];
   Optimize_Br_Len_Serie (root, root->v[0], root->b[0], tree, tree->data);
   tree->both_sides = 1;
-  cur_lk = Return_Lk (tree);
+  cur_lk = Lk (tree);
   time(&(tree->t_current));
   if(tree->mod->s_opt->print) Print_Lk(tree,"topology");
 
@@ -844,7 +844,7 @@ int Perform_One_SPR(arbre *tree, int max_size)
   improvement = 0;
   
 /*   PhyML_Printf("\n >>>>>>>>>>>>>>>>>>"); */
-/*   PhyML_Printf("\n. cur_lk = %f %f",cur_lk,Return_Lk(tree)); */
+/*   PhyML_Printf("\n. cur_lk = %f %f",cur_lk,Lk(tree)); */
 
 /*   PhyML_Printf ("\n. Trying SPR moves"); */
 /*   PhyML_Printf ("\n.  - calculating tree distances and estimating likelihoods"); */
@@ -907,7 +907,7 @@ int Perform_One_SPR(arbre *tree, int max_size)
 		  improvement = 1;
 		  Make_Move (rgrft_cand[candidate],0,tree);
 /* 		  PhyML_Printf("\n. Make simple move"); */
-/* 		  PhyML_Printf("\n. lk after simple move = %f",Return_Lk(tree)); */
+/* 		  PhyML_Printf("\n. lk after simple move = %f",Lk(tree)); */
 		}
 	    }
 	}
@@ -919,7 +919,7 @@ int Perform_One_SPR(arbre *tree, int max_size)
   ** regraft position.
   */
 
-/*   PhyML_Printf("\n. before local = %f %f",tree->c_lnL,Return_Lk(tree)); */
+/*   PhyML_Printf("\n. before local = %f %f",tree->c_lnL,Lk(tree)); */
 
   if (!improvement)
     {
@@ -929,7 +929,7 @@ int Perform_One_SPR(arbre *tree, int max_size)
 /*  	  PhyML_Printf("\n. make local move"); */
 	  improvement = 1;
 	  Make_Move (optim_cand[candidate],1,tree);
-/* 	  PhyML_Printf("\n. lk after local move = %f",Return_Lk(tree)); */
+/* 	  PhyML_Printf("\n. lk after local move = %f",Lk(tree)); */
 	}
     }
   
@@ -937,7 +937,7 @@ int Perform_One_SPR(arbre *tree, int max_size)
   /*
   ** If there was still no improvement, try global edge length optimization.
   */
-/*   PhyML_Printf("\n. before global = %f %f",tree->c_lnL,Return_Lk(tree)); */
+/*   PhyML_Printf("\n. before global = %f %f",tree->c_lnL,Lk(tree)); */
 
   if (!improvement)
     {
@@ -947,22 +947,22 @@ int Perform_One_SPR(arbre *tree, int max_size)
 /*  	  PhyML_Printf("\n. make global move"); */
 	  improvement = 1;
 	  Make_Move (optim_cand[candidate],2,tree);
-/* 	  PhyML_Printf("\n. lk after global move = %f",Return_Lk(tree)); */
+/* 	  PhyML_Printf("\n. lk after global move = %f",Lk(tree)); */
 	}
     }
   
-/*   PhyML_Printf("\n. after all = %f %f",tree->c_lnL,Return_Lk(tree)); */
+/*   PhyML_Printf("\n. after all = %f %f",tree->c_lnL,Lk(tree)); */
 
   /*
   ** Optimize all edge lengths again to make sure we got an updated
   ** likelihood value.
   */
   tree->both_sides = 1;
-  cur_lk = Return_Lk (tree);
+  cur_lk = Lk (tree);
   root = tree->noeud[0];
   Optimize_Br_Len_Serie (root, root->v[0], root->b[0], tree, tree->data);
   tree->both_sides = 1;
-  cur_lk = Return_Lk (tree);
+  cur_lk = Lk (tree);
   time(&(tree->t_current));
   if(tree->mod->s_opt->print) Print_Lk(tree,"topology");
 
@@ -2411,7 +2411,7 @@ void Make_Move (_move_ *move, int type, arbre *tree)
   ** Calculate the new likelihood.
   */
   tree->both_sides = 1;
-  new_lk = Return_Lk (tree);
+  new_lk = Lk (tree);
 
   if(tree->c_lnL < cur_lk-tree->mod->s_opt->min_diff_lk_local)
     {
@@ -2648,7 +2648,7 @@ int Find_Optim_Globl (arbre *tree)
       root = tree->noeud[0];
       Optimize_Br_Len_Serie (root, root->v[0], root->b[0], tree, tree->data);
       tree->both_sides = 1;
-      new_lk = Return_Lk (tree);
+      new_lk = Lk (tree);
 
 /*       PhyML_Printf("\n. global new_lk = %f\n",tree->c_lnL); */
 
@@ -3873,9 +3873,9 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, arbre *tr
       if(move->lnL > tree->best_lnL + tree->mod->s_opt->min_diff_lk_move) break;
     }
 
-/*   printf("\n. [ %4d/%4d ]",i,list_size); */
+/*   PhyML_Printf("\n. [ %4d/%4d ]",i,list_size); */
   
-/*   printf("\n. max_improv = %f",max_improv); */
+/*   PhyML_Printf("\n. max_improv = %f",max_improv); */
 
   For(i,list_size)
     {
