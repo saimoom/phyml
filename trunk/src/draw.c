@@ -91,7 +91,6 @@ void DR_Print_Tree_Postscript(int page_num, FILE *fp, arbre *tree)
   tdraw *draw;
   node *n_root;
   
-  printf("coucou\n");
 
   draw = tree->ps_tree;
   DR_Get_Tree_Coord(tree);

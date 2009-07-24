@@ -329,8 +329,8 @@ int main(int argc, char **argv)
 	}
     }
   
-  printf("%s\n",Write_Tree(tree1));
-  printf("%s\n",Write_Tree(tree2));
+  PhyML_Printf("%s\n",Write_Tree(tree1));
+  PhyML_Printf("%s\n",Write_Tree(tree2));
 
 
 

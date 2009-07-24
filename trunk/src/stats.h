@@ -76,8 +76,8 @@ void Normal_Conditional_Unsorted(phydbl *mu, phydbl *cov, phydbl *a, int n, shor
 phydbl Matrix_Det(phydbl *A, int size, int _log);
 void Get_Reg_Coeff(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is_1, int n1, phydbl *reg_coeff);
 phydbl Rnorm_Trunc_Inverse(phydbl mean, phydbl sd, phydbl min, phydbl max, int *error);
-phydbl Cond_Var(phydbl mu, phydbl sd, phydbl a, phydbl b);
-phydbl Cond_Exp(phydbl mu, phydbl sd, phydbl a, phydbl b);
+phydbl Cond_Var_Norm_Trunc(phydbl mu, phydbl sd, phydbl a, phydbl b);
+phydbl Cond_Exp_Norm_Trunc(phydbl mu, phydbl sd, phydbl a, phydbl b);
 
 
 #endif

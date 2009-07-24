@@ -88,7 +88,7 @@ int Simu(arbre *tree, int n_step_max)
       
       if(tree->c_lnL < old_loglk)
 	{
-	  if((tree->mod->s_opt->print) && (!tree->io->quiet)) printf("\n\n. Moving backward\n");
+	  if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n\n. Moving backward\n");
 	  if(!Mov_Backward_Topo_Bl(tree,old_loglk,tested_b,n_tested))
 	    Exit("\n. Err: mov_back failed\n");
 	  if(!tree->n_swap) n_neg = 0;

@@ -249,10 +249,21 @@ void Pre_Order_Lk(node *a, node *d, arbre *tree)
 
 /*********************************************************/
 
-void Lk(arbre *tree)
+phydbl Lk(arbre *tree)
 {
   int br,site;
   int n_patterns;
+
+  if(tree->rates && tree->rates->lk_approx == NORMAL)
+    {
+      tree->c_lnL = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,
+						 tree->rates->u_ml_l,
+						 tree->rates->invcov,
+						 tree->rates->covdet,
+						 2*tree->n_otu-3,YES);
+      return tree->c_lnL;
+    }
+
 
   n_patterns = tree->n_pattern;
 
@@ -301,6 +312,8 @@ void Lk(arbre *tree)
       if(tree->c_lnL_sorted[site] < .0) /* WARNING : change cautiously */
 	tree->c_lnL += tree->c_lnL_sorted[site];
     }
+  
+  return tree->c_lnL;
 }
 
 /*********************************************************/
@@ -497,14 +510,6 @@ phydbl Lk_Core(edge *b, arbre *tree)
   tree->site_lk[site]      = log_site_lk;
   tree->c_lnL_sorted[site] = tree->data->wght[site]*log_site_lk;
   return log_site_lk;
-}
-
-/*********************************************************/
-
-phydbl Return_Lk(arbre *tree)
-{
-  Lk(tree);
-  return tree->c_lnL;
 }
 
 /*********************************************************/

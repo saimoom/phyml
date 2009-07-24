@@ -55,7 +55,7 @@ void Bootstrap_MPI(arbre *tree)
   boot_data = Copy_Cseq(tree->data, tree->data->crunch_len, tree->mod->ns);
 
   if (Global_myRank == 0)
-    printf("\n. Non parametric bootstrap analysis \n");
+    PhyML_Printf("\n. Non parametric bootstrap analysis \n");
   
   //number of bootstraps for each process
   if (tree->mod->bootstrap%Global_numTask != 0) 
@@ -244,7 +244,7 @@ fflush(stderr);
             for (i=1; i<nbElem; i++) {
               MPI_Recv (bootStr, T_MAX_LINE, MPI_CHAR, i, MPI_ANY_TAG, MPI_COMM_WORLD, &Stat);
 #ifdef MPI_DEBUG
-fprintf (stderr, "\ntask %d, receiving bootstrap from task %d tag %d done\n", Global_myRank, Stat.MPI_SOURCE, Stat.MPI_TAG);
+PhyML_Fprintf (stderr, "\ntask %d, receiving bootstrap from task %d tag %d done\n", Global_myRank, Stat.MPI_SOURCE, Stat.MPI_TAG);
 fflush(stderr);
 #endif
               if (Stat.MPI_TAG == BootTreeTag)
@@ -265,8 +265,8 @@ fflush(stderr);
               bootRecv++;
               PhyML_Printf(".");
               if(!((bootRecv)%20)) {
-	        printf("] %4d/%4d\n  ",bootRecv,tree->mod->bootstrap);
-	        if(bootRecv != tree->mod->bootstrap) printf("[");
+	        PhyML_Printf("] %4d/%4d\n  ",bootRecv,tree->mod->bootstrap);
+	        if(bootRecv != tree->mod->bootstrap) PhyML_Printf("[");
 	      }
             }
             Free(bootStr);
@@ -308,7 +308,7 @@ fflush(stdout);
   Free (score_par);
 
   if (Global_myRank == 0)
-    if(((bootRecv)%20)) printf("] %4d/%4d\n ",bootRecv,tree->mod->bootstrap);
+    if(((bootRecv)%20)) PhyML_Printf("] %4d/%4d\n ",bootRecv,tree->mod->bootstrap);
 
   tree->lock_topo = 1; /* Topology should not be modified afterwards */
 
