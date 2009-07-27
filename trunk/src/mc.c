@@ -66,6 +66,7 @@ int MC_main(int argc, char **argv)
 /*   r_seed = 1248411101; */
 /*   r_seed = 1248411927; */
 /*   r_seed = 1248412680; */
+/*   r_seed = 1248648952; */
   srand(r_seed); rand();
   PhyML_Printf("\n. Seed: %d\n",r_seed);
   PhyML_Printf("\n. Pid: %d\n",getpid());
@@ -124,8 +125,7 @@ int MC_main(int argc, char **argv)
 		  int i;
 		  edge *root_edge;
 
-
-/* 		  n_otu = 60; */
+/* 		  n_otu = 20; */
 /* 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1); */
 
 		  tree->rates = RATES_Make_Rate_Struct(tree->n_otu);

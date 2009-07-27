@@ -48,8 +48,7 @@ void MCMC_Randomize_Lexp(arbre *tree);
 void MCMC_Randomize_Jumps(arbre *tree);
 void MCMC_Randomize_Alpha(arbre *tree);
 void MCMC_One_Node_Time(node *d, arbre *tree);
-void MCMC_One_Rate(edge *b, arbre *tree);
-void MCMC_One_Rate(edge *b, arbre *tree);
+void MCMC_One_Rate(node *a, node *d, arbre *tree);
 void MCMC_No_Change(arbre *tree);
 void MCMC_Nu(arbre *tree);
 void MCMC_Randomize_Nu(arbre *tree);
@@ -64,7 +63,7 @@ void MCMC_Times_Local(arbre *tree);
 void MCMC_Times_Pre(node *a, node *d, int local, arbre *tree);
 void MCMC_Rates_Global(arbre *tree);
 void MCMC_Rates_Local(arbre *tree);
-void MCMC_Rates_Pre(node *a, node *d, int local, arbre *tree);
+void MCMC_Rates_Pre(node *a, node *d, arbre *tree);
 void MCMC_Mixing_Step(arbre *tree);
 void MCMC_Jumps_Local(arbre *tree);
 void MCMC_Jumps_Pre(node *a, node *d, int local, arbre *tree);
@@ -77,6 +76,7 @@ void MCMC_Randomize_Rates_Pre(node *a, node *d, arbre *tree);
 void MCMC_Print_Means(tmcmc *mcmc, arbre *tree);
 void MCMC_Print_Last(tmcmc *mcmc, arbre *tree);
 void MCMC_Close_MCMC(tmcmc *mcmc);
+void MCMC_Rates_Global(arbre *tree);
 
 
 
