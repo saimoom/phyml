@@ -939,10 +939,8 @@ double *Cholesky_Decomp(double *A,  int dim)
       for(j=i;j<dim;j++)
 	{
 	  sum = A[j*dim+i];
-	  for(k=0;k<i;k++)
-	    {
-	      sum -= L[i*dim+k] * L[j*dim+k];
-	    }
+	  for(k=0;k<i;k++) sum -= L[i*dim+k] * L[j*dim+k];
+
 	  if(i == j)
 	    {
 	      if(sum < 1.E-20)
@@ -954,10 +952,9 @@ double *Cholesky_Decomp(double *A,  int dim)
 		}
 	      L[j*dim+i] = sqrt(sum);
 	    }
-	  else
-	    {
-	      L[j*dim+i] = sum / (L[i*dim+i]);
-	    }
+
+	  else L[j*dim+i] = sum / (L[i*dim+i]);
+
  	}
     }
 

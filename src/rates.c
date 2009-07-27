@@ -615,12 +615,23 @@ void RATES_Print_Rates_Pre(node *a, node *d, edge *b, arbre *tree)
 
 phydbl RATES_Check_Mean_Rates(arbre *tree)
 {
-  phydbl sum;
+  phydbl sum_r,sum_dt;
+  phydbl u,t,t_anc;
   int i;
   
-  sum = 0.0;
-  For(i,2*tree->n_otu-2) sum += tree->rates->nd_r[i];
-  return(sum/(phydbl)(2*tree->n_otu-2));
+  sum_r  = 0.0;
+  sum_dt = 0.0;
+  For(i,2*tree->n_otu-2) 
+    {
+      u     = tree->rates->nd_r[i];
+      t     = tree->rates->nd_t[i];
+      t_anc = tree->rates->nd_t[tree->noeud[i]->anc->num];
+
+      sum_r += u * fabs(t-t_anc);
+      sum_dt += fabs(t-t_anc);      
+    }
+
+  return(sum_r / sum_dt);
 }
 
 /*********************************************************/
@@ -768,11 +779,11 @@ void RATES_Init_Rate_Struct(trate *rates, int n_otu)
   rates->max_rate      = 5.;
   rates->min_rate      = 0.02;
 
-  rates->clock_r       = 1.E-3;
+  rates->clock_r       = 3.E-3;
   rates->max_clock     = 1.E-0;
   rates->min_clock     = 1.E-8;
 
-  rates->nu            = 2.E-2;
+  rates->nu            = 1.E-3;
   rates->max_nu        = 1.E-0;
   rates->min_nu        = 1.E-5;
   rates->lbda_nu       = 1.E+3;
@@ -1129,6 +1140,9 @@ void RATES_Random_Branch_Lengths(arbre *tree)
 
   RATES_Get_Mean_Rates_Pre(tree->n_root,tree->n_root->v[0],NULL,r0,tree);
   RATES_Get_Mean_Rates_Pre(tree->n_root,tree->n_root->v[1],NULL,r0,tree);
+
+/*   /\* !!!!!!!!!!! *\/ */
+/*   RATES_Normalise_Rates(tree); */
 
   RATES_Update_Cur_Bl(tree);
   RATES_Initialize_True_Rates(tree);
