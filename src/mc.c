@@ -125,7 +125,7 @@ int MC_main(int argc, char **argv)
 		  int i;
 		  edge *root_edge;
 
-/* 		  n_otu = 20; */
+/* 		  n_otu = 10; */
 /* 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1); */
 
 		  tree->rates = RATES_Make_Rate_Struct(tree->n_otu);
@@ -268,9 +268,7 @@ int MC_main(int argc, char **argv)
 		  tree->both_sides = 1;
 		  tree->rates->model     = THORNE;
 		  tree->rates->lk_approx = NORMAL;
-		  Lk(tree);
-		  RATES_Lk_Rates(tree);
-		  PhyML_Printf("\n. LnL_data = %f\n. LnL_rate = %f\n",tree->c_lnL,tree->rates->c_lnL);		  
+
 		  tree->rates->bl_from_rt = 1;
 
 		  PhyML_Printf("\n. Burnin...\n");
