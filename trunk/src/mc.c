@@ -213,50 +213,50 @@ int MC_main(int argc, char **argv)
 
 		  tree->rates->bl_from_rt = 1;
 
-		  PhyML_Printf("\n. Burnin...\n");
-		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
-		  MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree);
-		  tree->rates->lk_approx = NORMAL;
-		  tree->mcmc->n_tot_run  = 1E+5;
-		  MCMC(tree);
-		  MCMC_Close_MCMC(tree->mcmc);
-		  MCMC_Free_MCMC(tree->mcmc);
+/* 		  PhyML_Printf("\n. Burnin...\n"); */
+/* 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree); */
+/* 		  MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree); */
+/* 		  tree->rates->lk_approx = NORMAL; */
+/* 		  tree->mcmc->n_tot_run  = 1E+5; */
+/* 		  MCMC(tree); */
+/* 		  MCMC_Close_MCMC(tree->mcmc); */
+/* 		  MCMC_Free_MCMC(tree->mcmc); */
 
-		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
-		  MCMC_Init_MCMC_Struct("gibbs.approx",tree->mcmc,tree);
+/* 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree); */
+/* 		  MCMC_Init_MCMC_Struct("gibbs.approx",tree->mcmc,tree); */
 		  
-		  tree->rates->lk_approx = NORMAL;
-		  RATES_Lk_Rates(tree);
-		  MCMC_Print_Param(tree->mcmc,tree);
+/* 		  tree->rates->lk_approx = NORMAL; */
+/* 		  RATES_Lk_Rates(tree); */
+/* 		  MCMC_Print_Param(tree->mcmc,tree); */
 		  
-		  time(&t_beg);
-		  PhyML_Printf("\n. Gibbs sampling (approx)...\n");
-		  tree->mcmc->n_tot_run  = 1E+8;
-		  phydbl u;
-		  do
-		    {
-		      u = Uni();
+/* 		  time(&t_beg); */
+/* 		  PhyML_Printf("\n. Gibbs sampling (approx)...\n"); */
+/* 		  tree->mcmc->n_tot_run  = 1E+8; */
+/* 		  phydbl u; */
+/* 		  do */
+/* 		    { */
+/* 		      u = Uni(); */
 
-		      tree->rates->c_lnL = RATES_Lk_Rates(tree);
-		      MCMC_Nu(tree);
-		      tree->c_lnL = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,
-								 tree->rates->u_ml_l,
-								 tree->rates->invcov,
-								 tree->rates->covdet,
-								 2*tree->n_otu-3,YES);
-		      RATES_Posterior_Clock_Rate(tree);
-		      RATES_Posterior_Times(tree);
-		      RATES_Posterior_Rates(tree);
-		    }
-		  while(tree->mcmc->run < tree->mcmc->n_tot_run);
-		  time(&t_end);
-		  Print_Time_Info(t_beg,t_end);
-		  MCMC_Close_MCMC(tree->mcmc);
-		  MCMC_Free_MCMC(tree->mcmc);
+/* 		      tree->rates->c_lnL = RATES_Lk_Rates(tree); */
+/* 		      MCMC_Nu(tree); */
+/* 		      tree->c_lnL = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l, */
+/* 								 tree->rates->u_ml_l, */
+/* 								 tree->rates->invcov, */
+/* 								 tree->rates->covdet, */
+/* 								 2*tree->n_otu-3,YES); */
+/* 		      RATES_Posterior_Clock_Rate(tree); */
+/* 		      RATES_Posterior_Times(tree); */
+/* 		      RATES_Posterior_Rates(tree); */
+/* 		    } */
+/* 		  while(tree->mcmc->run < tree->mcmc->n_tot_run); */
+/* 		  time(&t_end); */
+/* 		  Print_Time_Info(t_beg,t_end); */
+/* 		  MCMC_Close_MCMC(tree->mcmc); */
+/* 		  MCMC_Free_MCMC(tree->mcmc); */
 
-		  PhyML_Printf("\n. End of Gibbs sampling (approx)...\n");
-		  system("sleep 1s");
-/* 		  END OF IMPORTANCE SAMPLING STUFF */
+/* 		  PhyML_Printf("\n. End of Gibbs sampling (approx)...\n"); */
+/* 		  system("sleep 1s"); */
+/* /\* 		  END OF IMPORTANCE SAMPLING STUFF *\/ */
 
 
 		  /************************************/
