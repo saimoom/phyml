@@ -783,7 +783,7 @@ void RATES_Init_Rate_Struct(trate *rates, int n_otu)
   rates->max_clock     = 1.E-0;
   rates->min_clock     = 1.E-8;
 
-  rates->nu            = 1.E-3;
+  rates->nu            = 1.E-2;
   rates->max_nu        = 1.E-0;
   rates->min_nu        = 1.E-5;
   rates->lbda_nu       = 1.E+3;
@@ -1678,10 +1678,9 @@ void RATES_Posterior_Clock_Rate(arbre *tree)
       
       tree->mcmc->run++;
       MCMC_Print_Param(tree->mcmc,tree);
-
+      
       /* !!!!!!!!!!!!!!!!!! */
       if(!(tree->mcmc->run%tree->mcmc->norm_freq)) RATES_Normalise_Rates(tree);
-
     }
 }
 
@@ -3102,6 +3101,7 @@ void RATES_Normalise_Rates(arbre *tree)
 
   /* !!!!!!!!!! */
   tree->rates->clock_r *= curr/expr;
+  /* Branch lengths therefore do not change */
 
   RATES_Update_Cur_Bl(tree);
 }
