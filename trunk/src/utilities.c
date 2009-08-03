@@ -7776,6 +7776,7 @@ void Print_Lk_And_Pars(arbre *tree)
   PhyML_Printf("\n. (%5d sec) [%15.4f] [%5d]",
 	 (int)(tree->t_current-tree->t_beg),
 	 tree->c_lnL,tree->c_pars);
+
 #ifndef QUIET
   fflush(NULL);
 #endif
@@ -8077,9 +8078,9 @@ arbre *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
   for(i=1;i<tree->n_otu-1;i++) 
     { 
       t[i] /= -t[0]; 
-      t[i] *= 1.E+02;
+      t[i] *= 1.E+04;
     }
-  t[0] = -1.E+02;
+  t[0] = -1.E+04;
 
   n_available = 1;
   curr_n = root;

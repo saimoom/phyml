@@ -2726,6 +2726,7 @@ phydbl Cond_Var_Norm_Trunc(phydbl mu, phydbl sd, phydbl a, phydbl b)
   if(cdfbmcdfa < MDBL_MIN) 
     {
       cdfbmcdfa = MDBL_MIN;
+      PhyML_Printf("\n. mu=%G sd=%G a=%G b=%G",mu,sd,a,b);
       PhyML_Printf("\n. Numerical precision issue detected.");
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
     }
@@ -2759,6 +2760,7 @@ phydbl Cond_Exp_Norm_Trunc(phydbl mu, phydbl sd, phydbl a, phydbl b)
   if(cdfbmcdfa < MDBL_MIN)
     {
       cdfbmcdfa = MDBL_MIN;
+      PhyML_Printf("\n. mu=%G sd=%G a=%G b=%G",mu,sd,a,b);
       PhyML_Printf("\n. Numerical precision issue detected.");
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
     }

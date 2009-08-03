@@ -21,6 +21,8 @@ the GNU public licence. See http://www.opensource.org for details.
 #include <ctype.h>
 #include <string.h>
 #include <time.h>
+#include <limits.h>
+#include <errno.h>
 #include <float.h>
 
 
@@ -75,6 +77,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 
 #define  NT 0 /* nucleotides */
 #define  AA 1 /* amino acids */
+#define  INTEGERS 2 /* amino acids */
 
 #define  ACGT 0 /* A,G,G,T encoding */
 #define  RY   1 /* R,Y     encoding */
@@ -92,7 +95,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  N_MAX_OPTIONS        100
 
 #define  H_MCMC_TIMES         0.5
-#define  H_MCMC_RATES         0.5
+#define  H_MCMC_RATES         0.1
 #define  H_MCMC_NU            1.0
 #define  H_MCMC_CLOCK         0.1
 
@@ -115,7 +118,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  ALPHA_MIN           0.04
 #define  ALPHA_MAX            100
 #ifdef PHYML
-#define  BL_MIN            1.e-10
+#define  BL_MIN            1.e-8
 #else
 #define  BL_MIN             1.e-4
 #endif

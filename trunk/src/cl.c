@@ -1019,6 +1019,8 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	  }
       }
 
+  if(io->mod->whichmodel == GTR) Make_Custom_Model(io->mod);
+
 
 #ifndef PHYML
     if((open_ps_file) || (io->m4_model == YES))
