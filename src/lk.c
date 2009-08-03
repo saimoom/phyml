@@ -200,6 +200,46 @@ void Init_Tips_At_One_Site_AA_Int(char aa, int pos, short int *p_pars)
 
 /*********************************************************/
 
+void Init_Tips_At_One_Site_Generic_Float(char state, int ns, int pos, plkflt *p_lk)
+{
+  int i;
+  int state_int;
+
+  For(i,ns) p_lk[pos+i] = 0.0;
+  state_int = (int)strtol(&state,NULL,0);
+  if(errno == EINVAL || errno == ERANGE)
+    {
+      PhyML_Printf("\n. state='%c'",state);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+  p_lk[pos+state_int] = 1.;
+
+  PhyML_Printf("\n. %s %d state = %d",__FILE__,__LINE__,state_int);
+}
+
+/*********************************************************/
+
+void Init_Tips_At_One_Site_Generic_Int(char state, int ns, int pos, short int *p_pars)
+{
+  int i;
+  int state_int;
+
+  For(i,ns) p_pars[pos+i] = 0;
+  state_int = (int)strtol(&state,NULL,0);
+  if(errno == EINVAL || errno == ERANGE)
+    {
+      PhyML_Printf("\n. state='%c'",state);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+  p_pars[pos+state_int] = 1;
+  PhyML_Printf("\n. %s %d state = %d",__FILE__,__LINE__,state_int);
+}
+
+/*********************************************************/
+
+
 void Get_All_Partial_Lk_Scale(arbre *tree, edge *b_fcus, node *a, node *d)
 {
   if(d->tax) return;
@@ -1050,10 +1090,16 @@ void Init_P_Lk_Tips_Double(arbre *tree)
 	    Init_Tips_At_One_Site_Nucleotides_Float(tree->data->c_seq[i]->state[curr_site],
 						    curr_site*dim1+0*dim2,
 						    tree->noeud[i]->b[0]->p_lk_rght);
-	  else
+
+	  else if(tree->mod->datatype == AA)
 	    Init_Tips_At_One_Site_AA_Float(tree->data->c_seq[i]->state[curr_site],
 					   curr_site*dim1+0*dim2,
 					   tree->noeud[i]->b[0]->p_lk_rght);
+
+/* 	  else if(tree->mod->datatype == INTEGERS) */
+/* 	    Init_Tips_At_One_Site_Generic_Float(tree->data->c_seq[i]->state[curr_site], */
+/* 						curr_site*dim1+0*dim2, */
+/* 						tree->noeud[i]->b[0]->p_lk_rght); */
 
 	  for(j=1;j<tree->mod->n_catg;j++)
 	    {
@@ -1089,7 +1135,7 @@ void Init_P_Lk_Tips_Int(arbre *tree)
 						    curr_site*dim1,
 						    tree->noeud[i]->b[0]->p_lk_tip_r);
 	    }
-	  else
+	  else if(tree->mod->datatype == AA)
 	    {
 	      Init_Tips_At_One_Site_AA_Int(tree->data->c_seq[i]->state[curr_site],
 					   curr_site*dim1,					   
