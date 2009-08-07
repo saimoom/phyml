@@ -72,6 +72,9 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  NORMAL 1
 #define  EXACT  2
 
+#define  PHYLIP 0
+#define  NEXUS  1
+
 #define  YES 1
 #define  NO  0
 
@@ -645,6 +648,8 @@ typedef struct __Option { /* mostly used in 'options.c' */
   int                        curr_gt;
   int                     ratio_test; /* from 1 to 4 for specific branch supports, 0 of not */
   int                    ready_to_go;
+  int                    data_format; /* Data format: Phylip or Nexus */
+  int                       char_len; /* Number of characters to define a state (e.g., 1 for nucleotide or aa, 3 for codons) */
 
   int                 curr_interface;
   int                         r_seed; /* random seed */
@@ -976,7 +981,9 @@ void Make_Edge_Dirs(edge *b,node *a,node *d);
 void Make_Edge_Lk(edge *b, arbre *tree);
 node *Make_Node_Light(int num);
 void Make_Node_Lk(node *n);
-seq **Get_Seq(option *input,int rw);
+seq **Get_Seq(option *input);
+seq **Get_Seq_Phylip(option *input);
+seq **Get_Seq_Nexus(option *input);
 seq **Read_Seq_Sequential(FILE *in,int *n_otu);
 seq **Read_Seq_Interleaved(FILE *in,int *n_otu);
 int Read_One_Line_Seq(seq ***data,int num_otu,FILE *in);

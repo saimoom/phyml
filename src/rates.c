@@ -2192,7 +2192,6 @@ void RATES_Posterior_Times_Pre(node *a, node *d, arbre *tree)
   if(fabs(t_max - t_min) < 1.E-10) return; 
 
   if(t_max < t_min) return;
-
   
   tree->rates->t_prior[d->num] = Uni()*(t_max - t_min) + t_min;
 
@@ -2450,11 +2449,11 @@ void RATES_Posterior_Time_Root(arbre *tree)
 
   phydbl t1,t2;
   phydbl u0,u1,u2;
-  phydbl CEL,CVL;
+  phydbl cel,cvl;
   int i,dim;
   edge *b;
   node *root;
-  phydbl T0,T0_LIM_INF, T0_LIM_SUP;
+  phydbl t0,t0_min, t0_max;
   int err;
   phydbl cr;
   phydbl bl_min, bl_max;
@@ -2465,7 +2464,6 @@ void RATES_Posterior_Time_Root(arbre *tree)
   b = tree->e_root;
   root = tree->n_root;
 
-
   t1 = tree->rates->nd_t[root->v[0]->num];
   t2 = tree->rates->nd_t[root->v[1]->num];
   u1 = tree->rates->nd_r[root->v[0]->num];
@@ -2473,74 +2471,71 @@ void RATES_Posterior_Time_Root(arbre *tree)
   u0 = 1.0;
   cr = tree->rates->clock_r;
 
-  T0_LIM_INF = -MDBL_MAX;
-  T0_LIM_SUP = MIN(t1 - MAX((1./tree->rates->nu)*pow((u0-u1)/tree->rates->z_max,2),tree->rates->min_dt),
+  t0_min = -MDBL_MAX;
+  t0_max = MIN(t1 - MAX((1./tree->rates->nu)*pow((u0-u1)/tree->rates->z_max,2),tree->rates->min_dt),
 		   t2 - MAX((1./tree->rates->nu)*pow((u0-u2)/tree->rates->z_max,2),tree->rates->min_dt));
 
-  T0_LIM_INF = MAX(T0_LIM_INF,tree->rates->t_prior_min[root->num]);
-  T0_LIM_SUP = MIN(T0_LIM_SUP,tree->rates->t_prior_max[root->num]);
+  t0_min = MAX(t0_min,tree->rates->t_prior_min[root->num]);
+  t0_max = MIN(t0_max,tree->rates->t_prior_max[root->num]);
   
-
-
   u0 *= cr;
   u1 *= cr;
   u2 *= cr;
 
-  if(fabs(T0_LIM_SUP - T0_LIM_INF) < 1.E-10) return;
+  if(fabs(t0_max - t0_min) < 1.E-10) return;
   if(fabs(tree->rates->t_prior_min[root->num] - tree->rates->t_prior_max[root->num]) < 1.E-10) return;
 
-  CEL=0.0;
-  For(i,dim) if(i != b->num) CEL += tree->rates->reg_coeff[b->num*dim+i] * (tree->rates->u_cur_l[i] - tree->rates->u_ml_l[i]);
-  CEL += tree->rates->u_ml_l[b->num];
+  cel=0.0;
+  For(i,dim) if(i != b->num) cel += tree->rates->reg_coeff[b->num*dim+i] * (tree->rates->u_cur_l[i] - tree->rates->u_ml_l[i]);
+  cel += tree->rates->u_ml_l[b->num];
 
-  CVL = tree->rates->cond_var[b->num];
+  cvl = tree->rates->cond_var[b->num];
 
-/*   CEL = tree->rates->u_ml_l[b->num]; */
-/*   CVL = tree->rates->cov[b->num*dim+b->num]; */
+/*   cel = tree->rates->u_ml_l[b->num]; */
+/*   cvl = tree->rates->cov[b->num*dim+b->num]; */
 
-/*   ET0 = (u1*t1 + u2*t2 - CEL)/(u1+u2); */
-/*   VT0 = CVL/pow(u1+u2,2); */
+/*   Et0 = (u1*t1 + u2*t2 - cel)/(u1+u2); */
+/*   Vt0 = cvl/pow(u1+u2,2); */
 
-/*   T0  = Rnorm_Trunc(ET0,sqrt(VT0),T0_LIM_INF,T0_LIM_SUP,&err); */
+/*   t0  = Rnorm_Trunc(Et0,sqrt(Vt0),t0_min,t0_max,&err); */
 
   
-  bl_min = u1 * (t1 - T0_LIM_SUP) + u2 * (t2 - T0_LIM_SUP); 
-  bl_max = u1 * (t1 - T0_LIM_INF) + u2 * (t2 - T0_LIM_INF);
+  bl_min = u1 * (t1 - t0_max) + u2 * (t2 - t0_max); 
+  bl_max = u1 * (t1 - t0_min) + u2 * (t2 - t0_min);
 
   if(bl_min > bl_max) return;
 
-  new_L = Rnorm_Trunc(CEL,sqrt(CVL),bl_min,bl_max,&err);
+  new_L = Rnorm_Trunc(cel,sqrt(cvl),bl_min,bl_max,&err);
 
-  T0 = (u1*t1 + u2*t2 - new_L)/(u1+u2);
+  t0 = (u1*t1 + u2*t2 - new_L)/(u1+u2);
 
-  if(T0 > t1 || T0 > t2)
+  if(t0 > t1 || t0 > t2)
     {
 /*       PhyML_Printf("\n"); */
 /*       PhyML_Printf("\n. Run = %d",tree->mcmc->run); */
-/*       PhyML_Printf("\n. T0=%f t1=%f t2=%f",T0,t1,t2); */
-/*       PhyML_Printf("\n. T0_LIM_INF=%f T0_LIM_SUP=%f",T0_LIM_INF,T0_LIM_SUP); */
-/*       PhyML_Printf("\n. new_L=%f CEL=%f",new_L,CEL); */
+/*       PhyML_Printf("\n. t0=%f t1=%f t2=%f",t0,t1,t2); */
+/*       PhyML_Printf("\n. t0_min=%f t0_max=%f",t0_min,t0_max); */
+/*       PhyML_Printf("\n. new_L=%f cel=%f",new_L,cel); */
 /*       PhyML_Printf("\n. u0=%f u1=%f u2=%f",u0/cr,u1/cr,u2/cr); */
 /*       PhyML_Printf("\n. Nu = %f Clock = %f",tree->rates->nu,tree->rates->clock_r); */
-/*       PhyML_Printf("\n. Setting T0 to %f",tree->rates->nd_t[root->num]); */
-/*       T0 = tree->rates->nd_t[root->num];       */
+/*       PhyML_Printf("\n. Setting t0 to %f",tree->rates->nd_t[root->num]); */
+/*       t0 = tree->rates->nd_t[root->num];       */
       return;
     }
 
-  if(T0 < T0_LIM_INF || T0 > T0_LIM_SUP)
+  if(t0 < t0_min || t0 > t0_max)
     {
       PhyML_Printf("\n");
       PhyML_Printf("\n. Run = %d",tree->mcmc->run);
-      PhyML_Printf("\n. T0=%f t1=%f t2=%f",T0,t1,t2);
-      PhyML_Printf("\n. T0_LIM_INF=%f T0_LIM_SUP=%f",T0_LIM_INF,T0_LIM_SUP);
+      PhyML_Printf("\n. t0=%f t1=%f t2=%f",t0,t1,t2);
+      PhyML_Printf("\n. t0_min=%f t0_max=%f",t0_min,t0_max);
       PhyML_Printf("\n. u0=%f u1=%f u2=%f",u0/cr,u1/cr,u2/cr);
       PhyML_Printf("\n. Nu = %f Clock = %f",tree->rates->nu,tree->rates->clock_r);
-      PhyML_Printf("\n. Setting T0 to %f",tree->rates->nd_t[root->num]);
-      T0 = tree->rates->nd_t[root->num];      
+      PhyML_Printf("\n. Setting t0 to %f",tree->rates->nd_t[root->num]);
+      t0 = tree->rates->nd_t[root->num];      
     }
 
-  tree->rates->nd_t[root->num] = T0;
-
+  tree->rates->nd_t[root->num] = t0;
 
   RATES_Update_Cur_Bl(tree);
   
