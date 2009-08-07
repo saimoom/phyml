@@ -525,8 +525,8 @@ void MCMC_Time_Root(arbre *tree)
   u3 *= tree->rates->clock_r;
 
   u = Uni();    
-  new_t = u*(t_max-t_min)+t_min;
-/*   new_t = cur_t * exp(H_MCMC_RATES*(u-0.5)); */
+/*   new_t = u*(t_max-t_min)+t_min; */
+  new_t = cur_t * exp(H_MCMC_TIMES*(u-0.5));
 
   if(new_t < t_min)
     {
@@ -548,7 +548,9 @@ void MCMC_Time_Root(arbre *tree)
   new_lnL_rate = RATES_Lk_Rates(tree); /* Rates likelihood needs to be updated here because variances of rates have changed */
   new_lnL_data = Lk(tree);
   
-  ratio = new_lnL_data - cur_lnL_data;
+  ratio =
+    (new_lnL_data + log(fabs(new_t))) -
+    (cur_lnL_data + log(fabs(cur_t)));
 
   ratio = exp(ratio);
   alpha = MIN(1.,ratio);
@@ -568,7 +570,6 @@ void MCMC_Time_Root(arbre *tree)
   tree->mcmc->run++;
   MCMC_Print_Param(tree->mcmc,tree);
 
-  /* !!!!!!!!!!!!!!!!!! */
   if(!(tree->mcmc->run%tree->mcmc->norm_freq)) 
     {
       RATES_Normalise_Rates(tree);

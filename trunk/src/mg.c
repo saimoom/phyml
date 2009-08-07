@@ -35,7 +35,6 @@ int PART_main(int argc, char **argv)
   int r_seed;
   int i;
 
-
   fflush(NULL);
   io = (option *)Get_Input(argc,argv);
   r_seed = (io->r_seed < 0)?(time(NULL)):(io->r_seed);
@@ -62,13 +61,12 @@ int PART_main(int argc, char **argv)
       mod       = (model **) mCalloc(io->n_part,sizeof(model *));
       mat       = (matrix **)mCalloc(io->n_part,sizeof(matrix *));
 
-
       /* Read the sequences (for each partition) */
       For(part,io->n_part)
 	{
 	  Make_Model_Complete(io->st->optionlist[part]->mod); /* Complete model for each data part */
 	  mod[part]  = io->st->optionlist[part]->mod;
-	  data[part] = Get_Seq(io->st->optionlist[part],0);
+	  data[part] = Get_Seq(io->st->optionlist[part]);
 	  PhyML_Printf("\n. Data part [#%d]\n",part+1);
 	  PhyML_Printf("\n. Compressing sequences...\n");
 	  alldata[part] = Compact_Seq(data[part],io->st->optionlist[part]);

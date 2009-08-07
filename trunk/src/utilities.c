@@ -866,7 +866,53 @@ void Make_Node_Lk(node *n)
 
 /*********************************************************/
 
-seq **Get_Seq(option *io,  int rw)
+seq **Get_Seq(option *io)
+{
+  seq **data;
+
+  data = NULL;
+
+  switch(io->data_format)
+    {
+    case PHYLIP: 
+      {
+	data = Get_Seq_Phylip(io);
+	break;
+      }
+    case NEXUS:
+      {
+	data = Get_Seq_Nexus(io);
+	break;
+      }
+    default:
+      {
+	PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	Warn_And_Exit("");
+	break;
+      }
+    }
+
+  if(!data)
+    {
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+
+  return data;
+}
+
+/*********************************************************/
+
+seq **Get_Seq_Nexus(option *io)
+{
+  seq **data;
+  data = NULL;
+  return data;
+}
+
+/*********************************************************/
+
+seq **Get_Seq_Phylip(option *io)
 {
   seq **data;
   int i,j;
@@ -879,7 +925,6 @@ seq **Get_Seq(option *io,  int rw)
 
   if(io->interleaved) data = Read_Seq_Interleaved(io->fp_in_seq,&(io->mod->n_otu));
   else                data = Read_Seq_Sequential(io->fp_in_seq,&(io->mod->n_otu));
-
 
   if(data)
     {

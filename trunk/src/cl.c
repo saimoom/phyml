@@ -396,7 +396,6 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	    
 	  case 'd':case 7:
 	    if(!strcmp(optarg,"nt"))
-	      /*         if(atoi(optarg) == NT) */
 	      {
 		io->mod->datatype = NT;
 		io->mod->stepsize = 1;
@@ -425,7 +424,6 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		  }
 	      }
 	    else if (!strcmp(optarg,"aa"))
-	      /*         else if (atoi(optarg) == AA) */
 	      {
 		io->mod->datatype         = AA;
 		io->mod->stepsize         = 1;
@@ -445,6 +443,10 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		    io->mod->whichmodel = LG;
 		    strcpy(io->mod->modelname, "LG\0");
 		  }
+	      }
+	    else if ((!strcmp(optarg,"generic")) || (!strcmp(optarg,"gen")))
+	      {
+		io->mod->datatype = INTEGERS;
 	      }
 	    else
 	      {

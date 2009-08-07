@@ -94,7 +94,7 @@ int MC_main(int argc, char **argv)
     {
       n_otu = 0;
       best_lnL = UNLIKELY;
-      data = Get_Seq(io,0);
+      data = Get_Seq(io);
 
       if(data)
 	{
