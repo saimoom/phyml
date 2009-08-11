@@ -879,11 +879,11 @@ align **Get_Seq(option *io)
 	data = Get_Seq_Phylip(io);
 	break;
       }
-    case NEXUS:
-      {
-	data = Get_Seq_Nexus(io);
-	break;
-      }
+/*     case NEXUS: */
+/*       { */
+/* 	data = Get_Seq_Nexus(io); */
+/* 	break; */
+/*       } */
     default:
       {
 	PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
@@ -5331,6 +5331,7 @@ void Set_Defaults_Input(option* io)
   io->quiet                      = 0;
   io->datatype                   = NT;
   io->colalias                   = YES;
+  io->data_format                = PHYLIP;
 }
 
 /*********************************************************/
