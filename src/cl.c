@@ -191,7 +191,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	    {
 #ifdef M4
 	      io->m4_model = YES;
-	      if(!io->mod->m4mod) io->mod->m4mod = (m4 *)M4_Make_Light((io->mod->datatype == NT)?(4):(20));
+	      if(!io->mod->m4mod) io->mod->m4mod = (m4 *)M4_Make_Light((io->datatype == NT)?(4):(20));
 	      io->mod->m4mod->n_h = (int)atoi(optarg);
 	      
 	      if(io->mod->m4mod->n_h < 1)
@@ -209,7 +209,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	    {
 #ifdef M4
 	      io->m4_model = YES;
-	      if(!io->mod->m4mod) io->mod->m4mod = (m4 *)M4_Make_Light((io->mod->datatype == NT)?(4):(20));
+	      if(!io->mod->m4mod) io->mod->m4mod = (m4 *)M4_Make_Light((io->datatype == NT)?(4):(20));
 	      io->mod->m4mod->use_cov_alpha = 1;
 	      io->mod->m4mod->use_cov_free  = 0;
 	      
@@ -240,7 +240,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	    {
 #ifdef M4
 	      io->m4_model = YES;
-	      if(!io->mod->m4mod) io->mod->m4mod = (m4 *)M4_Make_Light((io->mod->datatype == NT)?(4):(20));
+	      if(!io->mod->m4mod) io->mod->m4mod = (m4 *)M4_Make_Light((io->datatype == NT)?(4):(20));
 
 	      if(!strcmp(optarg,"e") || !strcmp(optarg,"E") ||
 		 !strcmp(optarg,"estimated") || !strcmp(optarg,"ESTIMATED"))
@@ -397,9 +397,9 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	  case 'd':case 7:
 	    if(!strcmp(optarg,"nt"))
 	      {
-		io->mod->datatype = NT;
+		io->datatype      = NT;
 		io->mod->stepsize = 1;
-		io->mod->ns = 4;
+		io->mod->ns       = 4;
 		
 		if(
 		   (io->mod->whichmodel == LG)       ||
@@ -425,7 +425,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	      }
 	    else if (!strcmp(optarg,"aa"))
 	      {
-		io->mod->datatype         = AA;
+		io->datatype              = AA;
 		io->mod->stepsize         = 1;
 		io->mod->s_opt->opt_kappa = 0;
 		io->mod->ns               = 20;
@@ -446,7 +446,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	      }
 	    else if ((!strcmp(optarg,"generic")) || (!strcmp(optarg,"gen")))
 	      {
-		io->mod->datatype = INTEGERS;
+		io->datatype = INTEGERS;
 	      }
 	    else
 	      {
@@ -475,49 +475,49 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		      Translate_Custom_Mod_String(io->mod);
 		    }
 
-		  io->mod->datatype = NT;
-		  io->mod->whichmodel = CUSTOM;
+		  io->datatype              = NT;
+		  io->mod->whichmodel       = CUSTOM;
 		  strcpy(io->mod->modelname, "custom");
-		  io->mod->s_opt->opt_kappa     = 0;
-		  io->mod->s_opt->opt_rr        = 1;
+		  io->mod->s_opt->opt_kappa = 0;
+		  io->mod->s_opt->opt_rr    = 1;
 		}
 
 	      if (strcmp(optarg, "JC69") == 0)
 		{
-		  io->mod->datatype = NT;
-		  io->mod->whichmodel = JC69;
+		  io->datatype              = NT;
+		  io->mod->whichmodel       = JC69;
 		  strcpy(io->mod->modelname, "JC69");
-		  io->mod->s_opt->opt_kappa  = 0;
+		  io->mod->s_opt->opt_kappa = 0;
 		}
 	      else if(strcmp(optarg, "K80") == 0)
 		{
-		  io->mod->datatype = NT;
-		  io->mod->whichmodel = K80;
+		  io->datatype              = NT;
+		  io->mod->whichmodel       = K80;
 		  strcpy(io->mod->modelname, "K80");
 		}
 	      else if(strcmp(optarg, "F81") == 0)
 		{
-		  io->mod->datatype = NT;
-		  io->mod->whichmodel = F81;
+		  io->datatype              = NT;
+		  io->mod->whichmodel       = F81;
 		  strcpy(io->mod->modelname, "F81");
-		  io->mod->s_opt->opt_kappa  = 0;
+		  io->mod->s_opt->opt_kappa = 0;
 		}
 	      else if (strcmp(optarg, "HKY85") == 0)
 		{
-		  io->mod->datatype = NT;
-		  io->mod->whichmodel = HKY85;
+		  io->datatype              = NT;
+		  io->mod->whichmodel       = HKY85;
 		  strcpy(io->mod->modelname, "HKY85");
 		}
 	      else if(strcmp(optarg, "F84") == 0)
 		{
-		  io->mod->datatype = NT;
-		  io->mod->whichmodel = F84;
+		  io->datatype              = NT;
+		  io->mod->whichmodel       = F84;
 		  strcpy(io->mod->modelname, "F84");
 		}
 	      else if (strcmp (optarg,"TN93") == 0)
 		{
-		  io->mod->datatype = NT;
-		  io->mod->whichmodel = TN93;
+		  io->datatype              = NT;
+		  io->mod->whichmodel       = TN93;
 		  strcpy(io->mod->modelname, "TN93");
 		  if(io->mod->s_opt->opt_kappa)
 		    {
@@ -526,100 +526,100 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		}
 	      else if(strcmp (optarg, "GTR") == 0)
 		{
-		  io->mod->datatype = NT;
-		  io->mod->whichmodel = GTR;
+		  io->datatype              = NT;
+		  io->mod->whichmodel       = GTR;
 		  strcpy(io->mod->modelname, "GTR");
 		  io->mod->s_opt->opt_kappa = 0;
 		  io->mod->s_opt->opt_rr    = 1;
 		}
 	      else if(strcmp(optarg, "Dayhoff") == 0)
 		{
-		  io->mod->datatype = AA;
-		  io->mod->whichmodel = DAYHOFF;
+		  io->datatype              = AA;
+		  io->mod->whichmodel       = DAYHOFF;
 		  strcpy(io->mod->modelname, "Dayhoff");
 		}
 	      else if(strcmp (optarg, "JTT") == 0)
 		{
-		  io->mod->datatype = AA;
-		  io->mod->whichmodel = JTT;
+		  io->datatype              = AA;
+		  io->mod->whichmodel       = JTT;
 		  strcpy(io->mod->modelname, "JTT");
 		}
 	      else if(strcmp(optarg, "MtREV") == 0)
 		{
-		  io->mod->datatype = AA;
-		  io->mod->whichmodel = MTREV;
+		  io->datatype             = AA;
+		  io->mod->whichmodel      = MTREV;
 		  strcpy(io->mod->modelname,"MtREV");
 		}
 	      else if(strcmp (optarg, "LG") == 0)
 		{
-		  io->mod->datatype = AA;
-		  io->mod->whichmodel = LG;
+		  io->datatype              = AA;
+		  io->mod->whichmodel       = LG;
 		  strcpy(io->mod->modelname, "LG");
 		}
 	      else if(strcmp (optarg, "WAG") == 0)
 		{
-		  io->mod->datatype = AA;
-		  io->mod->whichmodel = WAG;
+		  io->datatype              = AA;
+		  io->mod->whichmodel       = WAG;
 		  strcpy(io->mod->modelname, "WAG");
 		}
 	      else if(strcmp(optarg, "DCMut") == 0)
 		{
-		  io->mod->datatype = AA;
-		  io->mod->whichmodel = DCMUT;
+		  io->datatype              = AA;
+		  io->mod->whichmodel       = DCMUT;
 		  strcpy(io->mod->modelname, "DCMut");
 		}
 	      else if(strcmp (optarg, "RtREV") == 0)
 		{
-		  io->mod->datatype = AA;
-		  io->mod->whichmodel = RTREV;
+		  io->datatype              = AA;
+		  io->mod->whichmodel       = RTREV;
 		  strcpy(io->mod->modelname, "RtREV");
 		}
 	      else if(strcmp(optarg, "CpREV") == 0)
 		{
-		  io->mod->datatype = AA;
-		  io->mod->whichmodel = CPREV;
+		  io->datatype              = AA;
+		  io->mod->whichmodel       = CPREV;
 		  strcpy(io->mod->modelname, "CpREV");
 		}
 	      else if(strcmp(optarg, "VT") == 0)
 		{
-		  io->mod->datatype = AA;
-		  io->mod->whichmodel = VT;
+		  io->datatype              = AA;
+		  io->mod->whichmodel       = VT;
 		  strcpy(io->mod->modelname, "VT");
 		}
 	      else if(strcmp(optarg, "Blosum62") == 0)
 		{
-		  io->mod->datatype = AA;
-		  io->mod->whichmodel = BLOSUM62;
-		  strcpy(io->mod->modelname,"Blosum62");
+		  io->datatype              = AA;
+		  io->mod->whichmodel       = BLOSUM62;
+		  strcpy(io->mod->modelname, "Blosum62");
 		}
 	      else if(strcmp(optarg, "MtMam") == 0)
 		{
-		  io->mod->datatype = AA;
-		  io->mod->whichmodel = MTMAM;
+		  io->datatype              = AA;
+		  io->mod->whichmodel       = MTMAM;
 		  strcpy(io->mod->modelname, "MtMam");
 		}
 	      else if (strcmp(optarg,"MtArt") == 0)
 		{
-		  io->mod->datatype = AA;
-		  io->mod->whichmodel = MTART;
+		  io->datatype              = AA;
+		  io->mod->whichmodel       = MTART;
 		  strcpy(io->mod->modelname, "MtArt");
 		}
 	      else if (strcmp(optarg,"HIVw") == 0)
 		{
-		  io->mod->datatype = AA;
-		  io->mod->whichmodel = HIVW;
+		  io->datatype              = AA;
+		  io->mod->whichmodel       = HIVW;
 		  strcpy(io->mod->modelname, "HIVw");
 		}
 	      else if(strcmp(optarg, "HIVb") == 0)
 		{
-		  io->mod->datatype = AA;
-		  io->mod->whichmodel = HIVB;
+		  io->datatype              = AA;
+		  io->mod->whichmodel       = HIVB;
 		  strcpy(io->mod->modelname, "HIVb");
 		}
 	      else if (strcmp(optarg, "custom") == 0)
 		{
-		  io->mod->datatype = AA;
-		  io->mod->whichmodel = CUSTOMAA;
+		  io->datatype              = AA;
+		  io->mod->whichmodel       = CUSTOMAA;
 		  strcpy(io->mod->modelname, "Read from file");
 		}
 	      break;
@@ -715,7 +715,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	  {
 	    if(!strcmp(optarg,"e"))
 	      {
-	        if (io->mod->datatype == NT)
+	        if (io->datatype == NT)
 		  io->mod->s_opt->opt_state_freq = 0;
 		else
 		  io->mod->s_opt->opt_state_freq = 1;
@@ -732,7 +732,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	      }
 	    else if(!strcmp(optarg,"m"))
 	      {
-	        if (io->mod->datatype == NT)
+	        if (io->datatype == NT)
 		  io->mod->s_opt->opt_state_freq = 1;
 		else
 		  io->mod->s_opt->opt_state_freq = 0;
@@ -812,8 +812,8 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		}
 	      else
 		{
-		  strcpy(io->in_seq_file, optarg);
-		  io->fp_in_seq = Openfile(io->in_seq_file,0);
+		  strcpy(io->in_align_file, optarg);
+		  io->fp_in_align = Openfile(io->in_align_file,0);
 		  strcpy(io->out_tree_file,optarg);
 #ifdef PHYML
 		  strcat(io->out_tree_file,"_phyml_tree");
@@ -1027,7 +1027,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 #ifndef PHYML
     if((open_ps_file) || (io->m4_model == YES))
       {
-	strcpy(io->out_ps_file,io->in_seq_file);
+	strcpy(io->out_ps_file,io->in_align_file);
 	strcat(io->out_ps_file, "_mc_tree.ps");
 	io->fp_out_ps = Openfile(io->out_ps_file,1);
       }
@@ -1042,7 +1042,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	Warn_And_Exit("\n. The random starting tree option is only compatible with SPR based search options.\n"); 
       }
 
-    if ((io->mod->datatype == NT) && (io->mod->whichmodel > 10))
+    if ((io->datatype == NT) && (io->mod->whichmodel > 10))
       {
 	char choix;
 	PhyML_Printf("\n. Err: model incompatible with the data type. Please use JC69, K80, F81, HKY, F84, TN93 or GTR\n");
@@ -1050,7 +1050,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	if(!scanf("%c",&choix)) Exit("\n");
 	Warn_And_Exit("\n");
       }
-    else if ((io->mod->datatype == AA) && (io->mod->whichmodel < 11))
+    else if ((io->datatype == AA) && (io->mod->whichmodel < 11))
       {
 	char choix;
 	PhyML_Printf("\n. Err: model incompatible with the data type. Please use LG, Dayhoff, JTT, MtREV, WAG, DCMut, RtREV, CpREV, VT, Blosum62, MtMam, MtArt, HIVw or HIVb.\n");
@@ -1085,7 +1085,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
     
     if(io->print_site_lnl)
       {
-	strcpy(io->out_lk_file,io->in_seq_file);
+	strcpy(io->out_lk_file,io->in_align_file);
 	strcat(io->out_lk_file, "_phyml_lk");
 	if(io->append_run_ID) { strcat(io->out_lk_file,"_"); strcat(io->out_lk_file,io->run_id_string); }
 	strcat(io->out_lk_file, ".txt");
@@ -1094,7 +1094,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 
     if(io->print_trace)
       {
-	strcpy(io->out_trace_file,io->in_seq_file);
+	strcpy(io->out_trace_file,io->in_align_file);
 	strcat(io->out_trace_file,"_phyml_trace");
 	if(io->append_run_ID) { strcat(io->out_trace_file,"_"); strcat(io->out_trace_file,io->run_id_string); }
 	strcat(io->out_trace_file,".txt");
@@ -1103,7 +1103,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 
     if(io->mod->s_opt->random_input_tree)
       {
-	strcpy(io->out_trees_file,io->in_seq_file);
+	strcpy(io->out_trees_file,io->in_align_file);
 	strcat(io->out_trees_file,"_phyml_rand_trees");
 	if(io->append_run_ID) { strcat(io->out_trees_file,"_"); strcat(io->out_trees_file,io->run_id_string); }
 	strcat(io->out_trees_file,".txt");
@@ -1112,13 +1112,13 @@ void Read_Command_Line(option *io, int argc, char **argv)
 
     if((io->print_boot_trees) && (io->mod->bootstrap > 0))
       {
-	strcpy(io->out_boot_tree_file,io->in_seq_file);
+	strcpy(io->out_boot_tree_file,io->in_align_file);
 	strcat(io->out_boot_tree_file,"_phyml_boot_trees");
 	if(io->append_run_ID) { strcat(io->out_boot_tree_file,"_"); strcat(io->out_boot_tree_file,io->run_id_string); }
 	strcat(io->out_boot_tree_file,".txt");
 	io->fp_out_boot_tree = Openfile(io->out_boot_tree_file,1);
 	
-	strcpy(io->out_boot_stats_file,io->in_seq_file);
+	strcpy(io->out_boot_stats_file,io->in_align_file);
 	strcat(io->out_boot_stats_file,"_phyml_boot_stats");
 	if(io->append_run_ID) { strcat(io->out_boot_stats_file,"_"); strcat(io->out_boot_stats_file,io->run_id_string); }
 	strcat(io->out_boot_stats_file,".txt");

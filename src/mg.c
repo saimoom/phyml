@@ -49,15 +49,15 @@ int PART_main(int argc, char **argv)
 
   if(io->multigene)
     {
-      seq ***data;
-      allseq **alldata;
+      align ***data;
+      calign **cdata;
       model **mod;
       matrix **mat;
       arbrelist *treelist;
       superarbre *st;
 
-      data      = (seq ***)  mCalloc(io->n_part,sizeof(seq **));
-      alldata   = (allseq **)mCalloc(io->n_part,sizeof(allseq *));
+      data      = (align ***)  mCalloc(io->n_part,sizeof(align **));
+      cdata   = (calign **)mCalloc(io->n_part,sizeof(calign *));
       mod       = (model **) mCalloc(io->n_part,sizeof(model *));
       mat       = (matrix **)mCalloc(io->n_part,sizeof(matrix *));
 
@@ -69,16 +69,16 @@ int PART_main(int argc, char **argv)
 	  data[part] = Get_Seq(io->st->optionlist[part]);
 	  PhyML_Printf("\n. Data part [#%d]\n",part+1);
 	  PhyML_Printf("\n. Compressing sequences...\n");
-	  alldata[part] = Compact_Seq(data[part],io->st->optionlist[part]);
-	  fclose(io->st->optionlist[part]->fp_in_seq);
-	  Free_Seq(data[part],alldata[part]->n_otu);
-	  Init_Model(alldata[part],mod[part]);
-	  Check_Ambiguities(alldata[part],
-			    io->st->optionlist[part]->mod->datatype,
+	  cdata[part] = Compact_Data(data[part],io->st->optionlist[part]);
+	  fclose(io->st->optionlist[part]->fp_in_align);
+	  Free_Seq(data[part],cdata[part]->n_otu);
+	  Init_Model(cdata[part],mod[part]);
+	  Check_Ambiguities(cdata[part],
+			    io->st->optionlist[part]->mod->io->datatype,
 			    io->st->optionlist[part]->mod->stepsize);
 	}
 
-      PART_Make_Superarbre_Full(io->st,io,alldata);
+      PART_Make_Superarbre_Full(io->st,io,cdata);
       st = io->st;
       treelist = st->treelist;
       Fill_Dir_Table(st->tree);
@@ -86,49 +86,49 @@ int PART_main(int argc, char **argv)
 
       For(part,io->n_part)
 	{
-	  st->data_of_interest = alldata[part];
-	  if(!PART_Get_Species_Found_In_St(st,alldata[part])) break;
+	  st->curr_cdata = cdata[part];
+	  if(!PART_Get_Species_Found_In_St(st,cdata[part])) break;
 	  treelist->tree[part] = Make_Tree_From_Scratch(st->tree->n_otu,NULL);
 	  Copy_Tree_Topology_With_Labels(st->tree,treelist->tree[part]);
  	  treelist->tree[part]->num_curr_branch_available = 0;
 	  Connect_Edges_To_Nodes_Recur(treelist->tree[part]->noeud[0],
 				       treelist->tree[part]->noeud[0]->v[0],
 				       treelist->tree[part]);
-	  PART_Prune_St_Topo(treelist->tree[part],alldata[part],st);
+	  PART_Prune_St_Topo(treelist->tree[part],cdata[part],st);
 
-	  if(treelist->tree[part]->n_otu != alldata[part]->n_otu)
+	  if(treelist->tree[part]->n_otu != cdata[part]->n_otu)
 	    {
-	      PhyML_Printf("\n. Problem with sequence file '%s'\n",io->st->optionlist[part]->in_seq_file);
+	      PhyML_Printf("\n. Problem with sequence file '%s'\n",io->st->optionlist[part]->in_align_file);
 	      PhyML_Printf("\n. # taxa found in supertree restricted to '%s' taxa = %d\n",
-		     io->st->optionlist[part]->in_seq_file,
+		     io->st->optionlist[part]->in_align_file,
 		     treelist->tree[part]->n_otu);
 	      PhyML_Printf("\n. # sequences in '%s' = %d\n",
-		     io->st->optionlist[part]->in_seq_file,
-		     alldata[part]->n_otu);
+		     io->st->optionlist[part]->in_align_file,
+		     cdata[part]->n_otu);
 	      Exit("\n");
 	    }
 
 	  treelist->tree[part]->dp         = part;
-	  treelist->tree[part]->n_otu      = alldata[part]->n_otu;
+	  treelist->tree[part]->n_otu      = cdata[part]->n_otu;
 	  treelist->tree[part]->mod        = mod[part];
 	  treelist->tree[part]->io         = io->st->optionlist[part];
-	  treelist->tree[part]->data       = alldata[part];
+	  treelist->tree[part]->data       = cdata[part];
 	  treelist->tree[part]->both_sides = 1;
 	  treelist->tree[part]->n_pattern  = treelist->tree[part]->data->crunch_len/
 	                                     treelist->tree[part]->mod->stepsize;
 
-	  Order_Tree_CSeq(treelist->tree[part],alldata[part]);
+	  Order_Tree_CSeq(treelist->tree[part],cdata[part]);
 	  Fill_Dir_Table(treelist->tree[part]);
 	  Update_Dirs(treelist->tree[part]);
-	  Make_Tree_4_Lk(treelist->tree[part],alldata[part],alldata[part]->init_len);
-	  Make_Tree_4_Pars(treelist->tree[part],alldata[part],alldata[part]->init_len);
+	  Make_Tree_4_Lk(treelist->tree[part],cdata[part],cdata[part]->init_len);
+	  Make_Tree_4_Pars(treelist->tree[part],cdata[part],cdata[part]->init_len);
 	  treelist->tree[part]->triplet_struct = Make_Triplet_Struct(treelist->tree[part]->mod);
 	}
 
       if(part != io->n_part)
 	{
 	  PhyML_Printf("\n. Sequence data part found in '%s' has one or more taxa not found in the '%s' tree file\n",
-		 io->st->optionlist[part]->in_seq_file,
+		 io->st->optionlist[part]->in_align_file,
 		 io->in_tree_file);
 	  Exit("\n");
 	}
@@ -237,7 +237,7 @@ int PART_main(int argc, char **argv)
 	  Free_Tree_Pars(treelist->tree[part]);
 	  Free_Triplet(treelist->tree[part]->triplet_struct);
 	  Free_Tree(treelist->tree[part]);
-	  Free_Cseq(alldata[part]);
+	  Free_Cseq(cdata[part]);
 	  Free_Model(mod[part]);
 	  Free_Input(io->st->optionlist[part]);
 
@@ -247,14 +247,14 @@ int PART_main(int argc, char **argv)
       Free(mat);
       Free(mod);
       Free(data);
-      Free(alldata);
+      Free(cdata);
       Free(treelist->tree);
       Free(treelist);
       Free_St(st);
     }
 
 
-  if(io->fp_in_seq ) fclose(io->fp_in_seq);
+  if(io->fp_in_align ) fclose(io->fp_in_align);
   if(io->fp_in_tree) fclose(io->fp_in_tree);
 
 
@@ -314,7 +314,7 @@ superarbre *PART_Make_Superarbre_Light(option *input)
 
 /*********************************************************/
 
-void PART_Make_Superarbre_Full(superarbre *st, option *io, allseq **data)
+void PART_Make_Superarbre_Full(superarbre *st, option *io, calign **data)
 {
   int i,j,k;
 
@@ -400,7 +400,7 @@ void PART_Make_Superarbre_Full(superarbre *st, option *io, allseq **data)
 
 /*********************************************************/
 
-void PART_Prune_St_Topo(arbre *tree, allseq *data, superarbre *st)
+void PART_Prune_St_Topo(arbre *tree, calign *data, superarbre *st)
 {
   int i,j,not_found;
   int curr_ext_node, curr_int_node, curr_br, n_pruned_nodes;;
@@ -1017,7 +1017,7 @@ void PART_Check_Extra_Taxa(superarbre *st)
 
 /*********************************************************/
 
-int PART_Get_Species_Found_In_St(superarbre *st, allseq *data)
+int PART_Get_Species_Found_In_St(superarbre *st, calign *data)
 {
   int i,j;
   
@@ -2488,7 +2488,7 @@ void PART_Fill_Model_Partitions_Table(superarbre *st)
     {
       PhyML_Printf("\n\n");
       For(i,st->n_part)
-	PhyML_Printf(". Data set %3d : %s\n",i+1,st->optionlist[i]->in_seq_file);
+	PhyML_Printf(". Data set %3d : %s\n",i+1,st->optionlist[i]->in_align_file);
 
       PhyML_Printf("\n. Data set             ");
       For(i,st->n_part) PhyML_Printf("%3d ",i+1);

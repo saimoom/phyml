@@ -18,7 +18,7 @@ the GNU public licence.  See http://www.opensource.org for details.
 #include "free.h"
 #include "stats.h"
 
-void  PMat(phydbl l, model *mod, int pos, double *Pij);
+void PMat(phydbl l, model *mod, int pos, double *Pij);
 void  PMat_K80(phydbl l,phydbl kappa, int pos, double *Pij);
 void  PMat_TN93(phydbl l, model *mod, int pos, double *Pij);
 void  PMat_Empirical(phydbl l, model *mod, int pos, double *Pij);
@@ -26,7 +26,7 @@ void PMat_Zero_Br_Len(model  *mod, int pos, double *Pij);
 void PMat_Gamma(phydbl l, model *mod, int pos, double *Pij);
 
 int GetDaa (phydbl *daa, phydbl *pi, char *file_name);
-void Init_Model(allseq *data, model *mod);
+void Init_Model(calign *data, model *mod);
 void Update_Qmat_GTR(double *rr, phydbl *rr_val, int *rr_num, double *pi, double *qmat);
 void Update_Qmat_HKY(double kappa, double *pi, double *qmat);
 void Update_Qmat_Generic(double *rr, double *pi, int ns, double *qmat);

@@ -3555,7 +3555,7 @@ void Speed_Spr_Loop(arbre *tree)
   /*****************************/
 
   /*****************************/
-  if(tree->mod->datatype == NT)
+  if(tree->io->datatype == NT)
     {
       lk_old = UNLIKELY;
       tree->mod->s_opt->max_depth_path = 10;

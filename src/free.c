@@ -168,7 +168,7 @@ void Free_Node(node *n)
 
 /*********************************************************/
 
-void Free_Cseq(allseq *data)
+void Free_Cseq(calign *data)
 {
   int i;
   
@@ -193,7 +193,7 @@ void Free_Cseq(allseq *data)
 
 /*********************************************************/
 
-void Free_Seq(seq **d, int n_otu)
+void Free_Seq(align **d, int n_otu)
 {
   int i;
   For(i,n_otu)
@@ -209,9 +209,9 @@ void Free_Seq(seq **d, int n_otu)
 
 /*********************************************************/
 
-void Free_All(seq **d, allseq *alldata, arbre *tree)
+void Free_All(align **d, calign *cdata, arbre *tree)
 {
-  Free_Cseq(alldata);
+  Free_Cseq(cdata);
   Free_Seq(d,tree->n_otu);
   Free_Tree(tree);
 }      
@@ -389,7 +389,7 @@ void Free(void *p)
 
 void Free_Input(option *io)
 {
-  Free(io->in_seq_file);
+  Free(io->in_align_file);
   Free(io->in_tree_file);
   Free(io->out_tree_file);
   Free(io->out_trees_file);
@@ -506,7 +506,7 @@ void Free_Triplet(triplet *t)
 
 /*********************************************************/
 
-void Free_Actual_CSeq(allseq *data)
+void Free_Actual_CSeq(calign *data)
 {
   int i;
   For(i,data->n_otu)

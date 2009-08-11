@@ -23,7 +23,7 @@ void Bootstrap_MPI(arbre *tree)
   int replicate,j,k;
   int position, init_len, nbRep;
 
-  allseq *boot_data;
+  calign *boot_data;
   arbre *boot_tree;
   model *boot_mod;
   matrix *boot_mat;
@@ -141,7 +141,7 @@ fflush(stderr);
         Warn_And_Exit("\n. Pb when copying sequences\n");
       }
 
-      (tree->mod->datatype == NT)?
+      (tree->mod->io->datatype == NT)?
 	(Get_Base_Freqs(boot_data)):
 	(Get_AA_Freqs(boot_data));
 
@@ -333,9 +333,9 @@ void Print_Fp_Out_Lines_MPI(arbre *tree, option *io, int n_data_set, char *bootS
   tmp=(char *)mCalloc(T_MAX_LINE,sizeof(char));
   
   if (Global_myRank == 0 && n_data_set == 1) {
-    snprintf(tmp, T_MAX_LINE, ". Sequence file : [%s]\n\n", Basename(io->in_seq_file)); strncat (s, tmp, T_MAX_LINE);
+    snprintf(tmp, T_MAX_LINE, ". Sequence file : [%s]\n\n", Basename(io->in_align_file)); strncat (s, tmp, T_MAX_LINE);
     
-    (tree->mod->datatype == NT)?
+    (tree->mod->io->datatype == NT)?
 	(snprintf(tmp, T_MAX_LINE, ". Model of nucleotides substitution : %s\n\n", io->mod->modelname)):
 	(snprintf(tmp, T_MAX_LINE, ". Model of amino acids substitution : %s\n\n", io->mod->modelname));
     strncat (s, tmp, T_MAX_LINE);
@@ -447,7 +447,7 @@ void Print_Fp_Out_Lines_MPI(arbre *tree, option *io, int n_data_set, char *bootS
       strncat (s, tmp, T_MAX_LINE);
     }
 
-  if(tree->mod->datatype == NT)
+  if(tree->mod->io->datatype == NT)
     {
       snprintf(tmp, T_MAX_LINE, "%8.5f  ",tree->mod->pi[0]); strncat (s, tmp, T_MAX_LINE);
       snprintf(tmp, T_MAX_LINE, "%8.5f  ",tree->mod->pi[1]); strncat (s, tmp, T_MAX_LINE);

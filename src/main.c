@@ -31,8 +31,8 @@ the GNU public licence. See http://www.opensource.org for details.
 
 int main(int argc, char **argv)
 {
-  seq **data;
-  allseq *alldata;
+  align **data;
+  calign *cdata;
   option *io;
   arbre *tree;
   int n_otu, num_data_set;
@@ -97,10 +97,10 @@ int main(int argc, char **argv)
 	{
 	  if(io->n_data_sets > 1) PhyML_Printf("\n. Data set [#%d]\n",num_data_set+1);
 	  if(!io->quiet) PhyML_Printf("\n. Compressing sequences...\n");
-	  alldata = Compact_Seq(data,io);
+	  cdata = Compact_Data(data,io);
 
-	  Free_Seq(data,alldata->n_otu);
-	  Check_Ambiguities(alldata,io->mod->datatype,io->mod->stepsize);
+	  Free_Seq(data,cdata->n_otu);
+	  Check_Ambiguities(cdata,io->datatype,io->mod->stepsize);
 
 	  for(num_tree=(io->n_trees == 1)?(0):(num_data_set);num_tree < io->n_trees;num_tree++)
 	    {
@@ -111,12 +111,12 @@ int main(int argc, char **argv)
 		  if((io->mod->s_opt->random_input_tree) && (io->mod->s_opt->topo_search != NNI_MOVE))
 		    if(!io->quiet) PhyML_Printf("\n. [Random start %3d/%3d]\n",num_rand_tree+1,io->mod->s_opt->n_rand_starts);
 
-		  Init_Model(alldata,mod);
+		  Init_Model(cdata,mod);
 
 		  switch(io->in_tree)
 		    {
-		    case 0 : case 1 : { tree = Dist_And_BioNJ(alldata,mod,io);    break; }
-		    case 2 :          { tree = Read_User_Tree(alldata,mod,io); break; }
+		    case 0 : case 1 : { tree = Dist_And_BioNJ(cdata,mod,io);    break; }
+		    case 2 :          { tree = Read_User_Tree(cdata,mod,io); break; }
 		    }
 
 		  if(!tree) continue;
@@ -126,7 +126,7 @@ int main(int argc, char **argv)
 
 		  tree->mod         = mod;
 		  tree->io          = io;
-		  tree->data        = alldata;
+		  tree->data        = cdata;
 		  tree->both_sides  = 1;
 		  tree->n_pattern   = tree->data->crunch_len/tree->mod->stepsize;
 
@@ -212,13 +212,13 @@ int main(int argc, char **argv)
 		  if(!io->quiet)  PhyML_Printf("\n. The bootstrap analysis will use %d CPUs.\n",Global_numTask);
 		  #endif
 
-		  most_likely_tree = Bootstrap_From_String(most_likely_tree,alldata,mod,io);
+		  most_likely_tree = Bootstrap_From_String(most_likely_tree,cdata,mod,io);
 		}
 	      else if(io->ratio_test) 
 		{
 		  /* Launch aLRT */
 		  if(!io->quiet) PhyML_Printf("\n. Compute aLRT branch supports on the most likely tree...\n");
-		  most_likely_tree = aLRT_From_String(most_likely_tree,alldata,mod,io);
+		  most_likely_tree = aLRT_From_String(most_likely_tree,cdata,mod,io);
 		}
 
 	      /* Print the most likely tree in the output file */
@@ -229,7 +229,7 @@ int main(int argc, char **argv)
 
 	      if(io->n_trees > 1 && io->n_data_sets > 1) break;
 	    }
-	  Free_Cseq(alldata);
+	  Free_Cseq(cdata);
 	}
     }
 
@@ -239,12 +239,12 @@ int main(int argc, char **argv)
 
   Free_Model(mod);
 
-  if(io->fp_in_seq)     fclose(io->fp_in_seq);
-  if(io->fp_in_tree)    fclose(io->fp_in_tree);
-  if(io->fp_out_lk)     fclose(io->fp_out_lk);
-  if(io->fp_out_tree)   fclose(io->fp_out_tree);
-  if(io->fp_out_trees)  fclose(io->fp_out_trees);
-  if(io->fp_out_stats)  fclose(io->fp_out_stats);
+  if(io->fp_in_align)  fclose(io->fp_in_align);
+  if(io->fp_in_tree)   fclose(io->fp_in_tree);
+  if(io->fp_out_lk)    fclose(io->fp_out_lk);
+  if(io->fp_out_tree)  fclose(io->fp_out_tree);
+  if(io->fp_out_trees) fclose(io->fp_out_trees);
+  if(io->fp_out_stats) fclose(io->fp_out_stats);
 
   Free_Input(io);
 

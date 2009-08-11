@@ -21,8 +21,8 @@ the GNU public licence. See http://www.opensource.org for details.
 
 int MC_main(int argc, char **argv)
 {
-  seq **data;
-  allseq *alldata;
+  align **data;
+  calign *cdata;
   option *io;
   arbre *tree;
   int n_otu, num_data_set;
@@ -79,7 +79,7 @@ int MC_main(int argc, char **argv)
   if(io->in_tree == 2) Test_Multiple_Data_Set_Format(io);
   else io->n_trees = 1;
 
-  io->compress_seq = 0; /* Do not compress sites if you're using Evolve function */
+  io->cdata = 0; /* Do not compress sites if you're using Evolve function */
 
   mat = NULL;
   tree_line_number = 0;
@@ -100,9 +100,9 @@ int MC_main(int argc, char **argv)
 	{
 	  if(io->n_data_sets > 1) PhyML_Printf("\n. Data set [#%d]\n",num_data_set+1);
 	  PhyML_Printf("\n. Compressing sequences...\n");
-	  alldata = Compact_Seq(data,io);
-	  Free_Seq(data,alldata->n_otu);
-	  Check_Ambiguities(alldata,io->mod->datatype,io->mod->stepsize);
+	  cdata = Compact_Data(data,io);
+	  Free_Seq(data,cdata->n_otu);
+	  Check_Ambiguities(cdata,io->mod->io->datatype,io->mod->stepsize);
 
 	  for(num_tree=(io->n_trees == 1)?(0):(num_data_set);num_tree < io->n_trees;num_tree++)
 	    {
@@ -113,12 +113,12 @@ int MC_main(int argc, char **argv)
 		  if((io->mod->s_opt->random_input_tree) && (io->mod->s_opt->topo_search != NNI_MOVE))
 		    PhyML_Printf("\n. [Random start %3d/%3d]\n",num_rand_tree+1,io->mod->s_opt->n_rand_starts);
 
-		  Init_Model(alldata,mod);
+		  Init_Model(cdata,mod);
 
 		  /* A BioNJ tree is built here */
-		  if(!io->in_tree) tree = Dist_And_BioNJ(alldata,mod,io);
+		  if(!io->in_tree) tree = Dist_And_BioNJ(cdata,mod,io);
 		  /* A user-given tree is used here instead of BioNJ */
-		  else             tree = Read_User_Tree(alldata,mod,io);
+		  else             tree = Read_User_Tree(cdata,mod,io);
 
 		  if(!tree) continue;
 
@@ -141,16 +141,16 @@ int MC_main(int argc, char **argv)
 
 		  tree->mod         = mod;
 		  tree->io          = io;
-		  tree->data        = alldata;
+		  tree->data        = cdata;
 		  tree->both_sides  = 1;
 		  tree->n_pattern   = tree->data->crunch_len/tree->mod->stepsize;
 
-/*  		  For(i,tree->n_otu) strcpy(tree->noeud[i]->name,alldata->c_seq[i]->name); */
+/*  		  For(i,tree->n_otu) strcpy(tree->noeud[i]->name,cdata->c_seq[i]->name); */
 
 		  Fill_Dir_Table(tree);
 		  Update_Dirs(tree);
-		  Make_Tree_4_Pars(tree,alldata,alldata->init_len);
-		  Make_Tree_4_Lk(tree,alldata,alldata->init_len);
+		  Make_Tree_4_Pars(tree,cdata,cdata->init_len);
+		  Make_Tree_4_Lk(tree,cdata,cdata->init_len);
 
 /* 		  Evolve(tree->data,tree->mod,tree); */
 		  Init_Ui_Tips(tree);
@@ -389,13 +389,13 @@ int MC_main(int argc, char **argv)
 		  PhyML_Printf("\n. The bootstrap analysis will use %d CPUs.",Global_numTask);
 		  #endif
 
-		  Bootstrap_From_String(most_likely_tree,alldata,mod,io);
+		  Bootstrap_From_String(most_likely_tree,cdata,mod,io);
 		}
 	      else if(tree->io->ratio_test) 
 		{
 		  /* Launch aLRT */
 		  PhyML_Printf("\n. Compute aLRT branch supports on the most likely tree...\n");
-		  aLRT_From_String(most_likely_tree,alldata,mod,io);
+		  aLRT_From_String(most_likely_tree,cdata,mod,io);
 		}
 
 	      /* Print the most likely tree in the output file */
@@ -406,7 +406,7 @@ int MC_main(int argc, char **argv)
 
 	      if(io->n_trees > 1 && io->n_data_sets > 1) break;
 	    }
-	  Free_Cseq(alldata);
+	  Free_Cseq(cdata);
 	}
     }
 
@@ -415,7 +415,7 @@ int MC_main(int argc, char **argv)
 
   Free_Model(mod);
 
-  if(io->fp_in_seq)     fclose(io->fp_in_seq);
+  if(io->fp_in_align)     fclose(io->fp_in_align);
   if(io->fp_in_tree)    fclose(io->fp_in_tree);
   if(io->fp_out_lk)     fclose(io->fp_out_lk);
   if(io->fp_out_tree)   fclose(io->fp_out_tree);
