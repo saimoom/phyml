@@ -577,24 +577,24 @@ phydbl Return_Abs_Lk(arbre *tree)
 
 /*********************************************************/
 
-matrix *ML_Dist(allseq *data, model *mod)
+matrix *ML_Dist(calign *data, model *mod)
 {
   int i,j,k,l;
   phydbl init;
   int n_catg;
   phydbl d_max,sum;
   matrix *mat;
-  allseq *twodata,*tmpdata;
+  calign *twodata,*tmpdata;
   int state0, state1,len;
   phydbl *F;
   eigen *eigen_struct;
 
-  tmpdata             = (allseq *)mCalloc(1,sizeof(allseq));
-  tmpdata->c_seq      = (seq **)mCalloc(2,sizeof(seq *));
-  tmpdata->b_frq      = (phydbl *)mCalloc(mod->ns,sizeof(phydbl));
-  tmpdata->ambigu     = (short int *)mCalloc(data->crunch_len,sizeof(short int));
-  F                   = (phydbl *)mCalloc(mod->ns*mod->ns,sizeof(phydbl ));
-  eigen_struct        = (eigen *)Make_Eigen_Struct(mod->ns);
+  tmpdata         = (calign *)mCalloc(1,sizeof(calign));
+  tmpdata->c_seq  = (align **)mCalloc(2,sizeof(align *));
+  tmpdata->b_frq  = (phydbl *)mCalloc(mod->ns,sizeof(phydbl));
+  tmpdata->ambigu = (short int *)mCalloc(data->crunch_len,sizeof(short int));
+  F               = (phydbl *)mCalloc(mod->ns*mod->ns,sizeof(phydbl ));
+  eigen_struct    = (eigen *)Make_Eigen_Struct(mod->ns);
 
   tmpdata->n_otu      = 2;
 
@@ -602,12 +602,9 @@ matrix *ML_Dist(allseq *data, model *mod)
   tmpdata->init_len   = data->init_len;
 
   mat =
-    (mod->datatype == NT) ?
+    (mod->io->datatype == NT) ?
     ((mod->whichmodel < 10)?(K80_dist(data,2000)):(JC69_Dist(data,mod))):
     (JC69_Dist(data,mod));
-
-/*   Print_Mat(mat); */
-/*   Exit("\n"); */
 
   For(i,mod->n_catg) /* Don't use the discrete gamma distribution */
     {
@@ -629,10 +626,10 @@ matrix *ML_Dist(allseq *data, model *mod)
 	  tmpdata->c_seq[1]       = data->c_seq[k];
 	  tmpdata->c_seq[1]->name = data->c_seq[k]->name;
 
-	  twodata = Compact_CSeq(tmpdata,mod);
+	  twodata = Compact_Cdata(tmpdata,mod->io);
 
 	  For(l,mod->ns) twodata->b_frq[l] = data->b_frq[l];
-	  Check_Ambiguities(twodata,mod->datatype,1);
+	  Check_Ambiguities(twodata,mod->io->datatype,1);
 	  Hide_Ambiguities(twodata);
 	  
 	  init = mat->dist[j][k];
@@ -644,8 +641,8 @@ matrix *ML_Dist(allseq *data, model *mod)
 	  len = 0;
 	  For(l,twodata->c_seq[0]->len)
 	    {
-	      state0 = Assign_State(twodata->c_seq[0]->state+l,mod->datatype,mod->stepsize);
-	      state1 = Assign_State(twodata->c_seq[1]->state+l,mod->datatype,mod->stepsize);
+	      state0 = Assign_State(twodata->c_seq[0]->state+l,mod->io->datatype,mod->stepsize);
+	      state1 = Assign_State(twodata->c_seq[1]->state+l,mod->io->datatype,mod->stepsize);
 	      if((state0 > -1) && (state1 > -1))
 		{
 		  F[mod->ns*state0+state1] += twodata->wght[l];
@@ -665,10 +662,6 @@ matrix *ML_Dist(allseq *data, model *mod)
 	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
 	      Exit("");
 	    }
-
-
-/* /\* 	  BRENT *\/ */
-/* 	  d_max = Optimize_Dist(mod,init,twodata); */
 	  
 /* 	  PhyML_Printf("\n. Warning : not using the ML pairwise distances..."); */
 /* 	  d_max = init; */
@@ -705,9 +698,9 @@ matrix *ML_Dist(allseq *data, model *mod)
 
 /*********************************************************/
 
-phydbl Lk_Given_Two_Seq(allseq *data, int numseq1, int numseq2, phydbl dist, model *mod, phydbl *loglk)
+phydbl Lk_Given_Two_Seq(calign *data, int numseq1, int numseq2, phydbl dist, model *mod, phydbl *loglk)
 {
-  seq *seq1,*seq2;
+  align *seq1,*seq2;
   phydbl site_lk,log_site_lk;
   int i,j,k,l;
 /*   plkflt **p_lk_l,**p_lk_r; */
@@ -739,7 +732,7 @@ phydbl Lk_Given_Two_Seq(allseq *data, int numseq1, int numseq2, phydbl dist, mod
       PMat(len,mod,dim2*i,mod->Pij_rr);
     }
 
-  if(mod->datatype == NT)
+  if(mod->io->datatype == NT)
     {
       For(i,data->c_seq[0]->len)
 	{
@@ -1062,16 +1055,16 @@ void Update_P_Lk(arbre *tree, edge *b, node *d)
 /*********************************************************/
 
 
-void Make_Tree_4_Lk(arbre *tree, allseq *alldata, int n_site)
+void Make_Tree_4_Lk(arbre *tree, calign *cdata, int n_site)
 {
   int i;
 
   tree->c_lnL_sorted = (phydbl *)mCalloc(tree->n_pattern, sizeof(phydbl));
-  tree->site_lk      = (phydbl *)mCalloc(alldata->crunch_len,sizeof(phydbl));
+  tree->site_lk      = (phydbl *)mCalloc(cdata->crunch_len,sizeof(phydbl));
 
   tree->log_site_lk_cat      = (phydbl **)mCalloc(tree->mod->n_catg,sizeof(phydbl *));
   For(i,tree->mod->n_catg)
-    tree->log_site_lk_cat[i] = (phydbl *)mCalloc(alldata->crunch_len,sizeof(phydbl));
+    tree->log_site_lk_cat[i] = (phydbl *)mCalloc(cdata->crunch_len,sizeof(phydbl));
 
   tree->log_lks_aLRT = (phydbl **)mCalloc(3,sizeof(phydbl *));
   For(i,3) tree->log_lks_aLRT[i] = (phydbl *)mCalloc(tree->data->init_len,sizeof(phydbl));
@@ -1102,17 +1095,17 @@ void Init_P_Lk_Tips_Double(arbre *tree)
     {
       For(i,tree->n_otu)
 	{
-	  if (tree->mod->datatype == NT)
+	  if (tree->io->datatype == NT)
 	    Init_Tips_At_One_Site_Nucleotides_Float(tree->data->c_seq[i]->state[curr_site],
 						    curr_site*dim1+0*dim2,
 						    tree->noeud[i]->b[0]->p_lk_rght);
 
-	  else if(tree->mod->datatype == AA)
+	  else if(tree->io->datatype == AA)
 	    Init_Tips_At_One_Site_AA_Float(tree->data->c_seq[i]->state[curr_site],
 					   curr_site*dim1+0*dim2,
 					   tree->noeud[i]->b[0]->p_lk_rght);
 
-	  else if(tree->mod->datatype == INTEGERS)
+	  else if(tree->io->datatype == INTEGERS)
 	    Init_Tips_At_One_Site_Generic_Float(tree->data->c_seq[i]->state+curr_site,
 						char_len,
 						dim2,
@@ -1148,17 +1141,17 @@ void Init_P_Lk_Tips_Int(arbre *tree)
     {
       For(i,tree->n_otu)
 	{
-	  if(tree->mod->datatype == NT)
+	  if(tree->io->datatype == NT)
 	    Init_Tips_At_One_Site_Nucleotides_Int(tree->data->c_seq[i]->state[curr_site],
 						  curr_site*dim1,
 						  tree->noeud[i]->b[0]->p_lk_tip_r);
 
-	  else if(tree->mod->datatype == AA)
+	  else if(tree->io->datatype == AA)
 	    Init_Tips_At_One_Site_AA_Int(tree->data->c_seq[i]->state[curr_site],
 					 curr_site*dim1,					   
 					 tree->noeud[i]->b[0]->p_lk_tip_r);
 
-	  else if(tree->mod->datatype == INTEGERS)
+	  else if(tree->io->datatype == INTEGERS)
 	    Init_Tips_At_One_Site_Generic_Int(tree->data->c_seq[i]->state+curr_site,
 					      char_len,
 					      dim1,

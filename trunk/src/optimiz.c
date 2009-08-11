@@ -271,7 +271,7 @@ phydbl Generic_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 /*********************************************************/
 
 phydbl RRparam_GTR_Golden(phydbl ax, phydbl bx, phydbl cx, phydbl tol, 
-			  phydbl *xmin, arbre *tree, allseq *alldata, phydbl *param, int n_iter_max)
+			  phydbl *xmin, arbre *tree, calign *cdata, phydbl *param, int n_iter_max)
 {
    phydbl f1,f2,x0,x1,x2,x3;
    int n_iter;
@@ -899,192 +899,7 @@ phydbl Branch_Rate_Shape_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 
 /*********************************************************/
 
-int Dist_Seq_Brak(phydbl *ax, phydbl *bx, phydbl *cx, 
-		  phydbl *fa, phydbl *fb, phydbl *fc, 
-		  allseq *data, int numseq1, int numseq2, 
-		  model *mod)
-{
-   phydbl ulim,u,r,q,fu,dum;
-   phydbl dist;
-   phydbl lk;
-
-   dist = *ax;
-   *fa=-Lk_Given_Two_Seq(data,numseq1,numseq2,dist,mod,&lk);
-   dist = *bx;
-   *fb=-Lk_Given_Two_Seq(data,numseq1,numseq2,dist,mod,&lk);
-   if (*fb > *fa) {
-      SHFT(dum,*ax,*bx,dum)
-      SHFT(dum,*fb,*fa,dum)
-   }
-   *cx=(*bx)+MNBRAK_GOLD*(*bx-*ax);
-   dist = fabs(*cx);
-   *fc=-Lk_Given_Two_Seq(data,numseq1,numseq2,dist,mod,&lk);
-   while (*fb > *fc) 
-     {
-       r=(*bx-*ax)*(*fb-*fc);
-       q=(*bx-*cx)*(*fb-*fa);
-       u=(*bx)-((*bx-*cx)*q-(*bx-*ax)*r)/
-               (2.0*SIGN(MAX(fabs(q-r),MNBRAK_TINY),q-r));
-       ulim=(*bx)+MNBRAK_GLIMIT*(*cx-*bx);
-       
-       if ((*bx-u)*(u-*cx) > 0.0) 
-	 {
-	   dist = fabs(u);
-	   fu=-Lk_Given_Two_Seq(data,numseq1,numseq2,dist,mod,&lk);
-	   if (fu < *fc) 
-	     {
-	       *ax=(*bx);
-	       *bx=u;
-	       *fa=(*fb);
-	       *fb=fu;
-	       return(0);
-	     } 
-	   else if (fu > *fb) 
-	     {
-	       *cx=u;
-	       *fc=fu;
-	       return(0);
-	     }
-	   u=(*cx)+MNBRAK_GOLD*(*cx-*bx);
-	   dist = fabs(u);
-	   fu=-Lk_Given_Two_Seq(data,numseq1,numseq2,dist,mod,&lk);
-	 } 
-       else if ((*cx-u)*(u-ulim) > 0.0) 
-	 {
-	   dist = fabs(u);
-	   fu=-Lk_Given_Two_Seq(data,numseq1,numseq2,dist,mod,&lk);
-	   if (fu < *fc) 
-	     {
-	       SHFT(*bx,*cx,u,*cx+MNBRAK_GOLD*(*cx-*bx))
-	       dist = fabs(u); 
-	       SHFT(*fb,*fc,fu,-Lk_Given_Two_Seq(data,numseq1,numseq2,dist,mod,&lk))
-	     }
-	 } 
-       else if ((u-ulim)*(ulim-*cx) >= 0.0) 
-	 {
-	   u=ulim;
-	   dist = fabs(u);
-	   fu=-Lk_Given_Two_Seq(data,numseq1,numseq2,dist,mod,&lk);
-	 } 
-       else 
-	 {
-	   u=(*cx)+MNBRAK_GOLD*(*cx-*bx);
-	   dist = fabs(u);
-	   fu=-Lk_Given_Two_Seq(data,numseq1,numseq2,dist,mod,&lk);
-	 }
-       SHFT(*ax,*bx,*cx,u)
-       SHFT(*fa,*fb,*fc,fu)
-      }
-   return(0);
-}
-
-/*********************************************************/
-
-phydbl Dist_Seq_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, 
-		      phydbl *xmin, allseq *data, 
-		      int numseq1, int numseq2, model *mod)
-{
-  int iter;
-  phydbl a,b,d,etemp,fu,fv,fw,fx,p,q,r,tol1,tol2,u,v,w,x,xm;
-  phydbl e=0.0;
-  phydbl dist;
-  phydbl lk;
-  
-  d=0.0;
-  a=((ax < cx) ? ax : cx);
-  b=((ax > cx) ? ax : cx);
-  x=w=v=bx;
-  dist = fabs(bx);
-  fw=fv=fx=-Lk_Given_Two_Seq(data,numseq1,numseq2,dist,mod,&lk);
-  for(iter=1;iter<=BRENT_ITMAX;iter++) 
-    {
-      xm=0.5*(a+b);
-      tol2=2.0*(tol1=tol*fabs(x)+BRENT_ZEPS);
-      if(fabs(x-xm) <= (tol2-0.5*(b-a))) 
-	{
-	  *xmin=x;
-	  return -fx;
-	}
-      
-      if(fabs(e) > tol1) 
-	{
-	  r=(x-w)*(fx-fv);
-	  q=(x-v)*(fx-fw);
-	  p=(x-v)*q-(x-w)*r;
-	  q=2.0*(q-r);
-	  if(q > 0.0) p = -p;
-	  q=fabs(q);
-	  etemp=e;
-	  e=d;
-	  if(fabs(p) >= fabs(0.5*q*etemp) || p <= q*(a-x) || p >= q*(b-x))
-	    d=BRENT_CGOLD*(e=(x >= xm ? a-x : b-x));
-	  else{
-	    d=p/q;
-	    u=x+d;
-	    if (u-a < tol2 || b-u < tol2)
-	      d=SIGN(tol1,xm-x);
-	  }
-	} else
-	  {
-	    d=BRENT_CGOLD*(e=(x >= xm ? a-x : b-x));
-	  }
-      u=(fabs(d) >= tol1 ? x+d : x+SIGN(tol1,d));
-      dist=fabs(u);
-      fu=-Lk_Given_Two_Seq(data,numseq1,numseq2,dist,mod,&lk);
-      if(fu <= fx) {
-	if(u >= x) a=x; else b=x;
-	SHFT(v,w,x,u)
-	  SHFT(fv,fw,fx,fu)
-	  } 
-      else
-	{
-	  if (u < x) a=u; else b=u;
-	  if (fu <= fw || w == x) 
-	    {
-	      v=w;
-	      w=u;
-	      fv=fw;
-	      fw=fu;
-    } 
-	  else if (fu <= fv || v == x || v == w) {
-            v=u;
-            fv=fu;
-	  }
-	}
-    }
-  PhyML_Printf("\n . BRENT method failed, trying Newton-Raphson");
-  return(+1.0);
-  /* Not Reached ??  *xmin=x;   */
-  /* Not Reached ??  return fx; */
-}
-
-/*********************************************************/
-
-phydbl Optimize_Dist(model *mod, phydbl init, allseq *twoseqs)
-{
-  phydbl d_infa,d_max,d_infb;
-  phydbl lk_infa, lk_max, lk_infb, lk;
-
-  d_infa = 100.*BL_MIN;
-  d_max  = init;
-  d_infb = 3.*init;
-  if(init <= BL_MIN) {d_infa = -BL_START; d_max = .0; d_infb = BL_START;}
-  lk_infa = lk_max = lk_infb = .0;
-
-  Dist_Seq_Brak(&d_infa, &d_max, &d_infb,
-		&lk_infa,&lk_max,&lk_infb,
-		twoseqs,0,1,mod);
-  
-  lk = (phydbl) Dist_Seq_Brent(d_infa,d_max,d_infb,
-			       1.e-5,&d_max,twoseqs,0,1,mod);
-  if(lk > .0) return -1.0;
-  else        return d_max;
-
-}
-
-/*********************************************************/
-
-void Round_Optimize(arbre *tree, allseq *data, int n_round_max)
+void Round_Optimize(arbre *tree, calign *data, int n_round_max)
 {
   int n_round,each;
   phydbl lk_old, lk_new, tol;
@@ -1134,7 +949,7 @@ void Round_Optimize(arbre *tree, allseq *data, int n_round_max)
 
 /*********************************************************/
 
-void Optimize_Br_Len_Serie(node *a, node *d, edge *b_fcus, arbre *tree, allseq *alldata)
+void Optimize_Br_Len_Serie(node *a, node *d, edge *b_fcus, arbre *tree, calign *cdata)
 {
   int i;
   phydbl l_infa,l_max,l_infb;
@@ -1176,7 +991,7 @@ void Optimize_Br_Len_Serie(node *a, node *d, edge *b_fcus, arbre *tree, allseq *
   else For(i,3) if(d->v[i] != a)
     {
       Update_P_Lk(tree,d->b[i],d);
-      Optimize_Br_Len_Serie(d,d->v[i],d->b[i],tree,alldata);
+      Optimize_Br_Len_Serie(d,d->v[i],d->b[i],tree,cdata);
     }
   For(i,3) if((d->v[i] == a) && !(d->v[i]->tax)) Update_P_Lk(tree,d->b[i],d);
 }
@@ -1376,7 +1191,7 @@ void Optimiz_All_Free_Param(arbre *tree, int verbose)
 	}
     }
 
-  if((tree->mod->s_opt->opt_state_freq) && (tree->mod->datatype == NT))
+  if((tree->mod->s_opt->opt_state_freq) && (tree->io->datatype == NT))
     {
         int failed,i;
         
@@ -2709,208 +2524,6 @@ int Optimiz_Alpha_And_Pinv(arbre *tree)
 /*   PhyML_Printf("\n\n. Init lnL after golden opt = %f",tree->c_lnL); */
   return 1;
 }
-
-/*********************************************************/
-#if defined(MC) || defined(RWRAPPER)
-phydbl Node_Time_Brent_Fixed_Br_Len(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
-				    node *n, arbre *tree, int n_iter_max)
-{
-  int iter;
-  phydbl a,b,d,etemp,fu,fv,fw,fx,p,q,r,tol1,tol2,u,v,w,x,xm;
-  phydbl e=0.0;
-  phydbl old_lnL, init_lnL, new_t;
-
-  tree->rates->adjust_rates = 1;
-
-  d=0.0;
-  a=((ax < cx) ? ax : cx);
-  b=((ax > cx) ? ax : cx);
-  x=w=v=bx;
-  old_lnL = UNLIKELY;
-  new_t   = -fabs(bx);
-  fw=fv=fx=fu = -RATES_Lk_Change_One_Time(n,new_t,tree);
-/*   tree->rates->nd_t[n->num] = new_t; */
-/*   fw=fv=fx=fu = -RATES_Lk_Rates(tree); */
-  init_lnL=-fw;
-/*   PhyML_Printf("\n. BRENT lk_init = %f",-fw); */
-  
-  for(iter=1;iter<=BRENT_ITMAX;iter++)
-    {
-      xm=0.5*(a+b);
-      tol2=2.0*(tol1=tol*fabs(x)+BRENT_ZEPS);
-      if(
-	 ((fabs(tree->rates->c_lnL-old_lnL) < tol) && 
-	  (tree->rates->c_lnL > init_lnL - tol)) ||	 
-	 (iter > n_iter_max - 1))
-	{
-	  RATES_Lk_Change_One_Time(n,-fabs(x),tree);
-/* 	  PhyML_Printf("\n. iter=%3d max=%3d l=%f lnL=%f init_lnL=%f",iter,n_iter_max,tree->rates->nd_t[n->num],tree->rates->c_lnL,init_lnL); */
-/* 	  RATES_Lk_Rates(tree); */
-/* 	  PhyML_Printf("\n. iter=%3d max=%3d l=%f lnL=%f init_lnL=%f",iter,n_iter_max,tree->rates->nd_t[n->num],tree->rates->c_lnL,init_lnL); */
-	  tree->rates->adjust_rates = 0;
-	  return tree->rates->c_lnL;
-	}
-      
-      if(fabs(e) > tol1)
-	{
-	  r=(x-w)*(fx-fv);
-	  q=(x-v)*(fx-fw);
-	  p=(x-v)*q-(x-w)*r;
-	  q=2.0*(q-r);
-	  if(q > 0.0) p = -p;
-	  q=fabs(q);
-	  etemp=e;
-	  e=d;
-	  if(fabs(p) >= fabs(0.5*q*etemp) || p <= q*(a-x) || p >= q*(b-x))
-	    d=BRENT_CGOLD*(e=(x >= xm ? a-x : b-x));
-	  else{
-	    d=p/q;
-	    u=x+d;
-	    if (u-a < tol2 || b-u < tol2)
-	      d=SIGN(tol1,xm-x);
-	  }
-	}
-      else
-	{
-	  d=BRENT_CGOLD*(e=(x >= xm ? a-x : b-x));
-	}
-      u=(fabs(d) >= tol1 ? x+d : x+SIGN(tol1,d));
-      old_lnL = tree->rates->c_lnL;
-      new_t = -fabs(u);
-
-      tree->rates->nd_t[n->num] = new_t;
-/*       fu = - RATES_Lk_Rates(tree); */
-/*       PhyML_Printf("\n. %f ",tree->rates->c_lnL); */
-      fu=-RATES_Lk_Change_One_Time(n,new_t,tree);      
-/*       PhyML_Printf(" lk=%f ",tree->rates->c_lnL); */
-/*       PhyML_Printf("\n. BRENT node %3d t=%f lnL=%20f iter=%3d",n->num,tree->rates->nd_t[n->num],-fu,iter); */
-
-      if(fu <= fx)
-	{
-	  if(u >= x) a=x; else b=x;
-	  SHFT(v,w,x,u)
-	  SHFT(fv,fw,fx,fu)
-	}
-      else
-	{
-	  if (u < x) a=u; else b=u;
-	  if (fu <= fw || w == x)
-	    {
-	      v=w;
-	      w=u;
-	      fv=fw;
-	      fw=fu;
-	    }
-	  else if (fu <= fv || v == x || v == w) 
-	    {
-	      v=u;
-	      fv=fu;
-	    }
-	}
-    }
-/*   PhyML_Printf("\n. iter=%3d max=%3d l=%f lnL=%f init_lnL=%f",iter,n_iter_max,tree->rates->nd_t[n->num],tree->rates->c_lnL,init_lnL); */
-  if(iter > BRENT_ITMAX) PhyML_Printf("\n. Too many iterations in BRENT (%d) (%f)",iter,tree->rates->nd_t[n->num]);
-  tree->rates->adjust_rates = 0;
-  return(-1);
-  /* Not Reached ??  *xmin=x;   */
-  /* Not Reached ??  return fx; */
-}
-#endif
-/*********************************************************/
-#if defined(MC) || defined(RWRAPPER)
-phydbl Rates_Generic_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, phydbl *param, arbre *tree, int n_iter_max)
-{
-  int iter;
-  phydbl a,b,d,etemp,fu,fv,fw,fx,p,q,r,tol1,tol2,u,v,w,x,xm;
-  phydbl e=0.0;
-  phydbl old_lnL, init_lnL;
-
-
-  d=0.0;
-  a=((ax < cx) ? ax : cx);
-  b=((ax > cx) ? ax : cx);
-  x=w=v=bx;
-  old_lnL = UNLIKELY;
-  *param = fabs(bx);
-  fw=fv=fx=fu=-RATES_Lk_Rates(tree);
-  init_lnL = -fw;
-  
-/*   PhyML_Printf("\n. BRENT init_lnL = %f",init_lnL); */
-  
-  for(iter=1;iter<=BRENT_ITMAX;iter++)
-    {
-      xm=0.5*(a+b);
-      tol2=2.0*(tol1=1.E-06*fabs(x)+BRENT_ZEPS);
-      if(((fabs(tree->rates->c_lnL-old_lnL) < tol) && (tree->rates->c_lnL > init_lnL - tol)) ||	 
-	 (iter > n_iter_max - 1))
-	{
-	  *param = x;
-	  RATES_Lk_Rates(tree);
-/* 	  PhyML_Printf("\n> iter=%3d lnL=%f init_lnL=%f old_lnL=%f",iter,tree->rates->c_lnL,init_lnL,old_lnL); */
-	  tree->rates->adjust_rates = 0;
-	  return tree->rates->c_lnL;
-	}
-      
-      if(fabs(e) > tol1)
-	{
-	  r=(x-w)*(fx-fv);
-	  q=(x-v)*(fx-fw);
-	  p=(x-v)*q-(x-w)*r;
-	  q=2.0*(q-r);
-	  if(q > 0.0) p = -p;
-	  q=fabs(q);
-	  etemp=e;
-	  e=d;
-	  if(fabs(p) >= fabs(0.5*q*etemp) || p <= q*(a-x) || p >= q*(b-x))
-	    d=BRENT_CGOLD*(e=(x >= xm ? a-x : b-x));
-	  else{
-	    d=p/q;
-	    u=x+d;
-	    if (u-a < tol2 || b-u < tol2)
-	      d=SIGN(tol1,xm-x);
-	  }
-	}
-      else
-	{
-	  d=BRENT_CGOLD*(e=(x >= xm ? a-x : b-x));
-	}
-
-      u=(fabs(d) >= tol1 ? x+d : x+SIGN(tol1,d));
-      *param = fabs(u);
-      old_lnL = tree->rates->c_lnL;
-      fu=-RATES_Lk_Rates(tree);
-
-/*       PhyML_Printf("\n. BRENT param=%10G lnL=%20f iter=%3d",*param,-fu,iter); */
-
-      if(fu <= fx)
-	{
-	  if(u >= x) a=x; else b=x;
-	  SHFT(v,w,x,u)
-	  SHFT(fv,fw,fx,fu)
-	}
-      else
-	{
-	  if (u < x) a=u; else b=u;
-	  if (fu <= fw || w == x)
-	    {
-	      v=w;
-	      w=u;
-	      fv=fw;
-	      fw=fu;
-	    }
-	  else if (fu <= fv || v == x || v == w) 
-	    {
-	      v=u;
-	      fv=fu;
-	    }
-	}
-    }
-  if(iter > BRENT_ITMAX) PhyML_Printf("\n. Too many iterations in BRENT (%d)",iter);
-  return(-1);
-  /* Not Reached ??  *xmin=x;   */
-  /* Not Reached ??  return fx; */
-}
-#endif
 
 /*********************************************************/
 

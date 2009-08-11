@@ -25,24 +25,24 @@ void      Optimize_Alpha(arbre *tree);
 void      Optimize_Kappa(arbre *tree);
 void      Optimize_Lambda(arbre *tree);
 void      Optimize_Param_Parall(arbre *tree);
-phydbl    Optimize_Branch_Quad(arbre *tree, allseq *alldata, edge *b_fcus);
-void      Optimize_After_Hide(arbre *tree, allseq *alldata, node *h);
-void      Round_Optimize(arbre *tree, allseq *data, int n_round_max);
+phydbl    Optimize_Branch_Quad(arbre *tree, calign *cdata, edge *b_fcus);
+void      Optimize_After_Hide(arbre *tree, calign *cdata, node *h);
+void      Round_Optimize(arbre *tree, calign *data, int n_round_max);
 int       Dist_Seq_Brak(phydbl *ax, phydbl *bx, phydbl *cx, 
 			phydbl *fa, phydbl *fb, phydbl *fc, 
-			allseq *data, int num1, int num2, model *mod);
+			calign *data, int num1, int num2, model *mod);
 phydbl    Dist_Seq_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, 
-			 phydbl *xmin, allseq *data, 
+			 phydbl *xmin, calign *data, 
 			 int num1, int num2, model *mod);
 phydbl    Kappa_Golden(phydbl ax, phydbl bx, phydbl cx, phydbl tol, 
-		       phydbl *xmin, arbre *tree, allseq *alldata);
+		       phydbl *xmin, arbre *tree, calign *cdata);
 phydbl    Lambda_Golden(phydbl ax, phydbl bx, phydbl cx, phydbl tol, 
-			phydbl *xmin, arbre *tree, allseq *alldata);
+			phydbl *xmin, arbre *tree, calign *cdata);
 phydbl    Alpha_Golden_Br_Opt(phydbl ax, phydbl bx, phydbl cx, phydbl tol, 
-			      phydbl *xmin, arbre *tree, allseq *alldata, 
+			      phydbl *xmin, arbre *tree, calign *cdata, 
 			      int n_opt, phydbl *init_l);
 phydbl    Alpha_Golden(phydbl ax, phydbl bx, phydbl cx, phydbl tol,phydbl *xmin, 
-		       arbre *tree, allseq *alldata);
+		       arbre *tree, calign *cdata);
 phydbl    Br_Len_Golden(phydbl ax, phydbl bx, phydbl cx, phydbl tol, 
 			phydbl *xmin, edge *b_fcus, arbre *tree);
 phydbl    Br_Len_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, 
@@ -50,13 +50,13 @@ phydbl    Br_Len_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 int       Br_Len_Brak(phydbl *ax, phydbl *bx, phydbl *cx, 
 		      phydbl *fa, phydbl *fb, phydbl *fc, 
 		      edge *b_fcus, arbre *tree);
-phydbl    Optimize_Path_Length(model *mod, allseq *alldata, edge *a, 
+phydbl    Optimize_Path_Length(model *mod, calign *cdata, edge *a, 
 			       int lra, edge *b, int lrb, phydbl i_len);
 void      Optimize_Param_Serie(node *a, node *d, edge *b_fcus, arbre *tree, 
-			       allseq *alldata, int n_passes);
-phydbl    Optimize_Dist(model *mod, phydbl init, allseq *twoseqs);
+			       calign *cdata, int n_passes);
+phydbl    Optimize_Dist(model *mod, phydbl init, calign *twoseqs);
 phydbl    Pinvar_Golden(phydbl ax, phydbl bx, phydbl cx, phydbl tol, 
-			phydbl *xmin, arbre *tree, allseq *alldata, int n_iter_max);
+			phydbl *xmin, arbre *tree, calign *cdata, int n_iter_max);
 void      Optimize_Pinvar(arbre *tree);
 int       Lambda_Brak(phydbl *ax, phydbl *bx, phydbl *cx, 
 		      phydbl *fa, phydbl *fb, phydbl *fc, 
@@ -73,7 +73,7 @@ int       Pinvar_Brak(phydbl *ax, phydbl *bx, phydbl *cx,
 void Optimiz_All_Free_Param(arbre *tree, int verbose);
 void      Optimiz_RRparam_GTR(arbre *tree, int num_param);
 phydbl    RRparam_GTR_Golden(phydbl ax, phydbl bx, phydbl cx, phydbl tol, 
-		   	     phydbl *xmin, arbre *tree, allseq *alldata, phydbl *param, int n_iter_max);
+		   	     phydbl *xmin, arbre *tree, calign *cdata, phydbl *param, int n_iter_max);
 
 int Powell_GTR_Param(arbre *tree, phydbl *p, int n, phydbl ftol);
 phydbl Linmin_GTR_Param(arbre *tree,phydbl *p, phydbl *xi, int n);
@@ -101,7 +101,7 @@ int Generic_Brak(phydbl *param,
 		 arbre *tree);
 phydbl Generic_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, 
 		     phydbl *xmin, arbre *tree, int n_iter_max,int quickdirty);
-void Optimize_Br_Len_Serie(node *a, node *d, edge *b_fcus, arbre *tree,allseq *alldata);
+void Optimize_Br_Len_Serie(node *a, node *d, edge *b_fcus, arbre *tree,calign *cdata);
 void Lnsrch_Nucleotide_Frequencies(arbre *tree, int n, phydbl *xold, 
 				   phydbl fold, phydbl *g, phydbl *p, phydbl *x,
 				   phydbl *f, phydbl stpmax, int *check);
@@ -109,7 +109,7 @@ void Lnsrch_Nucleotide_Frequencies(arbre *tree, int n, phydbl *xold,
 void Optimize_Global_Rate(arbre *tree);
 phydbl Br_Len_Brent_Default(edge *b_fcus, arbre *tree);
 
-void EM_Dist(model *mod, allseq *data);
+void EM_Dist(model *mod, calign *data);
 phydbl Dist_F_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, int n_iter_max, 
 		    phydbl *param, phydbl *F, model *mod);
 int Dist_F_Brak(phydbl *ax, phydbl *bx, phydbl *cx, phydbl *F, phydbl *param, model *mod);

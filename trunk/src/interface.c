@@ -72,7 +72,7 @@ void Launch_Interface(option *io)
       Warn_And_Exit("\n. The random starting tree option is only compatible with SPR based search options.\n"); 
     }
   
-  if ((io->mod->datatype == NT) && (io->mod->whichmodel > 10))
+  if ((io->datatype == NT) && (io->mod->whichmodel > 10))
     {
       char choix;
       PhyML_Printf("\n. Err: model incompatible with the data type. Please use JC69, K80, F81, HKY, F84, TN93 or GTR\n");
@@ -80,7 +80,7 @@ void Launch_Interface(option *io)
       if(!scanf("%c",&choix)) Exit("\n");
       Warn_And_Exit("\n");
     }
-  else if ((io->mod->datatype == AA) && (io->mod->whichmodel < 11))
+  else if ((io->datatype == AA) && (io->mod->whichmodel < 11))
     {
       char choix;
       PhyML_Printf("\n. Err: model incompatible with the data type. Please use LG, Dayhoff, JTT, MtREV, WAG, DCMut, RtREV, CpREV, VT, Blosum62, MtMam, MtArt, HIVw or HIVb.\n");
@@ -116,7 +116,7 @@ void Launch_Interface(option *io)
 
   if(io->print_site_lnl)
     {
-      strcpy(io->out_lk_file,io->in_seq_file);
+      strcpy(io->out_lk_file,io->in_align_file);
       strcat(io->out_lk_file, "_phyml_lk");
       if(io->append_run_ID) { strcat(io->out_lk_file,"_"); strcat(io->out_lk_file,io->run_id_string); }
       strcat(io->out_lk_file, ".txt");
@@ -125,7 +125,7 @@ void Launch_Interface(option *io)
   
   if(io->print_trace)
     {
-      strcpy(io->out_trace_file,io->in_seq_file);
+      strcpy(io->out_trace_file,io->in_align_file);
       strcat(io->out_trace_file,"_phyml_trace");
       if(io->append_run_ID) { strcat(io->out_trace_file,"_"); strcat(io->out_trace_file,io->run_id_string); }
       strcat(io->out_trace_file,".txt");
@@ -134,7 +134,7 @@ void Launch_Interface(option *io)
   
   if(io->mod->s_opt->random_input_tree)
     {
-      strcpy(io->out_trees_file,io->in_seq_file);
+      strcpy(io->out_trees_file,io->in_align_file);
       strcat(io->out_trees_file,"_phyml_trees");
       if(io->append_run_ID) { strcat(io->out_trees_file,"_"); strcat(io->out_trees_file,io->run_id_string); }
       strcat(io->out_trees_file,".txt");
@@ -143,13 +143,13 @@ void Launch_Interface(option *io)
 
   if((io->print_boot_trees) && (io->mod->bootstrap > 0))
     {
-      strcpy(io->out_boot_tree_file,io->in_seq_file);
+      strcpy(io->out_boot_tree_file,io->in_align_file);
       strcat(io->out_boot_tree_file,"_phyml_boot_trees");
       if(io->append_run_ID) { strcat(io->out_boot_tree_file,"_"); strcat(io->out_boot_tree_file,io->run_id_string); }
       strcat(io->out_boot_tree_file,".txt");
       io->fp_out_boot_tree = Openfile(io->out_boot_tree_file,1);
       
-      strcpy(io->out_boot_stats_file,io->in_seq_file);
+      strcpy(io->out_boot_stats_file,io->in_align_file);
       strcat(io->out_boot_stats_file,"_phyml_boot_stats");
       if(io->append_run_ID) { strcat(io->out_boot_stats_file,"_"); strcat(io->out_boot_stats_file,io->run_id_string); }
       strcat(io->out_boot_stats_file,".txt");
@@ -208,8 +208,8 @@ void Launch_Interface_Input(option *io)
   PhyML_Printf("\n");
 
   PhyML_Printf("\n. Enter the reference sequence file name > "); fflush(NULL);
-  Getstring_Stdin(io->in_seq_file);
-  io->fp_in_seq = Openfile(io->in_seq_file,0);
+  Getstring_Stdin(io->in_align_file);
+  io->fp_in_align = Openfile(io->in_align_file,0);
   PhyML_Printf("\n");
 
   PhyML_Printf("\n. Number of data sets > ");
@@ -234,28 +234,28 @@ void Launch_Interface_Input(option *io)
   PhyML_Printf("\n");
 
   PhyML_Printf("\n. Enter the reference sequence file name > "); fflush(NULL);
-  Getstring_Stdin(io->in_seq_file);
-  io->fp_in_seq = Openfile(io->in_seq_file,0);
+  Getstring_Stdin(io->in_align_file);
+  io->fp_in_align = Openfile(io->in_align_file,0);
   PhyML_Printf("\n");
 
 #elif defined(PHYML) || defined(PART) || defined(PHYML_INSERT)
 
   PhyML_Printf("\n. Enter the sequence file name > "); fflush(NULL);
-  Getstring_Stdin(io->in_seq_file);
-  io->fp_in_seq = Openfile(io->in_seq_file,0);
+  Getstring_Stdin(io->in_align_file);
+  io->fp_in_align = Openfile(io->in_align_file,0);
 
 #endif
 
 
 #if defined(PHYML) || defined(PART) || defined(PHYML_INSERT)
 
-  strcpy(io->out_stats_file,io->in_seq_file);
+  strcpy(io->out_stats_file,io->in_align_file);
   strcat(io->out_stats_file,"_phyml_stats.txt");
   
-  strcpy(io->out_tree_file,io->in_seq_file);
+  strcpy(io->out_tree_file,io->in_align_file);
   strcat(io->out_tree_file,"_phyml_tree.txt");
 
-  strcpy(io->out_lk_file,io->in_seq_file);
+  strcpy(io->out_lk_file,io->in_align_file);
   strcat(io->out_lk_file,"_phyml_lk.txt");
 
 
@@ -388,7 +388,7 @@ void Launch_Interface_Data_Type(option *io)
   PhyML_Printf("                [D] "
 	 "............................... Data type (DNA/AA) "
 	 " %-15s \n",
-	 (io->mod->datatype)?("AA"):("DNA"));
+	 (io->datatype)?("AA"):("DNA"));
 
   PhyML_Printf("                [I] "
 	 "...... Input sequences interleaved (or sequential) "
@@ -481,9 +481,9 @@ void Launch_Interface_Data_Type(option *io)
       }
     case 'D' :
       {
-	if(io->mod->datatype == NT)
+	if(io->datatype == NT)
 	  {
-	    io->mod->datatype         = 1;
+	    io->datatype              = AA;
 	    io->mod->stepsize         = 1;
 	    io->mod->ns               = 20;
 	    io->mod->s_opt->opt_kappa = 0;
@@ -492,7 +492,7 @@ void Launch_Interface_Data_Type(option *io)
 	  }
 	else
 	  {
-	    io->mod->datatype         = 0;
+	    io->datatype              = NT;
 	    io->mod->stepsize         = 1;
 	    io->mod->ns               = 4;
 	    io->mod->whichmodel       = HKY85;
@@ -558,7 +558,7 @@ void Launch_Interface_Model(option *io)
 
   PhyML_Printf("\n");
 
-  if (io->mod->datatype == NT)
+  if (io->datatype == NT)
     {
       if(!strcmp(io->nt_or_cd,"nucleotides"))
 	{
@@ -619,7 +619,7 @@ void Launch_Interface_Model(option *io)
     }
 
 
-  if ((io->mod->datatype    == NT)   &&
+  if ((io->datatype == NT)   &&
       ((io->mod->whichmodel == K80)  ||
        (io->mod->whichmodel == HKY85)||
        (io->mod->whichmodel == F84)  ||
@@ -1075,7 +1075,7 @@ void Launch_Interface_Model(option *io)
 	char answer;
 	int n_trial;
 
-	if((io->mod->datatype   == AA)  ||
+	if((io->datatype == AA)  ||
 	   (io->mod->whichmodel == JC69)||
 	   (io->mod->whichmodel == F81) ||
 	   (io->mod->whichmodel == GTR) ||
@@ -1168,7 +1168,7 @@ void Launch_Interface_Model(option *io)
 
     case 'M' :
       {
-	if(io->mod->datatype == NT)
+	if(io->datatype == NT)
 	  {
 	    if(!strcmp(io->nt_or_cd,"nucleotides"))
 	      {
@@ -1550,7 +1550,7 @@ void Launch_Interface_Topo_Search(option *io)
 	    io->n_trees                   = 1;
 	    io->mod->s_opt->n_rand_starts = 5;
 
-	    strcpy(io->out_trees_file,io->in_seq_file);
+	    strcpy(io->out_trees_file,io->in_align_file);
 	    strcat(io->out_trees_file,"_phyml_trees.txt");
 	  }
 	break;
@@ -1696,11 +1696,11 @@ void Launch_Interface_Branch_Support(option *io)
 		{
 		  io->print_boot_trees = 1;
 
-		  strcpy(io->out_boot_tree_file,io->in_seq_file);
+		  strcpy(io->out_boot_tree_file,io->in_align_file);
 		  strcat(io->out_boot_tree_file,"_phyml_boot_trees.txt");
 		  io->fp_out_boot_tree = Openfile(io->out_boot_tree_file,1);
 
-		  strcpy(io->out_boot_stats_file,io->in_seq_file);
+		  strcpy(io->out_boot_stats_file,io->in_align_file);
 		  strcat(io->out_boot_stats_file,"_phyml_boot_stats.txt");
 		  io->fp_out_boot_stats = Openfile(io->out_boot_stats_file,1);
 
@@ -1797,8 +1797,8 @@ void Launch_Interface_Multigene(option *io)
 	  Set_Defaults_Optimiz(io->st->optionlist[set]->mod->s_opt);
 	  io->st->optionlist[set]->curr_gt = set;
 	  PhyML_Printf("\n. Enter the sequence file name [data set %2d] > ",set+1); fflush(NULL);
-	  Getstring_Stdin(io->st->optionlist[set]->in_seq_file);
-	  io->st->optionlist[set]->fp_in_seq = Openfile(io->st->optionlist[set]->in_seq_file,0);
+	  Getstring_Stdin(io->st->optionlist[set]->in_align_file);
+	  io->st->optionlist[set]->fp_in_align = Openfile(io->st->optionlist[set]->in_align_file,0);
 	}
       
       

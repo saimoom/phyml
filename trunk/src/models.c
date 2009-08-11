@@ -420,7 +420,7 @@ void PMat(phydbl l, model *mod, int pos, double *Pij)
     }
   else
     {
-      switch(mod->datatype)
+      switch(mod->io->datatype)
 	{
 	case NT :
 	  {
@@ -2151,7 +2151,7 @@ int Init_Qmat_MtMam(double *daa, phydbl *pi)
                          
 /*********************************************************/
 
-void Init_Model(allseq *data, model *mod)
+void Init_Model(calign *data, model *mod)
 {
   int i,j;
   int ns;
@@ -2159,7 +2159,6 @@ void Init_Model(allseq *data, model *mod)
   int result;
   double *dr, *di, *space;
 
-  if(data) mod->seq_len = data->init_len;
 
   if(!mod->invar) 
     {
@@ -2184,7 +2183,7 @@ void Init_Model(allseq *data, model *mod)
     }
 
 
-  if(mod->datatype == NT)
+  if(mod->io->datatype == NT)
     {
       /* Set the substitution parameters to their default values
 	 when they are not fixed by the user */
@@ -2216,7 +2215,7 @@ void Init_Model(allseq *data, model *mod)
     }
   
 
-  if(mod->datatype == NT) /* Nucleotides */
+  if(mod->io->datatype == NT) /* Nucleotides */
     { 
       /* init for nucleotides */
       mod->update_eigen = 1;
@@ -2641,7 +2640,7 @@ void Set_Model_Parameters(model *mod)
 		  mod->n_rr_branch, mod->gamma_median);
 
 
-  if((mod->datatype == NT) && (mod->s_opt->opt_state_freq))
+  if((mod->io->datatype == NT) && (mod->s_opt->opt_state_freq))
     {
       sum = .0;
       For(i,mod->ns) sum += fabs(mod->pi_unscaled[i]);
@@ -2665,7 +2664,7 @@ void Set_Model_Parameters(model *mod)
     {
       if(!mod->use_m4mod)
 	{
-	  if(mod->datatype == NT)
+	  if(mod->io->datatype == NT)
 	    {
 	      if(mod->whichmodel == GTR)
 		Update_Qmat_GTR(mod->rr, mod->rr_val, mod->rr_num, mod->pi, mod->qmat);

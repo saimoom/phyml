@@ -16,7 +16,7 @@ the GNU public licence.  See http://www.opensource.org for details.
 
 /*********************************************************/
 
-void Make_Tree_4_Pars(arbre *tree, allseq *alldata, int n_site)
+void Make_Tree_4_Pars(arbre *tree, calign *cdata, int n_site)
 {
   int i;
 
@@ -125,7 +125,7 @@ void Init_P_Pars_Tips(arbre *tree)
     {
       For(i,tree->n_otu)
 	{
-	  if(tree->mod->datatype == NT)
+	  if(tree->io->datatype == NT)
 	    {
 	      if(tree->noeud[i]->b[0]->rght->tax != 1)
 		{
@@ -161,7 +161,7 @@ void Init_Ui_Tips(arbre *tree)
     {
       For(i,tree->n_otu)
 	{
-	  if(tree->mod->datatype == NT)
+	  if(tree->io->datatype == NT)
 	    {
 	      if(tree->noeud[i]->b[0]->rght->tax != 1)
 		{
@@ -453,7 +453,7 @@ void Get_Step_Mat(arbre *tree)
 {
   int i;
 
-  if(tree->mod->datatype == AA)
+  if(tree->io->datatype == AA)
     {
       tree->step_mat[ 0*tree->mod->ns+ 0] =    0 ;
       tree->step_mat[ 0*tree->mod->ns+ 1] =    3 ;

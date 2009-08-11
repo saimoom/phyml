@@ -36,8 +36,8 @@ the GNU public licence. See http://www.opensource.org for details.
 
 int M4_main(int argc, char **argv)
 {
-  seq **data;
-  allseq *alldata;
+  align **data;
+  calign *cdata;
   option *io;
   arbre *tree;
   int n_otu, num_data_set;
@@ -95,9 +95,9 @@ int M4_main(int argc, char **argv)
 	{
 	  if(io->n_data_sets > 1) PhyML_Printf("\n. Data set [#%d]\n",num_data_set+1);
 	  PhyML_Printf("\n. Compressing sequences...\n");
-	  alldata = Compact_Seq(data,io);
-	  Free_Seq(data,alldata->n_otu);
-	  Check_Ambiguities(alldata,io->mod->datatype,io->mod->stepsize);
+	  cdata = Compact_Data(data,io);
+	  Free_Seq(data,cdata->n_otu);
+	  Check_Ambiguities(cdata,io->datatype,io->mod->stepsize);
 
 	  for(num_tree=(io->n_trees == 1)?(0):(num_data_set);num_tree < io->n_trees;num_tree++)
 	    {
@@ -109,16 +109,16 @@ int M4_main(int argc, char **argv)
 		  if((io->mod->s_opt->random_input_tree) && (io->mod->s_opt->topo_search == SPR_MOVE))
 		    PhyML_Printf("\n. [Random start %3d/%3d]\n",num_rand_tree+1,io->mod->s_opt->n_rand_starts);
 
-		  Init_Model(alldata,mod);
-		  if(io->m4_model) M4_Init_Model(m4mod,alldata,mod);		    
+		  Init_Model(cdata,mod);
+		  if(io->m4_model) M4_Init_Model(m4mod,cdata,mod);		    
 
 		  if(!io->in_tree)
 		    {
 		      PhyML_Printf("\n. Computing pairwise distances...\n");
-		      mat = ML_Dist(alldata,mod);
+		      mat = ML_Dist(cdata,mod);
 		      Fill_Missing_Dist(mat);
 		      PhyML_Printf("\n. Building BIONJ tree...\n");
-		      mat->tree = Make_Tree_From_Scratch(alldata->n_otu,alldata);
+		      mat->tree = Make_Tree_From_Scratch(cdata->n_otu,cdata);
 		      Bionj(mat);
 		      tree      = mat->tree;
 		      tree->mat = mat;
@@ -148,8 +148,8 @@ int M4_main(int argc, char **argv)
 		      if(!tree->has_branch_lengths)
 			{
 			  PhyML_Printf("\n. Computing branch length estimates...\n");
-			  Order_Tree_CSeq(tree,alldata);
-			  mat = ML_Dist(alldata,mod);
+			  Order_Tree_CSeq(tree,cdata);
+			  mat = ML_Dist(cdata,mod);
 			  mat->tree = tree;
 			  mat->method = 0;
 			  Bionj_Br_Length(mat);
@@ -158,7 +158,7 @@ int M4_main(int argc, char **argv)
 
 		      tree->mod        = mod;
 		      tree->io         = io;
-		      tree->data       = alldata;
+		      tree->data       = cdata;
 		      tree->both_sides = 1;
 		      tree->n_pattern  = tree->data->crunch_len/tree->mod->stepsize;
 		    }
@@ -171,7 +171,7 @@ int M4_main(int argc, char **argv)
 
 		  tree->mod         = mod;
 		  tree->io          = io;
-		  tree->data        = alldata;
+		  tree->data        = cdata;
 		  tree->both_sides  = 1;
 		  tree->n_pattern   = tree->data->crunch_len/tree->mod->stepsize;
 
@@ -182,7 +182,7 @@ int M4_main(int argc, char **argv)
 //#endif
 		    }
 
-		  Order_Tree_CSeq(tree,alldata);
+		  Order_Tree_CSeq(tree,cdata);
 
 		  if((tree->mod->s_opt->random_input_tree) && (tree->mod->s_opt->topo_search == SPR_MOVE))
 		    {
@@ -192,8 +192,8 @@ int M4_main(int argc, char **argv)
 
 		  Fill_Dir_Table(tree);
 		  Update_Dirs(tree);
-		  Make_Tree_4_Pars(tree,alldata,alldata->init_len);
-		  Make_Tree_4_Lk(tree,alldata,alldata->init_len);
+		  Make_Tree_4_Pars(tree,cdata,cdata->init_len);
+		  Make_Tree_4_Lk(tree,cdata,cdata->init_len);
 		  tree->triplet_struct = Make_Triplet_Struct(mod);
 		  Br_Len_Not_Involving_Invar(tree);
 
@@ -328,7 +328,7 @@ int M4_main(int argc, char **argv)
 		}
 	      if(io->n_trees > 1 && io->n_data_sets > 1) break;
 	    }
-	  Free_Cseq(alldata);
+	  Free_Cseq(cdata);
 	}
     }
 
@@ -336,7 +336,7 @@ int M4_main(int argc, char **argv)
 
   Free_Model(mod);
 
-  if(io->fp_in_seq)    fclose(io->fp_in_seq);
+  if(io->fp_in_align)    fclose(io->fp_in_align);
   if(io->fp_in_tree)   fclose(io->fp_in_tree);
   if(io->fp_out_lk)    fclose(io->fp_out_lk);
   if(io->fp_out_tree)  fclose(io->fp_out_tree);
@@ -410,13 +410,13 @@ void M4_Free_M4_Model(m4 *m4mod)
 
 /*********************************************************/
 
-void M4_Init_Model(m4 *m4mod, allseq *data, model *mod)
+void M4_Init_Model(m4 *m4mod, calign *data, model *mod int datatype)
 {
   int i;
   phydbl fq;
 
   
-  m4mod->n_o = (mod->datatype == NT)?(4):(20);
+  m4mod->n_o = (datatype == NT)?(4):(20);
   mod->ns = m4mod->n_o * m4mod->n_h;
   For(i,m4mod->n_o) m4mod->o_fq[i] = data->b_frq[i];
   For(i,(int)(m4mod->n_h)) m4mod->multipl[i] = 1.;
@@ -1154,7 +1154,7 @@ phydbl **M4_Site_Branch_Classification(phydbl ***post_probs, arbre *tree)
 
 void M4_Site_Branch_Classification_Experiment(arbre *tree)
 {
-  allseq *ori_data,*cpy_data;
+  calign *ori_data,*cpy_data;
   short int **true_rclass, **est_rclass;
   phydbl **best_probs;
   int i,j;
@@ -1174,7 +1174,7 @@ void M4_Site_Branch_Classification_Experiment(arbre *tree)
 
   cpy_data = Copy_Cseq(tree->data,
 		       tree->data->init_len,
-		       (tree->mod->datatype == NT)?(4):(20));
+		       (tree->mod->io->datatype == NT)?(4):(20));
 
   /* Generate a simulated data set under H0, with the right sequence length. */
   PhyML_Printf("\n. Evolving sequences (delta=%f, alpha=%f) ...\n",tree->mod->m4mod->delta,tree->mod->m4mod->alpha);
@@ -1362,7 +1362,7 @@ void M4_Free_Integral_Term_On_One_Edge(phydbl ****integral, arbre *tree)
 void M4_Detect_Site_Switches_Experiment(arbre *tree)
 {
   model *nocov_mod,*cov_mod,*ori_mod;
-  allseq *ori_data,*cpy_data;
+  calign *ori_data,*cpy_data;
   int i,n_iter;
   phydbl *nocov_bl,*cov_bl;
   phydbl *site_lnl_nocov, *site_lnl_cov;
@@ -1376,7 +1376,7 @@ void M4_Detect_Site_Switches_Experiment(arbre *tree)
   ori_mod  = tree->mod;
   cpy_data = Copy_Cseq(tree->data,
 		       tree->data->init_len,
-		       (tree->mod->datatype == NT)?(4):(20));
+		       (tree->mod->io->datatype == NT)?(4):(20));
 
   PhyML_Printf("\n. Estimate model parameters under non-switching substitution model.\n");
   Switch_From_M4mod_To_Mod(tree->mod);
@@ -1489,7 +1489,7 @@ void M4_Detect_Site_Switches_Experiment(arbre *tree)
 void M4_Posterior_Prediction_Experiment(arbre *tree)
 {
   model *ori_mod;
-  allseq *ori_data,*cpy_data;
+  calign *ori_data,*cpy_data;
   int i,n_iter,n_simul;
   FILE *fp_nocov,*fp_cov,*fp_obs;
   char *s;
@@ -1497,11 +1497,11 @@ void M4_Posterior_Prediction_Experiment(arbre *tree)
 
   s = (char *)mCalloc(100,sizeof(char));
 
-  strcpy(s,tree->io->in_seq_file);
+  strcpy(s,tree->io->in_align_file);
   fp_nocov = Openfile(strcat(s,"_nocov"),1);
-  strcpy(s,tree->io->in_seq_file);
+  strcpy(s,tree->io->in_align_file);
   fp_cov   = Openfile(strcat(s,"_cov"),1);
-  strcpy(s,tree->io->in_seq_file);
+  strcpy(s,tree->io->in_align_file);
   fp_obs = Openfile(strcat(s,"_obs"),1);
   
   Free(s);
@@ -1515,7 +1515,7 @@ void M4_Posterior_Prediction_Experiment(arbre *tree)
 
   cpy_data = Copy_Cseq(tree->data,
 		       tree->data->init_len,
-		       (tree->mod->datatype == NT)?(4):(20));
+		       (tree->mod->io->datatype == NT)?(4):(20));
 
   /* Generate a simulated data set under H0, with the right sequence length. */
   Set_Model_Parameters(tree->mod);
@@ -1630,7 +1630,7 @@ m4 *M4_Copy_M4_Model(model *ori_mod, m4 *ori_m4mod)
   int i,j,n_h, n_o;
   m4 *cpy_m4mod;
 
-  cpy_m4mod = (m4 *)M4_Make_Light((ori_mod->datatype == NT)?(4):(20));
+  cpy_m4mod = (m4 *)M4_Make_Light((ori_mod->io->datatype == NT)?(4):(20));
   cpy_m4mod->n_h = ori_m4mod->n_h;
 
   M4_Make_Complete(cpy_m4mod->n_h,

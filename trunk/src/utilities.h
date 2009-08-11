@@ -58,6 +58,9 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #endif
      
 
+#define N_MAX_NEX_COM   20
+#define T_MAX_NEX_COM   100
+#define N_MAX_NEX_PARM  50
 
 #define  NNI_MOVE            0
 #define  SPR_MOVE            1
@@ -178,13 +181,11 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define CUSTOMAA  24
 #define LG        25
 
-
 #define COMPOUND_COR   0
 #define COMPOUND_NOCOR 1
 #define EXPONENTIAL    2
 #define GAMMA          3
 #define THORNE         4
-
 
 typedef	double phydbl;
 typedef double plkflt;
@@ -306,7 +307,7 @@ typedef struct __Arbre {
   struct __Arbre                    *old_tree; /* old copy of the tree */
   struct __Arbre                   *best_tree; /* best tree found so far */
   struct __Model                         *mod; /* substitution model */
-  struct __AllSeq                       *data; /* sequences */
+  struct __Calign                       *data; /* sequences */
   struct __Option                         *io; /* input/output */
   struct __Matrix                        *mat; /* pairwise distance matrix */
   struct __Node                   **curr_path; /* list of nodes that form a path in the tree */
@@ -376,7 +377,7 @@ typedef struct __Arbre {
 typedef struct __Super_Arbre {
   struct __Arbre                           *tree;
   struct __List_Arbre                  *treelist; /* list of trees. One tree for each data set to be processed */
-  struct __AllSeq              *data_of_interest;
+  struct __Calign                    *curr_cdata;
   struct __Option                   **optionlist; /* list of pointers to input structures (used in supertrees) */
 
   struct __Node           ***match_st_node_in_gt;
@@ -477,33 +478,33 @@ typedef struct __List_Arbre { /* a list of trees */
 
 /*********************************************************/
 
-typedef struct __Seq {
+typedef struct __Align {
   char           *name; /* sequence name */
   int              len; /* sequence length */
   char          *state; /* sequence itself */
   short int *is_ambigu; /* is_ambigu[site] = 1 if state[site] is an ambiguous character. 0 otherwise */
-}seq;
+}align;
 
 /*********************************************************/
 
 
-typedef struct __AllSeq {
-  struct __Seq **c_seq;             /* compressed sequences      */
-  phydbl        *b_frq;             /* observed state frequencies */
-  short int     *invar;             /* 1 -> states are identical, 0 states vary */
-  int            *wght;             /* # of each site in c_seq */
-  short int    *ambigu;             /* ambigu[i]=1 is one or more of the sequences at site
+typedef struct __Calign {
+  struct __Align **c_seq;             /* compressed sequences      */
+  phydbl          *b_frq;             /* observed state frequencies */
+  short int       *invar;             /* 1 -> states are identical, 0 states vary */
+  int              *wght;             /* # of each site in c_align */
+  short int      *ambigu;             /* ambigu[i]=1 is one or more of the sequences at site
 				       i display an ambiguous character */
-  phydbl    obs_pinvar;
-  int            n_otu;             /* number of taxa */
-  int        clean_len;             /* uncrunched sequences lenghts without gaps */
-  int       crunch_len;             /* crunched sequences lengths */
-  int         init_len;             /* length of the uncompressed sequences */
-  int        *sitepatt;             /* this array maps the position of the patterns in the
+  phydbl      obs_pinvar;
+  int              n_otu;             /* number of taxa */
+  int          clean_len;             /* uncrunched sequences lenghts without gaps */
+  int         crunch_len;             /* crunched sequences lengths */
+  int           init_len;             /* length of the uncompressed sequences */
+  int          *sitepatt;             /* this array maps the position of the patterns in the
 				       compressed alignment to the positions in the uncompressed
 				       one */
-  int           format;             /* 0 (default): PHYLIP. 1: NEXUS. */
-}allseq;
+  int             format;             /* 0 (default): PHYLIP. 1: NEXUS. */
+}calign;
 
 /*********************************************************/
 
@@ -528,6 +529,7 @@ typedef struct __Model {
   struct __Optimiz  *s_opt; /* pointer to parameters to optimize */
   struct __Eigen    *eigen;
   struct __M4       *m4mod;
+  struct __Option      *io;
 
   char          *modelname;
   char  *custom_mod_string; /* string of characters used to define custom models of substitution */
@@ -537,13 +539,10 @@ typedef struct __Model {
   int            n_diff_rr; /* number of different relative substitution rates in the custom model */
   int         update_eigen; /* update_eigen=1-> eigen values/vectors need to be updated */
   int           whichmodel;
-  int             datatype; /* 0->DNA, 1->AA */
   int               n_catg; /* number of categories in the discrete gamma distribution */
   int                invar; /* =1 iff the substitution model takes into account invariable sites */
   int                   ns; /* number of states (4 for ADN, 20 for AA) */
-  int              seq_len; /* sequence length */
   int             stepsize; /* stepsize=1 for nucleotide models, 3 for codon models */
-  int                n_otu; /* number of taxa */
   int            bootstrap; /* Number of bootstrap replicates (0 : no bootstrap analysis is launched) */
   int            use_m4mod; /* Use a Makrkov modulated Markov model ? */
   int         gamma_median; /* 1: use the median of each bin in the discrete gamma distribution. 0: the mean is used */
@@ -597,13 +596,13 @@ typedef struct __Option { /* mostly used in 'options.c' */
   struct __Model                *mod; /* pointer to a substitution model */
   struct __Arbre               *tree; /* pointer to the current tree */
   struct __Seq                **data; /* pointer to the uncompressed sequences */
-  struct __AllSeq           *alldata; /* pointer to the compressed sequences */
+  struct __Calign             *cdata; /* pointer to the compressed sequences */
   struct __Super_Arbre           *st; /* pointer to supertree */
   int                    interleaved; /* interleaved or sequential sequence file format ? */
   int                        in_tree; /* =1 iff a user input tree is used as input */
 
-  char                  *in_seq_file; /* sequence file name */
-  FILE                    *fp_in_seq; /* pointer to the sequence file */
+  char                *in_align_file; /* alignment file name */
+  FILE                  *fp_in_align; /* pointer to the alignment file */
 
   char                 *in_tree_file; /* input tree file name */
   FILE                   *fp_in_tree; /* pointer to the input tree file */
@@ -633,13 +632,15 @@ typedef struct __Option { /* mostly used in 'options.c' */
   FILE                    *fp_out_ps;
 
   char              *clade_list_file;
-
+  
+  int                       datatype; /* 0->DNA, 1->AA */
   int               print_boot_trees; /* =1 if the bootstrapped trees are printed in output */
   int       out_stats_file_open_mode; /* opening file mode for statistics file */
   int        out_tree_file_open_mode; /* opening file mode for tree file */
   int                    n_data_sets; /* number of data sets to be analysed */
   int                        n_trees; /* number of trees */
-  int                        seq_len; /* sequence length */
+  int                       init_len; /* sequence length */
+  int                          n_otu; /* number of taxa */
   int               n_data_set_asked; /* number of bootstrap replicates */
   char                     *nt_or_cd; /* nucleotide or codon data ? (not used) */
   int                      multigene; /* if=1 -> analyse several partitions. */
@@ -659,7 +660,7 @@ typedef struct __Option { /* mostly used in 'options.c' */
   int                 print_site_lnl;
   int                       m4_model;
   int                      rm_ambigu; /* 0 is the default. 1: columns with ambiguous characters are discarded prior further analysis */
-  int                   compress_seq;
+  int                       colalias;
   int                  append_run_ID;
   char                *run_id_string;
   int                          quiet; /* 0 is the default. 1: no interactive question (for batch mode) */
@@ -717,8 +718,6 @@ typedef struct __Optimiz { /* parameters to be optimised (mostly used in 'optimi
   int          deepest_path;
   phydbl  max_delta_lnL_spr;
   
-
-
   int           wim_n_rgrft;
   int           wim_n_globl;
   int          wim_max_dist;
@@ -952,6 +951,32 @@ typedef struct __Tpart {
 }part;
 
 /*********************************************************/
+
+/* typedef struct __Tnexcom { */
+/*   char *name; */
+/*   int nparm; */
+/*   int next; */
+/* /\*   struct __Tnexparm **parm; *\/ */
+/* }nexcom; */
+
+/* /\*********************************************************\/ */
+
+/* typedef struct __Tnexparm { */
+/*   char *name; */
+/*   char *value; */
+/*   int expect_equal; */
+/* /\*   int (*fp)(char *); *\/ */
+/* /\*   struct __Tnexcom *com; *\/ */
+/* }nexparm; */
+
+typedef int nexparm;
+typedef int nexcom;
+
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
 /*********************************************************/
 
 phydbl Rand_Normal_Deviate(phydbl mean, phydbl sd);
@@ -981,17 +1006,18 @@ void Make_Edge_Dirs(edge *b,node *a,node *d);
 void Make_Edge_Lk(edge *b, arbre *tree);
 node *Make_Node_Light(int num);
 void Make_Node_Lk(node *n);
-seq **Get_Seq(option *input);
-seq **Get_Seq_Phylip(option *input);
-seq **Get_Seq_Nexus(option *input);
-seq **Read_Seq_Sequential(FILE *in,int *n_otu);
-seq **Read_Seq_Interleaved(FILE *in,int *n_otu);
-int Read_One_Line_Seq(seq ***data,int num_otu,FILE *in);
+align **Get_Seq(option *input);
+align **Get_Seq_Phylip(option *input);
+align **Get_Seq_Nexus(option *input);
+align **Read_Seq_Sequential(FILE *in,int *n_otu);
+align **Read_Seq_Interleaved(FILE *in,int *n_otu);
+int Read_One_Line_Seq(align ***data,int num_otu,FILE *in);
 void Uppercase(char *ch);
-allseq *Compact_Seq(seq **data,option *input);
-allseq *Compact_CSeq(allseq *data,model *mod);
-void Get_Base_Freqs(allseq *data);
-void Get_AA_Freqs(allseq *data);
+void Lowercase(char *ch);
+calign *Compact_Data(align **data,option *input);
+calign *Compact_Cdata(calign *data, option *io);
+void Get_Base_Freqs(calign *data);
+void Get_AA_Freqs(calign *data);
 arbre *Read_Tree_File(FILE *fp_input_tree);
 void Connect_Edges_To_Nodes(node *a,node *d,arbre *tree,int *cur);
 void Exit(char *message);
@@ -1000,13 +1026,13 @@ void *mRealloc(void *p,int nb,size_t size);
 /* arbre *Make_Light_Tree_Struct(int n_otu); */
 int Sort_Phydbl_Decrease(const void *a, const void *b);
 void Qksort(phydbl *A, phydbl *B, int ilo,int ihi);
-void Print_Site(allseq *alldata,int num,int n_otu,char *sep,int stepsize);
-void Print_Seq(seq **data,int n_otu);
-void Print_CSeq(FILE *fp,allseq *alldata);
-void Order_Tree_Seq(arbre *tree,seq **data);
-void Order_Tree_CSeq(arbre *tree,allseq *data);
+void Print_Site(calign *cdata,int num,int n_otu,char *sep,int stepsize);
+void Print_Seq(align **data,int n_otu);
+void Print_CSeq(FILE *fp,calign *cdata);
+void Order_Tree_Seq(arbre *tree,align **data);
+void Order_Tree_CSeq(arbre *tree,calign *data);
 matrix *Make_Mat(int n_otu);
-void Init_Mat(matrix *mat,allseq *data);
+void Init_Mat(matrix *mat,calign *data);
 void Print_Dist(matrix *mat);
 void Print_Node(node *a,node *d,arbre *tree);
 void Share_Lk_Struct(arbre *t_full,arbre *t_empt);
@@ -1017,18 +1043,18 @@ void NNI(arbre *tree, edge *b_fcus, int do_swap);
 void Swap(node *a,node *b,node *c,node *d,arbre *tree);
 void Update_All_Partial_Lk(edge *b_fcus,arbre *tree);
 void Update_SubTree_Partial_Lk(edge *b_fcus,node *a,node *d,arbre *tree);
-allseq *Make_Cseq(int n_otu, int crunch_len, int init_len, char **sp_names);
-allseq *Copy_Cseq(allseq *ori, int len, int ns);
+calign *Make_Cseq(int n_otu, int crunch_len, int init_len, char **sp_names);
+calign *Copy_Cseq(calign *ori, int len, int ns);
 optimiz *Alloc_Optimiz();
 int Filexists(char *filename);
 FILE *Openfile(char *filename,int mode);
 void Print_Fp_Out(FILE *fp_out, time_t t_beg, time_t t_end, arbre *tree, option *input, int n_data_set, int num_rand_tree);
 void Print_Fp_Out_Lines(FILE *fp_out,time_t t_beg,time_t t_end,arbre *tree,option *input,int n_data_set);
-matrix *K80_dist(allseq *data,phydbl g_shape);
-matrix *JC69_Dist(allseq *data,model *mod);
-matrix *Hamming_Dist(allseq *data,model *mod);
+matrix *K80_dist(calign *data,phydbl g_shape);
+matrix *JC69_Dist(calign *data, model *mod);
+matrix *Hamming_Dist(calign *data,model *mod);
 int Is_Ambigu(char *state,int datatype,int stepsize);
-void Check_Ambiguities(allseq *data,int datatype,int stepsize);
+void Check_Ambiguities(calign *data,int datatype,int stepsize);
 int Assign_State(char *c,int datatype,int stepsize);
 void Bootstrap(arbre *tree);
 void Br_Len_Involving_Invar(arbre *tree);
@@ -1053,18 +1079,18 @@ int Sort_String(const void *a,const void *b);
 void Compare_Bip(arbre *tree1,arbre *tree2);
 void Test_Multiple_Data_Set_Format(option *input);
 int Are_Compatible(char *statea,char *stateb,int stepsize,int datatype);
-void Hide_Ambiguities(allseq *data);
+void Hide_Ambiguities(calign *data);
 void Print_Site_Lk(arbre *tree, FILE *fp);
 arbrelist *Make_Tree_List(int n_trees);
 option *Make_Input();
 arbre *Make_Tree();
 void Make_All_Tree_Nodes(arbre *tree);
 void Make_All_Tree_Edges(arbre *tree);
-void Copy_Tax_Names_To_Tip_Labels(arbre *tree, allseq *data);
-arbre *Make_And_Init_Tree(allseq *data);
+void Copy_Tax_Names_To_Tip_Labels(arbre *tree, calign *data);
+arbre *Make_And_Init_Tree(calign *data);
 void Connect_Edges_To_Nodes_Recur(node *a, node *d, arbre *tree);
 void Connect_One_Edge_To_Two_Nodes(node *a, node *d, edge *b, arbre *tree);
-arbre *Make_Tree_From_Scratch(int n_otu, allseq *data);
+arbre *Make_Tree_From_Scratch(int n_otu, calign *data);
 arbrelist *Make_Treelist(int list_size);
 void Put_Subtree_In_Dead_Objects(node *a, node *d, arbre *tree);
 void Prune_Subtree(node *a, node *d, edge **target, edge **residual, arbre *tree);
@@ -1148,13 +1174,13 @@ void NNI_Pars(arbre *tree, edge *b_fcus, int do_swap);
 void Evaluate_One_Regraft_Pos_Triple(spr *move, arbre *tree);
 int Get_State_From_Ui(int ui, int datatype);
 void Read_Qmat(double *daa, phydbl *pi, FILE *fp);
-void Traverse_Prefix_Tree(int site, int seqnum, int *patt_num, int *n_patt, seq **data, option *input, pnode *n);
+void Traverse_Prefix_Tree(int site, int seqnum, int *patt_num, int *n_patt, align **data, option *input, pnode *n);
 pnode *Create_Pnode(int size);
 int Assign_State_With_Ambiguity(char *c, int datatype, int stepsize);
-void Randomize_Sequence_Order(allseq *data);
+void Randomize_Sequence_Order(calign *data);
 void Dist_To_Node_Pre(node *a, node *d, edge *b, arbre *tree);
 void Add_Root(edge *target, arbre *tree);
-int Is_Invar(int patt_num, int stepsize, int datatype, allseq *data);
+int Is_Invar(int patt_num, int stepsize, int datatype, calign *data);
 void Update_Root_Pos(arbre *tree);
 void Read_Branch_Label(char *sub_part, char *full_part, edge *b);
 void Read_Branch_Length(char *s_d, char *s_a, arbre *tree);
@@ -1163,11 +1189,10 @@ arbre *Generate_Random_Tree_From_Scratch(int n_otu, int rooted);
 void Random_Lineage_Rates(node *a, node *d, edge *b, phydbl stick_prob, phydbl *rates, int curr_rate, int n_rates, arbre *tree);
 edge *Find_Edge_With_Label(char *label, arbre *tree);
 void Print_Square_Matrix_Generic(int n, phydbl *mat);
-int Pick_State(int n, phydbl *prob);
 char Reciproc_Assign_State(int i_state, int datatype);
-void Evolve(allseq *data, model *mod, arbre *tree);
+void Evolve(calign *data, model *mod, arbre *tree);
 int Pick_State(int n, phydbl *prob);
-void Evolve_Recur(node *a, node *d, edge *b, int a_state, int r_class, int site_num, allseq *gen_data, model *mod, arbre *tree);
+void Evolve_Recur(node *a, node *d, edge *b, int a_state, int r_class, int site_num, calign *gen_data, model *mod, arbre *tree);
 void Site_Diversity(arbre *tree);
 void Site_Diversity_Post(node *a, node *d, edge *b, arbre *tree);
 void Site_Diversity_Pre(node *a, node *d, edge *b, arbre *tree);
@@ -1197,13 +1222,13 @@ int Polint(phydbl *xa, phydbl *ya, int n, phydbl x, phydbl *y, phydbl *dy);
 void Reset_Model_Parameters(model *mod);
 void Print_Banner_Small(FILE *fp);
 void JF(arbre *tree);
-arbre *Dist_And_BioNJ(allseq *alldata, model *mod, option *io);
-void Add_BioNJ_Branch_Lengths(arbre *tree, allseq *alldata, model *mod);
-arbre *Read_User_Tree(allseq *alldata, model *mod, option *io);
+arbre *Dist_And_BioNJ(calign *cdata, model *mod, option *io);
+void Add_BioNJ_Branch_Lengths(arbre *tree, calign *cdata, model *mod);
+arbre *Read_User_Tree(calign *cdata, model *mod, option *io);
 void Print_Time_Info(time_t t_beg, time_t t_end);
 void Prepare_Tree_For_Lk(arbre *tree);
-char *Bootstrap_From_String(char *s_tree, allseq *alldata, model *mod, option *io);
-char *aLRT_From_String(char *s_tree, allseq *alldata, model *mod, option *io);
+char *Bootstrap_From_String(char *s_tree, calign *cdata, model *mod, option *io);
+char *aLRT_From_String(char *s_tree, calign *cdata, model *mod, option *io);
 int Rand_Int(int min, int max);
 void PhyML_Printf(char *format, ...);
 void PhyML_Fprintf(FILE *fp, char *format, ...);
@@ -1236,6 +1261,21 @@ void Read_Clade_Priors(char *file_name, arbre *tree);
 edge *Find_Root_Edge(FILE *fp_input_tree, arbre *tree);
 void Copy_Tree_Topology_With_Labels(arbre *ori, arbre *cpy);
 void Make_Custom_Model(model *mod);
+/* nexcom **Make_Nexus_Com(); */
+/* void Free_Nexus_Com(nexcom **com); */
+/* void Init_Nexus_Format(nexcom **com); */
+/* nexcom *Find_Nexus_Com(char *token, nexcom **com_list); */
+/* nexparm *Find_Nexus_Parm(char *token, nexcom *curr_com); */
+/* void Read_Nexus_Dimensions(char *token, nexparm *curr_parm, option *io); */
+/* void Read_Nexus_Format(char *token, nexparm *curr_parm, option *io); */
+/* void Read_Nexus_Eliminate(char *token, nexparm *curr_parm, option *io); */
+/* void Read_Nexus_Taxlabel(char *token, nexparm *curr_parm, option *io); */
+/* void Read_Nexus_Charstatelabels(char *token, nexparm *curr_parm, option *io); */
+/* void Read_Nexus_Charlabels(char *token, nexparm *curr_parm, option *io); */
+/* void Read_Nexus_Statelabels(char *token, nexparm *curr_parm, option *io); */
+/* void Read_Nexus_Matrix(char *token, nexparm *curr_parm, option *io); */
+
+
 
 
 #include "free.h"
