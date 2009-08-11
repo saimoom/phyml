@@ -13,7 +13,7 @@ the GNU public licence.  See http://www.opensource.org for details.
 
 #include "mg.h"
 #include "free.h"
-#include "options.h"
+#include "help.h"
 #include "utilities.h"
 #include "optimiz.h"
 #include "models.h"

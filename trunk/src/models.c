@@ -2160,15 +2160,7 @@ void Init_Model(calign *data, model *mod)
   double *dr, *di, *space;
 
 
-  if(!mod->invar) 
-    {
-      For(i,data->crunch_len) data->invar[i] = 0;
-    }
-  else 
-    {
-/*       if(mod->s_opt->opt_pinvar) mod->pinvar = data->obs_pinvar; */
-    }
-
+  if(!mod->invar) For(i,data->crunch_len) data->invar[i] = 0;
 
   ns = mod->ns;
 
@@ -2182,7 +2174,7 @@ void Init_Model(calign *data, model *mod)
       mod->pi_unscaled[i] = mod->pi[i] * 100.;
     }
 
-
+  
   if(mod->io->datatype == NT)
     {
       /* Set the substitution parameters to their default values

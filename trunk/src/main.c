@@ -17,7 +17,7 @@ the GNU public licence. See http://www.opensource.org for details.
 #include "bionj.h"
 #include "models.h"
 #include "free.h"
-#include "options.h"
+#include "help.h"
 #include "simu.h"
 #include "eigen.h"
 #include "pars.h"

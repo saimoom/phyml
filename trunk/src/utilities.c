@@ -3667,7 +3667,7 @@ calign *Copy_Cseq(calign *ori, int len, int ns)
 
 /*********************************************************/
 
-optimiz *Alloc_Optimiz()
+optimiz *Make_Optimiz()
 {
   optimiz *s_opt;
   s_opt = (optimiz *)mCalloc(1,sizeof(optimiz));
@@ -5144,7 +5144,6 @@ model *Make_Model_Basic()
   mod->modelname          = (char *)mCalloc(T_MAX_NAME,sizeof(char));
   mod->custom_mod_string  = (char *)mCalloc(T_MAX_OPTION,sizeof(char));
   mod->user_b_freq        = (phydbl *)mCalloc(T_MAX_OPTION,sizeof(phydbl));
-  mod->s_opt              = (optimiz *)Alloc_Optimiz();
 
   return mod;
 }
@@ -5273,9 +5272,8 @@ void Record_Model(model *ori, model *cpy)
 option *Make_Input()
 {
   option* io               = (option *)mCalloc(1,sizeof(option));
-  io->mod                  = (model *)Make_Model_Basic();
 
-  io->in_align_file          = (char *)mCalloc(T_MAX_FILE,sizeof(char));
+  io->in_align_file        = (char *)mCalloc(T_MAX_FILE,sizeof(char));
   io->in_tree_file         = (char *)mCalloc(T_MAX_FILE,sizeof(char));
   io->out_tree_file        = (char *)mCalloc(T_MAX_FILE,sizeof(char));
   io->out_trees_file       = (char *)mCalloc(T_MAX_FILE,sizeof(char));
@@ -5305,6 +5303,7 @@ void Set_Defaults_Input(option* io)
   io->fp_out_stats               = NULL;
 
   io->tree                       = NULL;
+  io->mod                        = NULL;
   strcpy(io->nt_or_cd,"nucleotides");
   io->n_data_sets                = 1;
   io->interleaved                = 1;
@@ -5351,14 +5350,15 @@ void Set_Defaults_Model(model *mod)
   mod->stepsize                = 1;
   mod->ns                      = 4;
   mod->n_diff_rr               = 0;
-  mod->m4mod                   = NULL;
   mod->use_m4mod               = 0;
   mod->n_rr_branch             = 0;
   mod->rr_branch_alpha         = 0.1;
   mod->gamma_median            = 0;
+  mod->m4mod                   = NULL;
   mod->rr                      = NULL;
   mod->rr_val                  = NULL;
   mod->n_rr_per_cat            = NULL;
+  mod->io                      = NULL;
 }
 
 /*********************************************************/
@@ -10111,8 +10111,57 @@ void Copy_Tree_Topology_With_Labels(arbre *ori, arbre *cpy)
 
 }
 
+/*********************************************************/
 
+option *Get_Input(int argc, char **argv)
+{
+
+  option *io;
+  model *mod;
+  optimiz *s_opt;
+
+  io    = (option *)Make_Input();
+  mod   = (model *)Make_Model_Basic();
+  s_opt = (optimiz *)Make_Optimiz();
+
+  Set_Defaults_Input(io);
+  Set_Defaults_Model(mod);
+  Set_Defaults_Optimiz(s_opt);
+
+  io->mod    = mod;
+  mod->io    = io;
+  mod->s_opt = s_opt;
+
+
+#ifdef MPI
+  Read_Command_Line(io,argc,argv);
+#else
+
+  putchar('\n');
+
+  switch (argc)
+    {
+    case 1:
+      {
+	Launch_Interface(io);
+	break;
+      }
+      /*
+	case 2:
+	Usage();
+	break;
+      */
+    default:
+      Read_Command_Line(io,argc,argv);
+    }
+#endif
+
+  Print_Settings(io);
+  return io;
+}
 
 /*********************************************************/
+
+
 /*********************************************************/
 /*********************************************************/

@@ -592,7 +592,7 @@ typedef struct __Eigen{
 
 /*********************************************************/
 
-typedef struct __Option { /* mostly used in 'options.c' */
+typedef struct __Option { /* mostly used in 'help.c' */
   struct __Model                *mod; /* pointer to a substitution model */
   struct __Arbre               *tree; /* pointer to the current tree */
   struct __Seq                **data; /* pointer to the uncompressed sequences */
@@ -1045,7 +1045,7 @@ void Update_All_Partial_Lk(edge *b_fcus,arbre *tree);
 void Update_SubTree_Partial_Lk(edge *b_fcus,node *a,node *d,arbre *tree);
 calign *Make_Cseq(int n_otu, int crunch_len, int init_len, char **sp_names);
 calign *Copy_Cseq(calign *ori, int len, int ns);
-optimiz *Alloc_Optimiz();
+optimiz *Make_Optimiz();
 int Filexists(char *filename);
 FILE *Openfile(char *filename,int mode);
 void Print_Fp_Out(FILE *fp_out, time_t t_beg, time_t t_end, arbre *tree, option *input, int n_data_set, int num_rand_tree);
@@ -1261,6 +1261,7 @@ void Read_Clade_Priors(char *file_name, arbre *tree);
 edge *Find_Root_Edge(FILE *fp_input_tree, arbre *tree);
 void Copy_Tree_Topology_With_Labels(arbre *ori, arbre *cpy);
 void Make_Custom_Model(model *mod);
+option *Get_Input(int argc, char **argv);
 /* nexcom **Make_Nexus_Com(); */
 /* void Free_Nexus_Com(nexcom **com); */
 /* void Init_Nexus_Format(nexcom **com); */
@@ -1289,6 +1290,7 @@ void Make_Custom_Model(model *mod);
 #include "pars.h"
 #include "alrt.h"
 #include "stats.h"
+#include "help.h"
 
 #include <config.h>
 
