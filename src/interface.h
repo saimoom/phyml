@@ -14,10 +14,10 @@ the GNU public licence. See http://www.opensource.org for details.
 #define INTERFACE_H
 
 #include "utilities.h"
-#include "options.h"
+#include "help.h"
 #include "models.h"
 #include "free.h"
-#include "options.h"
+#include "help.h"
 
 
 void Launch_Interface(option *input);

@@ -30,7 +30,7 @@ lk.c lk.h\
 bionj.c bionj.h\
 models.c models.h\
 free.c free.h\
-options.c options.h\
+help.c help.h\
 simu.c simu.h\
 eigen.c eigen.h\
 pars.c pars.h\
@@ -55,7 +55,7 @@ lk.c lk.h\
 bionj.c bionj.h\
 models.c models.h\
 free.c free.h\
-options.c options.h\
+help.c help.h\
 simu.c simu.h\
 eigen.c eigen.h\
 pars.c pars.h\
@@ -76,7 +76,7 @@ lk.c  lk.h\
 bionj.c bionj.h\
 models.c  models.h\
 free.c  free.h\
-options.c  options.h\
+help.c  help.h\
 simu.c  simu.h\
 eigen.c  eigen.h\
 pars.c  pars.h\
