@@ -54,7 +54,7 @@ void Finish(matrix *mat)
 {
   phydbl dxy,dxz,dyz;
   int x,y,z;
-  node *nx,*ny,*nz,*new;
+  t_node *nx,*ny,*nz,*new;
   int i;
 
   dxy = dxz = dyz = -1.;
@@ -138,7 +138,7 @@ void Update_Mat(matrix *mat, int x, int y, phydbl lx, phydbl ly, phydbl vxy, phy
 
 void Update_Tree(matrix *mat, int x, int y, phydbl lx, phydbl ly, phydbl score)
 {
-  node *new, *nx, *ny;
+  t_node *new, *nx, *ny;
 
   nx            = mat->tip_node[x];
   ny            = mat->tip_node[y];
@@ -229,7 +229,7 @@ void Best_Pair(matrix *mat, int *x, int *y,phydbl *score)
    
 /*   if(!n_ties) */
 /*     { */
-/*       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
+/*       PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__); */
 /*       Warn_And_Exit(""); */
 /*     } */
 
@@ -403,7 +403,7 @@ void Bionj_Br_Length(matrix *mat)
 
 /*********************************************************/
 
-int Bionj_Br_Length_Post(node *a, node *d, matrix *mat)
+int Bionj_Br_Length_Post(t_node *a, t_node *d, matrix *mat)
 {
   int i;
 

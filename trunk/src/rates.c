@@ -24,7 +24,7 @@ the GNU public licence. See http://www.opensource.org for details.
 
 /*********************************************************/
 
-phydbl RATES_Lk_Rates(arbre *tree)
+phydbl RATES_Lk_Rates(t_tree *tree)
 {
   RATES_Set_Node_Times(tree);
   RATES_Init_Triplets(tree);
@@ -44,7 +44,7 @@ phydbl RATES_Lk_Rates(arbre *tree)
 
 /*********************************************************/
 
-void RATES_Lk_Rates_Pre(node *a, node *d, edge *b, arbre *tree)
+void RATES_Lk_Rates_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 {
   int i,n1,n2;
   phydbl log_dens,mu1,mu2,dt1,dt2;
@@ -153,7 +153,7 @@ void RATES_Lk_Rates_Pre(node *a, node *d, edge *b, arbre *tree)
 
 /*********************************************************/
 
-phydbl RATES_Lk_Change_One_Rate(node *d, phydbl new_rate, arbre *tree)
+phydbl RATES_Lk_Change_One_Rate(t_node *d, phydbl new_rate, t_tree *tree)
 {
   tree->rates->nd_r[d->num] = new_rate;
   RATES_Update_Triplet(d,tree);
@@ -163,11 +163,11 @@ phydbl RATES_Lk_Change_One_Rate(node *d, phydbl new_rate, arbre *tree)
 
 /*********************************************************/
 
-phydbl RATES_Lk_Change_One_Time(node *n, phydbl new_t, arbre *tree)
+phydbl RATES_Lk_Change_One_Time(t_node *n, phydbl new_t, t_tree *tree)
 {  
   if(n == tree->n_root)
     {
-      PhyML_Printf("\n. Moving the time of the root node is not permitted.");
+      PhyML_Printf("\n. Moving the time of the root t_node is not permitted.");
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
@@ -190,7 +190,7 @@ phydbl RATES_Lk_Change_One_Time(node *n, phydbl new_t, arbre *tree)
 
 /*********************************************************/
 
-void RATES_Update_Triplet(node *n, arbre *tree)
+void RATES_Update_Triplet(t_node *n, t_tree *tree)
 {
   phydbl curr_triplet,new_triplet;
   phydbl dt0,dt1,dt2;
@@ -198,7 +198,7 @@ void RATES_Update_Triplet(node *n, arbre *tree)
   phydbl mu0,mu1,mu2;
   int n0,n1,n2;
   int i;
-  node *v1,*v2;
+  t_node *v1,*v2;
 
   if(n->tax) return;
 
@@ -311,7 +311,7 @@ void RATES_Update_Triplet(node *n, arbre *tree)
 
 /*********************************************************/
 /* Returns log(f(mu2;mu1)) */
-phydbl RATES_Lk_Rates_Core(phydbl mu1, phydbl mu2, int n1, int n2, phydbl dt1, phydbl dt2, arbre *tree)
+phydbl RATES_Lk_Rates_Core(phydbl mu1, phydbl mu2, int n1, int n2, phydbl dt1, phydbl dt2, t_tree *tree)
 {
   phydbl log_dens;
   phydbl alpha, beta, lexp;
@@ -549,7 +549,7 @@ phydbl RATES_Compound_Core_Joint(phydbl mu1, phydbl mu2, int n1, int n2, phydbl 
 
 /**********************************************************/
 
-void RATES_Print_Triplets(arbre *tree)
+void RATES_Print_Triplets(t_tree *tree)
 {
   int i;
   For(i,2*tree->n_otu-1) PhyML_Printf("\n. Node %3d t=%f",i,tree->rates->triplet[i]);
@@ -558,7 +558,7 @@ void RATES_Print_Triplets(arbre *tree)
 
 /**********************************************************/
 
-void RATES_Print_Rates(arbre *tree)
+void RATES_Print_Rates(t_tree *tree)
 {
   RATES_Print_Rates_Pre(tree->n_root,tree->n_root->v[0],NULL,tree);
   RATES_Print_Rates_Pre(tree->n_root,tree->n_root->v[1],NULL,tree);
@@ -566,7 +566,7 @@ void RATES_Print_Rates(arbre *tree)
 
 /*********************************************************/
 
-void RATES_Print_Rates_Pre(node *a, node *d, edge *b, arbre *tree)
+void RATES_Print_Rates_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 {
 
   
@@ -613,7 +613,7 @@ void RATES_Print_Rates_Pre(node *a, node *d, edge *b, arbre *tree)
 
 /*********************************************************/
 
-phydbl RATES_Check_Mean_Rates(arbre *tree)
+phydbl RATES_Check_Mean_Rates(t_tree *tree)
 {
   phydbl sum_r,sum_dt;
   phydbl u,t,t_anc;
@@ -636,7 +636,7 @@ phydbl RATES_Check_Mean_Rates(arbre *tree)
 
 /*********************************************************/
 
-phydbl RATES_Check_Mean_Rates_True(arbre *tree)
+phydbl RATES_Check_Mean_Rates_True(t_tree *tree)
 {
   phydbl sum;
   int i;
@@ -648,7 +648,7 @@ phydbl RATES_Check_Mean_Rates_True(arbre *tree)
 
 /*********************************************************/
 
-void RATES_Check_Node_Times(arbre *tree)
+void RATES_Check_Node_Times(t_tree *tree)
 {
   RATES_Check_Node_Times_Pre(tree->n_root,tree->n_root->v[0],tree);
   RATES_Check_Node_Times_Pre(tree->n_root,tree->n_root->v[1],tree);
@@ -656,7 +656,7 @@ void RATES_Check_Node_Times(arbre *tree)
 
 /*********************************************************/
 
-void RATES_Check_Node_Times_Pre(node *a, node *d, arbre *tree)
+void RATES_Check_Node_Times_Pre(t_node *a, t_node *d, t_tree *tree)
 {
   if(tree->rates->nd_t[d->num] < tree->rates->nd_t[a->num])
     {
@@ -706,7 +706,7 @@ trate *RATES_Make_Rate_Struct(int n_otu)
   rates->cov_r          = (phydbl *)mCalloc((2*n_otu-2)*(2*n_otu-2),sizeof(phydbl));
   rates->cond_var       = (phydbl *)mCalloc(2*n_otu-2,sizeof(phydbl));
   rates->mean_r         = (phydbl *)mCalloc(2*n_otu-2,sizeof(phydbl));
-  rates->lca            = (node **)mCalloc((2*n_otu-1)*(2*n_otu-1),sizeof(node *));
+  rates->lca            = (t_node **)mCalloc((2*n_otu-1)*(2*n_otu-1),sizeof(t_node *));
   rates->reg_coeff      = (phydbl *)mCalloc((2*n_otu-2)*(2*n_otu-2),sizeof(phydbl));
   rates->trip_reg_coeff = (phydbl *)mCalloc((2*n_otu-2)*(6*n_otu-9),sizeof(phydbl));
   rates->trip_cond_cov  = (phydbl *)mCalloc((2*n_otu-2)*9,sizeof(phydbl));
@@ -995,10 +995,10 @@ phydbl RATES_Dmu_One(phydbl mu, phydbl dt, phydbl a, phydbl b, phydbl lexp)
 
 /* Given the times of nodes a (ta) and d (td), the shape of the gamma distribution of instantaneous
    rates, the parameter of the exponential distribution of waiting times between rate jumps and the 
-   instantaneous rate at node a, this function works out an expected number of (amino-acids or 
+   instantaneous rate at t_node a, this function works out an expected number of (amino-acids or 
    nucleotide) substitutions per site.
 */
-void RATES_Expect_Number_Subst(phydbl t_beg, phydbl t_end, phydbl r_beg,  int *n_jumps, phydbl *mean_r, phydbl *r_end, trate *rates, arbre *tree)
+void RATES_Expect_Number_Subst(phydbl t_beg, phydbl t_end, phydbl r_beg,  int *n_jumps, phydbl *mean_r, phydbl *r_end, trate *rates, t_tree *tree)
 {
   phydbl curr_r, curr_t, next_t;
 
@@ -1093,7 +1093,7 @@ void RATES_Expect_Number_Subst(phydbl t_beg, phydbl t_end, phydbl r_beg,  int *n
   
 /*********************************************************/
 
-void RATES_Get_Mean_Rates_Pre(node *a, node *d, edge *b, phydbl r_a, arbre *tree)
+void RATES_Get_Mean_Rates_Pre(t_node *a, t_node *d, t_edge *b, phydbl r_a, t_tree *tree)
 {
   phydbl a_t,d_t;
   phydbl mean_r;
@@ -1129,7 +1129,7 @@ void RATES_Get_Mean_Rates_Pre(node *a, node *d, edge *b, phydbl r_a, arbre *tree
 
 /*********************************************************/
 
-void RATES_Random_Branch_Lengths(arbre *tree)
+void RATES_Random_Branch_Lengths(t_tree *tree)
 {
   phydbl r0,r_d;
    
@@ -1154,7 +1154,7 @@ void RATES_Random_Branch_Lengths(arbre *tree)
 
 /*********************************************************/
 
-void RATES_Set_Node_Times(arbre *tree)
+void RATES_Set_Node_Times(t_tree *tree)
 {
   RATES_Set_Node_Times_Pre(tree->n_root,tree->n_root->v[0],tree);
   RATES_Set_Node_Times_Pre(tree->n_root,tree->n_root->v[1],tree);
@@ -1162,19 +1162,19 @@ void RATES_Set_Node_Times(arbre *tree)
 
 /*********************************************************/
 
-void RATES_Init_Triplets(arbre *tree)
+void RATES_Init_Triplets(t_tree *tree)
 {
   int i;
   For(i,2*tree->n_otu-1) tree->rates->triplet[i] = 0.0;
 }
 /*********************************************************/
 
-void RATES_Set_Node_Times_Pre(node *a, node *d, arbre *tree)
+void RATES_Set_Node_Times_Pre(t_node *a, t_node *d, t_tree *tree)
 {
   if(d->tax) return;
   else
     {
-      node *v1, *v2; /* the two sons of d */
+      t_node *v1, *v2; /* the two sons of d */
       phydbl t_sup, t_inf;
       int i;
 
@@ -1198,12 +1198,12 @@ void RATES_Set_Node_Times_Pre(node *a, node *d, arbre *tree)
       if(tree->rates->nd_t[d->num] > t_inf)      
 	{
 	  tree->rates->nd_t[d->num] = t_inf;
-	  PhyML_Printf("\n. Time for node %d is larger than should be. Set it to %f",d->num,tree->rates->nd_t[d->num]);
+	  PhyML_Printf("\n. Time for t_node %d is larger than should be. Set it to %f",d->num,tree->rates->nd_t[d->num]);
 	}
       else if(tree->rates->nd_t[d->num] < t_sup) 
 	{
 	  tree->rates->nd_t[d->num] = t_sup;
-	  PhyML_Printf("\n. Time for node %d is lower than should be. Set it to %f",d->num,tree->rates->nd_t[d->num]);
+	  PhyML_Printf("\n. Time for t_node %d is lower than should be. Set it to %f",d->num,tree->rates->nd_t[d->num]);
 	}
 
       For(i,3)
@@ -1414,7 +1414,7 @@ phydbl RATES_Dmu2_And_Mu1_Given_N(phydbl mu1, phydbl mu2, phydbl dt1, phydbl dt2
 /*********************************************************/
 
 /* Logarithm of Formula (9) in Rannala and Yang (1996) */
-phydbl RATES_Yule(arbre *tree)
+phydbl RATES_Yule(t_tree *tree)
 {
   phydbl sumti,density,lambda;
   int n,i;
@@ -1442,14 +1442,14 @@ phydbl RATES_Yule(arbre *tree)
 
 /*********************************************************/
 
-void RATES_Initialize_True_Rates(arbre *tree)
+void RATES_Initialize_True_Rates(t_tree *tree)
 {
   int i;
   For(i,2*tree->n_otu-2) tree->rates->true_r[i] = tree->rates->nd_r[i];
 }
 /*********************************************************/
 
-void RATES_Record_Rates(arbre *tree)
+void RATES_Record_Rates(t_tree *tree)
 {
   int i;
   For(i,2*tree->n_otu-2) tree->rates->old_r[i] = tree->rates->nd_r[i];
@@ -1457,7 +1457,7 @@ void RATES_Record_Rates(arbre *tree)
 
 /*********************************************************/
 
-void RATES_Reset_Rates(arbre *tree)
+void RATES_Reset_Rates(t_tree *tree)
 {
   int i;
   For(i,2*tree->n_otu-2) tree->rates->nd_r[i] = tree->rates->old_r[i];
@@ -1465,7 +1465,7 @@ void RATES_Reset_Rates(arbre *tree)
 
 /*********************************************************/
 
-void RATES_Record_Times(arbre *tree)
+void RATES_Record_Times(t_tree *tree)
 {
   int i;
   For(i,2*tree->n_otu-1) tree->rates->old_t[i] = tree->rates->nd_t[i];
@@ -1473,7 +1473,7 @@ void RATES_Record_Times(arbre *tree)
 
 /*********************************************************/
 
-void RATES_Reset_Times(arbre *tree)
+void RATES_Reset_Times(t_tree *tree)
 {
   int i;
   For(i,2*tree->n_otu-1) tree->rates->nd_t[i] = tree->rates->old_t[i];
@@ -1481,10 +1481,10 @@ void RATES_Reset_Times(arbre *tree)
 
 /*********************************************************/
 
-void RATES_Get_Rates_From_Bl(arbre *tree)
+void RATES_Get_Rates_From_Bl(t_tree *tree)
 {
   phydbl dt,cr;
-  node *left, *rght;
+  t_node *left, *rght;
   int i;
 
   dt = -1.0;
@@ -1515,11 +1515,11 @@ void RATES_Get_Rates_From_Bl(arbre *tree)
 
 /*********************************************************/
 
-phydbl RATES_Lk_Jumps(arbre *tree)
+phydbl RATES_Lk_Jumps(t_tree *tree)
 {
   int i,n_jps;
   phydbl dens,dt,lexp;
-  node *n;
+  t_node *n;
 
   n = NULL;
   lexp = tree->rates->lexp;
@@ -1542,7 +1542,7 @@ phydbl RATES_Lk_Jumps(arbre *tree)
 
 /*********************************************************/
 
-void RATES_Posterior_Clock_Rate(arbre *tree)
+void RATES_Posterior_Clock_Rate(t_tree *tree)
 {
   if(1)
     MCMC_Clock_Rate(tree);
@@ -1689,7 +1689,7 @@ void RATES_Posterior_Clock_Rate(arbre *tree)
 
 /*********************************************************/
 
-void RATES_Posterior_Rates(arbre *tree)
+void RATES_Posterior_Rates(t_tree *tree)
 {
 /*   RATES_Posterior_Rates_Pre(tree->n_root,tree->n_root->v[0],tree); */
 /*   RATES_Posterior_Rates_Pre(tree->n_root,tree->n_root->v[1],tree); */
@@ -1706,7 +1706,7 @@ void RATES_Posterior_Rates(arbre *tree)
 
 /*********************************************************/
 
-void RATES_Posterior_Times(arbre *tree)
+void RATES_Posterior_Times(t_tree *tree)
 {
   int node_num;
 
@@ -1735,7 +1735,7 @@ void RATES_Posterior_Times(arbre *tree)
 
 /*********************************************************/
 
-void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
+void RATES_Posterior_Rates_Pre(t_node *a, t_node *d, t_tree *tree)
 {
   phydbl like_mean, like_var;
   phydbl prior_mean, prior_var;
@@ -1746,9 +1746,9 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
   short int *is_1;
   phydbl *cond_mu, *cond_cov; 
   phydbl l_opp; /* length of the branch connected to the root, opposite to the one connected to d */
-  edge *b;
+  t_edge *b;
   int i;
-  node *v2,*v3;
+  t_node *v2,*v3;
   phydbl T0,T1,T2,T3;
   phydbl U0,U1,U2,U3;
   phydbl V1,V2,V3;
@@ -1920,7 +1920,7 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
       PhyML_Printf("\n. T0=%f T1=%f T2=%f T3=%f",T0,T1,T2,T3);
       PhyML_Printf("\n. U0=%f U1=%f U2=%f U3=%f",U0,U1,U2,U3);
       PhyML_Printf("\n. l_min=%f l_max=%f",l_min,l_max);
-      PhyML_Printf("\n. Setting edge length to %f",cur_l);
+      PhyML_Printf("\n. Setting t_edge length to %f",cur_l);
       new_l = cur_l;
     }
 
@@ -2004,7 +2004,7 @@ void RATES_Posterior_Rates_Pre(node *a, node *d, arbre *tree)
 
 /*********************************************************/
 
-void RATES_Posterior_Times_Pre(node *a, node *d, arbre *tree)
+void RATES_Posterior_Times_Pre(t_node *a, t_node *d, t_tree *tree)
 {
   /*
            T0 (a)
@@ -2036,12 +2036,12 @@ void RATES_Posterior_Times_Pre(node *a, node *d, arbre *tree)
   phydbl sig11, sig1X, sig1Y, sig22, sig2X, sig2Y, sigXX, sigXY, sigYY;
   phydbl cov11,cov12,cov13,cov22,cov23,cov33;
   int dim;
-  edge *b1, *b2, *b3;
-  node *v2,*v3;
+  t_edge *b1, *b2, *b3;
+  t_node *v2,*v3;
   phydbl *l2XY;
   phydbl l_opp;
-  edge *buff_b;
-  node *buff_n;
+  t_edge *buff_b;
+  t_node *buff_n;
   int err;
   int num_1, num_2, num_3;
 
@@ -2436,7 +2436,7 @@ void RATES_Posterior_Times_Pre(node *a, node *d, arbre *tree)
 
 /*********************************************************/
 
-void RATES_Posterior_Time_Root(arbre *tree)
+void RATES_Posterior_Time_Root(t_tree *tree)
 {
   /* 
         Root, T0
@@ -2451,8 +2451,8 @@ void RATES_Posterior_Time_Root(arbre *tree)
   phydbl u0,u1,u2;
   phydbl cel,cvl;
   int i,dim;
-  edge *b;
-  node *root;
+  t_edge *b;
+  t_node *root;
   phydbl t0,t0_min, t0_max;
   int err;
   phydbl cr;
@@ -2561,7 +2561,7 @@ void RATES_Posterior_Time_Root(arbre *tree)
 
 /*********************************************************/
 
-void RATES_Update_Cur_Bl(arbre *tree)
+void RATES_Update_Cur_Bl(t_tree *tree)
 {
   RATES_Update_Cur_Bl_Pre(tree->n_root,tree->n_root->v[0],NULL,tree);
   RATES_Update_Cur_Bl_Pre(tree->n_root,tree->n_root->v[1],NULL,tree);
@@ -2582,7 +2582,7 @@ void RATES_Update_Cur_Bl(arbre *tree)
 
 /*********************************************************/
 
-void RATES_Update_Cur_Bl_Pre(node *a, node *d, edge *b, arbre *tree)
+void RATES_Update_Cur_Bl_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 {
   phydbl down_t,up_t,dt,rr,cr;
   
@@ -2621,7 +2621,7 @@ void RATES_Update_Cur_Bl_Pre(node *a, node *d, edge *b, arbre *tree)
 
 /*********************************************************/
 
-void RATES_Bl_To_Ml(arbre *tree)
+void RATES_Bl_To_Ml(t_tree *tree)
 {
   RATES_Bl_To_Ml_Pre(tree->n_root,tree->n_root->v[0],NULL,tree);
   RATES_Bl_To_Ml_Pre(tree->n_root,tree->n_root->v[1],NULL,tree);
@@ -2632,7 +2632,7 @@ void RATES_Bl_To_Ml(arbre *tree)
 
 /*********************************************************/
 
-void RATES_Bl_To_Ml_Pre(node *a, node *d, edge *b, arbre *tree)
+void RATES_Bl_To_Ml_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 {
 
   if(b) 
@@ -2654,7 +2654,7 @@ void RATES_Bl_To_Ml_Pre(node *a, node *d, edge *b, arbre *tree)
 
 /*********************************************************/
 
-void RATES_Get_Cov_Matrix_Rooted(phydbl *unroot_cov, arbre *tree)
+void RATES_Get_Cov_Matrix_Rooted(phydbl *unroot_cov, t_tree *tree)
 {
   int i,dim;
 
@@ -2672,10 +2672,10 @@ void RATES_Get_Cov_Matrix_Rooted(phydbl *unroot_cov, arbre *tree)
 
 /*********************************************************/
 
-void RATES_Get_Cov_Matrix_Rooted_Pre(node *a, node *d, edge *b, phydbl *cov, arbre *tree)
+void RATES_Get_Cov_Matrix_Rooted_Pre(t_node *a, t_node *d, t_edge *b, phydbl *cov, t_tree *tree)
 {
   int i, dim, done_left;
-  node *n;
+  t_node *n;
 
   dim       = 2*tree->n_otu-3;
   done_left = 0;
@@ -2727,7 +2727,7 @@ void RATES_Get_Cov_Matrix_Rooted_Pre(node *a, node *d, edge *b, phydbl *cov, arb
 
 /*********************************************************/
 
-void RATES_Covariance_Mu(arbre *tree)
+void RATES_Covariance_Mu(t_tree *tree)
 {
   int i,j;
   phydbl dt,var;
@@ -2775,7 +2775,7 @@ void RATES_Covariance_Mu(arbre *tree)
 
 /*********************************************************/
 
-void RATES_Variance_Mu_Pre(node *a, node *d, arbre *tree)
+void RATES_Variance_Mu_Pre(t_node *a, t_node *d, t_tree *tree)
 {
   int dim;
   phydbl dt0,var0;
@@ -2823,7 +2823,7 @@ void RATES_Variance_Mu_Pre(node *a, node *d, arbre *tree)
 
 /*********************************************************/
 
-void RATES_Fill_Lca_Table(arbre *tree)
+void RATES_Fill_Lca_Table(t_tree *tree)
 {
   int i,j;
   int dim;
@@ -2842,13 +2842,13 @@ void RATES_Fill_Lca_Table(arbre *tree)
 
 /*********************************************************/
 /* Get V(L_{i} | L_{-i}) for all i */
-void RATES_Get_Conditional_Variances(arbre *tree)
+void RATES_Get_Conditional_Variances(t_tree *tree)
 {
   int i,j;
   short int *is_1;
   phydbl *a;
   int dim;
-  edge *b;
+  t_edge *b;
   phydbl *cond_mu, *cond_cov;
 
   dim      = 2*tree->n_otu-3;
@@ -2877,13 +2877,13 @@ void RATES_Get_Conditional_Variances(arbre *tree)
 
 /*********************************************************/
 
-void RATES_Get_All_Reg_Coeff(arbre *tree)
+void RATES_Get_All_Reg_Coeff(t_tree *tree)
 {
   int i,j;
   short int *is_1;
   phydbl *a;
   int dim;
-  edge *b;
+  t_edge *b;
 
   dim  = 2*tree->n_otu-3;
   a    = tree->rates->_2n_vect1;
@@ -2906,13 +2906,13 @@ void RATES_Get_All_Reg_Coeff(arbre *tree)
 /*********************************************************/
 
 /* Get V(L_{i} | L_{-i}) for all i */
-void RATES_Get_Trip_Conditional_Variances(arbre *tree)
+void RATES_Get_Trip_Conditional_Variances(t_tree *tree)
 {
   int i,j;
   short int *is_1;
   phydbl *a;
   phydbl *cond_mu, *cond_cov;
-  node *n;
+  t_node *n;
   int n_otu;
 
   a        = tree->rates->_2n_vect1;
@@ -2943,12 +2943,12 @@ void RATES_Get_Trip_Conditional_Variances(arbre *tree)
 
 /*********************************************************/
 
-void RATES_Get_All_Trip_Reg_Coeff(arbre *tree)
+void RATES_Get_All_Trip_Reg_Coeff(t_tree *tree)
 {
   int i,j;
   short int *is_1;
   phydbl *a;
-  node *n;
+  t_node *n;
   int n_otu;
 
   a     = tree->rates->_2n_vect1;
@@ -2975,7 +2975,7 @@ void RATES_Get_All_Trip_Reg_Coeff(arbre *tree)
 
 /*********************************************************/
 
-void RATES_Check_Lk_Rates(arbre *tree, int *err)
+void RATES_Check_Lk_Rates(t_tree *tree, int *err)
 {
   int i;
   phydbl u,u_anc;
@@ -3005,7 +3005,7 @@ void RATES_Check_Lk_Rates(arbre *tree, int *err)
 
 /*********************************************************/
 
-phydbl RATES_Expected_Tree_Length(arbre *tree)
+phydbl RATES_Expected_Tree_Length(t_tree *tree)
 {
 /*   int i; */
 /*   phydbl u,u_anc,t,t_anc; */
@@ -3044,7 +3044,7 @@ phydbl RATES_Expected_Tree_Length(arbre *tree)
 
 /*********************************************************/
 
-void RATES_Expected_Tree_Length_Pre(node *a, node *d, phydbl eranc, phydbl *mean, int *n, arbre *tree)
+void RATES_Expected_Tree_Length_Pre(t_node *a, t_node *d, phydbl eranc, phydbl *mean, int *n, t_tree *tree)
 {
   phydbl erdes;
   int i;
@@ -3079,7 +3079,7 @@ void RATES_Expected_Tree_Length_Pre(node *a, node *d, phydbl eranc, phydbl *mean
 
 /*********************************************************/
 
-void RATES_Normalise_Rates(arbre *tree)
+void RATES_Normalise_Rates(t_tree *tree)
 {
   phydbl expr,curr;
   int i;

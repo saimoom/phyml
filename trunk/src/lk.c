@@ -216,7 +216,7 @@ void Init_Tips_At_One_Site_Generic_Float(char *state, int state_size, int ns, in
   if(errno == EINVAL || errno == ERANGE)
     {
       PhyML_Printf("\n. state='%c'",state);
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
   p_lk[pos+state_int] = 1.;
@@ -243,7 +243,7 @@ void Init_Tips_At_One_Site_Generic_Int(char *state, int state_size, int ns, int 
   if(errno == EINVAL || errno == ERANGE)
     {
       PhyML_Printf("\n. state='%c'",state);
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
   p_pars[pos+state_int] = 1;
@@ -255,7 +255,7 @@ void Init_Tips_At_One_Site_Generic_Int(char *state, int state_size, int ns, int 
 /*********************************************************/
 
 
-void Get_All_Partial_Lk_Scale(arbre *tree, edge *b_fcus, node *a, node *d)
+void Get_All_Partial_Lk_Scale(t_tree *tree, t_edge *b_fcus, t_node *a, t_node *d)
 {
   if(d->tax) return;
   else Update_P_Lk(tree,b_fcus,d);
@@ -263,7 +263,7 @@ void Get_All_Partial_Lk_Scale(arbre *tree, edge *b_fcus, node *a, node *d)
 
 /*********************************************************/
 
-void Post_Order_Lk(node *a, node *d, arbre *tree)
+void Post_Order_Lk(t_node *a, t_node *d, t_tree *tree)
 {
   int i,dir;
 
@@ -284,7 +284,7 @@ void Post_Order_Lk(node *a, node *d, arbre *tree)
 
 /*********************************************************/
 
-void Pre_Order_Lk(node *a, node *d, arbre *tree)
+void Pre_Order_Lk(t_node *a, t_node *d, t_tree *tree)
 {
   int i;
 
@@ -304,7 +304,7 @@ void Pre_Order_Lk(node *a, node *d, arbre *tree)
 
 /*********************************************************/
 
-phydbl Lk(arbre *tree)
+phydbl Lk(t_tree *tree)
 {
   int br,site;
   int n_patterns;
@@ -373,15 +373,15 @@ phydbl Lk(arbre *tree)
 
 /*********************************************************/
 
-void Site_Lk(arbre *tree)
+void Site_Lk(t_tree *tree)
 {
-  edge *eroot;
+  t_edge *eroot;
 
   eroot = tree->noeud[0]->b[0];
 
   if(!eroot->rght->tax)
     {
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
@@ -391,7 +391,7 @@ void Site_Lk(arbre *tree)
 
 /*********************************************************/
 
-phydbl Lk_At_Given_Edge(edge *b_fcus, arbre *tree)
+phydbl Lk_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
 {
   int n_patterns;
 
@@ -408,7 +408,7 @@ phydbl Lk_At_Given_Edge(edge *b_fcus, arbre *tree)
 
   if(b_fcus->left->tax)
     {
-      PhyML_Printf("\n. Err in file %s at line %d",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
@@ -431,7 +431,7 @@ phydbl Lk_At_Given_Edge(edge *b_fcus, arbre *tree)
 
 /*********************************************************/
 
-phydbl Lk_Core(edge *b, arbre *tree)
+phydbl Lk_Core(t_edge *b, t_tree *tree)
 {
   phydbl log_site_lk, site_lk, site_lk_cat;
   plkflt scale_left, scale_rght;
@@ -569,7 +569,7 @@ phydbl Lk_Core(edge *b, arbre *tree)
 
 /*********************************************************/
 
-phydbl Return_Abs_Lk(arbre *tree)
+phydbl Return_Abs_Lk(t_tree *tree)
 {
   Lk(tree);
   return fabs(tree->c_lnL);
@@ -596,7 +596,7 @@ matrix *ML_Dist(calign *data, model *mod)
   F               = (phydbl *)mCalloc(mod->ns*mod->ns,sizeof(phydbl ));
   eigen_struct    = (eigen *)Make_Eigen_Struct(mod->ns);
 
-  tmpdata->n_otu      = 2;
+  tmpdata->n_otu  = 2;
 
   tmpdata->crunch_len = data->crunch_len;
   tmpdata->init_len   = data->init_len;
@@ -627,9 +627,9 @@ matrix *ML_Dist(calign *data, model *mod)
 	  tmpdata->c_seq[1]->name = data->c_seq[k]->name;
 
 	  twodata = Compact_Cdata(tmpdata,mod->io);
-
 	  For(l,mod->ns) twodata->b_frq[l] = data->b_frq[l];
 	  Check_Ambiguities(twodata,mod->io->datatype,1);
+
 	  Hide_Ambiguities(twodata);
 	  
 	  init = mat->dist[j][k];
@@ -659,7 +659,7 @@ matrix *ML_Dist(calign *data, model *mod)
 	  else
 	    {
 	      PhyML_Printf("\n. sum = %f\n",sum);
-	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
 	      Exit("");
 	    }
 	  
@@ -815,7 +815,7 @@ phydbl Lk_Given_Two_Seq(calign *data, int numseq1, int numseq2, phydbl dist, mod
 
 /*********************************************************/
 
-void Unconstraint_Lk(arbre *tree)
+void Unconstraint_Lk(t_tree *tree)
 {
   int i;
 
@@ -832,7 +832,7 @@ void Unconstraint_Lk(arbre *tree)
 
 /*********************************************************/
 
-void Update_P_Lk(arbre *tree, edge *b, node *d)
+void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
 {
 /*
            |
@@ -843,7 +843,7 @@ void Update_P_Lk(arbre *tree, edge *b, node *d)
        	 /   \
        	/     \
 */
-  node *n_v1, *n_v2;
+  t_node *n_v1, *n_v2;
   phydbl p1_lk1,p2_lk2;
   plkflt *p_lk,*p_lk_v1,*p_lk_v2;
   double *Pij1,*Pij2;
@@ -871,8 +871,8 @@ void Update_P_Lk(arbre *tree, edge *b, node *d)
 
   if(d->tax)
     {
-      PhyML_Printf("\n. node %d is a leaf...",d->num);
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. t_node %d is a leaf...",d->num);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("\n");
     }
 
@@ -887,7 +887,7 @@ void Update_P_Lk(arbre *tree, edge *b, node *d)
       PhyML_Printf("\n. d->v[0] = %d, d->v[1] = %d, d->v[2] = %d",d->v[0]->num,d->v[1]->num,d->v[2]->num);
       PhyML_Printf("\n. d->b[0] = %d, d->b[1] = %d, d->b[2] = %d",d->b[0]->num,d->b[1]->num,d->b[2]->num);
       PhyML_Printf("\n. d->num = %d dir1 = %d dir2 = %d",d->num,dir1,dir2);
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Exit("");
     }
   
@@ -1029,7 +1029,7 @@ void Update_P_Lk(arbre *tree, edge *b, node *d)
 		  
 /* 		  if((p_lk[site][catg][i] > MDBL_MAX) || (p_lk[site][catg][i] < MDBL_MIN)) */
 /* 		    { */
-/* 		      PhyML_Printf("\n. Err in file %s at line %d",__FILE__,__LINE__); */
+/* 		      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__); */
 /* 		      PhyML_Printf("\n. p_lk[%3d][%2d][%3d] = %G max_p_lk = %G",site,catg,i,p_lk[site][catg][i],max_p_lk); */
 /* 		      PhyML_Printf("\n. alpha=%f pinv=%f",tree->mod->alpha,tree->mod->pinvar); */
 /* 		      For(i,tree->mod->n_catg) PhyML_Printf("\n. rr[%2d] = %G",i,tree->mod->rr[i]); */
@@ -1055,7 +1055,7 @@ void Update_P_Lk(arbre *tree, edge *b, node *d)
 /*********************************************************/
 
 
-void Make_Tree_4_Lk(arbre *tree, calign *cdata, int n_site)
+void Make_Tree_4_Lk(t_tree *tree, calign *cdata, int n_site)
 {
   int i;
 
@@ -1083,7 +1083,7 @@ void Make_Tree_4_Lk(arbre *tree, calign *cdata, int n_site)
 
 /*********************************************************/
 
-void Init_P_Lk_Tips_Double(arbre *tree)
+void Init_P_Lk_Tips_Double(t_tree *tree)
 {
   int curr_site,i,j,k,dim1,dim2,char_len;
   
@@ -1130,7 +1130,7 @@ void Init_P_Lk_Tips_Double(arbre *tree)
 
 /*********************************************************/
 
-void Init_P_Lk_Tips_Int(arbre *tree)
+void Init_P_Lk_Tips_Int(t_tree *tree)
 {
   int curr_site,i,dim1,char_len;
 
@@ -1168,7 +1168,7 @@ void Init_P_Lk_Tips_Int(arbre *tree)
 
 /*********************************************************/
 
-void Update_PMat_At_Given_Edge(edge *b_fcus, arbre *tree)
+void Update_PMat_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
 {
   int i;
   phydbl len;
@@ -1193,7 +1193,7 @@ void Update_PMat_At_Given_Edge(edge *b_fcus, arbre *tree)
 
 /*********************************************************/
 
-/* void Update_P_Lk_On_A_Path(node *a, node *d, edge *b, node *target_one_side, node *target_other_side, arbre *tree) */
+/* void Update_P_Lk_On_A_Path(t_node *a, t_node *d, t_edge *b, t_node *target_one_side, t_node *target_other_side, t_tree *tree) */
 /* { */
 
 
@@ -1230,7 +1230,7 @@ void Update_PMat_At_Given_Edge(edge *b_fcus, arbre *tree)
 /*     } */
 /* } */
 
-void Update_P_Lk_Along_A_Path(node **path, int path_length, arbre *tree)
+void Update_P_Lk_Along_A_Path(t_node **path, int path_length, t_tree *tree)
 {
   int i,j;
 
@@ -1250,7 +1250,7 @@ void Update_P_Lk_Along_A_Path(node **path, int path_length, arbre *tree)
 	      }
 	    else
 	      {
-		PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+		PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
 		Exit("");
 	      }
 	    break;
@@ -1258,7 +1258,7 @@ void Update_P_Lk_Along_A_Path(node **path, int path_length, arbre *tree)
 #ifdef DEBUG
       if(j == 3)
 	{
-	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
 	  Exit("");
 	}
 #endif
@@ -1300,7 +1300,7 @@ phydbl Lk_Dist(phydbl *F, phydbl dist, model *mod)
 
 /*********************************************************/
 
-phydbl Update_Lk_At_Given_Edge(edge *b_fcus, arbre *tree)
+phydbl Update_Lk_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
 {
   if(!b_fcus->left->tax) Update_P_Lk(tree,b_fcus,b_fcus->left);
   if(!b_fcus->rght->tax) Update_P_Lk(tree,b_fcus,b_fcus->rght);
@@ -1327,7 +1327,7 @@ phydbl Update_Lk_At_Given_Edge(edge *b_fcus, arbre *tree)
        (2) update the change proba matrices along these branches
        (3) update the likelihood of subtree (w,x) (WARNING: (a,x) and (a,w) are not updated)
 */
-phydbl Lk_Triplet(node *a, node *d, arbre *tree)
+phydbl Lk_Triplet(t_node *a, t_node *d, t_tree *tree)
 {
   int i;
   phydbl max_height;
@@ -1335,7 +1335,7 @@ phydbl Lk_Triplet(node *a, node *d, arbre *tree)
 
   if(d->tax)
     {
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
@@ -1412,7 +1412,7 @@ phydbl Lk_Triplet(node *a, node *d, arbre *tree)
 
 /*********************************************************/
 
-void Print_Lk_Given_Edge_Recurr(node *a, node *d, edge *b, arbre *tree)
+void Print_Lk_Given_Edge_Recurr(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 {
   PhyML_Printf("\n___ Edge %3d (left=%3d rght=%3d) lnL=%f",
 	 b->num,
@@ -1435,7 +1435,7 @@ void Print_Lk_Given_Edge_Recurr(node *a, node *d, edge *b, arbre *tree)
 /* Returns a vector containing the posterior probabilities of 
    the different branch rate classes 
 */
-phydbl *Post_Prob_Rates_At_Given_Edge(edge *b, phydbl *post_prob, arbre *tree)
+phydbl *Post_Prob_Rates_At_Given_Edge(t_edge *b, phydbl *post_prob, t_tree *tree)
 {
   phydbl norm_factor;
   int rcat, scale_int;
@@ -1497,7 +1497,7 @@ phydbl *Post_Prob_Rates_At_Given_Edge(edge *b, phydbl *post_prob, arbre *tree)
   
   if(sum < 0.999 || sum > 1.001)
     {
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
@@ -1506,12 +1506,12 @@ phydbl *Post_Prob_Rates_At_Given_Edge(edge *b, phydbl *post_prob, arbre *tree)
 
 /*********************************************************/
 
-phydbl Lk_With_MAP_Branch_Rates(arbre *tree)
+phydbl Lk_With_MAP_Branch_Rates(t_tree *tree)
 {
   int br,rcat,best_post_prob_cat;
   phydbl *post_prob;
   phydbl best_post_prob;
-  edge *b;
+  t_edge *b;
 
 
   post_prob = (phydbl *)mCalloc(tree->mod->n_rr_branch,sizeof(phydbl));
@@ -1523,7 +1523,7 @@ phydbl Lk_With_MAP_Branch_Rates(arbre *tree)
     {
       b = tree->t_edges[br];
 
-      /* Compute the posterior probability of each rate class on edge b */
+      /* Compute the posterior probability of each rate class on t_edge b */
       post_prob = (phydbl *)Post_Prob_Rates_At_Given_Edge(b,post_prob,tree);
 
       /* Find the most probable class */

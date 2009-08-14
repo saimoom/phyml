@@ -15,7 +15,7 @@ the GNU public licence.  See http://www.opensource.org for details.
 
 /*********************************************************/
 
-void Simu_Loop(arbre *tree)
+void Simu_Loop(t_tree *tree)
 {
   phydbl lk_old;
 
@@ -45,16 +45,16 @@ void Simu_Loop(arbre *tree)
 
 /*********************************************************/
 
-int Simu(arbre *tree, int n_step_max)
+int Simu(t_tree *tree, int n_step_max)
 {
   phydbl old_loglk,n_iter,lambda;
   int i,n_neg,n_tested,n_without_swap,n_tot_swap,step,it_lim_without_swap;
-  edge **sorted_b,**tested_b;
+  t_edge **sorted_b,**tested_b;
   int opt_free_param;
   int recurr;
 
-  sorted_b = (edge **)mCalloc(tree->n_otu-3,sizeof(edge *));
-  tested_b = (edge **)mCalloc(tree->n_otu-3,sizeof(edge *));
+  sorted_b = (t_edge **)mCalloc(tree->n_otu-3,sizeof(t_edge *));
+  tested_b = (t_edge **)mCalloc(tree->n_otu-3,sizeof(t_edge *));
   
   old_loglk           = UNLIKELY;
   tree->c_lnL         = UNLIKELY;
@@ -152,15 +152,15 @@ int Simu(arbre *tree, int n_step_max)
 
 /*********************************************************/
 
-void Simu_Pars(arbre *tree, int n_step_max)
+void Simu_Pars(t_tree *tree, int n_step_max)
 {
   phydbl old_pars,n_iter,lambda;
   int i,n_neg,n_tested,n_without_swap,n_tot_swap,step;
-  edge **sorted_b,**tested_b;
+  t_edge **sorted_b,**tested_b;
   int each;
   
-  sorted_b = (edge **)mCalloc(tree->n_otu-3,sizeof(edge *));
-  tested_b = (edge **)mCalloc(tree->n_otu-3,sizeof(edge *));
+  sorted_b = (t_edge **)mCalloc(tree->n_otu-3,sizeof(t_edge *));
+  tested_b = (t_edge **)mCalloc(tree->n_otu-3,sizeof(t_edge *));
   
   old_pars            = 0;
   tree->c_pars        = 0;
@@ -243,10 +243,10 @@ void Simu_Pars(arbre *tree, int n_step_max)
 
 /*********************************************************/
 
-void Select_Edges_To_Swap(arbre *tree, edge **sorted_b, int *n_neg)
+void Select_Edges_To_Swap(t_tree *tree, t_edge **sorted_b, int *n_neg)
 {
   int i;
-  edge *b;
+  t_edge *b;
   int min;
   phydbl best_score;
 
@@ -271,10 +271,10 @@ void Select_Edges_To_Swap(arbre *tree, edge **sorted_b, int *n_neg)
 
 /*********************************************************/
 
-void Update_Bl(arbre *tree, phydbl fact)
+void Update_Bl(t_tree *tree, phydbl fact)
 {
   int i;
-  edge *b;
+  t_edge *b;
 
   For(i,2*tree->n_otu-3)
     {
@@ -285,7 +285,7 @@ void Update_Bl(arbre *tree, phydbl fact)
 
 /*********************************************************/
 
-void Make_N_Swap(arbre *tree,edge **b, int beg, int end)
+void Make_N_Swap(t_tree *tree,t_edge **b, int beg, int end)
 {
   int i;
 
@@ -311,13 +311,13 @@ void Make_N_Swap(arbre *tree,edge **b, int beg, int end)
 
 /*********************************************************/
 
-int Make_Best_Swap(arbre *tree)
+int Make_Best_Swap(t_tree *tree)
 {
   int i,j,return_value;
-  edge *b,**sorted_b;
+  t_edge *b,**sorted_b;
   
 
-  sorted_b = (edge **)mCalloc(tree->n_otu-3,sizeof(edge *));
+  sorted_b = (t_edge **)mCalloc(tree->n_otu-3,sizeof(t_edge *));
   
   j=0;
   For(i,2*tree->n_otu-3) if((!tree->t_edges[i]->left->tax) &&
@@ -360,11 +360,11 @@ int Make_Best_Swap(arbre *tree)
 
 /*********************************************************/
 
-int Mov_Backward_Topo_Bl(arbre *tree, phydbl lk_old, edge **tested_b, int n_tested)
+int Mov_Backward_Topo_Bl(t_tree *tree, phydbl lk_old, t_edge **tested_b, int n_tested)
 {
   phydbl *l_init;
   int i,step,beg,end;
-  edge *b;
+  t_edge *b;
 
 
   l_init = (phydbl *)mCalloc(2*tree->n_otu-3,sizeof(phydbl));
@@ -430,7 +430,7 @@ int Mov_Backward_Topo_Bl(arbre *tree, phydbl lk_old, edge **tested_b, int n_test
 
 /*********************************************************/
 
-int Mov_Backward_Topo_Pars(arbre *tree, int pars_old, edge **tested_b, int n_tested)
+int Mov_Backward_Topo_Pars(t_tree *tree, int pars_old, t_edge **tested_b, int n_tested)
 {
   int i,step,beg,end;
   
@@ -478,7 +478,7 @@ int Mov_Backward_Topo_Pars(arbre *tree, int pars_old, edge **tested_b, int n_tes
 
 /*********************************************************/
 
-void Unswap_N_Branch(arbre *tree, edge **b, int beg, int end)
+void Unswap_N_Branch(t_tree *tree, t_edge **b, int beg, int end)
 {
   int i;
 
@@ -528,7 +528,7 @@ void Unswap_N_Branch(arbre *tree, edge **b, int beg, int end)
 
 /*********************************************************/
 
-void Swap_N_Branch(arbre *tree,edge **b, int beg, int end)
+void Swap_N_Branch(t_tree *tree,t_edge **b, int beg, int end)
 {
   int i;
   
@@ -564,7 +564,7 @@ void Swap_N_Branch(arbre *tree,edge **b, int beg, int end)
 
 /*********************************************************/
 
-void Check_NNI_Scores_Around(node *a, node *d, edge *b, phydbl *best_score)
+void Check_NNI_Scores_Around(t_node *a, t_node *d, t_edge *b, phydbl *best_score)
 {
 
   int i;

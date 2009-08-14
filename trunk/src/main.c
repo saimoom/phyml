@@ -31,10 +31,9 @@ the GNU public licence. See http://www.opensource.org for details.
 
 int main(int argc, char **argv)
 {
-  align **data;
   calign *cdata;
   option *io;
-  arbre *tree;
+  t_tree *tree;
   int n_otu, num_data_set;
   int num_tree,tree_line_number,num_rand_tree;
   matrix *mat;
@@ -63,7 +62,6 @@ int main(int argc, char **argv)
 
   tree             = NULL;
   mod              = NULL;
-  data             = NULL;
   best_lnL         = UNLIKELY;
   most_likely_size = -1.0;
   tree_size        = -1.0;
@@ -91,16 +89,22 @@ int main(int argc, char **argv)
 
       n_otu = 0;
       best_lnL = UNLIKELY;
-      data = Get_Seq(io);
+      Get_Seq(io);
       
-      if(data)
+      if(io->data)
 	{
 	  if(io->n_data_sets > 1) PhyML_Printf("\n. Data set [#%d]\n",num_data_set+1);
 	  if(!io->quiet) PhyML_Printf("\n. Compressing sequences...\n");
-	  cdata = Compact_Data(data,io);
+	  cdata = Compact_Data(io->data,io);
 
-	  Free_Seq(data,cdata->n_otu);
-	  Check_Ambiguities(cdata,io->datatype,io->mod->stepsize);
+	  Free_Seq(io->data,cdata->n_otu);
+	  
+	  if(cdata) Check_Ambiguities(cdata,io->datatype,io->mod->stepsize);
+	  else
+	    {
+	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	      Warn_And_Exit("");
+	    }
 
 	  for(num_tree=(io->n_trees == 1)?(0):(num_data_set);num_tree < io->n_trees;num_tree++)
 	    {
@@ -231,6 +235,12 @@ int main(int argc, char **argv)
 	    }
 	  Free_Cseq(cdata);
 	}
+      else
+	{
+	  PhyML_Printf("\n. No data was found.\n");
+	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  Warn_And_Exit("");
+	}
     }
 
   if(most_likely_tree) Free(most_likely_tree);
@@ -286,7 +296,7 @@ int main(int argc, char **argv)
 #elif(RF)
 int main(int argc, char **argv)
 {
-  arbre *tree1, *tree2;
+  t_tree *tree1, *tree2;
   FILE *fp_tree1, *fp_tree2;
   int i,j;
 
@@ -334,11 +344,11 @@ int main(int argc, char **argv)
 
 
 
-/*   arbre *tree1, *tree2; */
+/*   t_tree *tree1, *tree2; */
 /*   FILE *fp_tree1, *fp_tree2; */
 /*   int i,j,rf,n_edges,n_common,bip_size; */
 /*   phydbl thresh; */
-/*   edge *b; */
+/*   t_edge *b; */
 
 
 /*   fp_tree1 = (FILE *)fopen(argv[1],"r"); */
@@ -378,7 +388,7 @@ int main(int argc, char **argv)
 /* 	  if(tree1->t_edges[i]->l > thresh)   */
 /* 	    { */
 /* 	      n_edges++; */
-/* 	      /\* This edge is not found in tree2 *\/ */
+/* 	      /\* This t_edge is not found in tree2 *\/ */
 /* 	      if(!tree1->t_edges[i]->bip_score) rf++; ; */
 /* 	    } */
 /* 	} */
@@ -396,7 +406,7 @@ int main(int argc, char **argv)
 /* 	  if(tree2->t_edges[i]->l > thresh)   */
 /* 	    { */
 /* 	      n_edges++; */
-/* 	      /\* This edge is not found in tree1 *\/ */
+/* 	      /\* This t_edge is not found in tree1 *\/ */
 /* 	      if(!tree2->t_edges[i]->bip_score) rf++; ; */
 /* 	    } */
 /* 	} */

@@ -21,9 +21,9 @@ the GNU public licence. See http://www.opensource.org for details.
 #include "eigen.h"
 
 
-phydbl *Covariance_Matrix(arbre *tree);
-phydbl *Hessian(arbre *tree);
-void   Recurr_Hessian(node *a, node *b, int plus_minus, phydbl *inc, phydbl *res, int *is_ok, arbre *tree);
+phydbl *Covariance_Matrix(t_tree *tree);
+phydbl *Hessian(t_tree *tree);
+void   Recurr_Hessian(t_node *a, t_node *b, int plus_minus, phydbl *inc, phydbl *res, int *is_ok, t_tree *tree);
 double stdnormal_inv(double p);
 double Uni();
 int    Rand_Int(int min, int max);
@@ -56,9 +56,9 @@ phydbl Rnorm(phydbl mean, phydbl sd);
 phydbl *Rnorm_Multid(phydbl *mu, phydbl *cov, int dim);
 phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max, int *err);
 phydbl *Rnorm_Multid_Trunc(phydbl *mean, phydbl *cov, phydbl *min, phydbl *max, int dim);
-phydbl *Hessian_Log(arbre *tree);
-void Recurr_Hessian_Log(node *a, node *d, int plus_minus, phydbl *inc, phydbl *res, int *is_ok, arbre *tree);
-phydbl Log_Det(int *is_ok, arbre *tree);
+phydbl *Hessian_Log(t_tree *tree);
+void Recurr_Hessian_Log(t_node *a, t_node *d, int plus_minus, phydbl *inc, phydbl *res, int *is_ok, t_tree *tree);
+phydbl Log_Det(int *is_ok, t_tree *tree);
 phydbl Dnorm_Trunc(phydbl x, phydbl mean, phydbl sd, phydbl lo, phydbl up);
 phydbl Normal_Trunc_Mean(phydbl mu, phydbl sd, phydbl min, phydbl max);
 phydbl Constraint_Normal_Trunc_Mean(phydbl wanted_mu, phydbl sd, phydbl min, phydbl max);

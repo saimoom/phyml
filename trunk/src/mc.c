@@ -24,7 +24,7 @@ int MC_main(int argc, char **argv)
   align **data;
   calign *cdata;
   option *io;
-  arbre *tree;
+  t_tree *tree;
   int n_otu, num_data_set;
   int num_tree,tree_line_number,num_rand_tree;
   matrix *mat;
@@ -127,7 +127,7 @@ int MC_main(int argc, char **argv)
 
 /* 		  int n_otu; */
 		  int i;
-		  edge *root_edge;
+		  t_edge *root_edge;
 
 /* 		  n_otu = 10; */
 /* 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1); */
@@ -175,7 +175,7 @@ int MC_main(int argc, char **argv)
 		  /************************************/
 
 /* 		  IMPORTANCE SAMPLING STUFF */
-		  node *buff;
+		  t_node *buff;
 
 		  buff = tree->n_root;
 		  tree->n_root = NULL;
@@ -437,10 +437,10 @@ int MC_main(int argc, char **argv)
 
 /*********************************************************/
 
-void MC_Least_Square_Node_Times(edge *e_root, arbre *tree)
+void MC_Least_Square_Node_Times(t_edge *e_root, t_tree *tree)
 {
 
-  /* Solve A.x = b, where x are the node time estimated
+  /* Solve A.x = b, where x are the t_node time estimated
      under the least square criterion.
 
      A is a n x n matrix, with n being the number of
@@ -451,7 +451,7 @@ void MC_Least_Square_Node_Times(edge *e_root, arbre *tree)
   phydbl *A, *b, *x;
   int n;
   int i,j;
-  node *root;
+  t_node *root;
   
   
   PhyML_Printf("\n. Making the tree molecular clock like.");
@@ -486,10 +486,10 @@ void MC_Least_Square_Node_Times(edge *e_root, arbre *tree)
   tree->n_root->l[1] = tree->rates->nd_t[root->num] - tree->rates->nd_t[root->v[1]->num];
 
 
-  /* Rescale the node times such that the time at the root
+  /* Rescale the t_node times such that the time at the root
      is -100. This constraint implies that the clock rate
      is fixed to the actual tree length divided by the tree
-     length measured in term of differences of node times */
+     length measured in term of differences of t_node times */
 
   phydbl scale_f,time_tree_length,tree_length;
 
@@ -518,14 +518,14 @@ void MC_Least_Square_Node_Times(edge *e_root, arbre *tree)
 
 /*********************************************************/
 
-void MC_Least_Square_Node_Times_Pre(node *a, node *d, phydbl *A, phydbl *b, int n, arbre *tree)
+void MC_Least_Square_Node_Times_Pre(t_node *a, t_node *d, phydbl *A, phydbl *b, int n, t_tree *tree)
 {
   if(d->tax)
     {
       A[d->num * n + d->num] = 1.;
       
       /* Set the time stamp at tip nodes to 0.0 */
-/*       PhyML_Printf("\n. Tip node date set to 0"); */
+/*       PhyML_Printf("\n. Tip t_node date set to 0"); */
       b[d->num] = 0.0;
       return;
     }
@@ -551,10 +551,10 @@ void MC_Least_Square_Node_Times_Pre(node *a, node *d, phydbl *A, phydbl *b, int 
 
 /*********************************************************/
 
-/* Adjust node times in order to have correct time stamp ranking with
+/* Adjust t_node times in order to have correct time stamp ranking with
  respect to the tree topology */
 
-void MC_Adjust_Node_Times(arbre *tree)
+void MC_Adjust_Node_Times(t_tree *tree)
 {
   MC_Adjust_Node_Times_Pre(tree->n_root->v[0],tree->n_root->v[1],tree);
   MC_Adjust_Node_Times_Pre(tree->n_root->v[1],tree->n_root->v[0],tree);
@@ -569,7 +569,7 @@ void MC_Adjust_Node_Times(arbre *tree)
 
 /*********************************************************/
 
-void MC_Adjust_Node_Times_Pre(node *a, node *d, arbre *tree)
+void MC_Adjust_Node_Times_Pre(t_node *a, t_node *d, t_tree *tree)
 {
   if(d->tax) return;
   else
@@ -605,10 +605,10 @@ void MC_Adjust_Node_Times_Pre(node *a, node *d, arbre *tree)
 /*********************************************************/
 
   /* Multiply each time stamp at each internal 
-     node by  'tree->time_stamp_mult'.
+     t_node by  'tree->time_stamp_mult'.
    */
 
-void MC_Mult_Time_Stamps(arbre *tree)
+void MC_Mult_Time_Stamps(t_tree *tree)
 {
   int i;
   For(i,2*tree->n_otu-2) tree->rates->nd_t[tree->noeud[i]->num] *= fabs(tree->mod->s_opt->tree_size_mult);
@@ -618,9 +618,9 @@ void MC_Mult_Time_Stamps(arbre *tree)
 /*********************************************************/
 
 /* Divide each time stamp at each internal 
-   node by  'tree->time_stamp_mult'.
+   t_node by  'tree->time_stamp_mult'.
 */
-void MC_Div_Time_Stamps(arbre *tree)
+void MC_Div_Time_Stamps(t_tree *tree)
 {
   int i;
   For(i,2*tree->n_otu-2) tree->rates->nd_t[tree->noeud[i]->num] /= fabs(tree->mod->s_opt->tree_size_mult);
@@ -629,7 +629,7 @@ void MC_Div_Time_Stamps(arbre *tree)
 
 /*********************************************************/
 
-void MC_Bl_From_T(arbre *tree)
+void MC_Bl_From_T(t_tree *tree)
 {
   phydbl mean_rate, branch_rate;
 
@@ -659,7 +659,7 @@ void MC_Bl_From_T(arbre *tree)
 
 /*********************************************************/
 
-void MC_Bl_From_T_Post(node *a, node *d, edge *b, arbre *tree)
+void MC_Bl_From_T_Post(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 {
 
   if(b)
@@ -697,7 +697,7 @@ void MC_Bl_From_T_Post(node *a, node *d, edge *b, arbre *tree)
 
 /*********************************************************/
 
-void MC_Round_Optimize(arbre *tree)
+void MC_Round_Optimize(t_tree *tree)
 {
   int n_round,each;
   phydbl lk_old, lk_new, tol;
@@ -755,14 +755,14 @@ void MC_Round_Optimize(arbre *tree)
 
 /*********************************************************/
 
-void MC_Optimize_Node_Times_Serie(node *a, node *d, arbre *tree)
+void MC_Optimize_Node_Times_Serie(t_node *a, t_node *d, t_tree *tree)
 {
   int i;      
 
   if(d->tax) return;
   else
     {
-      node *v1, *v2; /* the two sons of d */
+      t_node *v1, *v2; /* the two sons of d */
       phydbl t_sup, t_inf;
       phydbl lk_init;
       
@@ -781,7 +781,7 @@ void MC_Optimize_Node_Times_Serie(node *a, node *d, arbre *tree)
       if(t_sup < t_inf - MDBL_MAX)
 	{
 	  PhyML_Printf("\n. t_sup = %f t_inf = %f",t_sup,t_inf);
-	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
 	  Warn_And_Exit("");
 	}
       else
@@ -821,9 +821,9 @@ void MC_Optimize_Node_Times_Serie(node *a, node *d, arbre *tree)
 
 /*********************************************************/
 
-void MC_Print_Node_Times(node *a, node *d, arbre *tree)
+void MC_Print_Node_Times(t_node *a, t_node *d, t_tree *tree)
 {
-  edge *b;
+  t_edge *b;
   int i;
   
   b = NULL;
@@ -847,10 +847,10 @@ void MC_Print_Node_Times(node *a, node *d, arbre *tree)
 
 /*********************************************************/
 
-edge *MC_Find_Best_Root_Position(arbre *tree)
+t_edge *MC_Find_Best_Root_Position(t_tree *tree)
 {
   int i;
-  edge *best_edge;
+  t_edge *best_edge;
   phydbl best_lnL,best_pos;
 
   Record_Br_Len(NULL,tree);
@@ -860,7 +860,7 @@ edge *MC_Find_Best_Root_Position(arbre *tree)
   For(i,2*tree->n_otu-3)
     {
       Restore_Br_Len(NULL,tree);
-      PhyML_Printf("\n. Root positioned on edge %3d",i);
+      PhyML_Printf("\n. Root positioned on t_edge %3d",i);
       MC_Least_Square_Node_Times(tree->t_edges[i],tree);      
       MC_Adjust_Node_Times(tree);
       MC_Round_Optimize(tree);
@@ -871,8 +871,8 @@ edge *MC_Find_Best_Root_Position(arbre *tree)
 	  best_pos = tree->n_root_pos;
 	}
     }
-  tree->n_root_pos = best_pos; /* Set the root node to its best position */ 
-  PhyML_Printf("\n. Best root position: edge %3d",best_edge->num);
+  tree->n_root_pos = best_pos; /* Set the root t_node to its best position */ 
+  PhyML_Printf("\n. Best root position: t_edge %3d",best_edge->num);
   PhyML_Printf("\n. Best constrained lnL = %f",best_lnL);
   PhyML_Fprintf(tree->io->fp_out_stats,"\n. Best constrained lnL = %f",best_lnL);
   return best_edge;
@@ -880,10 +880,10 @@ edge *MC_Find_Best_Root_Position(arbre *tree)
 
 /*********************************************************/
 
-edge *MC_Find_Best_Root_Position_Approx(arbre *tree)
+t_edge *MC_Find_Best_Root_Position_Approx(t_tree *tree)
 {
   int i;
-  edge *best_edge;
+  t_edge *best_edge;
   phydbl best_lnL,best_pos;
 
   Record_Br_Len(NULL,tree);
@@ -893,7 +893,7 @@ edge *MC_Find_Best_Root_Position_Approx(arbre *tree)
   For(i,2*tree->n_otu-3)
     {
       Restore_Br_Len(NULL,tree);
-      PhyML_Printf("\n. Root positioned on edge %3d",i);
+      PhyML_Printf("\n. Root positioned on t_edge %3d",i);
       MC_Least_Square_Node_Times(tree->t_edges[i],tree);      
       MC_Adjust_Node_Times(tree);
       Lk(tree);
@@ -905,8 +905,8 @@ edge *MC_Find_Best_Root_Position_Approx(arbre *tree)
 	  best_pos  = tree->n_root_pos;
 	}
     }
-  tree->n_root_pos = best_pos; /* Set the root node to its best position */ 
-  PhyML_Printf("\n. Best root position: edge %3d",best_edge->num);
+  tree->n_root_pos = best_pos; /* Set the root t_node to its best position */ 
+  PhyML_Printf("\n. Best root position: t_edge %3d",best_edge->num);
   PhyML_Printf("\n. Best constrained lnL = %f",best_lnL);
   PhyML_Fprintf(tree->io->fp_out_stats,"\n. Best constrained lnL = %f",best_lnL);
   return best_edge;
@@ -914,7 +914,7 @@ edge *MC_Find_Best_Root_Position_Approx(arbre *tree)
 
 /*********************************************************/
 
-void MC_Optimize_Tree_Height(arbre *tree)
+void MC_Optimize_Tree_Height(t_tree *tree)
 {
   tree->mod->s_opt->tree_size_mult = 1.0;
   Time_Stamps_Mult_Brent(0.1,1.0,10.0,
@@ -924,7 +924,7 @@ void MC_Optimize_Tree_Height(arbre *tree)
 
 /*********************************************************/
 
-void MC_Optimize_Root_Height(arbre *tree)
+void MC_Optimize_Root_Height(t_tree *tree)
 {
   /*
            t_root
@@ -998,14 +998,14 @@ l_1 / mu  |
 	     tree->rates->nd_t[tree->n_root->num],
 	     tree->rates->nd_t[tree->e_root->left->num],
 	     tree->rates->nd_t[tree->e_root->rght->num]);
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 }
 
 /*********************************************************/
 
-void MC_Estimate_Branch_Rate_Parameter(arbre *tree)
+void MC_Estimate_Branch_Rate_Parameter(t_tree *tree)
 {
 
   /* The tree should be clock-like already */
@@ -1017,7 +1017,7 @@ void MC_Estimate_Branch_Rate_Parameter(arbre *tree)
 
 /*********************************************************/
 
-void MC_Compute_Rates_And_Times_Least_Square_Adjustments(arbre *tree)
+void MC_Compute_Rates_And_Times_Least_Square_Adjustments(t_tree *tree)
 {
   MC_Compute_Rates_And_Times_Least_Square_Adjustments_Post(tree->n_root,tree->n_root->v[0],NULL,tree);
   MC_Compute_Rates_And_Times_Least_Square_Adjustments_Post(tree->n_root,tree->n_root->v[1],NULL,tree);
@@ -1025,7 +1025,7 @@ void MC_Compute_Rates_And_Times_Least_Square_Adjustments(arbre *tree)
 
 /*********************************************************/
 
-void MC_Compute_Rates_And_Times_Least_Square_Adjustments_Post(node *a, node *d, edge *b, arbre *tree)
+void MC_Compute_Rates_And_Times_Least_Square_Adjustments_Post(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 {
   int i;
 
@@ -1100,7 +1100,7 @@ void MC_Compute_Rates_And_Times_Least_Square_Adjustments_Post(node *a, node *d, 
 
 /*********************************************************/
 
-int MC_Check_MC(arbre *tree)
+int MC_Check_MC(t_tree *tree)
 {
   int i;
   phydbl dist,eps;

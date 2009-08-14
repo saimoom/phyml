@@ -16,7 +16,7 @@ the GNU public licence. See http://www.opensource.org for details.
 
 /*********************************************************/
 
-void MCMC(arbre *tree)
+void MCMC(t_tree *tree)
 {
   MCMC_Print_Param(tree->mcmc,tree);
 
@@ -44,7 +44,7 @@ void MCMC(arbre *tree)
 
 /*********************************************************/
 
-void MCMC_Nu(arbre *tree)
+void MCMC_Nu(t_tree *tree)
 {
   phydbl cur_nu,new_nu,cur_lnL_rate,new_lnL_rate,cur_lnL;
   phydbl u,alpha,prior_mean_nu,ratio;
@@ -86,7 +86,7 @@ void MCMC_Nu(arbre *tree)
     {      
       PhyML_Printf("\n. max_nu = %G min_nu = %G",max_nu,min_nu);
       PhyML_Printf("\n. Problem with setting autocorrelation parameter.\n");
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
@@ -126,7 +126,7 @@ void MCMC_Nu(arbre *tree)
 
 /*********************************************************/
 
-void MCMC_Clock_Rate(arbre *tree)
+void MCMC_Clock_Rate(t_tree *tree)
 {
   phydbl cur_cr,new_cr,cur_lnL,new_lnL,cur_lnL_rate;
   phydbl u,alpha,prior_mean_cr,ratio;
@@ -158,7 +158,7 @@ void MCMC_Clock_Rate(arbre *tree)
   if(new_cr > tree->rates->max_clock || new_cr < tree->rates->min_clock)
     {
       PhyML_Printf("\n Problem with setting new clock rate.\n");
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
@@ -191,7 +191,7 @@ void MCMC_Clock_Rate(arbre *tree)
 
 /*********************************************************/
 
-void MCMC_Times_Local(arbre *tree)
+void MCMC_Times_Local(t_tree *tree)
 {
   int local;
   int node_num;
@@ -215,7 +215,7 @@ void MCMC_Times_Local(arbre *tree)
 
 /*********************************************************/
 
-void MCMC_Rates_Local(arbre *tree)
+void MCMC_Rates_Local(t_tree *tree)
 {
   int node_num;
   int i;
@@ -230,7 +230,7 @@ void MCMC_Rates_Local(arbre *tree)
 
 /*********************************************************/
 
-void MCMC_Stick_Rates(arbre *tree)
+void MCMC_Stick_Rates(t_tree *tree)
 {
   tree->both_sides = 1;
   Lk(tree);
@@ -241,7 +241,7 @@ void MCMC_Stick_Rates(arbre *tree)
 
 /*********************************************************/
 
-void MCMC_One_Rate(node *a, node *d, arbre *tree)
+void MCMC_One_Rate(t_node *a, t_node *d, t_tree *tree)
 {
   phydbl u;
   phydbl new_lnL_data, cur_lnL_data, new_lnL_rate, cur_lnL_rate;
@@ -274,7 +274,7 @@ void MCMC_One_Rate(node *a, node *d, arbre *tree)
   if(new_mu < r_min || new_mu > r_max)
     {
       PhyML_Printf("\n Problem with setting new rate.\n");
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
@@ -320,7 +320,7 @@ void MCMC_One_Rate(node *a, node *d, arbre *tree)
 
 /*********************************************************/
 
-void MCMC_Times_Pre(node *a, node *d, int local, arbre *tree)
+void MCMC_Times_Pre(t_node *a, t_node *d, int local, t_tree *tree)
 {
   phydbl u;
   phydbl t_min,t_max;
@@ -331,7 +331,7 @@ void MCMC_Times_Pre(node *a, node *d, int local, arbre *tree)
   phydbl ratio,alpha;
   int    i;
   phydbl t0,t1,t2,t3;
-  node *v2,*v3, *buff_n;
+  t_node *v2,*v3, *buff_n;
   phydbl u0,u1,u2,u3;
 
   if(d->tax) return; /* Won't change time at tip */
@@ -411,7 +411,7 @@ void MCMC_Times_Pre(node *a, node *d, int local, arbre *tree)
   if(new_t < t_min || new_t > t_max)
     {
       PhyML_Printf("\n. Problem with setting new time.\n");
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
@@ -458,7 +458,7 @@ void MCMC_Times_Pre(node *a, node *d, int local, arbre *tree)
 
 /*********************************************************/
 
-void MCMC_Time_Root(arbre *tree)
+void MCMC_Time_Root(t_tree *tree)
 {
   phydbl u;
   phydbl t_min,t_max;
@@ -468,9 +468,9 @@ void MCMC_Time_Root(arbre *tree)
   phydbl cur_lnL_data, new_lnL_data;
   phydbl ratio,alpha;
   phydbl t0,t2,t3;
-  node *v2,*v3, *buff_n;
+  t_node *v2,*v3, *buff_n;
   phydbl u0,u2,u3;
-  node *root;
+  t_node *root;
 
 
   RATES_Record_Times(tree);
@@ -539,7 +539,7 @@ void MCMC_Time_Root(arbre *tree)
   if(new_t < t_min || new_t > t_max)
     {
       PhyML_Printf("\n. Problem with setting new time.\n");
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
@@ -579,7 +579,7 @@ void MCMC_Time_Root(arbre *tree)
 
 /*********************************************************/
 
-void MCMC_Jumps_Local(arbre *tree)
+void MCMC_Jumps_Local(t_tree *tree)
 {
   int local;
   local = 1;
@@ -589,7 +589,7 @@ void MCMC_Jumps_Local(arbre *tree)
 
 /*********************************************************/
 
-void MCMC_Jumps_Pre(node *a, node *d, int local, arbre *tree)
+void MCMC_Jumps_Pre(t_node *a, t_node *d, int local, t_tree *tree)
 {
   phydbl u;
   phydbl new_lnL_rate, cur_lnL_rate;
@@ -634,7 +634,7 @@ void MCMC_Jumps_Pre(node *a, node *d, int local, arbre *tree)
 		     fabs(tree->rates->nd_t[a->num] - tree->rates->nd_t[d->num]),
 		     cur_lnL_rate,tree->rates->c_lnL);
 	      
-	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
 	      Warn_And_Exit("");
 	    }
 	  
@@ -664,7 +664,7 @@ void MCMC_Jumps_Pre(node *a, node *d, int local, arbre *tree)
 
 /*********************************************************/
 
-void MCMC_Stick_Rates_Pre(node *a, node *d, arbre *tree)
+void MCMC_Stick_Rates_Pre(t_node *a, t_node *d, t_tree *tree)
 {
   phydbl u;
   phydbl new_lnL_data, cur_lnL_data, new_lnL_rate, cur_lnL_rate;
@@ -672,7 +672,7 @@ void MCMC_Stick_Rates_Pre(node *a, node *d, arbre *tree)
   phydbl ratio, alpha, hr;
   phydbl new_mu, cur_mu;
   int i;
-  edge *b;
+  t_edge *b;
 
   b = NULL;
 
@@ -725,7 +725,7 @@ void MCMC_Stick_Rates_Pre(node *a, node *d, arbre *tree)
 			 cur_lnL_data,tree->c_lnL,
 			 cur_lnL_rate,tree->rates->c_lnL);
 		  
-		  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+		  PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
 		  Warn_And_Exit("");
 		}
 	      
@@ -761,7 +761,7 @@ void MCMC_Stick_Rates_Pre(node *a, node *d, arbre *tree)
 /*********************************************************/
 
 
-void MCMC_Print_Param(tmcmc *mcmc, arbre *tree)
+void MCMC_Print_Param(tmcmc *mcmc, t_tree *tree)
 {
   int i;
   FILE *fp;
@@ -898,7 +898,7 @@ void MCMC_Print_Param(tmcmc *mcmc, arbre *tree)
 
 /*********************************************************/
 
-void MCMC_Print_Means(tmcmc *mcmc, arbre *tree)
+void MCMC_Print_Means(tmcmc *mcmc, t_tree *tree)
 {
 
   if(!(mcmc->run%mcmc->sample_interval)) 
@@ -939,7 +939,7 @@ void MCMC_Print_Means(tmcmc *mcmc, arbre *tree)
 
 /*********************************************************/
 
-void MCMC_Print_Last(tmcmc *mcmc, arbre *tree)
+void MCMC_Print_Last(tmcmc *mcmc, t_tree *tree)
 {
 
   if(!(mcmc->run%mcmc->sample_interval)) 
@@ -983,7 +983,7 @@ void MCMC_Print_Last(tmcmc *mcmc, arbre *tree)
 
 
 /*********************************************************/
-tmcmc *MCMC_Make_MCMC_Struct(arbre *tree)
+tmcmc *MCMC_Make_MCMC_Struct(t_tree *tree)
 {
   tmcmc *mcmc;
   
@@ -1012,7 +1012,7 @@ void MCMC_Free_MCMC(tmcmc *mcmc)
 
 /*********************************************************/
 
-void MCMC_Init_MCMC_Struct(char *filename, tmcmc *mcmc, arbre *tree)
+void MCMC_Init_MCMC_Struct(char *filename, tmcmc *mcmc, t_tree *tree)
 {
   int pid;
 
@@ -1077,7 +1077,7 @@ void MCMC_Close_MCMC(tmcmc *mcmc)
 
 /*********************************************************/
 
-void MCMC_Randomize_Branch_Lengths(arbre *tree)
+void MCMC_Randomize_Branch_Lengths(t_tree *tree)
 {
   int i;
   phydbl u;
@@ -1098,10 +1098,10 @@ void MCMC_Randomize_Branch_Lengths(arbre *tree)
 
 /*********************************************************/
 
-void MCMC_Randomize_Rates(arbre *tree)
+void MCMC_Randomize_Rates(t_tree *tree)
 {
 
-  /* Should be called once node times have been determined */
+  /* Should be called once t_node times have been determined */
 
   int i;
   phydbl u;
@@ -1129,7 +1129,7 @@ void MCMC_Randomize_Rates(arbre *tree)
 
 /*********************************************************/
 
-void MCMC_Randomize_Rates_Pre(node *a, node *d, arbre *tree)
+void MCMC_Randomize_Rates_Pre(t_node *a, t_node *d, t_tree *tree)
 {
   int i;
   phydbl mean_r, var_r;
@@ -1156,7 +1156,7 @@ void MCMC_Randomize_Rates_Pre(node *a, node *d, arbre *tree)
 
 /*********************************************************/
 
-void MCMC_Randomize_Jumps(arbre *tree)
+void MCMC_Randomize_Jumps(t_tree *tree)
 {
   int i;
   phydbl u;
@@ -1172,7 +1172,7 @@ void MCMC_Randomize_Jumps(arbre *tree)
 }
 /*********************************************************/
 
-void MCMC_Randomize_Lexp(arbre *tree)
+void MCMC_Randomize_Lexp(t_tree *tree)
 {
   phydbl u;
 
@@ -1187,7 +1187,7 @@ void MCMC_Randomize_Lexp(arbre *tree)
 
 /*********************************************************/
 
-void MCMC_Randomize_Nu(arbre *tree)
+void MCMC_Randomize_Nu(t_tree *tree)
 {
   phydbl u;
   phydbl u_anc;
@@ -1216,7 +1216,7 @@ void MCMC_Randomize_Nu(arbre *tree)
   if(min_nu < 0.0)
     {
       PhyML_Printf("\n. min_nu = %f",min_nu);
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
@@ -1232,7 +1232,7 @@ void MCMC_Randomize_Nu(arbre *tree)
       PhyML_Printf("\n. max_nu = %G min_nu = %G",max_nu,min_nu);
       PhyML_Printf("\n. u=%f u_anc=%f",tree->rates->nd_r[min_i],tree->rates->nd_r[tree->noeud[min_i]->anc->num]);
       PhyML_Printf("\n. t=%f t_anc=%f",tree->rates->nd_t[min_i],tree->rates->nd_t[tree->noeud[min_i]->anc->num]);
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
@@ -1243,7 +1243,7 @@ void MCMC_Randomize_Nu(arbre *tree)
 
 /*********************************************************/
 
-void MCMC_Randomize_Clock_Rate(arbre *tree)
+void MCMC_Randomize_Clock_Rate(t_tree *tree)
 {
   phydbl u,t,t_anc;
   phydbl ml_size,cur_size;
@@ -1267,7 +1267,7 @@ void MCMC_Randomize_Clock_Rate(arbre *tree)
 
 /*********************************************************/
 
-void MCMC_Randomize_Alpha(arbre *tree)
+void MCMC_Randomize_Alpha(t_tree *tree)
 {
   phydbl u;
 
@@ -1277,7 +1277,7 @@ void MCMC_Randomize_Alpha(arbre *tree)
 
 /*********************************************************/
 
-void MCMC_Randomize_Node_Times(arbre *tree)
+void MCMC_Randomize_Node_Times(t_tree *tree)
 {
   phydbl t_sup, t_inf;
   phydbl u;
@@ -1327,7 +1327,7 @@ void MCMC_Randomize_Node_Times(arbre *tree)
 
 /*********************************************************/
 
-void MCMC_Randomize_Node_Times_Bottom_Up(node *a, node *d, arbre *tree)
+void MCMC_Randomize_Node_Times_Bottom_Up(t_node *a, t_node *d, t_tree *tree)
 {
   int i;
   phydbl t_inf,t_sup;
@@ -1350,7 +1350,7 @@ void MCMC_Randomize_Node_Times_Bottom_Up(node *a, node *d, arbre *tree)
     }
   else 
     {
-      node *v1, *v2; /* the two sons of d */
+      t_node *v1, *v2; /* the two sons of d */
 
       For(i,3)
 	{
@@ -1377,8 +1377,8 @@ void MCMC_Randomize_Node_Times_Bottom_Up(node *a, node *d, arbre *tree)
 	  if(tree->rates->t_prior_max[d->num] < tree->rates->t_prior_min[d->num])
 	    {
 	      PhyML_Printf("\n. prior_min=%f prior_max=%f",tree->rates->t_prior_min[d->num],tree->rates->t_prior_max[d->num]);
-	      PhyML_Printf("\n. Inconsistency in the prior settings detected at node %d",d->num);
-	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	      PhyML_Printf("\n. Inconsistency in the prior settings detected at t_node %d",d->num);
+	      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
 	      Warn_And_Exit("\n");
 	    }
 	}
@@ -1393,13 +1393,13 @@ void MCMC_Randomize_Node_Times_Bottom_Up(node *a, node *d, arbre *tree)
 
 /*********************************************************/
 
-void MCMC_Randomize_Node_Times_Top_Down(node *a, node *d, arbre *tree)
+void MCMC_Randomize_Node_Times_Top_Down(t_node *a, t_node *d, t_tree *tree)
 {
   if(d->tax) return;
   else
     {
       int i;      
-      node *v1, *v2; /* the two sons of d */
+      t_node *v1, *v2; /* the two sons of d */
       phydbl u;
       phydbl t_inf, t_sup;
 
@@ -1418,8 +1418,8 @@ void MCMC_Randomize_Node_Times_Top_Down(node *a, node *d, arbre *tree)
 	{
 	  PhyML_Printf("\n. t_inf=%f t_sup=%f",t_inf,t_sup);
 	  PhyML_Printf("\n. prior_min=%f prior_max=%f",tree->rates->t_prior_min[d->num],tree->rates->t_prior_max[d->num]);
-	  PhyML_Printf("\n. Inconsistency in the prior settings detected at node %d",d->num);
-	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  PhyML_Printf("\n. Inconsistency in the prior settings detected at t_node %d",d->num);
+	  PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
 	  Warn_And_Exit("\n");
 	}
 	  
@@ -1441,7 +1441,7 @@ void MCMC_Randomize_Node_Times_Top_Down(node *a, node *d, arbre *tree)
 
 /*********************************************************/
 
-void MCMC_Mixing_Step(arbre *tree)
+void MCMC_Mixing_Step(t_tree *tree)
 {
   phydbl new_lnL_time, new_lnL_rate, new_lnL_data;
   phydbl cur_lnL_time, cur_lnL_rate, cur_lnL_data;
@@ -1492,7 +1492,7 @@ void MCMC_Mixing_Step(arbre *tree)
 		 tree->rates->alpha,
 		 cur_lnL_rate,tree->rates->c_lnL);
 
-	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
 	  Warn_And_Exit("");
 	}
 

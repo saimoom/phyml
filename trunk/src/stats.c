@@ -1326,7 +1326,7 @@ int Choose(int n, int k)
 /*********************************************************/
 
 
-phydbl *Covariance_Matrix(arbre *tree)
+phydbl *Covariance_Matrix(t_tree *tree)
 {
   phydbl *cov, *mean,var_min;
   int *ori_wght,*site_num;
@@ -1409,7 +1409,7 @@ phydbl *Covariance_Matrix(arbre *tree)
 /*********************************************************/
 /* Work out the Hessian for the likelihood function. Only branch lengths are considered as variable.
    This function is very much inspired from Jeff Thorne's 'hessian' function in his program 'estbranches'. */
-phydbl *Hessian(arbre *tree)
+phydbl *Hessian(t_tree *tree)
 {
   phydbl *hessian;
   phydbl *plus_plus, *minus_minus, *plus_zero, *minus_zero, *plus_minus, zero_zero;
@@ -1706,7 +1706,7 @@ phydbl *Hessian(arbre *tree)
 
 /*********************************************************/
 
-void Recurr_Hessian(node *a, node *d, int plus_minus, phydbl *inc, phydbl *res, int *is_ok, arbre *tree)
+void Recurr_Hessian(t_node *a, t_node *d, int plus_minus, phydbl *inc, phydbl *res, int *is_ok, t_tree *tree)
 {
   int i;
   phydbl ori_l;
@@ -1739,7 +1739,7 @@ void Recurr_Hessian(node *a, node *d, int plus_minus, phydbl *inc, phydbl *res, 
 
 /* Work out the Hessian for the likelihood function. Only LOGARITHM of branch lengths are considered as variable.
    This function is very much inspired from Jeff Thorne's 'hessian' function in his program 'estbranches'. */
-phydbl *Hessian_Log(arbre *tree)
+phydbl *Hessian_Log(t_tree *tree)
 {
   phydbl *hessian;
   phydbl *plus_plus, *minus_minus, *plus_zero, *minus_zero, *plus_minus, *zero_zero;
@@ -2015,7 +2015,7 @@ phydbl *Hessian_Log(arbre *tree)
 
 /*********************************************************/
 
-void Recurr_Hessian_Log(node *a, node *d, int plus_minus, phydbl *inc, phydbl *res, int *is_ok, arbre *tree)
+void Recurr_Hessian_Log(t_node *a, t_node *d, int plus_minus, phydbl *inc, phydbl *res, int *is_ok, t_tree *tree)
 {
   int i;
   phydbl ori_l;
@@ -2047,7 +2047,7 @@ void Recurr_Hessian_Log(node *a, node *d, int plus_minus, phydbl *inc, phydbl *r
 
 /*********************************************************/
 
-phydbl Log_Det(int *is_ok, arbre *tree)
+phydbl Log_Det(int *is_ok, t_tree *tree)
 {
   int i;
   phydbl ldet;

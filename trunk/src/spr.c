@@ -35,13 +35,13 @@ the GNU public licence. See http://www.opensource.org for details.
 **   - optim_cand:    Array for holding candidate moves for local and global branch
 **                    length optimization.
 **   - rgrft_cand:    Array for holding candidate regraft positions.
-**   - v_tmp:         The central node of the temporary regraft structure for
+**   - v_tmp:         The central t_node of the temporary regraft structure for
 **                    estimating changes in likelihood.
 **   - path:          The path through the tree during the recursive tree length
 **                    calculation.
 **   - sum_scale_tmp  Array for temporarily storing scaling factors.
 **   - p_lk_tmp:      Temporary partial likelihood storage.
-**   - e_brent:       A temporary edge to use for estimating distances using Brent.
+**   - e_brent:       A temporary t_edge to use for estimating distances using Brent.
 
 **   - tree->mod->s_opt->wim_n_rgrft:       Number of promising regraft positions to consider when
                       performing all improving SPR moves.
@@ -62,8 +62,8 @@ the GNU public licence. See http://www.opensource.org for details.
 phydbl   cur_lk, **subtree_dist, *sum_scale_tmp, *p_lk_tmp;
 matrix  *seq_dist;
 _move_ **optim_cand, **rgrft_cand;
-node    *v_tmp=NULL, **path;
-edge    *e_brent=NULL;
+t_node    *v_tmp=NULL, **path;
+t_edge    *e_brent=NULL;
 int      nr_d_L, nr_d_lk, nr_loc, nr_glb;
 
 /*
@@ -73,10 +73,10 @@ int      nr_d_L, nr_d_lk, nr_loc, nr_glb;
 **   - tree: The current tree to use for initialization.
 */
 
-void Init_SPR (arbre *tree)
+void Init_SPR (t_tree *tree)
 {
   int   i, nr_nodes, nr_edges;
-  node *u_0, *u_1, *u_2;
+  t_node *u_0, *u_1, *u_2;
 
   /*
   ** Get the SPR parameter values.
@@ -95,7 +95,7 @@ void Init_SPR (arbre *tree)
   
   /*
   ** If it doesn't exist yet, create the temporary regraft structure:
-  ** a central node with three edges and tip nodes adjacent to it.
+  ** a central t_node with three edges and tip nodes adjacent to it.
   */
   if (v_tmp == NULL)
   {
@@ -116,11 +116,11 @@ void Init_SPR (arbre *tree)
     u_1->v[0]   = v_tmp;
     u_2->v[0]   = v_tmp;
 
-    edge *edge_0 = Make_Edge_Light (v_tmp, u_0, 0);
+    t_edge *edge_0 = Make_Edge_Light (v_tmp, u_0, 0);
     Make_Edge_Lk (edge_0, tree);
-    edge *edge_1 = Make_Edge_Light (v_tmp, u_1,1);
+    t_edge *edge_1 = Make_Edge_Light (v_tmp, u_1,1);
     Make_Edge_Lk (edge_1, tree);
-    edge *edge_2 = Make_Edge_Light (v_tmp, u_2,2);
+    t_edge *edge_2 = Make_Edge_Light (v_tmp, u_2,2);
     Make_Edge_Lk (edge_2, tree);
 
 
@@ -175,7 +175,7 @@ void Init_SPR (arbre *tree)
     u_2->tax = 1;
     u_1->v[0] = u_2;
     u_2->v[0] = u_1;
-    edge *edge_4 = Make_Edge_Light (u_1, u_2, 3);
+    t_edge *edge_4 = Make_Edge_Light (u_1, u_2, 3);
     Make_Edge_Lk (edge_4, tree);
     e_brent = u_1->b[0];
 
@@ -234,21 +234,21 @@ void Init_SPR (arbre *tree)
 
   /*
   ** Allocate memory for storing the candidate regraft positions and
-  ** edge length optimization moves.
+  ** t_edge length optimization moves.
   */
   rgrft_cand = (_move_ **)malloc (MAX(tree->mod->s_opt->wim_n_rgrft,tree->mod->s_opt->wim_n_best) * sizeof (_move_ *));
   for (i = 0; i < MAX(tree->mod->s_opt->wim_n_rgrft,tree->mod->s_opt->wim_n_best); i++)
     {
       rgrft_cand[i] = (_move_ *)malloc (sizeof (_move_));
-      rgrft_cand[i]->path = (node **)malloc ((tree->mod->s_opt->wim_max_dist+2) * sizeof (node *));
+      rgrft_cand[i]->path = (t_node **)malloc ((tree->mod->s_opt->wim_max_dist+2) * sizeof (t_node *));
     }
   optim_cand = (_move_ **)malloc (tree->mod->s_opt->wim_n_optim * sizeof (_move_ *));
   for (i = 0; i < tree->mod->s_opt->wim_n_optim; i++)
     {
       optim_cand[i] = (_move_ *)malloc (sizeof (_move_));
-      optim_cand[i]->path = (node **)malloc ((tree->mod->s_opt->wim_max_dist+2) * sizeof (node *));
+      optim_cand[i]->path = (t_node **)malloc ((tree->mod->s_opt->wim_max_dist+2) * sizeof (t_node *));
     }
-  path = (node **)malloc ((tree->mod->s_opt->wim_max_dist+2) * sizeof (node *));
+  path = (t_node **)malloc ((tree->mod->s_opt->wim_max_dist+2) * sizeof (t_node *));
 
   if(!tree->mat)
     {
@@ -275,7 +275,7 @@ void Init_SPR (arbre *tree)
 **   - tree: The current tree.
 */
 
-void Clean_SPR (arbre *tree)
+void Clean_SPR (t_tree *tree)
 {
   int i;
 
@@ -333,7 +333,7 @@ void Clean_SPR (arbre *tree)
 
   /*
   ** Free the arrays for storing the candidate regrafting positions and
-  ** edge length optimization moves.
+  ** t_edge length optimization moves.
   */
   for (i = 0; i < MAX(tree->mod->s_opt->wim_n_rgrft,tree->mod->s_opt->wim_n_best); i++)
   {
@@ -371,10 +371,10 @@ void Clean_SPR (arbre *tree)
 **   - method:   The optimization method to use ("ALL" or "BEST").
 */
 
-void Optim_SPR (arbre *tree, int max_size, int method)
+void Optim_SPR (t_tree *tree, int max_size, int method)
 {
   int   nr_moves, improvement;
-  node *root;
+  t_node *root;
   
   if(tree->mod->s_opt->print) PhyML_Printf("\n\n. Starting SPR moves...\n");
 
@@ -387,9 +387,9 @@ void Optim_SPR (arbre *tree, int max_size, int method)
   if(tree->mod->s_opt->print) Print_Lk(tree,"topology");
 
   /*
-  ** Optimize all edge lengths and calculate the new likelihood value.
+  ** Optimize all t_edge lengths and calculate the new likelihood value.
   */
-/*   PhyML_Printf("\n. Optimizing edge lengths."); */
+/*   PhyML_Printf("\n. Optimizing t_edge lengths."); */
   root = tree->noeud[0];
   Optimize_Br_Len_Serie (root, root->v[0], root->b[0], tree, tree->data);
   tree->both_sides = 1;
@@ -448,7 +448,7 @@ void Optim_SPR (arbre *tree, int max_size, int method)
   if(tree->mod->s_opt->print) PhyML_Printf ("\n\n. Number of SPR moves: %d\n", nr_moves);
 
   /*
-  ** Perform a last round of optimization steps (for edge lengths).
+  ** Perform a last round of optimization steps (for t_edge lengths).
   */
   Round_Optimize(tree,tree->data,ROUND_MAX);
   Check_NNI_Five_Branches(tree);
@@ -475,11 +475,11 @@ void Optim_SPR (arbre *tree, int max_size, int method)
 **   Otherwise:                             0.
 */
 
-int Perform_SPR_Moves (arbre *tree, int max_size)
+int Perform_SPR_Moves (t_tree *tree, int max_size)
 {
   int   nr_edges, i, j, candidate, improvement;
-  node *root, *v_prune;
-  edge *e_prune;
+  t_node *root, *v_prune;
+  t_edge *e_prune;
 
   /*
   ** Calculate the average subtree distances.
@@ -577,7 +577,7 @@ int Perform_SPR_Moves (arbre *tree, int max_size)
     }
   
   /*
-  ** If there was no improvement at all, try local edge length optimization at the
+  ** If there was no improvement at all, try local t_edge length optimization at the
   ** regraft position.
   */
 
@@ -585,7 +585,7 @@ int Perform_SPR_Moves (arbre *tree, int max_size)
 
   if (!improvement)
     {
-      /*       PhyML_Printf ("\n.  - performing local edge length optimizations"); */
+      /*       PhyML_Printf ("\n.  - performing local t_edge length optimizations"); */
       if ((candidate = Find_Optim_Local (tree)) >= 0)
 	{
 /*  	  PhyML_Printf("\n. make local move"); */
@@ -597,13 +597,13 @@ int Perform_SPR_Moves (arbre *tree, int max_size)
   
 
   /*
-  ** If there was still no improvement, try global edge length optimization.
+  ** If there was still no improvement, try global t_edge length optimization.
   */
 /*   PhyML_Printf("\n. before global = %f %f",tree->c_lnL,Lk(tree)); */
 
   if (!improvement)
     {
-/*       PhyML_Printf ("\n.  - performing global edge length optimization"); */
+/*       PhyML_Printf ("\n.  - performing global t_edge length optimization"); */
       if ((candidate = Find_Optim_Globl (tree)) >= 0)
 	{
 /*  	  PhyML_Printf("\n. make global move"); */
@@ -616,7 +616,7 @@ int Perform_SPR_Moves (arbre *tree, int max_size)
 /*   PhyML_Printf("\n. after all = %f %f",tree->c_lnL,Lk(tree)); */
 
   /*
-  ** Optimize all edge lengths again to make sure we got an updated
+  ** Optimize all t_edge lengths again to make sure we got an updated
   ** likelihood value.
   */
   tree->both_sides = 1;
@@ -641,8 +641,8 @@ int Perform_SPR_Moves (arbre *tree, int max_size)
 **                   regraft position. Estimate change in likelihood for the most
 **                   promising regraft positions, and store the best one. Then choose
 **                   the best candidate over all moves. If no improving move can be
-**                   found, try local edge length optimization, and if necessary
-**                   global edge length optimization.
+**                   found, try local t_edge length optimization, and if necessary
+**                   global t_edge length optimization.
 **
 ** Parameters:
 **   - tree:     The tree to perform the SPR moves on.
@@ -655,11 +655,11 @@ int Perform_SPR_Moves (arbre *tree, int max_size)
 **   Otherwise:                               0.
 */
 
-int Perform_Best_SPR (arbre *tree, int max_size)
+int Perform_Best_SPR (t_tree *tree, int max_size)
 {
   int   nr_edges, i, j, candidate, improvement;
-  node *root, *v_prune;
-  edge *e_prune;
+  t_node *root, *v_prune;
+  t_edge *e_prune;
 
   /*
   ** Calculate the average subtree distances.
@@ -748,12 +748,12 @@ int Perform_Best_SPR (arbre *tree, int max_size)
   }
 
   /*
-  ** If there was no improvement at all, try local edge length optimization at the
+  ** If there was no improvement at all, try local t_edge length optimization at the
   ** regraft position.
   */
   if (!improvement)
   {
-/*     PhyML_Printf ("\n.  - performing local edge length optimizations"); */
+/*     PhyML_Printf ("\n.  - performing local t_edge length optimizations"); */
     if ((candidate = Find_Optim_Local (tree)) >= 0)
     {
       improvement = 1;
@@ -762,11 +762,11 @@ int Perform_Best_SPR (arbre *tree, int max_size)
   }
 
   /*
-  ** If there was still no improvement, try global edge length optimization.
+  ** If there was still no improvement, try global t_edge length optimization.
   */
   if (!improvement)
   {
-/*     PhyML_Printf ("\n.  - performing global edge length optimization"); */
+/*     PhyML_Printf ("\n.  - performing global t_edge length optimization"); */
     if ((candidate = Find_Optim_Globl (tree)) >= 0)
     {
       improvement = 1;
@@ -775,7 +775,7 @@ int Perform_Best_SPR (arbre *tree, int max_size)
   }
 
   /*
-  ** Optimize all edge lengths again to make sure we got an updated
+  ** Optimize all t_edge lengths again to make sure we got an updated
   ** likelihood value.
   */
   tree->both_sides = 1;
@@ -814,11 +814,11 @@ int Perform_Best_SPR (arbre *tree, int max_size)
 **   Otherwise:                             0.
 */
 
-int Perform_One_SPR(arbre *tree, int max_size)
+int Perform_One_SPR(t_tree *tree, int max_size)
 {
   int   nr_edges, i, j, candidate, improvement;
-  node *root, *v_prune;
-  edge *e_prune;
+  t_node *root, *v_prune;
+  t_edge *e_prune;
 
   /*
   ** Calculate the average subtree distances.
@@ -915,7 +915,7 @@ int Perform_One_SPR(arbre *tree, int max_size)
     }
   
   /*
-  ** If there was no improvement at all, try local edge length optimization at the
+  ** If there was no improvement at all, try local t_edge length optimization at the
   ** regraft position.
   */
 
@@ -923,7 +923,7 @@ int Perform_One_SPR(arbre *tree, int max_size)
 
   if (!improvement)
     {
-      /*       PhyML_Printf ("\n.  - performing local edge length optimizations"); */
+      /*       PhyML_Printf ("\n.  - performing local t_edge length optimizations"); */
       if ((candidate = Find_Optim_Local (tree)) >= 0)
 	{
 /*  	  PhyML_Printf("\n. make local move"); */
@@ -935,13 +935,13 @@ int Perform_One_SPR(arbre *tree, int max_size)
   
 
   /*
-  ** If there was still no improvement, try global edge length optimization.
+  ** If there was still no improvement, try global t_edge length optimization.
   */
 /*   PhyML_Printf("\n. before global = %f %f",tree->c_lnL,Lk(tree)); */
 
   if (!improvement)
     {
-/*       PhyML_Printf ("\n.  - performing global edge length optimization"); */
+/*       PhyML_Printf ("\n.  - performing global t_edge length optimization"); */
       if ((candidate = Find_Optim_Globl (tree)) >= 0)
 	{
 /*  	  PhyML_Printf("\n. make global move"); */
@@ -954,7 +954,7 @@ int Perform_One_SPR(arbre *tree, int max_size)
 /*   PhyML_Printf("\n. after all = %f %f",tree->c_lnL,Lk(tree)); */
 
   /*
-  ** Optimize all edge lengths again to make sure we got an updated
+  ** Optimize all t_edge lengths again to make sure we got an updated
   ** likelihood value.
   */
   tree->both_sides = 1;
@@ -978,18 +978,18 @@ int Perform_One_SPR(arbre *tree, int max_size)
 **                    for each possible regraft position.
 **
 ** Parameters:
-**   - e_prune: The edge at which the subtree is pruned.
+**   - e_prune: The t_edge at which the subtree is pruned.
 **   - v_prune: The root of the pruned subtree.
 */
 
-void Calc_Tree_Length (edge *e_prune, node *v_prune, arbre *tree)
+void Calc_Tree_Length (t_edge *e_prune, t_node *v_prune, t_tree *tree)
 {
   int     i, d0, d1, d2;
   phydbl  d_uu;
-  node   *u_prune, *u1, *u2;
+  t_node   *u_prune, *u1, *u2;
 
   /*
-  ** Get the directions from node v_prune.
+  ** Get the directions from t_node v_prune.
   */
   d0 = -1;
   u_prune = NULL;
@@ -1094,26 +1094,26 @@ void Calc_Tree_Length (edge *e_prune, node *v_prune, arbre *tree)
 **
 ** Parameters:
 **   - v_prune: The root of the pruned subtree.
-**   - u_prune: The node adjacent to v_p along the pruned edge.
-**   - v_n:     The node adjacent to the regraft edge in the "backward" direction.
+**   - u_prune: The t_node adjacent to v_p along the pruned edge.
+**   - v_n:     The t_node adjacent to the regraft t_edge in the "backward" direction.
 **   - v_n_1:   The previous v_n.
-**   - v_nx1:   The node adjacent to the regrafting edge in the "forward" direction.
-**   - v_0:     The other node originally adjacent to v_p;
-**   - u_n:     The other node adjecent to v_n (besides v_n_1 and v_nx1);
+**   - v_nx1:   The t_node adjacent to the regrafting t_edge in the "forward" direction.
+**   - v_0:     The other t_node originally adjacent to v_p;
+**   - u_n:     The other t_node adjecent to v_n (besides v_n_1 and v_nx1);
 **   - d_uv_1:  The distance between u_p and v_n_1;
 **   - d_uu:    The subtree distance between descendants of u_prune.
 **   - d_L_1:   The previous change in tree length.
 **   - n:       The current distance from the prune position.
 */
 
-void Tree_Length (node *v_prune, node *u_prune, node *v_n, node *v_n_1, node *v_nx1,
-		  node *v_0, node *u_n, phydbl d_up_v_1, phydbl d_L_1, phydbl d_uu,
-		  int n, arbre *tree)
+void Tree_Length (t_node *v_prune, t_node *u_prune, t_node *v_n, t_node *v_n_1, t_node *v_nx1,
+		  t_node *v_0, t_node *u_n, phydbl d_up_v_1, phydbl d_L_1, phydbl d_uu,
+		  int n, t_tree *tree)
 {
   int     i, j;
   phydbl  d_un_v, d_up_v, d_L;
-  node   *u1, *u2;
-  edge   *e_prune, *e_regraft;
+  t_node   *u1, *u2;
+  t_edge   *e_prune, *e_regraft;
   _move_ *tmp_cand;
 
   /*
@@ -1255,7 +1255,7 @@ void Tree_Length (node *v_prune, node *u_prune, node *v_n, node *v_n_1, node *v_
 **                regraft positions given a pruned subtree.
 **
 ** Parameters:
-**   - e_prune: The edge at which the subtree was pruned.
+**   - e_prune: The t_edge at which the subtree was pruned.
 **   - v_prune: The root of the pruned subtree.
 **   - tree:    The tree on which to do the calculations.
 **
@@ -1265,14 +1265,14 @@ void Tree_Length (node *v_prune, node *u_prune, node *v_n, node *v_n_1, node *v_
 **   Otherwise:                  -1.
 */
 
-int Est_Lk_Change (edge *e_prune, node *v_prune, arbre *tree)
+int Est_Lk_Change (t_edge *e_prune, t_node *v_prune, t_tree *tree)
 {
   int     i, j, cand, best_cand, d0, d1, d2, n, pat, cat, ste;
   phydbl  d_uu, best_d_lk, l_connect, l_01, l_02, l_12, l_est[3], new_lk,
           l_simple[3], l_dist[3];
   plkflt *p_lk1_tmp, *p_lk2_tmp, *p_lk, *p_sum;
-  node   *u_prune, *v_n, *v_nx1, *u_n, *u1, *u2;
-  edge   *e_regraft, *e_tmp;
+  t_node   *u_prune, *v_n, *v_nx1, *u_n, *u1, *u2;
+  t_edge   *e_regraft, *e_tmp;
   _move_ *tmp_cand;
   int dim1, dim2;
 
@@ -1281,7 +1281,7 @@ int Est_Lk_Change (edge *e_prune, node *v_prune, arbre *tree)
   dim2 = tree->mod->n_catg;
 
   /*
-  ** Get the directions from node v_prune.
+  ** Get the directions from t_node v_prune.
   */
   d0 = -1;
   u_prune = NULL;
@@ -1316,7 +1316,7 @@ int Est_Lk_Change (edge *e_prune, node *v_prune, arbre *tree)
   v_tmp->b[0]->num = e_prune->num;
 
   /*
-  ** Estimate the length of the edge that will connect the two "detached" nodes
+  ** Estimate the length of the t_edge that will connect the two "detached" nodes
   ** after pruning. (The average of the sum of the lengths of the original two
   ** edges and the average subtree distance based estimate.)
   */
@@ -1424,7 +1424,7 @@ int Est_Lk_Change (edge *e_prune, node *v_prune, arbre *tree)
   }
 
   /*
-  ** Temporarily set the edge lengths and update transition prob's at the
+  ** Temporarily set the t_edge lengths and update transition prob's at the
   ** prune site.
   */
   v_prune->b[d1]->l_old = v_prune->b[d1]->l;
@@ -1499,7 +1499,7 @@ int Est_Lk_Change (edge *e_prune, node *v_prune, arbre *tree)
     for (i = 1; i <= n; i++)
     {
       /*
-      ** Get the next edge along the path.
+      ** Get the next t_edge along the path.
       */
       for (j = 0; j < 3; j++)
       {
@@ -1555,7 +1555,7 @@ int Est_Lk_Change (edge *e_prune, node *v_prune, arbre *tree)
     }
 
     /*
-    ** Estimate edge lengths of the three relevant regraft edges based on
+    ** Estimate t_edge lengths of the three relevant regraft edges based on
     ** average subtree distances.
     **
     ** l_01
@@ -1655,7 +1655,7 @@ int Est_Lk_Change (edge *e_prune, node *v_prune, arbre *tree)
     l_est[2] = (l_simple[2] + l_dist[2]) / 2.0;
 
     /*
-    ** Set the edge lengths and update the relevant transition prob's and
+    ** Set the t_edge lengths and update the relevant transition prob's and
     ** partial likelihoods in the temporary regraft structure.
     */
         
@@ -1801,7 +1801,7 @@ int Est_Lk_Change (edge *e_prune, node *v_prune, arbre *tree)
   }
 
   /*
-  ** Reset the relevant edge lengths and transition prob's at the prune site.
+  ** Reset the relevant t_edge lengths and transition prob's at the prune site.
   */
   v_prune->b[d1]->l = v_prune->b[d1]->l_old;
   v_prune->b[d2]->l = v_prune->b[d2]->l_old;
@@ -1820,7 +1820,7 @@ int Est_Lk_Change (edge *e_prune, node *v_prune, arbre *tree)
 **                 regraft positions given a pruned subtree and save the best one.
 **
 ** Parameters:
-**   - e_prune: The edge at which the subtree was pruned.
+**   - e_prune: The t_edge at which the subtree was pruned.
 **   - v_prune: The root of the pruned subtree.
 **   - tree:    The tree on which to do the calculations.
 **
@@ -1828,14 +1828,14 @@ int Est_Lk_Change (edge *e_prune, node *v_prune, arbre *tree)
 **   The candidate which gives the best (possibly negative) improvement.
 */
 
-int Best_Lk_Change (edge *e_prune, node *v_prune, arbre *tree)
+int Best_Lk_Change (t_edge *e_prune, t_node *v_prune, t_tree *tree)
 {
   int     i, j, cand, best_cand, d0, d1, d2, n, pat, cat, ste;
   phydbl  d_uu, best_d_lk, l_connect, l_01, l_02, l_12, l_est[3], new_lk,
     l_simple[3], l_dist[3];
   plkflt *p_lk1_tmp, *p_lk2_tmp, *p_lk, *p_sum; 
-  node   *u_prune, *v_n, *v_nx1, *u_n, *u1, *u2;
-  edge   *e_regraft, *e_tmp;
+  t_node   *u_prune, *v_n, *v_nx1, *u_n, *u1, *u2;
+  t_edge   *e_regraft, *e_tmp;
   _move_ *tmp_cand;
   int dim1, dim2;
 
@@ -1843,7 +1843,7 @@ int Best_Lk_Change (edge *e_prune, node *v_prune, arbre *tree)
   dim2 = tree->mod->ns ;
 
   /*
-  ** Get the directions from node v_prune.
+  ** Get the directions from t_node v_prune.
   */
   d0 = -1;
   u_prune = NULL;
@@ -1878,7 +1878,7 @@ int Best_Lk_Change (edge *e_prune, node *v_prune, arbre *tree)
   v_tmp->b[0]->num = e_prune->num;
 
   /*
-  ** Estimate the length of the edge that will connect the two "detached" nodes
+  ** Estimate the length of the t_edge that will connect the two "detached" nodes
   ** after pruning. (The average of the sum of the lengths of the original two
   ** edges and the average subtree distance based estimate.)
   */
@@ -1986,7 +1986,7 @@ int Best_Lk_Change (edge *e_prune, node *v_prune, arbre *tree)
   }
 
   /*
-  ** Temporarily set the edge lengths and update transition prob's at the
+  ** Temporarily set the t_edge lengths and update transition prob's at the
   ** prune site.
   */
   v_prune->b[d1]->l_old = v_prune->b[d1]->l;
@@ -2061,7 +2061,7 @@ int Best_Lk_Change (edge *e_prune, node *v_prune, arbre *tree)
     for (i = 1; i <= n; i++)
     {
       /*
-      ** Get the next edge along the path.
+      ** Get the next t_edge along the path.
       */
       for (j = 0; j < 3; j++)
       {
@@ -2116,7 +2116,7 @@ int Best_Lk_Change (edge *e_prune, node *v_prune, arbre *tree)
     }
 
     /*
-    ** Estimate edge lengths of the three relevant regraft edges based on
+    ** Estimate t_edge lengths of the three relevant regraft edges based on
     ** average subtree distances.
     **
     ** l_01
@@ -2216,7 +2216,7 @@ int Best_Lk_Change (edge *e_prune, node *v_prune, arbre *tree)
     l_est[2] = (l_simple[2] + l_dist[2]) / 2.0;
 
     /*
-    ** Set the edge lengths and update the relevant transition prob's and
+    ** Set the t_edge lengths and update the relevant transition prob's and
     ** partial likelihoods in the temporary regraft structure.
     */
     for (i = 0; i < 3; i++)
@@ -2339,7 +2339,7 @@ int Best_Lk_Change (edge *e_prune, node *v_prune, arbre *tree)
     }
   
   /*
-  ** Reset the relevant edge lengths and transition prob's at the prune site.
+  ** Reset the relevant t_edge lengths and transition prob's at the prune site.
   */
   v_prune->b[d1]->l = v_prune->b[d1]->l_old;
   v_prune->b[d2]->l = v_prune->b[d2]->l_old;
@@ -2362,11 +2362,11 @@ int Best_Lk_Change (edge *e_prune, node *v_prune, arbre *tree)
 **
 */
 
-void Make_Move (_move_ *move, int type, arbre *tree)
+void Make_Move (_move_ *move, int type, t_tree *tree)
 {
   int     i;
-  node   *v_prune, *u_prune, *v_n, *root;
-  edge   *e_prune, *e_regraft, *e_connect, *e_avail;
+  t_node   *v_prune, *u_prune, *v_n, *root;
+  t_edge   *e_prune, *e_regraft, *e_connect, *e_avail;
   phydbl  new_lk;
 
   /*
@@ -2379,7 +2379,7 @@ void Make_Move (_move_ *move, int type, arbre *tree)
   e_regraft = move->e_regraft;
   /*   PhyML_Printf ("  making move: %d -> %d (%f)\n", e_prune->num, e_regraft->num, move->delta_lk); */
   /*
-  ** Perform the move and set edge lengths.
+  ** Perform the move and set t_edge lengths.
   */
   Prune (e_prune, v_prune, &(e_connect), &(e_avail), tree);
   Regraft (e_regraft, v_prune, e_avail, tree);
@@ -2416,7 +2416,7 @@ void Make_Move (_move_ *move, int type, arbre *tree)
   if(tree->c_lnL < cur_lk-tree->mod->s_opt->min_diff_lk_local)
     {
       PhyML_Printf("\n. tree->c_lnL = %f cur_lk = %f",tree->c_lnL,cur_lk);
-      PhyML_Printf("\n. Err in file %s at line %d",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
   cur_lk = new_lk;
@@ -2430,7 +2430,7 @@ void Make_Move (_move_ *move, int type, arbre *tree)
 
 
 /*
-** Find_Optim_Local: Perform local edge length optimization on the candidates in the
+** Find_Optim_Local: Perform local t_edge length optimization on the candidates in the
 **                   optimization list, and return the first one that gives an
 **                   improvement in likelihood.
 **
@@ -2442,11 +2442,11 @@ void Make_Move (_move_ *move, int type, arbre *tree)
 **   Otherwise:                   -1.
 */
 
-int Find_Optim_Local (arbre *tree)
+int Find_Optim_Local (t_tree *tree)
 {
   int     best_cand, cand, i;
-  node   *v_prune, *u_prune, *v_n;
-  edge   *e_prune, *e_regraft, *e_connect, *e_avail;
+  t_node   *v_prune, *u_prune, *v_n;
+  t_edge   *e_prune, *e_regraft, *e_connect, *e_avail;
   phydbl  max_change, new_lk;
   _move_ *move, *tmp_cand;
 
@@ -2470,7 +2470,7 @@ int Find_Optim_Local (arbre *tree)
 	  e_regraft = move->e_regraft;
 
 	  /*
-	  ** Perform the move and set edge lengths.
+	  ** Perform the move and set t_edge lengths.
 	  */
 	  Prune (e_prune, v_prune, &(e_connect), &(e_avail), tree);
 	  Regraft (e_regraft, v_prune, e_avail, tree);
@@ -2577,7 +2577,7 @@ int Find_Optim_Local (arbre *tree)
 
 
 /*
-** Find_Optim_Globl: Perform global edge length optimization on the candidates in the
+** Find_Optim_Globl: Perform global t_edge length optimization on the candidates in the
 **                   optimization list, and return the first one that gives an
 **                   improvement in likelihood.
 **
@@ -2589,11 +2589,11 @@ int Find_Optim_Local (arbre *tree)
 **   Otherwise:                  -1.
 */
 
-int Find_Optim_Globl (arbre *tree)
+int Find_Optim_Globl (t_tree *tree)
 {
   int     best_cand, cand, i;
-  node   *v_prune, *u_prune, *v_n, *root;
-  edge   *e_prune, *e_regraft, *e_connect, *e_avail;
+  t_node   *v_prune, *u_prune, *v_n, *root;
+  t_edge   *e_prune, *e_regraft, *e_connect, *e_avail;
   phydbl  max_change, new_lk;
   _move_ *move;
 
@@ -2619,7 +2619,7 @@ int Find_Optim_Globl (arbre *tree)
       e_regraft = move->e_regraft;
 
       /*
-      ** Perform the move and optimize all edge lengths.
+      ** Perform the move and optimize all t_edge lengths.
       */
       Prune (e_prune, v_prune, &(e_connect), &(e_avail), tree);
       Regraft (e_regraft, v_prune, e_avail, tree);
@@ -2695,15 +2695,15 @@ int Find_Optim_Globl (arbre *tree)
 
 
 /*
-** Prune: Prune the subtree at a certain edge and node. Note that edge
+** Prune: Prune the subtree at a certain t_edge and node. Note that edge
 **        lengths are not set and partial likelihoods are not updated.
 **
 ** Parameters:
-**   - e:         The edge at which to prune the subtree.
-**   - v:         The node adjacent to edge e which forms the root of the subtree.
-**   - e_connect: An edge pointer which will point to the edge that was left
+**   - e:         The t_edge at which to prune the subtree.
+**   - v:         The t_node adjacent to t_edge e which forms the root of the subtree.
+**   - e_connect: An t_edge pointer which will point to the t_edge that was left
 **                after pruning.
-**   - e_avail:   The edge that is "left over" and should be used in the
+**   - e_avail:   The t_edge that is "left over" and should be used in the
 **                regrafting step.
 **   - tree:      The tree on which the pruning is done.
 **
@@ -2722,11 +2722,11 @@ int Find_Optim_Globl (arbre *tree)
 **      u1       u2   --> such that u1->num < u2->num
 */
 
-void Prune (edge *e, node *v, edge **e_connect, edge **e_avail, arbre *tree)
+void Prune (t_edge *e, t_node *v, t_edge **e_connect, t_edge **e_avail, t_tree *tree)
 {
   int     dir0, dir1, dir2, v0, v1, v2, tmp_dir, i, j, k;
-  node   *u1, *u2, *tmp_node;
-  edge   *e1, *e2;
+  t_node   *u1, *u2, *tmp_node;
+  t_edge   *e1, *e2;
   plkflt *sum_scale_f, *p_lk;
   int dim1, dim2;
 
@@ -2736,7 +2736,7 @@ void Prune (edge *e, node *v, edge **e_connect, edge **e_avail, arbre *tree)
 
   /*
   ** Get the relevant directions, nodes and edges.
-  ** Make sure that node u1 is the node with the smaller number.
+  ** Make sure that t_node u1 is the t_node with the smaller number.
   */
   dir0 = -1;
   for (i = 0; i < 3; i++)
@@ -2764,7 +2764,7 @@ void Prune (edge *e, node *v, edge **e_connect, edge **e_avail, arbre *tree)
   e2 = v->b[dir2];
 
   /*
-  ** Detach node v from the tree.
+  ** Detach t_node v from the tree.
   */
   v->v[dir1] = NULL;
   v->v[dir2] = NULL;
@@ -2772,7 +2772,7 @@ void Prune (edge *e, node *v, edge **e_connect, edge **e_avail, arbre *tree)
   v->b[dir2] = NULL;
 
   /*
-  ** Connect nodes u1 and u2 via edge e1 and copy relevant partial likelihoods.
+  ** Connect nodes u1 and u2 via t_edge e1 and copy relevant partial likelihoods.
   */
   if (u2 == e2->left)
   {
@@ -2841,7 +2841,7 @@ void Prune (edge *e, node *v, edge **e_connect, edge **e_avail, arbre *tree)
   }
 
   /*
-  ** Make sure that a possible tip node is still on the right side.
+  ** Make sure that a possible tip t_node is still on the right side.
   */
   if (e1->left->tax)
   {
@@ -2877,13 +2877,13 @@ void Prune (edge *e, node *v, edge **e_connect, edge **e_avail, arbre *tree)
 
 
 /*
-** Regraft: Regraft a subtree at a certain edge. Note that edge lengths
+** Regraft: Regraft a subtree at a certain edge. Note that t_edge lengths
 **          are not set and partial likelihoods are not updated.
 **
 ** Parameters:
-**   - e:     The edge to regraft the subtree on.
+**   - e:     The t_edge to regraft the subtree on.
 **   - v:     The root of the subtree to regraft.
-**   - avail: A previously deleted edge now available for insertion again.
+**   - avail: A previously deleted t_edge now available for insertion again.
 **   - tree:  The tree on which the regrafting is done.
 **
 **
@@ -2898,11 +2898,11 @@ void Prune (edge *e, node *v, edge **e_connect, edge **e_avail, arbre *tree)
 **  u1   e    u2   --> such that u1->num < u2->num
 */
 
-void Regraft (edge *e, node *v, edge *avail, arbre *tree)
+void Regraft (t_edge *e, t_node *v, t_edge *avail, t_tree *tree)
 {
   int     dir0, dir1, dir2, i, j, k;
   plkflt *sum_scale_f, *p_lk;
-  node   *u1, *u2;
+  t_node   *u1, *u2;
   int dim1, dim2;
 
   dim1 = tree->mod->ns * tree->mod->n_catg;
@@ -2938,7 +2938,7 @@ void Regraft (edge *e, node *v, edge *avail, arbre *tree)
   }
 
   /*
-  ** Connect nodes v and u2 via the available edge 'avail' and copy the
+  ** Connect nodes v and u2 via the available t_edge 'avail' and copy the
   ** relevant partial likelihood.
   ** (We want to do this first, cos we need some of the values of edge
   **  e before changing them below).
@@ -2975,7 +2975,7 @@ void Regraft (edge *e, node *v, edge *avail, arbre *tree)
   }
 
   /*
-  ** Connect nodes v and u1 via edge e.
+  ** Connect nodes v and u1 via t_edge e.
   */
   if (u1 == e->left)
   {
@@ -3011,13 +3011,13 @@ void Regraft (edge *e, node *v, edge *avail, arbre *tree)
 ** Parameters:
 **   - tree: The tree for which to calculate the average distances.
 **   - v:    The current node.
-**   - e:    The edge we came from.
+**   - e:    The t_edge we came from.
 */
 
-void PostOrder_v (arbre *tree, node *v, edge *e)
+void PostOrder_v (t_tree *tree, t_node *v, t_edge *e)
 {
   int   i;
-  node *w;
+  t_node *w;
 
   /*
   ** If v is not a taxon, recurse.
@@ -3056,16 +3056,16 @@ void PostOrder_v (arbre *tree, node *v, edge *e)
 **
 ** Parameters:
 **   - tree: The tree for which to calculate the average distances.
-**   - v:    The root node of the first subtree.
-**   - v_e:  The edge adjacent to the first subtree.
+**   - v:    The root t_node of the first subtree.
+**   - v_e:  The t_edge adjacent to the first subtree.
 **   - w:    The current node.
-**   - e:    The edge we came from.
+**   - e:    The t_edge we came from.
 */
 
-void PostOrder_w (arbre *tree, node *v, edge *v_e, node *w, edge *e)
+void PostOrder_w (t_tree *tree, t_node *v, t_edge *v_e, t_node *w, t_edge *e)
 {
   int   i;
-  node *w1, *w2, *v1, *v2;
+  t_node *w1, *w2, *v1, *v2;
 
   /*
   ** If w is not a taxon, recurse.
@@ -3139,7 +3139,7 @@ void PostOrder_w (arbre *tree, node *v, edge *v_e, node *w, edge *e)
 /* Below are my functions for SPR search (Stephane Guindon, 2007) */
 
 
-void Randomize_Spr_List(arbre *tree)
+void Randomize_Spr_List(t_tree *tree)
 {
   int i,j;
   spr *buff;
@@ -3155,11 +3155,11 @@ void Randomize_Spr_List(arbre *tree)
 
 /*********************************************************/
 
-int Spr(phydbl init_lnL, arbre *tree)
+int Spr(phydbl init_lnL, t_tree *tree)
 {
   int br;
   int pars_diff, max_pars_diff, new_pars, old_pars;
-  edge *b;
+  t_edge *b;
 
   tree->both_sides = 1;
   pars_diff        = -1;
@@ -3195,12 +3195,12 @@ int Spr(phydbl init_lnL, arbre *tree)
 
 /*********************************************************/
 
-void Spr_Subtree(edge *b, node *link, arbre *tree) 
+void Spr_Subtree(t_edge *b, t_node *link, t_tree *tree) 
 {
   int i;
   int n_moves_pars, n_moves, curr_pars, min_pars, best_move;
   spr *best_pars_move;
-  edge *target, *residual;
+  t_edge *target, *residual;
   int ret_val;
 
   best_move     = -1;
@@ -3284,10 +3284,10 @@ void Spr_Subtree(edge *b, node *link, arbre *tree)
 
 /*********************************************************/
 
-int Test_All_Spr_Targets(edge *b_pulled, node *n_link, arbre *tree)
+int Test_All_Spr_Targets(t_edge *b_pulled, t_node *n_link, t_tree *tree)
 {
-  node *n_opp_to_link,*n_v1,*n_v2,*n_up;
-  edge *b_target,*b_residual;
+  t_node *n_opp_to_link,*n_v1,*n_v2,*n_up;
+  t_edge *b_target,*b_residual;
   int i,dir1,dir2;
   phydbl init_len_v1, init_len_v2, init_len_pulled;
   int best_found,approx;
@@ -3391,7 +3391,7 @@ int Test_All_Spr_Targets(edge *b_pulled, node *n_link, arbre *tree)
 
 /*********************************************************/
 
-void Test_One_Spr_Target_Recur(node *a, node *d, edge *pulled, node *link, edge *residual, int *best_found, arbre *tree)
+void Test_One_Spr_Target_Recur(t_node *a, t_node *d, t_edge *pulled, t_node *link, t_edge *residual, int *best_found, t_tree *tree)
 {
   int i;
 
@@ -3430,12 +3430,12 @@ void Test_One_Spr_Target_Recur(node *a, node *d, edge *pulled, node *link, edge 
 
 /*********************************************************/
 
-phydbl Test_One_Spr_Target(edge *b_target, edge *b_arrow, node *n_link, edge *b_residual, arbre *tree)
+phydbl Test_One_Spr_Target(t_edge *b_target, t_edge *b_arrow, t_node *n_link, t_edge *b_residual, t_tree *tree)
 {
   phydbl init_target_len, init_arrow_len, init_residual_len;
   int i,dir_v0,dir_v1,dir_v2;
   phydbl l0,l1,l2;
-  node *v1, *v2;
+  t_node *v1, *v2;
   phydbl init_lnL, move_lnL;
   int init_pars,move_pars;
   int approx;
@@ -3524,7 +3524,7 @@ phydbl Test_One_Spr_Target(edge *b_target, edge *b_arrow, node *n_link, edge *b_
 
 /*********************************************************/
 
-void Speed_Spr_Loop(arbre *tree)
+void Speed_Spr_Loop(t_tree *tree)
 {
   phydbl lk_old;
   int init_thresh;
@@ -3594,7 +3594,7 @@ void Speed_Spr_Loop(arbre *tree)
 }
 /*********************************************************/
 
-void Speed_Spr(arbre *tree, int max_cycles)
+void Speed_Spr(t_tree *tree, int max_cycles)
 {
   int step,old_pars;
   phydbl old_lnL;
@@ -3670,7 +3670,7 @@ void Speed_Spr(arbre *tree, int max_cycles)
 	  if(tree->c_lnL < old_lnL-tree->mod->s_opt->min_diff_lk_local)
 	    {
 	      PhyML_Printf("\n. old_lnL = %f c_lnL = %f",old_lnL,tree->c_lnL); 
-	      PhyML_Printf("\n. Err in file %s at line %d",__FILE__,__LINE__);
+	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
 	      Warn_And_Exit("");
 	    }
 	}
@@ -3679,7 +3679,7 @@ void Speed_Spr(arbre *tree, int max_cycles)
 	  if(tree->c_pars > old_pars)
 	    {
 	      PhyML_Printf("\n. old_pars = %d c_pars = %d",old_pars,tree->c_pars); 
-	      PhyML_Printf("\n. Err in file %s at line %d",__FILE__,__LINE__);
+	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
 	      Warn_And_Exit("");	    
 	    }
 	}
@@ -3698,10 +3698,10 @@ void Speed_Spr(arbre *tree, int max_cycles)
 
 /*********************************************************/
 
-int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, arbre *tree)
+int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, t_tree *tree)
 {
   spr *move;
-  edge *init_target, *b_residual;
+  t_edge *init_target, *b_residual;
   int i,j,best_move;
   int dir_v0, dir_v1, dir_v2;
   phydbl recorded_l;
@@ -3737,7 +3737,7 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, arbre *tr
       if(move->b_target)
 	{
 
-	  /* Record edge lengths */
+	  /* Record t_edge lengths */
 	  Record_Br_Len(NULL,tree);
 
 	  /* Prune subtree */
@@ -3810,7 +3810,7 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, arbre *tr
 	  delta_lnL = 0.0;
 	  if((move->lnL < best_lnL) && (move->lnL > best_lnL - tree->mod->s_opt->max_delta_lnL_spr))
 	    {
-	      /* Estimate the three edge lengths at the regraft site */	      
+	      /* Estimate the three t_edge lengths at the regraft site */	      
 	      delta_lnL = Triple_Dist(move->n_link,tree,0) - move->lnL;
 	      move->lnL += delta_lnL;
 	    }
@@ -3920,9 +3920,9 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, arbre *tr
 
 /*********************************************************/
 
-int Try_One_Spr_Move_Triple(spr *move, arbre *tree)
+int Try_One_Spr_Move_Triple(spr *move, t_tree *tree)
 {
-  edge *init_target, *b_residual;
+  t_edge *init_target, *b_residual;
   int j;
   int dir_v0, dir_v1, dir_v2;
 
@@ -3971,7 +3971,7 @@ int Try_One_Spr_Move_Triple(spr *move, arbre *tree)
 	{
 	  if(tree->mod->s_opt->print) PhyML_Printf("\n. c_lnL = %f move_lnL = %f",
 						   tree->c_lnL,move->lnL);
-	  PhyML_Printf("\n. Err in file %s at line %d",__FILE__,__LINE__);
+	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
 	  Warn_And_Exit("");
 	}
 
@@ -4011,9 +4011,9 @@ int Try_One_Spr_Move_Triple(spr *move, arbre *tree)
 
 /*********************************************************/
 
-int Try_One_Spr_Move_Full(spr *move, arbre *tree)
+int Try_One_Spr_Move_Full(spr *move, t_tree *tree)
 {
-  edge *init_target, *b_residual;
+  t_edge *init_target, *b_residual;
 
   Record_Br_Len(NULL,tree);
 
@@ -4071,7 +4071,7 @@ int Try_One_Spr_Move_Full(spr *move, arbre *tree)
 
 /*********************************************************/
 
-void Include_One_Spr_To_List_Of_Spr(spr *move, arbre *tree)
+void Include_One_Spr_To_List_Of_Spr(spr *move, t_tree *tree)
 {
   int i;
   spr *buff_spr;
@@ -4110,12 +4110,12 @@ void Include_One_Spr_To_List_Of_Spr(spr *move, arbre *tree)
 
 /*********************************************************/
 
-void Random_Spr(int n_moves, arbre *tree)
+void Random_Spr(int n_moves, t_tree *tree)
 {
   int i;
   int br_pulled, br_target;
   spr *spr_struct;
-  edge *target, *residual;
+  t_edge *target, *residual;
 
   spr_struct = Make_One_Spr(tree);
   Init_One_Spr(spr_struct);
@@ -4162,7 +4162,7 @@ void Random_Spr(int n_moves, arbre *tree)
 
 /*********************************************************/
 
-void Reset_Spr_List(arbre *tree)
+void Reset_Spr_List(t_tree *tree)
 {
   int i;
 
@@ -4179,7 +4179,7 @@ void Reset_Spr_List(arbre *tree)
 
 /*********************************************************/
 
-int Check_Spr_Move_Validity(spr *this_spr_move, arbre *tree)
+int Check_Spr_Move_Validity(spr *this_spr_move, t_tree *tree)
 {
   int match;
 
@@ -4196,7 +4196,7 @@ int Check_Spr_Move_Validity(spr *this_spr_move, arbre *tree)
 
 /*********************************************************/
 
-void Make_Best_Spr(arbre *tree)
+void Make_Best_Spr(t_tree *tree)
 {
   tree->best_spr = Make_One_Spr(tree);
   Init_One_Spr(tree->best_spr);
@@ -4204,7 +4204,7 @@ void Make_Best_Spr(arbre *tree)
 
 /*********************************************************/
 
-void Make_Spr_List(arbre *tree)
+void Make_Spr_List(t_tree *tree)
 {
   int i;
 
@@ -4240,17 +4240,17 @@ void Init_One_Spr(spr *a_spr)
 
 /*********************************************************/
 
-spr *Make_One_Spr(arbre *tree)
+spr *Make_One_Spr(t_tree *tree)
 {
   spr *a_spr;
   a_spr       = (spr *)mCalloc(1,sizeof(spr));
-  a_spr->path = (node **)mCalloc(tree->n_otu,sizeof(node *));
+  a_spr->path = (t_node **)mCalloc(tree->n_otu,sizeof(t_node *));
   return a_spr;
 }
 
 /*********************************************************/
 
-void Spr_Pars(arbre *tree)
+void Spr_Pars(t_tree *tree)
 {
 
   PhyML_Printf("\n. Minimizing parsimony...\n");

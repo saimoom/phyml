@@ -301,7 +301,7 @@ void PMat_Empirical(phydbl l, model *mod, int pos, double *Pij)
 		}
 	    }
 	  PhyML_Printf("\n. l=%f",l);
-	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
 	  Warn_And_Exit("");
 	}
 #endif
@@ -335,7 +335,7 @@ void PMat_Gamma(phydbl l, model *mod, int pos, double *Pij)
   
   if(shape < 1.E-10) 
     {
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
@@ -391,7 +391,7 @@ void PMat_Gamma(phydbl l, model *mod, int pos, double *Pij)
 		}
 	    }
 	  PhyML_Printf("\n. l=%f",l);
-	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
 	  Warn_And_Exit("");
 	}
 #endif
@@ -2456,7 +2456,7 @@ void Update_Qmat_Generic(double *rr, double *pi, int ns, double *qmat)
   
   if(rr[(int)(ns*(ns-1)/2)-1] < 0.00001) 
     {
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 

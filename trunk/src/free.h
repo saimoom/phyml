@@ -16,36 +16,36 @@ the GNU public licence.  See http://www.opensource.org for details.
 #include "utilities.h"
 
 
-void Free_All_Nodes_Light(arbre *tree);
-void Free_All_Edges_Light(arbre *tree);
+void Free_All_Nodes_Light(t_tree *tree);
+void Free_All_Edges_Light(t_tree *tree);
 void Free_Mat(matrix *mat);
 void Free_Partial_Lk(phydbl *p_lk, int len, int n_catg);
-void Free_Tree(arbre *tree);
-void Free_Edge(edge *b);
-void Free_Node(node *n);
+void Free_Tree(t_tree *tree);
+void Free_Edge(t_edge *b);
+void Free_Node(t_node *n);
 void Free_Cseq(calign *cdata);
 void Free_Seq(align **d, int n_otu);
-void Free_All(align **d, calign *cdata, arbre *tree);
-void Free_SubTree(edge *b_fcus, node *a, node *d, arbre *tree);
-void Free_Tree_Ins_Tar(arbre *tree);
-void Free_Tree_Lk(arbre *tree);
-void Free_NNI(arbre *tree);
-void Free_Edge_P_Lk_Struct(edge *b, arbre *tree);
-void Free_Node_Lk(node *n);
-void Free_Edge_Lk(arbre *tree, edge *b);
+void Free_All(align **d, calign *cdata, t_tree *tree);
+void Free_SubTree(t_edge *b_fcus, t_node *a, t_node *d, t_tree *tree);
+void Free_Tree_Ins_Tar(t_tree *tree);
+void Free_Tree_Lk(t_tree *tree);
+void Free_NNI(t_tree *tree);
+void Free_Edge_P_Lk_Struct(t_edge *b, t_tree *tree);
+void Free_Node_Lk(t_node *n);
+void Free_Edge_Lk(t_tree *tree, t_edge *b);
 void Free_Model(model *mod);
 void Free(void *p);
 void Free_Input(option *input);
-void Free_Reachable(arbre *tree);
-void Free_St(superarbre *st);
+void Free_Reachable(t_tree *tree);
+void Free_St(supert_tree *st);
 void Free_Eigen(eigen *eigen_struct);
 void Free_Triplet(triplet *t);
-void Free_Tree_Pars(arbre *tree);
-void Free_Edge_Pars(edge *b, arbre *tree);
+void Free_Tree_Pars(t_tree *tree);
+void Free_Edge_Pars(t_edge *b, t_tree *tree);
 void Free_One_Spr(spr *this_spr);
-void Free_Spr_List(arbre *tree);
+void Free_Spr_List(t_tree *tree);
 void Free_Actual_CSeq(calign *data);
 void Free_Prefix_Tree(pnode *n, int size);
 void Free_Pnode(pnode *n);
-void Free_Edge_Labels(edge *b);
+void Free_Edge_Labels(t_edge *b);
 #endif

@@ -49,7 +49,7 @@ void Launch_Interface(option *io)
 	  }
 	default :
 	  {
-	    PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	    PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
 	    Exit("");
 	    break;
 	  }
@@ -1786,7 +1786,7 @@ void Launch_Interface_Multigene(option *io)
       char choix;
       
       io->n_part     = io->n_data_sets;
-      io->st       = (superarbre *)PART_Make_Superarbre_Light(io);
+      io->st       = (supert_tree *)PART_Make_Supert_tree_Light(io);
       io->st->n_part = io->n_data_sets;
 
       For(set,io->n_part)
@@ -1857,7 +1857,7 @@ void Launch_Interface_Multigene(option *io)
 		  }
 		default : 
 		  {
-		    PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+		    PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
 		    Exit("");
 		    break;		  
 		  }

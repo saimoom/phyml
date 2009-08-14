@@ -29,7 +29,7 @@ Authors : Jean-Francois Dufayard & Stephane Guindon.
 * param tree : the tree to check
 */
 
-int Check_NNI_Five_Branches(arbre *tree)
+int Check_NNI_Five_Branches(t_tree *tree)
 {
   int best_edge;
   phydbl best_gain;
@@ -129,7 +129,7 @@ int Check_NNI_Five_Branches(arbre *tree)
       if((tree->c_lnL < init_lnL - tree->mod->s_opt->min_diff_lk_local) || (tree->c_lnL > init_lnL + tree->mod->s_opt->min_diff_lk_local))
 	{
 	  PhyML_Printf("\n\n. tree->c_lnL = %f init_lnL = %f.",tree->c_lnL,init_lnL);
-	  PhyML_Printf("\n. Err in file %s at line %d.\n",__FILE__,__LINE__);
+	  PhyML_Printf("\n. Err in file %s at line %d\n\n.\n",__FILE__,__LINE__);
 	  Warn_And_Exit("\n");
 	}
 
@@ -146,7 +146,7 @@ int Check_NNI_Five_Branches(arbre *tree)
 	  if(tree->c_lnL < init_lnL)
 	    {
 	      PhyML_Printf("\n\n. tree->c_lnL = %f init_lnL = %f.",tree->c_lnL,init_lnL);
-	      PhyML_Printf("\n. Err in file %s at line %d.\n",__FILE__,__LINE__);
+	      PhyML_Printf("\n. Err in file %s at line %d\n\n.\n",__FILE__,__LINE__);
 	      Warn_And_Exit("\n");
 	    }
 
@@ -160,7 +160,7 @@ int Check_NNI_Five_Branches(arbre *tree)
 /*********************************************************/
 
 /* Compute aLRT supports */
-void aLRT(arbre *tree)
+void aLRT(t_tree *tree)
 {
   int i;
   
@@ -193,12 +193,12 @@ void aLRT(arbre *tree)
 * analyse the result
 * and convert supports as wished by the user.
 * param tree : the tree to check
-* param tested_edge : the tested edge of the tree
+* param tested_t_edge : the tested t_edge of the tree
 * param old_loglk : the initial likelihood, before any aLRT analysis
 * param isBoot : 1 if used from the Bootstrap procedure, 0 if not
 * return an integer, informative to analyse the results and potential NNIs to do
 */
-int Compute_Likelihood_Ratio_Test(edge *tested_edge, arbre *tree)
+int Compute_Likelihood_Ratio_Test(t_edge *tested_edge, t_tree *tree)
 {
   int result=0;
 
@@ -276,16 +276,16 @@ int Compute_Likelihood_Ratio_Test(edge *tested_edge, arbre *tree)
 /*
 * Test the 3 NNI positions for one branch.
 * param tree : the tree to check
-* param tested_edge : the tested edge of the tree
+* param tested_t_edge : the tested t_edge of the tree
 * param old_loglk : the initial likelihood, before any aLRT analysis
 * param isBoot : 1 if used from the Bootstrap procedure, 0 if not
 */
-int NNI_Neigh_BL(edge *b_fcus, arbre *tree)
+int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
 {
   int n_patterns;
   int l_r, r_l, l_v1, l_v2, r_v3, r_v4, site;
-  node *v1,*v2,*v3,*v4;
-  edge *e1,*e2,*e3,*e4;
+  t_node *v1,*v2,*v3,*v4;
+  t_edge *e1,*e2,*e3,*e4;
   phydbl len_e1,len_e2,len_e3,len_e4;
   phydbl lk0, lk1, lk2;
   phydbl bl_init;
@@ -321,12 +321,12 @@ int NNI_Neigh_BL(edge *b_fcus, arbre *tree)
 
   if(v1->num < v2->num)
     {
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
   if(v3->num < v4->num)
     {
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
@@ -397,7 +397,7 @@ int NNI_Neigh_BL(edge *b_fcus, arbre *tree)
       if(lk_temp < lk0 - tree->mod->s_opt->min_diff_lk_local)
 	{
 	  PhyML_Printf("\n. lk_temp = %f lk0 = %f\n",lk_temp,lk0);
-	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
 	  Warn_And_Exit("");
 	}
     }
@@ -498,7 +498,7 @@ int NNI_Neigh_BL(edge *b_fcus, arbre *tree)
       if(lk_temp < lk1 - tree->mod->s_opt->min_diff_lk_local)
 	{
 	  PhyML_Printf("\n. lk_temp = %f lk1 = %f\n",lk_temp,lk1);
-	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
 	  Warn_And_Exit("");
 	}
     }
@@ -605,7 +605,7 @@ int NNI_Neigh_BL(edge *b_fcus, arbre *tree)
       if(lk_temp < lk2 - tree->mod->s_opt->min_diff_lk_local)
 	{
 	  PhyML_Printf("\n. lk_temp = %f lk2 = %f\n",lk_temp,lk2);
-	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
 	  Warn_And_Exit("");
 	}
     }
@@ -663,7 +663,7 @@ int NNI_Neigh_BL(edge *b_fcus, arbre *tree)
   if((lk_temp > lk_init + tree->mod->s_opt->min_diff_lk_local) || (lk_temp < lk_init - tree->mod->s_opt->min_diff_lk_local))
     {
       PhyML_Printf("\n. lk_temp = %f lk_init = %f\n",lk_temp,lk_init);
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
@@ -710,15 +710,15 @@ int NNI_Neigh_BL(edge *b_fcus, arbre *tree)
 /*
 * Make one target swap, optimizing five branches.
 * param tree : the tree to check
-* param tested_edge : the swaping edge of the tree
+* param tested_t_edge : the swaping t_edge of the tree
 * param swapToDo : 1 or 2, to select the first or the second swap to do
 */
 
-void Make_Target_Swap(arbre *tree, edge *b_fcus, int swaptodo)
+void Make_Target_Swap(t_tree *tree, t_edge *b_fcus, int swaptodo)
 {
   int l_r, r_l, l_v1, l_v2, r_v3, r_v4;
-  node *v1,*v2,*v3,*v4;
-  edge *e1,*e2,*e3,*e4;
+  t_node *v1,*v2,*v3,*v4;
+  t_edge *e1,*e2,*e3,*e4;
   phydbl lktodo;
   phydbl bl_init;
   phydbl l_infa, l_infb, l_max;
@@ -727,7 +727,7 @@ void Make_Target_Swap(arbre *tree, edge *b_fcus, int swaptodo)
 
   if(swaptodo < 0)
     {
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
@@ -752,12 +752,12 @@ void Make_Target_Swap(arbre *tree, edge *b_fcus, int swaptodo)
 
   if(v1->num < v2->num)
     {
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
   if(v3->num < v4->num)
     {
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
@@ -843,7 +843,7 @@ void Make_Target_Swap(arbre *tree, edge *b_fcus, int swaptodo)
       if(lk_temp < lktodo - tree->mod->s_opt->min_diff_lk_local)
 	{
 	  PhyML_Printf("\n. Edge %3d lk_temp = %f lktodo = %f\n",b_fcus->num,lk_temp,lktodo);
-	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
 	  Warn_And_Exit("");
 	}
     }
@@ -865,7 +865,7 @@ void Make_Target_Swap(arbre *tree, edge *b_fcus, int swaptodo)
       PhyML_Printf("\n. [%3d] v1=%d v2=%d v3=%d v4=%d",
 	     b_fcus->num,v1->num,v2->num,v3->num,v4->num);
       PhyML_Printf("\n. tree->c_lnL = %f lk_init = %f\n",tree->c_lnL,lk_init);
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
@@ -1048,7 +1048,7 @@ phydbl Statistics_To_Probabilities(phydbl in)
 * Compute a RELL support, using the latest tested branch
 * param tree: the tested tree
 */
-phydbl Statistics_to_RELL(arbre *tree)
+phydbl Statistics_to_RELL(t_tree *tree)
 {
   int i;
   int occurence=1000;
@@ -1093,7 +1093,7 @@ phydbl Statistics_to_RELL(arbre *tree)
 * Compute a SH-like support, using the latest tested branch
 * param tree: the tested tree
 */
-phydbl Statistics_To_SH(arbre *tree)
+phydbl Statistics_To_SH(t_tree *tree)
 {
   int i;
   int occurence=1000;
@@ -1233,7 +1233,7 @@ phydbl Statistics_To_SH(arbre *tree)
 * param tree : b_fcus tree
 * param exclude :  side to exclude for computation
 */
-phydbl Update_Lk_At_Given_Edge_Excluding(edge *b_fcus, arbre *tree, node *exclude)
+phydbl Update_Lk_At_Given_Edge_Excluding(t_edge *b_fcus, t_tree *tree, t_node *exclude)
 {
   if((!b_fcus->left->tax) && (exclude == NULL || exclude != b_fcus->left))
     Update_P_Lk(tree,b_fcus,b_fcus->left);

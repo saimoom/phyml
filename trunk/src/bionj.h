@@ -34,7 +34,7 @@ void   Update_Mat(matrix *mat, int x, int y,
 		  phydbl lx, phydbl ly, phydbl vxy, phydbl lamda);
 phydbl Dist_Red(matrix *mat, int x, phydbl lx, int y, 
 		phydbl ly, int i, phydbl lamda);
-int    Bionj_Br_Length_Post(node *a, node *d, matrix *mat);
+int    Bionj_Br_Length_Post(t_node *a, t_node *d, matrix *mat);
 void   Bionj_Br_Length(matrix *mat);
 
 #endif

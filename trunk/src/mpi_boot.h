@@ -30,7 +30,7 @@ the GNU public licence. See http://www.opensource.org for details.
 int Global_numTask, Global_myRank;
 
 
-void Bootstrap_MPI(arbre *tree);
-void Print_Fp_Out_Lines_MPI(arbre *tree, option *io, int n_data_set, char *bootStr);
+void Bootstrap_MPI(t_tree *tree);
+void Print_Fp_Out_Lines_MPI(t_tree *tree, option *io, int n_data_set, char *bootStr);
 
 #endif  // MPI

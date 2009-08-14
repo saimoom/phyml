@@ -34,28 +34,28 @@ the GNU public licence. See http://www.opensource.org for details.
 #include <unistd.h>
 #include <stdio.h>
 
-void MC_Least_Square_Node_Times_Pre(node *a, node *d, phydbl *A, phydbl *b, int n, arbre *tree);
+void MC_Least_Square_Node_Times_Pre(t_node *a, t_node *d, phydbl *A, phydbl *b, int n, t_tree *tree);
 int  MC_main(int argc, char **argv);
-void MC_Bl_From_T_Post(node *a, node *d, edge *b, arbre *tree);
-void MC_Bl_From_T(arbre *tree);
-void MC_Optimize_Node_Times_Serie(node *a, node *d, arbre *tree);
-void MC_Round_Optimize(arbre *tree);
-void MC_Print_Node_Times(node *a, node *d, arbre *tree);
-edge *MC_Find_Best_Root_Position(arbre *tree);
-void MC_Least_Square_Node_Times(edge *e_root, arbre *tree);
-void MC_Mult_Time_Stamps(arbre *tree);
-void MC_Div_Time_Stamps(arbre *tree);
-void MC_Optimize_Tree_Height(arbre *tree);
-void MC_Adjust_Node_Times(arbre *tree);
-void MC_Adjust_Node_Times_Pre(node *a, node *d, arbre *tree);
-void MC_Optimize_Root_Height(arbre *tree);
-void MC_Estimate_Branch_Rates(arbre *tree);
-edge *MC_Find_Best_Root_Position_Approx(arbre *tree);
-void MC_Estimate_Branch_Rate_Parameter(arbre *tree);
-phydbl MC_Classify_Branch_In_Rate_Class(arbre *tree);
-void MC_Compute_Rates_And_Times_Least_Square_Adjustments(arbre *tree);
-void MC_Compute_Rates_And_Times_Least_Square_Adjustments_Post(node *a, node *d, edge *b, arbre *tree);
-void MC_Classify_Branch_Rates(arbre *tree);
-int MC_Check_MC(arbre *tree);
+void MC_Bl_From_T_Post(t_node *a, t_node *d, t_edge *b, t_tree *tree);
+void MC_Bl_From_T(t_tree *tree);
+void MC_Optimize_Node_Times_Serie(t_node *a, t_node *d, t_tree *tree);
+void MC_Round_Optimize(t_tree *tree);
+void MC_Print_Node_Times(t_node *a, t_node *d, t_tree *tree);
+t_edge *MC_Find_Best_Root_Position(t_tree *tree);
+void MC_Least_Square_Node_Times(t_edge *e_root, t_tree *tree);
+void MC_Mult_Time_Stamps(t_tree *tree);
+void MC_Div_Time_Stamps(t_tree *tree);
+void MC_Optimize_Tree_Height(t_tree *tree);
+void MC_Adjust_Node_Times(t_tree *tree);
+void MC_Adjust_Node_Times_Pre(t_node *a, t_node *d, t_tree *tree);
+void MC_Optimize_Root_Height(t_tree *tree);
+void MC_Estimate_Branch_Rates(t_tree *tree);
+t_edge *MC_Find_Best_Root_Position_Approx(t_tree *tree);
+void MC_Estimate_Branch_Rate_Parameter(t_tree *tree);
+phydbl MC_Classify_Branch_In_Rate_Class(t_tree *tree);
+void MC_Compute_Rates_And_Times_Least_Square_Adjustments(t_tree *tree);
+void MC_Compute_Rates_And_Times_Least_Square_Adjustments_Post(t_node *a, t_node *d, t_edge *b, t_tree *tree);
+void MC_Classify_Branch_Rates(t_tree *tree);
+int MC_Check_MC(t_tree *tree);
 
 #endif
