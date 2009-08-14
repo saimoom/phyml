@@ -234,7 +234,6 @@ void Init_Tips_At_One_Site_Generic_Int(char *state, int ns, int pos, short int *
   if(state[0] == 'X') For(i,ns) p_pars[pos+i] = 1;
   else 
     {
-      state[10] = '\0';
       printf("%s\n",state);
       if(!sscanf(state,"%1d",&state_int))
 	{
