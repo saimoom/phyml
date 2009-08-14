@@ -4046,7 +4046,7 @@ calign *Copy_Cseq(calign *ori, int len, int ns)
       strcpy(sp_names[i],ori->c_seq[i]->name);
     }
 
-  new = Make_Cseq(n_otu,len,ori->init_len+1,sp_names);
+  new = Make_Cseq(n_otu,len+1,ori->init_len,sp_names);
 
   new->obs_pinvar = ori->obs_pinvar;
 
