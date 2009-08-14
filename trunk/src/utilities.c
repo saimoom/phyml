@@ -2159,6 +2159,8 @@ calign *Compact_Data(align **data, option *io)
 	}
     }
   
+  
+
   data[0]->len -= n_ambigu;
   
   cdata_tmp->init_len                   = data[0]->len;
@@ -2198,6 +2200,8 @@ calign *Compact_Data(align **data, option *io)
 
   cdata = Copy_Cseq(cdata_tmp, cdata_tmp->crunch_len, io->mod->ns);
 
+  For(i,n_otu) cdata->c_seq[i]->state[cdata->crunch_len] = '\0';
+  
   Free_Cseq(cdata_tmp);
   Free_Prefix_Tree(proot,T_MAX_ALPHABET);
 
