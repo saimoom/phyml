@@ -5090,7 +5090,7 @@ int Assign_State_With_Ambiguity(char *c, int datatype, int stepsize)
 	    case 'D' : {state[i]=11;  break;}
 	    case 'H' : {state[i]=12;  break;}
 	    case 'V' : {state[i]=13;  break;}
-	    case 'N' : case 'X' : case '?' : case 'O' : case '-' : {state[i]=14;  break;}
+	    case 'N' : case 'X' : case '?' : case 'O' : case '-' : {state[i]=T_MAX_ALPHABET-1;  break;}
 	    default :
 	      {
 		PhyML_Printf("\n. Unknown character state : '%c'\n",c[i]);
@@ -5127,7 +5127,7 @@ int Assign_State_With_Ambiguity(char *c, int datatype, int stepsize)
 	case 'V' : {state[0]=19; break;}
 	case 'B' : {state[0]= 2; break;}
 	case 'Z' : {state[0]= 5; break;}
-	case 'X' : case '?' : case '-' : {state[0]=20; break;}
+	case 'X' : case '?' : case '-' : {state[0]=T_MAX_ALPHABET-1; break;}
 	default  : 
 	  {
 	    PhyML_Printf("\n. Unknown character state : %c\n",state[0]);
@@ -5139,7 +5139,7 @@ int Assign_State_With_Ambiguity(char *c, int datatype, int stepsize)
     }
   else if(datatype == INTEGERS)
     {
-      if(c[0] == 'X' || c[0] == '?' || c[0] == '-') state[0] = -1;
+      if(c[0] == 'X' || c[0] == '?' || c[0] == '-') state[0] = T_MAX_ALPHABET-1;
       else
 	{
 	  if(!sscanf(c,"%1d",state))
