@@ -661,7 +661,6 @@ typedef struct __Option { /* mostly used in 'help.c' */
   int                     ratio_test; /* from 1 to 4 for specific branch supports, 0 of not */
   int                    ready_to_go;
   int                    data_format; /* Data format: Phylip or Nexus */
-  int                       char_len; /* Number of characters to define a state (e.g., 1 for nucleotide or aa, 3 for codons) */
 
   int                 curr_interface;
   int                         r_seed; /* random seed */
