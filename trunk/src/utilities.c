@@ -2200,7 +2200,6 @@ calign *Compact_Data(align **data, option *io)
 
   cdata = Copy_Cseq(cdata_tmp, cdata_tmp->crunch_len, io->mod->ns);
 
-  For(i,n_otu) cdata->c_seq[i]->state[cdata->crunch_len] = '\0';
   
   Free_Cseq(cdata_tmp);
   Free_Prefix_Tree(proot,T_MAX_ALPHABET);
@@ -4070,6 +4069,8 @@ calign *Copy_Cseq(calign *ori, int len, int ns)
       new->c_seq[i]->len = ori->c_seq[i]->len;
       strcpy(new->c_seq[i]->name,ori->c_seq[i]->name);
     }
+
+  For(i,ori->n_otu) new->c_seq[i]->state[len] = '\0';
 
   new->init_len           = ori->init_len;
   new->clean_len          = ori->clean_len;
