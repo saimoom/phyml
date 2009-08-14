@@ -415,8 +415,15 @@ void M4_Init_Model(m4 *m4mod, calign *data, model *mod int datatype)
   int i;
   phydbl fq;
 
-  
-  m4mod->n_o = (datatype == NT)?(4):(20);
+  if(datatype == NT)      m4mod->n_o = 4;
+  else if(datatype == AA) m4mod->n_o = 20;
+  else 
+    {
+      PhyML_Printf("\n. Not implemented yet.");
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+
   mod->ns = m4mod->n_o * m4mod->n_h;
   For(i,m4mod->n_o) m4mod->o_fq[i] = data->b_frq[i];
   For(i,(int)(m4mod->n_h)) m4mod->multipl[i] = 1.;
@@ -1159,7 +1166,7 @@ void M4_Site_Branch_Classification_Experiment(t_tree *tree)
   phydbl **best_probs;
   int i,j;
   phydbl correct_class, mis_class, unknown;
-
+  int ns;
 
   true_rclass = (short int **)mCalloc(tree->data->init_len, sizeof(short int *));
   est_rclass  = (short int **)mCalloc(tree->data->init_len, sizeof(short int *));
@@ -1172,9 +1179,16 @@ void M4_Site_Branch_Classification_Experiment(t_tree *tree)
 
   ori_data = tree->data;
 
-  cpy_data = Copy_Cseq(tree->data,
-		       tree->data->init_len,
-		       (tree->mod->io->datatype == NT)?(4):(20));
+  if(tree->io->datatype == NT)      ns = 4;
+  else if(tree->io->datatype == AA) ns = 20;
+  else
+    {
+      PhyML_Printf("\n. Not implemented yet.");
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+  
+  cpy_data = Copy_Cseq(tree->data,tree->data->init_len,ns);
 
   /* Generate a simulated data set under H0, with the right sequence length. */
   PhyML_Printf("\n. Evolving sequences (delta=%f, alpha=%f) ...\n",tree->mod->m4mod->delta,tree->mod->m4mod->alpha);
@@ -1363,7 +1377,7 @@ void M4_Detect_Site_Switches_Experiment(t_tree *tree)
 {
   model *nocov_mod,*cov_mod,*ori_mod;
   calign *ori_data,*cpy_data;
-  int i,n_iter;
+  int i,n_iter,ns;
   phydbl *nocov_bl,*cov_bl;
   phydbl *site_lnl_nocov, *site_lnl_cov;
 
@@ -1374,9 +1388,17 @@ void M4_Detect_Site_Switches_Experiment(t_tree *tree)
 
   ori_data = tree->data;
   ori_mod  = tree->mod;
-  cpy_data = Copy_Cseq(tree->data,
-		       tree->data->init_len,
-		       (tree->mod->io->datatype == NT)?(4):(20));
+
+  if(tree->io->datatype == NT)      ns = 4;
+  else if(tree->io->datatype == AA) ns = 20;
+  else
+    {
+      PhyML_Printf("\n. Not implemented yet.");
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+
+  cpy_data = Copy_Cseq(tree->data,tree->data->init_len,ns);
 
   PhyML_Printf("\n. Estimate model parameters under non-switching substitution model.\n");
   Switch_From_M4mod_To_Mod(tree->mod);
@@ -1490,7 +1512,7 @@ void M4_Posterior_Prediction_Experiment(t_tree *tree)
 {
   model *ori_mod;
   calign *ori_data,*cpy_data;
-  int i,n_iter,n_simul;
+  int i,n_iter,n_simul,ns;
   FILE *fp_nocov,*fp_cov,*fp_obs;
   char *s;
   t_edge *best_edge;
@@ -1513,9 +1535,16 @@ void M4_Posterior_Prediction_Experiment(t_tree *tree)
   ori_data = tree->data;
   ori_mod  = tree->mod;
 
-  cpy_data = Copy_Cseq(tree->data,
-		       tree->data->init_len,
-		       (tree->mod->io->datatype == NT)?(4):(20));
+  if(tree->io->datatype == NT)      ns = 4;
+  else if(tree->io->datatype == AA) ns = 20;
+  else
+    {
+      PhyML_Printf("\n. Not implemented yet.");
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+
+  cpy_data = Copy_Cseq(tree->data,tree->data->init_len,ns);
 
   /* Generate a simulated data set under H0, with the right sequence length. */
   Set_Model_Parameters(tree->mod);
@@ -1629,8 +1658,19 @@ m4 *M4_Copy_M4_Model(model *ori_mod, m4 *ori_m4mod)
 {
   int i,j,n_h, n_o;
   m4 *cpy_m4mod;
+  int ns;
+  
+  if(ori_mod->io->datatype == NT)      ns = 4;
+  else if(ori_mod->io->datatype == AA) ns = 20;
+  else
+    {
+      PhyML_Printf("\n. Not implemented yet.");
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
 
-  cpy_m4mod = (m4 *)M4_Make_Light((ori_mod->io->datatype == NT)?(4):(20));
+
+  cpy_m4mod = (m4 *)M4_Make_Light(ns);
   cpy_m4mod->n_h = ori_m4mod->n_h;
 
   M4_Make_Complete(cpy_m4mod->n_h,

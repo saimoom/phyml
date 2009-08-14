@@ -53,8 +53,8 @@ phydbl Lk_Triplet(t_node *a, t_node *d, t_tree *tree);
 void Print_Lk_Given_Edge_Recurr(t_node *a, t_node *d, t_edge *b, t_tree *tree);
 phydbl *Post_Prob_Rates_At_Given_Edge(t_edge *b, phydbl *post_prob, t_tree *tree);
 phydbl Lk_With_MAP_Branch_Rates(t_tree *tree);
-void Init_Tips_At_One_Site_Generic_Int(char *state, int state_size, int ns, int pos, short int *p_pars);
-void Init_Tips_At_One_Site_Generic_Float(char *state, int state_size, int ns, int pos, plkflt *p_lk);
+void Init_Tips_At_One_Site_Generic_Int(char *state, int ns, int pos, short int *p_pars);
+void Init_Tips_At_One_Site_Generic_Float(char *state, int ns, int pos, plkflt *p_lk);
 
 
 

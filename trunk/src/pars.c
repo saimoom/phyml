@@ -125,21 +125,34 @@ void Init_P_Pars_Tips(t_tree *tree)
     {
       For(i,tree->n_otu)
 	{
+	  if(tree->noeud[i]->b[0]->rght->tax != 1)
+	    {
+	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	      Warn_And_Exit("\n");	    
+	    }
+
 	  if(tree->io->datatype == NT)
 	    {
-	      if(tree->noeud[i]->b[0]->rght->tax != 1)
-		{
-		  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-		  Warn_And_Exit("\n");	    
-		}
-
-	      Init_Tips_At_One_Site_Nucleotides_Int(tree->data->c_seq[i]->state[curr_site],0,state_v);	      
+	      Init_Tips_At_One_Site_Nucleotides_Int(tree->data->c_seq[i]->state[curr_site],
+						    0,
+						    state_v);	      
 	      For(j,tree->mod->ns) tree->noeud[i]->b[0]->p_pars_r[curr_site*dim1+j] = MAX_PARS;
 	      For(j,tree->mod->ns) if(state_v[j] > 0.5) tree->noeud[i]->b[0]->p_pars_r[curr_site*dim1+j] =  0;
 	    }
-	  else
+	  else if(tree->io->datatype == AA)
 	    {
-	      Init_Tips_At_One_Site_AA_Int(tree->data->c_seq[i]->state[curr_site],0,state_v);
+	      Init_Tips_At_One_Site_AA_Int(tree->data->c_seq[i]->state[curr_site],
+					   0,
+					   state_v);
+	      For(j,tree->mod->ns) tree->noeud[i]->b[0]->p_pars_r[curr_site*dim1+j] = MAX_PARS;
+	      For(j,tree->mod->ns) if(state_v[j] > 0.5) tree->noeud[i]->b[0]->p_pars_r[curr_site*dim1+j] =  0;
+	    }
+	  else if(tree->io->datatype == INTEGERS)
+	    {
+	      Init_Tips_At_One_Site_Generic_Int(tree->data->c_seq[i]->state+curr_site,
+						tree->mod->ns,
+						0,
+						state_v);
 	      For(j,tree->mod->ns) tree->noeud[i]->b[0]->p_pars_r[curr_site*dim1+j] = MAX_PARS;
 	      For(j,tree->mod->ns) if(state_v[j] > 0.5) tree->noeud[i]->b[0]->p_pars_r[curr_site*dim1+j] =  0;
 	    }
@@ -169,13 +182,26 @@ void Init_Ui_Tips(t_tree *tree)
 		  Warn_And_Exit("\n");	    
 		}
 
-	      Init_Tips_At_One_Site_Nucleotides_Int(tree->data->c_seq[i]->state[curr_site],0,state_v);	      
+	      Init_Tips_At_One_Site_Nucleotides_Int(tree->data->c_seq[i]->state[curr_site],
+						    0,
+						    state_v);	      
 	      tree->noeud[i]->b[0]->ui_r[curr_site] = 0;
 	      For(j,tree->mod->ns) tree->noeud[i]->b[0]->ui_r[curr_site] += (unsigned int)(state_v[j] * pow(2,j));
 	    }
-	  else
+	  else if(tree->io->datatype == AA)
 	    {
-	      Init_Tips_At_One_Site_AA_Int(tree->data->c_seq[i]->state[curr_site],0,state_v);
+	      Init_Tips_At_One_Site_AA_Int(tree->data->c_seq[i]->state[curr_site],
+					   0,
+					   state_v);
+	      tree->noeud[i]->b[0]->ui_r[curr_site] = 0;
+	      For(j,tree->mod->ns) tree->noeud[i]->b[0]->ui_r[curr_site] += (unsigned int)(state_v[j] * pow(2,j));
+	    }
+	  else if(tree->io->datatype == INTEGERS)
+	    {
+	      Init_Tips_At_One_Site_Generic_Int(tree->data->c_seq[i]->state+curr_site,
+						tree->mod->ns,
+						0,
+						state_v);
 	      tree->noeud[i]->b[0]->ui_r[curr_site] = 0;
 	      For(j,tree->mod->ns) tree->noeud[i]->b[0]->ui_r[curr_site] += (unsigned int)(state_v[j] * pow(2,j));
 	    }
