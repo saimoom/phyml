@@ -39,7 +39,7 @@ int M4_main(int argc, char **argv)
   align **data;
   calign *cdata;
   option *io;
-  arbre *tree;
+  t_tree *tree;
   int n_otu, num_data_set;
   int num_tree,tree_line_number,num_rand_tree;
   matrix *mat;
@@ -497,7 +497,7 @@ void M4_Update_Qmat(m4 *m4mod, model *mod)
       if(sum < 0.99 || sum > 1.01)
 	{
 	  PhyML_Printf("\n. sum = %f",sum);
-	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
 	  Warn_And_Exit("\n");
 	}
 
@@ -605,7 +605,7 @@ void M4_Update_Qmat(m4 *m4mod, model *mod)
 
 /*********************************************************/
 
-void M4_Init_P_Lk_Tips_Double(arbre *tree)
+void M4_Init_P_Lk_Tips_Double(t_tree *tree)
 {
   int curr_site,i,j,k,l;
   
@@ -630,7 +630,7 @@ void M4_Init_P_Lk_Tips_Double(arbre *tree)
 
 /*********************************************************/
 
-void M4_Init_P_Lk_Tips_Int(arbre *tree)
+void M4_Init_P_Lk_Tips_Int(t_tree *tree)
 {
   int curr_site,i,j,k;
 
@@ -650,7 +650,7 @@ void M4_Init_P_Lk_Tips_Int(arbre *tree)
 
 /*********************************************************/
 
-phydbl ****M4_Integral_Term_On_One_Edge(edge *b, arbre *tree)
+phydbl ****M4_Integral_Term_On_One_Edge(t_edge *b, t_tree *tree)
 {
   phydbl ****integral,***P1,***P2;  
   int ns;
@@ -730,7 +730,7 @@ phydbl ****M4_Integral_Term_On_One_Edge(edge *b, arbre *tree)
 
 /*********************************************************/
 
-void M4_Post_Prob_H_Class_Edge_Site(edge *b, phydbl ****integral, phydbl *postprob, arbre *tree)
+void M4_Post_Prob_H_Class_Edge_Site(t_edge *b, phydbl ****integral, phydbl *postprob, t_tree *tree)
 {
   /* Calculation of the expected frequencies of each hidden
      class at a given site. */
@@ -811,7 +811,7 @@ void M4_Post_Prob_H_Class_Edge_Site(edge *b, phydbl ****integral, phydbl *postpr
     if((postprob[i] < -1.E-5) || (postprob[i] > 1.0+1.E-5))
       {
 	PhyML_Printf("\n. Cat : %d Prob : %f\n",i,postprob[i]);
-	PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
 	Warn_And_Exit("\n");
       }
 
@@ -821,7 +821,7 @@ void M4_Post_Prob_H_Class_Edge_Site(edge *b, phydbl ****integral, phydbl *postpr
   if((sum > 1.0+1.E-2) || (sum < 1.0-1.E-2))
     {
       PhyML_Printf("\n. Sum = %f\n",sum);
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Exit("\n");
     }
 
@@ -830,7 +830,7 @@ void M4_Post_Prob_H_Class_Edge_Site(edge *b, phydbl ****integral, phydbl *postpr
 
 /*********************************************************/
 
-phydbl ***M4_Compute_Proba_Hidden_States_On_Edges(arbre *tree)
+phydbl ***M4_Compute_Proba_Hidden_States_On_Edges(t_tree *tree)
 {
   int i;
   phydbl ***post_probs, *dwell;
@@ -876,7 +876,7 @@ phydbl ***M4_Compute_Proba_Hidden_States_On_Edges(arbre *tree)
    is the tree with posterior mean rates averaged over the sites. The following trees
    have posterior mean rates computed for each site.
 */
-void M4_Compute_Posterior_Mean_Rates(phydbl ***post_probs, arbre *tree)
+void M4_Compute_Posterior_Mean_Rates(phydbl ***post_probs, t_tree *tree)
 {
   char *s;
   int i;
@@ -1064,7 +1064,7 @@ void M4_Compute_Posterior_Mean_Rates(phydbl ***post_probs, arbre *tree)
 	  if((sum < 0.99) || (sum > 1.01))
 	    {
 	      PhyML_Fprintf(tree->io->fp_out_stats,"\n. sum = %f\n",sum);
-	      PhyML_Fprintf(tree->io->fp_out_stats,"\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	      PhyML_Fprintf(tree->io->fp_out_stats,"\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
 	      Warn_And_Exit("\n");
 	    }
 	}
@@ -1102,7 +1102,7 @@ void M4_Compute_Posterior_Mean_Rates(phydbl ***post_probs, arbre *tree)
 /*********************************************************/
 
 /* Classifiy each branch, at each site, among one of the rate classes */
-phydbl **M4_Site_Branch_Classification(phydbl ***post_probs, arbre *tree)
+phydbl **M4_Site_Branch_Classification(phydbl ***post_probs, t_tree *tree)
 {
   int patt, br, rcat, i;
   phydbl **best_probs;
@@ -1152,7 +1152,7 @@ phydbl **M4_Site_Branch_Classification(phydbl ***post_probs, arbre *tree)
 
 /*********************************************************/
 
-void M4_Site_Branch_Classification_Experiment(arbre *tree)
+void M4_Site_Branch_Classification_Experiment(t_tree *tree)
 {
   calign *ori_data,*cpy_data;
   short int **true_rclass, **est_rclass;
@@ -1194,7 +1194,7 @@ void M4_Site_Branch_Classification_Experiment(arbre *tree)
 	    }
 	  else
 	    {
-	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
 	      Warn_And_Exit("\n");
 	    }
 	}
@@ -1251,7 +1251,7 @@ void M4_Site_Branch_Classification_Experiment(arbre *tree)
 	    }
 	  else
 	    {
-	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
 	      Warn_And_Exit("\n");
 	    }
 	}
@@ -1279,7 +1279,7 @@ void M4_Site_Branch_Classification_Experiment(arbre *tree)
 	    }
 	  else
 	    {
-	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
 	      Warn_And_Exit("\n");
 	    }
 	}
@@ -1313,7 +1313,7 @@ void M4_Site_Branch_Classification_Experiment(arbre *tree)
   /* Scale branch lengths such that they express expected number
      of nucleotide or amino-acid substitutions */
 
-void M4_Scale_Br_Len(arbre *tree)
+void M4_Scale_Br_Len(t_tree *tree)
 {
   phydbl scale_fact,mrs;
   int i,j;
@@ -1338,7 +1338,7 @@ void M4_Scale_Br_Len(arbre *tree)
 
 /*********************************************************/
 
-void M4_Free_Integral_Term_On_One_Edge(phydbl ****integral, arbre *tree)
+void M4_Free_Integral_Term_On_One_Edge(phydbl ****integral, t_tree *tree)
 {
   int g,i,j;
 
@@ -1359,7 +1359,7 @@ void M4_Free_Integral_Term_On_One_Edge(phydbl ****integral, arbre *tree)
 
 /*********************************************************/
 
-void M4_Detect_Site_Switches_Experiment(arbre *tree)
+void M4_Detect_Site_Switches_Experiment(t_tree *tree)
 {
   model *nocov_mod,*cov_mod,*ori_mod;
   calign *ori_data,*cpy_data;
@@ -1486,14 +1486,14 @@ void M4_Detect_Site_Switches_Experiment(arbre *tree)
 
 /*********************************************************/
 
-void M4_Posterior_Prediction_Experiment(arbre *tree)
+void M4_Posterior_Prediction_Experiment(t_tree *tree)
 {
   model *ori_mod;
   calign *ori_data,*cpy_data;
   int i,n_iter,n_simul;
   FILE *fp_nocov,*fp_cov,*fp_obs;
   char *s;
-  edge *best_edge;
+  t_edge *best_edge;
 
   s = (char *)mCalloc(100,sizeof(char));
 
@@ -1549,7 +1549,7 @@ void M4_Posterior_Prediction_Experiment(arbre *tree)
 
   tree->bl_from_node_stamps = 1;
   best_edge = MC_Find_Best_Root_Position(tree);
-  PhyML_Printf("\n. Put root on edge %3d",i);
+  PhyML_Printf("\n. Put root on t_edge %3d",i);
   MC_Least_Square_Node_Times(best_edge,tree);
   MC_Adjust_Node_Times(tree);
   MC_Round_Optimize(tree);

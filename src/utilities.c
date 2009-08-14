@@ -15,7 +15,7 @@ the GNU public licence. See http://www.opensource.org for details.
 
 /*********************************************************/
 
-/* void Make_All_Edges_Light(node *a, node *d, int *curr_num_edge) */
+/* void Make_All_Edges_Light(t_node *a, t_node *d, int *curr_num_edge) */
 /* { */
 /*   int i; */
 
@@ -34,7 +34,7 @@ the GNU public licence. See http://www.opensource.org for details.
 
 /*********************************************************/
 
-void Make_All_Edges_Lk(node *a, node *d, arbre *tree)
+void Make_All_Edges_Lk(t_node *a, t_node *d, t_tree *tree)
 {
   int i;
 
@@ -52,11 +52,11 @@ void Make_All_Edges_Lk(node *a, node *d, arbre *tree)
 
 /*********************************************************/
 
-arbre *Read_Tree(char *s_tree)
+t_tree *Read_Tree(char *s_tree)
 {
   char **subs;
   int i,n_ext,n_int,n_otu;
-  arbre *tree;
+  t_tree *tree;
   int degree;
 
 
@@ -64,7 +64,7 @@ arbre *Read_Tree(char *s_tree)
   For(i,(int)strlen(s_tree)) if(s_tree[i] == ',') n_otu++;
   n_otu+=1;
 
-  tree = (arbre *)Make_Tree(n_otu);
+  tree = (t_tree *)Make_Tree(n_otu);
   Init_Tree(tree,tree->n_otu);
   Make_All_Tree_Nodes(tree);
   Make_All_Tree_Edges(tree);
@@ -93,11 +93,11 @@ arbre *Read_Tree(char *s_tree)
 
 
 /*********************************************************/
-/* 'a' in node a stands for ancestor. 'd' stands for descendant */ 
-void R_rtree(char *s_tree_a, char *s_tree_d, node *a, arbre *tree, int *n_int, int *n_ext)
+/* 'a' in t_node a stands for ancestor. 'd' stands for descendant */ 
+void R_rtree(char *s_tree_a, char *s_tree_d, t_node *a, t_tree *tree, int *n_int, int *n_ext)
 {
   int i;
-  node *d;
+  t_node *d;
   int n_otu = tree->n_otu;
 
   if(strstr(s_tree_a," ")) Warn_And_Exit("\n Err: the tree must not contain a ' ' character\n");
@@ -169,7 +169,7 @@ void R_rtree(char *s_tree_a, char *s_tree_d, node *a, arbre *tree, int *n_int, i
 
 /*********************************************************/
 
-void Read_Branch_Label(char *s_d, char *s_a, edge *b)
+void Read_Branch_Label(char *s_d, char *s_a, t_edge *b)
 {
   char *sub_tp;
   char *p;
@@ -212,12 +212,12 @@ void Read_Branch_Label(char *s_d, char *s_a, edge *b)
   if(p)
     {
       if(b->n_labels == 1)
-	PhyML_Printf("\n. Found label '%s' on edge %3d.",b->labels[0],b->num);
+	PhyML_Printf("\n. Found label '%s' on t_edge %3d.",b->labels[0],b->num);
       else
 	{
 	  PhyML_Printf("\n. Found labels ");
 	  For(i,b->n_labels) PhyML_Printf("'%s' ",b->labels[i]);
-	  PhyML_Printf("on edge %3d.",b->num);
+	  PhyML_Printf("on t_edge %3d.",b->num);
 	}
     }
 
@@ -226,11 +226,11 @@ void Read_Branch_Label(char *s_d, char *s_a, edge *b)
 
 /*********************************************************/
 
-void Read_Branch_Length(char *s_d, char *s_a, arbre *tree)
+void Read_Branch_Length(char *s_d, char *s_a, t_tree *tree)
 {
   char *sub_tp;
   char *p;
-  edge *b;
+  t_edge *b;
   int i;
 
   b = tree->t_edges[tree->num_curr_branch_available];
@@ -256,7 +256,7 @@ void Read_Branch_Length(char *s_d, char *s_a, arbre *tree)
 
 /*********************************************************/
 
-void Read_Node_Name(node *d, char *s_tree_d, arbre *tree)
+void Read_Node_Name(t_node *d, char *s_tree_d, t_tree *tree)
 {
   int i;
 
@@ -385,7 +385,7 @@ char **Sub_Trees(char *tree, int *degree)
 	  For(i,(*degree))
 	    PhyML_Printf("\n. Subtree %d : %s\n",i+1,subs[i]);
 
-	  PhyML_Printf("\n. The degree of a node cannot be greater than %d\n",NODE_DEG_MAX);
+	  PhyML_Printf("\n. The degree of a t_node cannot be greater than %d\n",NODE_DEG_MAX);
 	  Warn_And_Exit("\n");
 	}
     }
@@ -414,7 +414,7 @@ int Next_Par(char *s, int pos)
 
 /*********************************************************/
 
-void Print_Tree(FILE *fp, arbre *tree)
+void Print_Tree(FILE *fp, t_tree *tree)
 {
   char *s_tree;
   int i;
@@ -437,7 +437,7 @@ void Print_Tree(FILE *fp, arbre *tree)
 
 /*********************************************************/
 
-char *Write_Tree(arbre *tree)
+char *Write_Tree(t_tree *tree)
 {
 
   char *s;
@@ -478,7 +478,7 @@ char *Write_Tree(arbre *tree)
 
 /*********************************************************/
 
-void R_wtree(node *pere, node *fils, char *s_tree, arbre *tree)
+void R_wtree(t_node *pere, t_node *fils, char *s_tree, t_tree *tree)
 {
   int i,p;
 
@@ -561,7 +561,7 @@ void R_wtree(node *pere, node *fils, char *s_tree, arbre *tree)
 
 /*********************************************************/
 
-void Init_Tree(arbre *tree, int n_otu)
+void Init_Tree(t_tree *tree, int n_otu)
 {
   tree->n_otu                     = n_otu;
   tree->best_tree                 = NULL;
@@ -598,7 +598,7 @@ void Init_Tree(arbre *tree, int n_otu)
 
 /*********************************************************/
 
-void Make_New_Edge_Label(edge *b)
+void Make_New_Edge_Label(t_edge *b)
 {
   int i;
 
@@ -617,11 +617,11 @@ void Make_New_Edge_Label(edge *b)
 
 /*********************************************************/
 
-edge *Make_Edge_Light(node *a, node *d, int num)
+t_edge *Make_Edge_Light(t_node *a, t_node *d, int num)
 {
-  edge *b;
+  t_edge *b;
 
-  b = (edge *)mCalloc(1,sizeof(edge));
+  b = (t_edge *)mCalloc(1,sizeof(t_edge));
 
   Init_Edge_Light(b,num);
 
@@ -629,7 +629,7 @@ edge *Make_Edge_Light(node *a, node *d, int num)
     {
       b->left = a;  b->rght = d;
       if(a->tax) {b->rght = a; b->left = d;} /* root */
-      /* a tip is necessary on the right side of the edge */
+      /* a tip is necessary on the right side of the t_edge */
 
       (b->left == a)?
 	(Make_Edge_Dirs(b,a,d)):
@@ -653,7 +653,7 @@ edge *Make_Edge_Light(node *a, node *d, int num)
 
 /*********************************************************/
 
-void Init_Edge_Light(edge *b, int num)
+void Init_Edge_Light(t_edge *b, int num)
 {
   b->num                  = num;
   b->bip_score            = 0;
@@ -671,7 +671,7 @@ void Init_Edge_Light(edge *b, int num)
 
 /*********************************************************/
 
-void Init_Node_Light(node *n, int num)
+void Init_Node_Light(t_node *n, int num)
 {
   n->list_of_reachable_tips = NULL;
   n->num                    = num;
@@ -682,7 +682,7 @@ void Init_Node_Light(node *n, int num)
 
 /*********************************************************/
 
-void Make_Edge_Dirs(edge *b, node *a, node *d)
+void Make_Edge_Dirs(t_edge *b, t_node *a, t_node *d)
 {
   int i;
 
@@ -735,7 +735,7 @@ void Make_Edge_Dirs(edge *b, node *a, node *d)
 
 /*********************************************************/
 
-void Make_Edge_Pars(edge *b, arbre *tree)
+void Make_Edge_Pars(t_edge *b, t_tree *tree)
 {
 /*   int site; */
 
@@ -751,7 +751,7 @@ void Make_Edge_Pars(edge *b, arbre *tree)
 
 /*********************************************************/
 
-void Make_Edge_Lk(edge *b, arbre *tree)
+void Make_Edge_Lk(t_edge *b, t_tree *tree)
 {
 
   b->l_old = b->l;
@@ -799,7 +799,7 @@ void Make_Edge_Lk(edge *b, arbre *tree)
 
 /*********************************************************/
 
-void Make_Edge_NNI(edge *b)
+void Make_Edge_NNI(t_edge *b)
 {
   b->nni    = Make_NNI();
   b->nni->b = b;
@@ -842,13 +842,13 @@ void Init_NNI(nni *a_nni)
 
 /*********************************************************/
 
-node *Make_Node_Light(int num)
+t_node *Make_Node_Light(int num)
 {
-  node *n;
-  n        = (node *)mCalloc(1,sizeof(node));
-  n->v     = (node **)mCalloc(3,sizeof(node *));
+  t_node *n;
+  n        = (t_node *)mCalloc(1,sizeof(t_node));
+  n->v     = (t_node **)mCalloc(3,sizeof(t_node *));
   n->l     = (phydbl *)mCalloc(3,sizeof(phydbl));
-  n->b     = (edge **)mCalloc(3,sizeof(edge *));
+  n->b     = (t_edge **)mCalloc(3,sizeof(t_edge *));
   n->name  = (char *)mCalloc(T_MAX_NAME,sizeof(char));
   n->score = (phydbl *)mCalloc(3,sizeof(phydbl));
   Init_Node_Light(n,num);
@@ -858,7 +858,7 @@ node *Make_Node_Light(int num)
 /*********************************************************/
 
 
-void Make_Node_Lk(node *n)
+void Make_Node_Lk(t_node *n)
 {
 /*   n->n_ex_nodes = (int *)mCalloc(2,sizeof(int)); */
   return;
@@ -866,24 +866,53 @@ void Make_Node_Lk(node *n)
 
 /*********************************************************/
 
+void Detect_Align_Format(option *io)
+{
+  int c;
+  
+  while((c=fgetc(io->fp_in_align)) != EOF)
+    {
+      if(errno) io->data_format = PHYLIP;
+      else if(c == '#')
+	{
+	  char s[10],t[6]="NEXUS";
+	  fgets(s,6,io->fp_in_align);
+	  if(!strcmp(t,s)) 
+	    {
+	      rewind(io->fp_in_align);
+	      io->data_format = NEXUS;
+	      return;
+	    }
+	}
+    }
+  
+  rewind(io->fp_in_align);
+}
+
+/*********************************************************/
+
 align **Get_Seq(option *io)
 {
-  align **data;
+  io->data = NULL;
 
-  data = NULL;
+  Detect_Align_Format(io);
 
   switch(io->data_format)
     {
     case PHYLIP: 
       {
-	data = Get_Seq_Phylip(io);
+	PhyML_Printf("\n. Detected PHYLIP format...\n");
+	io->data = Get_Seq_Phylip(io);
 	break;
       }
-/*     case NEXUS: */
-/*       { */
-/* 	data = Get_Seq_Nexus(io); */
-/* 	break; */
-/*       } */
+    case NEXUS:
+      {
+	PhyML_Printf("\n. Detected NEXUS format...\n");
+	io->nex_com_list = Make_Nexus_Com();
+	Init_Nexus_Format(io->nex_com_list);
+	io->data = Get_Seq_Nexus(io);
+	break;
+      }
     default:
       {
 	PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
@@ -892,423 +921,35 @@ align **Get_Seq(option *io)
       }
     }
 
-  if(!data)
+  if(!io->data)
     {
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
-
-  return data;
-}
-
-/*********************************************************/
-
-align **Get_Seq_Nexus(option *io)
-{
-  align **data;
-
-  return data;
-}
-
-/*********************************************************/
-
-/* nexcom **Make_Nexus_Com() */
-/* { */
-/*   nexcom **com; */
-/*   int i,j; */
-
-/*   com = (nexcom **)mCalloc(1,sizeof(nexcom *)); */
-  
-/*   For(i,N_MAX_NEX_COM) */
-/*     { */
-/*       com[i]       = (nexcom *)mCalloc(1,sizeof(nexcom)); */
-/*       com[i]->name = (char *)mCalloc(T_MAX_NEX_COM,sizeof(char)); */
-/*       com[i]->parm = (nexparm **)mCalloc(N_MAX_NEX_PARM,sizeof(nexparm *)); */
-/*     } */
-
-/*   return com; */
-
-/* } */
-
-/* /\*********************************************************\/ */
-
-/* void Free_Nexus_Com(nexcom **com) */
-/* { */
-/*   int i; */
-
-/*   For(i,N_MAX_NEX_COM) */
-/*     { */
-/*       Free(com[i]->parm); */
-/*       Free(com[i]->name); */
-/*       Free(com[i]); */
-/*     } */
-/*   Free(com); */
-/* } */
-
-/* /\*********************************************************\/ */
-
-/* void Init_Nexus_Format(nexcom **com) */
-/* { */
-/*   int i;   */
-
-
-/*   /\*****************************\/ */
-/*   strcpy(com[0]->name,"dimensions"); */
-/*   com[0]->nparm = 2; */
-
-/*   com[0]->parm[0] = (nexparm *)mCalloc(1,sizeof(nexparm)); */
-/*   strcpy(com[0]->parm[0]->name,"ntax"); */
-/*   com[0]->parm[0]->expect_equal = YES; */
-/*   com[0]->parm[0]->fp = Read_Nex_Dimensions; */
-/*   com[0]->parm[0]->com = com[0]; */
-
-/*   com[0]->parm[1] = (nexparm *)mCalloc(1,sizeof(nexparm)); */
-/*   strcpy(com[0]->parm[1]->name,"nchar"); */
-/*   com[0]->parm[1]->expect_equal = YES; */
-/*   com[0]->parm[1]->fp = Read_Nex_Dimensions; */
-/*   com[0]->parm[1]->com = com[0]; */
-
-  
-
-/*   /\*****************************\/ */
-/*   strcpy(com[1]->name,"format"); */
-/*   com[1]->nparm = 11; */
-
-/*   com[1]->parm[0] = (nexparm *)mCalloc(1,sizeof(nexparm)); */
-/*   strcpy(com[1]->parm[0]->name,"datatype"); */
-/*   com[1]->parm[0]->expect_equal = YES; */
-/*   com[1]->parm[0]->fp = Read_Nex_Format; */
-/*   com[1]->parm[0]->com = com[1]; */
-
-/*   com[1]->parm[1] = (nexparm *)mCalloc(1,sizeof(nexparm)); */
-/*   strcpy(com[1]->parm[1]->name,"respectcase"); */
-/*   com[1]->parm[1]->expect_equal = NO; */
-/*   com[1]->parm[1]->fp = Read_Nex_Format; */
-/*   com[1]->parm[1]->com = com[1]; */
-
-/*   com[1]->parm[2] = (nexparm *)mCalloc(1,sizeof(nexparm)); */
-/*   strcpy(com[1]->parm[2]->name,"missing"); */
-/*   com[1]->parm[2]->expect_equal = YES; */
-/*   com[1]->parm[2]->fp = Read_Nex_Format; */
-/*   com[1]->parm[2]->com = com[1]; */
-
-/*   com[1]->parm[3] = (nexparm *)mCalloc(1,sizeof(nexparm)); */
-/*   strcpy(com[1]->parm[3]->name,"gap"); */
-/*   com[1]->parm[3]->expect_equal = YES; */
-/*   com[1]->parm[3]->fp = Read_Nex_Format; */
-/*   com[1]->parm[3]->com = com[1]; */
-
-/*   com[1]->parm[4] = (nexparm *)mCalloc(1,sizeof(nexparm)); */
-/*   strcpy(com[1]->parm[4]->name,"symbols"); */
-/*   com[1]->parm[4]->expect_equal = YES; */
-/*   com[1]->parm[4]->fp = Read_Nex_Format; */
-/*   com[1]->parm[4]->com = com[1]; */
-
-/*   com[1]->parm[5] = (nexparm *)mCalloc(1,sizeof(nexparm)); */
-/*   strcpy(com[1]->parm[5]->name,"equate"); */
-/*   com[1]->parm[5]->expect_equal = YES; */
-/*   com[1]->parm[5]->fp = Read_Nex_Format; */
-/*   com[1]->parm[5]->com = com[1]; */
-
-/*   com[1]->parm[6] = (nexparm *)mCalloc(1,sizeof(nexparm)); */
-/*   strcpy(com[1]->parm[6]->name,"matchchar"); */
-/*   com[1]->parm[6]->expect_equal = YES; */
-/*   com[1]->parm[6]->fp = Read_Nex_Format; */
-/*   com[1]->parm[6]->com = com[1]; */
-
-/*   com[1]->parm[7] = (nexparm *)mCalloc(1,sizeof(nexparm)); */
-/*   strcpy(com[1]->parm[7]->name,"transpose"); */
-/*   com[1]->parm[7]->expect_equal = NO; */
-/*   com[1]->parm[7]->fp = Read_Nex_Format; */
-/*   com[1]->parm[7]->com = com[1]; */
-
-/*   com[1]->parm[8] = (nexparm *)mCalloc(1,sizeof(nexparm)); */
-/*   strcpy(com[1]->parm[8]->name,"interleave"); */
-/*   com[1]->parm[8]->expect_equal = NO; */
-/*   com[1]->parm[8]->fp = Read_Nex_Format; */
-/*   com[1]->parm[8]->com = com[1]; */
-
-/*   com[1]->parm[9] = (nexparm *)mCalloc(1,sizeof(nexparm)); */
-/*   strcpy(com[1]->parm[9]->name,"items"); */
-/*   com[1]->parm[9]->expect_equal = YES; */
-/*   com[1]->parm[9]->fp = Read_Nex_Format; */
-/*   com[1]->parm[9]->com = com[1]; */
-
-/*   com[1]->parm[10] = (nexparm *)mCalloc(1,sizeof(nexparm)); */
-/*   strcpy(com[1]->parm[10]->name,"statesformat"); */
-/*   com[1]->parm[10]->expect_equal = YES; */
-/*   com[1]->parm[10]->fp = Read_Nex_Format; */
-/*   com[1]->parm[10]->com = com[1]; */
-
-
-/*   /\*****************************\/ */
-/*   strcpy(com[2]->name,"eliminate"); */
-/*   com[2]->nparm = 0; */
-
-/*   /\*****************************\/ */
-/*   strcpy(com[3]->name,"taxlabels"); */
-/*   com[3]->nparm = 0; */
-
-/*   /\*****************************\/ */
-/*   strcpy(com[4]->name,"charstatelabels"); */
-/*   com[4]->nparm = 0; */
-
-/*   /\*****************************\/ */
-/*   strcpy(com[5]->name,"charlabels"); */
-/*   com[5]->nparm = 0; */
-
-/*   /\*****************************\/ */
-/*   strcpy(com[6]->name,"statelabels"); */
-/*   com[6]->nparm = 0; */
-
-/*   /\*****************************\/ */
-/*   strcpy(com[7]->name,"matrix"); */
-/*   com[7]->nparm = 0; */
-
-/* } */
-
-/* /\*********************************************************\/ */
-
-/* nexcom *Find_Nexus_Com(char *token, nexcom **com_list) */
-/* { */
-/*   int i; */
-  
-/*   For(i,N_MAX_NEX_COM) if(!strcmp(token,com_list[i]->name)) break; */
-
-/*   if(i == N_MAX_NEX_COM) return(NULL); */
-/*   else return com_list[i]; */
-/* } */
-
-/* /\*********************************************************\/ */
-
-/* nexparm *Find_Nexus_Parm(char *token, nexcom *curr_com) */
-/* { */
-/*   int i; */
-/*   int tokenlen; */
-/*   int ndiff; */
-
-/*   For(i,curr_com->nparm) */
-/*     { */
-/*       tokenlen = strlen(token); */
-/*       if(tokenlen == strlen(curr_com->parm[i]->name)) */
-/* 	{ */
-/* 	  ndiff = 0; */
-/* 	  For(j,tokenlen) */
-/* 	    { */
-/* 	      if(Tolower(token[j]) != Tolower(curr_com->parm[i]->name[j])) ndiff++; */
-/* 	    } */
-/* 	  if(!ndiff) return curr_com->parm[i]; */
-/* 	} */
-/*     } */
-/*   return(NULL); */
-/* } */
-
-/* /\*********************************************************\/ */
-
-/* void Read_Nexus_Dimensions(char *token, nexparm *curr_parm, option *io) */
-/* { */
-/*   if(!curr_parm) */
-/*     { */
-/*       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
-/*       Warn_And_Exit(""); */
-/*     } */
- 
-/*   strcpy(curr_parm->value,token); */
-
-/*   if(!strcmp(curr_parm->name,"ntax")) */
-/*     { */
-/*       sscanf(curr_parm->value,"%d",&(io->n_otu)); */
-/*       PhyML_Printf("\n. n_otu = %d",io->n_otu); */
-/*     } */
-
-/*   if(!strcmp(curr_parm->name,"nchar")) */
-/*     { */
-/*       sscanf(curr_parm->value,"%d",&(io->init_len)); */
-/*       PhyML_Printf("\n. len = %d",io->init_len); */
-/*     } */
-/* } */
-
-/* /\*********************************************************\/ */
-
-/* void Read_Nexus_Format(char *token, nexparm *curr_parm, option *io) */
-/* { */
-/*   int i; */
-
-/*   if(!curr_parm) */
-/*     { */
-/*       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
-/*       Warn_And_Exit(""); */
-/*     } */
-
-/*   For(i,strlen(token)) {token[i] = Tolower(token[i]);} */
-
-/*   if(curr_parm->expect_equal == YES) strcpy(curr_param->value,token); */
-  
-/*   if(!strcmp(curr_parm->name,"datatype")) */
-/*     { */
-/*       if(!strcmp(curr_parm->value,"standard")) */
-/* 	{ */
-/* 	  PhyML_Printf("\n. 'standard' format not recognized by PhyML. Sorry."); */
-/* 	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
-/* 	  Warn_And_Exit(""); */
-/* 	} */
-
-/*       else if(!strcmp(curr_parm->value,"dna")) */
-/* 	{ */
-/* 	  PhyML_Printf("\n. Expecting nucleotide sequences."); */
-/* 	  io->datatype= NT; */
-/* 	} */
-
-/*       else if(!strcmp(curr_parm->value,"rna")) */
-/* 	{ */
-/* 	  PhyML_Printf("\n. Expecting nucleotide sequences."); */
-/* 	  io->datatype= NT; */
-/* 	} */
-
-/*       else if(!strcmp(curr_parm->value,"nucleotide")) */
-/* 	{ */
-/* 	  PhyML_Printf("\n. Expecting nucleotide sequences."); */
-/* 	  io->datatype= NT; */
-/* 	} */
-
-/*       else if(!strcmp(curr_parm->value,"protein")) */
-/* 	{ */
-/* 	  PhyML_Printf("\n. Expecting amino-acid sequences."); */
-/* 	  io->datatype= AA; */
-/* 	} */
-      
-/*       else if(!strcmp(curr_parm->value,"continuous")) */
-/* 	{ */
-/* 	  PhyML_Printf("\n. 'continuous' format is not recognized by PhyML. Sorry."); */
-/* 	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
-/* 	  Warn_And_Exit(""); */
-/* 	} */
-/*     } */
-
-/*   else if(!strcmp(curr_parm->name,"missing")) */
-/*     { */
-/*       /\* !!!!!!!!!!!! *\/ */
-/*       PhyML_Printf("\n. Missing symbol: %s",curr_parm->value); */
-/*     } */
-
-/*   else if(!strcmp(curr_parm->name,"gap")) */
-/*     { */
-/*       /\* !!!!!!!!!!!! *\/ */
-/*       PhyML_Printf("\n. Gap symbol: %s",curr_parm->value); */
-/*     } */
-
-/*   else if(!strcmp(curr_parm->name,"symbols")) */
-/*     { */
-/*       /\* !!!!!!!!!!!! *\/ */
-/*       PhyML_Printf("\n. Symbols: %s",curr_parm->value); */
-/*     } */
-
-/*   else if(!strcmp(curr_parm->name,"equate")) */
-/*     { */
-/*       /\* !!!!!!!!!!!! *\/ */
-/*       PhyML_Printf("\n. Equate: %s",curr_parm->value); */
-/*     } */
-  
-/*   else if(!strcmp(curr_parm->name,"matchchar")) */
-/*     { */
-/*       /\* !!!!!!!!!!!! *\/ */
-/*       PhyML_Printf("\n. Matchchar: %s",curr_parm->value); */
-/*     } */
-
-/*   else if(!strcmp(curr_parm->name,"items")) */
-/*     { */
-/*       /\* !!!!!!!!!!!! *\/ */
-/*       PhyML_Printf("\n. Items: %s",curr_parm->value); */
-/*     } */
-/* } */
-
-/* /\*********************************************************\/ */
-
-/* void Read_Nexus_Eliminate(char *token, nexparm *curr_parm, option *io) */
-/* { */
-/*   PhyML_Printf("\n. 'Eliminate' command is not recognized by PhyML. Sorry."); */
-/*   PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
-/*   Warn_And_Exit(""); */
-/* } */
-
-/* /\*********************************************************\/ */
-
-/* void Read_Nexus_Taxlabel(char *token, nexparm *curr_parm, option *io) */
-/* { */
-/*   PhyML_Printf("\n. 'Taxlabels' command is not recognized by PhyML. Sorry."); */
-/*   PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
-/*   Warn_And_Exit(""); */
-/* } */
-
-/* /\*********************************************************\/ */
-
-/* void Read_Nexus_Charstatelabels(char *token, nexparm *curr_parm, option *io) */
-/* { */
-/*   PhyML_Printf("\n. 'CharStateLabels' command is not recognized by PhyML. Sorry."); */
-/*   PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
-/*   Warn_And_Exit(""); */
-/* } */
-
-/* /\*********************************************************\/ */
-
-/* void Read_Nexus_Charlabels(char *token, nexparm *curr_parm, option *io) */
-/* { */
-/*   PhyML_Printf("\n. 'CharLabels' command is not recognized by PhyML. Sorry."); */
-/*   PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
-/*   Warn_And_Exit(""); */
-/* } */
-
-/* /\*********************************************************\/ */
-
-/* void Read_Nexus_Statelabels(char *token, nexparm *curr_parm, option *io) */
-/* { */
-/*   PhyML_Printf("\n. 'StateLabels' command is not recognized by PhyML. Sorry."); */
-/*   PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
-/*   Warn_And_Exit(""); */
-/* } */
-
-/* /\*********************************************************\/ */
-
-/* void Read_Nexus_Matrix(char *token, nexparm *curr_parm, option *io) */
-/* { */
-/*   PhyML_Printf("\n. Found matrix command"); */
-/* } */
-
-/*********************************************************/
-
-align **Get_Seq_Phylip(option *io)
-{
-  align **data;
-  int i,j;
-  char **buff;
-  int n_unkn,n_removed,pos;
-  int *remove;
-
-
-/*   rewind(fp_seq); */
-
-  if(io->interleaved) data = Read_Seq_Interleaved(io->fp_in_align,&(io->n_otu));
-  else                data = Read_Seq_Sequential(io->fp_in_align,&(io->n_otu));
-
-  if(data)
+  else
     {
+      int i,j;
+      char **buff;
+      int *remove;
+      int n_unkn,n_removed,pos;
+
       buff = (char **)mCalloc(io->n_otu,sizeof(char *));
-      For(i,io->n_otu) buff[i] = (char *)mCalloc(data[0]->len,sizeof(char));
-      remove = (int *)mCalloc(data[0]->len,sizeof(int));
+      For(i,io->n_otu) buff[i] = (char *)mCalloc(io->data[0]->len,sizeof(char));
+      remove = (int *)mCalloc(io->data[0]->len,sizeof(int));
 
       n_removed = 0;
 
-      For(i,data[0]->len)
+      For(i,io->data[0]->len)
 	{
 	  For(j,io->n_otu)
 	    {
-	      if((data[j]->state[i] == '?') || (data[j]->state[i] == '-')) data[j]->state[i] = 'X';
-	      if((io->datatype == NT) && (data[j]->state[i] == 'N')) data[j]->state[i] = 'X';
-	      if(data[j]->state[i] == 'U') data[j]->state[i] = 'T';
+	      if((io->data[j]->state[i] == '?') || (io->data[j]->state[i] == '-')) io->data[j]->state[i] = 'X';
+	      if((io->datatype == NT) && (io->data[j]->state[i] == 'N')) io->data[j]->state[i] = 'X';
+	      if(io->data[j]->state[i] == 'U') io->data[j]->state[i] = 'T';
 	    }
 
 	  n_unkn = 0;
-	  For(j,io->n_otu) if(data[j]->state[i] == 'X') n_unkn++;
+	  For(j,io->n_otu) if(io->data[j]->state[i] == 'X') n_unkn++;
 
 	  if(n_unkn == io->n_otu)
 	    {
@@ -1316,7 +957,7 @@ align **Get_Seq_Phylip(option *io)
 	      n_removed++;
 	    }
 
-	  For(j,io->n_otu) buff[j][i] = data[j]->state[i];
+	  For(j,io->n_otu) buff[j][i] = io->data[j]->state[i];
 	}
 
       if(n_removed > 0)
@@ -1332,145 +973,909 @@ align **Get_Seq_Phylip(option *io)
 	}
 
       pos = 0;
-      For(i,data[0]->len)
+      For(i,io->data[0]->len)
 	{
 /* 	  if(!remove[i]) */
 /* 	    { */
-	      For(j,io->n_otu) data[j]->state[pos] = buff[j][i];
+	      For(j,io->n_otu) io->data[j]->state[pos] = buff[j][i];
 	      pos++;
 /* 	    } */
 	}
 
-      For(i,io->n_otu) data[i]->len = pos;
+      For(i,io->n_otu) io->data[i]->len = pos;
       For(i,io->n_otu) Free(buff[i]);
       Free(buff);
       Free(remove);
     }
-  return data;
+
+
+  return io->data;
 }
 
 /*********************************************************/
 
-align **Read_Seq_Sequential(FILE *in, int *n_otu)
+align **Get_Seq_Nexus(option *io)
 {
-  int i;
-  char *line;
-  int len,readok;
-  align **data;
-  char c;
-  char *format;
+  char *s,*ori_s;
+  char *token;
+  int in_comment;
+  nexcom *curr_com;
+  nexparm *curr_parm;
+  int nxt_token_t,cur_token_t;
 
-  format = (char *)mCalloc(T_MAX_NAME,sizeof(char));
-  line   = (char *)mCalloc(T_MAX_LINE,sizeof(char));
+  s = (char *)mCalloc(T_MAX_LINE,sizeof(char));
+  token = (char *)mCalloc(T_MAX_TOKEN,sizeof(char));
+      	  
+  ori_s      = s;
+  in_comment = NO;
+  curr_com   = NULL;
+  curr_parm  = NULL;
+  nxt_token_t = NEXUS_COM; 
+  cur_token_t = -1; 
 
-  readok = len = 0;
-  do
-    {
-      if(fscanf(in,"%s",line) == EOF)
-	{
-	  Free(line); return NULL;
-	}
-      else
-	{
-	  if(strcmp(line,"\n") && strcmp(line,"\n") && strcmp(line,"\t"))
+  while(fgets(s,T_MAX_LINE,io->fp_in_align))
+    {      
+      do
+	{	  
+
+	  Get_Token(&s,token);	  
+
+/* 	  PhyML_Printf("\n. Token: '%s' next_token=%d cur_token=%d",token,nxt_token_t,cur_token_t); */
+
+	  if(token[0] == '\0') break;
+
+	  if(token[0] == ';') 
 	    {
-	      *n_otu = atoi(line);
-	      data = (align **)mCalloc(*n_otu,sizeof(align *));
-	      if(*n_otu <= 0) Warn_And_Exit("\n. Problem with sequence format\n");
-	      if(!fscanf(in,"%s",line)) Exit("\n");
-	      sscanf(line,"%d",&len);
-	      if(len <= 0) Warn_And_Exit("\n. Problem with sequence format\n");
-	      else readok = 1;
+	      curr_com   = NULL;
+	      curr_parm  = NULL;
+	      nxt_token_t = NEXUS_COM;
+	      cur_token_t = -1;
+	      break; /* End of command */ 
+	    }
+
+	  if(nxt_token_t == NEXUS_EQUAL) 
+	    {
+	      cur_token_t = NEXUS_VALUE;
+	      nxt_token_t = NEXUS_PARM;
+	      continue;
+	    }
+
+
+	  if((nxt_token_t == NEXUS_COM) && (cur_token_t != NEXUS_VALUE)) 
+	    {
+	      Find_Nexus_Com(token,&curr_com,&curr_parm,io->nex_com_list);
+	      if(curr_com) 
+		{
+		  nxt_token_t = curr_com->nxt_token_t;
+		  cur_token_t = curr_com->cur_token_t;
+		}
+	      if(cur_token_t != NEXUS_VALUE) continue;
+	    }
+
+	  if((nxt_token_t == NEXUS_PARM) && (cur_token_t != NEXUS_VALUE)) 
+	    {
+	      Find_Nexus_Parm(token,&curr_parm,curr_com);
+	      if(curr_parm) 
+		{
+		  nxt_token_t = curr_parm->nxt_token_t;
+		  cur_token_t = curr_parm->cur_token_t;
+		}
+	      if(cur_token_t != NEXUS_VALUE) continue;
+	    }
+
+	  if(cur_token_t == NEXUS_VALUE)
+	    {
+	      if((curr_parm->fp)(token,curr_parm,io))  /* Read in parameter value */
+		{
+		  nxt_token_t = NEXUS_PARM;
+		  cur_token_t = -1;
+		}
 	    }
 	}
-    }while(!readok);
+      while(strlen(token) > 0);
+    }
 
+  Free(ori_s);
+  Free(token);
 
-/*   while((c=fgetc(in))!='\n'); */
-  while(((c=fgetc(in))!='\n') && (c != ' ') && (c != '\r') && (c != '\t'));
+  return io->data;
+}
 
-  For(i,*n_otu)
+/*********************************************************/
+
+void Get_Token(char **line, char *token)
+{
+
+  while(**line == ' ' || **line == '\t') (*line)++;
+
+  if(**line == '"') 
     {
-      data[i] = (align *)mCalloc(1,sizeof(align));
-      data[i]->len = 0;
-      data[i]->name = (char *)mCalloc(T_MAX_NAME,sizeof(char));
-      data[i]->state = (char *)mCalloc(T_MAX_SEQ,sizeof(char));
-      data[i]->is_ambigu = NULL;
-      sprintf(format, "%%%ds", T_MAX_NAME);
-      if(!fscanf(in, format, data[i]->name)) Exit("\n");
+      do { *token = **line; (*line)++; token++; } while(**line != '"');
+      *token = **line;
+      (*line)++;
+      *(token+1) = '\0';
+      return;
+    }
 
-      while(data[i]->len < len) Read_One_Line_Seq(&data,i,in);
+  if(**line == '[') 
+    {
+      int in_comment;
 
-      if(data[i]->len != len)
+      PhyML_Printf("\n. Skipping comment \"%.6s...]\"\n",*line);
+      in_comment = 1;
+      do 
+	{ 
+	  (*line)++; 
+	  if(**line == '[') 
+	    {
+	      PhyML_Printf("\n. Found comment within comment.\n");
+	      in_comment++;
+	    }
+	  else if(**line == ']') in_comment--;	  
+	}
+      while(in_comment);
+      (*line)++;
+      return;
+    }
+
+
+  if(**line == '#')      {*token = **line; (*line)++; token++; }
+  else if(**line == ';') {*token = **line; (*line)++; token++; }
+  else if(**line == ',') {*token = **line; (*line)++; token++; }
+  else if(**line == '.') {*token = **line; (*line)++; token++; }
+  else if(**line == '=') {*token = **line; (*line)++; token++; }
+  else if(**line == '(') {*token = **line; (*line)++; token++; }
+  else if(**line == ')') {*token = **line; (*line)++; token++; }
+  else if(**line == '{') {*token = **line; (*line)++; token++; }
+  else if(**line == '}') {*token = **line; (*line)++; token++; }
+  else if(**line == '?') {*token = **line; (*line)++; token++; }
+  else if(**line == '-') {*token = **line; (*line)++; token++; }
+  else
+    {
+      while(isgraph(**line) && **line != ';' && **line != '=') 
 	{
-	  PhyML_Printf("\n. Err: Problem with species %s's sequence (check the format)\n",
-		 data[i]->name);
+	  *(token++) = **line;
+	  (*line)++; 
+	}
+    }
+  *token = '\0';
+}
+
+/*********************************************************/
+
+nexcom **Make_Nexus_Com()
+{
+  nexcom **com;
+  int i;
+
+  com = (nexcom **)mCalloc(N_MAX_NEX_COM,sizeof(nexcom *));
+  
+  For(i,N_MAX_NEX_COM)
+    {
+      com[i]       = (nexcom *)mCalloc(1,sizeof(nexcom));
+      com[i]->name = (char *)mCalloc(T_MAX_NEX_COM,sizeof(char));
+      com[i]->parm = (nexparm **)mCalloc(N_MAX_NEX_PARM,sizeof(nexparm *));
+    }
+
+  return com;
+}
+
+/*********************************************************/
+
+nexparm *Make_Nexus_Parm()
+{
+  nexparm *parm;
+
+  parm        = (nexparm *)mCalloc(1,sizeof(nexparm));  
+  parm->name  = (char *)mCalloc(T_MAX_TOKEN,sizeof(char ));
+  parm->value = (char *)mCalloc(T_MAX_TOKEN,sizeof(char ));
+
+  return parm;
+}
+
+/*********************************************************/
+
+void Free_Nexus_Com(nexcom **com)
+{
+  int i;
+
+  For(i,N_MAX_NEX_COM)
+    {
+      Free(com[i]->parm);
+      Free(com[i]->name);
+      Free(com[i]);
+    }
+  Free(com);
+}
+
+/*********************************************************/
+
+void Free_Nexus_Parm(nexparm *parm)
+{
+  Free(parm->value);
+  Free(parm->name);
+  Free(parm);
+}
+
+/*********************************************************/
+
+void Init_Nexus_Format(nexcom **com)
+{
+
+  /*****************************/
+  strcpy(com[0]->name,"dimensions");
+  com[0]->nparm = 2;
+  com[0]->nxt_token_t = NEXUS_PARM;
+  com[0]->cur_token_t = NEXUS_COM;
+
+  com[0]->parm[0] = Make_Nexus_Parm();
+  strcpy(com[0]->parm[0]->name,"ntax");
+  com[0]->parm[0]->fp = Read_Nexus_Dimensions;
+  com[0]->parm[0]->com = com[0];
+  com[0]->parm[0]->nxt_token_t = NEXUS_EQUAL;
+  com[0]->parm[0]->cur_token_t = NEXUS_PARM;
+
+  com[0]->parm[1] = Make_Nexus_Parm();
+  strcpy(com[0]->parm[1]->name,"nchar");
+  com[0]->parm[1]->fp = Read_Nexus_Dimensions;
+  com[0]->parm[1]->com = com[0];
+  com[0]->parm[1]->nxt_token_t = NEXUS_EQUAL;
+  com[0]->parm[1]->cur_token_t = NEXUS_PARM;
+
+  
+
+
+  /*****************************/
+  strcpy(com[1]->name,"format");
+  com[1]->nparm = 11;
+  com[1]->nxt_token_t = NEXUS_PARM;
+  com[1]->cur_token_t = NEXUS_COM;
+
+
+  com[1]->parm[0] = Make_Nexus_Parm();
+  strcpy(com[1]->parm[0]->name,"datatype");
+  com[1]->parm[0]->fp = Read_Nexus_Format;
+  com[1]->parm[0]->com = com[1];
+  com[1]->parm[0]->nxt_token_t = NEXUS_EQUAL;
+  com[1]->parm[0]->cur_token_t = NEXUS_PARM;
+
+  com[1]->parm[1] = Make_Nexus_Parm();
+  strcpy(com[1]->parm[1]->name,"respectcase");
+  com[1]->parm[1]->fp = Read_Nexus_Format;
+  com[1]->parm[1]->com = com[1];
+  com[1]->parm[1]->nxt_token_t = NEXUS_PARM;
+  com[1]->parm[1]->cur_token_t = NEXUS_VALUE;
+
+  com[1]->parm[2] = Make_Nexus_Parm();
+  strcpy(com[1]->parm[2]->name,"missing");
+  com[1]->parm[2]->fp = Read_Nexus_Format;
+  com[1]->parm[2]->com = com[1];
+  com[1]->parm[2]->nxt_token_t = NEXUS_EQUAL;
+  com[1]->parm[2]->cur_token_t = NEXUS_PARM;
+
+  com[1]->parm[3] = Make_Nexus_Parm();
+  strcpy(com[1]->parm[3]->name,"gap");
+  com[1]->parm[3]->fp = Read_Nexus_Format;
+  com[1]->parm[3]->com = com[1];
+  com[1]->parm[3]->nxt_token_t = NEXUS_EQUAL;
+  com[1]->parm[3]->cur_token_t = NEXUS_PARM;
+
+  com[1]->parm[4] = Make_Nexus_Parm();
+  strcpy(com[1]->parm[4]->name,"symbols");
+  com[1]->parm[4]->fp = Read_Nexus_Format;
+  com[1]->parm[4]->com = com[1];
+  com[1]->parm[4]->nxt_token_t = NEXUS_EQUAL;
+  com[1]->parm[4]->cur_token_t = NEXUS_PARM;
+
+  com[1]->parm[5] = Make_Nexus_Parm();
+  strcpy(com[1]->parm[5]->name,"equate");
+  com[1]->parm[5]->fp = Read_Nexus_Format;
+  com[1]->parm[5]->com = com[1];
+  com[1]->parm[5]->nxt_token_t = NEXUS_EQUAL;
+  com[1]->parm[5]->cur_token_t = NEXUS_PARM;
+
+  com[1]->parm[6] = Make_Nexus_Parm();
+  strcpy(com[1]->parm[6]->name,"matchchar");
+  com[1]->parm[6]->fp = Read_Nexus_Format;
+  com[1]->parm[6]->com = com[1];
+  com[1]->parm[6]->nxt_token_t = NEXUS_EQUAL;
+  com[1]->parm[6]->cur_token_t = NEXUS_PARM;
+
+  com[1]->parm[7] = Make_Nexus_Parm();
+  strcpy(com[1]->parm[7]->name,"transpose");
+  com[1]->parm[7]->fp = Read_Nexus_Format;
+  com[1]->parm[7]->com = com[1];
+  com[1]->parm[7]->nxt_token_t = NEXUS_PARM;
+  com[1]->parm[7]->cur_token_t = NEXUS_VALUE;
+
+  com[1]->parm[8] = Make_Nexus_Parm();
+  strcpy(com[1]->parm[8]->name,"interleave");
+  com[1]->parm[8]->fp = Read_Nexus_Format;
+  com[1]->parm[8]->com = com[1];
+  com[1]->parm[8]->nxt_token_t = NEXUS_PARM;
+  com[1]->parm[8]->cur_token_t = NEXUS_VALUE;
+
+  com[1]->parm[9] = Make_Nexus_Parm();
+  strcpy(com[1]->parm[9]->name,"items");
+  com[1]->parm[9]->fp = Read_Nexus_Format;
+  com[1]->parm[9]->com = com[1];
+  com[1]->parm[9]->nxt_token_t = NEXUS_EQUAL;
+  com[1]->parm[9]->cur_token_t = NEXUS_PARM;
+
+  com[1]->parm[10] = Make_Nexus_Parm();
+  strcpy(com[1]->parm[10]->name,"statesformat");
+  com[1]->parm[10]->fp = Read_Nexus_Format;
+  com[1]->parm[10]->com = com[1];
+  com[1]->parm[10]->nxt_token_t = NEXUS_EQUAL;
+  com[1]->parm[10]->cur_token_t = NEXUS_PARM;
+
+	
+  /*****************************/
+  strcpy(com[2]->name,"eliminate");
+  com[2]->nparm = 0;
+  com[2]->nxt_token_t = NEXUS_VALUE;
+  com[2]->cur_token_t = NEXUS_COM;
+
+  /*****************************/
+  strcpy(com[3]->name,"taxlabels");
+  com[3]->nparm = 0;
+  com[3]->nxt_token_t = -1;
+  com[3]->cur_token_t = -1;
+ 
+ /*****************************/
+  strcpy(com[4]->name,"charstatelabels");
+  com[4]->nparm = 0;
+  com[4]->nxt_token_t = -1;
+  com[4]->cur_token_t = -1;
+
+  /*****************************/
+  strcpy(com[5]->name,"charlabels");
+  com[5]->nparm = 0;
+  com[5]->nxt_token_t = -1;
+  com[5]->cur_token_t = -1;
+
+  /*****************************/
+  strcpy(com[6]->name,"statelabels");
+  com[6]->nparm = 0;
+  com[6]->nxt_token_t = -1;
+  com[6]->cur_token_t = -1;
+
+  /*****************************/
+  strcpy(com[7]->name,"matrix");
+  com[7]->nparm = 2;
+  com[7]->nxt_token_t = NEXUS_COM;
+  com[7]->cur_token_t = NEXUS_VALUE; /* This will allows us to skip directly 
+					to the matrix reading function */
+
+  com[7]->parm[0] = Make_Nexus_Parm();
+  strcpy(com[7]->parm[0]->name,"matrix");
+  com[7]->parm[0]->fp = Read_Nexus_Matrix;
+  com[7]->parm[0]->com = com[7];
+  com[7]->parm[0]->nxt_token_t = NEXUS_COM;
+  com[7]->parm[0]->cur_token_t = -1; 
+
+  /*****************************/
+  strcpy(com[8]->name,"begin");
+  com[8]->nparm = 1;
+  com[8]->nxt_token_t = NEXUS_PARM;
+  com[8]->cur_token_t = NEXUS_COM;
+
+
+  com[8]->parm[0] = Make_Nexus_Parm();
+  strcpy(com[8]->parm[0]->name,"data");
+  com[8]->parm[0]->fp = Read_Nexus_Begin;
+  com[8]->parm[0]->com = com[8];
+  com[8]->parm[0]->nxt_token_t = NEXUS_COM;
+  com[8]->parm[0]->cur_token_t = NEXUS_PARM;
+
+  /*****************************/
+
+  strcpy(com[9]->name,"end");
+  com[9]->nparm = 0;
+  com[9]->nxt_token_t = -1;
+  com[9]->cur_token_t = -1;
+}
+
+/*********************************************************/
+
+void Find_Nexus_Com(char *token, nexcom **found_com, nexparm **default_parm, nexcom **com_list)
+{
+  int i,j,tokenlen,ndiff;
+    
+  For(i,N_MAX_NEX_COM) 
+    {
+      tokenlen = strlen(token);
+      ndiff = -1;
+      if(tokenlen && (tokenlen == strlen(com_list[i]->name)))
+	{
+	  ndiff = 0;
+	  For(j,tokenlen)
+	    {
+	      Lowercase(token+j);
+	      Lowercase(com_list[i]->name+j);
+	      if(token[j] != com_list[i]->name[j]) ndiff++;
+	    }
+	}
+      if(!ndiff) { *found_com = com_list[i]; break; }
+    }
+
+  if(*found_com && (*found_com)->nparm) *default_parm = (*found_com)->parm[0];
+
+/*   if(*found_com) PhyML_Printf("\n. Found command '%s'.\n",(*found_com)->name); */
+}
+
+/*********************************************************/
+
+void Find_Nexus_Parm(char *token, nexparm **found_parm, nexcom *curr_com)
+{
+  int i,j;
+  int tokenlen;
+  int ndiff;
+
+  if(!curr_com)
+    {
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+
+  For(i,curr_com->nparm)
+    {
+      tokenlen = strlen(token);
+      ndiff = -1;
+      if(tokenlen == strlen(curr_com->parm[i]->name))
+	{
+	  ndiff = 0;
+	  For(j,tokenlen)
+	    {
+	      Lowercase(token+j);
+	      Lowercase(curr_com->parm[i]->name+j);
+	      if(token[j] != curr_com->parm[i]->name[j]) ndiff++;
+	    }
+	}
+      if(!ndiff) { *found_parm = curr_com->parm[i]; break; }
+    }
+
+/*   if(*found_parm) PhyML_Printf("\n. Found parameter '%s'.\n",(*found_parm)->name); */
+}
+
+/*********************************************************/
+
+int Read_Nexus_Matrix(char *token, nexparm *curr_parm, option *io)
+{
+  PhyML_Printf("\n. Reading alignment...\n");
+
+  if(io->interleaved) io->data = Read_Seq_Interleaved(io);
+  else                io->data = Read_Seq_Sequential(io);
+
+  fseek(io->fp_in_align,-1*sizeof(char),SEEK_CUR);
+
+  return 1;
+}
+
+/*********************************************************/
+
+int Read_Nexus_Begin(char *token, nexparm *curr_parm, option *io)
+{
+  if(token[0] == '=') return 0;
+
+  if(!curr_parm)
+    {
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+
+  if(!strcmp(curr_parm->name,"data")) PhyML_Printf("\n. Reading '%s' block.\n",curr_parm->value);
+  else
+    {
+      PhyML_Printf("\n. The '%s' block type is not supported by PhyML. Sorry.\n",curr_parm->name);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+
+  return 1;
+}
+
+/*********************************************************/
+
+int Read_Nexus_Dimensions(char *token, nexparm *curr_parm, option *io)
+{
+  if(token[0] == '=') return 0;
+
+  if(!curr_parm)
+    {
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+  
+  strcpy(curr_parm->value,token);
+
+  if(!strcmp(curr_parm->name,"ntax"))
+    {
+      sscanf(curr_parm->value,"%d",&(io->n_otu));
+      PhyML_Printf("\n. Number of taxa (as given by NTAX): %d\n",io->n_otu);
+    }
+
+  if(!strcmp(curr_parm->name,"nchar"))
+    {
+      sscanf(curr_parm->value,"%d",&(io->init_len));
+      PhyML_Printf("\n. Sequence length (as given by NCHAR): %d\n",io->init_len);
+    }
+  return 1;
+}
+
+/*********************************************************/
+
+int Read_Nexus_Format(char *token, nexparm *curr_parm, option *io)
+{
+  int i;  
+  
+  if(token[0] == '=') return 0;
+  
+  if(!curr_parm)
+    {
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+
+  For(i,strlen(token)) Lowercase(token+i);
+
+  strcpy(curr_parm->value,token);
+    
+  if(!strcmp(curr_parm->name,"datatype"))
+    {
+      if(!strcmp(curr_parm->value,"standard"))
+	{
+	  PhyML_Printf("\n. Expecting standard data format (default: binary data).\n");
+	  io->datatype= INTEGERS;
+	  io->alphabet_size = 2;
+	  io->alphabet[0][0] = '0';
+	  io->alphabet[1][0] = '1';
+	}
+
+      else if(!strcmp(curr_parm->value,"dna"))
+	{
+	  PhyML_Printf("\n. Expecting nucleotide sequences.\n");
+	  io->datatype= NT;
+	}
+
+      else if(!strcmp(curr_parm->value,"rna"))
+	{
+	  PhyML_Printf("\n. Expecting nucleotide sequences.\n");
+	  io->datatype= NT;
+	}
+
+      else if(!strcmp(curr_parm->value,"nucleotide"))
+	{
+	  PhyML_Printf("\n. Expecting nucleotide sequences.\n");
+	  io->datatype= NT;
+	}
+
+      else if(!strcmp(curr_parm->value,"protein"))
+	{
+	  PhyML_Printf("\n. Expecting amino-acid sequences.\n");
+	  io->datatype= AA;
+	}
+      
+      else if(!strcmp(curr_parm->value,"continuous"))
+	{
+	  PhyML_Printf("\n. The 'continuous' format is not supported by PhyML. Sorry.\n");
+	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
 	  Warn_And_Exit("");
 	}
     }
 
-  Free(format);
-  Free(line);
-  return data;
+  else if(!strcmp(curr_parm->name,"missing"))
+    {
+      /* !!!!!!!!!!!! */
+      PhyML_Printf("\n. The 'missing' subcommand is not supported by PhyML. Sorry.\n");
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+
+  else if(!strcmp(curr_parm->name,"gap"))
+    {
+      /* !!!!!!!!!!!! */
+      PhyML_Printf("\n. The 'gap' subcommand is not supported by PhyML. Sorry.\n");
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+
+  else if(!strcmp(curr_parm->name,"symbols"))
+    {
+      if(*token != '"' || *(token+strlen(token)-1) != '"')
+	{
+	  PhyML_Printf("\n. Symbols list is supposed to be displayed between quotation marks (e.g., \"ACTG\").\n");
+	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  Warn_And_Exit("");
+	}
+
+      token++; /* Get rid of the first '"' character */
+
+      int i,has_spaces,state_len;
+
+      i          = 0;
+      has_spaces = 0;     
+      while(token[i] != '"')  { if(token[i] == ' ') { has_spaces = 1; break; } i++; }
+
+      io->alphabet_size = 0;
+      if(!has_spaces)
+	{
+	  while(token[i] != '"') 
+	    { 
+	      io->alphabet[io->alphabet_size][0] = token[i]; 
+	      io->alphabet[io->alphabet_size][1] = '\0'; 
+	      io->alphabet_size++;
+	      i++;
+	      if(io->alphabet_size > T_MAX_ALPHABET)
+		{
+		  PhyML_Printf("\n. The alphabet cannot contain more than %d characters. Sorry.",T_MAX_ALPHABET);
+		  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+		  Warn_And_Exit("");
+		}
+	    }
+	}
+      else
+	{
+	  i = 0;
+	  do
+	    {
+	      state_len = 0;
+	      while(token[i] != ' ' && token[i] != '"') 
+		{ 
+		  io->alphabet[io->alphabet_size][state_len] = token[i];
+		  state_len++;
+		  i++;
+		  if(state_len > T_MAX_STATE)
+		    {
+		      PhyML_Printf("\n. A state cannot contain more than %d characters. Sorry.",T_MAX_STATE);
+		      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+		      Warn_And_Exit("");
+		    }
+		}
+	      
+	      io->alphabet[io->alphabet_size][state_len] = '\0';
+	      io->alphabet_size++;
+	      if(token[i] != '"') i++;
+	    }
+	  while(token[i] != '"');
+
+	}
+      PhyML_Printf("\n. Symbols: \"");
+      For(i,io->alphabet_size) PhyML_Printf(" %s",io->alphabet[i]);
+      PhyML_Printf(" \"\n");
+
+    }
+
+  else if(!strcmp(curr_parm->name,"equate"))
+    {
+      /* !!!!!!!!!!!! */
+/*       PhyML_Printf("\n. Equate: %s",curr_parm->value); */
+      PhyML_Printf("\n. PhyML does not recognize the command '%s' yet. Sorry.",curr_parm->name);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+  
+  else if(!strcmp(curr_parm->name,"matchchar"))
+    {
+      /* !!!!!!!!!!!! */
+/*       PhyML_Printf("\n. Matchchar: %s",curr_parm->value); */
+      PhyML_Printf("\n. PhyML does not recognize the command '%s' yet. Sorry.",curr_parm->name);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+
+  else if(!strcmp(curr_parm->name,"items"))
+    {
+      /* !!!!!!!!!!!! */
+/*       PhyML_Printf("\n. Items: %s",curr_parm->value); */
+      PhyML_Printf("\n. PhyML does not recognize the command '%s' yet. Sorry.",curr_parm->name);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+
+  else if(!strcmp(curr_parm->name,"interleave"))
+    {
+      PhyML_Printf("\n. Expecting interleave sequence format.\n");
+      io->interleaved = 1;
+    }
+
+  return 1;
 }
 
 /*********************************************************/
 
-align **Read_Seq_Interleaved(FILE *in, int *n_otu)
+int Read_Nexus_Eliminate(char *token, nexparm *curr_parm, option *io)
 {
-  int i,end,num_block;
+  if(token[0] == '=') return 0;
+
+  PhyML_Printf("\n. 'Eliminate' command is not supported by PhyML. Sorry.");
+  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+  Warn_And_Exit("");
+
+  return 1;
+}
+
+/*********************************************************/
+
+int Read_Nexus_Taxlabel(char *token, nexparm *curr_parm, option *io)
+{
+  if(token[0] == '=') return 0;
+
+  PhyML_Printf("\n. 'Taxlabels' command is not supported by PhyML. Sorry.");
+  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+  Warn_And_Exit("");
+
+  return 1;
+}
+
+/*********************************************************/
+
+int Read_Nexus_Charstatelabels(char *token, nexparm *curr_parm, option *io)
+{
+
+  if(token[0] == '=') return 0;
+
+  PhyML_Printf("\n. 'CharStateLabels' command is not supported by PhyML. Sorry.");
+  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+  Warn_And_Exit("");
+
+  return 1;
+}
+
+/*********************************************************/
+
+int Read_Nexus_Charlabels(char *token, nexparm *curr_parm, option *io)
+{
+  if(token[0] == '=') return 0;
+
+  PhyML_Printf("\n. 'CharLabels' command is not supported by PhyML. Sorry.");
+  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+  Warn_And_Exit("");
+
+  return 1;
+}
+
+/*********************************************************/
+
+int Read_Nexus_Statelabels(char *token, nexparm *curr_parm, option *io)
+{
+  if(token[0] == '=') return 0;
+
+  PhyML_Printf("\n. 'StateLabels' command is not supported by PhyML. Sorry.");
+  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+  Warn_And_Exit("");
+
+  return 1;
+}
+
+/*********************************************************/
+
+align **Get_Seq_Phylip(option *io)
+{
+  Read_Ntax_Len_Phylip(io->fp_in_align,&io->n_otu,&io->init_len);
+
+  if(io->interleaved) io->data = Read_Seq_Interleaved(io);
+  else                io->data = Read_Seq_Sequential(io);
+
+  return io->data;
+}
+
+/*********************************************************/
+
+void Read_Ntax_Len_Phylip(FILE *fp ,int *n_otu, int *n_tax)
+{
   char *line;
-  int len,readok;
-  align **data;
-  char c;
-  char *format;
+  int readok;
+  
+  line = (char *)mCalloc(T_MAX_LINE,sizeof(char));  
 
-  line = (char *)mCalloc(T_MAX_LINE,sizeof(char));
-  format = (char *)mCalloc(T_MAX_NAME, sizeof(char));
-
-  readok = len = 0;
+  readok = 0;
   do
     {
-      if(fscanf(in,"%s",line) == EOF)
+      if(fscanf(fp,"%s",line) == EOF)
 	{
-	  Free(format);
 	  Free(line); 
-	  return NULL;
+	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  Warn_And_Exit("");
 	}
       else
 	{
 	  if(strcmp(line,"\n") && strcmp(line,"\r") && strcmp(line,"\t"))
 	    {
-	      *n_otu = atoi(line);
-	      data = (align **)mCalloc(*n_otu,sizeof(align *));
-	      if(*n_otu <= 0) Warn_And_Exit("\n. Problem with sequence format\n");
-	      if(!fscanf(in,"%s",line)) Exit("\n");
-	      sscanf(line,"%d",&len);
-	      if(len <= 0) Warn_And_Exit("\n. Problem with sequence format\n");
+	      sscanf(line,"%d",n_otu);
+	      if(*n_otu <= 0) Warn_And_Exit("\n. The number of taxa cannot be negative.\n");
+
+	      if(!fscanf(fp,"%s",line)) Exit("\n");
+	      sscanf(line,"%d",n_tax);
+	      if(*n_tax <= 0) Warn_And_Exit("\n. The sequence length cannot be negative.\n");
 	      else readok = 1;
 	    }
 	}
     }while(!readok);
+  
+  Free(line);
+}
+
+/*********************************************************/
+
+align **Read_Seq_Sequential(option *io)
+{
+  int i;
+  char *line;
+  align **data;
+/*   char c; */
+  char *format;
 
 
-  while(((c=fgetc(in))!='\n') && (c != ' ') && (c != '\r') && (c != '\t'));
+  format = (char *)mCalloc(T_MAX_NAME,sizeof(char));
+  line   = (char *)mCalloc(T_MAX_LINE,sizeof(char));
+  data   = (align **)mCalloc(io->n_otu,sizeof(align *));
 
+/*   while((c=fgetc(in))!='\n'); */
+ /*  while(((c=fgetc(io->fp_in_align))!='\n') && (c != ' ') && (c != '\r') && (c != '\t')); */
+
+  For(i,io->n_otu)
+    {
+      data[i]        = (align *)mCalloc(1,sizeof(align));
+      data[i]->name  = (char *)mCalloc(T_MAX_NAME,sizeof(char));
+      data[i]->state = (char *)mCalloc(T_MAX_SEQ,sizeof(char));
+
+      data[i]->is_ambigu = NULL;
+      data[i]->len = 0;
+
+      sprintf(format, "%%%ds", T_MAX_NAME);
+      if(!fscanf(io->fp_in_align,format,data[i]->name)) Exit("\n");
+
+      while(data[i]->len < io->init_len) Read_One_Line_Seq(&data,i,io->fp_in_align);
+
+      if(data[i]->len != io->init_len)
+	{
+	  PhyML_Printf("\n. Err: Problem with species %s's sequence (check the format).\n",
+		       data[i]->name);
+	  Warn_And_Exit("");
+	}
+    }
+  
+  Free(format);
+  Free(line);
+  
+  return data;
+}
+
+/*********************************************************/
+
+align **Read_Seq_Interleaved(option *io)
+{
+  int i,end,num_block;
+  char *line;
+  align **data;
+/*   char c; */
+  char *format;
+
+  line   = (char *)mCalloc(T_MAX_LINE,sizeof(char));
+  format = (char *)mCalloc(T_MAX_NAME, sizeof(char));
+  data   = (align **)mCalloc(io->n_otu,sizeof(align *));
+
+/*   while(((c=fgetc(io->fp_in_align))!='\n') && (c != ' ') && (c != '\r') && (c != '\t')); */
 
   end = 0;
-  For(i,*n_otu)
+  For(i,io->n_otu)
     {
-      data[i] = (align *)mCalloc(1,sizeof(align));
-      data[i]->len = 0;
-      data[i]->name = (char *)mCalloc(T_MAX_NAME,sizeof(char));
-      data[i]->state = (char *)mCalloc(len+100,sizeof(char));
+      data[i]        = (align *)mCalloc(1,sizeof(align));
+      data[i]->name  = (char *)mCalloc(T_MAX_NAME,sizeof(char));
+      data[i]->state = (char *)mCalloc(io->init_len+100,sizeof(char));
+
+      data[i]->len       = 0;
       data[i]->is_ambigu = NULL;
+
       sprintf(format, "%%%ds", T_MAX_NAME);
 /*       sprintf(format, "%%%ds", 10); */
-      if(!fscanf(in, format, data[i]->name)) Exit("\n");
-      if(!Read_One_Line_Seq(&data,i,in))
+      if(!fscanf(io->fp_in_align,format,data[i]->name)) Exit("\n");
+
+      if(!Read_One_Line_Seq(&data,i,io->fp_in_align))
 	{
 	  end = 1;
-	  if((i != *n_otu) && (i != *n_otu-1))
+	  if((i != io->n_otu) && (i != io->n_otu-1))
 	    {
 	      PhyML_Printf("\n. Err: Problem with species %s's sequence\n",data[i]->name);
 	      Warn_And_Exit("");
@@ -1479,10 +1884,12 @@ align **Read_Seq_Interleaved(FILE *in, int *n_otu)
 	}
     }
   
-  if(data[0]->len == len) end = 1;
+  if(data[0]->len == io->init_len) end = 1;
 
+/*   if(end) printf("\n. finished yet '%c'\n",fgetc(io->fp_in_align)); */
   if(!end)
     {
+
       end = 0;
 
       num_block = 1;
@@ -1491,7 +1898,7 @@ align **Read_Seq_Interleaved(FILE *in, int *n_otu)
 	  num_block++;
 
 	  /* interblock */
-	  if(!fgets(line,T_MAX_LINE,in)) break;
+	  if(!fgets(line,T_MAX_LINE,io->fp_in_align)) break;
 
 	  if(line[0] != 13 && line[0] != 10)
 	    {
@@ -1499,25 +1906,25 @@ align **Read_Seq_Interleaved(FILE *in, int *n_otu)
 	      Warn_And_Exit("");
 	    }
 	  
-	  For(i,*n_otu)
-	    if(data[i]->len != len)
+	  For(i,io->n_otu)
+	    if(data[i]->len != io->init_len)
 	      break;
 	  
-	  if(i == *n_otu) break;
+	  if(i == io->n_otu) break;
 	  
 	  
-	  For(i,*n_otu)
+	  For(i,io->n_otu)
 	    {
-	      if(data[i]->len > len)
+	      if(data[i]->len > io->init_len)
 		{
-		  PhyML_Printf("\n. Observed length=%d expected length=%d\n",data[i]->len,len);
+		  PhyML_Printf("\n. Observed length=%d expected length=%d\n",data[i]->len,io->init_len);
 		  PhyML_Printf("\n. Err: Problem with species %s's sequence\n",data[i]->name);
 		  Warn_And_Exit("");
 		}
-	      else if(!Read_One_Line_Seq(&data,i,in))
+	      else if(!Read_One_Line_Seq(&data,i,io->fp_in_align))
 		{
 		  end = 1;
-		  if((i != *n_otu) && (i != *n_otu-1))
+		  if((i != io->n_otu) && (i != io->n_otu-1))
 		    {
 		      PhyML_Printf("\n. Err: Problem with species %s's sequence\n",data[i]->name);
 		      Warn_And_Exit("");
@@ -1528,9 +1935,9 @@ align **Read_Seq_Interleaved(FILE *in, int *n_otu)
 	}while(!end);
     }
 
-  For(i,*n_otu)
+  For(i,io->n_otu)
     {
-      if(data[i]->len != len)
+      if(data[i]->len != io->init_len)
 	{
 	  PhyML_Printf("\n. Check sequence '%s' length...\n",data[i]->name);
 	  Warn_And_Exit("");
@@ -1539,6 +1946,7 @@ align **Read_Seq_Interleaved(FILE *in, int *n_otu)
 
   Free(format);
   Free(line);
+
   return data;
 }
 
@@ -1553,8 +1961,7 @@ int Read_One_Line_Seq(align ***data, int num_otu, FILE *in)
   while(1)
     {
 /*       if((c == EOF) || (c == '\n') || (c == '\r')) break; */
-
-
+      
       if((c == 13) || (c == 10)) 
 	{
 /* 	  PhyML_Printf("[%d %d]\n",c,nchar); fflush(NULL); */
@@ -1602,6 +2009,7 @@ int Read_One_Line_Seq(align ***data, int num_otu, FILE *in)
       (*data)[num_otu]->len++;
 /*       PhyML_Printf("%c",c); */
       c = (char)fgetc(in);
+      if(c == ';') break;
     }
 
   if(c == EOF) return 0;
@@ -1621,7 +2029,7 @@ void Uppercase(char *ch)
 void Lowercase(char *ch)
 {
   /* convert ch to upper case -- either ASCII or EBCDIC */
-   *ch = isupper((int)*ch) ? *ch : tolower((int)*ch);
+  *ch = isupper((int)*ch) ? tolower((int)*ch) : *ch;
 }
 
 /*********************************************************/
@@ -1649,11 +2057,10 @@ calign *Compact_Data(align **data, option *io)
     }
 
   cdata_tmp = Make_Cseq(n_otu,data[0]->len,data[0]->len,sp_names);
-  proot       = (pnode *)Create_Pnode(T_MAX_ALPHABET);
+  proot     = (pnode *)Create_Pnode(T_MAX_ALPHABET);
  
   For(i,n_otu) Free(sp_names[i]);
   Free(sp_names);
-
 
   if(data[0]->len%io->mod->stepsize)
     {
@@ -1819,6 +2226,7 @@ calign *Compact_Cdata(calign *data, option *io)
       cdata->c_seq[j]->is_ambigu = (short int *)mCalloc(data->crunch_len,sizeof(short int));
       cdata->c_seq[j]->state[0]  = data->c_seq[j]->state[0];
     }
+
 
   n_patt = which_patt =  0;
 
@@ -2108,10 +2516,10 @@ void Get_AA_Freqs(calign *data)
 
 /*********************************************************/
 
-arbre *Read_Tree_File(FILE *fp_input_tree)
+t_tree *Read_Tree_File(FILE *fp_input_tree)
 {
   char *line;
-  arbre *tree;
+  t_tree *tree;
   int i;
   char c;
 
@@ -2152,7 +2560,7 @@ arbre *Read_Tree_File(FILE *fp_input_tree)
 
 /*********************************************************/
 
-void Connect_Edges_To_Nodes_Recur(node *a, node *d, arbre *tree)
+void Connect_Edges_To_Nodes_Recur(t_node *a, t_node *d, t_tree *tree)
 {
   int i;
 
@@ -2165,7 +2573,7 @@ void Connect_Edges_To_Nodes_Recur(node *a, node *d, arbre *tree)
 
 /*********************************************************/
 
-void Connect_One_Edge_To_Two_Nodes(node *a, node *d, edge *b, arbre *tree)
+void Connect_One_Edge_To_Two_Nodes(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 {
   int i,dir_a_d;
 
@@ -2184,7 +2592,7 @@ void Connect_One_Edge_To_Two_Nodes(node *a, node *d, edge *b, arbre *tree)
   b->left       = a;
   b->rght       = d;
   if(a->tax) {b->rght = a; b->left = d;} /* root */
-  /* a tip is necessary on the right hand side of the edge */
+  /* a tip is necessary on the right hand side of the t_edge */
 
   (b->left == a)?
     (Make_Edge_Dirs(b,a,d)):
@@ -2199,11 +2607,11 @@ void Connect_One_Edge_To_Two_Nodes(node *a, node *d, edge *b, arbre *tree)
 
 /*********************************************************/
 
-void Update_Dirs(arbre *tree)
+void Update_Dirs(t_tree *tree)
 {
   int i;
   int buff;
-  edge *b;
+  t_edge *b;
 
   b = NULL;
   buff = -1;
@@ -2266,14 +2674,14 @@ void *mRealloc(void *p,int nb, size_t size)
 
 /*********************************************************/
 
-/* arbre *Make_Light_Tree_Struct(int n_otu) */
+/* t_tree *Make_Light_Tree_Struct(int n_otu) */
 /* { */
-/*   arbre *tree; */
+/*   t_tree *tree; */
 /*   int i; */
 
-/*   tree          = (arbre *)mCalloc(1,sizeof(arbre )); */
-/*   tree->t_edges = (edge **)mCalloc(2*n_otu-3,sizeof(edge *)); */
-/*   tree->noeud   = (node **)mCalloc(2*n_otu-2,sizeof(node *)); */
+/*   tree          = (t_tree *)mCalloc(1,sizeof(t_tree )); */
+/*   tree->t_edges = (t_edge **)mCalloc(2*n_otu-3,sizeof(t_edge *)); */
+/*   tree->noeud   = (t_node **)mCalloc(2*n_otu-2,sizeof(t_node *)); */
 /*   tree->n_otu   = n_otu; */
 
 /*   For(i,2*n_otu-3) */
@@ -2444,7 +2852,7 @@ void Print_Site(calign *cdata, int num, int n_otu, char *sep, int stepsize)
 
 /*********************************************************/
 
-void Print_Site_Lk(arbre *tree, FILE *fp)
+void Print_Site_Lk(t_tree *tree, FILE *fp)
 {
   int site;
   int catg;
@@ -2608,7 +3016,7 @@ void Print_CSeq(FILE *fp, calign *cdata)
 
 /*********************************************************/
 
-void Order_Tree_Seq(arbre *tree, align **data)
+void Order_Tree_Seq(t_tree *tree, align **data)
 {
     int i,j,n_otu;
     align *buff;
@@ -2630,7 +3038,7 @@ void Order_Tree_Seq(arbre *tree, align **data)
 
 /*********************************************************/
 
-void Order_Tree_CSeq(arbre *tree, calign *cdata)
+void Order_Tree_CSeq(t_tree *tree, calign *cdata)
 {
     int i,j,n_otu_tree,n_otu_cdata;
     align *buff;
@@ -2676,7 +3084,7 @@ matrix *Make_Mat(int n_otu)
   mat->dist     = (phydbl **)mCalloc(n_otu,sizeof(phydbl *));
   mat->on_off   = (int *)mCalloc(n_otu,sizeof(int));
   mat->name     = (char **)mCalloc(n_otu,sizeof(char *));
-  mat->tip_node = (node **)mCalloc(n_otu,sizeof(node *));
+  mat->tip_node = (t_node **)mCalloc(n_otu,sizeof(t_node *));
 
 
   For(i,n_otu)
@@ -2710,9 +3118,9 @@ void Init_Mat(matrix *mat, calign *data)
 
 /*********************************************************/
 
-arbre *Make_Tree_From_Scratch(int n_otu, calign *data)
+t_tree *Make_Tree_From_Scratch(int n_otu, calign *data)
 {
-  arbre *tree;
+  t_tree *tree;
 
   tree = Make_Tree(n_otu);
   Make_All_Tree_Nodes(tree);
@@ -2729,11 +3137,11 @@ arbre *Make_Tree_From_Scratch(int n_otu, calign *data)
 
 /*********************************************************/
 
-arbre *Make_Tree(int n_otu)
+t_tree *Make_Tree(int n_otu)
 {
-  arbre *tree;
+  t_tree *tree;
   int i;
-  tree = (arbre *)mCalloc(1,sizeof(arbre ));
+  tree = (t_tree *)mCalloc(1,sizeof(t_tree ));
   Init_Tree(tree,n_otu);
   tree->t_dir = (int **)mCalloc(2*n_otu-2,sizeof(int *));
   For(i,2*n_otu-2) tree->t_dir[i] = (int *)mCalloc(2*n_otu-2,sizeof(int));
@@ -2742,22 +3150,22 @@ arbre *Make_Tree(int n_otu)
 
 /*********************************************************/
 
-void Make_Tree_Path(arbre *tree)
+void Make_Tree_Path(t_tree *tree)
 {
-  tree->curr_path = (node **)mCalloc(tree->n_otu,sizeof(node *));
+  tree->curr_path = (t_node **)mCalloc(tree->n_otu,sizeof(t_node *));
 }
 
 /*********************************************************/
 
-void Make_All_Tree_Nodes(arbre *tree)
+void Make_All_Tree_Nodes(t_tree *tree)
 {
   int i;
 
-  tree->noeud = (node **)mCalloc(2*tree->n_otu-1,sizeof(node *));
+  tree->noeud = (t_node **)mCalloc(2*tree->n_otu-1,sizeof(t_node *));
 
   For(i,2*tree->n_otu-1)
     {
-      tree->noeud[i] = (node *)Make_Node_Light(i);
+      tree->noeud[i] = (t_node *)Make_Node_Light(i);
       if(i < tree->n_otu) tree->noeud[i]->tax = 1;
       else                tree->noeud[i]->tax = 0;
     }
@@ -2765,19 +3173,19 @@ void Make_All_Tree_Nodes(arbre *tree)
 
 /*********************************************************/
 
-void Make_All_Tree_Edges(arbre *tree)
+void Make_All_Tree_Edges(t_tree *tree)
 {
   int i;
 
-  tree->t_edges      = (edge **)mCalloc(2*tree->n_otu-3,sizeof(edge *));
-/*   tree->t_dead_edges = (edge **)mCalloc(2*tree->n_otu-3,sizeof(edge *)); */
+  tree->t_edges      = (t_edge **)mCalloc(2*tree->n_otu-3,sizeof(t_edge *));
+/*   tree->t_dead_edges = (t_edge **)mCalloc(2*tree->n_otu-3,sizeof(t_edge *)); */
 
-  For(i,2*tree->n_otu-3) tree->t_edges[i] = (edge *)Make_Edge_Light(NULL,NULL,i);
+  For(i,2*tree->n_otu-3) tree->t_edges[i] = (t_edge *)Make_Edge_Light(NULL,NULL,i);
 }
 
 /*********************************************************/
 
-void Copy_Tax_Names_To_Tip_Labels(arbre *tree, calign *data)
+void Copy_Tax_Names_To_Tip_Labels(t_tree *tree, calign *data)
 {
   int i;
 
@@ -2807,7 +3215,7 @@ void Print_Dist(matrix *mat)
 
 /*********************************************************/
 
-void Print_Node(node *a, node *d, arbre *tree)
+void Print_Node(t_node *a, t_node *d, t_tree *tree)
 {
   int i;
   int dir;
@@ -2833,11 +3241,11 @@ void Print_Node(node *a, node *d, arbre *tree)
 
 /*********************************************************/
 
-void Share_Lk_Struct(arbre *t_full, arbre *t_empt)
+void Share_Lk_Struct(t_tree *t_full, t_tree *t_empt)
 {
   int i,j,n_otu;
-  edge *b_e,*b_f;
-  node *n_e, *n_f;
+  t_edge *b_e,*b_f;
+  t_node *n_e, *n_f;
 
   n_otu                   = t_full->n_otu;
   t_empt->n_root          = t_full->n_root;
@@ -2920,7 +3328,7 @@ void Share_Lk_Struct(arbre *t_full, arbre *t_empt)
 
 /*********************************************************/
 
-void Share_Spr_Struct(arbre *t_full, arbre *t_empt)
+void Share_Spr_Struct(t_tree *t_full, t_tree *t_empt)
 {
   t_empt->size_spr_list = t_full->size_spr_list;
   t_empt->spr_list      = t_full->spr_list;
@@ -2929,7 +3337,7 @@ void Share_Spr_Struct(arbre *t_full, arbre *t_empt)
 
 /*********************************************************/
 
-void Share_Pars_Struct(arbre *t_full, arbre *t_empt)
+void Share_Pars_Struct(t_tree *t_full, t_tree *t_empt)
 {
   int i;
 
@@ -2951,7 +3359,7 @@ void Share_Pars_Struct(arbre *t_full, arbre *t_empt)
 
 /*********************************************************/
 
-void Share_List_Of_Reachable_Tips_Struct(arbre *t_full, arbre *t_empt)
+void Share_List_Of_Reachable_Tips_Struct(t_tree *t_full, t_tree *t_empt)
 {
   int i;
 
@@ -2992,10 +3400,10 @@ void Print_Mat(matrix *mat)
 
 /*********************************************************/
 
-int Sort_Edges_NNI_Score(arbre *tree, edge **sorted_edges, int n_elem)
+int Sort_Edges_NNI_Score(t_tree *tree, t_edge **sorted_edges, int n_elem)
 {
   int i,j;
-  edge *buff;
+  t_edge *buff;
 
   For(i,n_elem-1)
     {
@@ -3014,10 +3422,10 @@ int Sort_Edges_NNI_Score(arbre *tree, edge **sorted_edges, int n_elem)
 
 /*********************************************************/
 
-int Sort_Edges_Depth(arbre *tree, edge **sorted_edges, int n_elem)
+int Sort_Edges_Depth(t_tree *tree, t_edge **sorted_edges, int n_elem)
 {
   int i,j;
-  edge *buff;
+  t_edge *buff;
   phydbl *depth,buff_depth;
   
   depth = (phydbl *)mCalloc(n_elem,sizeof(phydbl));
@@ -3052,10 +3460,10 @@ int Sort_Edges_Depth(arbre *tree, edge **sorted_edges, int n_elem)
 
 /*********************************************************/
 
-void NNI(arbre *tree, edge *b_fcus, int do_swap)
+void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
 {
   int l_r, r_l, l_v1, l_v2, r_v3, r_v4;
-  node *v1,*v2,*v3,*v4;
+  t_node *v1,*v2,*v3,*v4;
   phydbl lk0, lk1, lk2;
   phydbl lk0_init, lk1_init, lk2_init;
   phydbl bl_init;
@@ -3281,7 +3689,7 @@ void NNI(arbre *tree, edge *b_fcus, int do_swap)
    if((do_swap) && ((lk1 > lk0) || (lk2 > lk0)))
      {
       tree->n_swap++;
-      PhyML_Printf("Swap edge %d -> %f\n",b_fcus->num,MAX(lk1,lk2));
+      PhyML_Printf("Swap t_edge %d -> %f\n",b_fcus->num,MAX(lk1,lk2));
 
       if(lk1 > lk2)
 	 {
@@ -3310,10 +3718,10 @@ void NNI(arbre *tree, edge *b_fcus, int do_swap)
 
 /*********************************************************/
 
-void NNI_Pars(arbre *tree, edge *b_fcus, int do_swap)
+void NNI_Pars(t_tree *tree, t_edge *b_fcus, int do_swap)
 {
   int l_r, r_l, l_v1, l_v2, r_v3, r_v4;
-  node *v1,*v2,*v3,*v4;
+  t_node *v1,*v2,*v3,*v4;
   int pars0, pars1, pars2;
   int pars_init;
 
@@ -3414,7 +3822,7 @@ void NNI_Pars(arbre *tree, edge *b_fcus, int do_swap)
 
 /*********************************************************/
 
-void Swap(node *a, node *b, node *c, node *d, arbre *tree)
+void Swap(t_node *a, t_node *b, t_node *c, t_node *d, t_tree *tree)
 {
   int ab, ba, cd, dc, bc;
   int i;
@@ -3515,7 +3923,7 @@ void Swap(node *a, node *b, node *c, node *d, arbre *tree)
 
 /*********************************************************/
 
-void Update_All_Partial_Lk(edge *b_fcus, arbre *tree)
+void Update_All_Partial_Lk(t_edge *b_fcus, t_tree *tree)
 {
 
   Update_SubTree_Partial_Lk(b_fcus->left->b[b_fcus->l_v1],
@@ -3543,7 +3951,7 @@ void Update_All_Partial_Lk(edge *b_fcus, arbre *tree)
 
 /*********************************************************/
 
-void Update_SubTree_Partial_Lk(edge *b_fcus, node *a, node *d, arbre *tree)
+void Update_SubTree_Partial_Lk(t_edge *b_fcus, t_node *a, t_node *d, t_tree *tree)
 {
   int i;
 
@@ -3588,13 +3996,13 @@ calign *Make_Cseq(int n_otu, int crunch_len, int init_len, char **sp_names)
 
 /*********************************************************/
 
-arbrelist *Make_Treelist(int list_size)
+t_treelist *Make_Treelist(int list_size)
 {
-  arbrelist *tlist;
+  t_treelist *tlist;
 
-  tlist = (arbrelist *)mCalloc(1,sizeof(arbrelist));
+  tlist = (t_treelist *)mCalloc(1,sizeof(t_treelist));
   tlist->list_size = list_size;
-  tlist->tree = (arbre **)mCalloc(list_size,sizeof(arbre *));
+  tlist->tree = (t_tree **)mCalloc(list_size,sizeof(t_tree *));
 
   return tlist;
 }
@@ -3602,7 +4010,7 @@ arbrelist *Make_Treelist(int list_size)
 
 /*********************************************************/
 
-void Copy_Seq_Names_To_Tip_Labels(arbre *tree, calign *data)
+void Copy_Seq_Names_To_Tip_Labels(t_tree *tree, calign *data)
 {
   int i;
   For(i,tree->n_otu)
@@ -3741,7 +4149,7 @@ FILE *Openfile(char *filename, int mode)
 
 /*********************************************************/
 
-void Print_Fp_Out(FILE *fp_out, time_t t_beg, time_t t_end, arbre *tree, option *io, int n_data_set, int num_tree)
+void Print_Fp_Out(FILE *fp_out, time_t t_beg, time_t t_end, t_tree *tree, option *io, int n_data_set, int num_tree)
 {
   char *s;
   div_t hour,min;
@@ -3924,7 +4332,7 @@ void Print_Fp_Out(FILE *fp_out, time_t t_beg, time_t t_end, arbre *tree, option 
 
 /*********************************************************/
 /*FLT wrote this function*/
-void Print_Fp_Out_Lines(FILE *fp_out, time_t t_beg, time_t t_end, arbre *tree, option *io, int n_data_set)
+void Print_Fp_Out_Lines(FILE *fp_out, time_t t_beg, time_t t_end, t_tree *tree, option *io, int n_data_set)
 {
   char *s;
   /*div_t hour,min;*/
@@ -4403,8 +4811,7 @@ int Is_Ambigu(char *state, int datatype, int stepsize)
 	  if(val == 1) break;
 	}
     }
-/*   else if(datatype == AA) */
-  else
+  else if(datatype == AA)
     {
       switch(state[0])
 	{
@@ -4412,14 +4819,14 @@ int Is_Ambigu(char *state, int datatype, int stepsize)
 	default : { val=0; break; }
 	}
     }
-/*   else if(datatype == DIGITS) */
-/*     { */
-/*       switch(state[0]) */
-/* 	{ */
-/* 	case 'X' : case '?' : case '-' : case '.' : {val=1; break; } */
-/* 	default : {val = 0; break;} */
-/* 	}       */
-/*     } */
+  else if(datatype == INTEGERS)
+    {
+      switch(state[0])
+	{
+	case 'X' : case '?' : case '-' : case '.' : {val=1; break; }
+	default : {val = 0; break;}
+	}
+    }
 
   return val;
 }
@@ -4709,7 +5116,7 @@ int Assign_State_With_Ambiguity(char *c, int datatype, int stepsize)
 
 /*********************************************************/
 
-void Clean_Tree_Connections(arbre *tree)
+void Clean_Tree_Connections(t_tree *tree)
 {
 
   int i;
@@ -4726,13 +5133,13 @@ void Clean_Tree_Connections(arbre *tree)
 
 /*********************************************************/
 
-void Bootstrap(arbre *tree)
+void Bootstrap(t_tree *tree)
 {
   int *site_num, n_site;
   int replicate,j,k;
   int position,init_len;
   calign *boot_data;
-  arbre *boot_tree;
+  t_tree *boot_tree;
   model *boot_mod;
   matrix *boot_mat;
   char *s;
@@ -4906,7 +5313,7 @@ fflush(stdout);
 
 /*********************************************************/
 
-void Br_Len_Involving_Invar(arbre *tree)
+void Br_Len_Involving_Invar(t_tree *tree)
 {
   int i;
   For(i,2*tree->n_otu-3) tree->t_edges[i]->l *= (1.0-tree->mod->pinvar);
@@ -4914,7 +5321,7 @@ void Br_Len_Involving_Invar(arbre *tree)
 
 /*********************************************************/
 
-void Br_Len_Not_Involving_Invar(arbre *tree)
+void Br_Len_Not_Involving_Invar(t_tree *tree)
 {
   int i;
   For(i,2*tree->n_otu-3) tree->t_edges[i]->l /= (1.0-tree->mod->pinvar);
@@ -4931,7 +5338,7 @@ void Getstring_Stdin(char *file_name)
 
 /*********************************************************/
 
-void Print_Freq(arbre *tree)
+void Print_Freq(t_tree *tree)
 {
 
   switch(tree->io->datatype)
@@ -4989,7 +5396,7 @@ void Print_Freq(arbre *tree)
 
 /*********************************************************/
 
-phydbl Num_Derivatives_One_Param(phydbl (*func)(arbre *tree), arbre *tree,
+phydbl Num_Derivatives_One_Param(phydbl (*func)(t_tree *tree), t_tree *tree,
 				 phydbl f0, phydbl *param, phydbl stepsize,
 				 phydbl *err, int precise)
 {
@@ -5082,8 +5489,8 @@ phydbl Num_Derivatives_One_Param(phydbl (*func)(arbre *tree), arbre *tree,
 
 /*********************************************************/
 
-void Num_Derivative_Several_Param(arbre *tree, phydbl *param, int n_param, phydbl stepsize,
-				  phydbl (*func)(arbre *tree), phydbl *derivatives)
+void Num_Derivative_Several_Param(t_tree *tree, phydbl *param, int n_param, phydbl stepsize,
+				  phydbl (*func)(t_tree *tree), phydbl *derivatives)
 {
   int i;
   phydbl err,f0;
@@ -5271,6 +5678,7 @@ void Record_Model(model *ori, model *cpy)
 
 option *Make_Input()
 {
+  int i;
   option* io               = (option *)mCalloc(1,sizeof(option));
 
   io->in_align_file        = (char *)mCalloc(T_MAX_FILE,sizeof(char));
@@ -5286,7 +5694,8 @@ option *Make_Input()
   io->nt_or_cd             = (char *)mCalloc(T_MAX_FILE,sizeof(char));
   io->run_id_string        = (char *)mCalloc(T_MAX_OPTION,sizeof(char));
   io->clade_list_file      = (char *)mCalloc(T_MAX_FILE,sizeof(char));
-
+  io->alphabet             = (char **)mCalloc(T_MAX_ALPHABET,sizeof(char *));
+  For(i,T_MAX_ALPHABET) io->alphabet[i] = (char *)mCalloc(T_MAX_STATE,sizeof(char ));
   return io;
 }
 
@@ -5467,7 +5876,7 @@ void Copy_Optimiz(optimiz *ori, optimiz *cpy)
 
 /*********************************************************/
 
-void Get_Bip(node *a, node *d, arbre *tree)
+void Get_Bip(t_node *a, t_node *d, t_tree *tree)
 {
   int i,j;
 
@@ -5569,7 +5978,7 @@ void Get_Bip(node *a, node *d, arbre *tree)
 
 /*********************************************************/
 
-void Alloc_Bip(arbre *tree)
+void Alloc_Bip(t_tree *tree)
 {
   int i,j,k;
 
@@ -5580,12 +5989,12 @@ void Alloc_Bip(arbre *tree)
   For(i,2*tree->n_otu-2)
     {
       tree->noeud[i]->bip_size = (int *)mCalloc(3,sizeof(int));
-      tree->noeud[i]->bip_node = (node ***)mCalloc(3,sizeof(node **));
+      tree->noeud[i]->bip_node = (t_node ***)mCalloc(3,sizeof(t_node **));
       tree->noeud[i]->bip_name = (char ***)mCalloc(3,sizeof(char **));
       For(j,3)
 	{
 	  tree->noeud[i]->bip_node[j] =
-	    (node **)mCalloc(tree->n_otu,sizeof(node *));
+	    (t_node **)mCalloc(tree->n_otu,sizeof(t_node *));
 
 	  tree->noeud[i]->bip_name[j] =
 	    (char **)mCalloc(tree->n_otu,sizeof(char *));
@@ -5614,10 +6023,10 @@ int Sort_String(const void *a, const void *b)
 
 /*********************************************************/
 
-phydbl Compare_Bip_On_Existing_Edges(phydbl thresh_len, arbre *tree1, arbre *tree2)
+phydbl Compare_Bip_On_Existing_Edges(phydbl thresh_len, t_tree *tree1, t_tree *tree2)
 {
   int i,j,k;
-  edge *b1,*b2;
+  t_edge *b1,*b2;
   char **bip1,**bip2;
   int bip_size,n_edges1,n_edges2;
   phydbl rf;
@@ -5732,10 +6141,10 @@ phydbl Compare_Bip_On_Existing_Edges(phydbl thresh_len, arbre *tree1, arbre *tre
 
 /*********************************************************/
 
-void Compare_Bip(arbre *tree1, arbre *tree2)
+void Compare_Bip(t_tree *tree1, t_tree *tree2)
 {
   int i,j,k;
-  edge *b1,*b2;
+  t_edge *b1,*b2;
   char **bip1,**bip2;
   int bip_size1, bip_size2, bip_size;
 
@@ -6439,7 +6848,7 @@ void Hide_Ambiguities(calign *data)
 
 /*********************************************************/
 
-void Copy_Tree(arbre *ori, arbre *cpy)
+void Copy_Tree(t_tree *ori, t_tree *cpy)
 {
   int i,j;
 
@@ -6488,10 +6897,10 @@ void Copy_Tree(arbre *ori, arbre *cpy)
 
 /*********************************************************/
 
-void Prune_Subtree(node *a, node *d, edge **target, edge **residual, arbre *tree)
+void Prune_Subtree(t_node *a, t_node *d, t_edge **target, t_edge **residual, t_tree *tree)
 {
-  node *v1, *v2;
-  edge *b1, *b2;
+  t_node *v1, *v2;
+  t_edge *b1, *b2;
   int dir_v1, dir_v2;
   int i;
 /*   plkflt ***buff_p_lk; */
@@ -6709,16 +7118,16 @@ void Prune_Subtree(node *a, node *d, edge **target, edge **residual, arbre *tree
 
 /*********************************************************/
 
-void Graft_Subtree(edge *target, node *link, edge *residual, arbre *tree)
+void Graft_Subtree(t_edge *target, t_node *link, t_edge *residual, t_tree *tree)
 {
-  node *v1, *v2;
+  t_node *v1, *v2;
   int i, dir_v1, dir_v2;
   plkflt *buff_p_lk;
   plkflt *buff_scale;
   int *buff_p_pars, *buff_pars; 
   short int *buff_p_lk_tip;
   unsigned int *buff_ui;
-  edge *b_up;
+  t_edge *b_up;
 
   dir_v1 = dir_v2 = -1;
   b_up = NULL;
@@ -6827,9 +7236,9 @@ void Graft_Subtree(edge *target, node *link, edge *residual, arbre *tree)
 
 /*********************************************************/
 
-void Reassign_Node_Nums(node *a, node *d, int *curr_ext_node, int *curr_int_node, arbre *tree)
+void Reassign_Node_Nums(t_node *a, t_node *d, int *curr_ext_node, int *curr_int_node, t_tree *tree)
 {
-  node *buff;
+  t_node *buff;
   int i;
 
   if(a->tax)
@@ -6871,9 +7280,9 @@ void Reassign_Node_Nums(node *a, node *d, int *curr_ext_node, int *curr_int_node
 
 /*********************************************************/
 
-void Reassign_Edge_Nums(node *a, node *d, int *curr_br, arbre *tree)
+void Reassign_Edge_Nums(t_node *a, t_node *d, int *curr_br, t_tree *tree)
 {
-  edge *buff;
+  t_edge *buff;
   int i,j;
 
   For(i,3)
@@ -6904,22 +7313,22 @@ void Reassign_Edge_Nums(node *a, node *d, int *curr_br, arbre *tree)
 
 /*********************************************************/
 
-void Make_List_Of_Reachable_Tips(arbre *tree)
+void Make_List_Of_Reachable_Tips(t_tree *tree)
 {
   int i,j;
 
   For(i,2*tree->n_otu-2)
     {
-      tree->noeud[i]->list_of_reachable_tips = (node ***)mCalloc(3,sizeof(node **));
+      tree->noeud[i]->list_of_reachable_tips = (t_node ***)mCalloc(3,sizeof(t_node **));
       tree->noeud[i]->n_of_reachable_tips    = (int *)mCalloc(3,sizeof(int));
       For(j,3)
-	tree->noeud[i]->list_of_reachable_tips[j] = (node **)mCalloc(tree->n_otu,sizeof(node *));
+	tree->noeud[i]->list_of_reachable_tips[j] = (t_node **)mCalloc(tree->n_otu,sizeof(t_node *));
     }
 }
 
 /*********************************************************/
 
-void Get_List_Of_Reachable_Tips(arbre *tree)
+void Get_List_Of_Reachable_Tips(t_tree *tree)
 {
   int i,j;
   
@@ -6946,7 +7355,7 @@ void Get_List_Of_Reachable_Tips(arbre *tree)
 
 /*********************************************************/
 
-void Get_List_Of_Reachable_Tips_Post(node *a, node *d, arbre *tree)
+void Get_List_Of_Reachable_Tips_Post(t_node *a, t_node *d, t_tree *tree)
 {
   int i,j,k,cpt;
 
@@ -6993,7 +7402,7 @@ void Get_List_Of_Reachable_Tips_Post(node *a, node *d, arbre *tree)
 
 /*********************************************************/
 
-void Get_List_Of_Reachable_Tips_Pre(node *a, node *d, arbre *tree)
+void Get_List_Of_Reachable_Tips_Pre(t_node *a, t_node *d, t_tree *tree)
 {
   int i,j,k,cpt;
 
@@ -7039,7 +7448,7 @@ void Get_List_Of_Reachable_Tips_Pre(node *a, node *d, arbre *tree)
 
 /*********************************************************/
 
-int Compare_List_Of_Reachable_Tips(node **list1, int size_list1, node **list2, int size_list2)
+int Compare_List_Of_Reachable_Tips(t_node **list1, int size_list1, t_node **list2, int size_list2)
 {
   int i,j,n_matches;
 
@@ -7059,7 +7468,7 @@ int Compare_List_Of_Reachable_Tips(node **list1, int size_list1, node **list2, i
 
 /*********************************************************/
 
-void Find_Mutual_Direction(node *n1, node *n2, int *dir_n1_to_n2, int *dir_n2_to_n1)
+void Find_Mutual_Direction(t_node *n1, t_node *n2, int *dir_n1_to_n2, int *dir_n2_to_n1)
 {
   int scores[3][3];
   int n_zero_line, n_zero_col;
@@ -7103,7 +7512,7 @@ void Find_Mutual_Direction(node *n1, node *n2, int *dir_n1_to_n2, int *dir_n2_to
 
 /*********************************************************/
 
-void Fill_Dir_Table(arbre *tree)
+void Fill_Dir_Table(t_tree *tree)
 {
   int i,j,k,l;
   int found;
@@ -7145,7 +7554,7 @@ void Fill_Dir_Table(arbre *tree)
 /*********************************************************/
 /*********************************************************/
 
-int Get_Subtree_Size(node *a, node *d)
+int Get_Subtree_Size(t_node *a, t_node *d)
 {
   int size,i;
 
@@ -7162,7 +7571,7 @@ int Get_Subtree_Size(node *a, node *d)
 
 /*********************************************************/
 
-void Fast_Br_Len(edge *b, arbre *tree, int approx)
+void Fast_Br_Len(t_edge *b, t_tree *tree, int approx)
 {
   phydbl sum;
   phydbl *prob, *F;
@@ -7187,7 +7596,7 @@ void Fast_Br_Len(edge *b, arbre *tree, int approx)
   
   For(site,tree->n_pattern)
     {	  
-      /* Joint probabilities of the states at the two ends of the edge */
+      /* Joint probabilities of the states at the two ends of the t_edge */
       v_rght = -1.;
       For(i,tree->mod->ns)
 	{
@@ -7306,7 +7715,7 @@ triplet *Make_Triplet_Struct(model *mod)
 
 /*********************************************************/
 
-phydbl Triple_Dist(node *a, arbre *tree, int approx)
+phydbl Triple_Dist(t_node *a, t_tree *tree, int approx)
 {
   if(a->tax) return UNLIKELY;
   else
@@ -7355,7 +7764,7 @@ void Make_Symmetric(phydbl **F, int size)
 
 /*********************************************************/
 
-void Round_Down_Freq_Patt(phydbl **F, arbre *tree)
+void Round_Down_Freq_Patt(phydbl **F, t_tree *tree)
 {
   int i,j;
 
@@ -7370,7 +7779,7 @@ void Round_Down_Freq_Patt(phydbl **F, arbre *tree)
 
 /*********************************************************/
 
-phydbl Get_Sum_Of_Cells(phydbl *F, arbre *tree)
+phydbl Get_Sum_Of_Cells(phydbl *F, t_tree *tree)
 {
   int i,j;
   phydbl sum = .0;
@@ -7385,7 +7794,7 @@ phydbl Get_Sum_Of_Cells(phydbl *F, arbre *tree)
 
 /*********************************************************/
 
-void Divide_Cells(phydbl **F, phydbl div, arbre *tree)
+void Divide_Cells(phydbl **F, phydbl div, t_tree *tree)
 {
   int i,j;
 
@@ -7416,7 +7825,7 @@ void Multiply_Mat_By_Vect(phydbl **F, phydbl *vect, int size)
 
 /*********************************************************/
 
-void Found_In_Subtree(node *a, node *d, node *target, int *match, arbre *tree)
+void Found_In_Subtree(t_node *a, t_node *d, t_node *target, int *match, t_tree *tree)
 {
   if(d->tax) return;
   else
@@ -7433,7 +7842,7 @@ void Found_In_Subtree(node *a, node *d, node *target, int *match, arbre *tree)
 
 /*********************************************************/
 
-void Get_List_Of_Target_Edges(node *a, node *d, edge **list, int *list_size, arbre *tree)
+void Get_List_Of_Target_Edges(t_node *a, t_node *d, t_edge **list, int *list_size, t_tree *tree)
 {
   int i;
 
@@ -7459,7 +7868,7 @@ void Get_List_Of_Target_Edges(node *a, node *d, edge **list, int *list_size, arb
 
 /*********************************************************/
 
-void Fix_All(arbre *tree)
+void Fix_All(t_tree *tree)
 {
   int i;
 
@@ -7478,7 +7887,7 @@ void Fix_All(arbre *tree)
 
 /*********************************************************/
 
-void Record_Br_Len(phydbl *where, arbre *tree)
+void Record_Br_Len(phydbl *where, t_tree *tree)
 {
   int i;
   
@@ -7494,7 +7903,7 @@ void Record_Br_Len(phydbl *where, arbre *tree)
 
 /*********************************************************/
 
-void Restore_Br_Len(phydbl *from, arbre *tree)
+void Restore_Br_Len(phydbl *from, t_tree *tree)
 {
   int i;
   
@@ -7510,10 +7919,10 @@ void Restore_Br_Len(phydbl *from, arbre *tree)
 
 /*********************************************************/
 
-void Get_Dist_Btw_Edges(node *a, node *d, arbre *tree)
+void Get_Dist_Btw_Edges(t_node *a, t_node *d, t_tree *tree)
 {
   int i;
-  edge *b_fcus;
+  t_edge *b_fcus;
 
   b_fcus = NULL;
   For(i,3) if(a->v[i] == d) {b_fcus = a->b[i]; break;}
@@ -7535,7 +7944,7 @@ void Get_Dist_Btw_Edges(node *a, node *d, arbre *tree)
 
 /*********************************************************/
 
-void Detect_Polytomies(edge *b, phydbl l_thresh, arbre *tree)
+void Detect_Polytomies(t_edge *b, phydbl l_thresh, t_tree *tree)
 {
   if((b->l < l_thresh) && (!b->left->tax) && (!b->rght->tax))
     {
@@ -7547,7 +7956,7 @@ void Detect_Polytomies(edge *b, phydbl l_thresh, arbre *tree)
 
 /*********************************************************/
 
-void Get_List_Of_Nodes_In_Polytomy(node *a, node *d, node ***list, int *size_list)
+void Get_List_Of_Nodes_In_Polytomy(t_node *a, t_node *d, t_node ***list, int *size_list)
 {
   if(d->tax) return;
   else
@@ -7575,7 +7984,7 @@ void Get_List_Of_Nodes_In_Polytomy(node *a, node *d, node ***list, int *size_lis
 
 /*********************************************************/
 
-void Check_Path(node *a, node *d, node *target, arbre *tree)
+void Check_Path(t_node *a, t_node *d, t_node *target, t_tree *tree)
 {
   PhyML_Printf("path---------\n");
   if(d==target) return;
@@ -7585,7 +7994,7 @@ void Check_Path(node *a, node *d, node *target, arbre *tree)
 
 /*********************************************************/
 
-void Connect_Two_Nodes(node *a, node *d)
+void Connect_Two_Nodes(t_node *a, t_node *d)
 {
   a->v[0] = d;
   d->v[0] = a;
@@ -7593,7 +8002,7 @@ void Connect_Two_Nodes(node *a, node *d)
 
 /*********************************************************/
 
-void Get_List_Of_Adjacent_Targets(node *a, node *d, node ***node_list, edge ***edge_list, int *list_size)
+void Get_List_Of_Adjacent_Targets(t_node *a, t_node *d, t_node ***node_list, t_edge ***edge_list, int *list_size)
 {
   int i;
 
@@ -7612,9 +8021,9 @@ void Get_List_Of_Adjacent_Targets(node *a, node *d, node ***node_list, edge ***e
 
 /*********************************************************/
 
-void Sort_List_Of_Adjacent_Targets(edge ***list, int list_size)
+void Sort_List_Of_Adjacent_Targets(t_edge ***list, int list_size)
 {
-  edge *buff_edge;
+  t_edge *buff_edge;
   int i,j;
 
   buff_edge = NULL;
@@ -7634,14 +8043,14 @@ void Sort_List_Of_Adjacent_Targets(edge ***list, int list_size)
 /*********************************************************/
 
 
-node *Common_Nodes_Btw_Two_Edges(edge *a, edge *b)
+t_node *Common_Nodes_Btw_Two_Edges(t_edge *a, t_edge *b)
 {
   if(a->left == b->left)      return b->left;
   else if(a->left == b->rght) return b->rght;
   else if(a->rght == b->left) return b->left;
   else if(a->rght == b->rght) return b->rght;
 
-  PhyML_Printf("\n. First edge = %d (%d %d); Second edge = %d (%d %d)\n",
+  PhyML_Printf("\n. First t_edge = %d (%d %d); Second t_edge = %d (%d %d)\n",
 	 a->num,a->left->num,a->rght->num,
 	 b->num,b->left->num,b->rght->num);
   PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
@@ -7652,7 +8061,7 @@ node *Common_Nodes_Btw_Two_Edges(edge *a, edge *b)
 
 /*********************************************************/
 
-int KH_Test(phydbl *site_lk_M1, phydbl *site_lk_M2, arbre *tree)
+int KH_Test(phydbl *site_lk_M1, phydbl *site_lk_M2, t_tree *tree)
 {
   phydbl *delta,mean,sd,obs_stat,threshold;
   int i;
@@ -7693,7 +8102,7 @@ int KH_Test(phydbl *site_lk_M1, phydbl *site_lk_M2, arbre *tree)
 
 /*********************************************************/
 
-void Random_Tree(arbre *tree)
+void Random_Tree(t_tree *tree)
 {
   int *is_available,*list_of_nodes;
   int i,node_num,step,n_available;
@@ -7756,11 +8165,11 @@ void Random_Tree(arbre *tree)
 /*********************************************************/
 
 
-void Random_NNI(int n_moves, arbre *tree)
+void Random_NNI(int n_moves, t_tree *tree)
 {
   int i,j;
-  edge *b;
-  node *n1,*n2,*n_target;
+  t_edge *b;
+  t_node *n1,*n2,*n_target;
 
   n1 = n2 = NULL;
   b = NULL;
@@ -8085,7 +8494,7 @@ void Print_Data_Set_Number(option *io, FILE *fp)
 /*********************************************************/
 
 
-void Check_Memory_Amount(arbre *tree)
+void Check_Memory_Amount(t_tree *tree)
 {
   /* Rough estimate of the amount of memory that has to be used */
 
@@ -8144,7 +8553,7 @@ void Check_Memory_Amount(arbre *tree)
 
 /*********************************************************/
 
-int Get_State_From_P_Lk(phydbl *p_lk, int pos, arbre *tree)
+int Get_State_From_P_Lk(phydbl *p_lk, int pos, t_tree *tree)
 {
   int i;
   For(i,tree->mod->ns) if(p_lk[pos+i] > .0) return i;
@@ -8153,7 +8562,7 @@ int Get_State_From_P_Lk(phydbl *p_lk, int pos, arbre *tree)
 
 /*********************************************************/
 
-int Get_State_From_P_Pars(short int *p_pars, int pos, arbre *tree)
+int Get_State_From_P_Pars(short int *p_pars, int pos, t_tree *tree)
 {
   int i;
   For(i,tree->mod->ns) if(p_pars[pos+i] > .0) return i;
@@ -8162,7 +8571,7 @@ int Get_State_From_P_Pars(short int *p_pars, int pos, arbre *tree)
 
 /*********************************************************/
 
-void Print_Lk(arbre *tree, char *string)
+void Print_Lk(t_tree *tree, char *string)
 {
   time(&(tree->t_current));
   PhyML_Printf("\n. (%5d sec) [%15.4f] %s",(int)(tree->t_current-tree->t_beg),tree->c_lnL,string);
@@ -8173,7 +8582,7 @@ void Print_Lk(arbre *tree, char *string)
 
 /*********************************************************/
 
-void Print_Pars(arbre *tree)
+void Print_Pars(t_tree *tree)
 {
   time(&(tree->t_current));
   PhyML_Printf("\n. (%5d sec) [%5d]",(int)(tree->t_current-tree->t_beg),tree->c_pars);
@@ -8184,7 +8593,7 @@ void Print_Pars(arbre *tree)
 
 /*********************************************************/
 
-void Print_Lk_And_Pars(arbre *tree)
+void Print_Lk_And_Pars(t_tree *tree)
 {	
   time(&(tree->t_current));
 
@@ -8199,7 +8608,7 @@ void Print_Lk_And_Pars(arbre *tree)
 
 /*********************************************************/
 
-void Check_Dirs(arbre *tree)
+void Check_Dirs(t_tree *tree)
 {
   int i;
 
@@ -8336,7 +8745,7 @@ void Randomize_Sequence_Order(calign *cdata)
 
 /*********************************************************/
 
-void Update_Root_Pos(arbre *tree)
+void Update_Root_Pos(t_tree *tree)
 {
   if(tree->n_root_pos > -1.0)
     {
@@ -8352,15 +8761,15 @@ void Update_Root_Pos(arbre *tree)
 
 /*********************************************************/
 
-void Add_Root(edge *target, arbre *tree)
+void Add_Root(t_edge *target, t_tree *tree)
 {
-  PhyML_Printf("\n. Add root on edge %d left = %d right = %d",target->num,target->left->num,target->rght->num); fflush(NULL);
+  PhyML_Printf("\n. Add root on t_edge %d left = %d right = %d",target->num,target->left->num,target->rght->num); fflush(NULL);
   tree->e_root = target;
 
-  /* Create the root node if it does not exist yet */
+  /* Create the root t_node if it does not exist yet */
   if((!tree->n_root) || (tree->n_root->num != 2*tree->n_otu-2))
     {      
-      tree->n_root = (node *)Make_Node_Light(2*tree->n_otu-2);
+      tree->n_root = (t_node *)Make_Node_Light(2*tree->n_otu-2);
     }
 
   tree->noeud[2*tree->n_otu-2] = tree->n_root;
@@ -8400,7 +8809,7 @@ void Add_Root(edge *target, arbre *tree)
 
 /*********************************************************/
 
-void Update_Ancestors(node *a, node *d, arbre *tree)
+void Update_Ancestors(t_node *a, t_node *d, t_tree *tree)
 {
   d->anc = a;
   if(d->tax) return;
@@ -8416,15 +8825,15 @@ void Update_Ancestors(node *a, node *d, arbre *tree)
 /*********************************************************/
 /* Generate a random unrooted tree with 'n_otu' OTUs */
 #ifdef MC
-arbre *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
+t_tree *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
 {
-  arbre *tree;
+  t_tree *tree;
   int *connected,*nonconnected,*available_nodes;
   int i,n_connected,n_nonconnected,n1,n2,new_n,n_internal,n_external,n_available;
-  node *root,*curr_n,**internal_nodes, **external_nodes;
+  t_node *root,*curr_n,**internal_nodes, **external_nodes;
   phydbl *t,*tmp;
 
-  tree = (arbre *)Make_Tree(n_otu);
+  tree = (t_tree *)Make_Tree(n_otu);
   Init_Tree(tree,tree->n_otu);
   Make_All_Tree_Nodes(tree);
   Make_All_Tree_Edges(tree);
@@ -8439,13 +8848,13 @@ arbre *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
       tree->noeud[i]->v[2] = NULL;
     }
   
-  root = (node *)Make_Node_Light(2*tree->n_otu-2);
+  root = (t_node *)Make_Node_Light(2*tree->n_otu-2);
 
   connected       = (int *)mCalloc(2*tree->n_otu-2,sizeof(int));
   nonconnected    = (int *)mCalloc(2*tree->n_otu-2,sizeof(int));
   available_nodes = (int *)mCalloc(2*tree->n_otu-2,sizeof(int));
-  internal_nodes  = (node **)mCalloc(tree->n_otu-2,sizeof(node *));
-  external_nodes  = (node **)mCalloc(tree->n_otu,  sizeof(node *));
+  internal_nodes  = (t_node **)mCalloc(tree->n_otu-2,sizeof(t_node *));
+  external_nodes  = (t_node **)mCalloc(tree->n_otu,  sizeof(t_node *));
   t               = (phydbl *)mCalloc(tree->n_otu-1,sizeof(phydbl ));
   tmp             = (phydbl *)mCalloc(2*tree->n_otu-2,sizeof(phydbl ));
 
@@ -8489,7 +8898,7 @@ arbre *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
   For(i,tree->n_otu-1) tmp[i] =  t[tree->n_otu-2-i];
   For(i,tree->n_otu-1) t[i]   = -tmp[i];
   
-  /* Rescale node times such that the time at the root node is -100 */
+  /* Rescale t_node times such that the time at the root t_node is -100 */
   for(i=1;i<tree->n_otu-1;i++) 
     { 
       t[i] /= -t[0]; 
@@ -8620,7 +9029,7 @@ arbre *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
 #endif
 /*********************************************************/
 
-void Random_Lineage_Rates(node *a, node *d, edge *b, phydbl stick_prob, phydbl *rates, int curr_rate, int n_rates, arbre *tree)
+void Random_Lineage_Rates(t_node *a, t_node *d, t_edge *b, phydbl stick_prob, phydbl *rates, int curr_rate, int n_rates, t_tree *tree)
 {
   phydbl uni;
   int new_rate;
@@ -8676,7 +9085,7 @@ void Random_Lineage_Rates(node *a, node *d, edge *b, phydbl stick_prob, phydbl *
 
 /*********************************************************/
 
-edge *Find_Edge_With_Label(char *label, arbre *tree)
+t_edge *Find_Edge_With_Label(char *label, t_tree *tree)
 {
   int i,j;
 
@@ -8710,7 +9119,7 @@ void Print_Square_Matrix_Generic(int n, phydbl *mat)
 
 /*********************************************************/
 
-void Evolve(calign *data, model *mod, arbre *tree)
+void Evolve(calign *data, model *mod, t_tree *tree)
 {
   int root_state, root_rate_class;
   int site,i;
@@ -8734,7 +9143,7 @@ void Evolve(calign *data, model *mod, arbre *tree)
       /* Pick the rate class */
       root_rate_class = Pick_State(mod->n_catg,mod->gamma_r_proba);
 
-      /* tree->noeud[0] is considered as the root node */
+      /* tree->noeud[0] is considered as the root t_node */
       Evolve_Recur(tree->noeud[0],
 		   tree->noeud[0]->v[0],
 		   tree->noeud[0]->b[0],
@@ -8774,7 +9183,7 @@ int Pick_State(int n, phydbl *prob)
 
 /*********************************************************/
 
-void Evolve_Recur(node *a, node *d, edge *b, int a_state, int r_class, int site_num, calign *gen_data, model *mod, arbre *tree)
+void Evolve_Recur(t_node *a, t_node *d, t_edge *b, int a_state, int r_class, int site_num, calign *gen_data, model *mod, t_tree *tree)
 {
   int d_state;
   int dim1,dim2;
@@ -8815,7 +9224,7 @@ void Evolve_Recur(node *a, node *d, edge *b, int a_state, int r_class, int site_
 
 /*********************************************************/
 
-void Site_Diversity(arbre *tree)
+void Site_Diversity(t_tree *tree)
 {
   int i,j,k,ns;
   int *div,sum;
@@ -8871,7 +9280,7 @@ void Site_Diversity(arbre *tree)
 
 /*********************************************************/
 
-void Site_Diversity_Post(node *a, node *d, edge *b, arbre *tree)
+void Site_Diversity_Post(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 {
   if(d->tax) return;
   else
@@ -8888,7 +9297,7 @@ void Site_Diversity_Post(node *a, node *d, edge *b, arbre *tree)
 
 /*********************************************************/
 
-void Site_Diversity_Pre(node *a, node *d, edge *b, arbre *tree)
+void Site_Diversity_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 {
   if(d->tax) return;
   else
@@ -8906,7 +9315,7 @@ void Site_Diversity_Pre(node *a, node *d, edge *b, arbre *tree)
 
 /*********************************************************/
 
-void Subtree_Union(node *n, edge *b_fcus, arbre *tree)
+void Subtree_Union(t_node *n, t_edge *b_fcus, t_tree *tree)
 {
 /*  
            |
@@ -8981,15 +9390,15 @@ void Binary_Decomposition(int value, int *bit_vect, int size)
 
 /*********************************************************/
 
-void Print_Diversity_Header(FILE *fp, arbre *tree)
+void Print_Diversity_Header(FILE *fp, t_tree *tree)
 {
-/*   PhyML_Fprintf(fp,"edge side mean\n");  */
-  PhyML_Fprintf(fp,"edge side diversity count\n"); 
+/*   PhyML_Fprintf(fp,"t_edge side mean\n");  */
+  PhyML_Fprintf(fp,"t_edge side diversity count\n"); 
 }
 
 /*********************************************************/
 
-void Print_Diversity(FILE *fp, arbre *tree)
+void Print_Diversity(FILE *fp, t_tree *tree)
 {
   int ns;
   
@@ -9036,7 +9445,7 @@ void Print_Diversity(FILE *fp, arbre *tree)
 
 /*********************************************************/
 
-void Print_Diversity_Pre(node *a, node *d, edge *b, FILE *fp, arbre *tree)
+void Print_Diversity_Pre(t_node *a, t_node *d, t_edge *b, FILE *fp, t_tree *tree)
 {
   int k,ns;
 
@@ -9162,12 +9571,12 @@ phydbl Mean(phydbl *x, int n)
 
 /*********************************************************/
 
-void Best_Of_NNI_And_SPR(arbre *tree)
+void Best_Of_NNI_And_SPR(t_tree *tree)
 {
   if(tree->mod->s_opt->random_input_tree) Speed_Spr_Loop(tree); /* Don't do simultaneous NNIs if starting tree is random */
   else
     {
-      arbre *ori_tree,*best_tree;
+      t_tree *ori_tree,*best_tree;
       model *ori_mod,*best_mod;
       phydbl *ori_bl,*best_bl;
       phydbl best_lnL,ori_lnL,nni_lnL,spr_lnL;
@@ -9313,7 +9722,7 @@ int Polint(phydbl *xa, phydbl *ya, int n, phydbl x, phydbl *y, phydbl *dy)
 
 /*********************************************************/
 
-void JF(arbre *tree)
+void JF(t_tree *tree)
 {
   //printing loglk for each site, to compute SH-like tests */
   phydbl sum=0.0;
@@ -9368,9 +9777,9 @@ void JF(arbre *tree)
 
 /*********************************************************/
 
-arbre *Dist_And_BioNJ(calign *cdata, model *mod, option *io)
+t_tree *Dist_And_BioNJ(calign *cdata, model *mod, option *io)
 {
-  arbre *tree;
+  t_tree *tree;
   matrix *mat;
 
   if(!io->quiet) PhyML_Printf("\n. Computing pairwise distances...\n");
@@ -9390,7 +9799,7 @@ arbre *Dist_And_BioNJ(calign *cdata, model *mod, option *io)
 
 /*********************************************************/
 
-void Add_BioNJ_Branch_Lengths(arbre *tree, calign *cdata, model *mod)
+void Add_BioNJ_Branch_Lengths(t_tree *tree, calign *cdata, model *mod)
 {
   matrix *mat;
 
@@ -9407,9 +9816,9 @@ void Add_BioNJ_Branch_Lengths(arbre *tree, calign *cdata, model *mod)
 
 /*********************************************************/
 
-arbre *Read_User_Tree(calign *cdata, model *mod, option *io)
+t_tree *Read_User_Tree(calign *cdata, model *mod, option *io)
 {
-  arbre *tree;
+  t_tree *tree;
 
   
   PhyML_Printf("\n. Reading tree...\n"); fflush(NULL);
@@ -9440,7 +9849,7 @@ void Print_Time_Info(time_t t_beg, time_t t_end)
 
 char *Bootstrap_From_String(char *s_tree, calign *cdata, model *mod, option *io)
 {
-  arbre *tree;
+  t_tree *tree;
 
   tree = Read_Tree(s_tree);
 
@@ -9490,7 +9899,7 @@ char *Bootstrap_From_String(char *s_tree, calign *cdata, model *mod, option *io)
 
 char *aLRT_From_String(char *s_tree, calign *cdata, model *mod, option *io)
 {
-  arbre *tree;
+  t_tree *tree;
 
   tree = Read_Tree(s_tree);
 
@@ -9537,7 +9946,7 @@ char *aLRT_From_String(char *s_tree, calign *cdata, model *mod, option *io)
 
 /*********************************************************/
 
-void Prepare_Tree_For_Lk(arbre *tree)
+void Prepare_Tree_For_Lk(t_tree *tree)
 {
   Order_Tree_CSeq(tree,tree->data);
   if(tree->mod->s_opt->random_input_tree) Random_Tree(tree);
@@ -9597,7 +10006,7 @@ void PhyML_Fprintf(FILE *fp, char *format, ...)
 
 /*********************************************************/
 
-void Find_Common_Tips(arbre *tree1, arbre *tree2)
+void Find_Common_Tips(t_tree *tree1, t_tree *tree2)
 {
   int i,j;
 
@@ -9620,7 +10029,7 @@ void Find_Common_Tips(arbre *tree1, arbre *tree2)
 
 /*********************************************************/
 
-phydbl Get_Tree_Size(arbre *tree)
+phydbl Get_Tree_Size(t_tree *tree)
 {
   int i;
   phydbl tree_size;
@@ -9643,10 +10052,10 @@ phydbl Get_Tree_Size(arbre *tree)
 
 /* check whether target_bip can be found within tree. WARNING: target_bip names
    must be sorted in alphabetical order */
-int Find_Bipartition(char **target_bip, int bip_size, arbre *tree)
+int Find_Bipartition(char **target_bip, int bip_size, t_tree *tree)
 {
   int score,i,j;
-  edge *b;
+  t_edge *b;
 
   score = 0;
 
@@ -9683,7 +10092,7 @@ int Find_Bipartition(char **target_bip, int bip_size, arbre *tree)
 /*********************************************************/
 
 
-void Dist_To_Root_Pre(node *a, node *d, edge *b, arbre *tree)
+void Dist_To_Root_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 {
   int i;
 
@@ -9700,7 +10109,7 @@ void Dist_To_Root_Pre(node *a, node *d, edge *b, arbre *tree)
 
 /*********************************************************/
 
-void Dist_To_Root(node *n_root, arbre *tree)
+void Dist_To_Root(t_node *n_root, t_tree *tree)
 {  
   n_root->v[0]->dist_to_root = tree->n_root->l[0];
   n_root->v[1]->dist_to_root = tree->n_root->l[1];
@@ -9733,9 +10142,9 @@ char *Basename(char *path)
 
 
 /* Find the Last Common Ancestor of n1 and n2 */
-node *Find_Lca(node *n1, node *n2, arbre *tree)
+t_node *Find_Lca(t_node *n1, t_node *n2, t_tree *tree)
 {
-  node **list1, **list2, *lca;
+  t_node **list1, **list2, *lca;
   int size1, size2;
 
   if(!tree->n_root)
@@ -9745,8 +10154,8 @@ node *Find_Lca(node *n1, node *n2, arbre *tree)
       Warn_And_Exit("");
     }
 
-  list1 = (node **)mCalloc(2*tree->n_otu-1,sizeof(node *));
-  list2 = (node **)mCalloc(2*tree->n_otu-1,sizeof(node *));
+  list1 = (t_node **)mCalloc(2*tree->n_otu-1,sizeof(t_node *));
+  list2 = (t_node **)mCalloc(2*tree->n_otu-1,sizeof(t_node *));
 
   Get_List_Of_Ancestors(n1,list1,&size1,tree);
   Get_List_Of_Ancestors(n2,list2,&size2,tree);
@@ -9769,10 +10178,10 @@ node *Find_Lca(node *n1, node *n2, arbre *tree)
 
 /*********************************************************/
 
-/* Returns the list of the ancestors of ref_node from ref_node to the root included */
-void Get_List_Of_Ancestors(node *ref_node, node **list, int *size, arbre *tree)
+/* Returns the list of the ancestors of ref_t_node from ref_t_node to the root included */
+void Get_List_Of_Ancestors(t_node *ref_node, t_node **list, int *size, t_tree *tree)
 {
-  node *n;
+  t_node *n;
 
   *size = 0;
   n = ref_node;
@@ -9788,10 +10197,10 @@ void Get_List_Of_Ancestors(node *ref_node, node **list, int *size, arbre *tree)
 
 /*********************************************************/
 
-int Edge_Num_To_Node_Num(int edge_num, arbre *tree)
+int Edge_Num_To_Node_Num(int edge_num, t_tree *tree)
 {
   int node_num;
-  edge *b;
+  t_edge *b;
 
   b = tree->t_edges[edge_num];
 
@@ -9802,7 +10211,7 @@ int Edge_Num_To_Node_Num(int edge_num, arbre *tree)
 
 /*********************************************************/
 
-void Branch_Lengths_To_Time_Lengths(arbre *tree)
+void Branch_Lengths_To_Time_Lengths(t_tree *tree)
 {
   Branch_Lengths_To_Time_Lengths_Pre(tree->n_root,tree->n_root->v[0],tree);
   Branch_Lengths_To_Time_Lengths_Pre(tree->n_root,tree->n_root->v[1],tree);
@@ -9810,7 +10219,7 @@ void Branch_Lengths_To_Time_Lengths(arbre *tree)
 
 /*********************************************************/
 
-void Branch_Lengths_To_Time_Lengths_Pre(node *a, node *d, arbre *tree)
+void Branch_Lengths_To_Time_Lengths_Pre(t_node *a, t_node *d, t_tree *tree)
 {
   int i;
 
@@ -9827,7 +10236,7 @@ void Branch_Lengths_To_Time_Lengths_Pre(node *a, node *d, arbre *tree)
 
 /*********************************************************/
 
-int Find_Clade(char **tax_name_list, int list_size, arbre *tree)
+int Find_Clade(char **tax_name_list, int list_size, t_tree *tree)
 {
   if(list_size == tree->n_otu)
     {
@@ -9861,7 +10270,7 @@ int Find_Clade(char **tax_name_list, int list_size, arbre *tree)
 
 /*********************************************************/
 
-void Find_Clade_Pre(node *a, node *d, char **tax_name_list, int list_size, int *num, arbre *tree)
+void Find_Clade_Pre(t_node *a, t_node *d, char **tax_name_list, int list_size, int *num, t_tree *tree)
 {
   int i,j,k;
   int score;
@@ -9899,7 +10308,7 @@ void Find_Clade_Pre(node *a, node *d, char **tax_name_list, int list_size, int *
 
 /*********************************************************/
 
-void Read_Clade_Priors(char *file_name, arbre *tree)
+void Read_Clade_Priors(char *file_name, t_tree *tree)
 {
   FILE *fp;
   char *s,*line;
@@ -9987,17 +10396,17 @@ void Read_Clade_Priors(char *file_name, arbre *tree)
 
 /*********************************************************/
 
-edge *Find_Root_Edge(FILE *fp_input_tree, arbre *tree)
+t_edge *Find_Root_Edge(FILE *fp_input_tree, t_tree *tree)
 {
   char **subs;
   int degree;
   int i,j;
-  node *left, *rght;
+  t_node *left, *rght;
   int l_r, r_l;
   int score;
   char *line;
   char c;
-  edge *root_edge;
+  t_edge *root_edge;
 
   line = (char *)mCalloc(T_MAX_LINE,sizeof(char));
 
@@ -10078,7 +10487,7 @@ edge *Find_Root_Edge(FILE *fp_input_tree, arbre *tree)
 
 /*********************************************************/
 
-void Copy_Tree_Topology_With_Labels(arbre *ori, arbre *cpy)
+void Copy_Tree_Topology_With_Labels(t_tree *ori, t_tree *cpy)
 {
   int i,j;
 

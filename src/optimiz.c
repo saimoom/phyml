@@ -15,7 +15,7 @@ the GNU public licence.  See http://www.opensource.org for details.
 
 /*********************************************************/
 
-void Optimize_Single_Param_Generic(arbre *tree, phydbl *param, phydbl lim_inf, phydbl lim_sup, phydbl tol, int n_max_iter, int quickdirty)
+void Optimize_Single_Param_Generic(t_tree *tree, phydbl *param, phydbl lim_inf, phydbl lim_sup, phydbl tol, int n_max_iter, int quickdirty)
 {
   phydbl ax,bx,cx;
   phydbl lk_init;
@@ -44,7 +44,7 @@ int Generic_Brak(phydbl *param,
 		 phydbl *ax, phydbl *bx, phydbl *cx, 
 		 phydbl *fa, phydbl *fb, phydbl *fc,
 		 phydbl lim_inf, phydbl lim_sup,
-		 arbre *tree)
+		 t_tree *tree)
 {
    phydbl ulim,u,r,q,fu,dum;
 
@@ -160,7 +160,7 @@ int Generic_Brak(phydbl *param,
 /*********************************************************/
 
 phydbl Generic_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, 
-		     phydbl *xmin, arbre *tree, int n_iter_max, 
+		     phydbl *xmin, t_tree *tree, int n_iter_max, 
 		     int quickdirty)
 {
   int iter;
@@ -271,7 +271,7 @@ phydbl Generic_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 /*********************************************************/
 
 phydbl RRparam_GTR_Golden(phydbl ax, phydbl bx, phydbl cx, phydbl tol, 
-			  phydbl *xmin, arbre *tree, calign *cdata, phydbl *param, int n_iter_max)
+			  phydbl *xmin, t_tree *tree, calign *cdata, phydbl *param, int n_iter_max)
 {
    phydbl f1,f2,x0,x1,x2,x3;
    int n_iter;
@@ -336,7 +336,7 @@ phydbl RRparam_GTR_Golden(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 /*********************************************************/
 
 phydbl Br_Len_Golden(phydbl ax, phydbl bx, phydbl cx, phydbl tol, 
-		     phydbl *xmin, edge *b_fcus, arbre *tree)
+		     phydbl *xmin, t_edge *b_fcus, t_tree *tree)
 {
    phydbl f1,f2,x0,x1,x2,x3;
 
@@ -388,7 +388,7 @@ phydbl Br_Len_Golden(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 
 int Br_Len_Brak(phydbl *ax, phydbl *bx, phydbl *cx, 
 		phydbl *fa, phydbl *fb, phydbl *fc, 
-		edge *b_fcus, arbre *tree)
+		t_edge *b_fcus, t_tree *tree)
 {
    phydbl ulim,u,r,q,fu,dum;
 
@@ -474,7 +474,7 @@ int Br_Len_Brak(phydbl *ax, phydbl *bx, phydbl *cx,
 
 /*********************************************************/
 
-phydbl Br_Len_Brent_Default(edge *b_fcus, arbre *tree)
+phydbl Br_Len_Brent_Default(t_edge *b_fcus, t_tree *tree)
 {
   return Br_Len_Brent(10.*b_fcus->l,b_fcus->l,.10*b_fcus->l,tree->mod->s_opt->min_diff_lk_local,b_fcus,tree,1000,0);
 }
@@ -482,7 +482,7 @@ phydbl Br_Len_Brent_Default(edge *b_fcus, arbre *tree)
 /*********************************************************/
 
 phydbl Br_Len_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
-		    edge *b_fcus, arbre *tree, int n_iter_max, int quickdirty)
+		    t_edge *b_fcus, t_tree *tree, int n_iter_max, int quickdirty)
 {
   int iter;
   phydbl a,b,d,etemp,fu,fv,fw,fx,p,q,r,tol1,tol2,u,v,w,x,xm;
@@ -498,7 +498,7 @@ phydbl Br_Len_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
   fw=fv=fx=fu=-Lk_At_Given_Edge(b_fcus,tree);
   init_lnL = -fw;
 
-/*   PhyML_Printf("\n. INIT BRENT edge %3d l=%f lnL=%20f",b_fcus->num,b_fcus->l,fu); */
+/*   PhyML_Printf("\n. INIT BRENT t_edge %3d l=%f lnL=%20f",b_fcus->num,b_fcus->l,fu); */
 
   for(iter=1;iter<=BRENT_ITMAX;iter++)
     {
@@ -555,7 +555,7 @@ phydbl Br_Len_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
       old_lnL = tree->c_lnL;
       fu=-Lk_At_Given_Edge(b_fcus,tree);
 
-/*       PhyML_Printf("\n. BRENT edge %3d l=%f lnL=%20f iter=%3d",b_fcus->num,b_fcus->l,fu,iter); */
+/*       PhyML_Printf("\n. BRENT t_edge %3d l=%f lnL=%20f iter=%3d",b_fcus->num,b_fcus->l,fu,iter); */
 
       if(fu <= fx)
 	{
@@ -589,7 +589,7 @@ phydbl Br_Len_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 /*********************************************************/
 
 phydbl Node_Time_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
-		       node *anc, node *des, arbre *tree, int n_iter_max)
+		       t_node *anc, t_node *des, t_tree *tree, int n_iter_max)
 {
   int iter;
   phydbl a,b,d,etemp,fu,fv,fw,fx,p,q,r,tol1,tol2,u,v,w,x,xm;
@@ -649,7 +649,7 @@ phydbl Node_Time_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
       old_lnL = tree->c_lnL;
       fu=-Lk_Triplet(anc,des,tree);
 
-/*       PhyML_Printf("\n. BRENT node %3d t=%f lnL=%20f iter=%3d",des->num,des->t,fu,iter); */
+/*       PhyML_Printf("\n. BRENT t_node %3d t=%f lnL=%20f iter=%3d",des->num,des->t,fu,iter); */
 
       if(fu <= fx)
 	{
@@ -683,7 +683,7 @@ phydbl Node_Time_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 /*********************************************************/
 #ifdef MC
 phydbl Time_Stamps_Mult_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
-			      arbre *tree, int n_iter_max)
+			      t_tree *tree, int n_iter_max)
 {
   int iter;
   phydbl a,b,d,etemp,fu,fv,fw,fx,p,q,r,tol1,tol2,u,v,w,x,xm;
@@ -789,7 +789,7 @@ phydbl Time_Stamps_Mult_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 /*********************************************************/
 
 phydbl Branch_Rate_Shape_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, 
-			       phydbl *xmin, arbre *tree, int n_iter_max)
+			       phydbl *xmin, t_tree *tree, int n_iter_max)
 {
   int iter;
   phydbl a,b,d,etemp,fu,fv,fw,fx,p,q,r,tol1,tol2,u,v,w,x,xm;
@@ -899,11 +899,11 @@ phydbl Branch_Rate_Shape_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 
 /*********************************************************/
 
-void Round_Optimize(arbre *tree, calign *data, int n_round_max)
+void Round_Optimize(t_tree *tree, calign *data, int n_round_max)
 {
   int n_round,each;
   phydbl lk_old, lk_new, tol;
-  node *root;
+  t_node *root;
 
   lk_new = tree->c_lnL;
   lk_old = UNLIKELY;
@@ -949,7 +949,7 @@ void Round_Optimize(arbre *tree, calign *data, int n_round_max)
 
 /*********************************************************/
 
-void Optimize_Br_Len_Serie(node *a, node *d, edge *b_fcus, arbre *tree, calign *cdata)
+void Optimize_Br_Len_Serie(t_node *a, t_node *d, t_edge *b_fcus, t_tree *tree, calign *cdata)
 {
   int i;
   phydbl l_infa,l_max,l_infb;
@@ -998,10 +998,10 @@ void Optimize_Br_Len_Serie(node *a, node *d, edge *b_fcus, arbre *tree, calign *
 
 /*********************************************************/
 
-void Optimiz_Ext_Br(arbre *tree)
+void Optimiz_Ext_Br(t_tree *tree)
 {
   int i;
-  edge *b;
+  t_edge *b;
   phydbl l_infa,l_max,l_infb;
   phydbl lk, lk_init,l_init;
   
@@ -1041,7 +1041,7 @@ void Optimiz_Ext_Br(arbre *tree)
 
 /*********************************************************/
 
-void Optimiz_All_Free_Param(arbre *tree, int verbose)
+void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 {
   int  init_both_sides;
 
@@ -1374,7 +1374,7 @@ void Optimiz_All_Free_Param(arbre *tree, int verbose)
 static double sqrarg;
 #define SQR(a) ((sqrarg=(a)) == 0.0 ? 0.0 : sqrarg*sqrarg)
 
-void BFGS(arbre *tree, phydbl *p, int n, phydbl gtol, phydbl step_size,
+void BFGS(t_tree *tree, phydbl *p, int n, phydbl gtol, phydbl step_size,
 	  phydbl(*func)(), void (*dfunc)(), void (*lnsrch)(),int *failed)
 {
 
@@ -1526,7 +1526,7 @@ void BFGS(arbre *tree, phydbl *p, int n, phydbl gtol, phydbl step_size,
 #define ALF 1.0e-4
 #define TOLX 1.0e-7
 
-void Lnsrch_RR_Param(arbre *tree, int n, phydbl *xold, phydbl fold, 
+void Lnsrch_RR_Param(t_tree *tree, int n, phydbl *xold, phydbl fold, 
 		     phydbl *g, phydbl *p, phydbl *x,
 		     phydbl *f, phydbl stpmax, int *check)
 {
@@ -1637,7 +1637,7 @@ void Lnsrch_RR_Param(arbre *tree, int n, phydbl *xold, phydbl fold,
 #define ALF 1.0e-4
 #define TOLX 1.0e-7
 
-void Lnsrch_RR_Cov_Param(arbre *tree, int n, phydbl *xold, phydbl fold, 
+void Lnsrch_RR_Cov_Param(t_tree *tree, int n, phydbl *xold, phydbl fold, 
 			 phydbl *g, phydbl *p, phydbl *x,
 			 phydbl *f, phydbl stpmax, int *check)
 {
@@ -1748,7 +1748,7 @@ void Lnsrch_RR_Cov_Param(arbre *tree, int n, phydbl *xold, phydbl fold,
 #define ALF 1.0e-4
 #define TOLX 1.0e-7
 
-void Lnsrch_Nucleotide_Frequencies(arbre *tree, int n, phydbl *xold, phydbl fold, phydbl *g, phydbl *p, phydbl *x,
+void Lnsrch_Nucleotide_Frequencies(t_tree *tree, int n, phydbl *xold, phydbl fold, phydbl *g, phydbl *p, phydbl *x,
 				   phydbl *f, phydbl stpmax, int *check)
 {
   int i;
@@ -1846,7 +1846,7 @@ void Lnsrch_Nucleotide_Frequencies(arbre *tree, int n, phydbl *xold, phydbl fold
 
 /*********************************************************/
 
-/* void Optimize_Global_Rate(arbre *tree) */
+/* void Optimize_Global_Rate(t_tree *tree) */
 /* { */
 /*     PhyML_Printf("\n. Global rate (%f->)",tree->c_lnL); */
 /*     Optimize_Single_Param_Generic(tree,&(tree->tbl),tree->tbl,BL_MIN,1.E+4,100); */
@@ -2233,7 +2233,7 @@ void Opt_Missing_Dist(int x, int y, matrix *mat)
 
 /*********************************************************/
 
-int Optimiz_Alpha_And_Pinv(arbre *tree)
+int Optimiz_Alpha_And_Pinv(t_tree *tree)
 {
 
   int    iter;
@@ -2527,21 +2527,21 @@ int Optimiz_Alpha_And_Pinv(arbre *tree)
 
 /*********************************************************/
 
-phydbl Optwrap_Part_Lk_At_Given_Edge(edge *b, arbre *tree, superarbre *stree)
+phydbl Optwrap_Part_Lk_At_Given_Edge(t_edge *b, t_tree *tree, supert_tree *stree)
 {
   return PART_Lk_At_Given_Edge(b,stree);;
 }
 
 /*********************************************************/
 
-phydbl Optwrap_Part_Lk(edge *b, arbre *tree, superarbre *stree)
+phydbl Optwrap_Part_Lk(t_edge *b, t_tree *tree, supert_tree *stree)
 {
   return PART_Lk(stree);
 }
 
 /*********************************************************/
 
-phydbl Optwrap_Lk(edge *b, arbre *tree, superarbre *stree)
+phydbl Optwrap_Lk(t_edge *b, t_tree *tree, supert_tree *stree)
 {
   Lk(tree);
   return tree->c_lnL;
@@ -2549,7 +2549,7 @@ phydbl Optwrap_Lk(edge *b, arbre *tree, superarbre *stree)
 
 /*********************************************************/
 
-phydbl Optwrap_Lk_At_Given_Edge(edge *b, arbre *tree, superarbre *stree)
+phydbl Optwrap_Lk_At_Given_Edge(t_edge *b, t_tree *tree, supert_tree *stree)
 {
   Lk_At_Given_Edge(b,tree);
   return tree->c_lnL;
@@ -2559,8 +2559,8 @@ phydbl Optwrap_Lk_At_Given_Edge(edge *b, arbre *tree, superarbre *stree)
 
 phydbl Generic_Brent_Lk(phydbl *param, phydbl ax, phydbl cx, phydbl tol, 
 			int n_iter_max, int quickdirty,
-			phydbl (*obj_func)(edge *,arbre *,superarbre *), 
-			edge *branch, arbre *tree, superarbre *stree)
+			phydbl (*obj_func)(t_edge *,t_tree *,supert_tree *), 
+			t_edge *branch, t_tree *tree, supert_tree *stree)
 {
   int iter;
   phydbl a,b,d,etemp,fu,fv,fw,fx,p,q,r,tol1,tol2,u,v,w,x,xm;

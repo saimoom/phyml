@@ -16,7 +16,7 @@ the GNU public licence.  See http://www.opensource.org for details.
 
 /*********************************************************/
 
-void Make_Tree_4_Pars(arbre *tree, calign *cdata, int n_site)
+void Make_Tree_4_Pars(t_tree *tree, calign *cdata, int n_site)
 {
   int i;
 
@@ -32,7 +32,7 @@ void Make_Tree_4_Pars(arbre *tree, calign *cdata, int n_site)
 
 /*********************************************************/
 
-int Pars(arbre *tree)
+int Pars(t_tree *tree)
 {
   int site,n_patterns;
 
@@ -55,7 +55,7 @@ int Pars(arbre *tree)
 
 /*********************************************************/
 
-void Post_Order_Pars(node *a, node *d, arbre *tree)
+void Post_Order_Pars(t_node *a, t_node *d, t_tree *tree)
 {
   int i,dir;
 
@@ -76,7 +76,7 @@ void Post_Order_Pars(node *a, node *d, arbre *tree)
 
 /*********************************************************/
 
-void Pre_Order_Pars(node *a, node *d, arbre *tree)
+void Pre_Order_Pars(t_node *a, t_node *d, t_tree *tree)
 {
   int i;
 
@@ -96,7 +96,7 @@ void Pre_Order_Pars(node *a, node *d, arbre *tree)
 
 /*********************************************************/
 
-void Get_All_Partial_Pars(arbre *tree, edge *b_fcus, node *a, node *d)
+void Get_All_Partial_Pars(t_tree *tree, t_edge *b_fcus, t_node *a, t_node *d)
 {
   if(d->tax) return;
   else Update_P_Pars(tree,b_fcus,d);
@@ -104,14 +104,14 @@ void Get_All_Partial_Pars(arbre *tree, edge *b_fcus, node *a, node *d)
 
 /*********************************************************/
 
-void Site_Pars(arbre *tree)
+void Site_Pars(t_tree *tree)
 {
   tree->site_pars[tree->curr_site] = Pars_Core(tree->noeud[0]->b[0],tree);
 }
 
 /*********************************************************/
 
-void Init_P_Pars_Tips(arbre *tree)
+void Init_P_Pars_Tips(t_tree *tree)
 {
   int curr_site,i,j;
   short int *state_v;
@@ -150,7 +150,7 @@ void Init_P_Pars_Tips(arbre *tree)
 
 /*********************************************************/
 
-void Init_Ui_Tips(arbre *tree)
+void Init_Ui_Tips(t_tree *tree)
 {  
   int curr_site,i,j,br;
   short int *state_v;
@@ -198,7 +198,7 @@ void Init_Ui_Tips(arbre *tree)
 
 /*********************************************************/
 
-void Update_P_Pars(arbre *tree, edge *b_fcus, node *n)
+void Update_P_Pars(t_tree *tree, t_edge *b_fcus, t_node *n)
 {
 /*  
            |
@@ -346,7 +346,7 @@ void Update_P_Pars(arbre *tree, edge *b_fcus, node *n)
 
 /*********************************************************/
 
-int Pars_Core(edge *b, arbre *tree)
+int Pars_Core(t_edge *b, t_tree *tree)
 {
   int site;
   int i,j;
@@ -391,10 +391,10 @@ int Pars_Core(edge *b, arbre *tree)
 }
 
 /*********************************************************/
-/* Is there one or more parsimoniy step(s) along this edge ? 
+/* Is there one or more parsimoniy step(s) along this t_edge ? 
    0 -> NO; 1 -> YES
 */
-int One_Pars_Step(edge *b,arbre *tree)
+int One_Pars_Step(t_edge *b,t_tree *tree)
 {
   int site;
   int init_general_pars;
@@ -419,7 +419,7 @@ int One_Pars_Step(edge *b,arbre *tree)
 }
 
 /*********************************************************/
-int Pars_At_Given_Edge(edge *b, arbre *tree)
+int Pars_At_Given_Edge(t_edge *b, t_tree *tree)
 {
   int site,n_patterns;
   
@@ -439,7 +439,7 @@ int Pars_At_Given_Edge(edge *b, arbre *tree)
 
 /*********************************************************/
 
-int Update_Pars_At_Given_Edge(edge *b_fcus, arbre *tree)
+int Update_Pars_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
 {
   Update_P_Pars(tree,b_fcus,b_fcus->left);
   Update_P_Pars(tree,b_fcus,b_fcus->rght);
@@ -449,7 +449,7 @@ int Update_Pars_At_Given_Edge(edge *b_fcus, arbre *tree)
 
 /*********************************************************/
 
-void Get_Step_Mat(arbre *tree)
+void Get_Step_Mat(t_tree *tree)
 {
   int i;
 

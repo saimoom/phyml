@@ -53,8 +53,8 @@ int PART_main(int argc, char **argv)
       calign **cdata;
       model **mod;
       matrix **mat;
-      arbrelist *treelist;
-      superarbre *st;
+      t_treelist *treelist;
+      supert_tree *st;
 
       data      = (align ***)  mCalloc(io->n_part,sizeof(align **));
       cdata   = (calign **)mCalloc(io->n_part,sizeof(calign *));
@@ -78,7 +78,7 @@ int PART_main(int argc, char **argv)
 			    io->st->optionlist[part]->mod->stepsize);
 	}
 
-      PART_Make_Superarbre_Full(io->st,io,cdata);
+      PART_Make_Supert_tree_Full(io->st,io,cdata);
       st = io->st;
       treelist = st->treelist;
       Fill_Dir_Table(st->tree);
@@ -271,11 +271,11 @@ int PART_main(int argc, char **argv)
 
 /*********************************************************/
 
-void PART_Print_Nodes(node *a, node *d, superarbre *st)
+void PART_Print_Nodes(t_node *a, t_node *d, supert_tree *st)
 {
   int i;
   PhyML_Printf(">>>>>>>>>>>>>>>>>>>>\n");
-  PhyML_Printf("num node = %d\n",d->num);
+  PhyML_Printf("num t_node = %d\n",d->num);
   if(d->tax) PhyML_Printf("name='%s'\n",d->name);
   else
     {
@@ -302,11 +302,11 @@ void PART_Print_Nodes(node *a, node *d, superarbre *st)
 
 /*********************************************************/
 
-superarbre *PART_Make_Superarbre_Light(option *input)
+supert_tree *PART_Make_Supert_tree_Light(option *input)
 {
-  superarbre *st;
+  supert_tree *st;
 
-  st = (superarbre *)mCalloc(1,sizeof(superarbre));
+  st = (supert_tree *)mCalloc(1,sizeof(supert_tree));
   st->optionlist = (option **)mCalloc(input->n_part,sizeof(option *));
   st->bl_partition = (int *)mCalloc(input->n_part,sizeof(int ));
   return st;
@@ -314,7 +314,7 @@ superarbre *PART_Make_Superarbre_Light(option *input)
 
 /*********************************************************/
 
-void PART_Make_Superarbre_Full(superarbre *st, option *io, calign **data)
+void PART_Make_Supert_tree_Full(supert_tree *st, option *io, calign **data)
 {
   int i,j,k;
 
@@ -337,41 +337,41 @@ void PART_Make_Superarbre_Full(superarbre *st, option *io, calign **data)
     }
 
   st->tree->io      = io;
-  st->treelist      = (arbrelist *)Make_Treelist(io->n_part);
+  st->treelist      = (t_treelist *)Make_Treelist(io->n_part);
   st->n_part          = io->n_part;
   st->tree->mod     = io->mod;
   st->lock_br_len   = 0;
 
-  st->map_st_node_in_gt = (node *****)mCalloc(st->n_part,sizeof(node ****));
+  st->map_st_node_in_gt = (t_node *****)mCalloc(st->n_part,sizeof(t_node ****));
   For(i,st->n_part) 
     {
-      st->map_st_node_in_gt[i] = (node ****)mCalloc(2*st->tree->n_otu-2,sizeof(node ***));
+      st->map_st_node_in_gt[i] = (t_node ****)mCalloc(2*st->tree->n_otu-2,sizeof(t_node ***));
       For(j,2*st->tree->n_otu-2) 
 	{
-	  st->map_st_node_in_gt[i][j] = (node ***)mCalloc(3,sizeof(node **));
-	  For(k,3) st->map_st_node_in_gt[i][j][k] = (node **)mCalloc(2,sizeof(node *));
+	  st->map_st_node_in_gt[i][j] = (t_node ***)mCalloc(3,sizeof(t_node **));
+	  For(k,3) st->map_st_node_in_gt[i][j][k] = (t_node **)mCalloc(2,sizeof(t_node *));
 	}
     }
 
-  st->map_st_edge_in_gt = (edge ***)mCalloc(st->n_part,sizeof(edge **));
-  For(i,st->n_part) st->map_st_edge_in_gt[i] = (edge **)mCalloc(2*st->tree->n_otu-3,sizeof(edge *));
+  st->map_st_edge_in_gt = (t_edge ***)mCalloc(st->n_part,sizeof(t_edge **));
+  For(i,st->n_part) st->map_st_edge_in_gt[i] = (t_edge **)mCalloc(2*st->tree->n_otu-3,sizeof(t_edge *));
 
-  st->map_gt_edge_in_st = (edge ****)mCalloc(st->n_part,sizeof(edge ***));
+  st->map_gt_edge_in_st = (t_edge ****)mCalloc(st->n_part,sizeof(t_edge ***));
   For(i,st->n_part)
     {
-      st->map_gt_edge_in_st[i] = (edge ***)mCalloc(2*st->tree->n_otu-3,sizeof(edge **));
-      For(j,2*st->tree->n_otu-3) st->map_gt_edge_in_st[i][j] = (edge **)mCalloc(2*st->tree->n_otu-3,sizeof(edge *));
+      st->map_gt_edge_in_st[i] = (t_edge ***)mCalloc(2*st->tree->n_otu-3,sizeof(t_edge **));
+      For(j,2*st->tree->n_otu-3) st->map_gt_edge_in_st[i][j] = (t_edge **)mCalloc(2*st->tree->n_otu-3,sizeof(t_edge *));
     }
 
   st->size_map_gt_edge_in_st = (int **)mCalloc(st->n_part,sizeof(int *));
   For(i,st->n_part) st->size_map_gt_edge_in_st[i] = (int *)mCalloc(2*st->tree->n_otu-3,sizeof(int));
 
 
-  st->match_st_edge_in_gt = (edge ***)mCalloc(st->n_part,sizeof(edge **));
-  For(i,st->n_part) st->match_st_edge_in_gt[i] = (edge **)mCalloc(2*st->tree->n_otu-3,sizeof(edge *));
+  st->match_st_edge_in_gt = (t_edge ***)mCalloc(st->n_part,sizeof(t_edge **));
+  For(i,st->n_part) st->match_st_edge_in_gt[i] = (t_edge **)mCalloc(2*st->tree->n_otu-3,sizeof(t_edge *));
 
-  st->match_gt_edge_in_st = (edge ***)mCalloc(st->n_part,sizeof(edge **));
-  For(i,st->n_part) st->match_gt_edge_in_st[i] = (edge **)mCalloc(2*st->tree->n_otu-3,sizeof(edge *));
+  st->match_gt_edge_in_st = (t_edge ***)mCalloc(st->n_part,sizeof(t_edge **));
+  For(i,st->n_part) st->match_gt_edge_in_st[i] = (t_edge **)mCalloc(2*st->tree->n_otu-3,sizeof(t_edge *));
 
   st->bl = (phydbl **)mCalloc(st->n_part,sizeof(phydbl *));
   For(i,st->n_part) st->bl[i] = (phydbl *)mCalloc(2*st->tree->n_otu-3,sizeof(phydbl));
@@ -394,21 +394,21 @@ void PART_Make_Superarbre_Full(superarbre *st, option *io, calign **data)
 
   Get_List_Of_Reachable_Tips(st->tree);
 
-  st->match_st_node_in_gt = (node ***)mCalloc(io->n_part,sizeof(node **));
-  For(i,io->n_part) st->match_st_node_in_gt[i] = (node **)mCalloc(2*st->tree->n_otu-2,sizeof(node *));
+  st->match_st_node_in_gt = (t_node ***)mCalloc(io->n_part,sizeof(t_node **));
+  For(i,io->n_part) st->match_st_node_in_gt[i] = (t_node **)mCalloc(2*st->tree->n_otu-2,sizeof(t_node *));
 }
 
 /*********************************************************/
 
-void PART_Prune_St_Topo(arbre *tree, calign *data, superarbre *st)
+void PART_Prune_St_Topo(t_tree *tree, calign *data, supert_tree *st)
 {
   int i,j,not_found;
   int curr_ext_node, curr_int_node, curr_br, n_pruned_nodes;;
-  node **pruned_nodes;
-  edge **residual_edges;
+  t_node **pruned_nodes;
+  t_edge **residual_edges;
 
-  pruned_nodes   = (node **)mCalloc(st->tree->n_otu,sizeof(node *));
-  residual_edges = (edge **)mCalloc(st->tree->n_otu,sizeof(edge *));
+  pruned_nodes   = (t_node **)mCalloc(st->tree->n_otu,sizeof(t_node *));
+  residual_edges = (t_edge **)mCalloc(st->tree->n_otu,sizeof(t_edge *));
 
   n_pruned_nodes = 0;
   For(i,st->tree->n_otu)
@@ -442,7 +442,7 @@ void PART_Prune_St_Topo(arbre *tree, calign *data, superarbre *st)
 	  if(not_found)	    
 	    {
 	      PhyML_Printf("\n. Taxon '%s'",st->tree->noeud[i]->name);
-	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
 	      Warn_And_Exit("");
 	    }
 	}
@@ -462,7 +462,7 @@ void PART_Prune_St_Topo(arbre *tree, calign *data, superarbre *st)
 	  if(!strcmp(pruned_nodes[j]->name,st->tree->noeud[i]->name))
 	    break;
 	}
-      if(j == n_pruned_nodes) /* That node still belongs to the tree */
+      if(j == n_pruned_nodes) /* That t_node still belongs to the tree */
 	{
 	  Reassign_Node_Nums(tree->noeud[i],tree->noeud[i]->v[0], 
 			     &curr_ext_node, &curr_int_node,tree);
@@ -490,7 +490,7 @@ void PART_Prune_St_Topo(arbre *tree, calign *data, superarbre *st)
 
 /*********************************************************/
 
-void PART_Match_St_Nodes_In_Gt(arbre *gt, superarbre *st)
+void PART_Match_St_Nodes_In_Gt(t_tree *gt, supert_tree *st)
 {
   int i,j;
 
@@ -521,7 +521,7 @@ void PART_Match_St_Nodes_In_Gt(arbre *gt, superarbre *st)
     {
       PhyML_Printf("\n");
       PhyML_Printf("\n. n_matches = %d 2*gt->n_otu-2 = %d\n",n_matches,2*gt->n_otu-2);
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 #endif
@@ -564,7 +564,7 @@ void PART_Match_St_Nodes_In_Gt(arbre *gt, superarbre *st)
 
  	  if(i == 2*st->tree->n_otu-2)
 	    {
-	      PhyML_Printf("\n. Gt %3d node %3d (%3d %3d %3d) (%s %s %s) (%f %f %f) does not match\n",
+	      PhyML_Printf("\n. Gt %3d t_node %3d (%3d %3d %3d) (%s %s %s) (%f %f %f) does not match\n",
 		     gt->dp,
 		     gt->noeud[j]->num,
 		     gt->noeud[j]->v[0] ? gt->noeud[j]->v[0]->num : -1,
@@ -591,7 +591,7 @@ void PART_Match_St_Nodes_In_Gt(arbre *gt, superarbre *st)
 		     st->treelist->tree[i]);
 	  PhyML_Printf("<<<<<<<\n");
 	}
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 #endif
@@ -599,7 +599,7 @@ void PART_Match_St_Nodes_In_Gt(arbre *gt, superarbre *st)
 
 /*********************************************************/
 
-void PART_Match_St_Nodes_In_Gt_Recurr(node *a_gt, node *d_gt, node *a_st, node *d_st, arbre *gt, superarbre *st)
+void PART_Match_St_Nodes_In_Gt_Recurr(t_node *a_gt, t_node *d_gt, t_node *a_st, t_node *d_st, t_tree *gt, supert_tree *st)
 {
   int i,j,k;
   int *score_d_st;
@@ -658,7 +658,7 @@ void PART_Match_St_Nodes_In_Gt_Recurr(node *a_gt, node *d_gt, node *a_st, node *
 
 /*********************************************************/
 
-void PART_Match_St_Edges_In_Gt(arbre *gt, superarbre *st)
+void PART_Match_St_Edges_In_Gt(t_tree *gt, supert_tree *st)
 {
   int i;
 
@@ -683,9 +683,9 @@ void PART_Match_St_Edges_In_Gt(arbre *gt, superarbre *st)
 
 /*********************************************************/
 
-void PART_Match_St_Edges_In_Gt_Recurr(node *a_gt, node *d_gt, node *a_st, node *d_st, arbre *gt, superarbre *st)
+void PART_Match_St_Edges_In_Gt_Recurr(t_node *a_gt, t_node *d_gt, t_node *a_st, t_node *d_st, t_tree *gt, supert_tree *st)
 {
-  edge *b_gt, *b_st;
+  t_edge *b_gt, *b_st;
   int i,j,k;
 
   b_gt = b_st = NULL;
@@ -705,7 +705,7 @@ void PART_Match_St_Edges_In_Gt_Recurr(node *a_gt, node *d_gt, node *a_st, node *
     {
       PhyML_Printf("\n");
       PhyML_Printf("\n. a_gt->num = %d\n",a_gt->num);
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
@@ -742,15 +742,15 @@ void PART_Match_St_Edges_In_Gt_Recurr(node *a_gt, node *d_gt, node *a_st, node *
 
 /*********************************************************/
 
-void PART_Simu(superarbre *st)
+void PART_Simu(supert_tree *st)
 {
   int i,j,step,n_without_swap,it_lim_without_swap;
-  edge **sorted_b,*st_b,**tested_b;
+  t_edge **sorted_b,*st_b,**tested_b;
   int n_neg,n_tested,each;
   phydbl lambda,old_loglk;
 
-  sorted_b = (edge **)mCalloc(st->tree->n_otu-3,sizeof(edge *));
-  tested_b = (edge **)mCalloc(st->tree->n_otu-3,sizeof(edge *));
+  sorted_b = (t_edge **)mCalloc(st->tree->n_otu-3,sizeof(t_edge *));
+  tested_b = (t_edge **)mCalloc(st->tree->n_otu-3,sizeof(t_edge *));
 
   For(i,st->n_part) Update_Dirs(st->treelist->tree[i]);
   Update_Dirs(st->tree);
@@ -881,10 +881,10 @@ void PART_Simu(superarbre *st)
 
 /*********************************************************/
 
-int PART_Mov_Backward_Topo_Bl(superarbre *st, phydbl lk_old, edge **tested_b, int n_tested)
+int PART_Mov_Backward_Topo_Bl(supert_tree *st, phydbl lk_old, t_edge **tested_b, int n_tested)
 {
   int i,j,step,beg,end;
-  edge *st_b;
+  t_edge *st_b;
   phydbl **l_init;
 
   l_init = (phydbl **)mCalloc(st->n_part,sizeof(phydbl *));
@@ -987,7 +987,7 @@ int PART_Mov_Backward_Topo_Bl(superarbre *st, phydbl lk_old, edge **tested_b, in
 
 /*********************************************************/
 
-void PART_Check_Extra_Taxa(superarbre *st)
+void PART_Check_Extra_Taxa(supert_tree *st)
 {
   int i,j,k;
   int sum;
@@ -1009,7 +1009,7 @@ void PART_Check_Extra_Taxa(superarbre *st)
   For(i,st->tree->n_otu) if(st_taxa[i]) sum++;
   if(sum != st->tree->n_otu) 
     {
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
   Free(st_taxa);
@@ -1017,7 +1017,7 @@ void PART_Check_Extra_Taxa(superarbre *st)
 
 /*********************************************************/
 
-int PART_Get_Species_Found_In_St(superarbre *st, calign *data)
+int PART_Get_Species_Found_In_St(supert_tree *st, calign *data)
 {
   int i,j;
   
@@ -1038,7 +1038,7 @@ int PART_Get_Species_Found_In_St(superarbre *st, calign *data)
 
 /*********************************************************/
 
-void PART_Map_St_Nodes_In_Gt(arbre *gt, superarbre *st)
+void PART_Map_St_Nodes_In_Gt(t_tree *gt, supert_tree *st)
 {
   int i;
 
@@ -1074,7 +1074,7 @@ void PART_Map_St_Nodes_In_Gt(arbre *gt, superarbre *st)
 
 /*********************************************************/
 
-void PART_Map_St_Nodes_In_Gt_Post(node *a_st, node *d_st, arbre *gt, superarbre *st)
+void PART_Map_St_Nodes_In_Gt_Post(t_node *a_st, t_node *d_st, t_tree *gt, supert_tree *st)
 {
   int i,dir;
 
@@ -1097,7 +1097,7 @@ void PART_Map_St_Nodes_In_Gt_Post(node *a_st, node *d_st, arbre *gt, superarbre 
 
 /*********************************************************/
 
-void PART_Map_St_Nodes_In_Gt_Pre(node *a_st, node *d_st, arbre *gt, superarbre *st)
+void PART_Map_St_Nodes_In_Gt_Pre(t_node *a_st, t_node *d_st, t_tree *gt, supert_tree *st)
 {
   int i;
 
@@ -1117,14 +1117,14 @@ void PART_Map_St_Nodes_In_Gt_Pre(node *a_st, node *d_st, arbre *gt, superarbre *
 
 /*********************************************************/
 
-void PART_Map_St_Nodes_In_Gt_One_Edge(node *a_st, node *d_st, edge *b_st, arbre *gt, superarbre *st)
+void PART_Map_St_Nodes_In_Gt_One_Edge(t_node *a_st, t_node *d_st, t_edge *b_st, t_tree *gt, supert_tree *st)
 {
   if(d_st->tax)
     {
 #ifdef DEBUG
       if(b_st->rght != d_st)
 	{
-	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
 	  Warn_And_Exit("");
 	}
 #endif
@@ -1133,7 +1133,7 @@ void PART_Map_St_Nodes_In_Gt_One_Edge(node *a_st, node *d_st, edge *b_st, arbre 
     }
   else
     {
-      node **list_of_nodes_d, **list_of_nodes_v1, **list_of_nodes_v2;
+      t_node **list_of_nodes_d, **list_of_nodes_v1, **list_of_nodes_v2;
       int dir1, dir2;
       int i;
 
@@ -1162,7 +1162,7 @@ void PART_Map_St_Nodes_In_Gt_One_Edge(node *a_st, node *d_st, edge *b_st, arbre 
 	    break;
 	  }
 
-      /* d_st matches one node in gt */
+      /* d_st matches one t_node in gt */
       if(st->match_st_node_in_gt[gt->dp][d_st->num])
 	{
 	  list_of_nodes_d[0] = st->match_st_node_in_gt[gt->dp][d_st->num];
@@ -1200,7 +1200,7 @@ void PART_Map_St_Nodes_In_Gt_One_Edge(node *a_st, node *d_st, edge *b_st, arbre 
 
 		  PhyML_Printf("\n\n--------------------------\n\n");
 		  
-		  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+		  PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
 		  Warn_And_Exit("");
 		}
 	    }
@@ -1210,11 +1210,11 @@ void PART_Map_St_Nodes_In_Gt_One_Edge(node *a_st, node *d_st, edge *b_st, arbre 
 
 /*********************************************************/
 
-void PART_Map_St_Edges_In_Gt(arbre *gt, superarbre *st)
+void PART_Map_St_Edges_In_Gt(t_tree *gt, supert_tree *st)
 {
   int i,j;
-  edge *st_b;
-  node *gt_a, *gt_d;
+  t_edge *st_b;
+  t_node *gt_a, *gt_d;
   
   gt_a = NULL;
   gt_d = NULL;
@@ -1261,7 +1261,7 @@ void PART_Map_St_Edges_In_Gt(arbre *gt, superarbre *st)
 	  #ifdef DEBUG
 	  if((!gt_a) || (!gt_d))
 	    {
-	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
 	      Warn_And_Exit("");
 	    }
 	  #endif
@@ -1280,10 +1280,10 @@ void PART_Map_St_Edges_In_Gt(arbre *gt, superarbre *st)
 
 /*********************************************************/
 
-void PART_Map_Gt_Edges_In_St(arbre *gt, superarbre *st)
+void PART_Map_Gt_Edges_In_St(t_tree *gt, supert_tree *st)
 {
   int i;
-  edge *st_b, *gt_b;
+  t_edge *st_b, *gt_b;
   
   For(i,2*st->tree->n_otu-3) st->size_map_gt_edge_in_st[gt->dp][i] = 0;
 
@@ -1304,7 +1304,7 @@ void PART_Map_Gt_Edges_In_St(arbre *gt, superarbre *st)
 
 /*********************************************************/
 
-int PART_Pars(superarbre *st)
+int PART_Pars(supert_tree *st)
 {
   int i;
   
@@ -1321,13 +1321,13 @@ int PART_Pars(superarbre *st)
 
 /*********************************************************/
 
-int PART_Spr(phydbl init_lnL, superarbre *st)
+int PART_Spr(phydbl init_lnL, supert_tree *st)
 {
   int gt;
   int i;
-  edge *target, *pruned;
+  t_edge *target, *pruned;
   int move,best_move;
-  node *gt_a, *gt_d;
+  t_node *gt_a, *gt_d;
 
   st->tree->n_root     = st->tree->noeud[0];
   st->tree->both_sides = 1;
@@ -1418,7 +1418,7 @@ int PART_Spr(phydbl init_lnL, superarbre *st)
 
 /*********************************************************/
 
-void PART_Speed_Spr(superarbre *st)
+void PART_Speed_Spr(supert_tree *st)
 {
   int step;
   int gt;
@@ -1496,7 +1496,7 @@ void PART_Speed_Spr(superarbre *st)
       if(st->tree->c_lnL < old_lnL)
 	{
 	  PhyML_Printf("\n. old_lnL = %f c_lnL = %f\n",old_lnL,st->tree->c_lnL); 
-	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
 	  Warn_And_Exit("");
 	}
 
@@ -1514,7 +1514,7 @@ void PART_Speed_Spr(superarbre *st)
 /*********************************************************/
 
 
-void PART_Test_All_Spr_Targets(edge *pruned, node *n_link, superarbre *st)
+void PART_Test_All_Spr_Targets(t_edge *pruned, t_node *n_link, supert_tree *st)
 {
   int i,j;
 
@@ -1535,7 +1535,7 @@ void PART_Test_All_Spr_Targets(edge *pruned, node *n_link, superarbre *st)
 
 /*********************************************************/
 
-void PART_Test_One_Spr_Target_Recur(node *a, node *d, edge *target, edge *pruned, node *n_link, superarbre *st)
+void PART_Test_One_Spr_Target_Recur(t_node *a, t_node *d, t_edge *target, t_edge *pruned, t_node *n_link, supert_tree *st)
 {
 
   PART_Test_One_Spr_Target(pruned,target,n_link,st);
@@ -1555,7 +1555,7 @@ void PART_Test_One_Spr_Target_Recur(node *a, node *d, edge *target, edge *pruned
 
 /*********************************************************/
 
-void PART_Test_One_Spr_Target(edge *st_p, edge *st_t, node *n_link, superarbre *st) 
+void PART_Test_One_Spr_Target(t_edge *st_p, t_edge *st_t, t_node *n_link, supert_tree *st) 
 {
   int gt, move;
 
@@ -1581,11 +1581,11 @@ void PART_Test_One_Spr_Target(edge *st_p, edge *st_t, node *n_link, superarbre *
 
 /*********************************************************/
 
-int Map_Spr_Move(edge *st_pruned, edge *st_target, node *st_link, arbre *gt, superarbre *st)
+int Map_Spr_Move(t_edge *st_pruned, t_edge *st_target, t_node *st_link, t_tree *gt, supert_tree *st)
 {
   int i;
-  edge *gt_pruned, *gt_target;
-  node *gt_link, *gt_a, *gt_d;
+  t_edge *gt_pruned, *gt_target;
+  t_node *gt_link, *gt_a, *gt_d;
 
   gt_pruned = NULL;
   gt_target = NULL;
@@ -1630,12 +1630,12 @@ int Map_Spr_Move(edge *st_pruned, edge *st_target, node *st_link, arbre *gt, sup
 
 /*********************************************************/
 
-int PART_Test_List_Of_Regraft_Pos(spr **st_spr_list, int list_size, superarbre *st)
+int PART_Test_List_Of_Regraft_Pos(spr **st_spr_list, int list_size, supert_tree *st)
 {
 
   int i,j,best_move;
   spr *move;
-  edge *init_target, *b_residual;
+  t_edge *init_target, *b_residual;
   phydbl best_lnL, init_lnL;
   int dir_v0, dir_v1, dir_v2;
   int gt;
@@ -1650,7 +1650,7 @@ int PART_Test_List_Of_Regraft_Pos(spr **st_spr_list, int list_size, superarbre *
   if(!list_size)
     {
       PhyML_Printf("\n\n. List size is 0 !");
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit(""); 
     }
 #endif
@@ -1676,7 +1676,7 @@ int PART_Test_List_Of_Regraft_Pos(spr **st_spr_list, int list_size, superarbre *
 		{
 		  init_lnL = st->treelist->tree[gt]->c_lnL;
 
-		  /* Record edge lengths */
+		  /* Record t_edge lengths */
 		  Record_Br_Len(NULL,st->treelist->tree[gt]);
 		  
 		  /* Prune subtree */
@@ -1699,7 +1699,7 @@ int PART_Test_List_Of_Regraft_Pos(spr **st_spr_list, int list_size, superarbre *
 		  /* Regraft subtree */
 		  Graft_Subtree(move->b_target,move->n_link,b_residual,st->treelist->tree[gt]);
 	      
-		  /* Estimate the three edge lengths at the regraft site */
+		  /* Estimate the three t_edge lengths at the regraft site */
 		  Triple_Dist(move->n_link,st->treelist->tree[gt],-1);
 	      
 		  /* Update the transition proba matrices along edges defining 
@@ -1785,19 +1785,19 @@ int PART_Test_List_Of_Regraft_Pos(spr **st_spr_list, int list_size, superarbre *
 
 /*********************************************************/
 
-int PART_Try_One_Spr_Move(spr *st_move, superarbre *st)
+int PART_Try_One_Spr_Move(spr *st_move, supert_tree *st)
 {
   int j;
   spr **gt_move;
-  edge **init_target, **b_residual;
+  t_edge **init_target, **b_residual;
   int dir_v0, dir_v1, dir_v2;
   int gt;
   int gt_move_num;
   int n_moves;
 
   
-  init_target = (edge **)mCalloc(st->n_part,sizeof(edge *));
-  b_residual  = (edge **)mCalloc(st->n_part,sizeof(edge *));
+  init_target = (t_edge **)mCalloc(st->n_part,sizeof(t_edge *));
+  b_residual  = (t_edge **)mCalloc(st->n_part,sizeof(t_edge *));
   gt_move     = (spr **)mCalloc(st->n_part,sizeof(spr *));
 
 
@@ -1817,7 +1817,7 @@ int PART_Try_One_Spr_Move(spr *st_move, superarbre *st)
 	  
 	  if(gt_move[gt]->b_target)
 	    {
-	      /* Record edge lengths */
+	      /* Record t_edge lengths */
 	      Record_Br_Len(NULL,st->treelist->tree[gt]);
 
 	      /* Prune subtree */
@@ -1869,7 +1869,7 @@ int PART_Try_One_Spr_Move(spr *st_move, superarbre *st)
     {
       if(st_move->lnL > st->tree->best_lnL)
 	{
-	  edge *st_target, *st_residual;
+	  t_edge *st_target, *st_residual;
 
 	  /* Apply the move on the super-tree */
 	  Prune_Subtree(st_move->n_link,
@@ -1946,7 +1946,7 @@ int PART_Try_One_Spr_Move(spr *st_move, superarbre *st)
 	  
 /* 	  if(st->tree->c_lnL > st->tree->best_lnL) */
 /* 	    { */
-/* 	      edge *st_target, *st_residual; */
+/* 	      t_edge *st_target, *st_residual; */
 	      
 /* 	      /\* Apply the move on the super-tree *\/ */
 /* 	      Prune_Subtree(st_move->n_link, */
@@ -2029,20 +2029,20 @@ int PART_Try_One_Spr_Move(spr *st_move, superarbre *st)
 
 /*********************************************************/
 
-void PART_NNI(edge *st_b, superarbre *st)
+void PART_NNI(t_edge *st_b, supert_tree *st)
 {  
-  node *v1, *v2, *v3, *v4;
+  t_node *v1, *v2, *v3, *v4;
   phydbl lk_init;
   phydbl lk0_init, lk1_init, lk2_init;
   phydbl lk0_opt, lk1_opt, lk2_opt;
   int i,j;
   double *init_bl;
-  edge **map_edge_bef_swap, **map_edge_aft_swap;
+  t_edge **map_edge_bef_swap, **map_edge_aft_swap;
 
 
   init_bl = (double *)mCalloc(st->n_bl_part,sizeof(double));
-  map_edge_bef_swap = (edge **)mCalloc(st->n_part,sizeof(edge *));
-  map_edge_aft_swap = (edge **)mCalloc(st->n_part,sizeof(edge *));
+  map_edge_bef_swap = (t_edge **)mCalloc(st->n_part,sizeof(t_edge *));
+  map_edge_aft_swap = (t_edge **)mCalloc(st->n_part,sizeof(t_edge *));
 
 
   v1 = st_b->left->v[st_b->l_v1];
@@ -2056,14 +2056,14 @@ void PART_NNI(edge *st_b, superarbre *st)
   if(v1->num < v2->num)
     {
       Check_Dirs(st->tree);
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
   if(v3->num < v4->num)
     {
       Check_Dirs(st->tree);
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
@@ -2300,10 +2300,10 @@ void PART_NNI(edge *st_b, superarbre *st)
 
 /*********************************************************/
 
-void PART_Swap(node *st_a, node *st_b, node *st_c, node *st_d, superarbre *st)
+void PART_Swap(t_node *st_a, t_node *st_b, t_node *st_c, t_node *st_d, supert_tree *st)
 {
   int i,j;
-  node *gt_a, *gt_b, *gt_c, *gt_d;
+  t_node *gt_a, *gt_b, *gt_c, *gt_d;
   int ab, ba, cd, dc, bc;
 
   ab = ba = cd = dc = bc = -1;
@@ -2317,7 +2317,7 @@ void PART_Swap(node *st_a, node *st_b, node *st_c, node *st_d, superarbre *st)
   if(ab < 0 || ba < 0 || cd < 0 || dc < 0)
     {
       PhyML_Printf("\n. Nodes %d %d %d %d\n",st_a->num,st_b->num,st_c->num,st_d->num);
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
@@ -2328,15 +2328,15 @@ void PART_Swap(node *st_a, node *st_b, node *st_c, node *st_d, superarbre *st)
       gt_b = st->match_st_node_in_gt[i][st_b->num];
       gt_c = st->match_st_node_in_gt[i][st_c->num];
       
-      if(gt_b && gt_c) /* The st edge with st_b and st_c at its extremities
-			* matches an edge in gt 
+      if(gt_b && gt_c) /* The st t_edge with st_b and st_c at its extremities
+			* matches an t_edge in gt 
 		        */
 	{
 #ifdef DEBUG
 	  For(j,3) if((gt_b->v[j]) && (gt_b->v[j] == gt_c)) break;
 	  if(j == 3)
 	    {
-	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
 	      Warn_And_Exit("");
 	    }
 #endif
@@ -2349,10 +2349,10 @@ void PART_Swap(node *st_a, node *st_b, node *st_c, node *st_d, superarbre *st)
 
 /*********************************************************/
 
-void PART_Set_Bl(double **bl, superarbre *st)
+void PART_Set_Bl(double **bl, supert_tree *st)
 {
   int i,j;
-  edge *gt_b;
+  t_edge *gt_b;
 
   gt_b = NULL;
 						
@@ -2387,7 +2387,7 @@ void PART_Set_Bl(double **bl, superarbre *st)
 
 /*********************************************************/
 
-void PART_Record_Br_Len(superarbre *st)
+void PART_Record_Br_Len(supert_tree *st)
 {
   int i,j;
   For(i,st->n_part) For(j,2*st->tree->n_otu-3) st->bl_cpy[i][j] = st->bl[i][j];
@@ -2395,7 +2395,7 @@ void PART_Record_Br_Len(superarbre *st)
 
 /*********************************************************/
 
-void PART_Restore_Br_Len(superarbre *st)
+void PART_Restore_Br_Len(supert_tree *st)
 {
   int i,j;
   For(i,st->n_part) For(j,2*st->tree->n_otu-3) st->bl[i][j] = st->bl_cpy[i][j];
@@ -2403,7 +2403,7 @@ void PART_Restore_Br_Len(superarbre *st)
 
 /*********************************************************/
 
-phydbl PART_Lk(superarbre *st)
+phydbl PART_Lk(supert_tree *st)
 {
   int i;
 
@@ -2423,10 +2423,10 @@ phydbl PART_Lk(superarbre *st)
 
 /*********************************************************/
 
-phydbl PART_Lk_At_Given_Edge(edge *st_b, superarbre *st)
+phydbl PART_Lk_At_Given_Edge(t_edge *st_b, supert_tree *st)
 {
   int i;
-  edge *gt_b;
+  t_edge *gt_b;
   phydbl lnL;
 
   PART_Set_Bl(st->bl,st);
@@ -2439,17 +2439,17 @@ phydbl PART_Lk_At_Given_Edge(edge *st_b, superarbre *st)
       gt_b = st->map_st_edge_in_gt[i][st_b->num];
       lnL = Lk_At_Given_Edge(gt_b,st->treelist->tree[i]);
       st->tree->c_lnL += lnL;
-/*       PhyML_Printf("\n. gt %d st edge %d gt edge %d lnL=%f l=%f ",i,st_b->num,gt_b->num,lnL,gt_b->l); */
+/*       PhyML_Printf("\n. gt %d st t_edge %d gt t_edge %d lnL=%f l=%f ",i,st_b->num,gt_b->num,lnL,gt_b->l); */
     }
   return st->tree->c_lnL;
 }
 
 /*********************************************************/
 
-phydbl PART_Update_Lk_At_Given_Edge(edge *st_b, superarbre *st)
+phydbl PART_Update_Lk_At_Given_Edge(t_edge *st_b, supert_tree *st)
 {
   int i;
-  edge *gt_b;
+  t_edge *gt_b;
 
   PART_Set_Bl(st->bl,st);
   
@@ -2467,7 +2467,7 @@ phydbl PART_Update_Lk_At_Given_Edge(edge *st_b, superarbre *st)
 
 /*********************************************************/
 
-void PART_Fill_Model_Partitions_Table(superarbre *st)
+void PART_Fill_Model_Partitions_Table(supert_tree *st)
 {
   int i,j;
   char *c;
@@ -2492,7 +2492,7 @@ void PART_Fill_Model_Partitions_Table(superarbre *st)
 
       PhyML_Printf("\n. Data set             ");
       For(i,st->n_part) PhyML_Printf("%3d ",i+1);
-      PhyML_Printf("\n. -A- edge lengths     ");
+      PhyML_Printf("\n. -A- t_edge lengths     ");
       For(i,st->n_part) PhyML_Printf("%3d ",st->bl_partition[i]);
 
       if(lig == 1) break;
@@ -2546,7 +2546,7 @@ void PART_Fill_Model_Partitions_Table(superarbre *st)
 
 /*********************************************************/
 
-phydbl PART_Br_Len_Brent(edge *st_b, int quickdirty, superarbre *st)
+phydbl PART_Br_Len_Brent(t_edge *st_b, int quickdirty, supert_tree *st)
 {
   phydbl ax, bx, cx;
   int part;
@@ -2574,7 +2574,7 @@ phydbl PART_Br_Len_Brent(edge *st_b, int quickdirty, superarbre *st)
 
 /*********************************************************/
 
-void PART_Initialise_Bl_Partition(superarbre *st)
+void PART_Initialise_Bl_Partition(supert_tree *st)
 {
   int i,j;
   
@@ -2589,7 +2589,7 @@ void PART_Initialise_Bl_Partition(superarbre *st)
 
 /*********************************************************/
 
-void PART_Optimize_Br_Len_Serie(node *st_a, node *st_d, edge *st_b, superarbre *st)
+void PART_Optimize_Br_Len_Serie(t_node *st_a, t_node *st_d, t_edge *st_b, supert_tree *st)
 {
   phydbl lk_init;
   int i;
@@ -2601,7 +2601,7 @@ void PART_Optimize_Br_Len_Serie(node *st_a, node *st_d, edge *st_b, superarbre *
   if(st->tree->c_lnL < lk_init - st->tree->mod->s_opt->min_diff_lk_local)
     { 
       PhyML_Printf("\n. %f -- %f",lk_init,st->tree->c_lnL);
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
     
@@ -2618,7 +2618,7 @@ void PART_Optimize_Br_Len_Serie(node *st_a, node *st_d, edge *st_b, superarbre *
 
 /*********************************************************/
 
-void PART_Update_P_Lk(edge *st_b, node *st_n, superarbre *st)
+void PART_Update_P_Lk(t_edge *st_b, t_node *st_n, supert_tree *st)
 {
   int i,dir;
 
@@ -2627,7 +2627,7 @@ void PART_Update_P_Lk(edge *st_b, node *st_n, superarbre *st)
   
   if(dir < 0)
     {
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
@@ -2644,7 +2644,7 @@ void PART_Update_P_Lk(edge *st_b, node *st_n, superarbre *st)
 
 /*********************************************************/
 
-void PART_Make_N_Swap(edge **st_b, int beg, int end, superarbre *st)
+void PART_Make_N_Swap(t_edge **st_b, int beg, int end, supert_tree *st)
 {
   int i;
 
@@ -2654,7 +2654,7 @@ void PART_Make_N_Swap(edge **st_b, int beg, int end, superarbre *st)
       if(st_b[i]->left->tax || st_b[i]->rght->tax)
 	{
 	  PhyML_Printf("\n. Edge %d is external.",st_b[i]->num);
-	  PhyML_Printf("\n. Err in file %s at line %d.",__FILE__,__LINE__);
+	  PhyML_Printf("\n. Err in file %s at line %d\n\n.",__FILE__,__LINE__);
 	  Warn_And_Exit("");
 	}
       
@@ -2678,7 +2678,7 @@ void PART_Make_N_Swap(edge **st_b, int beg, int end, superarbre *st)
 
 /*********************************************************/
 
-void PART_Update_Bl(phydbl fact, superarbre *st)
+void PART_Update_Bl(phydbl fact, supert_tree *st)
 {
   int i,j;
   
@@ -2694,7 +2694,7 @@ void PART_Update_Bl(phydbl fact, superarbre *st)
 
 /*********************************************************/
 
-void PART_Update_Bl_Swaped(edge **st_b, int n, superarbre *st)
+void PART_Update_Bl_Swaped(t_edge **st_b, int n, supert_tree *st)
 {
   int i,j;
   
@@ -2713,7 +2713,7 @@ void PART_Update_Bl_Swaped(edge **st_b, int n, superarbre *st)
 
 /*********************************************************/
 
-void PART_Do_Mapping(superarbre *st)
+void PART_Do_Mapping(supert_tree *st)
 {
   int k;
 
@@ -2731,13 +2731,13 @@ void PART_Do_Mapping(superarbre *st)
 
 /*********************************************************/
 
-void PART_Print_Bl(superarbre *st)
+void PART_Print_Bl(supert_tree *st)
 {
   int i,j;
   
   For(j,2*st->tree->n_otu-3)
     { 
-      PhyML_Printf("\n. edge %4d ",j);
+      PhyML_Printf("\n. t_edge %4d ",j);
       For(i,st->n_bl_part)
 	{
 	  PhyML_Printf("%f ",st->bl[i][j]);

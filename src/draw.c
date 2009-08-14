@@ -15,7 +15,7 @@ the GNU public licence.  See http://www.opensource.org for details.
 
 /*********************************************************/
 
-void DR_Get_Tree_Coord(arbre *tree)
+void DR_Get_Tree_Coord(t_tree *tree)
 {
   DR_Init_Tdraw_Struct(tree->ps_tree);
   DR_Get_Tree_Box_Width(tree->ps_tree,tree);
@@ -85,11 +85,11 @@ void DR_Print_Postscript_EOF(FILE *fp)
 
 /*********************************************************/
 
-void DR_Print_Tree_Postscript(int page_num, FILE *fp, arbre *tree)
+void DR_Print_Tree_Postscript(int page_num, FILE *fp, t_tree *tree)
 {
   int i;
   tdraw *draw;
-  node *n_root;
+  t_node *n_root;
   
 
   draw = tree->ps_tree;
@@ -157,7 +157,7 @@ void DR_Print_Tree_Postscript(int page_num, FILE *fp, arbre *tree)
 
 /*********************************************************/
 
-void DR_Print_Tree_Postscript_Pre(node *a, node *d, FILE *fp, tdraw *w, arbre *tree)
+void DR_Print_Tree_Postscript_Pre(t_node *a, t_node *d, FILE *fp, tdraw *w, t_tree *tree)
 {
   int i;
 
@@ -215,7 +215,7 @@ void DR_Print_Tree_Postscript_Pre(node *a, node *d, FILE *fp, tdraw *w, arbre *t
 /*********************************************************/
 
 
-void DR_Get_X_Coord_Pre(node *a, node *d, edge *b, tdraw *w, arbre *tree)
+void DR_Get_X_Coord_Pre(t_node *a, t_node *d, t_edge *b, tdraw *w, t_tree *tree)
 {
   int i;
 
@@ -232,7 +232,7 @@ void DR_Get_X_Coord_Pre(node *a, node *d, edge *b, tdraw *w, arbre *tree)
 
 /*********************************************************/
 
-void DR_Get_X_Coord(tdraw *w, arbre *tree)
+void DR_Get_X_Coord(tdraw *w, t_tree *tree)
 {
   w->xcoord[tree->n_root->v[0]->num] = tree->n_root->v[0]->dist_to_root * (double)w->tree_box_width/w->max_dist_to_root;
   w->xcoord[tree->n_root->v[1]->num] = tree->n_root->v[1]->dist_to_root * (double)w->tree_box_width/w->max_dist_to_root;
@@ -243,7 +243,7 @@ void DR_Get_X_Coord(tdraw *w, arbre *tree)
 
 /*********************************************************/
 
-void DR_Get_Y_Coord(tdraw *w, arbre *tree)
+void DR_Get_Y_Coord(tdraw *w, t_tree *tree)
 {
   int next_y_slot;
   next_y_slot = 0;
@@ -253,7 +253,7 @@ void DR_Get_Y_Coord(tdraw *w, arbre *tree)
 
 /*********************************************************/
 
-void DR_Get_Y_Coord_Post(node *a, node *d, edge *b, int *next_y_slot, tdraw *w, arbre *tree)
+void DR_Get_Y_Coord_Post(t_node *a, t_node *d, t_edge *b, int *next_y_slot, tdraw *w, t_tree *tree)
 {
   int i;
 
@@ -282,7 +282,7 @@ void DR_Get_Y_Coord_Post(node *a, node *d, edge *b, int *next_y_slot, tdraw *w, 
 
 /*********************************************************/
 
-tdraw *DR_Make_Tdraw_Struct(arbre *tree)
+tdraw *DR_Make_Tdraw_Struct(t_tree *tree)
 {
   tdraw *w;
 
@@ -303,7 +303,7 @@ void DR_Init_Tdraw_Struct(tdraw *w)
 
 /*********************************************************/
 
-void DR_Get_Tree_Box_Width(tdraw *w, arbre *tree)
+void DR_Get_Tree_Box_Width(tdraw *w, t_tree *tree)
 {
   int i;
   int max_name_len, curr_len;
@@ -320,7 +320,7 @@ void DR_Get_Tree_Box_Width(tdraw *w, arbre *tree)
 
 /*********************************************************/
 
-double DR_Get_Max_Dist_To_Root(arbre *tree)
+double DR_Get_Max_Dist_To_Root(t_tree *tree)
 {
   double mx;
   int i;
