@@ -385,10 +385,13 @@ void Launch_Interface_Data_Type(option *io)
 
   PhyML_Printf("\n");
 
+  if(io->datatype == NT)      strcpy(s,"DNA");
+  else if(io->datatype == AA) strcpy(s,"AA");
+  else strcpy(s,"Generic");
+
   PhyML_Printf("                [D] "
-	 "............................... Data type (DNA/AA) "
-	 " %-15s \n",
-	 (io->datatype)?("AA"):("DNA"));
+	 "....................... Data type (DNA/AA/Generic) "
+	 " %-15s \n",s);
 
   PhyML_Printf("                [I] "
 	 "...... Input sequences interleaved (or sequential) "

@@ -64,7 +64,7 @@ void Usage()
   PhyML_Printf("\n");
 
   PhyML_Printf("%s\n\t-d (or --datatype) ""%sdata_type%s\n",BOLD,LINE,FLAT);
-  PhyML_Printf("%s\t\tdata_type%s is 'nt' for nucleotide (default) and 'aa' for amino-acid sequences.\n",LINE,FLAT);
+  PhyML_Printf("%s\t\tdata_type%s is 'nt' for nucleotide (default), 'aa' for amino-acid sequences, or 'generic' (use NEXUS file format and the 'symbols' parameter here).\n",LINE,FLAT);
 
   PhyML_Printf("\n");
 

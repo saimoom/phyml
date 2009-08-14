@@ -753,11 +753,15 @@ void Make_Edge_Pars(t_edge *b, t_tree *tree)
 
 void Make_Edge_Lk(t_edge *b, t_tree *tree)
 {
+  int ns;
+
+  if(tree->io->datatype == NT)      ns = 4;
+  else if(tree->io->datatype == AA) ns = 20;
 
   b->l_old = b->l;
 
-  b->div_post_pred_left = (short int *)mCalloc((tree->io->datatype == NT)?(4):(20),sizeof(short int));
-  b->div_post_pred_rght = (short int *)mCalloc((tree->io->datatype == NT)?(4):(20),sizeof(short int));
+  b->div_post_pred_left = (short int *)mCalloc(ns,sizeof(short int));
+  b->div_post_pred_rght = (short int *)mCalloc(ns,sizeof(short int));
 
   b->Pij_rr   = (phydbl *)mCalloc(tree->mod->n_catg*tree->mod->ns*tree->mod->ns,sizeof(phydbl));
   
@@ -2130,21 +2134,22 @@ calign *Compact_Data(align **data, option *io)
 		  if(j != n_otu) break;
 		}
 	      
-	      if((j == n_otu) && (i == n_otu)) /* all characters at that site are compatible -> the site is invariant */
+	      if((j == n_otu) && (i == n_otu)) /* all characters at that site are compatible with one another:
+						  the site may be invariant */
 		{
 		  For(j,n_otu)
 		    {
 		      cdata_tmp->invar[n_patt] = Assign_State(cdata_tmp->c_seq[j]->state+n_patt,
-								io->datatype,
-								io->mod->stepsize);
-		      if(cdata_tmp->invar[n_patt] > -1.) break;
+							      io->datatype,
+							      io->mod->stepsize);
+		      if(cdata_tmp->invar[n_patt] > -1.) break; /* It is not actually (at least one state in the column is ambiguous) */
 		    }
 		}
 	      else cdata_tmp->invar[n_patt] = -1;
 	      
 	      cdata_tmp->sitepatt[site] = n_patt;
 	      cdata_tmp->wght[n_patt]  += 1;
-	      n_patt                     += io->mod->stepsize;
+	      n_patt                   += io->mod->stepsize;
 	    }
 	  else
 	    {
@@ -2162,13 +2167,15 @@ calign *Compact_Data(align **data, option *io)
   
   if(!io->quiet) PhyML_Printf("\n. %d patterns found. (out of a total of %d sites) \n",n_patt,data[0]->len);
 
-  if((io->rm_ambigu) && (n_ambigu))
-    {
-      PhyML_Printf("\n. Removed %d columns of the alignment as the contain ambiguous characters (e.g., gaps) \n",n_ambigu);
-    }
+  if((io->rm_ambigu) && (n_ambigu)) PhyML_Printf("\n. Removed %d columns of the alignment as they contain ambiguous characters (e.g., gaps) \n",n_ambigu);
+
 
   n_invar=0;
-  For(i,cdata_tmp->crunch_len) if(cdata_tmp->invar[i] > -1.) n_invar+=(int)cdata_tmp->wght[i];
+  For(i,cdata_tmp->crunch_len) 
+    {
+      if(cdata_tmp->invar[i] > -1.) 
+	n_invar+=(int)cdata_tmp->wght[i];
+    }
 
   if(!io->quiet) PhyML_Printf("\n. %d sites without polymorphism (%.2f%c).\n",n_invar,100.*(phydbl)n_invar/data[0]->len,'%');
   
@@ -2182,8 +2189,8 @@ calign *Compact_Data(align **data, option *io)
       Warn_And_Exit("");
     }
 
-  if(io->datatype == NT) Get_Base_Freqs(cdata_tmp);
-  else                   Get_AA_Freqs(cdata_tmp);
+  if(io->datatype == NT)      Get_Base_Freqs(cdata_tmp);
+  else if(io->datatype == AA) Get_AA_Freqs(cdata_tmp);
   
 /*   PhyML_Fprintf(io->fp_out_stats,"\n. State frequencies: "); */
 /*   For(i,io->mod->ns) PhyML_Fprintf(io->fp_out_stats,"%f ",cdata_tmp->b_frq[i]); */
@@ -2297,9 +2304,8 @@ calign *Compact_Cdata(calign *data, option *io)
   cdata->crunch_len = n_patt;
   For(i,n_otu) cdata->c_seq[i]->len = n_patt;
 
-  (io->datatype == NT)?
-    (Get_Base_Freqs(cdata)):
-    (Get_AA_Freqs(cdata));
+  if(io->datatype == NT)      Get_Base_Freqs(cdata);
+  else if(io->datatype == AA) Get_AA_Freqs(cdata);
 
   return cdata;
 }
@@ -4342,9 +4348,12 @@ void Print_Fp_Out_Lines(FILE *fp_out, time_t t_beg, time_t t_end, t_tree *tree, 
 
 	PhyML_Fprintf(fp_out,". Sequence file : [%s]\n\n", Basename(io->in_align_file));
 
-	(tree->io->datatype == NT)?
-	  (PhyML_Fprintf(fp_out,". Model of nucleotides substitution : %s\n\n",io->mod->modelname)):
-	  (PhyML_Fprintf(fp_out,". Model of amino acids substitution : %s\n\n",io->mod->modelname));
+	if((tree->io->datatype == NT) || (tree->io->datatype == AA))
+	  {
+	    (tree->io->datatype == NT)?
+	      (PhyML_Fprintf(fp_out,". Model of nucleotides substitution : %s\n\n",io->mod->modelname)):
+	      (PhyML_Fprintf(fp_out,". Model of amino acids substitution : %s\n\n",io->mod->modelname));
+	  }
 
 	s = (char *)mCalloc(100,sizeof(char));
 
@@ -4728,12 +4737,13 @@ matrix *Hamming_Dist(calign *data, model *mod)
 		  len[j][k]+=data->wght[i];
 		  len[k][j]=len[j][k];
 		  if(data->c_seq[j]->state[i] != data->c_seq[k]->state[i])
-		    mat->P[j][k]+=data->wght[i];
+		    {
+		      mat->P[j][k]+=data->wght[i];
+		    }
 		}
 	    }
 	}
     }
-
 
   For(i,data->n_otu-1)
     for(j=i+1;j<data->n_otu;j++)
@@ -4943,7 +4953,7 @@ int Assign_State(char *c, int datatype, int stepsize)
 	}
       return (stepsize>1)?(state[0]*16+state[1]*4+state[2]):(state[0]);
     }
-  else
+  else if(datatype == AA)
     {
       switch(c[0])
 	{
@@ -4974,6 +4984,18 @@ int Assign_State(char *c, int datatype, int stepsize)
 	}
       return state[0];
     }
+  else if(datatype == INTEGERS)
+    {
+      if(!sscanf(c,"%1d",state)) return -1;
+      else return state[0];
+    }
+  else
+    {
+      PhyML_Printf("\n. Not implemented yet.\n");
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+
   return -1;
 }
 
@@ -4999,7 +5021,7 @@ char Reciproc_Assign_State(int i_state, int datatype)
 	  }
 	}
     }
-  else
+  else if(datatype == AA)
     {
       i_state = i_state%20;
       switch(i_state)
@@ -5031,6 +5053,10 @@ char Reciproc_Assign_State(int i_state, int datatype)
 	    break;
 	  }
 	}
+    }
+  else if(datatype == INTEGERS)
+    {
+      return (char)i_state;
     }
   return -1;
 }
@@ -5067,7 +5093,7 @@ int Assign_State_With_Ambiguity(char *c, int datatype, int stepsize)
 	    case 'N' : case 'X' : case '?' : case 'O' : case '-' : {state[i]=14;  break;}
 	    default :
 	      {
-		PhyML_Printf("\n. Unknown character state : %c\n",state[i]);
+		PhyML_Printf("\n. Unknown character state : '%c'\n",c[i]);
 		Warn_And_Exit("\n. Init failed (check the data type)\n");
 		break;
 	      }
@@ -5075,7 +5101,7 @@ int Assign_State_With_Ambiguity(char *c, int datatype, int stepsize)
 	  return (stepsize>1)?(state[0]*16+state[1]*4+state[2]):(state[0]);
 	}
     }
-  else
+  else if(datatype == AA)
     {
       switch(c[0])
 	{
@@ -5111,6 +5137,21 @@ int Assign_State_With_Ambiguity(char *c, int datatype, int stepsize)
 	}
       return state[0];
     }
+  else if(datatype == INTEGERS)
+    {
+      if(c[0] == 'X' || c[0] == '?' || c[0] == '-') state[0] = -1;
+      else
+	{
+	  if(!sscanf(c,"%1d",state))
+	    {
+	      PhyML_Printf("\n. Error reading character. Was expecting an integer, got '%c' instead.\n",c[0]);
+	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	      Warn_And_Exit("");
+	    }
+	}
+      return state[0];
+    }
+
   return -1;
 }
 
@@ -5187,12 +5228,10 @@ void Bootstrap(t_tree *tree)
 
       if(init_len != tree->data->init_len) Warn_And_Exit("\n. Pb when copying sequences\n");
 
-      (tree->io->datatype == NT)?
-	(Get_Base_Freqs(boot_data)):
-	(Get_AA_Freqs(boot_data));
+      if(tree->io->datatype == NT)      Get_Base_Freqs(boot_data);
+      else if(tree->io->datatype == AA) Get_AA_Freqs(boot_data);
 
       if(tree->io->random_boot_seq_order) Randomize_Sequence_Order(boot_data);
-
 
       boot_mod = Copy_Model(tree->mod);
       Init_Model(boot_data,boot_mod);
@@ -6583,7 +6622,7 @@ int Are_Compatible(char *statea, char *stateb, int stepsize, int datatype)
 	    }
 	}
     }
-  else
+  else if(datatype == AA)
     {
       a = statea[0]; b = stateb[0];
       switch(a)
@@ -6835,6 +6874,19 @@ int Are_Compatible(char *statea, char *stateb, int stepsize, int datatype)
 	  }
 	}
     }
+  else if(datatype == INTEGERS)    
+    {
+      if(statea[0] == 'X' || stateb[0] == 'X') return 1;
+      else
+	{
+	  int a,b;
+	  sscanf(statea,"%1d",&a);
+	  sscanf(stateb,"%1d",&b);
+	  if(a == b) return 1;	 
+	}
+      return 0;
+    }
+
   return 1;
 }
 
@@ -8204,7 +8256,13 @@ void Print_Settings(option *io)
   PhyML_Printf("                                 ..........................                                      \n");
 
   PhyML_Printf("\n                . Sequence filename : \t\t\t\t %s", Basename(io->in_align_file));
-  PhyML_Printf("\n                . Data type :             \t\t\t %s", (io->datatype ? "aa" : "dna"));
+
+  if(io->datatype == NT) strcpy(s,"dna");
+  else if(io->datatype == AA) strcpy(s,"aa");
+  else strcpy(s,"generic");
+
+  PhyML_Printf("\n                . Data type :             \t\t\t %s",s);
+
   PhyML_Printf("\n                . Sequence format : \t\t\t\t %s", io->interleaved ? "interleaved" : "sequential");
   PhyML_Printf("\n                . Number of data sets : \t\t\t %d", io->n_data_sets);
 
@@ -9229,7 +9287,8 @@ void Site_Diversity(t_tree *tree)
   int i,j,k,ns;
   int *div,sum;
 
-  ns = (tree->io->datatype == NT)?(4):(20);
+  if(tree->io->datatype == NT)      ns = 4;
+  else if(tree->io->datatype == AA) ns = 20;
 
   div = (int *)mCalloc(ns,sizeof(int));
 
@@ -9402,7 +9461,8 @@ void Print_Diversity(FILE *fp, t_tree *tree)
 {
   int ns;
   
-  ns = (tree->io->datatype == NT)?(4):(20);
+  if(tree->io->datatype == NT)      ns = 4;
+  else if(tree->io->datatype == AA) ns = 20;
 
   Print_Diversity_Pre(tree->noeud[0],
 		      tree->noeud[0]->v[0],
@@ -9453,7 +9513,10 @@ void Print_Diversity_Pre(t_node *a, t_node *d, t_edge *b, FILE *fp, t_tree *tree
   if(d->tax) return;
   else
     {
-      ns = (tree->io->datatype == NT)?(4):(20);
+
+      if(tree->io->datatype == NT)      ns = 4;
+      else if(tree->io->datatype == AA) ns = 20;
+
       if(d == b->left) For(k,ns) PhyML_Fprintf(fp,"%4d 0 %2d %4d\n",b->num,k,b->div_post_pred_left[k]);
       else             For(k,ns) PhyML_Fprintf(fp,"%4d 1 %2d %4d\n",b->num,k,b->div_post_pred_rght[k]);
 
@@ -9786,6 +9849,8 @@ t_tree *Dist_And_BioNJ(calign *cdata, model *mod, option *io)
 
   mat = ML_Dist(cdata,mod);
   Fill_Missing_Dist(mat);
+
+  Print_Mat(mat);
 
   if(!io->quiet) PhyML_Printf("\n. Building BioNJ tree...\n");
 

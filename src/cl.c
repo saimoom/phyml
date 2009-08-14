@@ -191,7 +191,20 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	    {
 #ifdef M4
 	      io->m4_model = YES;
-	      if(!io->mod->m4mod) io->mod->m4mod = (m4 *)M4_Make_Light((io->datatype == NT)?(4):(20));
+	      if(!io->mod->m4mod) 
+		{
+		  int ns;
+		  if(io->datatype == NT)      ns = 4;
+		  else if(io->datatype == AA) ns = 20;
+		  else
+		    {
+		      PhyML_Printf("\n. Not implemented yet.");
+		      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+		      Warn_And_Exit("");
+		    }
+
+		  io->mod->m4mod = (m4 *)M4_Make_Light(ns);
+		}
 	      io->mod->m4mod->n_h = (int)atoi(optarg);
 	      
 	      if(io->mod->m4mod->n_h < 1)
@@ -209,7 +222,21 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	    {
 #ifdef M4
 	      io->m4_model = YES;
-	      if(!io->mod->m4mod) io->mod->m4mod = (m4 *)M4_Make_Light((io->datatype == NT)?(4):(20));
+	      if(!io->mod->m4mod) 
+		{
+		  int ns;
+		  if(io->datatype == NT)      ns = 4;
+		  else if(io->datatype == AA) ns = 20;
+		  else
+		    {
+		      PhyML_Printf("\n. Not implemented yet.");
+		      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+		      Warn_And_Exit("");
+		    }
+
+		  io->mod->m4mod = (m4 *)M4_Make_Light(ns);
+		}
+
 	      io->mod->m4mod->use_cov_alpha = 1;
 	      io->mod->m4mod->use_cov_free  = 0;
 	      
@@ -240,7 +267,20 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	    {
 #ifdef M4
 	      io->m4_model = YES;
-	      if(!io->mod->m4mod) io->mod->m4mod = (m4 *)M4_Make_Light((io->datatype == NT)?(4):(20));
+	      if(!io->mod->m4mod) 
+		{
+		  int ns;
+		  if(io->datatype == NT)      ns = 4;
+		  else if(io->datatype == AA) ns = 20;
+		  else
+		    {
+		      PhyML_Printf("\n. Not implemented yet.");
+		      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+		      Warn_And_Exit("");
+		    }
+
+		  io->mod->m4mod = (m4 *)M4_Make_Light(ns);
+		}
 
 	      if(!strcmp(optarg,"e") || !strcmp(optarg,"E") ||
 		 !strcmp(optarg,"estimated") || !strcmp(optarg,"ESTIMATED"))
