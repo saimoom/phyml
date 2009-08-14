@@ -230,11 +230,10 @@ void Init_Tips_At_One_Site_Generic_Int(char *state, int ns, int pos, short int *
   int state_int;
 
   For(i,ns) p_pars[pos+i] = 0;
-
+  
   if(state[0] == 'X') For(i,ns) p_pars[pos+i] = 1;
   else 
     {
-      printf("%s\n",state);
       if(!sscanf(state,"%1d",&state_int))
 	{
 	  PhyML_Printf("\n. state='%c'",state);
@@ -1062,7 +1061,7 @@ void Make_Tree_4_Lk(t_tree *tree, calign *cdata, int n_site)
   tree->c_lnL_sorted = (phydbl *)mCalloc(tree->n_pattern, sizeof(phydbl));
   tree->site_lk      = (phydbl *)mCalloc(cdata->crunch_len,sizeof(phydbl));
 
-  tree->log_site_lk_cat      = (phydbl **)mCalloc(tree->mod->n_catg,sizeof(phydbl *));
+    tree->log_site_lk_cat      = (phydbl **)mCalloc(tree->mod->n_catg,sizeof(phydbl *));
   For(i,tree->mod->n_catg)
     tree->log_site_lk_cat[i] = (phydbl *)mCalloc(cdata->crunch_len,sizeof(phydbl));
 
@@ -1077,17 +1076,22 @@ void Make_Tree_4_Lk(t_tree *tree, calign *cdata, int n_site)
 
   For(i,2*tree->n_otu-2) Make_Node_Lk(tree->noeud[i]);
 
-  if(tree->mod->s_opt->greedy) Init_P_Lk_Tips_Double(tree);
-  else Init_P_Lk_Tips_Int(tree);
+  if(tree->mod->s_opt->greedy) 
+    {
+     Init_P_Lk_Tips_Double(tree);
+    }
+  else 
+    {
+      Init_P_Lk_Tips_Int(tree);
+    }
 }
 
 /*********************************************************/
 
 void Init_P_Lk_Tips_Double(t_tree *tree)
 {
-  int curr_site,i,j,k,dim1,dim2,char_len;
+  int curr_site,i,j,k,dim1,dim2;
   
-  char_len = tree->io->char_len;
   dim1 = tree->mod->n_catg * tree->mod->ns;
   dim2 = tree->mod->ns;
 
@@ -1108,7 +1112,7 @@ void Init_P_Lk_Tips_Double(t_tree *tree)
 	  else if(tree->io->datatype == INTEGERS)
 	    Init_Tips_At_One_Site_Generic_Float(tree->data->c_seq[i]->state+curr_site,
 						dim2,
-						(curr_site/char_len)*dim1+0*dim2,
+						curr_site*dim1+0*dim2,
 						tree->noeud[i]->b[0]->p_lk_rght);
 
 	  for(j=1;j<tree->mod->n_catg;j++)
@@ -1131,10 +1135,9 @@ void Init_P_Lk_Tips_Double(t_tree *tree)
 
 void Init_P_Lk_Tips_Int(t_tree *tree)
 {
-  int curr_site,i,dim1,char_len;
+  int curr_site,i,dim1;
 
   dim1 = tree->mod->ns;
-  char_len = tree->io->char_len;
 
   Fors(curr_site,tree->data->crunch_len,tree->mod->stepsize)
     {
@@ -1151,10 +1154,12 @@ void Init_P_Lk_Tips_Int(t_tree *tree)
 					 tree->noeud[i]->b[0]->p_lk_tip_r);
 
 	  else if(tree->io->datatype == INTEGERS)
-	    Init_Tips_At_One_Site_Generic_Int(tree->data->c_seq[i]->state+curr_site,
-					      dim1,
-					      (curr_site/char_len)*dim1,
-					      tree->noeud[i]->b[0]->p_lk_tip_r);
+	    {
+	      Init_Tips_At_One_Site_Generic_Int(tree->data->c_seq[i]->state+curr_site,
+						dim1,
+						curr_site*dim1,
+						tree->noeud[i]->b[0]->p_lk_tip_r);
+	    }
 	}
     }
  
