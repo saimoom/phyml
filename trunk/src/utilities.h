@@ -25,8 +25,6 @@ the GNU public licence. See http://www.opensource.org for details.
 #include <errno.h>
 #include <float.h>
 
-
-
 #define For(i,n)                     for(i=0; i<n; i++)
 #define Fors(i,n,s)                  for(i=0; i<n; i+=s)
 #define PointGamma(prob,alpha,beta)  PointChi2(prob,2.0*(alpha))/(2.0*(beta))
@@ -57,7 +55,6 @@ static inline int isinf_d  (double      x) { return isnan (x - x); }
 static inline int isinf_ld (long double x) { return isnan (x - x); }
 #endif
      
-
 #define N_MAX_NEX_COM   20
 #define T_MAX_NEX_COM   100
 #define N_MAX_NEX_PARM  50
@@ -550,7 +547,6 @@ typedef struct __Model {
   int               n_catg; /* number of categories in the discrete gamma distribution */
   int                invar; /* =1 iff the substitution model takes into account invariable sites */
   int                   ns; /* number of states (4 for ADN, 20 for AA) */
-  int             stepsize; /* stepsize=1 for nucleotide models, 3 for codon models */
   int            bootstrap; /* Number of bootstrap replicates (0 : no bootstrap analysis is launched) */
   int            use_m4mod; /* Use a Makrkov modulated Markov model ? */
   int         gamma_median; /* 1: use the median of each bin in the discrete gamma distribution. 0: the mean is used */
@@ -603,7 +599,7 @@ typedef struct __Eigen{
 typedef struct __Option { /* mostly used in 'help.c' */
   struct __Model                *mod; /* pointer to a substitution model */
   struct __Arbre               *tree; /* pointer to the current tree */
-  struct __Align                **data; /* pointer to the uncompressed sequences */
+  struct __Align              **data; /* pointer to the uncompressed sequences */
   struct __Calign             *cdata; /* pointer to the compressed sequences */
   struct __Super_Arbre           *st; /* pointer to supertree */
   struct __Tnexcom    **nex_com_list; /* pointer to supertree */
@@ -676,6 +672,7 @@ typedef struct __Option { /* mostly used in 'help.c' */
   int                          quiet; /* 0 is the default. 1: no interactive question (for batch mode) */
   char                    **alphabet;
   int                  alphabet_size;
+  int                      state_len;
 }option;
 
 /*********************************************************/
@@ -1054,8 +1051,8 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap);
 void Swap(t_node *a,t_node *b,t_node *c,t_node *d,t_tree *tree);
 void Update_All_Partial_Lk(t_edge *b_fcus,t_tree *tree);
 void Update_SubTree_Partial_Lk(t_edge *b_fcus,t_node *a,t_node *d,t_tree *tree);
-calign *Make_Cseq(int n_otu, int crunch_len, int init_len, char **sp_names);
-calign *Copy_Cseq(calign *ori, int len, int ns);
+calign *Make_Cseq(int n_otu, int crunch_len, int state_len, int init_len, char **sp_names);
+calign *Copy_Cseq(calign *ori, option *io);
 optimiz *Make_Optimiz();
 int Filexists(char *filename);
 FILE *Openfile(char *filename,int mode);

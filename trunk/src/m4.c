@@ -97,7 +97,7 @@ int M4_main(int argc, char **argv)
 	  PhyML_Printf("\n. Compressing sequences...\n");
 	  cdata = Compact_Data(data,io);
 	  Free_Seq(data,cdata->n_otu);
-	  Check_Ambiguities(cdata,io->datatype,io->mod->stepsize);
+	  Check_Ambiguities(cdata,io->datatype,io->state_len);
 
 	  for(num_tree=(io->n_trees == 1)?(0):(num_data_set);num_tree < io->n_trees;num_tree++)
 	    {
@@ -160,7 +160,7 @@ int M4_main(int argc, char **argv)
 		      tree->io         = io;
 		      tree->data       = cdata;
 		      tree->both_sides = 1;
-		      tree->n_pattern  = tree->data->crunch_len/tree->mod->stepsize;
+		      tree->n_pattern  = tree->data->crunch_len;
 		    }
 
 		  if(!tree) continue;
@@ -173,7 +173,7 @@ int M4_main(int argc, char **argv)
 		  tree->io          = io;
 		  tree->data        = cdata;
 		  tree->both_sides  = 1;
-		  tree->n_pattern   = tree->data->crunch_len/tree->mod->stepsize;
+		  tree->n_pattern   = tree->data->crunch_len;
 
 		  if((!num_data_set) && (!num_tree) && (!num_rand_tree)) 
 		    {
@@ -616,7 +616,7 @@ void M4_Init_P_Lk_Tips_Double(t_tree *tree)
 {
   int curr_site,i,j,k,l;
   
-  Fors(curr_site,tree->data->crunch_len,tree->mod->stepsize)
+  Fors(curr_site,tree->data->crunch_len,tree->io->state_len)
     {
       For(i,tree->n_otu)
 	{
@@ -641,7 +641,7 @@ void M4_Init_P_Lk_Tips_Int(t_tree *tree)
 {
   int curr_site,i,j,k;
 
-  Fors(curr_site,tree->data->crunch_len,tree->mod->stepsize)
+  Fors(curr_site,tree->data->crunch_len,tree->io->state_len)
     {
       For(i,tree->n_otu)
 	{

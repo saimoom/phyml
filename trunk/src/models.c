@@ -339,9 +339,6 @@ void PMat_Gamma(phydbl l, model *mod, int pos, double *Pij)
       Warn_And_Exit("");
     }
 
-
-  
-
   /* Formula 13.42, page 220 of Felsenstein's book ``Inferring Phylogenies'' */ 
   For(k,n) expt[k] = pow(shape/(shape-log(R[k])*l),shape);
 
@@ -457,6 +454,15 @@ void PMat(phydbl l, model *mod, int pos, double *Pij)
 	    {
 	      PMat_Empirical(l,mod,pos,Pij);
 	      break;
+	    }
+	  default:
+	    {
+	      PMat_JC69(l,pos,Pij,mod);
+	      break;
+/* 	      PhyML_Printf("\n. Not implemented yet.\n"); */
+/* 	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
+/* 	      Warn_And_Exit(""); */
+/* 	      break; */
 	    }
 	  }
 	}
@@ -2197,14 +2203,8 @@ void Init_Model(calign *data, model *mod)
 	}
     }
 
-  if(mod->s_opt->opt_alpha) 
-    {
-      mod->alpha = 1.0;
-    }
-  if(mod->s_opt->opt_pinvar) 
-    {
-      mod->alpha = 0.2;
-    }
+  if(mod->s_opt->opt_alpha)   mod->alpha  = 1.0;
+  if(mod->s_opt->opt_pinvar)  mod->pinvar = 0.2;
   
 
   if(mod->io->datatype == NT) /* Nucleotides */
@@ -2258,8 +2258,9 @@ void Init_Model(calign *data, model *mod)
 	 (mod->whichmodel != CUSTOM) && 
 	 (mod->whichmodel != HKY85)) mod->update_eigen = 0;
     }
-  else 
-    { /* init for amino-acids */
+  else if(mod->io->datatype == AA)
+    { 
+      /* init for amino-acids */
       /* see comments of PMat_Empirical for details */
       /* read pi and Q from file */
             
@@ -2394,12 +2395,10 @@ void Init_Model(calign *data, model *mod)
 	  }
 	default : break;
 	}
-
-
+  
       /* multiply the nth col of Q by the nth term of pi/100 just as in PAML */
       For(i,ns) For(j,ns) mod->qmat[i*ns+j] *= mod->pi[j] / 100.0;
       
-
       /* compute diagonal terms of Q and mean rate mr = l/t */
       mod->mr = .0;
       For (i,ns)
@@ -2412,7 +2411,6 @@ void Init_Model(calign *data, model *mod)
 
       /* scale instantaneous rate matrix so that mu=1 */
       For (i,ns*ns) mod->qmat[i] /= mod->mr;
-
 
       /* compute eigenvectors/values */
       result = 0;
@@ -2436,6 +2434,20 @@ void Init_Model(calign *data, model *mod)
 	  else if (result==1) PhyML_Printf("\n. Complex eigenvalues/vectors : computation cancelled");
 	}
     }
+  else if(mod->io->datatype == INTEGERS)
+    {
+      /* Uniform state frequencies */
+      For(i,mod->ns)  mod->pi[i] = 1./(phydbl)mod->ns;
+      mod->kappa = 1;
+      mod->update_eigen = 0;      
+    }
+  else
+    {
+      PhyML_Printf("\n. Not implemented yet.\n");
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+
 
   mod->alpha_old  = mod->alpha;
   mod->kappa_old  = mod->kappa;

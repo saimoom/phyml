@@ -99,7 +99,7 @@ int main(int argc, char **argv)
 
 	  Free_Seq(io->data,cdata->n_otu);
 	  
-	  if(cdata) Check_Ambiguities(cdata,io->datatype,io->mod->stepsize);
+	  if(cdata) Check_Ambiguities(cdata,io->datatype,io->state_len);
 	  else
 	    {
 	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
@@ -133,14 +133,13 @@ int main(int argc, char **argv)
 		  tree->io          = io;
 		  tree->data        = cdata;
 		  tree->both_sides  = 1;
-		  tree->n_pattern   = tree->data->crunch_len/tree->mod->stepsize;
+		  tree->n_pattern   = tree->data->crunch_len;
 
 		  Prepare_Tree_For_Lk(tree);
 
 		  if((!num_data_set) && (!num_tree) && (!num_rand_tree)) Check_Memory_Amount(tree);
 
 		  if(io->in_tree == 1) Spr_Pars(tree);
-
 
 		  if(tree->mod->s_opt->opt_topo)
 		    {

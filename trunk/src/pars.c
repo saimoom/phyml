@@ -121,7 +121,9 @@ void Init_P_Pars_Tips(t_tree *tree)
 
   state_v = (short int *)mCalloc(tree->mod->ns,sizeof(short int));
   
-  Fors(curr_site,tree->data->crunch_len,tree->mod->stepsize)
+
+
+  For(curr_site,tree->data->crunch_len)
     {
       For(i,tree->n_otu)
 	{
@@ -149,8 +151,9 @@ void Init_P_Pars_Tips(t_tree *tree)
 	    }
 	  else if(tree->io->datatype == INTEGERS)
 	    {
-	      Init_Tips_At_One_Site_Generic_Int(tree->data->c_seq[i]->state+curr_site,
+	      Init_Tips_At_One_Site_Generic_Int(tree->data->c_seq[i]->state+curr_site*tree->io->state_len,
 						tree->mod->ns,
+						tree->io->state_len,
 						0,
 						state_v);
 	      For(j,tree->mod->ns) tree->noeud[i]->b[0]->p_pars_r[curr_site*dim1+j] = MAX_PARS;
@@ -170,7 +173,7 @@ void Init_Ui_Tips(t_tree *tree)
 
   state_v = (short int *)mCalloc(tree->mod->ns,sizeof(short int));
   
-  Fors(curr_site,tree->data->crunch_len,tree->mod->stepsize)
+  For(curr_site,tree->data->crunch_len)
     {
       For(i,tree->n_otu)
 	{
@@ -198,8 +201,10 @@ void Init_Ui_Tips(t_tree *tree)
 	    }
 	  else if(tree->io->datatype == INTEGERS)
 	    {
-	      Init_Tips_At_One_Site_Generic_Int(tree->data->c_seq[i]->state+curr_site,
+	      printf("\n* '%c' %d",tree->data->c_seq[i]->state[curr_site*tree->io->state_len+1],curr_site);
+	      Init_Tips_At_One_Site_Generic_Int(tree->data->c_seq[i]->state+curr_site*tree->io->state_len,
 						tree->mod->ns,
+						tree->io->state_len,
 						0,
 						state_v);
 	      tree->noeud[i]->b[0]->ui_r[curr_site] = 0;
@@ -208,6 +213,7 @@ void Init_Ui_Tips(t_tree *tree)
 	}
     }
 
+  Exit("\n");
 
   For(br,2*tree->n_otu-3)
     {
