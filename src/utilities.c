@@ -1885,7 +1885,7 @@ align **Read_Seq_Interleaved(option *io)
     {
       data[i]        = (align *)mCalloc(1,sizeof(align));
       data[i]->name  = (char *)mCalloc(T_MAX_NAME,sizeof(char));
-      data[i]->state = (char *)mCalloc(io->init_len*io->state_len,sizeof(char));
+      data[i]->state = (char *)mCalloc(io->init_len*io->state_len+1,sizeof(char));
 
       data[i]->len       = 0;
       data[i]->is_ambigu = NULL;
