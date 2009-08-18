@@ -1593,12 +1593,12 @@ int Read_Nexus_Format(char *token, nexparm *curr_parm, option *io)
 	  Warn_And_Exit("");
 	}
 
-      token++; /* Get rid of the first '"' character */
 
       int i,has_spaces,state_len;
 
       i          = 0;
       has_spaces = 0;     
+      token++; /* Get rid of the first '"' character */
       while(token[i] != '"')  { if(token[i] == ' ') { has_spaces = 1; break; } i++; }
 
       io->alphabet_size = 0;
@@ -1631,7 +1631,7 @@ int Read_Nexus_Format(char *token, nexparm *curr_parm, option *io)
 		  i++;
 		  if(state_len > T_MAX_STATE)
 		    {
-		      PhyML_Printf("\n. A state cannot contain more than %d characters. Sorry.",T_MAX_STATE);
+		      PhyML_Printf("\n. A state cannot contain more than %d characters. Sorry.\n",T_MAX_STATE);
 		      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
 		      Warn_And_Exit("");
 		    }
@@ -1644,10 +1644,26 @@ int Read_Nexus_Format(char *token, nexparm *curr_parm, option *io)
 	  while(token[i] != '"');
 
 	}
+
+      int len;
+      len = strlen(io->alphabet[0]);
+      For(i,io->alphabet_size)
+	{
+	  if(strlen(io->alphabet[i]) != len)
+	    {
+	      PhyML_Printf("\n. All character states defined in the symbol list are supposed to have the same length.\n");
+	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	      Warn_And_Exit("");
+	    }
+	}
+      io->state_len = len;
+
       PhyML_Printf("\n. Symbols: \"");
       For(i,io->alphabet_size) PhyML_Printf(" %s",io->alphabet[i]);
       PhyML_Printf(" \"\n");
 
+      PhyML_Printf("\n. State length: %d\n",io->state_len);
+      
     }
 
   else if(!strcmp(curr_parm->name,"equate"))
@@ -1822,7 +1838,7 @@ align **Read_Seq_Sequential(option *io)
     {
       data[i]        = (align *)mCalloc(1,sizeof(align));
       data[i]->name  = (char *)mCalloc(T_MAX_NAME,sizeof(char));
-      data[i]->state = (char *)mCalloc(T_MAX_SEQ,sizeof(char));
+      data[i]->state = (char *)mCalloc(io->init_len*io->state_len+1,sizeof(char));
 
       data[i]->is_ambigu = NULL;
       data[i]->len = 0;
@@ -1830,15 +1846,17 @@ align **Read_Seq_Sequential(option *io)
       sprintf(format, "%%%ds", T_MAX_NAME);
       if(!fscanf(io->fp_in_align,format,data[i]->name)) Exit("\n");
 
-      while(data[i]->len < io->init_len) Read_One_Line_Seq(&data,i,io->fp_in_align);
+      while(data[i]->len < io->init_len * io->state_len) Read_One_Line_Seq(&data,i,io->fp_in_align);
 
-      if(data[i]->len != io->init_len)
+      if(data[i]->len != io->init_len * io->state_len)
 	{
-	  PhyML_Printf("\n. Err: Problem with species %s's sequence (check the format).\n",
-		       data[i]->name);
+	  PhyML_Printf("\n. Err: Problem with species %s's sequence (check the format).\n",data[i]->name);
+	  PhyML_Printf("\n. Observed sequence length: %d, expected length: %d\n",data[i]->len, io->init_len * io->state_len);
 	  Warn_And_Exit("");
 	}
     }
+
+  For(i,io->n_otu) data[i]->state[data[i]->len] = '\0';
   
   Free(format);
   Free(line);
@@ -1867,13 +1885,14 @@ align **Read_Seq_Interleaved(option *io)
     {
       data[i]        = (align *)mCalloc(1,sizeof(align));
       data[i]->name  = (char *)mCalloc(T_MAX_NAME,sizeof(char));
-      data[i]->state = (char *)mCalloc(io->init_len+100,sizeof(char));
+      data[i]->state = (char *)mCalloc(io->init_len*io->state_len,sizeof(char));
 
       data[i]->len       = 0;
       data[i]->is_ambigu = NULL;
 
       sprintf(format, "%%%ds", T_MAX_NAME);
 /*       sprintf(format, "%%%ds", 10); */
+      
       if(!fscanf(io->fp_in_align,format,data[i]->name)) Exit("\n");
 
       if(!Read_One_Line_Seq(&data,i,io->fp_in_align))
@@ -1881,14 +1900,15 @@ align **Read_Seq_Interleaved(option *io)
 	  end = 1;
 	  if((i != io->n_otu) && (i != io->n_otu-1))
 	    {
-	      PhyML_Printf("\n. Err: Problem with species %s's sequence\n",data[i]->name);
+	      PhyML_Printf("\n. Err: Problem with species %s's sequence.\n",data[i]->name);
+	      PhyML_Printf("\n. Observed sequence length: %d, expected length: %d\n",data[i]->len, io->init_len * io->state_len);
 	      Warn_And_Exit("");
 	    }
 	  break;
 	}
     }
   
-  if(data[0]->len == io->init_len) end = 1;
+  if(data[0]->len == io->init_len * io->state_len) end = 1;
 
 /*   if(end) printf("\n. finished yet '%c'\n",fgetc(io->fp_in_align)); */
   if(!end)
@@ -1906,23 +1926,20 @@ align **Read_Seq_Interleaved(option *io)
 
 	  if(line[0] != 13 && line[0] != 10)
 	    {
-	      PhyML_Printf("\n. One or more missing sequences in block %d\n",num_block-1);
+	      PhyML_Printf("\n. One or more missing sequences in block %d.\n",num_block-1);
 	      Warn_And_Exit("");
 	    }
-	  
-	  For(i,io->n_otu)
-	    if(data[i]->len != io->init_len)
-	      break;
-	  
+
+	  For(i,io->n_otu) if(data[i]->len != io->init_len * io->state_len) break;
+
 	  if(i == io->n_otu) break;
-	  
-	  
+
 	  For(i,io->n_otu)
 	    {
-	      if(data[i]->len > io->init_len)
+	      if(data[i]->len > io->init_len * io->state_len)
 		{
-		  PhyML_Printf("\n. Observed length=%d expected length=%d\n",data[i]->len,io->init_len);
-		  PhyML_Printf("\n. Err: Problem with species %s's sequence\n",data[i]->name);
+		  PhyML_Printf("\n. Observed length=%d expected length=%d.\n",data[i]->len,io->init_len * io->state_len);
+		  PhyML_Printf("\n. Err: Problem with species %s's sequence.\n",data[i]->name);
 		  Warn_And_Exit("");
 		}
 	      else if(!Read_One_Line_Seq(&data,i,io->fp_in_align))
@@ -1930,7 +1947,8 @@ align **Read_Seq_Interleaved(option *io)
 		  end = 1;
 		  if((i != io->n_otu) && (i != io->n_otu-1))
 		    {
-		      PhyML_Printf("\n. Err: Problem with species %s's sequence\n",data[i]->name);
+		      PhyML_Printf("\n. Err: Problem with species %s's sequence.\n",data[i]->name);
+		      PhyML_Printf("\n. Observed sequence length: %d, expected length: %d.\n",data[i]->len, io->init_len * io->state_len);
 		      Warn_And_Exit("");
 		    }
 		  break;
@@ -1939,9 +1957,11 @@ align **Read_Seq_Interleaved(option *io)
 	}while(!end);
     }
 
+  For(i,io->n_otu) data[i]->state[data[i]->len] = '\0';
+
   For(i,io->n_otu)
     {
-      if(data[i]->len != io->init_len)
+      if(data[i]->len != io->init_len * io->state_len)
 	{
 	  PhyML_Printf("\n. Check sequence '%s' length...\n",data[i]->name);
 	  Warn_And_Exit("");
@@ -2060,15 +2080,15 @@ calign *Compact_Data(align **data, option *io)
       strcpy(sp_names[i],data[i]->name);
     }
 
-  cdata_tmp = Make_Cseq(n_otu,data[0]->len,data[0]->len,sp_names);
+  cdata_tmp = Make_Cseq(n_otu,data[0]->len,io->state_len,data[0]->len,sp_names);
   proot     = (pnode *)Create_Pnode(T_MAX_ALPHABET);
  
   For(i,n_otu) Free(sp_names[i]);
   Free(sp_names);
 
-  if(data[0]->len%io->mod->stepsize)
+  if(data[0]->len%io->state_len)
     {
-      PhyML_Printf("\n. Sequence length is not a multiple of %d\n",io->mod->stepsize);
+      PhyML_Printf("\n. Sequence length is not a multiple of %d\n",io->state_len);
       Warn_And_Exit("");
     }
   
@@ -2076,15 +2096,12 @@ calign *Compact_Data(align **data, option *io)
   n_ambigu = 0;
   is_ambigu = 0;
 
-  Fors(site,data[0]->len,io->mod->stepsize)
+  Fors(site,data[0]->len,io->state_len)
     {
       if(io->rm_ambigu)
 	{
 	  is_ambigu = 0;
-	  For(j,n_otu)
-	    {
-	      if(Is_Ambigu(data[j]->state+site,io->datatype,io->mod->stepsize)) break;
-	    }
+	  For(j,n_otu) if(Is_Ambigu(data[j]->state+site,io->datatype,io->state_len)) break;
 	  if(j != n_otu)
 	    {
 	      is_ambigu = 1;
@@ -2118,17 +2135,16 @@ calign *Compact_Data(align **data, option *io)
 	    {
 	      For(j,n_otu)
 		Copy_One_State(data[j]->state+site,
-			       cdata_tmp->c_seq[j]->state+n_patt,
-			       io->mod->stepsize);
-	      
-	      
+			       cdata_tmp->c_seq[j]->state+n_patt*io->state_len,
+			       io->state_len);
+	      	      
 	      For(i,n_otu)
 		{
 		  For(j,n_otu)
 		    {
-		      if(!(Are_Compatible(cdata_tmp->c_seq[i]->state+n_patt,
-					  cdata_tmp->c_seq[j]->state+n_patt,
-					  io->mod->stepsize,
+		      if(!(Are_Compatible(cdata_tmp->c_seq[i]->state+n_patt*io->state_len,
+					  cdata_tmp->c_seq[j]->state+n_patt*io->state_len,
+					  io->state_len,
 					  io->datatype))) break;
 		    }
 		  if(j != n_otu) break;
@@ -2139,9 +2155,9 @@ calign *Compact_Data(align **data, option *io)
 		{
 		  For(j,n_otu)
 		    {
-		      cdata_tmp->invar[n_patt] = Assign_State(cdata_tmp->c_seq[j]->state+n_patt,
+		      cdata_tmp->invar[n_patt] = Assign_State(cdata_tmp->c_seq[j]->state+n_patt*io->state_len,
 							      io->datatype,
-							      io->mod->stepsize);
+							      io->state_len);
 		      if(cdata_tmp->invar[n_patt] > -1.) break; /* It is not actually (at least one state in the column is ambiguous) */
 		    }
 		}
@@ -2149,7 +2165,7 @@ calign *Compact_Data(align **data, option *io)
 	      
 	      cdata_tmp->sitepatt[site] = n_patt;
 	      cdata_tmp->wght[n_patt]  += 1;
-	      n_patt                   += io->mod->stepsize;
+	      n_patt                   += 1;
 	    }
 	  else
 	    {
@@ -2159,8 +2175,6 @@ calign *Compact_Data(align **data, option *io)
 	}
     }
   
-  
-
   data[0]->len -= n_ambigu;
   
   cdata_tmp->init_len                   = data[0]->len;
@@ -2171,6 +2185,17 @@ calign *Compact_Data(align **data, option *io)
 
   if((io->rm_ambigu) && (n_ambigu)) PhyML_Printf("\n. Removed %d columns of the alignment as they contain ambiguous characters (e.g., gaps) \n",n_ambigu);
 
+  Print_Seq(io->data,io->n_otu);
+/*   Print_CSeq(stdout,cdata_tmp); */
+
+/*   For(i,n_otu) */
+/*     { */
+/*       For(j,cdata_tmp->crunch_len) */
+/* 	{ */
+/* 	  printf("%c",cdata_tmp->c_seq[i]->state[j*io->state_len+1]); */
+/* 	} */
+/*       printf("\n"); */
+/*     } */
 
   n_invar=0;
   For(i,cdata_tmp->crunch_len) 
@@ -2185,7 +2210,7 @@ calign *Compact_Data(align **data, option *io)
 
   n_sites = 0;
   For(i,cdata_tmp->crunch_len) n_sites += cdata_tmp->wght[i];
-  if(n_sites != data[0]->len)
+  if(n_sites != data[0]->len / io->state_len)
     {
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
@@ -2193,14 +2218,29 @@ calign *Compact_Data(align **data, option *io)
 
   if(io->datatype == NT)      Get_Base_Freqs(cdata_tmp);
   else if(io->datatype == AA) Get_AA_Freqs(cdata_tmp);
-  
-/*   PhyML_Fprintf(io->fp_out_stats,"\n. State frequencies: "); */
-/*   For(i,io->mod->ns) PhyML_Fprintf(io->fp_out_stats,"%f ",cdata_tmp->b_frq[i]); */
-/*   PhyML_Printf("\n"); */
+  else {/* Uniform state frequency distribution.*/}
 
-  cdata = Copy_Cseq(cdata_tmp, cdata_tmp->crunch_len, io->mod->ns);
+  PhyML_Fprintf(io->fp_out_stats,"\n. State frequencies: ");
+  For(i,io->mod->ns) PhyML_Fprintf(io->fp_out_stats,"%f ",cdata_tmp->b_frq[i]);
+  PhyML_Printf("\n");
 
+
+  cdata = Copy_Cseq(cdata_tmp,io);
   
+  int curr_site;
+  For(curr_site,cdata->crunch_len)
+    {
+      For(i,n_otu)
+	{
+	  printf("\n* '%c' #%c# %d",
+		 cdata->c_seq[i]->state[curr_site*io->state_len+1],
+		 cdata_tmp->c_seq[i]->state[curr_site*io->state_len+1],
+		 curr_site);
+	}
+      printf("\n");
+    }
+  Exit("\n");
+
   Free_Cseq(cdata_tmp);
   Free_Prefix_Tree(proot,T_MAX_ALPHABET);
 
@@ -2240,17 +2280,17 @@ calign *Compact_Cdata(calign *data, option *io)
 
   n_patt = which_patt =  0;
 
-  Fors(site,data->crunch_len,io->mod->stepsize)
+  Fors(site,data->crunch_len,io->state_len)
     {
       if(data->wght[site])
 	{
-	  Fors(k,n_patt,io->mod->stepsize)
+	  Fors(k,n_patt,io->state_len)
 	    {
 	      For(j,n_otu)
 		{
 		  if(strncmp(cdata->c_seq[j]->state+k,
 			     data->c_seq[j]->state+site,
-			     io->mod->stepsize))
+			     io->state_len))
 		    break;
 		}
 	      
@@ -2268,7 +2308,7 @@ calign *Compact_Cdata(calign *data, option *io)
 	    {
 	      For(j,n_otu) Copy_One_State(data->c_seq[j]->state+site,
 					  cdata->c_seq[j]->state+n_patt,
-					  io->mod->stepsize);
+					  io->state_len);
 	      
 	      For(i,n_otu)
 		{
@@ -2276,7 +2316,7 @@ calign *Compact_Cdata(calign *data, option *io)
 		    {
 		      if(!(Are_Compatible(cdata->c_seq[i]->state+n_patt,
 					  cdata->c_seq[j]->state+n_patt,
-					  io->mod->stepsize,
+					  io->state_len,
 					  io->datatype))) break;
 		    }
 		  if(j != n_otu) break;
@@ -2288,14 +2328,14 @@ calign *Compact_Cdata(calign *data, option *io)
 		    {
 		      cdata->invar[n_patt] = Assign_State(cdata->c_seq[j]->state+n_patt,
 							    io->datatype,
-							    io->mod->stepsize);
+							    io->state_len);
 		      if(cdata->invar[n_patt] > -1.) break;
 		    }
 		}
 	      else cdata->invar[n_patt] = -1;
 	      
 	      cdata->wght[n_patt] += data->wght[site];
-	      n_patt+=io->mod->stepsize;
+	      n_patt+=io->state_len;
 	    }
 	  else cdata->wght[which_patt] += data->wght[site];
 	  
@@ -2339,7 +2379,7 @@ void Traverse_Prefix_Tree(int site, int seqnum, int *patt_num, int *n_patt, alig
       next_state = -1;
       next_state = Assign_State_With_Ambiguity(data[seqnum+1]->state+site,
 					       io->datatype,
-					       io->mod->stepsize);
+					       io->state_len);
 
       if(!n->next[next_state]) n->next[next_state] = Create_Pnode(T_MAX_ALPHABET);
       Traverse_Prefix_Tree(site,seqnum+1,patt_num,n_patt,data,io,n->next[next_state]);
@@ -2976,7 +3016,7 @@ void Print_Seq(align **data, int n_otu)
 
 void Print_CSeq(FILE *fp, calign *cdata)
 {
-  int i,j,k;
+  int i,j;
   int n_otu;
   
   n_otu = cdata->n_otu;
@@ -3001,11 +3041,7 @@ void Print_CSeq(FILE *fp, calign *cdata)
 	  else fputc(' ',fp);
 	}
       
-      For(j,cdata->crunch_len)
-	{
-	  For(k,cdata->wght[j])
-	    PhyML_Fprintf(fp,"%c",cdata->c_seq[i]->state[j]);
-	}
+      PhyML_Fprintf(fp,"%s",cdata->c_seq[i]->state);
       PhyML_Fprintf(fp,"\n");
     }
   PhyML_Fprintf(fp,"\n");
@@ -3972,7 +4008,7 @@ void Update_SubTree_Partial_Lk(t_edge *b_fcus, t_node *a, t_node *d, t_tree *tre
 
 /*********************************************************/
 
-calign *Make_Cseq(int n_otu, int crunch_len, int init_len, char **sp_names)
+calign *Make_Cseq(int n_otu, int crunch_len, int state_len, int init_len, char **sp_names)
 {
   calign *cdata;
   int j;
@@ -3984,7 +4020,7 @@ calign *Make_Cseq(int n_otu, int crunch_len, int init_len, char **sp_names)
   cdata->wght     = (int *)mCalloc(crunch_len,sizeof(int));
   cdata->ambigu   = (short int *)mCalloc(crunch_len,sizeof(short int));
   cdata->invar    = (short int *)mCalloc(crunch_len,sizeof(short int));
-  cdata->sitepatt = (int *)mCalloc(  init_len,sizeof(int ));
+  cdata->sitepatt = (int *)mCalloc(init_len,sizeof(int ));
   cdata->format   = 0;
 
   cdata->crunch_len = crunch_len;
@@ -3996,7 +4032,7 @@ calign *Make_Cseq(int n_otu, int crunch_len, int init_len, char **sp_names)
       cdata->c_seq[j]            = (align *)mCalloc(1,sizeof(align));
       cdata->c_seq[j]->name      = (char *)mCalloc((int)(strlen(sp_names[j])+1),sizeof(char));
       strcpy(cdata->c_seq[j]->name,sp_names[j]);
-      cdata->c_seq[j]->state     = (char *)mCalloc(crunch_len,sizeof(char));
+      cdata->c_seq[j]->state     = (char *)mCalloc(crunch_len*state_len,sizeof(char));
       cdata->c_seq[j]->is_ambigu = (short int *)mCalloc(crunch_len,sizeof(short int));
     }
 
@@ -4030,13 +4066,14 @@ void Copy_Seq_Names_To_Tip_Labels(t_tree *tree, calign *data)
 
 /*********************************************************/
 
-calign *Copy_Cseq(calign *ori, int len, int ns)
+calign *Copy_Cseq(calign *ori, option *io)
 {
   calign *new;
-  int i,j,n_otu;
+  int i,j,k,n_otu,c_len;
   char **sp_names;
 
   n_otu = ori->n_otu;
+  c_len = ori->crunch_len;
 
   sp_names = (char **)mCalloc(n_otu,sizeof(char *));
   For(i,n_otu)
@@ -4045,7 +4082,7 @@ calign *Copy_Cseq(calign *ori, int len, int ns)
       strcpy(sp_names[i],ori->c_seq[i]->name);
     }
 
-  new = Make_Cseq(n_otu,len+1,ori->init_len,sp_names);
+  new = Make_Cseq(n_otu,c_len+1,io->state_len,ori->init_len,sp_names);
 
   new->obs_pinvar = ori->obs_pinvar;
 
@@ -4055,7 +4092,10 @@ calign *Copy_Cseq(calign *ori, int len, int ns)
     {
       For(i,ori->n_otu) 
 	{
-	  new->c_seq[i]->state[j]     = ori->c_seq[i]->state[j];
+	  For(k,io->state_len) 
+	    new->c_seq[i]->state[j*io->state_len+k] = 
+	    ori->c_seq[i]->state[j*io->state_len+k];
+
 	  new->c_seq[i]->is_ambigu[j] = ori->c_seq[i]->is_ambigu[j];
 	}
 
@@ -4070,12 +4110,13 @@ calign *Copy_Cseq(calign *ori, int len, int ns)
       strcpy(new->c_seq[i]->name,ori->c_seq[i]->name);
     }
 
-  For(i,ori->n_otu) new->c_seq[i]->state[len] = '\0';
+  For(i,ori->n_otu) new->c_seq[i]->state[c_len] = '\0';
+
+  For(i,io->alphabet_size) new->b_frq[i] = ori->b_frq[i];
 
   new->init_len           = ori->init_len;
   new->clean_len          = ori->clean_len;
   new->crunch_len         = ori->crunch_len;
-  For(i,ns) new->b_frq[i] = ori->b_frq[i];
   new->n_otu              = ori->n_otu;
 
   For(i,n_otu) Free(sp_names[i]);
@@ -4650,18 +4691,18 @@ matrix *JC69_Dist(calign *data, model *mod)
 
   datatype = mod->io->datatype;
 
-  Fors(site,data->c_seq[0]->len,mod->stepsize)
+  Fors(site,data->c_seq[0]->len,mod->io->state_len)
     {
       For(j,data->n_otu-1)
 	{
 	  for(k=j+1;k<data->n_otu;k++)
 	    {
-	      if((!Is_Ambigu(data->c_seq[j]->state+site,datatype,mod->stepsize)) &&
-		 (!Is_Ambigu(data->c_seq[k]->state+site,datatype,mod->stepsize)))
+	      if((!Is_Ambigu(data->c_seq[j]->state+site,datatype,mod->io->state_len)) &&
+		 (!Is_Ambigu(data->c_seq[k]->state+site,datatype,mod->io->state_len)))
 		{
 		  len[j][k]+=data->wght[site];
 		  len[k][j]=len[j][k];
-		  if(strncmp(data->c_seq[j]->state+site,data->c_seq[k]->state+site,mod->stepsize))
+		  if(strncmp(data->c_seq[j]->state+site,data->c_seq[k]->state+site,mod->io->state_len))
 		    mat->P[j][k]+=data->wght[site];
 		}
 	    }
@@ -4736,8 +4777,8 @@ matrix *Hamming_Dist(calign *data, model *mod)
 	{
 	  for(k=j+1;k<data->n_otu;k++)
 	    {
-	      if((!Is_Ambigu(data->c_seq[j]->state+i,datatype,mod->stepsize)) &&
-		 (!Is_Ambigu(data->c_seq[k]->state+i,datatype,mod->stepsize)))
+	      if((!Is_Ambigu(data->c_seq[j]->state+i,datatype,mod->io->state_len)) &&
+		 (!Is_Ambigu(data->c_seq[k]->state+i,datatype,mod->io->state_len)))
 		{
 		  len[j][k]+=data->wght[i];
 		  len[k][j]=len[j][k];
@@ -4836,11 +4877,10 @@ int Is_Ambigu(char *state, int datatype, int stepsize)
     }
   else if(datatype == INTEGERS)
     {
-      switch(state[0])
-	{
-	case 'X' : case '?' : case '-' : case '.' : {val=1; break; }
-	default : {val = 0; break;}
-	}
+      int i;
+      For(i,stepsize) if(!isdigit(state[i])) break;
+      if(i == stepsize) val = 0;
+      else              val = 1;
     }
 
   return val;
@@ -4991,7 +5031,9 @@ int Assign_State(char *c, int datatype, int stepsize)
     }
   else if(datatype == INTEGERS)
     {
-      if(!sscanf(c,"%1d",state)) return -1;
+      char format[6];
+      sprintf(format,"%%%dd",stepsize);      
+      if(!sscanf(c,format,state)) return -1;
       else return state[0];
     }
   else
@@ -5144,10 +5186,12 @@ int Assign_State_With_Ambiguity(char *c, int datatype, int stepsize)
     }
   else if(datatype == INTEGERS)
     {
-      if(c[0] == 'X' || c[0] == '?' || c[0] == '-') state[0] = T_MAX_ALPHABET-1;
+      if(Is_Ambigu(c,INTEGERS,stepsize)) state[0] = T_MAX_ALPHABET-1;
       else
 	{
-	  if(!sscanf(c,"%1d",state))
+	  char format[6];
+	  sprintf(format,"%%%dd",stepsize);
+	  if(!sscanf(c,format,state))
 	    {
 	      PhyML_Printf("\n. Error reading character. Was expecting an integer, got '%c' instead.\n",c[0]);
 	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
@@ -5207,7 +5251,7 @@ void Bootstrap(t_tree *tree)
       n_site++;
     }
 
-  boot_data = Copy_Cseq(tree->data, tree->data->crunch_len, tree->mod->ns);
+  boot_data = Copy_Cseq(tree->data,tree->io);
 
   PhyML_Printf("\n\n. Non parametric bootstrap analysis \n\n");
   PhyML_Printf("  ["); 
@@ -5261,8 +5305,7 @@ void Bootstrap(t_tree *tree)
       boot_tree->data               = boot_data;
       boot_tree->both_sides         = 1;
       boot_tree->mod->s_opt->print  = 0;
-      boot_tree->n_pattern          = boot_tree->data->crunch_len/
-	                              boot_tree->mod->stepsize;
+      boot_tree->n_pattern          = boot_tree->data->crunch_len;
       boot_tree->io->print_site_lnl = 0;
       boot_tree->io->print_trace    = 0;
 
@@ -5672,7 +5715,6 @@ void Record_Model(model *ori, model *cpy)
   cpy->bootstrap    = ori->bootstrap;
   cpy->invar        = ori->invar;
   cpy->pinvar       = ori->pinvar;
-  cpy->stepsize     = ori->stepsize;
   cpy->n_diff_rr    = ori->n_diff_rr;
 
 
@@ -5784,6 +5826,8 @@ void Set_Defaults_Input(option* io)
   io->datatype                   = NT;
   io->colalias                   = YES;
   io->data_format                = PHYLIP;
+  io->alphabet_size              = 4;
+  io->state_len                  = 1;
 }
 
 /*********************************************************/
@@ -5800,7 +5844,6 @@ void Set_Defaults_Model(model *mod)
   mod->bootstrap               = 0;
   mod->invar                   = 0;
   mod->pinvar                  = 0.0;
-  mod->stepsize                = 1;
   mod->ns                      = 4;
   mod->n_diff_rr               = 0;
   mod->use_m4mod               = 0;
@@ -6881,13 +6924,20 @@ int Are_Compatible(char *statea, char *stateb, int stepsize, int datatype)
     }
   else if(datatype == INTEGERS)    
     {
-      if(statea[0] == 'X' || stateb[0] == 'X') return 1;
+      if(Is_Ambigu(statea,INTEGERS,stepsize) && Is_Ambigu(stateb,INTEGERS,stepsize)) return 1;
       else
 	{
 	  int a,b;
-	  sscanf(statea,"%1d",&a);
-	  sscanf(stateb,"%1d",&b);
-	  if(a == b) return 1;	 
+	  char format[6];      
+	  
+	  sprintf(format,"%%%dd",stepsize);      
+
+	  sscanf(statea,format,&a);
+	  sscanf(stateb,format,&b);
+	  
+/* 	  PhyML_Printf("\n. %s %d a=%d b=%d ",__FILE__,__LINE__,a,b);  */
+
+	  if(a == b) return 1;
 	}
       return 0;
     }
@@ -8565,6 +8615,7 @@ void Check_Memory_Amount(t_tree *tree)
   int n_otu;
   model *mod;
 
+
   mod    = tree->mod;
   n_otu  = tree->io->n_otu;
   nbytes = 0;
@@ -9855,8 +9906,6 @@ t_tree *Dist_And_BioNJ(calign *cdata, model *mod, option *io)
   mat = ML_Dist(cdata,mod);
   Fill_Missing_Dist(mat);
 
-  Print_Mat(mat);
-
   if(!io->quiet) PhyML_Printf("\n. Building BioNJ tree...\n");
 
   mat->tree = Make_Tree_From_Scratch(cdata->n_otu,cdata);
@@ -9933,7 +9982,7 @@ char *Bootstrap_From_String(char *s_tree, calign *cdata, model *mod, option *io)
   tree->io          = io;
   tree->data        = cdata;
   tree->both_sides  = 1;
-  tree->n_pattern   = tree->data->crunch_len/tree->mod->stepsize;
+  tree->n_pattern   = tree->data->crunch_len;
 
   Order_Tree_CSeq(tree,cdata);
   if(tree->mod->s_opt->random_input_tree) Random_Tree(tree);
@@ -9983,7 +10032,7 @@ char *aLRT_From_String(char *s_tree, calign *cdata, model *mod, option *io)
   tree->io          = io;
   tree->data        = cdata;
   tree->both_sides  = 1;
-  tree->n_pattern   = tree->data->crunch_len/tree->mod->stepsize;
+  tree->n_pattern   = tree->data->crunch_len;
 
   Order_Tree_CSeq(tree,cdata);
   if(tree->mod->s_opt->random_input_tree) Random_Tree(tree);

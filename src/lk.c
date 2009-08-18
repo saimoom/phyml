@@ -200,48 +200,63 @@ void Init_Tips_At_One_Site_AA_Int(char aa, int pos, short int *p_pars)
 
 /*********************************************************/
 
-void Init_Tips_At_One_Site_Generic_Float(char *state, int ns, int pos, plkflt *p_lk)
+void Init_Tips_At_One_Site_Generic_Float(char *state, int ns, int state_len, int pos, plkflt *p_lk)
 {
   int i;
   int state_int;
 
   For(i,ns) p_lk[pos+i] = 0.;
 
-  if(state[0] == 'X') For(i,ns) p_lk[pos+i] = 1.;
+  if(Is_Ambigu(state,INTEGERS,state_len)) For(i,ns) p_lk[pos+i] = 1.;
   else
     {
-      if(!sscanf(state,"%d",&state_int))
+      char format[6];
+      sprintf(format,"%%%dd",state_len);
+      if(!sscanf(state,format,&state_int))
 	{
 	  PhyML_Printf("\n. state='%c'",state);
 	  PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
 	  Warn_And_Exit("");
 	}
-      
+      if(state_int > ns)
+	{
+	  PhyML_Printf("\n. %s %d cstate: %.2s istate: %d state_len: %d.\n",__FILE__,__LINE__,state,state_int,state_len);
+	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  Warn_And_Exit("");	  
+	}
       p_lk[pos+state_int] = 1.;
-/*       PhyML_Printf("\n. %s %d state = %d",__FILE__,__LINE__,state_int); */
+/*       PhyML_Printf("\n. %s %d cstate: %.2s istate: %d state_len: %d",__FILE__,__LINE__,state,state_int,state_len); */
     }
 }
 
 /*********************************************************/
 
-void Init_Tips_At_One_Site_Generic_Int(char *state, int ns, int pos, short int *p_pars)
+void Init_Tips_At_One_Site_Generic_Int(char *state, int ns, int state_len, int pos, short int *p_pars)
 {
   int i;
   int state_int;
 
   For(i,ns) p_pars[pos+i] = 0;
   
-  if(state[0] == 'X') For(i,ns) p_pars[pos+i] = 1;
+  if(Is_Ambigu(state,INTEGERS,state_len)) For(i,ns) p_pars[pos+i] = 1;
   else 
     {
-      if(!sscanf(state,"%1d",&state_int))
+      char format[6];
+      sprintf(format,"%%%dd",state_len);
+      if(!sscanf(state,format,&state_int))
 	{
 	  PhyML_Printf("\n. state='%c'",state);
 	  PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
 	  Warn_And_Exit("");
 	}
+      if(state_int > ns)
+	{
+	  PhyML_Printf("\n. %s %d cstate: %.2s istate: %d state_len: %d.\n",__FILE__,__LINE__,state,state_int,state_len);
+	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  Warn_And_Exit("");	  
+	}
       p_pars[pos+state_int] = 1;
-/*       PhyML_Printf("\n. %s %d state = %d",__FILE__,__LINE__,state_int); */
+      PhyML_Printf("\n. %s %d cstate: %.2s istate: %d state_len: %d",__FILE__,__LINE__,state,state_int,state_len);
     }
 }
 
@@ -634,8 +649,8 @@ matrix *ML_Dist(calign *data, model *mod)
 	  len = 0;
 	  For(l,twodata->c_seq[0]->len)
 	    {
-	      state0 = Assign_State(twodata->c_seq[0]->state+l,mod->io->datatype,mod->stepsize);
-	      state1 = Assign_State(twodata->c_seq[1]->state+l,mod->io->datatype,mod->stepsize);
+	      state0 = Assign_State(twodata->c_seq[0]->state+l,mod->io->datatype,mod->io->state_len);
+	      state1 = Assign_State(twodata->c_seq[1]->state+l,mod->io->datatype,mod->io->state_len);
 	      if((state0 > -1) && (state1 > -1))
 		{
 		  F[mod->ns*state0+state1] += twodata->wght[l];
@@ -1095,7 +1110,7 @@ void Init_P_Lk_Tips_Double(t_tree *tree)
   dim1 = tree->mod->n_catg * tree->mod->ns;
   dim2 = tree->mod->ns;
 
-  Fors(curr_site,tree->data->crunch_len,tree->mod->stepsize)
+  For(curr_site,tree->data->crunch_len)
     {
       For(i,tree->n_otu)
 	{
@@ -1110,8 +1125,9 @@ void Init_P_Lk_Tips_Double(t_tree *tree)
 					   tree->noeud[i]->b[0]->p_lk_rght);
 
 	  else if(tree->io->datatype == INTEGERS)
-	    Init_Tips_At_One_Site_Generic_Float(tree->data->c_seq[i]->state+curr_site,
-						dim2,
+	    Init_Tips_At_One_Site_Generic_Float(tree->data->c_seq[i]->state+curr_site*tree->io->state_len,
+						tree->mod->ns,
+						tree->io->state_len,
 						curr_site*dim1+0*dim2,
 						tree->noeud[i]->b[0]->p_lk_rght);
 
@@ -1139,7 +1155,8 @@ void Init_P_Lk_Tips_Int(t_tree *tree)
 
   dim1 = tree->mod->ns;
 
-  Fors(curr_site,tree->data->crunch_len,tree->mod->stepsize)
+
+  For(curr_site,tree->data->crunch_len)
     {
       For(i,tree->n_otu)
 	{
@@ -1155,8 +1172,9 @@ void Init_P_Lk_Tips_Int(t_tree *tree)
 
 	  else if(tree->io->datatype == INTEGERS)
 	    {
-	      Init_Tips_At_One_Site_Generic_Int(tree->data->c_seq[i]->state+curr_site,
-						dim1,
+	      Init_Tips_At_One_Site_Generic_Int(tree->data->c_seq[i]->state+curr_site*tree->io->state_len,
+						tree->mod->ns,
+						tree->io->state_len,
 						curr_site*dim1,
 						tree->noeud[i]->b[0]->p_lk_tip_r);
 	    }

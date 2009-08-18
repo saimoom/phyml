@@ -438,9 +438,9 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	    if(!strcmp(optarg,"nt"))
 	      {
 		io->datatype      = NT;
-		io->mod->stepsize = 1;
 		io->mod->ns       = 4;
-		
+		io->state_len     = 1;
+
 		if(
 		   (io->mod->whichmodel == LG)       ||
 		   (io->mod->whichmodel == WAG)       ||
@@ -466,7 +466,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	    else if (!strcmp(optarg,"aa"))
 	      {
 		io->datatype              = AA;
-		io->mod->stepsize         = 1;
+		io->state_len             = 1;
 		io->mod->s_opt->opt_kappa = 0;
 		io->mod->ns               = 20;
 		if(

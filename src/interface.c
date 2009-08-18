@@ -487,7 +487,7 @@ void Launch_Interface_Data_Type(option *io)
 	if(io->datatype == NT)
 	  {
 	    io->datatype              = AA;
-	    io->mod->stepsize         = 1;
+	    io->state_len             = 1;
 	    io->mod->ns               = 20;
 	    io->mod->s_opt->opt_kappa = 0;
 	    io->mod->whichmodel       = LG;
@@ -496,7 +496,7 @@ void Launch_Interface_Data_Type(option *io)
 	else
 	  {
 	    io->datatype              = NT;
-	    io->mod->stepsize         = 1;
+	    io->state_len             = 1;
 	    io->mod->ns               = 4;
 	    io->mod->whichmodel       = HKY85;
 	    strcpy(io->mod->modelname,"HKY85");
