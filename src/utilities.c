@@ -6924,7 +6924,7 @@ int Are_Compatible(char *statea, char *stateb, int stepsize, int datatype)
     }
   else if(datatype == INTEGERS)    
     {
-      if(Is_Ambigu(statea,INTEGERS,stepsize) && Is_Ambigu(stateb,INTEGERS,stepsize)) return 1;
+      if(Is_Ambigu(statea,INTEGERS,stepsize) || Is_Ambigu(stateb,INTEGERS,stepsize)) return 1;
       else
 	{
 	  int a,b;
@@ -6934,13 +6934,13 @@ int Are_Compatible(char *statea, char *stateb, int stepsize, int datatype)
 
 	  if(!sscanf(statea,format,&a))
 	    {	    
-	      PhyML_Printf("\n. Err. in Are_Compatible\n");
+	      PhyML_Printf("\n. statea = %s",statea);
 	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
 	      Warn_And_Exit("");
 	    }
 	  if(!sscanf(stateb,format,&b))
 	    {	    
-	      PhyML_Printf("\n. Err. in Are_Compatible\n");
+	      PhyML_Printf("\n. statea = %s",stateb);
 	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
 	      Warn_And_Exit("");
 	    }
