@@ -6932,8 +6932,18 @@ int Are_Compatible(char *statea, char *stateb, int stepsize, int datatype)
 	  
 	  sprintf(format,"%%%dd",stepsize);      
 
-	  sscanf(statea,format,&a);
-	  sscanf(stateb,format,&b);
+	  if(!sscanf(statea,format,&a))
+	    {	    
+	      PhyML_Printf("\n. Err. in Are_Compatible\n");
+	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	      Warn_And_Exit("");
+	    }
+	  if(!sscanf(stateb,format,&b))
+	    {	    
+	      PhyML_Printf("\n. Err. in Are_Compatible\n");
+	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	      Warn_And_Exit("");
+	    }
 	  
 /* 	  PhyML_Printf("\n. %s %d a=%d b=%d ",__FILE__,__LINE__,a,b);  */
 
