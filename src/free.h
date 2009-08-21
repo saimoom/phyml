@@ -54,4 +54,6 @@ void Free_Edge_Labels(t_edge *b);
 void Free_Nexus_Com(nexcom **com);
 void Free_Nexus_Parm(nexparm *parm);
 void Free_Nexus(option *io);
+void Free_Optimiz(optimiz *s_opt);
+
 #endif

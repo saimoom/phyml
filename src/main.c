@@ -255,8 +255,9 @@ int main(int argc, char **argv)
   
   if(most_likely_tree) Free(most_likely_tree);
 
-  if(io->mod->s_opt->n_rand_starts > 1) PhyML_Printf("\n\n. Best log likelihood : %f\n",best_lnL);
+  if(mod->s_opt->n_rand_starts > 1) PhyML_Printf("\n\n. Best log likelihood : %f\n",best_lnL);
 
+  Free_Optimiz(mod->s_opt);
   Free_Model_Basic(mod);
 
   if(io->fp_in_align)  fclose(io->fp_in_align);

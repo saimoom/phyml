@@ -564,6 +564,12 @@ void Free_Pnode(pnode *n)
 
 /*********************************************************/
 
+void Free_Optimiz(optimiz *s_opt)
+{
+  Free(s_opt);
+}
+
+/*********************************************************/
 void Free_Nexus(option *io)
 {
   int i,j;
