@@ -5783,7 +5783,6 @@ void Set_Defaults_Input(option* io)
   io->datatype                   = NT;
   io->colalias                   = YES;
   io->data_format                = PHYLIP;
-  io->mod->state_len                  = 1;
 }
 
 /*********************************************************/
