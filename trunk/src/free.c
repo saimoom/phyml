@@ -581,6 +581,7 @@ void Free_Nexus(option *io)
       Free(io->nex_com_list[i]->name);
       Free(io->nex_com_list[i]);      
     }
+  Free(io->nex_com_list);
 }
 
 /*********************************************************/
