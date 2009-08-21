@@ -563,6 +563,45 @@ void Free_Pnode(pnode *n)
 }
 
 /*********************************************************/
+
+void Free_Nexus(option *io)
+{
+  int i,j;
+  
+  For(i,N_MAX_NEX_COM)
+    {
+      For(j,io->nex_com_list[i]->nparm) Free(io->nex_com_list[i]->parm[j]);
+      Free(io->nex_com_list[i]->parm);
+      Free(io->nex_com_list[i]->name);
+      Free(io->nex_com_list[i]);      
+    }
+}
+
+/*********************************************************/
+
+void Free_Nexus_Com(nexcom **com)
+{
+  int i;
+
+  For(i,N_MAX_NEX_COM)
+    {
+      Free(com[i]->parm);
+      Free(com[i]->name);
+      Free(com[i]);
+    }
+  Free(com);
+}
+
+/*********************************************************/
+
+void Free_Nexus_Parm(nexparm *parm)
+{
+  Free(parm->value);
+  Free(parm->name);
+  Free(parm);
+}
+
+/*********************************************************/
 /*********************************************************/
 /*********************************************************/
 /*********************************************************/

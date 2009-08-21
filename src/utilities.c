@@ -914,6 +914,7 @@ align **Get_Seq(option *io)
 	io->nex_com_list = Make_Nexus_Com();
 	Init_Nexus_Format(io->nex_com_list);
 	io->data = Get_Seq_Nexus(io);
+	Free_Nexus(io);
 	break;
       }
     default:
@@ -1172,30 +1173,6 @@ nexparm *Make_Nexus_Parm()
   parm->value = (char *)mCalloc(T_MAX_TOKEN,sizeof(char ));
 
   return parm;
-}
-
-/*********************************************************/
-
-void Free_Nexus_Com(nexcom **com)
-{
-  int i;
-
-  For(i,N_MAX_NEX_COM)
-    {
-      Free(com[i]->parm);
-      Free(com[i]->name);
-      Free(com[i]);
-    }
-  Free(com);
-}
-
-/*********************************************************/
-
-void Free_Nexus_Parm(nexparm *parm)
-{
-  Free(parm->value);
-  Free(parm->name);
-  Free(parm);
 }
 
 /*********************************************************/
