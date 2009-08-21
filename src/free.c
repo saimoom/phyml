@@ -20,6 +20,7 @@ void Free_All_Nodes_Light(t_tree *tree)
   int i;
   For(i,2*tree->n_otu-1) 
     Free_Node(tree->noeud[i]);
+  Free(tree->noeud);
 }
 
 /*********************************************************/
