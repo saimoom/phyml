@@ -576,7 +576,7 @@ void Free_Nexus(option *io)
   
   For(i,N_MAX_NEX_COM)
     {
-      For(j,io->nex_com_list[i]->nparm) Free(io->nex_com_list[i]->parm[j]);
+      For(j,io->nex_com_list[i]->nparm) Free_Nexus_Parm(io->nex_com_list[i]->parm[j]);
       Free(io->nex_com_list[i]->parm);
       Free(io->nex_com_list[i]->name);
       Free(io->nex_com_list[i]);      
