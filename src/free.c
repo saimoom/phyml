@@ -18,11 +18,8 @@ the GNU public licence.  See http://www.opensource.org for details.
 void Free_All_Nodes_Light(t_tree *tree)
 {
   int i;
-  For(i,2*tree->n_otu-2) 
+  For(i,2*tree->n_otu-1) 
     Free_Node(tree->noeud[i]);
-
-  if(tree->n_root)
-    Free_Node(tree->noeud[i+1]);
 }
 
 /*********************************************************/
