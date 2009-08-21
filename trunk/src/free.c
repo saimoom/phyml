@@ -31,6 +31,7 @@ void Free_All_Edges_Light(t_tree *tree)
   For(i,2*tree->n_otu-3) 
     if(tree->t_edges[i])
       Free_Edge(tree->t_edges[i]);
+  Free(tree->t_edges);
 }
 
 
