@@ -754,9 +754,10 @@ void Make_Edge_Pars(t_edge *b, t_tree *tree)
 void Make_Edge_Lk(t_edge *b, t_tree *tree)
 {
   int ns;
+  
+  ns = -1;
 
-  if(tree->io->datatype == NT)      ns = 4;
-  else if(tree->io->datatype == AA) ns = 20;
+  ns = tree->io->alphabet_size;
 
   b->l_old = b->l;
 
@@ -905,13 +906,11 @@ align **Get_Seq(option *io)
     {
     case PHYLIP: 
       {
-	PhyML_Printf("\n. Detected PHYLIP format...\n");
 	io->data = Get_Seq_Phylip(io);
 	break;
       }
     case NEXUS:
       {
-	PhyML_Printf("\n. Detected NEXUS format...\n");
 	io->nex_com_list = Make_Nexus_Com();
 	Init_Nexus_Format(io->nex_com_list);
 	io->data = Get_Seq_Nexus(io);
@@ -1105,14 +1104,12 @@ void Get_Token(char **line, char *token)
     {
       int in_comment;
 
-      PhyML_Printf("\n. Skipping comment \"%.6s...]\"\n",*line);
       in_comment = 1;
       do 
 	{ 
 	  (*line)++; 
 	  if(**line == '[') 
 	    {
-	      PhyML_Printf("\n. Found comment within comment.\n");
 	      in_comment++;
 	    }
 	  else if(**line == ']') in_comment--;	  
@@ -1346,7 +1343,7 @@ void Init_Nexus_Format(nexcom **com)
 
   /*****************************/
   strcpy(com[7]->name,"matrix");
-  com[7]->nparm = 2;
+  com[7]->nparm = 1;
   com[7]->nxt_token_t = NEXUS_COM;
   com[7]->cur_token_t = NEXUS_VALUE; /* This will allows us to skip directly 
 					to the matrix reading function */
@@ -1446,7 +1443,6 @@ void Find_Nexus_Parm(char *token, nexparm **found_parm, nexcom *curr_com)
 
 int Read_Nexus_Matrix(char *token, nexparm *curr_parm, option *io)
 {
-  PhyML_Printf("\n. Reading alignment...\n");
 
   if(io->interleaved) io->data = Read_Seq_Interleaved(io);
   else                io->data = Read_Seq_Sequential(io);
@@ -1496,13 +1492,11 @@ int Read_Nexus_Dimensions(char *token, nexparm *curr_parm, option *io)
   if(!strcmp(curr_parm->name,"ntax"))
     {
       sscanf(curr_parm->value,"%d",&(io->n_otu));
-      PhyML_Printf("\n. Number of taxa (as given by NTAX): %d\n",io->n_otu);
     }
 
   if(!strcmp(curr_parm->name,"nchar"))
     {
       sscanf(curr_parm->value,"%d",&(io->init_len));
-      PhyML_Printf("\n. Sequence length (as given by NCHAR): %d\n",io->init_len);
     }
   return 1;
 }
@@ -1529,35 +1523,37 @@ int Read_Nexus_Format(char *token, nexparm *curr_parm, option *io)
     {
       if(!strcmp(curr_parm->value,"standard"))
 	{
-	  PhyML_Printf("\n. Expecting standard data format (default: binary data).\n");
-	  io->datatype= INTEGERS;
+	  io->datatype = GENERIC;
+	  io->mod->whichmodel = JC69;
+	  io->mod->s_opt->opt_kappa  = NO;
+	  io->mod->s_opt->opt_lambda = NO;
 	  io->alphabet_size = 2;
-	  io->alphabet[0][0] = '0';
-	  io->alphabet[1][0] = '1';
+	  io->alphabet[0][0] = '0'; io->alphabet[0][1] = '\0';
+	  io->alphabet[1][0] = '1'; io->alphabet[1][1] = '\0';
 	}
 
       else if(!strcmp(curr_parm->value,"dna"))
 	{
-	  PhyML_Printf("\n. Expecting nucleotide sequences.\n");
-	  io->datatype= NT;
+	  io->datatype = NT;
+	  io->alphabet_size = 4;
 	}
 
       else if(!strcmp(curr_parm->value,"rna"))
 	{
-	  PhyML_Printf("\n. Expecting nucleotide sequences.\n");
-	  io->datatype= NT;
+	  io->datatype = NT;
+	  io->alphabet_size = 4;
 	}
 
       else if(!strcmp(curr_parm->value,"nucleotide"))
 	{
-	  PhyML_Printf("\n. Expecting nucleotide sequences.\n");
-	  io->datatype= NT;
+	  io->datatype = NT;
+	  io->alphabet_size = 4;
 	}
 
       else if(!strcmp(curr_parm->value,"protein"))
 	{
-	  PhyML_Printf("\n. Expecting amino-acid sequences.\n");
-	  io->datatype= AA;
+	  io->datatype = AA;
+	  io->alphabet_size = 20;
 	}
       
       else if(!strcmp(curr_parm->value,"continuous"))
@@ -1580,6 +1576,7 @@ int Read_Nexus_Format(char *token, nexparm *curr_parm, option *io)
     {
       /* !!!!!!!!!!!! */
       PhyML_Printf("\n. The 'gap' subcommand is not supported by PhyML. Sorry.\n");
+      PhyML_Printf("\n. But the characters 'X', '?' and '-' will be considered as indels by default.\n"); 
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
@@ -1642,7 +1639,6 @@ int Read_Nexus_Format(char *token, nexparm *curr_parm, option *io)
 	      if(token[i] != '"') i++;
 	    }
 	  while(token[i] != '"');
-
 	}
 
       int len;
@@ -1656,14 +1652,9 @@ int Read_Nexus_Format(char *token, nexparm *curr_parm, option *io)
 	      Warn_And_Exit("");
 	    }
 	}
-      io->state_len = len;
+      io->state_len = len;      
 
-      PhyML_Printf("\n. Symbols: \"");
-      For(i,io->alphabet_size) PhyML_Printf(" %s",io->alphabet[i]);
-      PhyML_Printf(" \"\n");
-
-      PhyML_Printf("\n. State length: %d\n",io->state_len);
-      
+/*       For(i,io->alphabet_size) PhyML_Printf("\n. '%s'",io->alphabet[i]); */
     }
 
   else if(!strcmp(curr_parm->name,"equate"))
@@ -1695,7 +1686,6 @@ int Read_Nexus_Format(char *token, nexparm *curr_parm, option *io)
 
   else if(!strcmp(curr_parm->name,"interleave"))
     {
-      PhyML_Printf("\n. Expecting interleave sequence format.\n");
       io->interleaved = 1;
     }
 
@@ -1980,7 +1970,6 @@ int Read_One_Line_Seq(align ***data, int num_otu, FILE *in)
 {
   char c = ' ';
   int nchar = 0;
-  const char badSymbol[28]= "ABCDEFGHIKLMNOPQRSTUVWXYZ?-.";
   
   while(1)
     {
@@ -2014,14 +2003,6 @@ int Read_One_Line_Seq(align ***data, int num_otu, FILE *in)
 
       nchar++;
       Uppercase(&c);
-
-//      if (strchr("ABCDEFGHIKLMNOPQRSTUVWXYZ?-.", c) == NULL)
-      if (strchr(badSymbol, c) == NULL)
-	{
-	  PhyML_Printf("\n. Err: bad symbol: \"%c\" at position %d of species %s\n",
-		       c,(*data)[num_otu]->len,(*data)[num_otu]->name);
-	  Warn_And_Exit("");
-	}
       
       if(c == '.')
 	{
@@ -2069,9 +2050,9 @@ calign *Compact_Data(align **data, option *io)
   int compress;
   int n_ambigu,is_ambigu;
 
-  n_otu        = io->n_otu;
-  n_patt       = 0;
-  which_patt   = 0;
+  n_otu      = io->n_otu;
+  n_patt     = 0;
+  which_patt = 0;
 
   sp_names = (char **)mCalloc(n_otu,sizeof(char *));
   For(i,n_otu)
@@ -2181,12 +2162,9 @@ calign *Compact_Data(align **data, option *io)
   cdata_tmp->crunch_len                 = n_patt;
   For(i,n_otu) cdata_tmp->c_seq[i]->len = n_patt;
   
-  if(!io->quiet) PhyML_Printf("\n. %d patterns found. (out of a total of %d sites) \n",n_patt,data[0]->len);
+  if(!io->quiet) PhyML_Printf("\n. %d patterns found (out of a total of %d sites). \n",n_patt,data[0]->len);
 
   if((io->rm_ambigu) && (n_ambigu)) PhyML_Printf("\n. Removed %d columns of the alignment as they contain ambiguous characters (e.g., gaps) \n",n_ambigu);
-
-  Print_Seq(io->data,io->n_otu);
-/*   Print_CSeq(stdout,cdata_tmp); */
 
 /*   For(i,n_otu) */
 /*     { */
@@ -2200,8 +2178,7 @@ calign *Compact_Data(align **data, option *io)
   n_invar=0;
   For(i,cdata_tmp->crunch_len) 
     {
-      if(cdata_tmp->invar[i] > -1.) 
-	n_invar+=(int)cdata_tmp->wght[i];
+      if(cdata_tmp->invar[i] > -1.) n_invar+=(int)cdata_tmp->wght[i];
     }
 
   if(!io->quiet) PhyML_Printf("\n. %d sites without polymorphism (%.2f%c).\n",n_invar,100.*(phydbl)n_invar/data[0]->len,'%');
@@ -2220,27 +2197,8 @@ calign *Compact_Data(align **data, option *io)
   else if(io->datatype == AA) Get_AA_Freqs(cdata_tmp);
   else {/* Uniform state frequency distribution.*/}
 
-  PhyML_Fprintf(io->fp_out_stats,"\n. State frequencies: ");
-  For(i,io->mod->ns) PhyML_Fprintf(io->fp_out_stats,"%f ",cdata_tmp->b_frq[i]);
-  PhyML_Printf("\n");
-
-
   cdata = Copy_Cseq(cdata_tmp,io);
   
-  int curr_site;
-  For(curr_site,cdata->crunch_len)
-    {
-      For(i,n_otu)
-	{
-	  printf("\n* '%c' #%c# %d",
-		 cdata->c_seq[i]->state[curr_site*io->state_len+1],
-		 cdata_tmp->c_seq[i]->state[curr_site*io->state_len+1],
-		 curr_site);
-	}
-      printf("\n");
-    }
-  Exit("\n");
-
   Free_Cseq(cdata_tmp);
   Free_Prefix_Tree(proot,T_MAX_ALPHABET);
 
@@ -2280,16 +2238,16 @@ calign *Compact_Cdata(calign *data, option *io)
 
   n_patt = which_patt =  0;
 
-  Fors(site,data->crunch_len,io->state_len)
+  For(site,data->crunch_len)
     {
       if(data->wght[site])
 	{
-	  Fors(k,n_patt,io->state_len)
+	  For(k,n_patt)
 	    {
 	      For(j,n_otu)
 		{
-		  if(strncmp(cdata->c_seq[j]->state+k,
-			     data->c_seq[j]->state+site,
+		  if(strncmp(cdata->c_seq[j]->state+k*io->state_len,
+			     data->c_seq[j]->state+site*io->state_len,
 			     io->state_len))
 		    break;
 		}
@@ -2306,16 +2264,16 @@ calign *Compact_Cdata(calign *data, option *io)
 	  
 	  if(k == n_patt)
 	    {
-	      For(j,n_otu) Copy_One_State(data->c_seq[j]->state+site,
-					  cdata->c_seq[j]->state+n_patt,
+	      For(j,n_otu) Copy_One_State(data->c_seq[j]->state+site*io->state_len,
+					  cdata->c_seq[j]->state+n_patt*io->state_len,
 					  io->state_len);
 	      
 	      For(i,n_otu)
 		{
 		  For(j,n_otu)
 		    {
-		      if(!(Are_Compatible(cdata->c_seq[i]->state+n_patt,
-					  cdata->c_seq[j]->state+n_patt,
+		      if(!(Are_Compatible(cdata->c_seq[i]->state+n_patt*io->state_len,
+					  cdata->c_seq[j]->state+n_patt*io->state_len,
 					  io->state_len,
 					  io->datatype))) break;
 		    }
@@ -2326,7 +2284,7 @@ calign *Compact_Cdata(calign *data, option *io)
 		{
 		  For(j,n_otu)
 		    {
-		      cdata->invar[n_patt] = Assign_State(cdata->c_seq[j]->state+n_patt,
+		      cdata->invar[n_patt] = Assign_State(cdata->c_seq[j]->state+n_patt*io->state_len,
 							    io->datatype,
 							    io->state_len);
 		      if(cdata->invar[n_patt] > -1.) break;
@@ -2335,7 +2293,7 @@ calign *Compact_Cdata(calign *data, option *io)
 	      else cdata->invar[n_patt] = -1;
 	      
 	      cdata->wght[n_patt] += data->wght[site];
-	      n_patt+=io->state_len;
+	      n_patt+=1;
 	    }
 	  else cdata->wght[which_patt] += data->wght[site];
 	  
@@ -2349,6 +2307,7 @@ calign *Compact_Cdata(calign *data, option *io)
 
   if(io->datatype == NT)      Get_Base_Freqs(cdata);
   else if(io->datatype == AA) Get_AA_Freqs(cdata);
+  else {/* Not implemented yet */}
 
   return cdata;
 }
@@ -3434,10 +3393,11 @@ void Print_Mat(matrix *mat)
 
       For(j,mat->n_otu)
 	{
+	  char s[2]="-";
 	  if(mat->dist[i][j] == -1)
-	    PhyML_Printf("   -     ");
+	    PhyML_Printf("%12s",s);
 	  else
-	    PhyML_Printf("%7.8f  ",mat->dist[i][j]);
+	    PhyML_Printf("%12f",mat->dist[i][j]);
 	}
       PhyML_Printf("\n");
     }
@@ -4093,9 +4053,10 @@ calign *Copy_Cseq(calign *ori, option *io)
       For(i,ori->n_otu) 
 	{
 	  For(k,io->state_len) 
-	    new->c_seq[i]->state[j*io->state_len+k] = 
-	    ori->c_seq[i]->state[j*io->state_len+k];
-
+	    {
+	      new->c_seq[i]->state[j*io->state_len+k] = 
+		ori->c_seq[i]->state[j*io->state_len+k];
+	    }
 	  new->c_seq[i]->is_ambigu[j] = ori->c_seq[i]->is_ambigu[j];
 	}
 
@@ -4110,7 +4071,7 @@ calign *Copy_Cseq(calign *ori, option *io)
       strcpy(new->c_seq[i]->name,ori->c_seq[i]->name);
     }
 
-  For(i,ori->n_otu) new->c_seq[i]->state[c_len] = '\0';
+  For(i,ori->n_otu) new->c_seq[i]->state[c_len*io->state_len] = '\0';
 
   For(i,io->alphabet_size) new->b_frq[i] = ori->b_frq[i];
 
@@ -4655,11 +4616,8 @@ matrix *K80_dist(calign *data, phydbl g_shape)
 	  (pow(1-2*mat->P[i][j]-mat->Q[i][j],-1./g_shape) +
 	   0.5*pow(1-2*mat->Q[i][j],-1./g_shape) - 1.5);
 
+	if(mat->dist[i][j] > DIST_MAX) mat->dist[i][j] = DIST_MAX;
 
-	if(mat->dist[i][j] > DIST_MAX)
-	  {
-	    mat->dist[i][j] = DIST_MAX;
-	  }
 	mat->dist[j][i] = mat->dist[i][j];
       }
 
@@ -4679,7 +4637,6 @@ matrix *JC69_Dist(calign *data, model *mod)
   int datatype;
 
 
-
   len = (phydbl **)mCalloc(data->n_otu,sizeof(phydbl *));
   For(i,data->n_otu)
     len[i] = (phydbl *)mCalloc(data->n_otu,sizeof(phydbl));
@@ -4691,18 +4648,25 @@ matrix *JC69_Dist(calign *data, model *mod)
 
   datatype = mod->io->datatype;
 
-  Fors(site,data->c_seq[0]->len,mod->io->state_len)
+  For(site,data->c_seq[0]->len)
     {
       For(j,data->n_otu-1)
 	{
 	  for(k=j+1;k<data->n_otu;k++)
 	    {
-	      if((!Is_Ambigu(data->c_seq[j]->state+site,datatype,mod->io->state_len)) &&
-		 (!Is_Ambigu(data->c_seq[k]->state+site,datatype,mod->io->state_len)))
+	      if((!Is_Ambigu(data->c_seq[j]->state+site*mod->io->state_len,datatype,mod->io->state_len)) &&
+		 (!Is_Ambigu(data->c_seq[k]->state+site*mod->io->state_len,datatype,mod->io->state_len)))
 		{
 		  len[j][k]+=data->wght[site];
 		  len[k][j]=len[j][k];
-		  if(strncmp(data->c_seq[j]->state+site,data->c_seq[k]->state+site,mod->io->state_len))
+
+
+		  if(strncmp(data->c_seq[j]->state+site*mod->io->state_len,
+			     data->c_seq[k]->state+site*mod->io->state_len,mod->io->state_len))
+/* 		  if(!Are_Compatible(data->c_seq[j]->state+site*mod->io->state_len, */
+/* 				     data->c_seq[k]->state+site*mod->io->state_len, */
+/* 				     mod->io->state_len, */
+/* 				     mod->io->datatype)) */
 		    mat->P[j][k]+=data->wght[site];
 		}
 	    }
@@ -4713,33 +4677,19 @@ matrix *JC69_Dist(calign *data, model *mod)
   For(i,data->n_otu-1)
     for(j=i+1;j<data->n_otu;j++)
       {
-	if(len[i][j])
-	  {
-	    mat->P[i][j] /= len[i][j];
-	  }
-	else
-	  {
-	    mat->P[i][j] = 1.;
-	  }
+	if(len[i][j]) mat->P[i][j] /= len[i][j];
+	else          mat->P[i][j] = 1.;
 
 	mat->P[j][i] = mat->P[i][j];
 
-	if((1.-(mod->ns)/(mod->ns-1.)*mat->P[i][j]) < .0)
-	  {
-	    mat->dist[i][j] = DIST_MAX;
-	  }
+	if((1.-(mod->ns)/(mod->ns-1.)*mat->P[i][j]) < .0) mat->dist[i][j] = -1.;
 	else
 	  mat->dist[i][j] = -(mod->ns-1.)/(mod->ns)*(phydbl)log(1.-(mod->ns)/(mod->ns-1.)*mat->P[i][j]);
-
 
 /* 	PhyML_Printf("\n. Incorrect JC distances"); */
 /* 	mat->dist[i][j] = len[i][j]; */
 
-
-	if(mat->dist[i][j] > DIST_MAX)
-	  {
-	    mat->dist[i][j] = DIST_MAX;
-	  }
+	if(mat->dist[i][j] > DIST_MAX) mat->dist[i][j] = DIST_MAX;
 
 	mat->dist[j][i] = mat->dist[i][j];
       }
@@ -4771,18 +4721,22 @@ matrix *Hamming_Dist(calign *data, model *mod)
   
   datatype = mod->io->datatype;
 
-  For(i,data->c_seq[0]->len)
+  For(i,data->crunch_len)
     {
       For(j,data->n_otu-1)
 	{
 	  for(k=j+1;k<data->n_otu;k++)
 	    {
-	      if((!Is_Ambigu(data->c_seq[j]->state+i,datatype,mod->io->state_len)) &&
-		 (!Is_Ambigu(data->c_seq[k]->state+i,datatype,mod->io->state_len)))
+	      if((!Is_Ambigu(data->c_seq[j]->state+i*mod->io->state_len,datatype,mod->io->state_len)) &&
+		 (!Is_Ambigu(data->c_seq[k]->state+i*mod->io->state_len,datatype,mod->io->state_len)))
 		{
 		  len[j][k]+=data->wght[i];
 		  len[k][j]=len[j][k];
-		  if(data->c_seq[j]->state[i] != data->c_seq[k]->state[i])
+/* 		  if(data->c_seq[j]->state[i] != data->c_seq[k]->state[i]) */
+		  if(!Are_Compatible(data->c_seq[j]->state+i*mod->io->state_len,
+				     data->c_seq[k]->state+i*mod->io->state_len,
+				     mod->io->state_len,
+				     mod->io->datatype))
 		    {
 		      mat->P[j][k]+=data->wght[i];
 		    }
@@ -4875,7 +4829,7 @@ int Is_Ambigu(char *state, int datatype, int stepsize)
 	default : { val=0; break; }
 	}
     }
-  else if(datatype == INTEGERS)
+  else if(datatype == GENERIC)
     {
       int i;
       For(i,stepsize) if(!isdigit(state[i])) break;
@@ -4892,7 +4846,7 @@ void Check_Ambiguities(calign *data, int datatype, int stepsize)
 {
   int i,j;
 
-  Fors(j,data->crunch_len,stepsize) 
+  For(j,data->crunch_len) 
     {
       For(i,data->n_otu)
 	{
@@ -4902,7 +4856,7 @@ void Check_Ambiguities(calign *data, int datatype, int stepsize)
 
       For(i,data->n_otu)
 	{
-	  if(Is_Ambigu(data->c_seq[i]->state+j,
+	  if(Is_Ambigu(data->c_seq[i]->state+j*stepsize,
 		       datatype,
 		       stepsize))
 	    {
@@ -5029,12 +4983,15 @@ int Assign_State(char *c, int datatype, int stepsize)
 	}
       return state[0];
     }
-  else if(datatype == INTEGERS)
+  else if(datatype == GENERIC)
     {
       char format[6];
-      sprintf(format,"%%%dd",stepsize);      
-      if(!sscanf(c,format,state)) return -1;
-      else return state[0];
+      int ret;
+
+      sprintf(format,"%%%dd",stepsize);
+      ret = sscanf(c,format,state);
+      if(!ret) state[0] = -1;      
+      return state[0];
     }
   else
     {
@@ -5101,7 +5058,7 @@ char Reciproc_Assign_State(int i_state, int datatype)
 	  }
 	}
     }
-  else if(datatype == INTEGERS)
+  else if(datatype == GENERIC)
     {
       return (char)i_state;
     }
@@ -5184,9 +5141,9 @@ int Assign_State_With_Ambiguity(char *c, int datatype, int stepsize)
 	}
       return state[0];
     }
-  else if(datatype == INTEGERS)
+  else if(datatype == GENERIC)
     {
-      if(Is_Ambigu(c,INTEGERS,stepsize)) state[0] = T_MAX_ALPHABET-1;
+      if(Is_Ambigu(c,GENERIC,stepsize)) state[0] = T_MAX_ALPHABET-1;
       else
 	{
 	  char format[6];
@@ -5283,7 +5240,7 @@ void Bootstrap(t_tree *tree)
       if(tree->io->random_boot_seq_order) Randomize_Sequence_Order(boot_data);
 
       boot_mod = Copy_Model(tree->mod);
-      Init_Model(boot_data,boot_mod);
+      Init_Model(boot_data,boot_mod,tree->io);
 
       if(tree->io->in_tree == 2)
 	{
@@ -6922,9 +6879,9 @@ int Are_Compatible(char *statea, char *stateb, int stepsize, int datatype)
 	  }
 	}
     }
-  else if(datatype == INTEGERS)    
+  else if(datatype == GENERIC)    
     {
-      if(Is_Ambigu(statea,INTEGERS,stepsize) || Is_Ambigu(stateb,INTEGERS,stepsize)) return 1;
+      if(Is_Ambigu(statea,GENERIC,stepsize) || Is_Ambigu(stateb,GENERIC,stepsize)) return 1;
       else
 	{
 	  int a,b;
@@ -8320,34 +8277,35 @@ void Print_Settings(option *io)
   PhyML_Printf(" ooooooooooooooooooooooooooooo        CURRENT SETTINGS        ooooooooooooooooooooooooooooooooooo\n");
   PhyML_Printf("                                 ..........................                                      \n");
 
-  PhyML_Printf("\n                . Sequence filename : \t\t\t\t %s", Basename(io->in_align_file));
+  PhyML_Printf("\n                . Sequence filename:\t\t\t\t %s", Basename(io->in_align_file));
 
   if(io->datatype == NT) strcpy(s,"dna");
   else if(io->datatype == AA) strcpy(s,"aa");
   else strcpy(s,"generic");
 
-  PhyML_Printf("\n                . Data type :             \t\t\t %s",s);
+  PhyML_Printf("\n                . Data type:\t\t\t\t\t %s",s);
+  PhyML_Printf("\n                . Alphabet size:\t\t\t\t %d",io->alphabet_size);
 
-  PhyML_Printf("\n                . Sequence format : \t\t\t\t %s", io->interleaved ? "interleaved" : "sequential");
-  PhyML_Printf("\n                . Number of data sets : \t\t\t %d", io->n_data_sets);
+  PhyML_Printf("\n                . Sequence format:\t\t\t\t %s", io->interleaved ? "interleaved": "sequential");
+  PhyML_Printf("\n                . Number of data sets:\t\t\t\t %d", io->n_data_sets);
 
-  PhyML_Printf("\n                . Nb of bootstrapped data sets : \t\t %d", io->mod->bootstrap);
+  PhyML_Printf("\n                . Nb of bootstrapped data sets:\t\t\t %d", io->mod->bootstrap);
 
   if (io->mod->bootstrap > 0)
-    PhyML_Printf("\n                . Compute approximate likelihood ratio test : \t no");
+    PhyML_Printf("\n                . Compute approximate likelihood ratio test:\t no");
   else
     {
       if(io->ratio_test == 1)
-	PhyML_Printf("\n                . Compute approximate likelihood ratio test : \t yes (aLRT statistics)");
+	PhyML_Printf("\n                . Compute approximate likelihood ratio test:\t yes (aLRT statistics)");
       else if(io->ratio_test == 2)
-	PhyML_Printf("\n                . Compute approximate likelihood ratio test : \t yes (Chi2-based parametric branch supports)");
+	PhyML_Printf("\n                . Compute approximate likelihood ratio test:\t yes (Chi2-based parametric branch supports)");
       else if(io->ratio_test == 3)
-	PhyML_Printf("\n                . Compute approximate likelihood ratio test : \t yes (Minimum of SH-like and Chi2-based branch supports)");
+	PhyML_Printf("\n                . Compute approximate likelihood ratio test:\t yes (Minimum of SH-like and Chi2-based branch supports)");
       else if(io->ratio_test == 4)
-	PhyML_Printf("\n                . Compute approximate likelihood ratio test : \t yes (SH-like branch supports)");
+	PhyML_Printf("\n                . Compute approximate likelihood ratio test:\t yes (SH-like branch supports)");
     }
 
-  PhyML_Printf("\n                . Model name : \t\t\t\t\t %s", io->mod->modelname);
+  PhyML_Printf("\n                . Model name:\t\t\t\t\t %s", io->mod->modelname);
 
   if (io->datatype == NT)
     {
@@ -8357,30 +8315,30 @@ void Print_Settings(option *io)
 	  (io->mod->whichmodel == TN93))
 	{
 	  if (io->mod->s_opt->opt_kappa)
-	    PhyML_Printf("\n                . Ts/tv ratio : \t\t\t\t estimated");
+	    PhyML_Printf("\n                . Ts/tv ratio:\t\t\t\t estimated");
 	  else
-	    PhyML_Printf("\n                . Ts/tv ratio : \t\t\t\t %f", io->mod->kappa);
+	    PhyML_Printf("\n                . Ts/tv ratio:\t\t\t\t %f", io->mod->kappa);
 	}
     }
 
   if (io->mod->s_opt->opt_pinvar)
-    PhyML_Printf("\n                . Proportion of invariable sites :\t\t estimated");
+    PhyML_Printf("\n                . Proportion of invariable sites:\t\t estimated");
   else
-    PhyML_Printf("\n                . Proportion of invariable sites :\t\t %f", io->mod->pinvar);
+    PhyML_Printf("\n                . Proportion of invariable sites:\t\t %f", io->mod->pinvar);
 
 
-  PhyML_Printf("\n                . Number of subst. rate categs : \t\t %d", io->mod->n_catg);
+  PhyML_Printf("\n                . Number of subst. rate categs:\t\t\t %d", io->mod->n_catg);
   if(io->mod->s_opt->opt_alpha)
-    PhyML_Printf("\n                . Gamma distribution parameter : \t\t estimated");
+    PhyML_Printf("\n                . Gamma distribution parameter:\t\t\t estimated");
   else
-    PhyML_Printf("\n                . Gamma distribution parameter : \t\t %f", io->mod->alpha);
+    PhyML_Printf("\n                . Gamma distribution parameter:\t\t %f", io->mod->alpha);
   
   if(io->mod->n_catg > 1)
-    PhyML_Printf("\n                . 'Middle' of each rate class  : \t\t %s",(io->mod->gamma_median)?("median"):("mean"));
+    PhyML_Printf("\n                . 'Middle' of each rate class:\t\t\t %s",(io->mod->gamma_median)?("median"):("mean"));
     
   
   if(io->datatype == AA)
-    PhyML_Printf("\n                . Amino acid equilibrium frequencies : \t\t %s", (io->mod->s_opt->opt_state_freq) ? ("empirical"):("model"));
+    PhyML_Printf("\n                . Amino acid equilibrium frequencies:\t\t %s", (io->mod->s_opt->opt_state_freq) ? ("empirical"):("model"));
   else if(io->datatype == NT)
     {
       if((io->mod->whichmodel != JC69) &&
@@ -8389,16 +8347,16 @@ void Print_Settings(option *io)
 	{
 	  if(!io->mod->s_opt->user_state_freq)
 	    {
-	      PhyML_Printf("\n                . Nucleotide equilibrium frequencies : \t\t %s", (io->mod->s_opt->opt_state_freq) ? ("ML"):("empirical"));
+	      PhyML_Printf("\n                . Nucleotide equilibrium frequencies:\t\t %s", (io->mod->s_opt->opt_state_freq) ? ("ML"):("empirical"));
 	    }
 	  else
 	    {
-	      PhyML_Printf("\n                . Nucleotide equilibrium frequencies : \t\t %s","user-defined");
+	      PhyML_Printf("\n                . Nucleotide equilibrium frequencies:\t\t %s","user-defined");
 	    }
 	}
     }
 
-  PhyML_Printf("\n                . Optimise tree topology : \t\t\t %s", (io->mod->s_opt->opt_topo) ? "yes" : "no");
+  PhyML_Printf("\n                . Optimise tree topology:\t\t\t %s", (io->mod->s_opt->opt_topo) ? "yes": "no");
 
   switch(io->in_tree)
     {
@@ -8411,23 +8369,23 @@ void Print_Settings(option *io)
 
   if(io->mod->s_opt->opt_topo)
     {
-      if(io->mod->s_opt->topo_search == NNI_MOVE) PhyML_Printf("\n                . Tree topology search : \t\t\t NNIs");
-      else if(io->mod->s_opt->topo_search == SPR_MOVE) PhyML_Printf("\n                . Tree topology search : \t\t\t SPRs");
-      else if(io->mod->s_opt->topo_search == BEST_OF_NNI_AND_SPR) PhyML_Printf("\n                . Tree topology search : \t\t\t Best of NNIs and SPRs");
+      if(io->mod->s_opt->topo_search == NNI_MOVE) PhyML_Printf("\n                . Tree topology search:\t\t\t\t NNIs");
+      else if(io->mod->s_opt->topo_search == SPR_MOVE) PhyML_Printf("\n                . Tree topology search:\t\t\t\t SPRs");
+      else if(io->mod->s_opt->topo_search == BEST_OF_NNI_AND_SPR) PhyML_Printf("\n                . Tree topology search:\t\t\t\t Best of NNIs and SPRs");
 
 
 
-      PhyML_Printf("\n                . Starting tree : \t\t\t\t %s",s);
+      PhyML_Printf("\n                . Starting tree:\t\t\t\t %s",s);
 
-      PhyML_Printf("\n                . Add random input tree : \t\t\t %s", (io->mod->s_opt->random_input_tree) ? "yes" : "no");
+      PhyML_Printf("\n                . Add random input tree:\t\t\t %s", (io->mod->s_opt->random_input_tree) ? "yes": "no");
       if(io->mod->s_opt->random_input_tree)
-	PhyML_Printf("\n                . Number of random starting trees : \t\t %d", io->mod->s_opt->n_rand_starts);	
+	PhyML_Printf("\n                . Number of random starting trees:\t\t %d", io->mod->s_opt->n_rand_starts);	
     }
   else
     if(!io->mod->s_opt->random_input_tree)
-      PhyML_Printf("\n                . Evaluted tree : \t\t\t\t file \"%s\"",s);
+      PhyML_Printf("\n                . Evaluted tree:\t\t\t\t file \"%s\"",s);
 
-  PhyML_Printf("\n                . Optimise branch lengths : \t\t\t %s", (io->mod->s_opt->opt_bl) ? "yes" : "no");
+  PhyML_Printf("\n                . Optimise branch lengths:\t\t\t %s", (io->mod->s_opt->opt_bl) ? "yes": "no");
 
   answer = 0;
   if(io->mod->s_opt->opt_alpha  ||
@@ -8436,10 +8394,10 @@ void Print_Settings(option *io)
      io->mod->s_opt->opt_pinvar ||
      io->mod->s_opt->opt_rr) answer = 1;
   
-  PhyML_Printf("\n                . Optimise substitution model parameters : \t %s", (answer) ? "yes" : "no");
+  PhyML_Printf("\n                . Optimise substitution model parameters:\t %s", (answer) ? "yes": "no");
 
-  PhyML_Printf("\n                . Run ID : \t\t\t\t\t %s", (io->append_run_ID) ? (io->run_id_string) : ("none"));
-  PhyML_Printf("\n                . Version : \t\t\t\t\t %s", VERSION);
+  PhyML_Printf("\n                . Run ID:\t\t\t\t\t %s", (io->append_run_ID) ? (io->run_id_string): ("none"));
+  PhyML_Printf("\n                . Version:\t\t\t\t\t %s", VERSION);
 
 
   PhyML_Printf("\n\n oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo\n");
@@ -8669,7 +8627,7 @@ void Check_Memory_Amount(t_tree *tree)
     {
       if(!tree->io->quiet) PhyML_Printf("\n. WARNING: this analysis will use at least %.0f Mo of memory space...\n",(phydbl)nbytes/(1.E+06));
     }
-  else
+  else if(((phydbl)nbytes/(1.E+06)) > 1.)
     {
       if(!tree->io->quiet) PhyML_Printf("\n. This analysis requires at least %.0f Mo of memory space.\n",(phydbl)nbytes/(1.E+06));
     }
@@ -9353,8 +9311,7 @@ void Site_Diversity(t_tree *tree)
   int i,j,k,ns;
   int *div,sum;
 
-  if(tree->io->datatype == NT)      ns = 4;
-  else if(tree->io->datatype == AA) ns = 20;
+  ns = tree->io->alphabet_size;
 
   div = (int *)mCalloc(ns,sizeof(int));
 
@@ -9575,6 +9532,7 @@ void Print_Diversity_Pre(t_node *a, t_node *d, t_edge *b, FILE *fp, t_tree *tree
 {
   int k,ns;
 
+  ns = -1;
 
   if(d->tax) return;
   else
@@ -10694,11 +10652,159 @@ option *Get_Input(int argc, char **argv)
     }
 #endif
 
-  Print_Settings(io);
   return io;
 }
 
 /*********************************************************/
+
+void Set_Model_Name(model *mod)
+{
+  if(mod->io->datatype == NT)
+    {
+      switch(mod->whichmodel)
+	{
+	case JC69:
+	  {
+	    strcpy(mod->modelname, "JC69");
+	    break;
+	  }
+	case K80:
+	  {
+	    strcpy(mod->modelname, "K80");
+	    break;
+	  }
+	case F81:
+	  {
+	    strcpy(mod->modelname, "F81");
+	    break;
+	  }
+	case HKY85:
+	  {
+	    strcpy(mod->modelname, "HKY85");
+	    break;
+	  }
+	case F84:
+	  {
+	    strcpy(mod->modelname, "F84");
+	    break;
+	  }
+	case TN93:
+	  {
+	    strcpy(mod->modelname, "TN93");
+	    break;
+	  }
+	case GTR:
+	  {
+	    strcpy(mod->modelname, "GTR");
+	    break;
+	  }
+	case CUSTOM:
+	  {
+	    strcpy(mod->modelname, "Custom");
+	    break;
+	  }
+	default:
+	  {
+	    PhyML_Printf("\n. Unknown model name.\n");
+	    PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	    Warn_And_Exit("");
+	    break;
+	  }
+	}
+    }
+  else if(mod->io->datatype == AA)
+    {
+      switch(mod->whichmodel)
+	{
+	case DAYHOFF:
+	  {
+	    strcpy(mod->modelname, "Dayhoff");
+	    break;
+	  }
+	case JTT:
+	  {
+	    strcpy(mod->modelname, "JTT");
+	    break;
+	  }
+	case MTREV:
+	  {
+	    strcpy(mod->modelname, "MtREV");
+	    break;
+	  }
+	case LG:
+	  {
+	    strcpy(mod->modelname, "LG");
+	    break;
+	  }
+	case WAG:
+	  {
+	    strcpy(mod->modelname, "WAG");
+	    break;
+	  }
+	case DCMUT:
+	  {
+	    strcpy(mod->modelname, "DCMut");
+	    break;
+	  }
+	case RTREV:
+	  {
+	    strcpy(mod->modelname, "RtREV");
+	    break;
+	  }
+	case CPREV:
+	  {
+	    strcpy(mod->modelname, "CpREV");
+	    break;
+	  }
+	case VT:
+	  {
+	    strcpy(mod->modelname, "VT");
+	    break;
+	  }
+	case BLOSUM62:
+	  {
+	    strcpy(mod->modelname, "Blosum62");
+	    break;
+	  }
+	case MTMAM:
+	  {
+	    strcpy(mod->modelname, "MtMam");
+	    break;
+	  }
+	case MTART:
+	  {
+	    strcpy(mod->modelname, "MtArt");
+	    break;
+	  }
+	case HIVW:
+	  {
+	    strcpy(mod->modelname, "HIVb");
+	    break;
+	  }
+	case HIVB:
+	  {
+	    strcpy(mod->modelname, "HIVb");
+	    break;
+	  }
+	case CUSTOMAA:
+	  {
+	    strcpy(mod->modelname, "Custom");
+	    break;
+	  }
+	default:
+	  {
+	    PhyML_Printf("\n. Unknown model name.\n");
+	    PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	    Warn_And_Exit("");
+	    break;
+	  }
+	}
+    }
+  else if(mod->io->datatype == GENERIC)
+    {
+      strcpy(mod->modelname, "JC69");
+    }
+}
 
 
 /*********************************************************/

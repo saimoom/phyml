@@ -1049,7 +1049,9 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
   tree->both_sides = 0;
 
   if((tree->mod->whichmodel == GTR) ||
-     ((tree->mod->whichmodel == CUSTOM) && (tree->mod->s_opt->opt_rr) && (tree->mod->n_diff_rr > 1)))
+     ((tree->mod->whichmodel == CUSTOM) && 
+      (tree->mod->s_opt->opt_rr) && 
+      (tree->mod->n_diff_rr > 1)))
     {
       int failed;
       
@@ -1111,7 +1113,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 	}
       tree->mod->update_eigen = 0;
     }
-  
+
   if(tree->mod->s_opt->opt_lambda) 
     {
 /*       Optimize_Single_Param_Generic(tree,&(tree->mod->lambda),.001,100., */
@@ -1329,7 +1331,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 	  
       /* Substitutions between nucleotides are considered to follow a 
 	 GTR model */
-      
+
       failed = 0;
       tree->mod->update_eigen = 1;
       BFGS(tree,tree->mod->m4mod->o_rr,5,1.e-5,1.e-7,

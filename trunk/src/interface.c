@@ -92,7 +92,7 @@ void Launch_Interface(option *io)
   if(io->m4_model == YES)
     {
 #ifdef M4
-      io->mod->ns *= io->mod->m4mod->n_h;
+      io->alphabet_size *= io->mod->m4mod->n_h;
       io->mod->use_m4mod = 1;
       M4_Make_Complete(io->mod->m4mod->n_h,
 		       io->mod->m4mod->n_o,
@@ -488,16 +488,23 @@ void Launch_Interface_Data_Type(option *io)
 	  {
 	    io->datatype              = AA;
 	    io->state_len             = 1;
-	    io->mod->ns               = 20;
+	    io->alphabet_size         = 20;
 	    io->mod->s_opt->opt_kappa = 0;
 	    io->mod->whichmodel       = LG;
 	    strcpy(io->mod->modelname,"LG");
 	  }
-	else
+	else if(io->datatype == AA)
+	  {
+	    io->datatype              = GENERIC;
+	    io->mod->whichmodel       = JC69;
+	    strcpy(io->mod->modelname,"JC69");
+	    strcpy(io->nt_or_cd,"natural numbers");
+	  }
+	else if(io->datatype == GENERIC)
 	  {
 	    io->datatype              = NT;
 	    io->state_len             = 1;
-	    io->mod->ns               = 4;
+	    io->alphabet_size         = 4;
 	    io->mod->whichmodel       = HKY85;
 	    strcpy(io->mod->modelname,"HKY85");
 	    strcpy(io->nt_or_cd,"nucleotides");
@@ -609,7 +616,7 @@ void Launch_Interface_Model(option *io)
 	    }
 	}
     }
-  else
+  else if(io->datatype == AA)
     {
       PhyML_Printf("                [M] "
 	     "................ Model of amino-acids substitution "
@@ -620,7 +627,12 @@ void Launch_Interface_Model(option *io)
 	     " %-15s \n",
 	     (io->mod->s_opt->opt_state_freq)?("empirical"):("model"));
     }
-
+  else if(io->datatype == GENERIC)
+    {
+      PhyML_Printf("                [M] "
+		   "................. Model of nucleotide substitution "
+		   " %-15s \n", io->mod->modelname);
+    }
 
   if ((io->datatype == NT)   &&
       ((io->mod->whichmodel == K80)  ||
@@ -1178,134 +1190,106 @@ void Launch_Interface_Model(option *io)
 		if(io->mod->whichmodel == JC69)
 		  {
 		    io->mod->whichmodel = K80;
-		    strcpy(io->mod->modelname,"K80");
 		  }
 		else if(io->mod->whichmodel == K80)
 		  {
 		    io->mod->whichmodel = F81;
-		    strcpy(io->mod->modelname,"F81");
-		    io->mod->s_opt->opt_kappa  = 0;
-		    io->mod->s_opt->opt_lambda = 0;
 		  }
 		else if(io->mod->whichmodel == F81)
 		  {
 		    io->mod->whichmodel = HKY85;
-		    strcpy(io->mod->modelname,"HKY85");
 		  }
 		else if(io->mod->whichmodel == HKY85)
 		  {
 		    io->mod->whichmodel = F84;
-		    strcpy(io->mod->modelname,"F84");
 		  }
 		else if(io->mod->whichmodel == F84)
 		  {
 		    io->mod->whichmodel = TN93;
-		    strcpy(io->mod->modelname,"TN93");
-		    if(io->mod->s_opt->opt_kappa) io->mod->s_opt->opt_lambda = 1;
 		  }
 		else if(io->mod->whichmodel == TN93)
 		  {
 		    io->mod->whichmodel = GTR;
-		    strcpy(io->mod->modelname,"GTR");
-		    io->mod->s_opt->opt_kappa  = 0;
-		    io->mod->s_opt->opt_lambda = 0;
-		    io->mod->s_opt->opt_rr     = 1;
 		  }
 		else if(io->mod->whichmodel == GTR)
 		  {
 		    io->mod->whichmodel = CUSTOM;
-		    strcpy(io->mod->modelname,"custom");
-		    io->mod->s_opt->opt_kappa  = 0;
-		    io->mod->s_opt->opt_lambda = 0;
 		  }
 
 		else if(io->mod->whichmodel == CUSTOM)
 		  {
 		    io->mod->whichmodel = JC69;
-		    strcpy(io->mod->modelname,"JC69");
-		    io->mod->s_opt->opt_kappa  = 0;
-		    io->mod->s_opt->opt_lambda = 0;
 		  }
 	      }
 	  }
-	else
+	else if(io->datatype == AA)
 	  {
 	    if(io->mod->whichmodel == LG)
 	      {
 		io->mod->whichmodel = WAG;
-		strcpy(io->mod->modelname,"WAG");
 	      }
 	    else if(io->mod->whichmodel == WAG)
 	      {
 		io->mod->whichmodel = DAYHOFF;
-		strcpy(io->mod->modelname,"Dayhoff");
 	      }
 	    else if(io->mod->whichmodel == DAYHOFF)
 	      {
 		io->mod->whichmodel = JTT;
-		strcpy(io->mod->modelname,"JTT");
 	      }
 	    else if(io->mod->whichmodel == JTT)
 	      {
 		io->mod->whichmodel = BLOSUM62;
-		strcpy(io->mod->modelname,"Blossum62");
 	      }
 	    else if(io->mod->whichmodel == BLOSUM62)
 	      {
 		io->mod->whichmodel = MTREV;
-		strcpy(io->mod->modelname,"MtREV");
 	      }
 	    else if(io->mod->whichmodel == MTREV)
 	      {
 		io->mod->whichmodel = RTREV;
-		strcpy(io->mod->modelname,"RtREV");
 	      }
 	    else if(io->mod->whichmodel == RTREV)
 	      {
 		io->mod->whichmodel = CPREV;
-		strcpy(io->mod->modelname,"CpREV");
 	      }
 	    else if(io->mod->whichmodel == CPREV)
 	      {
 		io->mod->whichmodel = DCMUT;
-		strcpy(io->mod->modelname,"DCMut");
 	      }
 	    else if(io->mod->whichmodel == DCMUT)
 	      {
 		io->mod->whichmodel = VT;
-		strcpy(io->mod->modelname,"VT");
 	      }
 	    else if(io->mod->whichmodel == VT)
 	      {
 		io->mod->whichmodel = MTMAM;
-		strcpy(io->mod->modelname,"MtMam");
 	      }
 	    else if(io->mod->whichmodel == MTMAM)
 	      {
 		io->mod->whichmodel = MTART;
-		strcpy(io->mod->modelname,"MtART");
 	      }
 	    else if(io->mod->whichmodel == MTART)
 	      {
 		io->mod->whichmodel = HIVW;
-		strcpy(io->mod->modelname,"HIVw");
 	      }
 	    else if(io->mod->whichmodel == HIVW)
 	      {
 		io->mod->whichmodel = HIVB;
-		strcpy(io->mod->modelname,"HIVb");
 	      }
 	    else if(io->mod->whichmodel == HIVB)
 	      {
 		io->mod->whichmodel = CUSTOMAA;
-		strcpy(io->mod->modelname,"Read from file");
 	      }
 	    else if(io->mod->whichmodel == CUSTOMAA)
 	      {
 		io->mod->whichmodel = LG;
-		strcpy(io->mod->modelname,"LG");
 	      }
 	  }
+	else if(io->datatype == GENERIC)
+	  {
+	    io->mod->whichmodel = JC69;
+	  }
+	Set_Model_Name(io->mod);
 	break;
       }
     case '-' :

@@ -438,7 +438,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	    if(!strcmp(optarg,"nt"))
 	      {
 		io->datatype      = NT;
-		io->mod->ns       = 4;
+		io->alphabet_size = 4;
 		io->state_len     = 1;
 
 		if(
@@ -468,7 +468,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		io->datatype              = AA;
 		io->state_len             = 1;
 		io->mod->s_opt->opt_kappa = 0;
-		io->mod->ns               = 20;
+		io->alphabet_size         = 20;
 		if(
 		   (io->mod->whichmodel == JC69)   ||
 		   (io->mod->whichmodel == K80)    ||
@@ -486,7 +486,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	      }
 	    else if ((!strcmp(optarg,"generic")) || (!strcmp(optarg,"gen")))
 	      {
-		io->datatype = INTEGERS;
+		io->datatype = GENERIC;
 	      }
 	    else
 	      {
@@ -526,142 +526,115 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		{
 		  io->datatype              = NT;
 		  io->mod->whichmodel       = JC69;
-		  strcpy(io->mod->modelname, "JC69");
-		  io->mod->s_opt->opt_kappa = 0;
 		}
 	      else if(strcmp(optarg, "K80") == 0)
 		{
 		  io->datatype              = NT;
 		  io->mod->whichmodel       = K80;
-		  strcpy(io->mod->modelname, "K80");
 		}
 	      else if(strcmp(optarg, "F81") == 0)
 		{
 		  io->datatype              = NT;
 		  io->mod->whichmodel       = F81;
-		  strcpy(io->mod->modelname, "F81");
-		  io->mod->s_opt->opt_kappa = 0;
 		}
 	      else if (strcmp(optarg, "HKY85") == 0)
 		{
 		  io->datatype              = NT;
 		  io->mod->whichmodel       = HKY85;
-		  strcpy(io->mod->modelname, "HKY85");
 		}
 	      else if(strcmp(optarg, "F84") == 0)
 		{
 		  io->datatype              = NT;
 		  io->mod->whichmodel       = F84;
-		  strcpy(io->mod->modelname, "F84");
 		}
 	      else if (strcmp (optarg,"TN93") == 0)
 		{
 		  io->datatype              = NT;
 		  io->mod->whichmodel       = TN93;
-		  strcpy(io->mod->modelname, "TN93");
-		  if(io->mod->s_opt->opt_kappa)
-		    {
-		      io->mod->s_opt->opt_lambda = 1;
-		    }
 		}
 	      else if(strcmp (optarg, "GTR") == 0)
 		{
 		  io->datatype              = NT;
 		  io->mod->whichmodel       = GTR;
-		  strcpy(io->mod->modelname, "GTR");
-		  io->mod->s_opt->opt_kappa = 0;
-		  io->mod->s_opt->opt_rr    = 1;
 		}
 	      else if(strcmp(optarg, "Dayhoff") == 0)
 		{
 		  io->datatype              = AA;
 		  io->mod->whichmodel       = DAYHOFF;
-		  strcpy(io->mod->modelname, "Dayhoff");
 		}
 	      else if(strcmp (optarg, "JTT") == 0)
 		{
 		  io->datatype              = AA;
 		  io->mod->whichmodel       = JTT;
-		  strcpy(io->mod->modelname, "JTT");
 		}
 	      else if(strcmp(optarg, "MtREV") == 0)
 		{
 		  io->datatype             = AA;
 		  io->mod->whichmodel      = MTREV;
-		  strcpy(io->mod->modelname,"MtREV");
 		}
 	      else if(strcmp (optarg, "LG") == 0)
 		{
 		  io->datatype              = AA;
 		  io->mod->whichmodel       = LG;
-		  strcpy(io->mod->modelname, "LG");
 		}
 	      else if(strcmp (optarg, "WAG") == 0)
 		{
 		  io->datatype              = AA;
 		  io->mod->whichmodel       = WAG;
-		  strcpy(io->mod->modelname, "WAG");
 		}
 	      else if(strcmp(optarg, "DCMut") == 0)
 		{
 		  io->datatype              = AA;
 		  io->mod->whichmodel       = DCMUT;
-		  strcpy(io->mod->modelname, "DCMut");
 		}
 	      else if(strcmp (optarg, "RtREV") == 0)
 		{
 		  io->datatype              = AA;
 		  io->mod->whichmodel       = RTREV;
-		  strcpy(io->mod->modelname, "RtREV");
 		}
 	      else if(strcmp(optarg, "CpREV") == 0)
 		{
 		  io->datatype              = AA;
 		  io->mod->whichmodel       = CPREV;
-		  strcpy(io->mod->modelname, "CpREV");
 		}
 	      else if(strcmp(optarg, "VT") == 0)
 		{
 		  io->datatype              = AA;
 		  io->mod->whichmodel       = VT;
-		  strcpy(io->mod->modelname, "VT");
 		}
 	      else if(strcmp(optarg, "Blosum62") == 0)
 		{
 		  io->datatype              = AA;
 		  io->mod->whichmodel       = BLOSUM62;
-		  strcpy(io->mod->modelname, "Blosum62");
 		}
 	      else if(strcmp(optarg, "MtMam") == 0)
 		{
 		  io->datatype              = AA;
 		  io->mod->whichmodel       = MTMAM;
-		  strcpy(io->mod->modelname, "MtMam");
 		}
 	      else if (strcmp(optarg,"MtArt") == 0)
 		{
 		  io->datatype              = AA;
 		  io->mod->whichmodel       = MTART;
-		  strcpy(io->mod->modelname, "MtArt");
 		}
 	      else if (strcmp(optarg,"HIVw") == 0)
 		{
 		  io->datatype              = AA;
 		  io->mod->whichmodel       = HIVW;
-		  strcpy(io->mod->modelname, "HIVw");
 		}
 	      else if(strcmp(optarg, "HIVb") == 0)
 		{
 		  io->datatype              = AA;
 		  io->mod->whichmodel       = HIVB;
-		  strcpy(io->mod->modelname, "HIVb");
 		}
 	      else if (strcmp(optarg, "custom") == 0)
 		{
 		  io->datatype              = AA;
 		  io->mod->whichmodel       = CUSTOMAA;
-		  strcpy(io->mod->modelname, "Read from file");
 		}
+	      
+	      Set_Model_Name(io->mod);
+
 	      break;
 	    }
 
@@ -1102,7 +1075,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
     if(io->m4_model == YES)
       {
 #ifdef M4
-	io->mod->ns *= io->mod->m4mod->n_h;
+	io->alphabet_size *= io->mod->m4mod->n_h;
 	io->mod->use_m4mod = 1;
 	M4_Make_Complete(io->mod->m4mod->n_h,
 			 io->mod->m4mod->n_o,

@@ -87,7 +87,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 
 #define  NT 0 /* nucleotides */
 #define  AA 1 /* amino acids */
-#define  INTEGERS 2 /* amino acids */
+#define  GENERIC 2 /* custom alphabet */
 
 #define  ACGT 0 /* A,G,G,T encoding */
 #define  RY   1 /* R,Y     encoding */
@@ -673,6 +673,7 @@ typedef struct __Option { /* mostly used in 'help.c' */
   char                    **alphabet;
   int                  alphabet_size;
   int                      state_len;
+
 }option;
 
 /*********************************************************/
@@ -1290,6 +1291,7 @@ void Get_Token(char **line, char *token);
 nexparm *Make_Nexus_Parm();
 void Free_Nexus_Parm(nexparm *parm);
 void Read_Ntax_Len_Phylip(FILE *fp ,int *n_otu, int *n_tax);
+void Set_Model_Name(model *mod);
 
 #include "free.h"
 #include "spr.h"

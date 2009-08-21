@@ -39,7 +39,6 @@ int PART_main(int argc, char **argv)
   io = (option *)Get_Input(argc,argv);
   r_seed = (io->r_seed < 0)?(time(NULL)):(io->r_seed);
   srand(r_seed);
-  Make_Model_Complete(io->mod);
   fp_phyml_stats = Openfile(io->out_stats_file,io->out_stats_file_open_mode);
   PhyML_Fprintf(fp_phyml_stats,"\n- PHYML %s -\n\n", VERSION);
   fp_phyml_tree = Openfile(io->out_tree_file,io->out_tree_file_open_mode);
@@ -56,23 +55,26 @@ int PART_main(int argc, char **argv)
       t_treelist *treelist;
       supert_tree *st;
 
-      data      = (align ***)  mCalloc(io->n_part,sizeof(align **));
-      cdata   = (calign **)mCalloc(io->n_part,sizeof(calign *));
-      mod       = (model **) mCalloc(io->n_part,sizeof(model *));
-      mat       = (matrix **)mCalloc(io->n_part,sizeof(matrix *));
+      data  = (align ***)  mCalloc(io->n_part,sizeof(align **));
+      cdata = (calign **)mCalloc(io->n_part,sizeof(calign *));
+      mod   = (model **) mCalloc(io->n_part,sizeof(model *));
+      mat   = (matrix **)mCalloc(io->n_part,sizeof(matrix *));
 
       /* Read the sequences (for each partition) */
       For(part,io->n_part)
 	{
 	  Make_Model_Complete(io->st->optionlist[part]->mod); /* Complete model for each data part */
-	  mod[part]  = io->st->optionlist[part]->mod;
 	  data[part] = Get_Seq(io->st->optionlist[part]);
+	  Make_Model_Complete(io->st->optionlist[part]->mod);
+	  Set_Model_Name(io->st->optionlist[part]->mod);
+	  mod[part]  = io->st->optionlist[part]->mod;
+
 	  PhyML_Printf("\n. Data part [#%d]\n",part+1);
 	  PhyML_Printf("\n. Compressing sequences...\n");
 	  cdata[part] = Compact_Data(data[part],io->st->optionlist[part]);
 	  fclose(io->st->optionlist[part]->fp_in_align);
 	  Free_Seq(data[part],cdata[part]->n_otu);
-	  Init_Model(cdata[part],mod[part]);
+	  Init_Model(cdata[part],mod[part],io->st->optionlist[part]);
 	  Check_Ambiguities(cdata[part],
 			    io->st->optionlist[part]->mod->io->datatype,
 			    io->st->optionlist[part]->state_len);

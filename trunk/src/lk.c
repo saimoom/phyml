@@ -207,7 +207,7 @@ void Init_Tips_At_One_Site_Generic_Float(char *state, int ns, int state_len, int
 
   For(i,ns) p_lk[pos+i] = 0.;
 
-  if(Is_Ambigu(state,INTEGERS,state_len)) For(i,ns) p_lk[pos+i] = 1.;
+  if(Is_Ambigu(state,GENERIC,state_len)) For(i,ns) p_lk[pos+i] = 1.;
   else
     {
       char format[6];
@@ -225,7 +225,7 @@ void Init_Tips_At_One_Site_Generic_Float(char *state, int ns, int state_len, int
 	  Warn_And_Exit("");	  
 	}
       p_lk[pos+state_int] = 1.;
-/*       PhyML_Printf("\n. %s %d cstate: %.2s istate: %d state_len: %d",__FILE__,__LINE__,state,state_int,state_len); */
+/*       PhyML_Printf("\n. %s %d cstate: %.2s istate: %d state_len: %d ns: %d pos: %d",__FILE__,__LINE__,state,state_int,state_len,ns,pos); */
     }
 }
 
@@ -238,7 +238,7 @@ void Init_Tips_At_One_Site_Generic_Int(char *state, int ns, int state_len, int p
 
   For(i,ns) p_pars[pos+i] = 0;
   
-  if(Is_Ambigu(state,INTEGERS,state_len)) For(i,ns) p_pars[pos+i] = 1;
+  if(Is_Ambigu(state,GENERIC,state_len)) For(i,ns) p_pars[pos+i] = 1;
   else 
     {
       char format[6];
@@ -256,7 +256,7 @@ void Init_Tips_At_One_Site_Generic_Int(char *state, int ns, int state_len, int p
 	  Warn_And_Exit("");	  
 	}
       p_pars[pos+state_int] = 1;
-      PhyML_Printf("\n. %s %d cstate: %.2s istate: %d state_len: %d",__FILE__,__LINE__,state,state_int,state_len);
+/*       PhyML_Printf("\n* %s %d cstate: %.2s istate: %d state_len: %d ns: %d pos: %d",__FILE__,__LINE__,state,state_int,state_len,ns,pos); */
     }
 }
 
@@ -448,7 +448,6 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
   int catg,ns,k,l,site;
   int dim1,dim2,dim3;
 
-
   dim1 = tree->mod->n_catg * tree->mod->ns;
   dim2 = tree->mod->ns;
   dim3 = tree->mod->ns * tree->mod->ns;
@@ -609,10 +608,12 @@ matrix *ML_Dist(calign *data, model *mod)
   tmpdata->crunch_len = data->crunch_len;
   tmpdata->init_len   = data->init_len;
 
+  mat = NULL;
   if(mod->io->datatype == NT)
-    mat = (mod->whichmodel < 10)?(K80_dist(data,2000)):(JC69_Dist(data,mod));
+    mat = (mod->whichmodel < 10)?(K80_dist(data,1E+6)):(JC69_Dist(data,mod));
   else if(mod->io->datatype == AA) mat = JC69_Dist(data,mod);
-  else mat = Hamming_Dist(data,mod);
+  else if(mod->io->datatype == GENERIC) mat = JC69_Dist(data,mod);
+   
 
   For(i,mod->n_catg) /* Don't use the discrete gamma distribution */
     {
@@ -636,21 +637,22 @@ matrix *ML_Dist(calign *data, model *mod)
 
 	  twodata = Compact_Cdata(tmpdata,mod->io);
 	  For(l,mod->ns) twodata->b_frq[l] = data->b_frq[l];
-	  Check_Ambiguities(twodata,mod->io->datatype,1);
-
+	  Check_Ambiguities(twodata,mod->io->datatype,mod->io->state_len);
+	  
 	  Hide_Ambiguities(twodata);
 	  
 	  init = mat->dist[j][k];
 	  if((init == DIST_MAX) || (init < .0)) init = 0.1;
 	  	  
 	  d_max = init;
-	  
+  
 	  For(i,mod->ns*mod->ns) F[i]=.0;
 	  len = 0;
-	  For(l,twodata->c_seq[0]->len)
+ 	  For(l,twodata->c_seq[0]->len)
 	    {
-	      state0 = Assign_State(twodata->c_seq[0]->state+l,mod->io->datatype,mod->io->state_len);
-	      state1 = Assign_State(twodata->c_seq[1]->state+l,mod->io->datatype,mod->io->state_len);
+	      state0 = Assign_State(twodata->c_seq[0]->state+l*mod->io->state_len,mod->io->datatype,mod->io->state_len);
+	      state1 = Assign_State(twodata->c_seq[1]->state+l*mod->io->state_len,mod->io->datatype,mod->io->state_len);
+
 	      if((state0 > -1) && (state1 > -1))
 		{
 		  F[mod->ns*state0+state1] += twodata->wght[l];
@@ -661,7 +663,8 @@ matrix *ML_Dist(calign *data, model *mod)
 	  	  
 	  sum = 0.;
 	  For(i,mod->ns*mod->ns) sum += F[i];
-	  	  
+	  	      
+	      
 	  if(sum < .001) d_max = -1.;
 	  else if((sum > 1. - .001) && (sum < 1. + .001)) Opt_Dist_F(&(d_max),F,mod);
 	  else
@@ -670,17 +673,8 @@ matrix *ML_Dist(calign *data, model *mod)
 	      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
 	      Exit("");
 	    }
-	  
-/* 	  PhyML_Printf("\n. Warning : not using the ML pairwise distances..."); */
-/* 	  d_max = init; */
-	  	  
-	  if(d_max >= DIST_MAX)
-	    {
-/* 	      PhyML_Printf("\n. Large distance encountered between %s and %s sequences.", */
-/* 		     tmpdata->c_seq[1]->name, */
-/* 		     tmpdata->c_seq[0]->name); */
-	      d_max = DIST_MAX;
-	    }
+	  	  	  
+	  if(d_max >= DIST_MAX) d_max = DIST_MAX;
 	  
 	  /* Do not correct for dist < BL_MIN, otherwise Fill_Missing_Dist
 	   *  will not be called
@@ -700,7 +694,7 @@ matrix *ML_Dist(calign *data, model *mod)
   free(tmpdata);
   Free_Eigen(eigen_struct);
   Free(F);
-
+  
   return mat;
 }
 
@@ -1124,7 +1118,7 @@ void Init_P_Lk_Tips_Double(t_tree *tree)
 					   curr_site*dim1+0*dim2,
 					   tree->noeud[i]->b[0]->p_lk_rght);
 
-	  else if(tree->io->datatype == INTEGERS)
+	  else if(tree->io->datatype == GENERIC)
 	    Init_Tips_At_One_Site_Generic_Float(tree->data->c_seq[i]->state+curr_site*tree->io->state_len,
 						tree->mod->ns,
 						tree->io->state_len,
@@ -1170,7 +1164,7 @@ void Init_P_Lk_Tips_Int(t_tree *tree)
 					 curr_site*dim1,					   
 					 tree->noeud[i]->b[0]->p_lk_tip_r);
 
-	  else if(tree->io->datatype == INTEGERS)
+	  else if(tree->io->datatype == GENERIC)
 	    {
 	      Init_Tips_At_One_Site_Generic_Int(tree->data->c_seq[i]->state+curr_site*tree->io->state_len,
 						tree->mod->ns,
@@ -1301,7 +1295,7 @@ phydbl Lk_Dist(phydbl *F, phydbl dist, model *mod)
       else if(len > BL_MAX) len = BL_MAX;
       PMat(len,mod,mod->ns*mod->ns*k,mod->Pij_rr);
     }
-
+  
   dim1 = mod->ns*mod->ns;
   dim2 = mod->ns;
   lnL = .0;
