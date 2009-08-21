@@ -194,11 +194,19 @@ int MC_main(int argc, char **argv)
 		  phydbl *cov;
 		  cov = Hessian(tree);
 		  For(i,(2*tree->n_otu-3)*(2*tree->n_otu-3)) cov[i] *= -1.0;
-		  Matinv(cov,2*tree->n_otu-3,2*tree->n_otu-3);
+		  if(!Matinv(cov,2*tree->n_otu-3,2*tree->n_otu-3))
+		    {
+		      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+		      Exit("\n");      
+		    }
 		  Free(tree->rates->cov); 
 		  tree->rates->cov = cov;
 		  For(i,(2*tree->n_otu-3)*(2*tree->n_otu-3)) tree->rates->invcov[i] = tree->rates->cov[i];
-		  Matinv(tree->rates->invcov,2*tree->n_otu-3,2*tree->n_otu-3);		  
+		  if(!Matinv(tree->rates->invcov,2*tree->n_otu-3,2*tree->n_otu-3))
+		    {
+		      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+		      Exit("\n");      
+		    }
 		  tree->rates->covdet = Matrix_Det(tree->rates->cov,2*tree->n_otu-3,YES);
 		  Restore_Br_Len(NULL,tree);
 
@@ -475,7 +483,11 @@ void MC_Least_Square_Node_Times(t_edge *e_root, t_tree *tree)
   A[root->num * n + root->v[0]->num] = -.5;
   A[root->num * n + root->v[1]->num] = -.5;
     
-  Matinv(A, n, n);
+  if(!Matinv(A, n, n))
+    {
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");      
+    }
 
   For(i,n) x[i] = .0;
   For(i,n) For(j,n) x[i] += A[i*n+j] * b[j];

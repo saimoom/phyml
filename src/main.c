@@ -69,8 +69,6 @@ int main(int argc, char **argv)
   io = (option *)Get_Input(argc,argv);
   r_seed = (io->r_seed < 0)?(time(NULL)):(io->r_seed);
   srand(r_seed); rand();
-  Make_Model_Complete(io->mod);
-  mod = io->mod;
   if(io->in_tree == 2) Test_Multiple_Data_Set_Format(io);
   else io->n_trees = 1;
 
@@ -83,18 +81,20 @@ int main(int argc, char **argv)
       io->n_trees     = MIN(io->n_trees,io->n_data_sets);
     }
 
-  
+
   For(num_data_set,io->n_data_sets)
     {
-
       n_otu = 0;
       best_lnL = UNLIKELY;
       Get_Seq(io);
-      
+      Make_Model_Complete(io->mod);
+      Set_Model_Name(io->mod);
+      Print_Settings(io);
+      mod = io->mod;
+        
       if(io->data)
 	{
 	  if(io->n_data_sets > 1) PhyML_Printf("\n. Data set [#%d]\n",num_data_set+1);
-	  if(!io->quiet) PhyML_Printf("\n. Compressing sequences...\n");
 	  cdata = Compact_Data(io->data,io);
 
 	  Free_Seq(io->data,cdata->n_otu);
@@ -115,7 +115,8 @@ int main(int argc, char **argv)
 		  if((io->mod->s_opt->random_input_tree) && (io->mod->s_opt->topo_search != NNI_MOVE))
 		    if(!io->quiet) PhyML_Printf("\n. [Random start %3d/%3d]\n",num_rand_tree+1,io->mod->s_opt->n_rand_starts);
 
-		  Init_Model(cdata,mod);
+
+		  Init_Model(cdata,mod,io);
 
 		  switch(io->in_tree)
 		    {
@@ -140,7 +141,15 @@ int main(int argc, char **argv)
 		  if((!num_data_set) && (!num_tree) && (!num_rand_tree)) Check_Memory_Amount(tree);
 
 		  if(io->in_tree == 1) Spr_Pars(tree);
-
+		  
+		  int i;
+		  tree->both_sides = 1;
+		  Lk(tree);
+		  For(i,2*tree->n_otu-3)
+		    {
+		      PhyML_Printf("\n. lk = %f",Lk_At_Given_Edge(tree->t_edges[i],tree));
+		    }
+		  
 		  if(tree->mod->s_opt->opt_topo)
 		    {
 		      if(tree->mod->s_opt->topo_search      == NNI_MOVE) Simu_Loop(tree);
@@ -241,13 +250,14 @@ int main(int argc, char **argv)
 	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
 	  Warn_And_Exit("");
 	}
+      Free_Model_Complete(mod);
     }
+  Free_Model_Basic(mod);
 
   if(most_likely_tree) Free(most_likely_tree);
 
   if(io->mod->s_opt->n_rand_starts > 1) PhyML_Printf("\n\n. Best log likelihood : %f\n",best_lnL);
 
-  Free_Model(mod);
 
   if(io->fp_in_align)  fclose(io->fp_in_align);
   if(io->fp_in_tree)   fclose(io->fp_in_tree);

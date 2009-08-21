@@ -86,7 +86,7 @@ int Simu(t_tree *tree, int n_step_max)
       tree->both_sides = 1;
       Lk(tree);
       
-
+      
       if(tree->c_lnL < old_loglk)
 	{
 	  if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n\n. Moving backward\n");

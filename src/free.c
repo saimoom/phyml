@@ -342,28 +342,38 @@ void Free_Edge_Lk(t_tree *tree, t_edge *b)
 
 /*********************************************************/
 
-void Free_Model(model *mod)
+void Free_Model_Complete(model *mod)
 {
-
-  Free(mod->modelname);
-  Free(mod->custom_mod_string);
-  Free(mod->user_b_freq);
-  Free(mod->s_opt);
   Free(mod->pi);
-  Free(mod->pi_unscaled);
   Free(mod->gamma_r_proba);
   Free(mod->gamma_rr);
+  Free(mod->pi_unscaled);
+  Free(mod->Pij_rr);
   Free(mod->qmat);
   Free(mod->qmat_buff);
   Free_Eigen(mod->eigen);
-  Free(mod->Pij_rr);
 
   if(mod->n_rr_branch) 
     {
       Free(mod->rr_branch);
       Free(mod->p_rr_branch);
     }
+}
 
+/*********************************************************/
+
+void Free_Model_Basic(model *mod)
+{
+  Free(mod->modelname);
+  Free(mod->custom_mod_string);
+  Free(mod->user_b_freq);
+  Free(mod);
+}
+
+/*********************************************************/
+
+void Free_Custom_Model(model *mod)
+{
   if(mod->rr)
     {
       Free(mod->rr_num);
@@ -371,6 +381,15 @@ void Free_Model(model *mod)
       Free(mod->rr_val);
       Free(mod->n_rr_per_cat);
     }
+}
+
+/*********************************************************/
+void Free_Model(model *mod)
+{
+
+  Free_Model_Complete(mod);
+  Free_Model_Basic(mod);
+  Free_Custom_Model(mod);
 
   #ifdef M4
   M4_Free_M4_Model(mod->m4mod);

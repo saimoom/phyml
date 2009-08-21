@@ -500,7 +500,11 @@ phydbl Dnorm_Multi(phydbl *x, phydbl *mu, phydbl *cov, int size, int _log)
   For(i,size) xmmu[i] = x[i] - mu[i];
   For(i,size*size) invcov[i] = cov[i];
   
-  Matinv(invcov,size,size);
+  if(!Matinv(invcov,size,size))
+    {
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");      
+    }
 
   buff1 = Matrix_Mult(xmmu,invcov,1,size,size,size);
   buff2 = Matrix_Mult(buff1,xmmu,1,size,size,1);
@@ -1590,7 +1594,11 @@ phydbl *Hessian(t_tree *tree)
 	}
     }
 
-  Matinv(buff,n_ok_edges,n_ok_edges);
+  if(!Matinv(buff,n_ok_edges,n_ok_edges))
+    {
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");      
+    }
 
   For(i,n_ok_edges)
     {
@@ -1644,7 +1652,11 @@ phydbl *Hessian(t_tree *tree)
       }
 
 
-  Matinv(hessian,dim,dim);
+  if(!Matinv(hessian,dim,dim))
+    {
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");
+    }
 
   For(i,dim*dim) hessian[i] = -1.0*hessian[i];
 
@@ -1950,7 +1962,11 @@ phydbl *Hessian_Log(t_tree *tree)
 	}
     }
 
-  Matinv(buff,n_ok_edges,n_ok_edges);
+  if(!Matinv(buff,n_ok_edges,n_ok_edges))
+    {
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");      
+    }
 
   For(i,n_ok_edges)
     {
@@ -1967,7 +1983,11 @@ phydbl *Hessian_Log(t_tree *tree)
 	hessian[i*dim+i] = 1./pow(tree->data->init_len,2);
       }
 
-  Matinv(hessian,dim,dim);
+  if(!Matinv(hessian,dim,dim))
+    {
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");      
+    }
 
   For(i,dim*dim) hessian[i] = -1.0*hessian[i];
 
@@ -2143,7 +2163,6 @@ int Matinv(double *x, int n, int m)
 	  Free(irow);
 	  PhyML_Printf("\n. Determinant becomes zero at %3d!\t\n", i+1);
 	  PhyML_Printf("\n. Failed to invert the matrix.\n");
-	  Exit("\n");
 	  return(0);
 	}
       if (irow[i] != i)
@@ -2408,7 +2427,11 @@ void Normal_Conditional(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is
 	}
     }
 
-  Matinv(sig22,n2,n2);
+  if(!Matinv(sig22,n2,n2))
+    {
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");      
+    }
   sig12_invsig22 = Matrix_Mult(sig12,sig22,n1,n2,n2,n2);
 
   buff = Matrix_Mult(sig12_invsig22,ctrd_a,n1,n2,n2,1);
@@ -2590,7 +2613,11 @@ void Normal_Conditional_Unsorted(phydbl *mu, phydbl *cov, phydbl *a, int n, shor
 	}
     }
 
-  Matinv(sig22,n2,n2);
+  if(!Matinv(sig22,n2,n2))
+    {
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");      
+    }
   sig12_invsig22 = Matrix_Mult(sig12,sig22,n1,n2,n2,n2);
 
   buff = Matrix_Mult(sig12_invsig22,ctrd_a,n1,n2,n2,1);
@@ -2665,7 +2692,11 @@ void Get_Reg_Coeff(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is_1, i
     }
 
 
-  Matinv(sig22,n2,n2);
+  if(!Matinv(sig22,n2,n2))
+    {
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");      
+    }
   sig12_invsig22 = Matrix_Mult(sig12,sig22,n1,n2,n2,n2);
 
 
