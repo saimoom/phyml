@@ -77,7 +77,7 @@ int PART_main(int argc, char **argv)
 	  Init_Model(cdata[part],mod[part],io->st->optionlist[part]);
 	  Check_Ambiguities(cdata[part],
 			    io->st->optionlist[part]->mod->io->datatype,
-			    io->st->optionlist[part]->state_len);
+			    io->st->optionlist[part]->mod->state_len);
 	}
 
       PART_Make_Supert_tree_Full(io->st,io,cdata);
@@ -117,7 +117,7 @@ int PART_main(int argc, char **argv)
 	  treelist->tree[part]->data       = cdata[part];
 	  treelist->tree[part]->both_sides = 1;
 	  treelist->tree[part]->n_pattern  = treelist->tree[part]->data->crunch_len/
-	                                     treelist->tree[part]->io->state_len;
+	                                     treelist->tree[part]->io->mod->state_len;
 
 	  Order_Tree_CSeq(treelist->tree[part],cdata[part]);
 	  Fill_Dir_Table(treelist->tree[part]);

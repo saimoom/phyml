@@ -578,6 +578,9 @@ typedef struct __Model {
   phydbl      *p_rr_branch; /* corresponding frequencies */
   int          n_rr_branch; /* number of classes */
   phydbl   rr_branch_alpha; /* Shape of the gamma distribution that defines the rr_branch and p_rr_branch values */
+
+  int            state_len;
+
 }model;
 
 /*********************************************************/
@@ -671,8 +674,6 @@ typedef struct __Option { /* mostly used in 'help.c' */
   char                *run_id_string;
   int                          quiet; /* 0 is the default. 1: no interactive question (for batch mode) */
   char                    **alphabet;
-  int                  alphabet_size;
-  int                      state_len;
 
 }option;
 
