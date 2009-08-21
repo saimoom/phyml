@@ -99,7 +99,7 @@ int main(int argc, char **argv)
 
 	  Free_Seq(io->data,cdata->n_otu);
 	  
-	  if(cdata) Check_Ambiguities(cdata,io->datatype,io->state_len);
+	  if(cdata) Check_Ambiguities(cdata,io->datatype,io->mod->state_len);
 	  else
 	    {
 	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);

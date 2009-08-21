@@ -151,9 +151,9 @@ void Init_P_Pars_Tips(t_tree *tree)
 	    }
 	  else if(tree->io->datatype == GENERIC)
 	    {
-	      Init_Tips_At_One_Site_Generic_Int(tree->data->c_seq[i]->state+curr_site*tree->io->state_len,
+	      Init_Tips_At_One_Site_Generic_Int(tree->data->c_seq[i]->state+curr_site*tree->mod->state_len,
 						tree->mod->ns,
-						tree->io->state_len,
+						tree->mod->state_len,
 						0,
 						state_v);
 	      For(j,tree->mod->ns) tree->noeud[i]->b[0]->p_pars_r[curr_site*dim1+j] = MAX_PARS;
@@ -201,9 +201,9 @@ void Init_Ui_Tips(t_tree *tree)
 	    }
 	  else if(tree->io->datatype == GENERIC)
 	    {
-	      Init_Tips_At_One_Site_Generic_Int(tree->data->c_seq[i]->state+curr_site*tree->io->state_len,
+	      Init_Tips_At_One_Site_Generic_Int(tree->data->c_seq[i]->state+curr_site*tree->mod->state_len,
 						tree->mod->ns,
-						tree->io->state_len,
+						tree->mod->state_len,
 						0,
 						state_v);
 	      tree->noeud[i]->b[0]->ui_r[curr_site] = 0;

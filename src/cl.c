@@ -438,8 +438,8 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	    if(!strcmp(optarg,"nt"))
 	      {
 		io->datatype      = NT;
-		io->alphabet_size = 4;
-		io->state_len     = 1;
+		io->mod->ns = 4;
+		io->mod->state_len     = 1;
 
 		if(
 		   (io->mod->whichmodel == LG)       ||
@@ -466,9 +466,9 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	    else if (!strcmp(optarg,"aa"))
 	      {
 		io->datatype              = AA;
-		io->state_len             = 1;
+		io->mod->state_len             = 1;
 		io->mod->s_opt->opt_kappa = 0;
-		io->alphabet_size         = 20;
+		io->mod->ns         = 20;
 		if(
 		   (io->mod->whichmodel == JC69)   ||
 		   (io->mod->whichmodel == K80)    ||
@@ -1075,7 +1075,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
     if(io->m4_model == YES)
       {
 #ifdef M4
-	io->alphabet_size *= io->mod->m4mod->n_h;
+	io->mod->ns *= io->mod->m4mod->n_h;
 	io->mod->use_m4mod = 1;
 	M4_Make_Complete(io->mod->m4mod->n_h,
 			 io->mod->m4mod->n_o,

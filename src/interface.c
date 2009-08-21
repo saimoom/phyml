@@ -92,7 +92,7 @@ void Launch_Interface(option *io)
   if(io->m4_model == YES)
     {
 #ifdef M4
-      io->alphabet_size *= io->mod->m4mod->n_h;
+      io->mod->ns *= io->mod->m4mod->n_h;
       io->mod->use_m4mod = 1;
       M4_Make_Complete(io->mod->m4mod->n_h,
 		       io->mod->m4mod->n_o,
@@ -487,8 +487,8 @@ void Launch_Interface_Data_Type(option *io)
 	if(io->datatype == NT)
 	  {
 	    io->datatype              = AA;
-	    io->state_len             = 1;
-	    io->alphabet_size         = 20;
+	    io->mod->state_len             = 1;
+	    io->mod->ns         = 20;
 	    io->mod->s_opt->opt_kappa = 0;
 	    io->mod->whichmodel       = LG;
 	    strcpy(io->mod->modelname,"LG");
@@ -503,8 +503,8 @@ void Launch_Interface_Data_Type(option *io)
 	else if(io->datatype == GENERIC)
 	  {
 	    io->datatype              = NT;
-	    io->state_len             = 1;
-	    io->alphabet_size         = 4;
+	    io->mod->state_len             = 1;
+	    io->mod->ns         = 4;
 	    io->mod->whichmodel       = HKY85;
 	    strcpy(io->mod->modelname,"HKY85");
 	    strcpy(io->nt_or_cd,"nucleotides");

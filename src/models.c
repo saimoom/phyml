@@ -2144,7 +2144,7 @@ void Init_Model(calign *data, model *mod, option *io)
   int result;
   double *dr, *di, *space;
 
-  mod->ns = io->alphabet_size;
+  mod->ns = io->mod->ns;
 
   if(io->datatype == GENERIC) mod->whichmodel = JC69;
 

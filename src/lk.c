@@ -637,7 +637,7 @@ matrix *ML_Dist(calign *data, model *mod)
 
 	  twodata = Compact_Cdata(tmpdata,mod->io);
 	  For(l,mod->ns) twodata->b_frq[l] = data->b_frq[l];
-	  Check_Ambiguities(twodata,mod->io->datatype,mod->io->state_len);
+	  Check_Ambiguities(twodata,mod->io->datatype,mod->io->mod->state_len);
 	  
 	  Hide_Ambiguities(twodata);
 	  
@@ -650,8 +650,8 @@ matrix *ML_Dist(calign *data, model *mod)
 	  len = 0;
  	  For(l,twodata->c_seq[0]->len)
 	    {
-	      state0 = Assign_State(twodata->c_seq[0]->state+l*mod->io->state_len,mod->io->datatype,mod->io->state_len);
-	      state1 = Assign_State(twodata->c_seq[1]->state+l*mod->io->state_len,mod->io->datatype,mod->io->state_len);
+	      state0 = Assign_State(twodata->c_seq[0]->state+l*mod->io->mod->state_len,mod->io->datatype,mod->io->mod->state_len);
+	      state1 = Assign_State(twodata->c_seq[1]->state+l*mod->io->mod->state_len,mod->io->datatype,mod->io->mod->state_len);
 
 	      if((state0 > -1) && (state1 > -1))
 		{
@@ -1119,9 +1119,9 @@ void Init_P_Lk_Tips_Double(t_tree *tree)
 					   tree->noeud[i]->b[0]->p_lk_rght);
 
 	  else if(tree->io->datatype == GENERIC)
-	    Init_Tips_At_One_Site_Generic_Float(tree->data->c_seq[i]->state+curr_site*tree->io->state_len,
+	    Init_Tips_At_One_Site_Generic_Float(tree->data->c_seq[i]->state+curr_site*tree->mod->state_len,
 						tree->mod->ns,
-						tree->io->state_len,
+						tree->mod->state_len,
 						curr_site*dim1+0*dim2,
 						tree->noeud[i]->b[0]->p_lk_rght);
 
@@ -1166,9 +1166,9 @@ void Init_P_Lk_Tips_Int(t_tree *tree)
 
 	  else if(tree->io->datatype == GENERIC)
 	    {
-	      Init_Tips_At_One_Site_Generic_Int(tree->data->c_seq[i]->state+curr_site*tree->io->state_len,
+	      Init_Tips_At_One_Site_Generic_Int(tree->data->c_seq[i]->state+curr_site*tree->mod->state_len,
 						tree->mod->ns,
-						tree->io->state_len,
+						tree->mod->state_len,
 						curr_site*dim1,
 						tree->noeud[i]->b[0]->p_lk_tip_r);
 	    }

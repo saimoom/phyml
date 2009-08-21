@@ -102,7 +102,7 @@ int MC_main(int argc, char **argv)
 	  PhyML_Printf("\n. Compressing sequences...\n");
 	  cdata = Compact_Data(data,io);
 	  Free_Seq(data,cdata->n_otu);
-	  Check_Ambiguities(cdata,io->mod->io->datatype,io->state_len);
+	  Check_Ambiguities(cdata,io->mod->io->datatype,io->mod->state_len);
 
 	  for(num_tree=(io->n_trees == 1)?(0):(num_data_set);num_tree < io->n_trees;num_tree++)
 	    {
@@ -143,7 +143,7 @@ int MC_main(int argc, char **argv)
 		  tree->io          = io;
 		  tree->data        = cdata;
 		  tree->both_sides  = 1;
-		  tree->n_pattern   = tree->data->crunch_len/tree->io->state_len;
+		  tree->n_pattern   = tree->data->crunch_len/tree->mod->state_len;
 
 /*  		  For(i,tree->n_otu) strcpy(tree->noeud[i]->name,cdata->c_seq[i]->name); */
 
