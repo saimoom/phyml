@@ -103,23 +103,8 @@ void Free_Tree(t_tree *tree)
   
   Free(tree->curr_path);
 
-  For(i,2*tree->n_otu-3)
-    {
-      b = tree->t_edges[i];
-      Free_Edge(b);
-    }
-  Free(tree->t_edges);
-
-
-  For(i,2*tree->n_otu-2)
-    {
-      n = tree->noeud[i];
-      Free_Node(n);
-    }
-
-  if(tree->n_root) Free_Node(tree->noeud[i+1]);
-
-  Free(tree->noeud);
+  Free_All_Edges_Light(tree);
+  Free_All_Nodes_Light(tree);
 
   Free(tree);
 }
