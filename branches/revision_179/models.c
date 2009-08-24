@@ -2264,7 +2264,7 @@ void Init_Model(allseq *data, model *mod)
     }
   if(mod->s_opt->opt_pinvar) 
     {
-      mod->alpha = 0.2;
+      mod->pinvar = 0.2;
     }
   
 
