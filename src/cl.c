@@ -501,6 +501,10 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	    
 	  case 'm': case 5 :
 	    {
+	      int i;
+
+	      For(i,strlen(optarg)) Uppercase(optarg+i);
+	      
 	      if(!isalpha(optarg[0]))
 		{
 		  strcpy(io->mod->custom_mod_string,optarg);
@@ -557,7 +561,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		  io->datatype              = NT;
 		  io->mod->whichmodel       = GTR;
 		}
-	      else if(strcmp(optarg, "Dayhoff") == 0)
+	      else if(strcmp(optarg, "DAYHOFF") == 0)
 		{
 		  io->datatype              = AA;
 		  io->mod->whichmodel       = DAYHOFF;
@@ -567,7 +571,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		  io->datatype              = AA;
 		  io->mod->whichmodel       = JTT;
 		}
-	      else if(strcmp(optarg, "MtREV") == 0)
+	      else if(strcmp(optarg, "MTREV") == 0)
 		{
 		  io->datatype             = AA;
 		  io->mod->whichmodel      = MTREV;
@@ -582,17 +586,17 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		  io->datatype              = AA;
 		  io->mod->whichmodel       = WAG;
 		}
-	      else if(strcmp(optarg, "DCMut") == 0)
+	      else if(strcmp(optarg, "DCMUT") == 0)
 		{
 		  io->datatype              = AA;
 		  io->mod->whichmodel       = DCMUT;
 		}
-	      else if(strcmp (optarg, "RtREV") == 0)
+	      else if(strcmp (optarg, "RTREV") == 0)
 		{
 		  io->datatype              = AA;
 		  io->mod->whichmodel       = RTREV;
 		}
-	      else if(strcmp(optarg, "CpREV") == 0)
+	      else if(strcmp(optarg, "CPREV") == 0)
 		{
 		  io->datatype              = AA;
 		  io->mod->whichmodel       = CPREV;
@@ -602,32 +606,32 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		  io->datatype              = AA;
 		  io->mod->whichmodel       = VT;
 		}
-	      else if(strcmp(optarg, "Blosum62") == 0)
+	      else if(strcmp(optarg, "BLOSUM62") == 0)
 		{
 		  io->datatype              = AA;
 		  io->mod->whichmodel       = BLOSUM62;
 		}
-	      else if(strcmp(optarg, "MtMam") == 0)
+	      else if(strcmp(optarg, "MTMAM") == 0)
 		{
 		  io->datatype              = AA;
 		  io->mod->whichmodel       = MTMAM;
 		}
-	      else if (strcmp(optarg,"MtArt") == 0)
+	      else if (strcmp(optarg,"MTART") == 0)
 		{
 		  io->datatype              = AA;
 		  io->mod->whichmodel       = MTART;
 		}
-	      else if (strcmp(optarg,"HIVw") == 0)
+	      else if (strcmp(optarg,"HIVW") == 0)
 		{
 		  io->datatype              = AA;
 		  io->mod->whichmodel       = HIVW;
 		}
-	      else if(strcmp(optarg, "HIVb") == 0)
+	      else if(strcmp(optarg, "HIVB") == 0)
 		{
 		  io->datatype              = AA;
 		  io->mod->whichmodel       = HIVB;
 		}
-	      else if (strcmp(optarg, "custom") == 0)
+	      else if (strcmp(optarg, "CUSTOM") == 0)
 		{
 		  io->datatype              = AA;
 		  io->mod->whichmodel       = CUSTOMAA;
