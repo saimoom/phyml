@@ -3589,7 +3589,7 @@ void Speed_Spr_Loop(t_tree *tree)
     }while(1);
   /*****************************/
 
-  if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n");
+/*   if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n"); */
 
 }
 /*********************************************************/
@@ -3625,6 +3625,7 @@ void Speed_Spr(t_tree *tree, int max_cycles)
 
       old_lnL  = tree->c_lnL;
       old_pars = tree->c_pars;
+
 
       tree->n_improvements         = 0;
       tree->perform_spr_right_away = 1;
@@ -3969,7 +3970,7 @@ int Try_One_Spr_Move_Triple(spr *move, t_tree *tree)
 
       if(fabs(tree->c_lnL - move->lnL) > 1.E-3)
 	{
-	  if(tree->mod->s_opt->print) PhyML_Printf("\n. c_lnL = %f move_lnL = %f",
+	  if(tree->mod->s_opt->print) PhyML_Printf("\n. c_lnL = %f move_lnL = %f\n",
 						   tree->c_lnL,move->lnL);
 	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
 	  Warn_And_Exit("");

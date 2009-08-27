@@ -371,7 +371,8 @@ char **Sub_Trees(char *tree, int *degree)
 
 
       strncpy(subs[(*degree)],tree+posbeg,posend-posbeg+1);
-      strcat(subs[(*degree)],"\0");
+/*       strcat(subs[(*degree)],"\0"); */
+      subs[(*degree)][posend-posbeg+1]='\0'; /* Thanks to Jean-Baka Domelevo-Entfellner */
 
       posend += 1;
       while((tree[posend] != ',') &&
@@ -3027,7 +3028,11 @@ void Order_Tree_CSeq(t_tree *tree, calign *cdata)
     n_otu_tree  = tree->n_otu;
     n_otu_cdata = cdata->n_otu;
 
-    if(n_otu_tree != n_otu_cdata) Warn_And_Exit("\n. The number of tips in the tree is not the same as the number of sequences\n");
+    if(n_otu_tree != n_otu_cdata) 
+      {
+	PhyML_Printf("\n. Number of taxa in the tree: %d, number of sequences: %d.\n",n_otu_tree,n_otu_cdata);
+	Warn_And_Exit("\n. The number of tips in the tree is not the same as the number of sequences\n");
+      }
 
     For(i,MAX(n_otu_tree,n_otu_cdata))
       {
@@ -5782,11 +5787,13 @@ void Set_Defaults_Model(model *mod)
   mod->n_rr_branch             = 0;
   mod->rr_branch_alpha         = 0.1;
   mod->gamma_median            = 0;
+  mod->state_len               = 1;
   mod->m4mod                   = NULL;
   mod->rr                      = NULL;
   mod->rr_val                  = NULL;
   mod->n_rr_per_cat            = NULL;
   mod->io                      = NULL;
+  
 }
 
 /*********************************************************/
@@ -8155,6 +8162,9 @@ void Random_Tree(t_tree *tree)
 {
   int *is_available,*list_of_nodes;
   int i,node_num,step,n_available;
+  phydbl min_edge_len;
+
+  min_edge_len = 1.E-3;
 
   PhyML_Printf("\n. Randomising the tree...\n");
 
@@ -8202,8 +8212,9 @@ void Random_Tree(t_tree *tree)
 
   tree->num_curr_branch_available = 0;
   Connect_Edges_To_Nodes_Recur(tree->noeud[0],tree->noeud[0]->v[0],tree);
-/*   Print_Node(tree->noeud[0],tree->noeud[0]->v[0],tree); */
   
+  For(i,2*tree->n_otu-3) if(tree->t_edges[i]->l < min_edge_len) tree->t_edges[i]->l = min_edge_len;
+
   Fill_Dir_Table(tree);
   Update_Dirs(tree);
   
@@ -8290,9 +8301,9 @@ void Print_Settings(option *io)
 	  (io->mod->whichmodel == TN93))
 	{
 	  if (io->mod->s_opt->opt_kappa)
-	    PhyML_Printf("\n                . Ts/tv ratio:\t\t\t\t estimated");
+	    PhyML_Printf("\n                . Ts/tv ratio:\t\t\t\t\t estimated");
 	  else
-	    PhyML_Printf("\n                . Ts/tv ratio:\t\t\t\t %f", io->mod->kappa);
+	    PhyML_Printf("\n                . Ts/tv ratio:\t\t\t\t\t %f", io->mod->kappa);
 	}
     }
 
@@ -8306,7 +8317,7 @@ void Print_Settings(option *io)
   if(io->mod->s_opt->opt_alpha)
     PhyML_Printf("\n                . Gamma distribution parameter:\t\t\t estimated");
   else
-    PhyML_Printf("\n                . Gamma distribution parameter:\t\t %f", io->mod->alpha);
+    PhyML_Printf("\n                . Gamma distribution parameter:\t\t\t %f", io->mod->alpha);
   
   if(io->mod->n_catg > 1)
     PhyML_Printf("\n                . 'Middle' of each rate class:\t\t\t %s",(io->mod->gamma_median)?("median"):("mean"));
@@ -9903,7 +9914,7 @@ void Print_Time_Info(time_t t_beg, time_t t_end)
   min  = div(t_end-t_beg,60  );
   min.quot -= hour.quot*60;
 
-  PhyML_Printf("\n\n. Time used %dh%dm%ds\n", hour.quot,min.quot,(int)(t_end-t_beg)%60);
+  PhyML_Printf("\n. Time used %dh%dm%ds\n", hour.quot,min.quot,(int)(t_end-t_beg)%60);
   PhyML_Printf("\noooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo\n");
 }
 
@@ -10011,7 +10022,6 @@ char *aLRT_From_String(char *s_tree, calign *cdata, model *mod, option *io)
 void Prepare_Tree_For_Lk(t_tree *tree)
 {
   Order_Tree_CSeq(tree,tree->data);
-  if(tree->mod->s_opt->random_input_tree) Random_Tree(tree);
   Fill_Dir_Table(tree);
   Update_Dirs(tree);
   Make_Tree_4_Pars(tree,tree->data,tree->data->init_len);

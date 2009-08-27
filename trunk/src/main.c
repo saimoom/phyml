@@ -136,19 +136,13 @@ int main(int argc, char **argv)
 		  tree->both_sides  = 1;
 		  tree->n_pattern   = tree->data->crunch_len;
 
+		  if(mod->s_opt->random_input_tree) Random_Tree(tree);
+
 		  Prepare_Tree_For_Lk(tree);
 
 		  if((!num_data_set) && (!num_tree) && (!num_rand_tree)) Check_Memory_Amount(tree);
 
 		  if(io->in_tree == 1) Spr_Pars(tree);
-		  
-		  int i;
-		  tree->both_sides = 1;
-		  Lk(tree);
-		  For(i,2*tree->n_otu-3)
-		    {
-		      PhyML_Printf("\n. lk = %f",Lk_At_Given_Edge(tree->t_edges[i],tree));
-		    }
 		  
 		  if(tree->mod->s_opt->opt_topo)
 		    {
@@ -255,7 +249,7 @@ int main(int argc, char **argv)
   
   if(most_likely_tree) Free(most_likely_tree);
 
-  if(mod->s_opt->n_rand_starts > 1) PhyML_Printf("\n\n. Best log likelihood : %f\n",best_lnL);
+  if(mod->s_opt->n_rand_starts > 1) PhyML_Printf("\n. Best log likelihood: %f\n",best_lnL);
 
   Free_Optimiz(mod->s_opt);
   Free_Model_Basic(mod);
