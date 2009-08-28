@@ -795,9 +795,9 @@ void RATES_Init_Rate_Struct(trate *rates, int n_otu)
   rates->bl_from_rt    = 0;
   rates->lk_approx     = NO;
 
-  rates->z_max         = 5.;
+/*   rates->z_max         = 5.; */
 /*   rates->z_max         = 1.96; */
-/*   rates->z_max         = 3.1; /\* Quantile for p=0.001 *\/ */
+  rates->z_max         = 3.1; /* Quantile for p=0.001 */
 
   rates->true_tree_size = 0.0;
 
