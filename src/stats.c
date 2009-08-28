@@ -1427,7 +1427,7 @@ phydbl *Hessian(t_tree *tree)
   phydbl lnL,lnL1,lnL2;
 
   dim = 2*tree->n_otu-3;
-  eps = 0.001;
+  eps = 0.01;
 
   hessian     = (phydbl *)mCalloc((int)dim*dim,sizeof(phydbl));
   ori_bl      = (phydbl *)mCalloc((int)dim,sizeof(phydbl));
