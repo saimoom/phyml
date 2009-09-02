@@ -2735,7 +2735,7 @@ void Get_Reg_Coeff(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is_1, i
 
 /*********************************************************/
 
-phydbl Cond_Var_Norm_Trunc(phydbl mu, phydbl sd, phydbl a, phydbl b)
+phydbl Norm_Trunc_Sd(phydbl mu, phydbl sd, phydbl a, phydbl b)
 {
   phydbl pdfa, pdfb;
   phydbl cdfa, cdfb;
@@ -2764,12 +2764,12 @@ phydbl Cond_Var_Norm_Trunc(phydbl mu, phydbl sd, phydbl a, phydbl b)
 	    
   cond_var = sd*sd*(1. + (ctra*pdfa - ctrb*pdfb)/cdfbmcdfa - pow((pdfa - pdfb)/cdfbmcdfa,2));
 
-  return cond_var;
+  return sqrt(cond_var);
 }
 
 /*********************************************************/
 
-phydbl Cond_Exp_Norm_Trunc(phydbl mu, phydbl sd, phydbl a, phydbl b)
+phydbl Norm_Trunc_Mean(phydbl mu, phydbl sd, phydbl a, phydbl b)
 {
   phydbl pdfa, pdfb;
   phydbl cdfa, cdfb;
@@ -2800,3 +2800,48 @@ phydbl Cond_Exp_Norm_Trunc(phydbl mu, phydbl sd, phydbl a, phydbl b)
 
   return cond_mu;
 }
+
+/*********************************************************/
+
+void Norm_Trunc_Mean_Sd(phydbl mu, phydbl sd, phydbl a, phydbl b, phydbl *trunc_mu, phydbl *trunc_sd)
+{
+
+  phydbl pdfa, pdfb;
+  phydbl cdfa, cdfb;
+  phydbl ctra, ctrb;
+  phydbl cdfbmcdfa;
+
+  ctra = (a - mu)/sd;
+  ctrb = (b - mu)/sd;
+
+  pdfa = Dnorm(ctra,0.0,1.0);
+  pdfb = Dnorm(ctrb,0.0,1.0);
+
+  cdfa = Pnorm(ctra,0.0,1.0);
+  cdfb = Pnorm(ctrb,0.0,1.0);
+  
+  cdfbmcdfa = cdfb - cdfa;
+
+  if(cdfbmcdfa < MDBL_MIN)
+    {
+      cdfbmcdfa = MDBL_MIN;
+      PhyML_Printf("\n. mu=%G sd=%G a=%G b=%G",mu,sd,a,b);
+      PhyML_Printf("\n. cdfa=%G cdfb=%G",cdfa,cdfb);
+      PhyML_Printf("\n. Numerical precision issue detected.");
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+    }
+  
+  *trunc_mu = mu + sd*(pdfa - pdfb)/cdfbmcdfa;
+  *trunc_sd = sd*sd*(1. + (ctra*pdfa - ctrb*pdfb)/cdfbmcdfa - pow((pdfa - pdfb)/cdfbmcdfa,2));
+  *trunc_sd = sqrt(*trunc_sd);
+}
+
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/

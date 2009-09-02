@@ -71,6 +71,7 @@ int MC_main(int argc, char **argv)
 /*   r_seed = 1249275704; */
 /*   r_seed = 1249289122; */
 /*   r_seed = 1249298808; */
+/*   r_seed = 1251773761; */
   srand(r_seed); rand();
   PhyML_Printf("\n. Seed: %d\n",r_seed);
   PhyML_Printf("\n. Pid: %d\n",getpid());
@@ -243,7 +244,7 @@ int MC_main(int argc, char **argv)
 		  
 		  time(&t_beg);
 		  PhyML_Printf("\n. Gibbs sampling (approx)...\n");
-		  tree->mcmc->n_tot_run  = 1E+8;
+		  tree->mcmc->n_tot_run = 1E+8;
 		  phydbl u;
 		  do
 		    {
