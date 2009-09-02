@@ -134,7 +134,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  BL_MIN             1.e-4
 #endif
 #define  BL_START          1.e-04
-#define  BL_MAX             100.0
+#define  BL_MAX               2.0
 #define  GOLDEN_R      0.61803399
 #define  GOLDEN_C  (1.0-GOLDEN_R)
 #define  N_MAX_INSERT          20

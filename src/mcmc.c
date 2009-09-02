@@ -376,9 +376,11 @@ void MCMC_Times_Pre(t_node *a, t_node *d, int local, t_tree *tree)
   u2 = tree->rates->nd_r[v2->num];
   u3 = tree->rates->nd_r[v3->num];
 
-  t_min =     t0 + (1./tree->rates->nu)*pow((u1-u0)/tree->rates->z_max,2);
-  t_max = MIN(t2 - (1./tree->rates->nu)*pow((u1-u2)/tree->rates->z_max,2),
-	      t3 - (1./tree->rates->nu)*pow((u1-u3)/tree->rates->z_max,2));
+/*   t_min =     t0 + (1./tree->rates->nu)*pow((u1-u0)/tree->rates->z_max,2); */
+/*   t_max = MIN(t2 - (1./tree->rates->nu)*pow((u1-u2)/tree->rates->z_max,2), */
+/* 	      t3 - (1./tree->rates->nu)*pow((u1-u3)/tree->rates->z_max,2)); */
+  t_min = t0;
+  t_max = MIN(t2,t3);
 
   t_min = MAX(t_min,tree->rates->t_prior_min[d->num]);
   t_max = MIN(t_max,tree->rates->t_prior_max[d->num]);
@@ -425,7 +427,7 @@ void MCMC_Times_Pre(t_node *a, t_node *d, int local, t_tree *tree)
       new_lnL_data = Lk(tree);
 
 /*       ratio = new_lnL_data - cur_lnL_data; */
-      
+
       ratio =
 	(new_lnL_data + log(fabs(new_t))) -
 	(cur_lnL_data + log(fabs(cur_t)));
@@ -472,7 +474,6 @@ void MCMC_Time_Root(t_tree *tree)
   phydbl u0,u2,u3;
   t_node *root;
 
-
   RATES_Record_Times(tree);
   
   root = tree->n_root;
@@ -508,8 +509,9 @@ void MCMC_Time_Root(t_tree *tree)
   u0 = 1.0;
 
   t_min = tree->rates->t_prior_min[root->num];
-  t_max = MIN(t2 - (1./tree->rates->nu)*pow((u0-u2)/tree->rates->z_max,2), 
-	      t3 - (1./tree->rates->nu)*pow((u0-u3)/tree->rates->z_max,2));
+/*   t_max = MIN(t2 - (1./tree->rates->nu)*pow((u0-u2)/tree->rates->z_max,2),  */
+/* 	      t3 - (1./tree->rates->nu)*pow((u0-u3)/tree->rates->z_max,2)); */
+  t_max = MIN(t2,t3);
 
   t_min = MAX(t_min,tree->rates->t_prior_min[root->num]);
   t_max = MIN(t_max,tree->rates->t_prior_max[root->num]);
@@ -545,12 +547,18 @@ void MCMC_Time_Root(t_tree *tree)
 
   tree->rates->nd_t[root->num] = new_t;
   
+  RATES_Update_Cur_Bl(tree);
+  
   new_lnL_rate = RATES_Lk_Rates(tree); /* Rates likelihood needs to be updated here because variances of rates have changed */
   new_lnL_data = Lk(tree);
-  
+
   ratio =
     (new_lnL_data + log(fabs(new_t))) -
     (cur_lnL_data + log(fabs(cur_t)));
+
+/*   ratio = */
+/*     (new_lnL_data) - (cur_lnL_data); */
+
 
   ratio = exp(ratio);
   alpha = MIN(1.,ratio);
@@ -559,6 +567,7 @@ void MCMC_Time_Root(t_tree *tree)
   if(u > alpha) /* Reject */
     {
       RATES_Reset_Times(tree);
+      RATES_Update_Cur_Bl(tree);
       tree->c_lnL        = cur_lnL_data;
       tree->rates->c_lnL = cur_lnL_rate;
     }
@@ -1138,8 +1147,10 @@ void MCMC_Randomize_Rates_Pre(t_node *a, t_node *d, t_tree *tree)
 
   mean_r = tree->rates->nd_r[a->num];
   var_r  = tree->rates->nu * (tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num]);
-  min_r  = tree->rates->nd_r[a->num] - tree->rates->z_max * sqrt(tree->rates->nu * (tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num]));
-  max_r  = tree->rates->nd_r[a->num] + tree->rates->z_max * sqrt(tree->rates->nu * (tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num]));
+/*   min_r  = tree->rates->nd_r[a->num] - tree->rates->z_max * sqrt(tree->rates->nu * (tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num])); */
+/*   max_r  = tree->rates->nd_r[a->num] + tree->rates->z_max * sqrt(tree->rates->nu * (tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num])); */
+  min_r  = tree->rates->nd_r[a->num];
+  max_r  = tree->rates->nd_r[a->num];
   min_r  = MAX(min_r,tree->rates->min_rate);
   max_r  = MIN(max_r,tree->rates->max_rate);
   
