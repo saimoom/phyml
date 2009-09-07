@@ -250,6 +250,8 @@ void MCMC_One_Rate(t_node *a, t_node *d, t_tree *tree)
   phydbl r_min, r_max;
   phydbl nu;
  
+/*   if(a == tree->n_root) { tree->rates->nd_r[d->num] = 1.0; return; } */
+
   nu           = tree->rates->nu;
   cur_mu       = tree->rates->nd_r[d->num];
   cur_lnL_data = tree->c_lnL;
@@ -376,11 +378,11 @@ void MCMC_Times_Pre(t_node *a, t_node *d, int local, t_tree *tree)
   u2 = tree->rates->nd_r[v2->num];
   u3 = tree->rates->nd_r[v3->num];
 
-/*   t_min =     t0 + (1./tree->rates->nu)*pow((u1-u0)/tree->rates->z_max,2); */
-/*   t_max = MIN(t2 - (1./tree->rates->nu)*pow((u1-u2)/tree->rates->z_max,2), */
-/* 	      t3 - (1./tree->rates->nu)*pow((u1-u3)/tree->rates->z_max,2)); */
-  t_min = t0;
-  t_max = MIN(t2,t3);
+  t_min =     t0 + (1./tree->rates->nu)*pow((u1-u0)/tree->rates->z_max,2);
+  t_max = MIN(t2 - (1./tree->rates->nu)*pow((u1-u2)/tree->rates->z_max,2),
+	      t3 - (1./tree->rates->nu)*pow((u1-u3)/tree->rates->z_max,2));
+/*   t_min = t0; */
+/*   t_max = MIN(t2,t3); */
 
   t_min = MAX(t_min,tree->rates->t_prior_min[d->num]);
   t_max = MIN(t_max,tree->rates->t_prior_max[d->num]);
@@ -509,9 +511,9 @@ void MCMC_Time_Root(t_tree *tree)
   u0 = 1.0;
 
   t_min = tree->rates->t_prior_min[root->num];
-/*   t_max = MIN(t2 - (1./tree->rates->nu)*pow((u0-u2)/tree->rates->z_max,2),  */
-/* 	      t3 - (1./tree->rates->nu)*pow((u0-u3)/tree->rates->z_max,2)); */
-  t_max = MIN(t2,t3);
+  t_max = MIN(t2 - (1./tree->rates->nu)*pow((u0-u2)/tree->rates->z_max,2),
+	      t3 - (1./tree->rates->nu)*pow((u0-u3)/tree->rates->z_max,2));
+/*   t_max = MIN(t2,t3); */
 
   t_min = MAX(t_min,tree->rates->t_prior_min[root->num]);
   t_max = MIN(t_max,tree->rates->t_prior_max[root->num]);
@@ -1034,7 +1036,7 @@ void MCMC_Init_MCMC_Struct(char *filename, tmcmc *mcmc, t_tree *tree)
   mcmc->n_rate_jumps    = 0;
   mcmc->n_tot_run       = 1.E+6;
   mcmc->randomize       = 1;
-  mcmc->norm_freq       = 1000;
+  mcmc->norm_freq       = 1E+3;
 
   if(filename)
     {
@@ -1147,10 +1149,10 @@ void MCMC_Randomize_Rates_Pre(t_node *a, t_node *d, t_tree *tree)
 
   mean_r = tree->rates->nd_r[a->num];
   var_r  = tree->rates->nu * (tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num]);
-/*   min_r  = tree->rates->nd_r[a->num] - tree->rates->z_max * sqrt(tree->rates->nu * (tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num])); */
-/*   max_r  = tree->rates->nd_r[a->num] + tree->rates->z_max * sqrt(tree->rates->nu * (tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num])); */
-  min_r  = tree->rates->nd_r[a->num];
-  max_r  = tree->rates->nd_r[a->num];
+  min_r  = tree->rates->nd_r[a->num] - tree->rates->z_max * sqrt(tree->rates->nu * (tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num]));
+  max_r  = tree->rates->nd_r[a->num] + tree->rates->z_max * sqrt(tree->rates->nu * (tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num]));
+/*   min_r  = tree->rates->nd_r[a->num]; */
+/*   max_r  = tree->rates->nd_r[a->num]; */
   min_r  = MAX(min_r,tree->rates->min_rate);
   max_r  = MIN(max_r,tree->rates->max_rate);
   
@@ -1427,10 +1429,10 @@ void MCMC_Randomize_Node_Times_Top_Down(t_node *a, t_node *d, t_tree *tree)
 	  	  
       if(t_inf > t_sup)
 	{
-	  PhyML_Printf("\n. t_inf=%f t_sup=%f",t_inf,t_sup);
-	  PhyML_Printf("\n. prior_min=%f prior_max=%f",tree->rates->t_prior_min[d->num],tree->rates->t_prior_max[d->num]);
+	  PhyML_Printf("\n. t_inf=%f t_sup=%f.",t_inf,t_sup);
+	  PhyML_Printf("\n. prior_min=%f prior_max=%f.",tree->rates->t_prior_min[d->num],tree->rates->t_prior_max[d->num]);
 	  PhyML_Printf("\n. Inconsistency in the prior settings detected at t_node %d",d->num);
-	  PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
+	  PhyML_Printf("\n. Err in file %s at line %d",__FILE__,__LINE__);
 	  Warn_And_Exit("\n");
 	}
 	  
