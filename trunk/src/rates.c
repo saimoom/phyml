@@ -776,8 +776,8 @@ void RATES_Init_Rate_Struct(trate *rates, int n_otu)
   rates->alpha         = 2.;
   rates->birth_rate    = 0.001;
 
-  rates->max_rate      = 5.;
-  rates->min_rate      = 0.02;
+  rates->max_rate      = 10.;
+  rates->min_rate      = 0.1;
 
   rates->clock_r       = 2.E-5;
   rates->max_clock     = 1.E-0;
@@ -796,8 +796,8 @@ void RATES_Init_Rate_Struct(trate *rates, int n_otu)
   rates->lk_approx     = NO;
 
 /*   rates->z_max         = 10.; */
-  rates->z_max         = 1.96;
-/*   rates->z_max         = 3.1; /\* Quantile for p=0.001 *\/ */
+/*   rates->z_max         = 1.96; */
+  rates->z_max         = 3.1; /* Quantile for p=0.001 */
 
   rates->true_tree_size = 0.0;
 
@@ -1872,10 +1872,16 @@ void RATES_Posterior_Rates_Pre(t_node *a, t_node *d, t_tree *tree)
 
   if(a == tree->n_root)
     {
-      Norm_Trunc_Mean_Sd(cel,sqrt(cvl),l_opp,BL_MAX,&cel_tmp,&cvl_tmp);
+      if(!Norm_Trunc_Mean_Sd(cel,sqrt(cvl),l_opp,BL_MAX,&cel_tmp,&cvl_tmp)) return;
       cvl_tmp *= cvl_tmp;
       cvl = cvl_tmp;
       cel = cel_tmp;
+    }
+
+  if(isnan(cvl) || isnan(cel)) 
+    {
+      PhyML_Printf("\n. Warning: invalid expected and/or std. dev. values. Skipping this step.\n"); 
+      return;
     }
 
   like_mean = cel;
@@ -1939,6 +1945,7 @@ void RATES_Posterior_Rates_Pre(t_node *a, t_node *d, t_tree *tree)
 	     tree->rates->nd_t[tree->n_root->num],
 	     tree->rates->nd_t[tree->n_root->v[0]->num],
 	     tree->rates->nd_t[tree->n_root->v[1]->num]);
+      PhyML_Printf("\n. cvl_tmp = %f",cvl_tmp);
       PhyML_Printf("\n. Run = %d",tree->mcmc->run);
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Exit("\n");
@@ -2182,11 +2189,11 @@ void RATES_Posterior_Times_Pre(t_node *a, t_node *d, t_tree *tree)
   t1_new = +1;
 
   /* Ui's are relative substitution rates */
-/*   t_min =     t0 + (1./tree->rates->nu)*pow((u1-u0)/tree->rates->z_max,2); */
-/*   t_max = MIN(t3 - (1./tree->rates->nu)*pow((u1-u3)/tree->rates->z_max,2), */
-/* 	      t2 - (1./tree->rates->nu)*pow((u1-u2)/tree->rates->z_max,2)); */
-  t_min = t0;
-  t_max = MIN(t3,t2);
+  t_min =     t0 + (1./tree->rates->nu)*pow((u1-u0)/tree->rates->z_max,2);
+  t_max = MIN(t3 - (1./tree->rates->nu)*pow((u1-u3)/tree->rates->z_max,2),
+	      t2 - (1./tree->rates->nu)*pow((u1-u2)/tree->rates->z_max,2));
+/*   t_min = t0; */
+/*   t_max = MIN(t3,t2); */
 
   t_min = MAX(t_min,tree->rates->t_prior_min[d->num]);
   t_max = MIN(t_max,tree->rates->t_prior_max[d->num]);
@@ -2474,9 +2481,9 @@ void RATES_Posterior_Time_Root(t_tree *tree)
   cr = tree->rates->clock_r;
 
   t0_min = -MDBL_MAX;
-/*   t0_max = MIN(t1 - (1./tree->rates->nu)*pow((u0-u1)/tree->rates->z_max,2), */
-/* 	       t2 - (1./tree->rates->nu)*pow((u0-u2)/tree->rates->z_max,2)); */
-  t0_max = MIN(t1,t2);
+  t0_max = MIN(t1 - (1./tree->rates->nu)*pow((u0-u1)/tree->rates->z_max,2),
+	       t2 - (1./tree->rates->nu)*pow((u0-u2)/tree->rates->z_max,2));
+/*   t0_max = MIN(t1,t2); */
   
   t0_min = MAX(t0_min,tree->rates->t_prior_min[root->num]);
   t0_max = MIN(t0_max,tree->rates->t_prior_max[root->num]);
@@ -2553,6 +2560,11 @@ void RATES_Posterior_Time_Root(t_tree *tree)
 /*       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
 /*       Exit("\n"); */
 /*     } */
+
+/*   PhyML_Printf("\n. T0=%f T1=%f T2=%f T0_MIN=%f T0_MAX=%f U0=%f U1=%f U2=%f L=%f ML(L)=%f NU=%f", */
+/* 	       t0,t1,t2,t0_min,t0_max,u0/cr,u1/cr,u2/cr, */
+/* 	       tree->e_root->l,tree->rates->u_ml_l[tree->e_root->num],tree->rates->nu); */
+
 
   tree->mcmc->run++;
   MCMC_Print_Param(tree->mcmc,tree);

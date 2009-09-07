@@ -2803,7 +2803,7 @@ phydbl Norm_Trunc_Mean(phydbl mu, phydbl sd, phydbl a, phydbl b)
 
 /*********************************************************/
 
-void Norm_Trunc_Mean_Sd(phydbl mu, phydbl sd, phydbl a, phydbl b, phydbl *trunc_mu, phydbl *trunc_sd)
+int Norm_Trunc_Mean_Sd(phydbl mu, phydbl sd, phydbl a, phydbl b, phydbl *trunc_mu, phydbl *trunc_sd)
 {
 
   phydbl pdfa, pdfb;
@@ -2829,11 +2829,13 @@ void Norm_Trunc_Mean_Sd(phydbl mu, phydbl sd, phydbl a, phydbl b, phydbl *trunc_
       PhyML_Printf("\n. cdfa=%G cdfb=%G",cdfa,cdfb);
       PhyML_Printf("\n. Numerical precision issue detected.");
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      return 0;
     }
   
   *trunc_mu = mu + sd*(pdfa - pdfb)/cdfbmcdfa;
   *trunc_sd = sd*sd*(1. + (ctra*pdfa - ctrb*pdfb)/cdfbmcdfa - pow((pdfa - pdfb)/cdfbmcdfa,2));
   *trunc_sd = sqrt(*trunc_sd);
+  return 1;
 }
 
 /*********************************************************/

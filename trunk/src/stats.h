@@ -78,7 +78,7 @@ void Get_Reg_Coeff(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is_1, i
 phydbl Rnorm_Trunc_Inverse(phydbl mean, phydbl sd, phydbl min, phydbl max, int *error);
 phydbl Norm_Trunc_Sd(phydbl mu, phydbl sd, phydbl a, phydbl b);
 phydbl Norm_Trunc_Mean(phydbl mu, phydbl sd, phydbl a, phydbl b);
-void Norm_Trunc_Mean_Sd(phydbl mu, phydbl sd, phydbl a, phydbl b, phydbl *trunc_mu, phydbl *trunc_sd);
+int Norm_Trunc_Mean_Sd(phydbl mu, phydbl sd, phydbl a, phydbl b, phydbl *trunc_mu, phydbl *trunc_sd);
 
 
 #endif
