@@ -776,8 +776,8 @@ void RATES_Init_Rate_Struct(trate *rates, int n_otu)
   rates->alpha         = 2.;
   rates->birth_rate    = 0.001;
 
-  rates->max_rate      = 10.;
-  rates->min_rate      = 0.1;
+  rates->max_rate      = 5.;
+  rates->min_rate      = 0.2;
 
   rates->clock_r       = 2.E-5;
   rates->max_clock     = 1.E-0;
