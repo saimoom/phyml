@@ -181,10 +181,6 @@ int MC_main(int argc, char **argv)
 		  buff = tree->n_root;
 		  tree->n_root = NULL;
 		  Round_Optimize(tree,tree->data,ROUND_MAX);
-		  char *s;
-		  s = Write_Tree(tree);
-		  PhyML_Fprintf(stdout,"\nTREE %8d [%f] = %s\n",0,0.0,s);
-		  Free(s);
 		  tree->n_root = buff;
 
 		  PhyML_Printf("\n. lnL_data = %f\n",Lk(tree));
