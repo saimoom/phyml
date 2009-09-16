@@ -72,6 +72,7 @@ int MC_main(int argc, char **argv)
 /*   r_seed = 1249289122; */
 /*   r_seed = 1249298808; */
 /*   r_seed = 1251773761; */
+  r_seed = 1252645093;
   srand(r_seed); rand();
   PhyML_Printf("\n. Seed: %d\n",r_seed);
   PhyML_Printf("\n. Pid: %d\n",getpid());
