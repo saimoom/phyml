@@ -104,7 +104,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 
 #define  N_MAX_OPTIONS        100
 
-#define  H_MCMC_TIMES         0.1
+#define  H_MCMC_TIMES         1.0
 #define  H_MCMC_RATES         0.3
 #define  H_MCMC_NU            1.0
 #define  H_MCMC_CLOCK         0.1
