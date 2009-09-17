@@ -71,7 +71,7 @@ void MCMC_Nu(t_tree *tree)
 
   u = Uni();
 /*   new_nu = u*(max_nu - min_nu) + min_nu; */
-  new_nu = cur_nu * exp(H_MCMC_NU*(u-0.5));
+  new_nu = cur_nu * exp(tree->mcmc->h_nu*(u-0.5));
 
 
   if(new_nu < min_nu)
@@ -144,7 +144,7 @@ void MCMC_Clock_Rate(t_tree *tree)
 
 
   u = Uni();
-  new_cr = cur_cr * exp(H_MCMC_CLOCK*(u-0.5));
+  new_cr = cur_cr * exp(tree->mcmc->h_clock*(u-0.5));
 /*   new_cr = tree->rates->min_clock + u*(tree->rates->max_clock - tree->rates->min_clock); */
 
   if(new_cr < tree->rates->min_clock)
@@ -262,7 +262,7 @@ void MCMC_One_Rate(t_node *a, t_node *d, t_tree *tree)
   r_max = tree->rates->max_rate;
   
   u = Uni();
-  new_mu = cur_mu * exp(H_MCMC_RATES*(u-0.5));
+  new_mu = cur_mu * exp(tree->mcmc->h_rates*(u-0.5));
 /*   new_mu = Uni() * (r_max - r_min) + r_min; */
 
   if(new_mu < r_min)
@@ -400,7 +400,7 @@ void MCMC_Times_Pre(t_node *a, t_node *d, int local, t_tree *tree)
 
   u = Uni();    
 /*   new_t = u*(t_max-t_min)+t_min; */
-  new_t = cur_t * exp(H_MCMC_TIMES*(u-0.5));
+  new_t = cur_t * exp(tree->mcmc->h_times*(u-0.5));
 
   if(new_t < t_min)
     {
@@ -530,7 +530,7 @@ void MCMC_Time_Root(t_tree *tree)
 
   u = Uni();    
 /*   new_t = u*(t_max-t_min)+t_min; */
-  new_t = cur_t * exp(H_MCMC_TIMES*(u-0.5));
+  new_t = cur_t * exp(tree->mcmc->h_times*(u-0.5));
 
   if(new_t < t_min)
     {
@@ -1037,6 +1037,11 @@ void MCMC_Init_MCMC_Struct(char *filename, tmcmc *mcmc, t_tree *tree)
   mcmc->n_tot_run       = 1.E+6;
   mcmc->randomize       = 1;
   mcmc->norm_freq       = 1E+3;
+
+  mcmc->h_times         = 0.5;
+  mcmc->h_rates         = 0.3;
+  mcmc->h_nu            = 1.0;
+  mcmc->h_clock         = 0.1;
 
   if(filename)
     {
