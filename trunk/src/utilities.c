@@ -5195,11 +5195,9 @@ void Bootstrap(t_tree *tree)
   PhyML_Printf("\n\n. Non parametric bootstrap analysis \n\n");
   PhyML_Printf("  ["); 
 
-
   For(replicate,tree->mod->bootstrap)
     {
       For(j,boot_data->crunch_len) boot_data->wght[j] = 0;
-
 
       init_len = 0;
       For(j,boot_data->init_len)
@@ -5221,7 +5219,10 @@ void Bootstrap(t_tree *tree)
 
       if(tree->io->random_boot_seq_order) Randomize_Sequence_Order(boot_data);
 
-      boot_mod = Copy_Model(tree->mod);
+      boot_mod        = Copy_Model(tree->mod);
+      boot_mod->s_opt = tree->mod->s_opt;
+      boot_mod->io    = tree->io;
+
       Init_Model(boot_data,boot_mod,tree->io);
 
       if(tree->io->in_tree == 2)
@@ -5283,7 +5284,6 @@ void Bootstrap(t_tree *tree)
 	    Lk(boot_tree);
 	}
 
-
       Alloc_Bip(boot_tree);
 
       Get_Bip(boot_tree->noeud[0],
@@ -5301,7 +5301,6 @@ void Bootstrap(t_tree *tree)
 	  Free(s);
           Print_Fp_Out_Lines(tree->io->fp_out_boot_stats,0,0,boot_tree,tree->io,replicate+1);
 	}
-
 
       /*       rf = .0; */
       /*       For(j,2*tree->n_otu-3)  */
@@ -5616,12 +5615,9 @@ model *Copy_Model(model *ori)
 {
   model *cpy;
 
-  cpy = Make_Model_Basic();
-  
-  Copy_Optimiz(ori->s_opt,cpy->s_opt);
-
-  cpy->ns      = ori->ns;
-  cpy->n_catg  = ori->n_catg;
+  cpy         = Make_Model_Basic();
+  cpy->ns     = ori->ns;
+  cpy->n_catg = ori->n_catg;
 
   Make_Model_Complete(cpy);
 
@@ -5850,8 +5846,10 @@ void Set_Defaults_Optimiz(optimiz *s_opt)
 
 /*********************************************************/
 
-void Copy_Optimiz(optimiz *ori, optimiz *cpy)
+optimiz *Copy_Optimiz(optimiz *ori)
 {
+  optimiz *cpy;
+
   cpy->print                =   ori->print                ;  
   cpy->last_opt             =   ori->last_opt             ;  
   cpy->opt_alpha            =   ori->opt_alpha            ;  
@@ -5898,6 +5896,8 @@ void Copy_Optimiz(optimiz *ori, optimiz *cpy)
   cpy->wim_n_optim          =   ori->wim_n_optim          ;  
   cpy->wim_n_best           =   ori->wim_n_best           ;  
   cpy->wim_inside_opt       =   ori->wim_inside_opt       ;  			       
+  
+  return cpy;
 }
 
 /*********************************************************/
