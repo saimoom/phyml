@@ -2161,7 +2161,7 @@ void Init_Model(calign *data, model *mod, option *io)
       mod->pi_unscaled[i] = mod->pi[i] * 100.;
     }
 
-  if(mod->io->datatype == NT)
+  if(io->datatype == NT)
     {
       /* Set the substitution parameters to their default values
 	 when they are not fixed by the user */
@@ -2187,7 +2187,7 @@ void Init_Model(calign *data, model *mod, option *io)
   if(mod->s_opt->opt_pinvar)  mod->pinvar = 0.2;
   
 
-  if(mod->io->datatype == NT) /* Nucleotides */
+  if(io->datatype == NT) /* Nucleotides */
     { 
       /* init for nucleotides */
       mod->update_eigen = 1;

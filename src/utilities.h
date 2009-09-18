@@ -1084,7 +1084,7 @@ model *Copy_Model(model *ori);
 void Set_Defaults_Input(option *input);
 void Set_Defaults_Model(model *mod);
 void Set_Defaults_Optimiz(optimiz *s_opt);
-void Copy_Optimiz(optimiz *ori,optimiz *cpy);
+optimiz *Copy_Optimiz(optimiz *ori);
 void Get_Bip(t_node *a,t_node *d,t_tree *tree);
 void Alloc_Bip(t_tree *tree);
 int Sort_Phydbl_Increase(const void *a,const void *b);
