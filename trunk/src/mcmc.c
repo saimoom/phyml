@@ -1039,7 +1039,7 @@ void MCMC_Init_MCMC_Struct(char *filename, tmcmc *mcmc, t_tree *tree)
   mcmc->norm_freq       = 1E+3;
 
   mcmc->h_times         = 0.5;
-  mcmc->h_rates         = 0.3;
+  mcmc->h_rates         = 0.5;
   mcmc->h_nu            = 1.0;
   mcmc->h_clock         = 0.1;
 

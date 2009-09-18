@@ -74,6 +74,7 @@ int MC_main(int argc, char **argv)
 /*   r_seed = 1251773761; */
 /*   r_seed = 1252645093; */
 /*   r_seed = 1253137861; */
+  r_seed = 1253227823;
   srand(r_seed); rand();
   PhyML_Printf("\n. Seed: %d\n",r_seed);
   PhyML_Printf("\n. Pid: %d\n",getpid());
@@ -288,7 +289,12 @@ int MC_main(int argc, char **argv)
 		  MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree);
 		  tree->rates->lk_approx = NORMAL;
 		  tree->mcmc->n_tot_run  = 1E+5;
+
 		  tree->mcmc->h_times    = 1.0;
+		  tree->mcmc->h_rates    = 1.0;
+		  tree->mcmc->h_nu       = 3.0;
+		  tree->mcmc->h_clock    = 1.0;
+
 		  MCMC(tree);
 		  MCMC_Close_MCMC(tree->mcmc);
 		  MCMC_Free_MCMC(tree->mcmc);
@@ -298,7 +304,6 @@ int MC_main(int argc, char **argv)
 		  tree->rates->lk_approx = NORMAL;
 		  tree->mcmc->n_tot_run = 1E+8;
 		  tree->mcmc->randomize = 0;
-		  tree->mcmc->h_times   = 0.3;
 		  time(&t_beg);
 		  PhyML_Printf("\n. Thorne (approx)...\n");
 		  MCMC(tree);
