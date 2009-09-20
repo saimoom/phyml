@@ -147,7 +147,11 @@ fflush(stderr);
 
       if(tree->io->random_boot_seq_order) Randomize_Sequence_Order(boot_data);
 
-      boot_mod = Copy_Model(tree->mod);
+      boot_mod        = Copy_Model(tree->mod);
+      boot_mod->s_opt = tree->mod->s_opt; /* WARNING: re-using the same address here instead of creating a copying
+					     requires to leave the value of s_opt unchanged during the boostrap. */
+      boot_mod->io    = tree->io; /* WARNING: re-using the same address here instead of creating a copying
+				     requires to leave the value of io unchanged during the boostrap. */
       Init_Model(boot_data,boot_mod,tree->io);
 
       if(tree->io->in_tree == 2)

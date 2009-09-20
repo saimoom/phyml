@@ -1038,8 +1038,8 @@ void MCMC_Init_MCMC_Struct(char *filename, tmcmc *mcmc, t_tree *tree)
   mcmc->randomize       = 1;
   mcmc->norm_freq       = 1E+3;
 
-  mcmc->h_times         = 0.5;
-  mcmc->h_rates         = 0.5;
+  mcmc->h_times         = 1.0;
+  mcmc->h_rates         = 1.0;
   mcmc->h_nu            = 1.0;
   mcmc->h_clock         = 0.1;
 
@@ -1207,53 +1207,12 @@ void MCMC_Randomize_Lexp(t_tree *tree)
 
 void MCMC_Randomize_Nu(t_tree *tree)
 {
+  phydbl min_nu,max_nu;
   phydbl u;
-  phydbl u_anc;
-  phydbl t,t_anc;
-  phydbl min_nu,max_nu,nu;
-  int i,min_i;
-  
-  min_i = -1;
-  min_nu = nu = -1.E+10;
-  For(i,2*tree->n_otu-2)
-    {
-      u     = tree->rates->nd_r[i];
-      u_anc = tree->rates->nd_r[tree->noeud[i]->anc->num];
-      t     = tree->rates->nd_t[i];
-      t_anc = tree->rates->nd_t[tree->noeud[i]->anc->num];
-
-      nu = pow(u-u_anc,2) / ((t-t_anc) * pow(tree->rates->z_max,2));
-
-      if(nu > min_nu) 
-	{
-	  min_nu = nu;
-	  min_i  = i;
-	}
-    }
-
-  if(min_nu < 0.0)
-    {
-      PhyML_Printf("\n. min_nu = %f",min_nu);
-      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
-      Warn_And_Exit("");
-    }
-
-  min_nu = MAX(min_nu,tree->rates->min_nu);
-  max_nu = tree->rates->max_nu;
 
   /* !!!!!!!!!!!! */
   min_nu = tree->rates->min_nu;
   max_nu = tree->rates->max_nu;
-
-  if(max_nu < min_nu)
-    {
-      PhyML_Printf("\n. max_nu = %G min_nu = %G",max_nu,min_nu);
-      PhyML_Printf("\n. u=%f u_anc=%f",tree->rates->nd_r[min_i],tree->rates->nd_r[tree->noeud[min_i]->anc->num]);
-      PhyML_Printf("\n. t=%f t_anc=%f",tree->rates->nd_t[min_i],tree->rates->nd_t[tree->noeud[min_i]->anc->num]);
-      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
-      Warn_And_Exit("");
-    }
-
 
   u = Uni();
   tree->rates->nu = (max_nu - min_nu) * u + min_nu;
