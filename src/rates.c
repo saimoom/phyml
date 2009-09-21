@@ -3111,6 +3111,14 @@ void RATES_Normalise_Rates(t_tree *tree)
   tree->rates->clock_r *= curr/expr;
   /* Branch lengths therefore do not change */
 
+  For(i,2*tree->n_otu-2) 
+    {
+      if(tree->rates->nd_r[i] > tree->rates->max_rate)
+	tree->rates->nd_r[i] = tree->rates->max_rate;
+      if(tree->rates->nd_r[i] < tree->rates->min_rate)
+	tree->rates->nd_r[i] = tree->rates->min_rate;
+    }
+
   RATES_Update_Cur_Bl(tree);
 }
 

@@ -233,6 +233,10 @@ int MC_main(int argc, char **argv)
 		  tree->rates->lk_approx = NORMAL;
 		  tree->mcmc->n_tot_run  = 1E+5;
 		  tree->mcmc->h_times    = 1.0;
+		  tree->mcmc->h_rates    = 1.0;
+		  tree->mcmc->h_nu       = 3.0;
+		  tree->mcmc->h_clock    = 1.0;
+		  tree->rates->z_max     = 10.;
 		  MCMC(tree);
 		  MCMC_Close_MCMC(tree->mcmc);
 		  MCMC_Free_MCMC(tree->mcmc);
@@ -244,6 +248,7 @@ int MC_main(int argc, char **argv)
 		  RATES_Lk_Rates(tree);
 		  MCMC_Print_Param(tree->mcmc,tree);
 		  
+		  tree->rates->z_max     = 3.1;
 		  time(&t_beg);
 		  PhyML_Printf("\n. Gibbs sampling (approx)...\n");
 		  tree->mcmc->n_tot_run = 1E+8;
@@ -296,6 +301,7 @@ int MC_main(int argc, char **argv)
 		  tree->mcmc->h_rates    = 1.0;
 		  tree->mcmc->h_nu       = 3.0;
 		  tree->mcmc->h_clock    = 1.0;
+		  tree->rates->z_max     = 10.;
 
 		  MCMC(tree);
 		  MCMC_Close_MCMC(tree->mcmc);
@@ -305,11 +311,10 @@ int MC_main(int argc, char **argv)
 		  MCMC_Init_MCMC_Struct("thorne.normal",tree->mcmc,tree);
 		  tree->rates->lk_approx = NORMAL;
 		  
-		  /* !!!!!!!!!!!!!! */
-		  tree->rates->nu = tree->rates->max_nu;
 
 		  tree->mcmc->n_tot_run = 1E+8;
 		  tree->mcmc->randomize = 0;
+		  tree->rates->z_max    = 3.1;
 		  time(&t_beg);
 		  PhyML_Printf("\n. Thorne (approx)...\n");
 		  MCMC(tree);

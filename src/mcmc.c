@@ -256,10 +256,8 @@ void MCMC_One_Rate(t_node *a, t_node *d, t_tree *tree)
   cur_mu       = tree->rates->nd_r[d->num];
   cur_lnL_data = tree->c_lnL;
   cur_lnL_rate = tree->rates->c_lnL;
-
-
-  r_min = tree->rates->min_rate;
-  r_max = tree->rates->max_rate;
+  r_min        = tree->rates->min_rate;
+  r_max        = tree->rates->max_rate;
   
   u = Uni();
   new_mu = cur_mu * exp(tree->mcmc->h_rates*(u-0.5));
