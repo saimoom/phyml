@@ -76,6 +76,7 @@ int MC_main(int argc, char **argv)
 /*   r_seed = 1253137861; */
 /*   r_seed = 1253227823; */
 /*   r_seed = 1253480237; */
+/*   r_seed = 1253501283; */
   srand(r_seed); rand();
   PhyML_Printf("\n. Seed: %d\n",r_seed);
   PhyML_Printf("\n. Pid: %d\n",getpid());
@@ -303,6 +304,10 @@ int MC_main(int argc, char **argv)
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
 		  MCMC_Init_MCMC_Struct("thorne.normal",tree->mcmc,tree);
 		  tree->rates->lk_approx = NORMAL;
+		  
+		  /* !!!!!!!!!!!!!! */
+		  tree->rates->nu = tree->rates->max_nu;
+
 		  tree->mcmc->n_tot_run = 1E+8;
 		  tree->mcmc->randomize = 0;
 		  time(&t_beg);
