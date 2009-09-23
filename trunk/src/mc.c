@@ -248,7 +248,7 @@ int MC_main(int argc, char **argv)
 		  RATES_Lk_Rates(tree);
 		  MCMC_Print_Param(tree->mcmc,tree);
 		  
-		  tree->rates->z_max     = 10.;
+		  tree->rates->z_max     = 5.2;
 		  time(&t_beg);
 		  PhyML_Printf("\n. Gibbs sampling (approx)...\n");
 		  tree->mcmc->n_tot_run = 1E+8;
@@ -315,7 +315,7 @@ int MC_main(int argc, char **argv)
 		  tree->mcmc->n_tot_run = 1E+8;
 		  tree->mcmc->randomize = 0;
 /* 		  tree->rates->z_max    = 3.1; */
-		  tree->rates->z_max    = 10.;
+		  tree->rates->z_max    = 5.2;
 		  time(&t_beg);
 		  PhyML_Printf("\n. Thorne (approx)...\n");
 		  MCMC(tree);
