@@ -8918,9 +8918,9 @@ t_tree *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
   for(i=1;i<tree->n_otu-1;i++) 
     { 
       t[i] /= -t[0]; 
-      t[i] *= 1.E+04;
+      t[i] *= 1.E+02;
     }
-  t[0] = -1.E+04;
+  t[0] = -1.E+02;
 
   n_available = 1;
   curr_n = root;
@@ -10351,6 +10351,7 @@ void Read_Clade_Priors(char *file_name, t_tree *tree)
   do
     {
       if(!fgets(line,T_MAX_LINE,fp)) break;
+
       clade_size = 0;
       pos = 0;
       do
@@ -10376,6 +10377,7 @@ void Read_Clade_Priors(char *file_name, t_tree *tree)
 	  else break;	    
 	}
       while(1);
+
       if(line[pos] != '#' && line[pos] != '\n')
 	{
 	  sscanf(line+pos,"%lf %lf",&prior_up,&prior_low);
@@ -10406,7 +10408,7 @@ void Read_Clade_Priors(char *file_name, t_tree *tree)
 	}
     }
   while(1);
-
+      
   For(i,tree->n_otu) Free(clade_list[i]);
   Free(clade_list);
   Free(line);

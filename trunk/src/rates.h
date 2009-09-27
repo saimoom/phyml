@@ -152,6 +152,10 @@ phydbl RATES_Expected_Tree_Length(t_tree *tree);
 void RATES_Expected_Tree_Length_Pre(t_node *a, t_node *d, phydbl eranc, phydbl *mean, int *n, t_tree *tree);
 void RATES_Normalise_Rates(t_tree *tree);
 phydbl RATES_Check_Mean_Rates_True(t_tree *tree);
+phydbl RATES_Find_Min_Dt_Bisec(phydbl r0, phydbl r1, phydbl t0, phydbl t1, phydbl nu, phydbl threshp, int inf);
+phydbl RATES_Find_Max_Dt_Bisec(phydbl r0, phydbl r1, phydbl t0, phydbl t1, phydbl nu, phydbl threshp, int inf);
+
+
 
 
 #endif
