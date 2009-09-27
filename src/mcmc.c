@@ -23,9 +23,9 @@ void MCMC(t_tree *tree)
   if(tree->mcmc->randomize)
     {
       MCMC_Randomize_Node_Times(tree);
-      MCMC_Randomize_Rates(tree);
-      MCMC_Randomize_Clock_Rate(tree);
-      MCMC_Randomize_Nu(tree);
+/*       MCMC_Randomize_Rates(tree); */
+/*       MCMC_Randomize_Clock_Rate(tree); */
+/*       MCMC_Randomize_Nu(tree); */
     }
 
   RATES_Update_Cur_Bl(tree);
@@ -34,10 +34,10 @@ void MCMC(t_tree *tree)
 
   do
     {
-      MCMC_Nu(tree);
-      MCMC_Clock_Rate(tree);
+/*       MCMC_Nu(tree); */
+/*       MCMC_Clock_Rate(tree); */
       MCMC_Times_Local(tree);
-      MCMC_Rates_Local(tree);
+/*       MCMC_Rates_Local(tree); */
     }
   while(tree->mcmc->run < tree->mcmc->n_tot_run);
 }
@@ -394,15 +394,9 @@ void MCMC_Times_Pre(t_node *a, t_node *d, int local, t_tree *tree)
   t_max = MIN(t_max,tree->rates->t_prior_max[d->num]);
 
   if(fabs(t_min - t_max) < 1.E-10) return;
-  
-  tree->rates->t_prior[d->num] = Uni() * (t_max - t_min) + t_min;
-
   if(t_max < t_min) return;
 
-  u0 *= tree->rates->clock_r;
-  u1 *= tree->rates->clock_r;
-  u2 *= tree->rates->clock_r;
-  u3 *= tree->rates->clock_r;
+  tree->rates->t_prior[d->num] = Uni() * (t_max - t_min) + t_min;
 
   u = Uni();    
 /*   new_t = u*(t_max-t_min)+t_min; */

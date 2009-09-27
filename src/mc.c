@@ -61,22 +61,7 @@ int MC_main(int argc, char **argv)
   io = (option *)Get_Input(argc,argv);
   r_seed = (io->r_seed < 0)?(time(NULL)):(io->r_seed);
 /*   r_seed = 1248325214; */
-/*   r_seed = 1248410161; */
-/*   r_seed = 1248410882; */
-/*   r_seed = 1248411101; */
-/*   r_seed = 1248411927; */
-/*   r_seed = 1248412680; */
-/*   r_seed = 1248648952; */
-/*   r_seed = 1249272061; */
-/*   r_seed = 1249275704; */
-/*   r_seed = 1249289122; */
-/*   r_seed = 1249298808; */
-/*   r_seed = 1251773761; */
-/*   r_seed = 1252645093; */
-/*   r_seed = 1253137861; */
-/*   r_seed = 1253227823; */
-/*   r_seed = 1253480237; */
-/*   r_seed = 1253501283; */
+  r_seed = 1254029112;
   srand(r_seed); rand();
   PhyML_Printf("\n. Seed: %d\n",r_seed);
   PhyML_Printf("\n. Pid: %d\n",getpid());
@@ -85,10 +70,11 @@ int MC_main(int argc, char **argv)
   if(io->in_tree == 2) Test_Multiple_Data_Set_Format(io);
   else io->n_trees = 1;
 
-  io->cdata = 0; /* Do not compress sites if you're using Evolve function */
+  io->colalias = 0;  /* Do not compress sites if you're using Evolve function */
 
   mat = NULL;
   tree_line_number = 0;
+
 
   if((io->n_data_sets > 1) && (io->n_trees > 1))
     {
@@ -135,7 +121,7 @@ int MC_main(int argc, char **argv)
 		  int i;
 		  t_edge *root_edge;
 
-		  n_otu = 5;
+		  n_otu = 15;
 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1);
 
 /* 		  tree->rates = RATES_Make_Rate_Struct(tree->n_otu); */
@@ -251,22 +237,22 @@ int MC_main(int argc, char **argv)
 		  
 		  time(&t_beg);
 		  PhyML_Printf("\n. Gibbs sampling (approx)...\n");
-		  tree->mcmc->n_tot_run = 1E+8;
+		  tree->mcmc->n_tot_run = 1E+7;
 		  phydbl u;
 		  do
 		    {
 		      u = Uni();
 
 		      tree->rates->c_lnL = RATES_Lk_Rates(tree);
-		      MCMC_Nu(tree);
+/* 		      MCMC_Nu(tree); */
 		      tree->c_lnL = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,
 								 tree->rates->u_ml_l,
 								 tree->rates->invcov,
 								 tree->rates->covdet,
 								 2*tree->n_otu-3,YES);
-		      RATES_Posterior_Clock_Rate(tree);
+/* 		      RATES_Posterior_Clock_Rate(tree); */
 		      RATES_Posterior_Times(tree);
-		      RATES_Posterior_Rates(tree);
+/* 		      RATES_Posterior_Rates(tree); */
 		    }
 		  while(tree->mcmc->run < tree->mcmc->n_tot_run);
 		  time(&t_end);
@@ -311,7 +297,7 @@ int MC_main(int argc, char **argv)
 		  tree->rates->lk_approx = NORMAL;
 		  
 
-		  tree->mcmc->n_tot_run = 1E+8;
+		  tree->mcmc->n_tot_run = 1E+7;
 		  tree->mcmc->randomize = 0;
 		  time(&t_beg);
 		  PhyML_Printf("\n. Thorne (approx)...\n");

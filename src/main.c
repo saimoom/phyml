@@ -69,18 +69,19 @@ int main(int argc, char **argv)
   io = (option *)Get_Input(argc,argv);
   r_seed = (io->r_seed < 0)?(time(NULL)):(io->r_seed);
   srand(r_seed); rand();
+
   if(io->in_tree == 2) Test_Multiple_Data_Set_Format(io);
   else io->n_trees = 1;
 
   mat = NULL;
   tree_line_number = 0;
 
+
   if((io->n_data_sets > 1) && (io->n_trees > 1))
     {
       io->n_data_sets = MIN(io->n_trees,io->n_data_sets);
       io->n_trees     = MIN(io->n_trees,io->n_data_sets);
     }
-
 
   For(num_data_set,io->n_data_sets)
     {

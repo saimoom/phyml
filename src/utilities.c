@@ -875,7 +875,10 @@ void Make_Node_Lk(t_node *n)
 void Detect_Align_Format(option *io)
 {
   int c;
+  fpos_t curr_pos;
   
+  fgetpos(io->fp_in_align,&curr_pos);
+
   while((c=fgetc(io->fp_in_align)) != EOF)
     {
       if(errno) io->data_format = PHYLIP;
@@ -885,14 +888,14 @@ void Detect_Align_Format(option *io)
 	  fgets(s,6,io->fp_in_align);
 	  if(!strcmp(t,s)) 
 	    {
-	      rewind(io->fp_in_align);
+	      fsetpos(io->fp_in_align,&curr_pos);
 	      io->data_format = NEXUS;
 	      return;
 	    }
 	}
     }
   
-  rewind(io->fp_in_align);
+  fsetpos(io->fp_in_align,&curr_pos);
 }
 
 /*********************************************************/
@@ -1022,7 +1025,6 @@ align **Get_Seq_Nexus(option *io)
     {      
       do
 	{	  
-
 	  Get_Token(&s,token);	  
 
 /* 	  PhyML_Printf("\n. Token: '%s' next_token=%d cur_token=%d",token,nxt_token_t,cur_token_t); */
