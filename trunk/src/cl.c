@@ -733,26 +733,16 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	    if(!strcmp(optarg,"e"))
 	      {
 	        if (io->datatype == NT)
-		  io->mod->s_opt->opt_state_freq = 0;
+		  io->mod->s_opt->opt_state_freq = NO;
 		else
-		  io->mod->s_opt->opt_state_freq = 1;
-		
-		if((io->mod->whichmodel == JC69) ||
-		   (io->mod->whichmodel == K80))
-		  {
-		    char choix;
-		    PhyML_Printf("\n. Invalid model settings (option '-f').\n");
-		    PhyML_Printf("\n. Type any key to exit.\n");
-		    if(!scanf("%c",&choix)) Exit("\n");
-		    Exit("\n");
-		  }
+		  io->mod->s_opt->opt_state_freq = YES;
 	      }
 	    else if(!strcmp(optarg,"m"))
 	      {
 	        if (io->datatype == NT)
-		  io->mod->s_opt->opt_state_freq = 1;
+		  io->mod->s_opt->opt_state_freq = YES;
 		else
-		  io->mod->s_opt->opt_state_freq = 0;
+		  io->mod->s_opt->opt_state_freq = NO;
 	      }
 	    else if(!isalpha(optarg[0]))
 	      {
@@ -1039,6 +1029,18 @@ void Read_Command_Line(option *io, int argc, char **argv)
       }
 
   if(io->mod->whichmodel == GTR) Make_Custom_Model(io->mod);
+
+/*   if((io->mod->whichmodel == K80) || (io->mod->whichmodel == JC69)) */
+/*     { */
+/*       if(io->mod->s_opt->opt_state_freq) */
+/* 	{ */
+/* 	  char c; */
+/* 	  PhyML_Printf("\n. WARNING: nucleotide frequencies must be set to 1/4 with this model.\n"); */
+/* 	  PhyML_Printf("\n. Type the enter key to resume the analysis.\n"); */
+/* 	  scanf("%c",&c); */
+/* 	} */
+/*       io->mod->s_opt->opt_state_freq = 0; */
+/*     } */
 
 
 #ifndef PHYML

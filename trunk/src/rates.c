@@ -779,11 +779,11 @@ void RATES_Init_Rate_Struct(trate *rates, int n_otu)
   rates->max_rate      = 5.;
   rates->min_rate      = 0.2;
 
-  rates->clock_r       = 1.E-5;
+  rates->clock_r       = 1.E-3;
   rates->max_clock     = 1.E-0;
   rates->min_clock     = 1.E-9;
 
-  rates->nu            = 1.E-5;
+  rates->nu            = 1.E-4;
   rates->max_nu        = 1.E-1;
   rates->min_nu        = 1.E-10;
   rates->lbda_nu       = 1.E+3;
@@ -2191,28 +2191,25 @@ void RATES_Posterior_Times_Pre(t_node *a, t_node *d, t_tree *tree)
 /*   t_min =     t0 + (1./tree->rates->nu)*pow((u1-u0)/tree->rates->z_max,2); */
 /*   t_max = MIN(t3 - (1./tree->rates->nu)*pow((u1-u3)/tree->rates->z_max,2), */
 /* 	      t2 - (1./tree->rates->nu)*pow((u1-u2)/tree->rates->z_max,2)); */
+
 /*   t_min = t0; */
 /*   t_max = MIN(t3,t2); */
   
   t_min    = RATES_Find_Min_Dt_Bisec(u1,u0,t0,MIN(t2,t3),tree->rates->nu,tree->rates->p_max,(u1 < u0)?YES:NO);
   t_max_12 = RATES_Find_Max_Dt_Bisec(u2,u1,t0,t2,tree->rates->nu,tree->rates->p_max,(u2 < u1)?YES:NO);
   t_max_13 = RATES_Find_Max_Dt_Bisec(u3,u1,t0,t3,tree->rates->nu,tree->rates->p_max,(u3 < u1)?YES:NO);
-  
   t_max = MIN(t_max_12,t_max_13);
 
-/*   PhyML_Printf("\n%15f %15f %15f %15f %15f %15f",t_min-t0,MIN(t2,t3)-t_max,u0,u1,u2,u3); */
 
   t_min = MAX(t_min,tree->rates->t_prior_min[d->num]);
   t_max = MIN(t_max,tree->rates->t_prior_max[d->num]);
     
-
-  if(fabs(t_max - t_min) < 1.E-10) return; 
-
+  if(fabs(t_max - t_min) < 1.E-10) return;   
   if(t_max < t_min) 
     {
-/*       return; */
-      t_min = t0;
-      t_max = MIN(t2,t3);
+      PhyML_Printf("\n%3d t0=%10f t2=%10f t3=%10f t_max=%10f t_min=%10f u0=%10f u1=%10f u2=%10f u3=%10f",
+		   d->num,t0,t2,t3,t_max,t_min,u0,u1,u2,u3);      
+      return;
     }
 
   tree->rates->t_prior[d->num] = Uni()*(t_max - t_min) + t_min;
