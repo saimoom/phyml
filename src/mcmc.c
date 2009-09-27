@@ -324,6 +324,7 @@ void MCMC_Times_Pre(t_node *a, t_node *d, int local, t_tree *tree)
 {
   phydbl u;
   phydbl t_min,t_max;
+  phydbl t_max_12, t_max_13;
   phydbl cur_t, new_t;
   phydbl cur_lnL_times, new_lnL_times;
   phydbl cur_lnL_rate, new_lnL_rate;
@@ -376,11 +377,18 @@ void MCMC_Times_Pre(t_node *a, t_node *d, int local, t_tree *tree)
   u2 = tree->rates->nd_r[v2->num];
   u3 = tree->rates->nd_r[v3->num];
 
-  t_min =     t0 + (1./tree->rates->nu)*pow((u1-u0)/tree->rates->z_max,2);
-  t_max = MIN(t2 - (1./tree->rates->nu)*pow((u1-u2)/tree->rates->z_max,2),
-	      t3 - (1./tree->rates->nu)*pow((u1-u3)/tree->rates->z_max,2));
+/*   t_min =     t0 + (1./tree->rates->nu)*pow((u1-u0)/tree->rates->z_max,2); */
+/*   t_max = MIN(t2 - (1./tree->rates->nu)*pow((u1-u2)/tree->rates->z_max,2), */
+/* 	      t3 - (1./tree->rates->nu)*pow((u1-u3)/tree->rates->z_max,2)); */
+
 /*   t_min = t0; */
 /*   t_max = MIN(t2,t3); */
+
+
+  t_min    = RATES_Find_Min_Dt_Bisec(u1,u0,t0,MIN(t2,t3),tree->rates->nu,tree->rates->p_max,(u1 < u0)?YES:NO);
+  t_max_12 = RATES_Find_Max_Dt_Bisec(u2,u1,t0,t2,tree->rates->nu,tree->rates->p_max,(u2 < u1)?YES:NO);
+  t_max_13 = RATES_Find_Max_Dt_Bisec(u3,u1,t0,t3,tree->rates->nu,tree->rates->p_max,(u3 < u1)?YES:NO);
+  t_max = MIN(t_max_12,t_max_13);
 
   t_min = MAX(t_min,tree->rates->t_prior_min[d->num]);
   t_max = MIN(t_max,tree->rates->t_prior_max[d->num]);
@@ -464,6 +472,7 @@ void MCMC_Time_Root(t_tree *tree)
 {
   phydbl u;
   phydbl t_min,t_max;
+  phydbl t_max_02, t_max_03;
   phydbl cur_t, new_t;
   phydbl cur_lnL_times, new_lnL_times;
   phydbl cur_lnL_rate, new_lnL_rate;
@@ -509,9 +518,15 @@ void MCMC_Time_Root(t_tree *tree)
   u0 = 1.0;
 
   t_min = tree->rates->t_prior_min[root->num];
-  t_max = MIN(t2 - (1./tree->rates->nu)*pow((u0-u2)/tree->rates->z_max,2),
-	      t3 - (1./tree->rates->nu)*pow((u0-u3)/tree->rates->z_max,2));
+
+/*   t_max = MIN(t2 - (1./tree->rates->nu)*pow((u0-u2)/tree->rates->z_max,2), */
+/* 	      t3 - (1./tree->rates->nu)*pow((u0-u3)/tree->rates->z_max,2)); */
+
 /*   t_max = MIN(t2,t3); */
+
+  t_max_02 = RATES_Find_Max_Dt_Bisec(u2,u0,tree->rates->t_prior_min[root->num],t2,tree->rates->nu,tree->rates->p_max,(u2 < u0)?YES:NO);
+  t_max_03 = RATES_Find_Max_Dt_Bisec(u3,u0,tree->rates->t_prior_min[root->num],t3,tree->rates->nu,tree->rates->p_max,(u3 < u0)?YES:NO);
+  t_max = MIN(t_max_02,t_max_03);
 
   t_min = MAX(t_min,tree->rates->t_prior_min[root->num]);
   t_max = MIN(t_max,tree->rates->t_prior_max[root->num]);
@@ -1152,12 +1167,8 @@ void MCMC_Randomize_Rates_Pre(t_node *a, t_node *d, t_tree *tree)
 
   mean_r = tree->rates->nd_r[a->num];
   var_r  = tree->rates->nu * (tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num]);
-  min_r  = tree->rates->nd_r[a->num] - tree->rates->z_max * sqrt(tree->rates->nu * (tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num]));
-  max_r  = tree->rates->nd_r[a->num] + tree->rates->z_max * sqrt(tree->rates->nu * (tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num]));
-/*   min_r  = tree->rates->nd_r[a->num]; */
-/*   max_r  = tree->rates->nd_r[a->num]; */
-  min_r  = MAX(min_r,tree->rates->min_rate);
-  max_r  = MIN(max_r,tree->rates->max_rate);
+  min_r  = tree->rates->min_rate;
+  max_r  = tree->rates->max_rate;
   
   tree->rates->nd_r[d->num] = Rnorm_Trunc(mean_r,sqrt(var_r),min_r,max_r,&err);
 

@@ -912,7 +912,7 @@ typedef struct __Trate {
 
   phydbl  true_tree_size;
 
-  phydbl           z_max;
+  phydbl           p_max;
 
 }trate;
 

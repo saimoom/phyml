@@ -131,17 +131,17 @@ int MC_main(int argc, char **argv)
 		  time(&t_beg);
 		  time(&(tree->t_beg));
 
-/* 		  int n_otu; */
+		  int n_otu;
 		  int i;
 		  t_edge *root_edge;
 
-/* 		  n_otu = 10; */
-/* 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1); */
+		  n_otu = 5;
+		  tree = Generate_Random_Tree_From_Scratch(n_otu,1);
 
-		  tree->rates = RATES_Make_Rate_Struct(tree->n_otu);
-		  RATES_Init_Rate_Struct(tree->rates,tree->n_otu);
-		  root_edge = Find_Root_Edge(io->fp_in_tree,tree);
-		  Add_Root(root_edge,tree);
+/* 		  tree->rates = RATES_Make_Rate_Struct(tree->n_otu); */
+/* 		  RATES_Init_Rate_Struct(tree->rates,tree->n_otu); */
+/* 		  root_edge = Find_Root_Edge(io->fp_in_tree,tree); */
+/* 		  Add_Root(root_edge,tree); */
 
 		  RATES_Fill_Lca_Table(tree);
 
@@ -151,14 +151,14 @@ int MC_main(int argc, char **argv)
 		  tree->both_sides  = 1;
 		  tree->n_pattern   = tree->data->crunch_len/tree->mod->state_len;
 
-/*  		  For(i,tree->n_otu) strcpy(tree->noeud[i]->name,cdata->c_seq[i]->name); */
+ 		  For(i,tree->n_otu) strcpy(tree->noeud[i]->name,cdata->c_seq[i]->name);
 
 		  Fill_Dir_Table(tree);
 		  Update_Dirs(tree);
 		  Make_Tree_4_Pars(tree,cdata,cdata->init_len);
 		  Make_Tree_4_Lk(tree,cdata,cdata->init_len);
 
-/* 		  Evolve(tree->data,tree->mod,tree); */
+		  Evolve(tree->data,tree->mod,tree);
 		  Init_Ui_Tips(tree);
 		  Init_P_Pars_Tips(tree);
 		  if(tree->mod->s_opt->greedy) Init_P_Lk_Tips_Double(tree);
@@ -166,6 +166,7 @@ int MC_main(int argc, char **argv)
 
 		  For(i,2*tree->n_otu-1) tree->rates->true_t[i] = tree->rates->nd_t[i];
 		  For(i,2*tree->n_otu-2) tree->rates->true_r[i] = tree->rates->nd_r[i];
+
 
 /* 		  tree->data->format = 1; */
 /* 		  Print_CSeq(stdout,tree->data); */
@@ -176,6 +177,7 @@ int MC_main(int argc, char **argv)
 /* 		  Free(s); */
 
 		  Read_Clade_Priors(io->clade_list_file,tree);
+
 
 
 		  /************************************/
@@ -236,7 +238,6 @@ int MC_main(int argc, char **argv)
 		  tree->mcmc->h_rates    = 1.0;
 		  tree->mcmc->h_nu       = 3.0;
 		  tree->mcmc->h_clock    = 1.0;
-		  tree->rates->z_max     = 10.;
 		  MCMC(tree);
 		  MCMC_Close_MCMC(tree->mcmc);
 		  MCMC_Free_MCMC(tree->mcmc);
@@ -248,7 +249,6 @@ int MC_main(int argc, char **argv)
 		  RATES_Lk_Rates(tree);
 		  MCMC_Print_Param(tree->mcmc,tree);
 		  
-		  tree->rates->z_max     = 5.2;
 		  time(&t_beg);
 		  PhyML_Printf("\n. Gibbs sampling (approx)...\n");
 		  tree->mcmc->n_tot_run = 1E+8;
@@ -301,7 +301,6 @@ int MC_main(int argc, char **argv)
 		  tree->mcmc->h_rates    = 1.0;
 		  tree->mcmc->h_nu       = 3.0;
 		  tree->mcmc->h_clock    = 1.0;
-		  tree->rates->z_max     = 10.;
 
 		  MCMC(tree);
 		  MCMC_Close_MCMC(tree->mcmc);
@@ -314,8 +313,6 @@ int MC_main(int argc, char **argv)
 
 		  tree->mcmc->n_tot_run = 1E+8;
 		  tree->mcmc->randomize = 0;
-/* 		  tree->rates->z_max    = 3.1; */
-		  tree->rates->z_max    = 5.2;
 		  time(&t_beg);
 		  PhyML_Printf("\n. Thorne (approx)...\n");
 		  MCMC(tree);

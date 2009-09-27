@@ -795,9 +795,7 @@ void RATES_Init_Rate_Struct(trate *rates, int n_otu)
   rates->bl_from_rt    = 0;
   rates->lk_approx     = NO;
 
-/*   rates->z_max         = 10.; */
-/*   rates->z_max         = 1.96; */
-  rates->z_max         = 3.1; /* Quantile for p=0.001 */
+  rates->p_max         = 0.01;
 
   rates->true_tree_size = 0.0;
 
@@ -2032,6 +2030,7 @@ void RATES_Posterior_Times_Pre(t_node *a, t_node *d, t_tree *tree)
   phydbl u0,u1,u2,u3;
   phydbl t0,t1,t2,t3;
   phydbl t_min, t_max;
+  phydbl t_max_12,t_max_13;
   phydbl bl_min, bl_max;
   phydbl t1_new;
   phydbl X,Y;
@@ -2189,19 +2188,33 @@ void RATES_Posterior_Times_Pre(t_node *a, t_node *d, t_tree *tree)
   t1_new = +1;
 
   /* Ui's are relative substitution rates */
-  t_min =     t0 + (1./tree->rates->nu)*pow((u1-u0)/tree->rates->z_max,2);
-  t_max = MIN(t3 - (1./tree->rates->nu)*pow((u1-u3)/tree->rates->z_max,2),
-	      t2 - (1./tree->rates->nu)*pow((u1-u2)/tree->rates->z_max,2));
+/*   t_min =     t0 + (1./tree->rates->nu)*pow((u1-u0)/tree->rates->z_max,2); */
+/*   t_max = MIN(t3 - (1./tree->rates->nu)*pow((u1-u3)/tree->rates->z_max,2), */
+/* 	      t2 - (1./tree->rates->nu)*pow((u1-u2)/tree->rates->z_max,2)); */
 /*   t_min = t0; */
 /*   t_max = MIN(t3,t2); */
+  
+  t_min    = RATES_Find_Min_Dt_Bisec(u1,u0,t0,MIN(t2,t3),tree->rates->nu,tree->rates->p_max,(u1 < u0)?YES:NO);
+  t_max_12 = RATES_Find_Max_Dt_Bisec(u2,u1,t0,t2,tree->rates->nu,tree->rates->p_max,(u2 < u1)?YES:NO);
+  t_max_13 = RATES_Find_Max_Dt_Bisec(u3,u1,t0,t3,tree->rates->nu,tree->rates->p_max,(u3 < u1)?YES:NO);
+  
+  t_max = MIN(t_max_12,t_max_13);
+
+/*   PhyML_Printf("\n%15f %15f %15f %15f %15f %15f",t_min-t0,MIN(t2,t3)-t_max,u0,u1,u2,u3); */
 
   t_min = MAX(t_min,tree->rates->t_prior_min[d->num]);
   t_max = MIN(t_max,tree->rates->t_prior_max[d->num]);
     
+
   if(fabs(t_max - t_min) < 1.E-10) return; 
 
-  if(t_max < t_min) return;
-  
+  if(t_max < t_min) 
+    {
+/*       return; */
+      t_min = t0;
+      t_max = MIN(t2,t3);
+    }
+
   tree->rates->t_prior[d->num] = Uni()*(t_max - t_min) + t_min;
 
   bl_min = bl_max = -1.0;
@@ -2463,6 +2476,7 @@ void RATES_Posterior_Time_Root(t_tree *tree)
   t_edge *b;
   t_node *root;
   phydbl t0,t0_min, t0_max;
+  phydbl t_max_01, t_max_02;
   int err;
   phydbl cr;
   phydbl bl_min, bl_max;
@@ -2481,13 +2495,28 @@ void RATES_Posterior_Time_Root(t_tree *tree)
   cr = tree->rates->clock_r;
 
   t0_min = -MDBL_MAX;
-  t0_max = MIN(t1 - (1./tree->rates->nu)*pow((u0-u1)/tree->rates->z_max,2),
-	       t2 - (1./tree->rates->nu)*pow((u0-u2)/tree->rates->z_max,2));
+
+/*   t0_max = MIN(t1 - (1./tree->rates->nu)*pow((u0-u1)/tree->rates->z_max,2), */
+/* 	       t2 - (1./tree->rates->nu)*pow((u0-u2)/tree->rates->z_max,2)); */
 /*   t0_max = MIN(t1,t2); */
   
+  
+/*   if(u1 > u0) t_max_01 = t1 - (1./tree->rates->nu)*pow((u1-u0)/(PointNormal(tree->rates->p_max*Pnorm(.0,.0,1.))),2); */
+/*   else        t_max_01 = t1 - (1./tree->rates->nu)*pow((u1-u0)/(PointNormal(tree->rates->p_max*(1.-Pnorm(.0,.0,1.)))),2); */
+
+/*   if(u2 > u0) t_max_02 = t2 - (1./tree->rates->nu)*pow((u2-u0)/(PointNormal(tree->rates->p_max*Pnorm(.0,.0,1.))),2); */
+/*   else        t_max_02 = t2 - (1./tree->rates->nu)*pow((u2-u0)/(PointNormal(tree->rates->p_max*(1.-Pnorm(.0,.0,1.)))),2); */
+  
+
+  t_max_01 = RATES_Find_Max_Dt_Bisec(u1,u0,tree->rates->t_prior_min[root->num],t1,tree->rates->nu,tree->rates->p_max,(u1 < u0)?YES:NO);
+  t_max_02 = RATES_Find_Max_Dt_Bisec(u2,u0,tree->rates->t_prior_min[root->num],t2,tree->rates->nu,tree->rates->p_max,(u2 < u0)?YES:NO);
+
+  t0_max = MIN(t_max_01,t_max_02);
+
   t0_min = MAX(t0_min,tree->rates->t_prior_min[root->num]);
   t0_max = MIN(t0_max,tree->rates->t_prior_max[root->num]);
-  
+
+
   u0 *= cr;
   u1 *= cr;
   u2 *= cr;
@@ -3007,14 +3036,14 @@ void RATES_Check_Lk_Rates(t_tree *tree, int *err)
       t     = tree->rates->nd_t[i];
       t_anc = tree->rates->nd_t[tree->noeud[i]->anc->num];
 
-      z = fabs(u - u_anc) / sqrt(tree->rates->nu * (t - t_anc));
+/*       z = fabs(u - u_anc) / sqrt(tree->rates->nu * (t - t_anc)); */
 
-      if(z > tree->rates->z_max) 
-	{
-	  PhyML_Printf("\n. %d %d u=%f u_anc=%f t=%f t_anc=%f z=%f",i,tree->noeud[i]->anc->num,u,u_anc,t,t_anc,z);
-	  PhyML_Printf("\n. %d %d %d",tree->n_root->num,tree->n_root->v[0]->num,tree->n_root->v[1]->num);
-	  *err = 1;
-	}
+/*       if(z > tree->rates->z_max)  */
+/* 	{ */
+/* 	  PhyML_Printf("\n. %d %d u=%f u_anc=%f t=%f t_anc=%f z=%f",i,tree->noeud[i]->anc->num,u,u_anc,t,t_anc,z); */
+/* 	  PhyML_Printf("\n. %d %d %d",tree->n_root->num,tree->n_root->v[0]->num,tree->n_root->v[1]->num); */
+/* 	  *err = 1; */
+/* 	} */
     }
 }
 
@@ -3099,6 +3128,7 @@ void RATES_Normalise_Rates(t_tree *tree)
   phydbl expr,curr;
   int i;
   
+
   curr = RATES_Check_Mean_Rates(tree);
 
   /* Set expected mean rate to one such that clock_r is
@@ -3107,23 +3137,127 @@ void RATES_Normalise_Rates(t_tree *tree)
   
   For(i,2*tree->n_otu-2) tree->rates->nd_r[i] *= expr/curr;
 
-  /* !!!!!!!!!! */
   tree->rates->clock_r *= curr/expr;
   /* Branch lengths therefore do not change */
-
-  For(i,2*tree->n_otu-2) 
-    {
-      if(tree->rates->nd_r[i] > tree->rates->max_rate)
-	tree->rates->nd_r[i] = tree->rates->max_rate;
-      if(tree->rates->nd_r[i] < tree->rates->min_rate)
-	tree->rates->nd_r[i] = tree->rates->min_rate;
-    }
 
   RATES_Update_Cur_Bl(tree);
 }
 
 /*********************************************************/
+
+phydbl RATES_Find_Max_Dt_Bisec(phydbl r, phydbl r_mean, phydbl ta, phydbl tc, phydbl nu, phydbl threshp, int inf)
+{
+  phydbl cdfr,cdf0;
+  phydbl sd;
+  phydbl trunc_cdf;
+  phydbl ori_tc, ori_ta;
+  phydbl tb;
+
+  ori_tc = tc;
+  ori_ta = ta;
+
+/*   PhyML_Printf("\n Max %s r=%f r_mean%f",inf?"inf":"sup",r,r_mean); */
+  do
+    {
+      tb = ta + (tc - ta)/2.;
+
+
+      sd   = sqrt(nu*(ori_tc - tb));
+      cdfr = Pnorm(r ,r_mean,sd);
+      cdf0 = Pnorm(.0,r_mean,sd);
+      
+      if(inf)
+	trunc_cdf = (cdfr - cdf0)/(1. - cdf0);
+      else
+	trunc_cdf = (1. - cdfr)/(1. - cdf0);
+	
+/*       PhyML_Printf("\n. ta=%15f tb=%15f tc=%15f cdf = %15f",ta,tb,tc,trunc_cdf); */
+
+      if(trunc_cdf > threshp)
+	{
+	  ta = tb;
+	}
+      else
+	{
+	  tc = tb;
+	}
+
+    }while((tc - ta)/(ori_tc - ori_ta) > 0.001);
+
+  if(tb < ori_ta)
+    {
+      PhyML_Printf("\n. tb < ta r=%f r_mean=%f",r,r_mean);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");
+    }
+  if(tb > ori_tc)
+    {
+      PhyML_Printf("\n. tb > tc r=%f r_mean=%f ori_ta=%f ori_tc=%f tb=%f",r,r_mean,ori_ta,ori_tc,tb);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");
+    }
+
+  return tb;
+}
+
 /*********************************************************/
+
+phydbl RATES_Find_Min_Dt_Bisec(phydbl r, phydbl r_mean, phydbl ta, phydbl tc, phydbl nu, phydbl threshp, int inf)
+{
+  phydbl cdfr,cdf0;
+  phydbl sd;
+  phydbl trunc_cdf;
+  phydbl ori_tc, ori_ta;
+  phydbl tb;
+
+  ori_tc = tc;
+  ori_ta = ta;
+
+/*   PhyML_Printf("\n Min %s r=%f r_mean=%f",inf?"inf":"sup",r,r_mean); */
+  do
+    {
+
+      tb = ta + (tc - ta)/2.;
+
+
+      sd   = sqrt(nu*(tb - ori_ta));
+      cdfr = Pnorm(r ,r_mean,sd);
+      cdf0 = Pnorm(.0,r_mean,sd);
+      
+      if(inf)
+	trunc_cdf = (cdfr - cdf0)/(1. - cdf0);
+      else
+	trunc_cdf = (1. - cdfr)/(1. - cdf0);
+	
+/*       PhyML_Printf("\n. ta=%15f tb=%15f tc=%15f cdf = %15f",ta,tb,tc,trunc_cdf); */
+
+      if(trunc_cdf > threshp)
+	{
+	  tc = tb;
+	}
+      else
+	{
+	  ta = tb;
+	}
+
+    }while((tc - ta)/(ori_tc - ori_ta) > 0.001);
+
+  if(tb < ori_ta)
+    {
+      PhyML_Printf("\n. tb < ta r=%f r_mean=%f",r,r_mean);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");
+    }
+  if(tb > ori_tc)
+    {
+      PhyML_Printf("\n. tb > tc r=%f r_mean=%f ori_ta=%f ori_tc=%f tb=%f",r,r_mean,ori_ta,ori_tc,tb);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");
+    }
+
+  return tb;
+}
+
 /*********************************************************/
 /*********************************************************/
 /*********************************************************/
