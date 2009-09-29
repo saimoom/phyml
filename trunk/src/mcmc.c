@@ -428,18 +428,14 @@ void MCMC_Times_Pre(t_node *a, t_node *d, int local, t_tree *tree)
       tree->rates->nd_t[d->num] = t1_new;
 
       RATES_Update_Cur_Bl(tree);
-      new_lnL_rate = RATES_Lk_Rates(tree); /* Rates likelihood needs to be updated here */
       new_lnL_data = Lk(tree);
 
 /*       ratio = new_lnL_data - cur_lnL_data; */
 
-/*       ratio = */
-/* 	(new_lnL_data + log(fabs(t1_new))) - */
-/* 	(cur_lnL_data + log(fabs(t1_cur))); */
-
       ratio =
-	(new_lnL_data + new_lnL_rate + log(fabs(t1_new))) -
-	(cur_lnL_data + cur_lnL_rate + log(fabs(t1_cur)));
+	(new_lnL_data + log(fabs(t1_new))) -
+	(cur_lnL_data + log(fabs(t1_cur)));
+
 
       ratio = exp(ratio);
       alpha = MIN(1.,ratio);
@@ -454,6 +450,7 @@ void MCMC_Times_Pre(t_node *a, t_node *d, int local, t_tree *tree)
 	}
       else
 	{
+	  new_lnL_rate = RATES_Lk_Rates(tree); /* Rates likelihood needs to be updated here */
 	  tree->mcmc->acc_times++;
 	}
     }
