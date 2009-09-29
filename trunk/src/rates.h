@@ -154,6 +154,8 @@ void RATES_Normalise_Rates(t_tree *tree);
 phydbl RATES_Check_Mean_Rates_True(t_tree *tree);
 phydbl RATES_Find_Min_Dt_Bisec(phydbl r0, phydbl r1, phydbl t0, phydbl t1, phydbl nu, phydbl threshp, int inf);
 phydbl RATES_Find_Max_Dt_Bisec(phydbl r0, phydbl r1, phydbl t0, phydbl t1, phydbl nu, phydbl threshp, int inf);
+void RATES_Min_Max_Interval(phydbl u0, phydbl u1, phydbl u2, phydbl u3, phydbl t0, phydbl t2, phydbl t3, 
+			    phydbl *t_min, phydbl *t_max, phydbl nu, phydbl p_thresh, t_tree *tree);
 
 
 

@@ -2057,6 +2057,8 @@ calign *Compact_Data(align **data, option *io)
   n_ambigu = 0;
   is_ambigu = 0;
 
+  if(!io->quiet && !compress) { PhyML_Printf("\n. WARNING: sequences are not compressed !\n");}
+
   Fors(site,data[0]->len,io->mod->state_len)
     {
       if(io->rm_ambigu)
@@ -2088,7 +2090,6 @@ calign *Compact_Data(align **data, option *io)
 	    }
 	  else
 	    {
-	      if(!io->quiet) { PhyML_Printf("\n. WARNING: sequences are not compressed !");}
 	      k = n_patt;
 	    }
 	  

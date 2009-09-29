@@ -225,7 +225,7 @@ void Init_Tips_At_One_Site_Generic_Float(char *state, int ns, int state_len, int
 	  Warn_And_Exit("");	  
 	}
       p_lk[pos+state_int] = 1.;
-/*       PhyML_Printf("\n. %s %d cstate: %.2s istate: %d state_len: %d ns: %d pos: %d",__FILE__,__LINE__,state,state_int,state_len,ns,pos); */
+      /*       PhyML_Printf("\n. %s %d cstate: %.2s istate: %d state_len: %d ns: %d pos: %d",__FILE__,__LINE__,state,state_int,state_len,ns,pos); */
     }
 }
 
@@ -438,6 +438,9 @@ phydbl Lk_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
 }
 
 /*********************************************************/
+/* Core of the likelihood calculcation. Assume that the partial likelihoods on both 
+   sides of t_edge *b are up-to-date. Calculate the log-likelihood at one site.
+*/
 
 phydbl Lk_Core(t_edge *b, t_tree *tree)
 {
@@ -452,11 +455,15 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
   dim2 = tree->mod->ns;
   dim3 = tree->mod->ns * tree->mod->ns;
 
-  log_site_lk = site_lk = site_lk_cat = .0;
-  ambiguity_check = state = -1;
-  site = tree->curr_site;
-  ns = tree->mod->ns;
+  log_site_lk     = .0;
+  site_lk         = .0;
+  site_lk_cat     = .0;
+  ambiguity_check = -1;
+  state           = -1;
+  site            = tree->curr_site;
+  ns              = tree->mod->ns;
 
+  /* Get the vectors of partial likelihood scaling */
   scale_left = 
     (b->sum_scale_f_left)?
     (b->sum_scale_f_left[site]):
@@ -474,13 +481,16 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
     }
 
   if(tree->mod->use_m4mod) ambiguity_check = 1;
-
+  
+  /* For all classes of rates */
   For(catg,tree->mod->n_catg)
     {
       site_lk_cat = .0;
 
+      /* b is an external edge */
       if((b->rght->tax) && (!tree->mod->s_opt->greedy))
 	{
+	  /* If the character observed at the tip is NOT ambiguous: ns x 1 terms to consider */
 	  if(!ambiguity_check)
 	    {
 	      sum = .0;
@@ -492,6 +502,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
 		}
 	      site_lk_cat += sum * tree->mod->pi[state];
 	    }
+	  /* If the character observed at the tip is ambiguous: ns x ns terms to consider */
 	  else
 	    {
 	      For(k,ns)
@@ -513,6 +524,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
 		}
 	    }
 	}
+      /* b is an internal edge: ns x ns terms to consider */
       else
 	{
 	  For(k,ns) 
@@ -536,28 +548,32 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
 
       tree->log_site_lk_cat[catg][site] = site_lk_cat;
       site_lk += site_lk_cat * tree->mod->gamma_r_proba[catg];
-
     }
 
   /* site_lk may be too small ? */
   if(site_lk < 1.E-300) site_lk = 1.E-300;
 
+  /* The substitution model does not consider invariable sites */
   if(!tree->mod->invar)
-    {      
+    {
       log_site_lk = (phydbl)log(site_lk) + (phydbl)scale_left + (phydbl)scale_rght;
     }
   else
     {
+      /* The site is invariant */
       if((phydbl)tree->data->invar[site] > -0.5)
 	{
 	  if((scale_left + scale_rght > 0.0) || (scale_left + scale_rght < 0.0))
 	    site_lk *= (phydbl)exp(scale_left + scale_rght);
 	  
-	  log_site_lk = (phydbl)log(site_lk*(1.0-tree->mod->pinvar) + tree->mod->pinvar*tree->mod->pi[tree->data->invar[site]]);
+	  log_site_lk = 
+	    (phydbl)log(site_lk*(1.0-tree->mod->pinvar) + tree->mod->pinvar*tree->mod->pi[tree->data->invar[site]]);
+	  /* log(P(D)) = log(P(D | subst. rate > 0) * P(subst. rate > 0) + P(D | subst. rate = 0) * P(subst. rate = 0)) */
 	}
       else
 	{
 	  log_site_lk = (phydbl)log(site_lk*(1.0-tree->mod->pinvar)) + (phydbl)scale_left + (phydbl)scale_rght;
+	  /* Same formula as above with P(D | subs, rate = 0) = 0 */
 	}
     }
   
@@ -565,11 +581,12 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
 
   For(catg,tree->mod->n_catg)
     tree->log_site_lk_cat[catg][site] = 
-    (phydbl)log(tree->log_site_lk_cat[catg][site]) +
-    (phydbl)scale_left + 
-    (phydbl)scale_rght;
+    log(tree->log_site_lk_cat[catg][site]) +
+    scale_left + 
+    scale_rght;
   
   tree->site_lk[site]      = log_site_lk;
+  /* Multiply log likelihood by the number of times this site pattern is found oin the data */
   tree->c_lnL_sorted[site] = tree->data->wght[site]*log_site_lk;
   return log_site_lk;
 }
@@ -840,6 +857,9 @@ void Unconstraint_Lk(t_tree *tree)
 
 /*********************************************************/
 
+/* Update partial likelihood on edge b on the side of b where
+   node d lies.
+*/
 void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
 {
 /*
@@ -850,6 +870,7 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
           / \
        	 /   \
        	/     \
+	n_v1   n_v2
 */
   t_node *n_v1, *n_v2;
   phydbl p1_lk1,p2_lk2;
@@ -886,6 +907,8 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
 
   n_patterns = tree->n_pattern;
   
+  /* TO DO: Might be worth keeping these directions in memory instead of 
+     calculating them every time... */
   dir1=dir2=-1;
   For(i,3) if(d->b[i] != b) (dir1<0)?(dir1=i):(dir2=i);
 
@@ -902,6 +925,8 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
   n_v1 = d->v[dir1];
   n_v2 = d->v[dir2];
 
+  /* Get the partial likelihood vectors on edge b and the two pendant
+     edges (i.e., the two other edges connected to d) */
   if(d == b->left)
     {
       p_lk = b->p_lk_left;
@@ -935,11 +960,14 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
       sum_scale_v2 = d->b[dir2]->sum_scale_f_left;
     }
   
+  /* Change probability matrices on the two pendant edges */
   Pij1 = d->b[dir1]->Pij_rr;
   Pij2 = d->b[dir2]->Pij_rr;
-      
+  
+  /* For every site in the alignment */
   For(site,n_patterns)
     {
+      /* Current scaling values at that site */
       scale_v1 = (sum_scale_v1)?(sum_scale_v1[site]):(0.0);
       scale_v2 = (sum_scale_v2)?(sum_scale_v2[site]):(0.0); 
       sum_scale[site] = scale_v1 + scale_v2;
@@ -950,14 +978,17 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
       
       if(!tree->mod->s_opt->greedy)
 	{
+	  /* n_v1 and n_v2 are tip nodes */
 	  if(n_v1->tax)
 	    {
+	      /* Is the state at this tip ambiguous? */ 
 	      ambiguity_check_v1 = tree->data->c_seq[n_v1->num]->is_ambigu[site];
 	      if(!ambiguity_check_v1) state_v1 = Get_State_From_P_Pars(n_v1->b[0]->p_lk_tip_r,site*dim2,tree);
 	    }
 	      
 	  if(n_v2->tax)
 	    {
+	      /* Is the state at this tip ambiguous? */ 
 	      ambiguity_check_v2 = tree->data->c_seq[n_v2->num]->is_ambigu[site];
 	      if(!ambiguity_check_v2) state_v2 = Get_State_From_P_Pars(n_v2->b[0]->p_lk_tip_r,site*dim2,tree);
 	    }
@@ -969,28 +1000,35 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
 	  ambiguity_check_v2 = 1;
 	}
 
+      /* For all the rate classes */
       For(catg,tree->mod->n_catg)
 	{
+	  /* For all the state at node d */
 	  For(i,tree->mod->ns)
 	    {
 	      p1_lk1 = .0;
 	      
+	      /* n_v1 is a tip */
 	      if((n_v1->tax) && (!tree->mod->s_opt->greedy))
 		{
 		  if(!ambiguity_check_v1)
 		    {
+		      /* For the (non-ambiguous) state at node n_v1 */
 		      p1_lk1 = Pij1[catg*dim3+i*dim2+state_v1];
 		    }
 		  else
 		    {
+		      /* For all the states at node n_v1 */
 		      For(j,tree->mod->ns)
 			{
 			  p1_lk1 += Pij1[catg*dim3+i*dim2+j] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+j];
 			}
 		    }
 		}
+	      /* n_v1 is an internal node */
 	      else
 		{
+		  /* For the states at node n_v1 */
 		  For(j,tree->mod->ns)
 		    {
 		      p1_lk1 += Pij1[catg*dim3+i*dim2+j] * (phydbl)p_lk_v1[site*dim1+catg*dim2+j];
@@ -999,22 +1037,28 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
 	      
 	      p2_lk2 = .0;
 	      
+	      /* We do exactly the same as for node n_v1 but for node n_v2 this time.*/
+	      /* n_v2 is a tip */
 	      if((n_v2->tax) && (!tree->mod->s_opt->greedy))
 		{
 		  if(!ambiguity_check_v2)
 		    {
+		      /* For the (non-ambiguous) state at node n_v2 */
 		      p2_lk2 = Pij2[catg*dim3+i*dim2+state_v2];
 		    }
 		  else
 		    {
+		      /* For all the states at node n_v2 */
 		      For(j,tree->mod->ns)
 			{
 			  p2_lk2 += Pij2[catg*dim3+i*dim2+j] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+j];
 			}
 		    }
 		}
+	      /* n_v2 is an internal node */
 	      else
 		{
+		  /* For all the states at node n_v2 */
 		  For(j,tree->mod->ns)
 		    {
 		      p2_lk2 += Pij2[catg*dim3+i*dim2+j] * (phydbl)p_lk_v2[site*dim1+catg*dim2+j];
@@ -1023,16 +1067,23 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
 	      
 	      p_lk[site*dim1+catg*dim2+i] = (plkflt)(p1_lk1 * p2_lk2);
 	      
+	      /* Work out the maximum value of the partial likelihoods at node d */
 	      if(p_lk[site*dim1+catg*dim2+i] > max_p_lk) max_p_lk = p_lk[site*dim1+catg*dim2+i];
 	    }
 	}
       
+      /* Scaling */
       if((max_p_lk < LIM_SCALE_VAL) || (max_p_lk > (1./LIM_SCALE_VAL)))
 	{
+	  /* For each rate class */
 	  For(catg,tree->mod->n_catg)
 	    {
+	      /* For each state at node d */
 	      For(i,tree->mod->ns)
 		{
+		  /* Divide the corresponding partial likelihood by the maximum 
+		     value of the partial likelihoods calculated over all rate
+		     classes and states. */
 		  p_lk[site*dim1+catg*dim2+i] /= max_p_lk;
 		  
 /* 		  if((p_lk[site][catg][i] > MDBL_MAX) || (p_lk[site][catg][i] < MDBL_MIN)) */
