@@ -61,7 +61,10 @@ int MC_main(int argc, char **argv)
   io = (option *)Get_Input(argc,argv);
   r_seed = (io->r_seed < 0)?(time(NULL)):(io->r_seed);
 /*   r_seed = 1248325214; */
-  r_seed = 1254029112;
+/*   r_seed = 1254029112; */
+/*   r_seed = 1254094805; */
+/*   r_seed = 1254097617; */
+/*   r_seed = 1254103645; */
   srand(r_seed); rand();
   PhyML_Printf("\n. Seed: %d\n",r_seed);
   PhyML_Printf("\n. Pid: %d\n",getpid());
@@ -70,7 +73,7 @@ int MC_main(int argc, char **argv)
   if(io->in_tree == 2) Test_Multiple_Data_Set_Format(io);
   else io->n_trees = 1;
 
-  io->colalias = 0;  /* Do not compress sites if you're using Evolve function */
+  io->colalias = 1;  /* Do not compress sites if you're using Evolve function */
 
   mat = NULL;
   tree_line_number = 0;
@@ -117,17 +120,17 @@ int MC_main(int argc, char **argv)
 		  time(&t_beg);
 		  time(&(tree->t_beg));
 
-		  int n_otu;
+/* 		  int n_otu; */
 		  int i;
 		  t_edge *root_edge;
 
-		  n_otu = 15;
-		  tree = Generate_Random_Tree_From_Scratch(n_otu,1);
+/* 		  n_otu = 25; */
+/* 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1); */
 
-/* 		  tree->rates = RATES_Make_Rate_Struct(tree->n_otu); */
-/* 		  RATES_Init_Rate_Struct(tree->rates,tree->n_otu); */
-/* 		  root_edge = Find_Root_Edge(io->fp_in_tree,tree); */
-/* 		  Add_Root(root_edge,tree); */
+		  tree->rates = RATES_Make_Rate_Struct(tree->n_otu);
+		  RATES_Init_Rate_Struct(tree->rates,tree->n_otu);
+		  root_edge = Find_Root_Edge(io->fp_in_tree,tree);
+		  Add_Root(root_edge,tree);
 
 		  RATES_Fill_Lca_Table(tree);
 
@@ -137,14 +140,14 @@ int MC_main(int argc, char **argv)
 		  tree->both_sides  = 1;
 		  tree->n_pattern   = tree->data->crunch_len/tree->mod->state_len;
 
- 		  For(i,tree->n_otu) strcpy(tree->noeud[i]->name,cdata->c_seq[i]->name);
+/*  		  For(i,tree->n_otu) strcpy(tree->noeud[i]->name,cdata->c_seq[i]->name); */
 
 		  Fill_Dir_Table(tree);
 		  Update_Dirs(tree);
 		  Make_Tree_4_Pars(tree,cdata,cdata->init_len);
 		  Make_Tree_4_Lk(tree,cdata,cdata->init_len);
 
-		  Evolve(tree->data,tree->mod,tree);
+/* 		  Evolve(tree->data,tree->mod,tree); */
 		  Init_Ui_Tips(tree);
 		  Init_P_Pars_Tips(tree);
 		  if(tree->mod->s_opt->greedy) Init_P_Lk_Tips_Double(tree);
@@ -219,40 +222,35 @@ int MC_main(int argc, char **argv)
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
 		  MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree);
 		  tree->rates->lk_approx = NORMAL;
-		  tree->mcmc->n_tot_run  = 1E+5;
-		  tree->mcmc->h_times    = 1.0;
-		  tree->mcmc->h_rates    = 1.0;
-		  tree->mcmc->h_nu       = 3.0;
-		  tree->mcmc->h_clock    = 1.0;
+		  tree->mcmc->n_tot_run  = 1E+6;
 		  MCMC(tree);
 		  MCMC_Close_MCMC(tree->mcmc);
 		  MCMC_Free_MCMC(tree->mcmc);
 
+		  PhyML_Printf("\n. Gibbs sampling (approx)...\n");
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
-		  MCMC_Init_MCMC_Struct("gibbs.approx",tree->mcmc,tree);
-		  
+		  MCMC_Init_MCMC_Struct("gibbs.approx",tree->mcmc,tree);		  
 		  tree->rates->lk_approx = NORMAL;
 		  RATES_Lk_Rates(tree);
 		  MCMC_Print_Param(tree->mcmc,tree);
 		  
 		  time(&t_beg);
-		  PhyML_Printf("\n. Gibbs sampling (approx)...\n");
-		  tree->mcmc->n_tot_run = 1E+7;
+		  tree->mcmc->n_tot_run = 1E+8;
 		  phydbl u;
 		  do
 		    {
 		      u = Uni();
 
 		      tree->rates->c_lnL = RATES_Lk_Rates(tree);
-/* 		      MCMC_Nu(tree); */
+		      MCMC_Nu(tree);
 		      tree->c_lnL = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,
 								 tree->rates->u_ml_l,
 								 tree->rates->invcov,
 								 tree->rates->covdet,
 								 2*tree->n_otu-3,YES);
-/* 		      RATES_Posterior_Clock_Rate(tree); */
+		      RATES_Posterior_Clock_Rate(tree);
 		      RATES_Posterior_Times(tree);
-/* 		      RATES_Posterior_Rates(tree); */
+		      RATES_Posterior_Rates(tree);
 		    }
 		  while(tree->mcmc->run < tree->mcmc->n_tot_run);
 		  time(&t_end);
@@ -282,12 +280,6 @@ int MC_main(int argc, char **argv)
 		  MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree);
 		  tree->rates->lk_approx = NORMAL;
 		  tree->mcmc->n_tot_run  = 1E+5;
-
-		  tree->mcmc->h_times    = 1.0;
-		  tree->mcmc->h_rates    = 1.0;
-		  tree->mcmc->h_nu       = 3.0;
-		  tree->mcmc->h_clock    = 1.0;
-
 		  MCMC(tree);
 		  MCMC_Close_MCMC(tree->mcmc);
 		  MCMC_Free_MCMC(tree->mcmc);
@@ -296,8 +288,7 @@ int MC_main(int argc, char **argv)
 		  MCMC_Init_MCMC_Struct("thorne.normal",tree->mcmc,tree);
 		  tree->rates->lk_approx = NORMAL;
 		  
-
-		  tree->mcmc->n_tot_run = 1E+7;
+		  tree->mcmc->n_tot_run = 1E+8;
 		  tree->mcmc->randomize = 0;
 		  time(&t_beg);
 		  PhyML_Printf("\n. Thorne (approx)...\n");
