@@ -20,7 +20,7 @@ the GNU public licence. See http://www.opensource.org for details.
 
 /*********************************************************/
 
-void Init_Tips_At_One_Site_Nucleotides_Float(char state, int pos, plkflt *p_lk)
+void Init_Tips_At_One_Site_Nucleotides_Float(char state, int pos, phydbl *p_lk)
 {
   switch(state)
     {
@@ -114,7 +114,7 @@ void Init_Tips_At_One_Site_Nucleotides_Int(char state, int pos, short int *p_par
 
 /*********************************************************/
 
-void Init_Tips_At_One_Site_AA_Float(char aa, int pos, plkflt *p_lk)
+void Init_Tips_At_One_Site_AA_Float(char aa, int pos, phydbl *p_lk)
 {
   int i;
 
@@ -200,7 +200,7 @@ void Init_Tips_At_One_Site_AA_Int(char aa, int pos, short int *p_pars)
 
 /*********************************************************/
 
-void Init_Tips_At_One_Site_Generic_Float(char *state, int ns, int state_len, int pos, plkflt *p_lk)
+void Init_Tips_At_One_Site_Generic_Float(char *state, int ns, int state_len, int pos, phydbl *p_lk)
 {
   int i;
   int state_int;
@@ -373,10 +373,12 @@ phydbl Lk(t_tree *tree)
   For(site,n_patterns)
     {
       if(tree->c_lnL_sorted[site] < .0) /* WARNING : change cautiously */
-	tree->c_lnL += tree->c_lnL_sorted[site];
+	{
+	  tree->c_lnL += (double)tree->c_lnL_sorted[site];
+	}
     }
   
-  return tree->c_lnL;
+  return (phydbl)tree->c_lnL;
 }
 
 /*********************************************************/
@@ -424,28 +426,34 @@ phydbl Lk_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
   For(tree->curr_site,n_patterns)
     {
       if(tree->data->wght[tree->curr_site] > MDBL_MIN) Lk_Core(b_fcus,tree);
-      else tree->c_lnL_sorted[tree->curr_site] = 1.; /* WARNING : change cautiously */
+      else tree->c_lnL_sorted[tree->curr_site] = 1.; /* WARNING : change cautiously */      
     }
 
-/*   Qksort(tree->c_lnL_sorted,NULL,0,n_patterns-1); */
+  /* Qksort(tree->c_lnL_sorted,NULL,0,n_patterns-1); */
 
   tree->c_lnL = .0;
   For(tree->curr_site,n_patterns)
     if(tree->c_lnL_sorted[tree->curr_site] < .0) /* WARNING : change cautiously */
-      tree->c_lnL += tree->c_lnL_sorted[tree->curr_site];
+      {
+	tree->c_lnL += (double)tree->c_lnL_sorted[tree->curr_site];
+      }
 
-  return tree->c_lnL;
+  return (phydbl)tree->c_lnL;
 }
 
+
+#ifndef USE_OLD_LK
+
 /*********************************************************/
-/* Core of the likelihood calculcation. Assume that the partial likelihoods on both 
+/* Core of the likelihood calculcation. Assume that the partial likelihoods on both
    sides of t_edge *b are up-to-date. Calculate the log-likelihood at one site.
 */
 
+
 phydbl Lk_Core(t_edge *b, t_tree *tree)
 {
-  phydbl log_site_lk, site_lk, site_lk_cat;
-  plkflt scale_left, scale_rght;
+  double log_site_lk, site_lk, site_lk_cat;
+  phydbl sum_scale_left, sum_scale_rght;
   phydbl sum;
   int ambiguity_check,state;
   int catg,ns,k,l,site;
@@ -463,28 +471,32 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
   site            = tree->curr_site;
   ns              = tree->mod->ns;
 
-  /* Get the vectors of partial likelihood scaling */
-  scale_left = 
-    (b->sum_scale_f_left)?
-    (b->sum_scale_f_left[site]):
-    (0.0);
-  
-  scale_rght = 
-    (b->sum_scale_f_rght)?
-    (b->sum_scale_f_rght[site]):
-    (0.0);
-
   if((b->rght->tax) && (!tree->mod->s_opt->greedy))
     {
-      ambiguity_check = tree->data->c_seq[b->rght->num]->is_ambigu[site];      
+      ambiguity_check = tree->data->c_seq[b->rght->num]->is_ambigu[site];
       if(!ambiguity_check) state = Get_State_From_P_Pars(b->p_lk_tip_r,site*dim2,tree);
     }
 
+  sum_scale_left = .0;
+  sum_scale_rght = .0;
+  
   if(tree->mod->use_m4mod) ambiguity_check = 1;
   
   /* For all classes of rates */
   For(catg,tree->mod->n_catg)
     {
+      /* Get the scaling factors */
+      sum_scale_left =
+	(b->sum_scale_f_left)?
+	(b->sum_scale_f_left[catg*tree->n_pattern+site]):
+	(0.0);
+      
+      sum_scale_rght =
+	(b->sum_scale_f_rght)?
+	(b->sum_scale_f_rght[catg*tree->n_pattern+site]):
+	(0.0);
+
+
       site_lk_cat = .0;
 
       /* b is an external edge */
@@ -498,7 +510,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
 		{
 		  sum +=
 		    b->Pij_rr[catg*dim3+state*dim2+l] *
-		    (phydbl)b->p_lk_left[site*dim1+catg*dim2+l];
+		    b->p_lk_left[site*dim1+catg*dim2+l];
 		}
 	      site_lk_cat += sum * tree->mod->pi[state];
 	    }
@@ -514,12 +526,12 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
 			{
 			  sum +=
 			    b->Pij_rr[catg*dim3+k*dim2+l] *
-			    (phydbl)b->p_lk_left[site*dim1+catg*dim2+l];
+			    b->p_lk_left[site*dim1+catg*dim2+l];
 			}
 		      site_lk_cat +=
 			sum *
 			tree->mod->pi[k] *
-			(phydbl)b->p_lk_tip_r[site*dim2+k];
+			b->p_lk_tip_r[site*dim2+k];
 		    }
 		}
 	    }
@@ -527,7 +539,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
       /* b is an internal edge: ns x ns terms to consider */
       else
 	{
-	  For(k,ns) 
+	  For(k,ns)
 	    {
 	      sum = .0;
 	      if(b->p_lk_rght[site*dim1+catg*dim2+k] > .0)
@@ -536,60 +548,349 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
 		    {
 		      sum +=
 			b->Pij_rr[catg*dim3+k*dim2+l] *
-			(phydbl)b->p_lk_left[site*dim1+catg*dim2+l];
+			b->p_lk_left[site*dim1+catg*dim2+l];
 		    }
 		  site_lk_cat +=
 		    sum *
 		    tree->mod->pi[k] *
-		    (phydbl)b->p_lk_rght[site*dim1+catg*dim2+k];
+		    b->p_lk_rght[site*dim1+catg*dim2+k];
 		}
 	    }
 	}
 
-      tree->log_site_lk_cat[catg][site] = site_lk_cat;
-      site_lk += site_lk_cat * tree->mod->gamma_r_proba[catg];
-    }
+      site_lk_cat *= pow(2,sum_scale_left+sum_scale_rght);
+      tree->log_site_lk_cat[catg][site] = (phydbl)site_lk_cat;
+      site_lk += site_lk_cat * (double)tree->mod->gamma_r_proba[catg];
 
-  /* site_lk may be too small ? */
-  if(site_lk < 1.E-300) site_lk = 1.E-300;
+/*       if(site_lk_cat < MDBL_MIN)  */
+/* 	{ */
+/* 	  PhyML_Printf("\n. scale_left = %G scale_rght = %G",sum_scale_left,sum_scale_rght); */
+/* 	  PhyML_Printf("\n. 2^(scale_left+scale_rght) = %G",pow(2,sum_scale_left+sum_scale_rght)); */
+/* 	  PhyML_Printf("\n. Lk = %G",site_lk_cat); */
+/* 	  PhyML_Printf("\n. unnorm Lk = %G",tree->log_site_lk_cat[catg][site] ); */
+/* 	} */
+    }
 
   /* The substitution model does not consider invariable sites */
   if(!tree->mod->invar)
     {
-      log_site_lk = (phydbl)log(site_lk) + (phydbl)scale_left + (phydbl)scale_rght;
+      log_site_lk = log(site_lk);
     }
   else
     {
+      /* !!!!!!!!!!!!!!!!! */
+      PhyML_Printf("\n. TO DO HERE\n");
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
+      Exit("");
+
       /* The site is invariant */
       if((phydbl)tree->data->invar[site] > -0.5)
 	{
-	  if((scale_left + scale_rght > 0.0) || (scale_left + scale_rght < 0.0))
-	    site_lk *= (phydbl)exp(scale_left + scale_rght);
+	  if((sum_scale_left + sum_scale_rght > 0.0) || (sum_scale_left + sum_scale_rght < 0.0))
+	    site_lk *= (phydbl)exp(sum_scale_left + sum_scale_rght);
 	  
-	  log_site_lk = 
+	  log_site_lk =
 	    (phydbl)log(site_lk*(1.0-tree->mod->pinvar) + tree->mod->pinvar*tree->mod->pi[tree->data->invar[site]]);
 	  /* log(P(D)) = log(P(D | subst. rate > 0) * P(subst. rate > 0) + P(D | subst. rate = 0) * P(subst. rate = 0)) */
 	}
       else
 	{
-	  log_site_lk = (phydbl)log(site_lk*(1.0-tree->mod->pinvar)) + (phydbl)scale_left + (phydbl)scale_rght;
+	  log_site_lk = (phydbl)log(site_lk*(1.0-tree->mod->pinvar)) + (phydbl)sum_scale_left + (phydbl)sum_scale_rght;
 	  /* Same formula as above with P(D | subs, rate = 0) = 0 */
 	}
     }
   
-  if(log_site_lk < -MDBL_MAX) Warn_And_Exit("\nlog_site_lk < -MDBL_MAX\n");
+  if(log_site_lk < -MDBL_MAX) 
+    {
+      PhyML_Printf("\n. scale_left = %G scale_rght = %G",sum_scale_left,sum_scale_rght);
+      PhyML_Printf("\n. 2^(scale_left+scale_rght) = %G",pow(2,sum_scale_left+sum_scale_rght));
+      PhyML_Printf("\n. Lk = %G log(Lk) = %f < %G",site_lk,log_site_lk,-MDBL_MAX);
+      Warn_And_Exit("\n. log_site_lk < -MDBL_MAX\n");
+    }
 
+  /* !!!!!!!!!!!!!!!! */
   For(catg,tree->mod->n_catg)
-    tree->log_site_lk_cat[catg][site] = 
+    tree->log_site_lk_cat[catg][site] =
     log(tree->log_site_lk_cat[catg][site]) +
-    scale_left + 
-    scale_rght;
+    sum_scale_left +
+    sum_scale_rght;
   
-  tree->site_lk[site]      = log_site_lk;
+  tree->site_lk[site]  = log_site_lk;
   /* Multiply log likelihood by the number of times this site pattern is found oin the data */
-  tree->c_lnL_sorted[site] = tree->data->wght[site]*log_site_lk;
-  return log_site_lk;
+  tree->c_lnL_sorted[site] = (phydbl)tree->data->wght[site]*log_site_lk;
+  return (phydbl)log_site_lk;
 }
+
+/*********************************************************/
+
+/* Update partial likelihood on edge b on the side of b where
+   node d lies.
+*/
+void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
+{
+/*
+           |
+	   |<- b
+	   |
+	   d
+          / \
+       	 /   \
+       	/     \
+	n_v1   n_v2
+*/
+  t_node *n_v1, *n_v2;
+  phydbl p1_lk1,p2_lk2;
+  phydbl *p_lk,*p_lk_v1,*p_lk_v2;
+  phydbl *Pij1,*Pij2;
+  phydbl *sum_scale, *sum_scale_v1, *sum_scale_v2;
+  phydbl scale_v1, scale_v2;
+  int i,j;
+  int catg,site;
+  int dir1,dir2;
+  int n_patterns;
+  int ambiguity_check_v1,ambiguity_check_v2;
+  int state_v1,state_v2;
+  int dim1, dim2, dim3;
+  int do_scale_small,do_scale_big;
+  phydbl scale_f,inv_scale_f;
+
+  scale_f = pow(2.,SCALE_POW);
+  inv_scale_f = 1./scale_f;
+
+  dim1 = tree->mod->n_catg * tree->mod->ns;
+  dim2 = tree->mod->ns;
+  dim3 = tree->mod->ns * tree->mod->ns;
+
+  state_v1 = state_v2 = -1;
+  ambiguity_check_v1 = ambiguity_check_v2 = -1;
+  scale_v1 = scale_v2 = 0.0;
+  p1_lk1 = p2_lk2 = .0;
+
+  if(d->tax)
+    {
+      PhyML_Printf("\n. t_node %d is a leaf...",d->num);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
+      Warn_And_Exit("\n");
+    }
+
+  n_patterns = tree->n_pattern;
+  
+  /* TO DO: Might be worth keeping these directions in memory instead of
+     calculating them every time... */
+  dir1=dir2=-1;
+  For(i,3) if(d->b[i] != b) (dir1<0)?(dir1=i):(dir2=i);
+
+  if((dir1 == -1) || (dir2 == -1))
+    {
+      PhyML_Printf("\n. d = %d",d->num);
+      PhyML_Printf("\n. d->v[0] = %d, d->v[1] = %d, d->v[2] = %d",d->v[0]->num,d->v[1]->num,d->v[2]->num);
+      PhyML_Printf("\n. d->b[0] = %d, d->b[1] = %d, d->b[2] = %d",d->b[0]->num,d->b[1]->num,d->b[2]->num);
+      PhyML_Printf("\n. d->num = %d dir1 = %d dir2 = %d",d->num,dir1,dir2);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
+      Exit("");
+    }
+  
+  n_v1 = d->v[dir1];
+  n_v2 = d->v[dir2];
+
+  /* Get the partial likelihood vectors on edge b and the two pendant
+     edges (i.e., the two other edges connected to d) */
+  if(d == b->left)
+    {
+      p_lk = b->p_lk_left;
+      sum_scale = b->sum_scale_f_left;
+    }
+  else
+    {
+      p_lk = b->p_lk_rght;
+      sum_scale = b->sum_scale_f_rght;
+    }
+      
+  if(d == d->b[dir1]->left)
+    {
+      p_lk_v1 = d->b[dir1]->p_lk_rght;
+      sum_scale_v1 = d->b[dir1]->sum_scale_f_rght;
+    }
+  else
+    {
+      p_lk_v1 = d->b[dir1]->p_lk_left;
+      sum_scale_v1 = d->b[dir1]->sum_scale_f_left;
+    }
+  
+  if(d == d->b[dir2]->left)
+    {
+      p_lk_v2 = d->b[dir2]->p_lk_rght;
+      sum_scale_v2 = d->b[dir2]->sum_scale_f_rght;
+    }
+  else
+    {
+      p_lk_v2 = d->b[dir2]->p_lk_left;
+      sum_scale_v2 = d->b[dir2]->sum_scale_f_left;
+    }
+  
+  /* Change probability matrices on the two pendant edges */
+  Pij1 = d->b[dir1]->Pij_rr;
+  Pij2 = d->b[dir2]->Pij_rr;
+  
+  /* For every site in the alignment */
+  For(site,n_patterns)
+    {
+
+/*       scale_f = -MDBL_MAX; */
+      state_v1 = state_v2 = -1;
+      ambiguity_check_v1 = ambiguity_check_v2 = -1;
+      
+      if(!tree->mod->s_opt->greedy)
+	{
+	  /* n_v1 and n_v2 are tip nodes */
+	  if(n_v1->tax)
+	    {
+	      /* Is the state at this tip ambiguous? */
+	      ambiguity_check_v1 = tree->data->c_seq[n_v1->num]->is_ambigu[site];
+	      if(!ambiguity_check_v1) state_v1 = Get_State_From_P_Pars(n_v1->b[0]->p_lk_tip_r,site*dim2,tree);
+	    }
+	      
+	  if(n_v2->tax)
+	    {
+	      /* Is the state at this tip ambiguous? */
+	      ambiguity_check_v2 = tree->data->c_seq[n_v2->num]->is_ambigu[site];
+	      if(!ambiguity_check_v2) state_v2 = Get_State_From_P_Pars(n_v2->b[0]->p_lk_tip_r,site*dim2,tree);
+	    }
+	}
+      
+      if(tree->mod->use_m4mod)
+	{
+	  ambiguity_check_v1 = 1;
+	  ambiguity_check_v2 = 1;
+	}
+
+      /* For all the rate classes */
+      For(catg,tree->mod->n_catg)
+	{
+	  /* Current scaling values at that site */
+	  scale_v1 = (sum_scale_v1)?(sum_scale_v1[catg*n_patterns+site]):(0.0);
+	  scale_v2 = (sum_scale_v2)?(sum_scale_v2[catg*n_patterns+site]):(0.0);
+
+	  sum_scale[catg*n_patterns+site] = scale_v1 + scale_v2;
+
+	  do_scale_small = NO;
+	  do_scale_big   = NO;
+
+	  /* For all the state at node d */
+	  For(i,tree->mod->ns)
+	    {
+	      p1_lk1 = .0;
+	      
+	      /* n_v1 is a tip */
+	      if((n_v1->tax) && (!tree->mod->s_opt->greedy))
+		{
+		  if(!ambiguity_check_v1)
+		    {
+		      /* For the (non-ambiguous) state at node n_v1 */
+		      p1_lk1 = Pij1[catg*dim3+i*dim2+state_v1];
+		    }
+		  else
+		    {
+		      /* For all the states at node n_v1 */
+		      For(j,tree->mod->ns)
+			{
+			  p1_lk1 += Pij1[catg*dim3+i*dim2+j] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+j];
+			}
+		    }
+		}
+	      /* n_v1 is an internal node */
+	      else
+		{
+		  /* For the states at node n_v1 */
+		  For(j,tree->mod->ns)
+		    {
+		      p1_lk1 += Pij1[catg*dim3+i*dim2+j] * (phydbl)p_lk_v1[site*dim1+catg*dim2+j];
+		    }
+		}
+	      
+	      p2_lk2 = .0;
+	      
+	      /* We do exactly the same as for node n_v1 but for node n_v2 this time.*/
+	      /* n_v2 is a tip */
+	      if((n_v2->tax) && (!tree->mod->s_opt->greedy))
+		{
+		  if(!ambiguity_check_v2)
+		    {
+		      /* For the (non-ambiguous) state at node n_v2 */
+		      p2_lk2 = Pij2[catg*dim3+i*dim2+state_v2];
+		    }
+		  else
+		    {
+		      /* For all the states at node n_v2 */
+		      For(j,tree->mod->ns)
+			{
+			  p2_lk2 += Pij2[catg*dim3+i*dim2+j] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+j];
+			}
+		    }
+		}
+	      /* n_v2 is an internal node */
+	      else
+		{
+		  /* For all the states at node n_v2 */
+		  For(j,tree->mod->ns)
+		    {
+		      p2_lk2 += Pij2[catg*dim3+i*dim2+j] * (phydbl)p_lk_v2[site*dim1+catg*dim2+j];
+		    }
+		}
+	      
+	      p_lk[site*dim1+catg*dim2+i] = (phydbl)(p1_lk1 * p2_lk2);
+	      
+	      /* Work out the maximum value of the partial likelihoods at node d */
+/* 	      if(p_lk[site*dim1+catg*dim2+i] > scale_f) scale_f = p_lk[site*dim1+catg*dim2+i];	       */
+
+	      if(p_lk[site*dim1+catg*dim2+i] < scale_f)     do_scale_small = YES;
+	      if(p_lk[site*dim1+catg*dim2+i] > inv_scale_f) do_scale_big   = YES;
+	    }
+	      
+	  /* Scaling */
+	  if(do_scale_small || do_scale_big)
+	    {
+	      /* For each state at node d */
+	      For(i,tree->mod->ns)
+		{
+/* 		  PhyML_Printf("\n. p_lk[%3d][%2d][%3d] = %G", */
+/* 			       site,catg,i, */
+/* 			       p_lk[site*dim1+catg*dim2+i]); */
+		  
+		  /* Divide the corresponding partial likelihood by the scaling factor. */
+		  p_lk[site*dim1+catg*dim2+i] /= (do_scale_small)?(scale_f):(inv_scale_f);
+		  
+		  if((p_lk[site*dim1+catg*dim2+i] < scale_f) || (p_lk[site*dim1+catg*dim2+i] > inv_scale_f))
+		    {
+		      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+		      PhyML_Printf("\n. p_lk[%3d][%2d][%3d] = %G (bef=%G) scale_f = %G",
+				   site,catg,i,
+				   p_lk[site*dim1+catg*dim2+i],
+				   p_lk[site*dim1+catg*dim2+i] * scale_f,
+				   scale_f);
+		      PhyML_Printf("\n. alpha=%f pinv=%f",tree->mod->alpha,tree->mod->pinvar);
+		      For(i,tree->mod->n_catg) PhyML_Printf("\n. rr[%2d] = %G",i,tree->mod->gamma_rr[i]);
+		      PhyML_Printf("\n. d->b[dir1]->l = %f, d->b[dir2]->l = %f",d->b[dir1]->l,d->b[dir2]->l);
+		      PhyML_Printf("\n. d->v[dir1]->num = %d, d->v[dir2]->num = %d",d->v[dir1]->num,d->v[dir2]->num);
+		      if(d->v[dir1]->tax)
+			{
+			  PhyML_Printf("\n. Character observed at d->v[dir1] = %d",state_v1);
+			}
+		      if(d->v[dir2]->tax)
+			{
+			  PhyML_Printf("\n. Character observed at d->v[dir2] = %d",state_v2);
+			}
+		      Warn_And_Exit("\n. Numerical precision issue !");
+		    }
+		}
+	      /* Update the sum of scaling factor powers */
+	      sum_scale[catg*n_patterns+site] += (phydbl)((do_scale_small)?(SCALE_POW):(-SCALE_POW));;
+	    }
+	}
+    }
+}
+
+#endif
 
 /*********************************************************/
 
@@ -659,7 +960,8 @@ matrix *ML_Dist(calign *data, model *mod)
 	  Hide_Ambiguities(twodata);
 	  
 	  init = mat->dist[j][k];
-	  if((init == DIST_MAX) || (init < .0)) init = 0.1;
+	  
+	  if((init > DIST_MAX-MDBL_MIN) || (init < .0)) init = 0.1;
 	  	  
 	  d_max = init;
   
@@ -722,8 +1024,8 @@ phydbl Lk_Given_Two_Seq(calign *data, int numseq1, int numseq2, phydbl dist, mod
   align *seq1,*seq2;
   phydbl site_lk,log_site_lk;
   int i,j,k,l;
-/*   plkflt **p_lk_l,**p_lk_r; */
-  plkflt *p_lk_l,*p_lk_r;
+/*   phydbl **p_lk_l,**p_lk_r; */
+  phydbl *p_lk_l,*p_lk_r;
   phydbl len;
   int dim1,dim2;
 
@@ -737,8 +1039,8 @@ phydbl Lk_Given_Two_Seq(calign *data, int numseq1, int numseq2, phydbl dist, mod
   seq2 = data->c_seq[numseq2];
 
 
-  p_lk_l = (plkflt *)mCalloc(data->c_seq[0]->len * mod->ns,sizeof(plkflt));
-  p_lk_r = (plkflt *)mCalloc(data->c_seq[0]->len * mod->ns,sizeof(plkflt));
+  p_lk_l = (phydbl *)mCalloc(data->c_seq[0]->len * mod->ns,sizeof(phydbl));
+  p_lk_r = (phydbl *)mCalloc(data->c_seq[0]->len * mod->ns,sizeof(phydbl));
 
   if(dist < BL_MIN) dist = BL_START;
   else if(dist > BL_MAX) dist = BL_START;
@@ -857,263 +1159,6 @@ void Unconstraint_Lk(t_tree *tree)
 
 /*********************************************************/
 
-/* Update partial likelihood on edge b on the side of b where
-   node d lies.
-*/
-void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
-{
-/*
-           |
-	   |<- b
-	   |
-	   d
-          / \
-       	 /   \
-       	/     \
-	n_v1   n_v2
-*/
-  t_node *n_v1, *n_v2;
-  phydbl p1_lk1,p2_lk2;
-  plkflt *p_lk,*p_lk_v1,*p_lk_v2;
-  double *Pij1,*Pij2;
-  plkflt max_p_lk;
-  plkflt *sum_scale, *sum_scale_v1, *sum_scale_v2;
-  plkflt scale_v1, scale_v2;
-  int i,j;
-  int catg,site;
-  int dir1,dir2;
-  int n_patterns;
-  int ambiguity_check_v1,ambiguity_check_v2;
-  int state_v1,state_v2;
-  int dim1, dim2, dim3;
-
-
-  dim1 = tree->mod->n_catg * tree->mod->ns;
-  dim2 = tree->mod->ns;
-  dim3 = tree->mod->ns * tree->mod->ns;
-
-  state_v1 = state_v2 = -1;
-  ambiguity_check_v1 = ambiguity_check_v2 = -1;
-  scale_v1 = scale_v2 = 0.0;
-  p1_lk1 = p2_lk2 = .0;
-
-
-  if(d->tax)
-    {
-      PhyML_Printf("\n. t_node %d is a leaf...",d->num);
-      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
-      Warn_And_Exit("\n");
-    }
-
-  n_patterns = tree->n_pattern;
-  
-  /* TO DO: Might be worth keeping these directions in memory instead of 
-     calculating them every time... */
-  dir1=dir2=-1;
-  For(i,3) if(d->b[i] != b) (dir1<0)?(dir1=i):(dir2=i);
-
-  if((dir1 == -1) || (dir2 == -1))
-    {
-      PhyML_Printf("\n. d = %d",d->num);
-      PhyML_Printf("\n. d->v[0] = %d, d->v[1] = %d, d->v[2] = %d",d->v[0]->num,d->v[1]->num,d->v[2]->num);
-      PhyML_Printf("\n. d->b[0] = %d, d->b[1] = %d, d->b[2] = %d",d->b[0]->num,d->b[1]->num,d->b[2]->num);
-      PhyML_Printf("\n. d->num = %d dir1 = %d dir2 = %d",d->num,dir1,dir2);
-      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
-      Exit("");
-    }
-  
-  n_v1 = d->v[dir1];
-  n_v2 = d->v[dir2];
-
-  /* Get the partial likelihood vectors on edge b and the two pendant
-     edges (i.e., the two other edges connected to d) */
-  if(d == b->left)
-    {
-      p_lk = b->p_lk_left;
-      sum_scale = b->sum_scale_f_left;
-    }
-  else
-    {
-      p_lk = b->p_lk_rght;
-      sum_scale = b->sum_scale_f_rght;
-    }
-      
-  if(d == d->b[dir1]->left)
-    {
-      p_lk_v1 = d->b[dir1]->p_lk_rght;
-      sum_scale_v1 = d->b[dir1]->sum_scale_f_rght;
-    }
-  else
-    {
-      p_lk_v1 = d->b[dir1]->p_lk_left;
-      sum_scale_v1 = d->b[dir1]->sum_scale_f_left;
-    }
-  
-  if(d == d->b[dir2]->left)
-    {
-      p_lk_v2 = d->b[dir2]->p_lk_rght;
-      sum_scale_v2 = d->b[dir2]->sum_scale_f_rght;
-    }
-  else
-    {
-      p_lk_v2 = d->b[dir2]->p_lk_left;
-      sum_scale_v2 = d->b[dir2]->sum_scale_f_left;
-    }
-  
-  /* Change probability matrices on the two pendant edges */
-  Pij1 = d->b[dir1]->Pij_rr;
-  Pij2 = d->b[dir2]->Pij_rr;
-  
-  /* For every site in the alignment */
-  For(site,n_patterns)
-    {
-      /* Current scaling values at that site */
-      scale_v1 = (sum_scale_v1)?(sum_scale_v1[site]):(0.0);
-      scale_v2 = (sum_scale_v2)?(sum_scale_v2[site]):(0.0); 
-      sum_scale[site] = scale_v1 + scale_v2;
-
-      max_p_lk = -MDBL_MAX;
-      state_v1 = state_v2 = -1;
-      ambiguity_check_v1 = ambiguity_check_v2 = -1;
-      
-      if(!tree->mod->s_opt->greedy)
-	{
-	  /* n_v1 and n_v2 are tip nodes */
-	  if(n_v1->tax)
-	    {
-	      /* Is the state at this tip ambiguous? */ 
-	      ambiguity_check_v1 = tree->data->c_seq[n_v1->num]->is_ambigu[site];
-	      if(!ambiguity_check_v1) state_v1 = Get_State_From_P_Pars(n_v1->b[0]->p_lk_tip_r,site*dim2,tree);
-	    }
-	      
-	  if(n_v2->tax)
-	    {
-	      /* Is the state at this tip ambiguous? */ 
-	      ambiguity_check_v2 = tree->data->c_seq[n_v2->num]->is_ambigu[site];
-	      if(!ambiguity_check_v2) state_v2 = Get_State_From_P_Pars(n_v2->b[0]->p_lk_tip_r,site*dim2,tree);
-	    }
-	}
-      
-      if(tree->mod->use_m4mod)
-	{
-	  ambiguity_check_v1 = 1;
-	  ambiguity_check_v2 = 1;
-	}
-
-      /* For all the rate classes */
-      For(catg,tree->mod->n_catg)
-	{
-	  /* For all the state at node d */
-	  For(i,tree->mod->ns)
-	    {
-	      p1_lk1 = .0;
-	      
-	      /* n_v1 is a tip */
-	      if((n_v1->tax) && (!tree->mod->s_opt->greedy))
-		{
-		  if(!ambiguity_check_v1)
-		    {
-		      /* For the (non-ambiguous) state at node n_v1 */
-		      p1_lk1 = Pij1[catg*dim3+i*dim2+state_v1];
-		    }
-		  else
-		    {
-		      /* For all the states at node n_v1 */
-		      For(j,tree->mod->ns)
-			{
-			  p1_lk1 += Pij1[catg*dim3+i*dim2+j] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+j];
-			}
-		    }
-		}
-	      /* n_v1 is an internal node */
-	      else
-		{
-		  /* For the states at node n_v1 */
-		  For(j,tree->mod->ns)
-		    {
-		      p1_lk1 += Pij1[catg*dim3+i*dim2+j] * (phydbl)p_lk_v1[site*dim1+catg*dim2+j];
-		    }
-		}
-	      
-	      p2_lk2 = .0;
-	      
-	      /* We do exactly the same as for node n_v1 but for node n_v2 this time.*/
-	      /* n_v2 is a tip */
-	      if((n_v2->tax) && (!tree->mod->s_opt->greedy))
-		{
-		  if(!ambiguity_check_v2)
-		    {
-		      /* For the (non-ambiguous) state at node n_v2 */
-		      p2_lk2 = Pij2[catg*dim3+i*dim2+state_v2];
-		    }
-		  else
-		    {
-		      /* For all the states at node n_v2 */
-		      For(j,tree->mod->ns)
-			{
-			  p2_lk2 += Pij2[catg*dim3+i*dim2+j] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+j];
-			}
-		    }
-		}
-	      /* n_v2 is an internal node */
-	      else
-		{
-		  /* For all the states at node n_v2 */
-		  For(j,tree->mod->ns)
-		    {
-		      p2_lk2 += Pij2[catg*dim3+i*dim2+j] * (phydbl)p_lk_v2[site*dim1+catg*dim2+j];
-		    }
-		}
-	      
-	      p_lk[site*dim1+catg*dim2+i] = (plkflt)(p1_lk1 * p2_lk2);
-	      
-	      /* Work out the maximum value of the partial likelihoods at node d */
-	      if(p_lk[site*dim1+catg*dim2+i] > max_p_lk) max_p_lk = p_lk[site*dim1+catg*dim2+i];
-	    }
-	}
-      
-      /* Scaling */
-      if((max_p_lk < LIM_SCALE_VAL) || (max_p_lk > (1./LIM_SCALE_VAL)))
-	{
-	  /* For each rate class */
-	  For(catg,tree->mod->n_catg)
-	    {
-	      /* For each state at node d */
-	      For(i,tree->mod->ns)
-		{
-		  /* Divide the corresponding partial likelihood by the maximum 
-		     value of the partial likelihoods calculated over all rate
-		     classes and states. */
-		  p_lk[site*dim1+catg*dim2+i] /= max_p_lk;
-		  
-/* 		  if((p_lk[site][catg][i] > MDBL_MAX) || (p_lk[site][catg][i] < MDBL_MIN)) */
-/* 		    { */
-/* 		      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__); */
-/* 		      PhyML_Printf("\n. p_lk[%3d][%2d][%3d] = %G max_p_lk = %G",site,catg,i,p_lk[site][catg][i],max_p_lk); */
-/* 		      PhyML_Printf("\n. alpha=%f pinv=%f",tree->mod->alpha,tree->mod->pinvar); */
-/* 		      For(i,tree->mod->n_catg) PhyML_Printf("\n. rr[%2d] = %G",i,tree->mod->rr[i]); */
-/* 		      PhyML_Printf("\n. d->b[dir1]->l = %f, d->b[dir2]->l = %f",d->b[dir1]->l,d->b[dir2]->l); */
-/* 		      PhyML_Printf("\n. d->v[dir1]->num = %d, d->v[dir2]->num = %d",d->v[dir1]->num,d->v[dir2]->num); */
-/* 		      if(d->v[dir1]->tax) */
-/* 			{ */
-/* 			  PhyML_Printf("\n. Character observed at d->v[dir1] = %d",state_v1); */
-/* 			} */
-/* 		      if(d->v[dir2]->tax) */
-/* 			{ */
-/* 			  PhyML_Printf("\n. Character observed at d->v[dir2] = %d",state_v2); */
-/* 			} */
-/* 		      Warn_And_Exit("\n. Numerical precision problem ! (send me an e-mail : s.guindon@auckland.ac.nz)\n"); */
-/* 		    } */
-		}
-	    }
-	  sum_scale[site] += (plkflt)log(max_p_lk);
-	}
-    } 
-}
-
-/*********************************************************/
-
-
 void Make_Tree_4_Lk(t_tree *tree, calign *cdata, int n_site)
 {
   int i;
@@ -1121,7 +1166,7 @@ void Make_Tree_4_Lk(t_tree *tree, calign *cdata, int n_site)
   tree->c_lnL_sorted = (phydbl *)mCalloc(tree->n_pattern, sizeof(phydbl));
   tree->site_lk      = (phydbl *)mCalloc(cdata->crunch_len,sizeof(phydbl));
 
-    tree->log_site_lk_cat      = (phydbl **)mCalloc(tree->mod->n_catg,sizeof(phydbl *));
+  tree->log_site_lk_cat      = (phydbl **)mCalloc(tree->mod->n_catg,sizeof(phydbl *));
   For(i,tree->mod->n_catg)
     tree->log_site_lk_cat[i] = (phydbl *)mCalloc(cdata->crunch_len,sizeof(phydbl));
 
@@ -1618,5 +1663,421 @@ phydbl Lk_With_MAP_Branch_Rates(t_tree *tree)
 }
 
 /*********************************************************/
+
 /*********************************************************/
 /*********************************************************/
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
+
+/* Core of the likelihood calculcation. Assume that the partial likelihoods on both
+   sides of t_edge *b are up-to-date. Calculate the log-likelihood at one site.
+*/
+#ifdef USE_OLD_LK
+phydbl Lk_Core(t_edge *b, t_tree *tree)
+{
+  phydbl log_site_lk, site_lk, site_lk_cat;
+  phydbl scale_left, scale_rght;
+  phydbl sum;
+  int ambiguity_check,state;
+  int catg,ns,k,l,site;
+  int dim1,dim2,dim3;
+
+  dim1 = tree->mod->n_catg * tree->mod->ns;
+  dim2 = tree->mod->ns;
+  dim3 = tree->mod->ns * tree->mod->ns;
+
+  log_site_lk     = .0;
+  site_lk         = .0;
+  site_lk_cat     = .0;
+  ambiguity_check = -1;
+  state           = -1;
+  site            = tree->curr_site;
+  ns              = tree->mod->ns;
+
+  /* Get the vectors of partial likelihood scaling */
+  scale_left =
+    (b->sum_scale_f_left)?
+    (b->sum_scale_f_left[site]):
+    (0.0);
+  
+  scale_rght =
+    (b->sum_scale_f_rght)?
+    (b->sum_scale_f_rght[site]):
+    (0.0);
+
+  if((b->rght->tax) && (!tree->mod->s_opt->greedy))
+    {
+      ambiguity_check = tree->data->c_seq[b->rght->num]->is_ambigu[site];
+      if(!ambiguity_check) state = Get_State_From_P_Pars(b->p_lk_tip_r,site*dim2,tree);
+    }
+
+  if(tree->mod->use_m4mod) ambiguity_check = 1;
+  
+  /* For all classes of rates */
+  For(catg,tree->mod->n_catg)
+    {
+      site_lk_cat = .0;
+
+      /* b is an external edge */
+      if((b->rght->tax) && (!tree->mod->s_opt->greedy))
+        {
+          /* If the character observed at the tip is NOT ambiguous: ns x 1 terms to consider */
+          if(!ambiguity_check)
+            {
+              sum = .0;
+              For(l,ns)
+                {
+                  sum +=
+                    b->Pij_rr[catg*dim3+state*dim2+l] *
+                    (phydbl)b->p_lk_left[site*dim1+catg*dim2+l];
+                }
+              site_lk_cat += sum * tree->mod->pi[state];
+            }
+          /* If the character observed at the tip is ambiguous: ns x ns terms to consider */
+          else
+            {
+              For(k,ns)
+                {
+                  sum = .0;
+                  if(b->p_lk_tip_r[site*dim2+k] > .0)
+                    {
+                      For(l,ns)
+                        {
+                          sum +=
+                            b->Pij_rr[catg*dim3+k*dim2+l] *
+                            (phydbl)b->p_lk_left[site*dim1+catg*dim2+l];
+                        }
+                      site_lk_cat +=
+                        sum *
+                        tree->mod->pi[k] *
+                        (phydbl)b->p_lk_tip_r[site*dim2+k];
+                    }
+                }
+            }
+        }
+      /* b is an internal edge: ns x ns terms to consider */
+      else
+        {
+          For(k,ns)
+            {
+              sum = .0;
+              if(b->p_lk_rght[site*dim1+catg*dim2+k] > .0)
+                {
+                  For(l,ns)
+                    {
+                      sum +=
+                        b->Pij_rr[catg*dim3+k*dim2+l] *
+                        (phydbl)b->p_lk_left[site*dim1+catg*dim2+l];
+                    }
+                  site_lk_cat +=
+                    sum *
+                    tree->mod->pi[k] *
+                    (phydbl)b->p_lk_rght[site*dim1+catg*dim2+k];
+                }
+            }
+        }
+
+      tree->log_site_lk_cat[catg][site] = site_lk_cat;
+      site_lk += site_lk_cat * tree->mod->gamma_r_proba[catg];
+    }
+
+  /* site_lk may be too small ? */
+  if(site_lk < 1.E-300) site_lk = 1.E-300;
+
+  /* The substitution model does not consider invariable sites */
+  if(!tree->mod->invar)
+    {
+      log_site_lk = (phydbl)log(site_lk) + (phydbl)scale_left + (phydbl)scale_rght;
+    }
+  else
+    {
+      /* The site is invariant */
+      if((phydbl)tree->data->invar[site] > -0.5)
+        {
+          if((scale_left + scale_rght > 0.0) || (scale_left + scale_rght < 0.0))
+            site_lk *= (phydbl)exp(scale_left + scale_rght);
+          
+          log_site_lk =
+            (phydbl)log(site_lk*(1.0-tree->mod->pinvar) + tree->mod->pinvar*tree->mod->pi[tree->data->invar[site]]);
+          /* log(P(D)) = log(P(D | subst. rate > 0) * P(subst. rate > 0) + P(D | subst. rate = 0) * P(subst. rate = 0)) */
+        }
+      else
+        {
+          log_site_lk = (phydbl)log(site_lk*(1.0-tree->mod->pinvar)) + (phydbl)scale_left + (phydbl)scale_rght;
+          /* Same formula as above with P(D | subs, rate = 0) = 0 */
+        }
+    }
+  
+  if(log_site_lk < -MDBL_MAX) Warn_And_Exit("\nlog_site_lk < -MDBL_MAX\n");
+
+  For(catg,tree->mod->n_catg)
+    tree->log_site_lk_cat[catg][site] =
+    log(tree->log_site_lk_cat[catg][site]) +
+    scale_left +
+    scale_rght;
+  
+  tree->site_lk[site]      = log_site_lk;
+  /* Multiply log likelihood by the number of times this site pattern is found oin the data */
+  tree->c_lnL_sorted[site] = tree->data->wght[site]*log_site_lk;
+  return log_site_lk;
+}
+
+/*********************************************************/
+
+/* Update partial likelihood on edge b on the side of b where
+   node d lies.
+*/
+void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
+{
+/*
+           |
+           |<- b
+           |
+           d
+          / \
+         /   \
+        /     \
+        n_v1   n_v2
+*/
+  t_node *n_v1, *n_v2;
+  phydbl p1_lk1,p2_lk2;
+  phydbl *p_lk,*p_lk_v1,*p_lk_v2;
+  phydbl *Pij1,*Pij2;
+  phydbl max_p_lk;
+  phydbl *sum_scale;
+  phydbl scale_v1, scale_v2;
+  int i,j;
+  int catg,site;
+  int dir1,dir2;
+  int n_patterns;
+  int ambiguity_check_v1,ambiguity_check_v2;
+  int state_v1,state_v2;
+  int dim1, dim2, dim3;
+
+  dim1 = tree->mod->n_catg * tree->mod->ns;
+  dim2 = tree->mod->ns;
+  dim3 = tree->mod->ns * tree->mod->ns;
+
+  state_v1 = state_v2 = -1;
+  ambiguity_check_v1 = ambiguity_check_v2 = -1;
+  scale_v1 = scale_v2 = 0.0;
+  p1_lk1 = p2_lk2 = .0;
+
+
+  if(d->tax)
+    {
+      PhyML_Printf("\n. t_node %d is a leaf...",d->num);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
+      Warn_And_Exit("\n");
+    }
+
+  n_patterns = tree->n_pattern;
+  
+  /* TO DO: Might be worth keeping these directions in memory instead of
+     calculating them every time... */
+  dir1=dir2=-1;
+  For(i,3) if(d->b[i] != b) (dir1<0)?(dir1=i):(dir2=i);
+
+  if((dir1 == -1) || (dir2 == -1))
+    {
+      PhyML_Printf("\n. d = %d",d->num);
+      PhyML_Printf("\n. d->v[0] = %d, d->v[1] = %d, d->v[2] = %d",d->v[0]->num,d->v[1]->num,d->v[2]->num);
+      PhyML_Printf("\n. d->b[0] = %d, d->b[1] = %d, d->b[2] = %d",d->b[0]->num,d->b[1]->num,d->b[2]->num);
+      PhyML_Printf("\n. d->num = %d dir1 = %d dir2 = %d",d->num,dir1,dir2);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
+      Exit("");
+    }
+  
+  n_v1 = d->v[dir1];
+  n_v2 = d->v[dir2];
+
+  /* Get the partial likelihood vectors on edge b and the two pendant
+     edges (i.e., the two other edges connected to d) */
+  if(d == b->left)
+    {
+      p_lk = b->p_lk_left;
+      sum_scale = b->sum_scale_f_left;
+    }
+  else
+    {
+      p_lk = b->p_lk_rght;
+      sum_scale = b->sum_scale_f_rght;
+    }
+      
+  if(d == d->b[dir1]->left)
+    {
+      p_lk_v1 = d->b[dir1]->p_lk_rght;
+    }
+  else
+    {
+      p_lk_v1 = d->b[dir1]->p_lk_left;
+    }
+  
+  if(d == d->b[dir2]->left)
+    {
+      p_lk_v2 = d->b[dir2]->p_lk_rght;
+    }
+  else
+    {
+      p_lk_v2 = d->b[dir2]->p_lk_left;
+    }
+  
+  /* Change probability matrices on the two pendant edges */
+  Pij1 = d->b[dir1]->Pij_rr;
+  Pij2 = d->b[dir2]->Pij_rr;
+  
+  /* For every site in the alignment */
+  For(site,n_patterns)
+    {
+      /* Current scaling values at that site */
+/*       scale_v1 = (sum_scale_v1)?(sum_scale_v1[site]):(0.0); */
+/*       scale_v2 = (sum_scale_v2)?(sum_scale_v2[site]):(0.0);  */
+/*       sum_scale[site] = scale_v1 + scale_v2; */
+
+      max_p_lk = -MDBL_MAX;
+      state_v1 = state_v2 = -1;
+      ambiguity_check_v1 = ambiguity_check_v2 = -1;
+      
+      if(!tree->mod->s_opt->greedy)
+        {
+          /* n_v1 and n_v2 are tip nodes */
+          if(n_v1->tax)
+            {
+              /* Is the state at this tip ambiguous? */
+              ambiguity_check_v1 = tree->data->c_seq[n_v1->num]->is_ambigu[site];
+              if(!ambiguity_check_v1) state_v1 = Get_State_From_P_Pars(n_v1->b[0]->p_lk_tip_r,site*dim2,tree);
+            }
+              
+          if(n_v2->tax)
+            {
+              /* Is the state at this tip ambiguous? */
+              ambiguity_check_v2 = tree->data->c_seq[n_v2->num]->is_ambigu[site];
+              if(!ambiguity_check_v2) state_v2 = Get_State_From_P_Pars(n_v2->b[0]->p_lk_tip_r,site*dim2,tree);
+            }
+        }
+      
+      if(tree->mod->use_m4mod)
+        {
+          ambiguity_check_v1 = 1;
+          ambiguity_check_v2 = 1;
+        }
+
+      /* For all the rate classes */
+      For(catg,tree->mod->n_catg)
+        {
+          /* For all the state at node d */
+          For(i,tree->mod->ns)
+            {
+              p1_lk1 = .0;
+              
+              /* n_v1 is a tip */
+              if((n_v1->tax) && (!tree->mod->s_opt->greedy))
+                {
+                  if(!ambiguity_check_v1)
+                    {
+                      /* For the (non-ambiguous) state at node n_v1 */
+                      p1_lk1 = Pij1[catg*dim3+i*dim2+state_v1];
+                    }
+                  else
+                    {
+                      /* For all the states at node n_v1 */
+                      For(j,tree->mod->ns)
+                        {
+                          p1_lk1 += Pij1[catg*dim3+i*dim2+j] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+j];
+                        }
+                    }
+                }
+              /* n_v1 is an internal node */
+              else
+                {
+                  /* For the states at node n_v1 */
+                  For(j,tree->mod->ns)
+                    {
+                      p1_lk1 += Pij1[catg*dim3+i*dim2+j] * (phydbl)p_lk_v1[site*dim1+catg*dim2+j];
+                    }
+                }
+              
+              p2_lk2 = .0;
+              
+              /* We do exactly the same as for node n_v1 but for node n_v2 this time.*/
+              /* n_v2 is a tip */
+              if((n_v2->tax) && (!tree->mod->s_opt->greedy))
+                {
+                  if(!ambiguity_check_v2)
+                    {
+                      /* For the (non-ambiguous) state at node n_v2 */
+                      p2_lk2 = Pij2[catg*dim3+i*dim2+state_v2];
+                    }
+                  else
+                    {
+                      /* For all the states at node n_v2 */
+                      For(j,tree->mod->ns)
+                        {
+                          p2_lk2 += Pij2[catg*dim3+i*dim2+j] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+j];
+                        }
+                    }
+                }
+              /* n_v2 is an internal node */
+              else
+                {
+                  /* For all the states at node n_v2 */
+                  For(j,tree->mod->ns)
+                    {
+                      p2_lk2 += Pij2[catg*dim3+i*dim2+j] * (phydbl)p_lk_v2[site*dim1+catg*dim2+j];
+                    }
+                }
+              
+              p_lk[site*dim1+catg*dim2+i] = (phydbl)(p1_lk1 * p2_lk2);
+              
+              /* Work out the maximum value of the partial likelihoods at node d */
+              if(p_lk[site*dim1+catg*dim2+i] > max_p_lk) max_p_lk = p_lk[site*dim1+catg*dim2+i];
+            }
+        }
+      
+      /* Scaling */
+      if((max_p_lk < LIM_SCALE_VAL) || (max_p_lk > (1./LIM_SCALE_VAL)))
+        {
+          /* For each rate class */
+          For(catg,tree->mod->n_catg)
+            {
+              /* For each state at node d */
+              For(i,tree->mod->ns)
+                {
+                  /* Divide the corresponding partial likelihood by the maximum
+                     value of the partial likelihoods calculated over all rate
+                     classes and states. */
+                  p_lk[site*dim1+catg*dim2+i] /= max_p_lk;
+                  
+/*                if((p_lk[site][catg][i] > MDBL_MAX) || (p_lk[site][catg][i] < MDBL_MIN)) */
+/*                  { */
+/*                    PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__); */
+/*                    PhyML_Printf("\n. p_lk[%3d][%2d][%3d] = %G max_p_lk = %G",site,catg,i,p_lk[site][catg][i],max_p_lk); */
+/*                    PhyML_Printf("\n. alpha=%f pinv=%f",tree->mod->alpha,tree->mod->pinvar); */
+/*                    For(i,tree->mod->n_catg) PhyML_Printf("\n. rr[%2d] = %G",i,tree->mod->rr[i]); */
+/*                    PhyML_Printf("\n. d->b[dir1]->l = %f, d->b[dir2]->l = %f",d->b[dir1]->l,d->b[dir2]->l); */
+/*                    PhyML_Printf("\n. d->v[dir1]->num = %d, d->v[dir2]->num = %d",d->v[dir1]->num,d->v[dir2]->num); */
+/*                    if(d->v[dir1]->tax) */
+/*                      { */
+/*                        PhyML_Printf("\n. Character observed at d->v[dir1] = %d",state_v1); */
+/*                      } */
+/*                    if(d->v[dir2]->tax) */
+/*                      { */
+/*                        PhyML_Printf("\n. Character observed at d->v[dir2] = %d",state_v2); */
+/*                      } */
+/*                    Warn_And_Exit("\n. Numerical precision problem ! (send me an e-mail : s.guindon@auckland.ac.nz)\n"); */
+/*                  } */
+                }
+            }
+          sum_scale[site] += (phydbl)log(max_p_lk);
+        }
+    }
+}
+
+#endif 
+/*********************************************************/
+

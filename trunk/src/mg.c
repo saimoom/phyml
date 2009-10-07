@@ -2038,11 +2038,11 @@ void PART_NNI(t_edge *st_b, supert_tree *st)
   phydbl lk0_init, lk1_init, lk2_init;
   phydbl lk0_opt, lk1_opt, lk2_opt;
   int i,j;
-  double *init_bl;
+  phydbl *init_bl;
   t_edge **map_edge_bef_swap, **map_edge_aft_swap;
 
 
-  init_bl = (double *)mCalloc(st->n_bl_part,sizeof(double));
+  init_bl = (phydbl *)mCalloc(st->n_bl_part,sizeof(phydbl));
   map_edge_bef_swap = (t_edge **)mCalloc(st->n_part,sizeof(t_edge *));
   map_edge_aft_swap = (t_edge **)mCalloc(st->n_part,sizeof(t_edge *));
 
@@ -2351,7 +2351,7 @@ void PART_Swap(t_node *st_a, t_node *st_b, t_node *st_c, t_node *st_d, supert_tr
 
 /*********************************************************/
 
-void PART_Set_Bl(double **bl, supert_tree *st)
+void PART_Set_Bl(phydbl **bl, supert_tree *st)
 {
   int i,j;
   t_edge *gt_b;

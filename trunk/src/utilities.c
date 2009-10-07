@@ -491,7 +491,7 @@ void R_wtree(t_node *pere, t_node *fils, char *s_tree, t_tree *tree)
       else
 	sprintf(s_tree+(int)strlen(s_tree),"%d",fils->num+1);
 
-      if((fils->b) && (fils->b[0]) && (fils->b[0]->l != -1))
+      if((fils->b) && (fils->b[0]) && (fils->b[0]->l > -1.))
 	{
 	  if(tree->print_labels)
 	    {
@@ -534,7 +534,7 @@ void R_wtree(t_node *pere, t_node *fils, char *s_tree, t_tree *tree)
 	}
 
       s_tree[(int)strlen(s_tree)-1]=')';
-      if((fils->b) && (fils->b[0]->l != -1))
+      if((fils->b) && (fils->b[0]->l > -1.))
 	{
 	  if(tree->print_boot_val)
 	    sprintf(s_tree+(int)strlen(s_tree),"%d",fils->b[p]->bip_score);
@@ -765,24 +765,24 @@ void Make_Edge_Lk(t_edge *b, t_tree *tree)
   b->div_post_pred_left = (short int *)mCalloc(ns,sizeof(short int));
   b->div_post_pred_rght = (short int *)mCalloc(ns,sizeof(short int));
 
-  b->Pij_rr   = (phydbl *)mCalloc(tree->mod->n_catg*tree->mod->ns*tree->mod->ns,sizeof(phydbl));
+  b->Pij_rr = (phydbl *)mCalloc(tree->mod->n_catg*tree->mod->ns*tree->mod->ns,sizeof(phydbl));
   
   b->scale_left = b->scale_rght = 0;
   
   if(!b->left->tax)
-    b->sum_scale_f_left = (plkflt *)mCalloc(tree->data->crunch_len,sizeof(plkflt ));
+    b->sum_scale_f_left = (phydbl *)mCalloc(tree->data->crunch_len*tree->mod->n_catg,sizeof(phydbl ));
   else
     b->sum_scale_f_left = NULL;
   
   if(!b->rght->tax)
-    b->sum_scale_f_rght = (plkflt *)mCalloc(tree->data->crunch_len,sizeof(plkflt ));
+    b->sum_scale_f_rght = (phydbl *)mCalloc(tree->data->crunch_len*tree->mod->n_catg,sizeof(phydbl ));
   else
     b->sum_scale_f_rght = NULL;
   
   
   if((!b->left->tax) || (tree->mod->s_opt->greedy))
     {
-      b->p_lk_left = (plkflt *)mCalloc(tree->data->crunch_len*tree->mod->n_catg*tree->mod->ns,sizeof(plkflt));
+      b->p_lk_left = (phydbl *)mCalloc(tree->data->crunch_len*tree->mod->n_catg*tree->mod->ns,sizeof(phydbl));
       b->p_lk_tip_l = NULL;
     }
   else if(b->left->tax)
@@ -793,7 +793,7 @@ void Make_Edge_Lk(t_edge *b, t_tree *tree)
   
   if((!b->rght->tax) || (tree->mod->s_opt->greedy))
     {
-      b->p_lk_rght = (plkflt *)mCalloc(tree->data->crunch_len*tree->mod->n_catg*tree->mod->ns,sizeof(plkflt));
+      b->p_lk_rght = (phydbl *)mCalloc(tree->data->crunch_len*tree->mod->n_catg*tree->mod->ns,sizeof(phydbl));
       b->p_lk_tip_r = NULL;
     }
   else if(b->rght->tax)
@@ -3379,7 +3379,7 @@ void Print_Mat(matrix *mat)
       For(j,mat->n_otu)
 	{
 	  char s[2]="-";
-	  if(mat->dist[i][j] == -1)
+	  if(mat->dist[i][j] < .0)
 	    PhyML_Printf("%12s",s);
 	  else
 	    PhyML_Printf("%12f",mat->dist[i][j]);
@@ -4575,7 +4575,7 @@ matrix *K80_dist(calign *data, phydbl g_shape)
   For(i,data->n_otu-1)
     for(j=i+1;j<data->n_otu;j++)
       {
-	if(len[i][j])
+	if(len[i][j] > .0)
 	  {
 	    mat->P[i][j] /= len[i][j];
 	    mat->Q[i][j] /= len[i][j];
@@ -4662,8 +4662,8 @@ matrix *JC69_Dist(calign *data, model *mod)
   For(i,data->n_otu-1)
     for(j=i+1;j<data->n_otu;j++)
       {
-	if(len[i][j]) mat->P[i][j] /= len[i][j];
-	else          mat->P[i][j] = 1.;
+	if(len[i][j] > .0) mat->P[i][j] /= len[i][j];
+	else               mat->P[i][j] = 1.;
 
 	mat->P[j][i] = mat->P[i][j];
 
@@ -4733,7 +4733,7 @@ matrix *Hamming_Dist(calign *data, model *mod)
   For(i,data->n_otu-1)
     for(j=i+1;j<data->n_otu;j++)
       {
-	if(len[i][j])
+	if(len[i][j] > .0)
 	  {
 	    mat->P[i][j] /= len[i][j];
 	  }
@@ -5440,7 +5440,7 @@ phydbl Num_Derivatives_One_Param(phydbl (*func)(t_tree *tree), t_tree *tree,
 
   ans  = .0;
 
-  if (stepsize == 0.0) Warn_And_Exit("\n. h must be nonzero in Dfridr.");
+  if(stepsize < MDBL_MIN) Warn_And_Exit("\n. h must be nonzero in Dfridr.");
 
   hh=stepsize;
 
@@ -5518,7 +5518,7 @@ phydbl Num_Derivatives_One_Param(phydbl (*func)(t_tree *tree), t_tree *tree,
 
 /*********************************************************/
 
-void Num_Derivative_Several_Param(t_tree *tree, phydbl *param, int n_param, phydbl stepsize,
+int Num_Derivative_Several_Param(t_tree *tree, phydbl *param, int n_param, phydbl stepsize,
 				  phydbl (*func)(t_tree *tree), phydbl *derivatives)
 {
   int i;
@@ -5537,6 +5537,7 @@ void Num_Derivative_Several_Param(t_tree *tree, phydbl *param, int n_param, phyd
 						 0
 						 );
     }
+  return 1;
 }
 
 /*********************************************************/
@@ -5592,9 +5593,9 @@ void Make_Model_Complete(model *mod)
   mod->gamma_r_proba = (phydbl *)mCalloc(mod->n_catg,sizeof(phydbl));
   mod->gamma_rr      = (phydbl *)mCalloc(mod->n_catg,sizeof(phydbl));
   mod->pi_unscaled   = (phydbl *)mCalloc(mod->ns,sizeof(phydbl));
-  mod->Pij_rr        = (double *)mCalloc(mod->n_catg*mod->ns*mod->ns,sizeof(double));
-  mod->qmat          = (double *)mCalloc(mod->ns*mod->ns,sizeof(double));
-  mod->qmat_buff     = (double *)mCalloc(mod->ns*mod->ns,sizeof(double));
+  mod->Pij_rr        = (phydbl *)mCalloc(mod->n_catg*mod->ns*mod->ns,sizeof(phydbl));
+  mod->qmat          = (phydbl *)mCalloc(mod->ns*mod->ns,sizeof(phydbl));
+  mod->qmat_buff     = (phydbl *)mCalloc(mod->ns*mod->ns,sizeof(phydbl));
   mod->eigen         = (eigen *)Make_Eigen_Struct(mod->ns);
 
   
@@ -6910,9 +6911,9 @@ void Prune_Subtree(t_node *a, t_node *d, t_edge **target, t_edge **residual, t_t
   t_edge *b1, *b2;
   int dir_v1, dir_v2;
   int i;
-/*   plkflt ***buff_p_lk; */
-  plkflt *buff_p_lk;
-  plkflt *buff_scale;
+/*   phydbl ***buff_p_lk; */
+  phydbl *buff_p_lk;
+  phydbl *buff_scale;
   int *buff_p_pars, *buff_pars;
   unsigned int *buff_ui;
   short int *buff_p_lk_tip;
@@ -7129,8 +7130,8 @@ void Graft_Subtree(t_edge *target, t_node *link, t_edge *residual, t_tree *tree)
 {
   t_node *v1, *v2;
   int i, dir_v1, dir_v2;
-  plkflt *buff_p_lk;
-  plkflt *buff_scale;
+  phydbl *buff_p_lk;
+  phydbl *buff_scale;
   int *buff_p_pars, *buff_pars; 
   short int *buff_p_lk_tip;
   unsigned int *buff_ui;
@@ -7659,14 +7660,14 @@ eigen *Make_Eigen_Struct(int ns)
 
   eig              = (eigen *)mCalloc(1,sizeof(eigen));
   eig->size        = ns;
-  eig->space       = (double *)mCalloc(2*ns,sizeof(double));
+  eig->space       = (phydbl *)mCalloc(2*ns,sizeof(phydbl));
   eig->space_int   = (int *)mCalloc(2*ns,sizeof(int));
-  eig->e_val       = (double *)mCalloc(ns,sizeof(double));
-  eig->e_val_im    = (double *)mCalloc(ns,sizeof(double));
-  eig->r_e_vect    = (double *)mCalloc(ns*ns,sizeof(double));
-  eig->r_e_vect_im = (double *)mCalloc(ns*ns,sizeof(double));
-  eig->l_e_vect    = (double *)mCalloc(ns*ns,sizeof(double));
-  eig->q           = (double *)mCalloc(ns*ns,sizeof(double));
+  eig->e_val       = (phydbl *)mCalloc(ns,sizeof(phydbl));
+  eig->e_val_im    = (phydbl *)mCalloc(ns,sizeof(phydbl));
+  eig->r_e_vect    = (phydbl *)mCalloc(ns*ns,sizeof(phydbl));
+  eig->r_e_vect_im = (phydbl *)mCalloc(ns*ns,sizeof(phydbl));
+  eig->l_e_vect    = (phydbl *)mCalloc(ns*ns,sizeof(phydbl));
+  eig->q           = (phydbl *)mCalloc(ns*ns,sizeof(phydbl));
 
   return eig;
 }
@@ -8681,22 +8682,29 @@ void Warn_And_Exit(char *s)
 
 /*********************************************************/
 
-void Read_Qmat(double *daa, phydbl *pi, FILE *fp)
+void Read_Qmat(phydbl *daa, phydbl *pi, FILE *fp)
 {
   int i,j;
   phydbl sum;
+  double val;
 
   for(i=1;i<20;i++)
     {
       For(j,19)
 	{
-	  if(!fscanf(fp,"%lf",&(daa[i*20+j]))) Exit("\n");
+/* 	  if(!fscanf(fp,"%lf",&(daa[i*20+j]))) Exit("\n"); */
+	  if(!fscanf(fp,"%lf",&val)) Exit("\n");
+	  daa[i*20+j] = (phydbl)val;
 	  daa[j*20+i] = daa[i*20+j];
 	  if(j == i-1) break; 
 	}
     }
 
-  For(i,20) { if(!fscanf(fp,"%lf",pi+i)) Exit("\n");}
+  For(i,20) 
+    { 
+      if(!fscanf(fp,"%lf",&val)) Exit("\n");
+      pi[i] = (phydbl)val;
+    }
   sum = .0;
   For(i,20) sum += pi[i];
   if(fabs(sum - 1.) > 1.E-06)
@@ -8708,7 +8716,7 @@ void Read_Qmat(double *daa, phydbl *pi, FILE *fp)
 
 /*********************************************************/
 
-void Print_Qmat_AA(double *daa, phydbl *pi)
+void Print_Qmat_AA(phydbl *daa, phydbl *pi)
 {
   int i,j,cpt;
 
@@ -9726,7 +9734,7 @@ int Polint(phydbl *xa, phydbl *ya, int n, phydbl x, phydbl *y, phydbl *dy)
 	   ho=xa[i]-x;
 	   hp=xa[i+m]-x;
 	   w=c[i+1]-d[i];
-	   if ( (den=ho-hp) == 0.0)
+	   if((den=ho-hp) < MDBL_MIN && (den=ho-hp) > -MDBL_MIN )
 	     {
 /* 	       Rprintf("\n. Error in routine POLINT.\n"); */
 	       Exit("\n. Error in routine POLINT.\n");
@@ -10383,7 +10391,11 @@ void Read_Clade_Priors(char *file_name, t_tree *tree)
 
       if(line[pos] != '#' && line[pos] != '\n')
 	{
-	  sscanf(line+pos,"%lf %lf",&prior_up,&prior_low);
+	  double val1, val2;
+/* 	  sscanf(line+pos,"%lf %lf",&prior_up,&prior_low); */
+	  sscanf(line+pos,"%lf %lf",&val1,&val2);
+	  prior_up = (phydbl)val1;
+	  prior_low = (phydbl)val2;
 	  node_num = -1;
 	  if(!strcmp("@root@",clade_list[0])) node_num = tree->n_root->num;
 	  else node_num = Find_Clade(clade_list, clade_size, tree);

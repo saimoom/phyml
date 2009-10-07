@@ -1270,7 +1270,7 @@ int Est_Lk_Change (t_edge *e_prune, t_node *v_prune, t_tree *tree)
   int     i, j, cand, best_cand, d0, d1, d2, n, pat, cat, ste;
   phydbl  d_uu, best_d_lk, l_connect, l_01, l_02, l_12, l_est[3], new_lk,
           l_simple[3], l_dist[3];
-  plkflt *p_lk1_tmp, *p_lk2_tmp, *p_lk, *p_sum;
+  phydbl *p_lk1_tmp, *p_lk2_tmp, *p_lk, *p_sum;
   t_node   *u_prune, *v_n, *v_nx1, *u_n, *u1, *u2;
   t_edge   *e_regraft, *e_tmp;
   _move_ *tmp_cand;
@@ -1471,7 +1471,7 @@ int Est_Lk_Change (t_edge *e_prune, t_node *v_prune, t_tree *tree)
     /*
     ** If there are no more candidates, bail out...
     */
-    if (rgrft_cand[cand]->d_L == -1.0*BIG)
+    if (fabs(rgrft_cand[cand]->d_L - 1.0*BIG) < MDBL_MIN)
     {
       break;
     }
@@ -1833,7 +1833,7 @@ int Best_Lk_Change (t_edge *e_prune, t_node *v_prune, t_tree *tree)
   int     i, j, cand, best_cand, d0, d1, d2, n, pat, cat, ste;
   phydbl  d_uu, best_d_lk, l_connect, l_01, l_02, l_12, l_est[3], new_lk,
     l_simple[3], l_dist[3];
-  plkflt *p_lk1_tmp, *p_lk2_tmp, *p_lk, *p_sum; 
+  phydbl *p_lk1_tmp, *p_lk2_tmp, *p_lk, *p_sum; 
   t_node   *u_prune, *v_n, *v_nx1, *u_n, *u1, *u2;
   t_edge   *e_regraft, *e_tmp;
   _move_ *tmp_cand;
@@ -2033,7 +2033,7 @@ int Best_Lk_Change (t_edge *e_prune, t_node *v_prune, t_tree *tree)
     /*
     ** If there are no more candidates, bail out...
     */
-    if (rgrft_cand[cand]->d_L == -1.0*BIG)
+    if (fabs(rgrft_cand[cand]->d_L - 1.0*BIG) < MDBL_MIN)
     {
       break;
     }
@@ -2727,7 +2727,7 @@ void Prune (t_edge *e, t_node *v, t_edge **e_connect, t_edge **e_avail, t_tree *
   int     dir0, dir1, dir2, v0, v1, v2, tmp_dir, i, j, k;
   t_node   *u1, *u2, *tmp_node;
   t_edge   *e1, *e2;
-  plkflt *sum_scale_f, *p_lk;
+  phydbl *sum_scale_f, *p_lk;
   int dim1, dim2;
 
 
@@ -2901,7 +2901,7 @@ void Prune (t_edge *e, t_node *v, t_edge **e_connect, t_edge **e_avail, t_tree *
 void Regraft (t_edge *e, t_node *v, t_edge *avail, t_tree *tree)
 {
   int     dir0, dir1, dir2, i, j, k;
-  plkflt *sum_scale_f, *p_lk;
+  phydbl *sum_scale_f, *p_lk;
   t_node   *u1, *u2;
   int dim1, dim2;
 

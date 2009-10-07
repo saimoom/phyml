@@ -357,7 +357,7 @@ phydbl Lamda(matrix *mat, int x, int y, phydbl vxy)
       lamda = 0.5;
     else /* BioNJ (Gascuel, 1997) */
       {
-	if(vxy==0.0)
+	if(vxy < MDBL_MIN && vxy > -MDBL_MIN)
 	  lamda=0.5;
 	else
 	  {

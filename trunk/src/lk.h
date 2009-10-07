@@ -19,8 +19,8 @@ the GNU public licence.  See http://www.opensource.org for details.
 #include "free.h"
 
 
-void Init_Tips_At_One_Site_Nucleotides_Float(char state, int pos, plkflt *p_lk);
-void Init_Tips_At_One_Site_AA_Float(char aa, int pos, plkflt *p_lk);
+void Init_Tips_At_One_Site_Nucleotides_Float(char state, int pos, phydbl *p_lk);
+void Init_Tips_At_One_Site_AA_Float(char aa, int pos, phydbl *p_lk);
 void Get_All_Partial_Lk(t_tree *tree,t_edge *b_fcus,t_node *a,t_node *d);
 void Get_All_Partial_Lk_Scale(t_tree *tree,t_edge *b_fcus,t_node *a,t_node *d);
 void Post_Order_Lk(t_node *pere, t_node *fils, t_tree *tree);
@@ -54,7 +54,7 @@ void Print_Lk_Given_Edge_Recurr(t_node *a, t_node *d, t_edge *b, t_tree *tree);
 phydbl *Post_Prob_Rates_At_Given_Edge(t_edge *b, phydbl *post_prob, t_tree *tree);
 phydbl Lk_With_MAP_Branch_Rates(t_tree *tree);
 void Init_Tips_At_One_Site_Generic_Int(char *state, int ns, int state_len, int pos, short int *p_pars);
-void Init_Tips_At_One_Site_Generic_Float(char *state, int ns, int state_len, int pos, plkflt *p_lk);
+void Init_Tips_At_One_Site_Generic_Float(char *state, int ns, int state_len, int pos, phydbl *p_lk);
 
 
 

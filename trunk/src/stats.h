@@ -24,12 +24,12 @@ the GNU public licence. See http://www.opensource.org for details.
 phydbl *Covariance_Matrix(t_tree *tree);
 phydbl *Hessian(t_tree *tree);
 void   Recurr_Hessian(t_node *a, t_node *b, int plus_minus, phydbl *inc, phydbl *res, int *is_ok, t_tree *tree);
-double stdnormal_inv(double p);
-double Uni();
+phydbl stdnormal_inv(phydbl p);
+phydbl Uni();
 int    Rand_Int(int min, int max);
-double Ahrensdietergamma(double alpha);
-double Rgamma(double shape, double scale);
-double Rexp(double lambda);
+phydbl Ahrensdietergamma(phydbl alpha);
+phydbl Rgamma(phydbl shape, phydbl scale);
+phydbl Rexp(phydbl lambda);
 phydbl Bico(int n, int k);
 phydbl Factln(int n);
 phydbl Gammln(phydbl xx);
@@ -67,8 +67,8 @@ phydbl Dnorm_Multi_Given_InvCov_Det(phydbl *x, phydbl *mu, phydbl *invcov, phydb
 phydbl Prop_Log_Dnorm_Multi_Given_InvCov_Det(phydbl *x, phydbl *mu, phydbl *invcov, phydbl det, int size);
 phydbl Log_Dnorm(phydbl x, phydbl mean, phydbl sd, int *err);
 phydbl tt800();
-double Pnorm_Ihaka_Derived_From_Cody(double x);
-int Matinv(double *x, int n, int m);
+phydbl Pnorm_Ihaka_Derived_From_Cody(phydbl x);
+int Matinv(phydbl *x, int n, int m);
 phydbl *Matrix_Mult(phydbl *A, phydbl *B, int nra, int nca, int nrb, int ncb);
 phydbl *Matrix_Transpose(phydbl *A, int dim);
 void Normal_Conditional(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is_1, int n1, phydbl *cond_mu, phydbl *cond_var);

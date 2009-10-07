@@ -348,7 +348,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	    }
 	  case 24 :
 	    {
-	      io->mod->s_opt->p_moves_to_examine = (double)atof(optarg);
+	      io->mod->s_opt->p_moves_to_examine = (phydbl)atof(optarg);
 	      break;
 	    }
 	  case 23 :
@@ -652,7 +652,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		{
 		  io->mod->s_opt->opt_alpha     = 1;
 		}
-	      else if ((!atof(optarg)) || (atof(optarg) < 1.E-10))
+	      else if (atof(optarg) < 1.E-10)
 		{
 		  char choix;
 		  PhyML_Printf("\n. Alpha must be > 1.E-10.\n");
@@ -747,15 +747,21 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	    else if(!isalpha(optarg[0]))
 	      {
 		phydbl sum;
+		double val1,val2,val3,val4;
 
 		io->mod->s_opt->opt_state_freq  = 0;
 		io->mod->s_opt->user_state_freq = 1;
 		
-		sscanf(optarg,"%lf,%lf,%lf,%lf",
-		       io->mod->user_b_freq,
-		       io->mod->user_b_freq+1,
-		       io->mod->user_b_freq+2,
-		       io->mod->user_b_freq+3);
+/* 		sscanf(optarg,"%lf,%lf,%lf,%lf", */
+/* 		       io->mod->user_b_freq, */
+/* 		       io->mod->user_b_freq+1, */
+/* 		       io->mod->user_b_freq+2, */
+/* 		       io->mod->user_b_freq+3); */
+		sscanf(optarg,"%lf,%lf,%lf,%lf",&val1,&val2,&val3,&val4);
+		io->mod->user_b_freq[0] = (phydbl)val1;
+		io->mod->user_b_freq[1] = (phydbl)val2;
+		io->mod->user_b_freq[2] = (phydbl)val3;
+		io->mod->user_b_freq[3] = (phydbl)val4;
 
 		sum =
 		  (io->mod->user_b_freq[0] +
@@ -856,7 +862,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		    }
 		  else
 		    {
-		      if ((!atof(optarg)) || (atof(optarg) < .0))
+		      if (atof(optarg) < .0)
 			{
 			  char choix;
 			  PhyML_Printf("\n. The ts/tv ratio must be a positive number\n");

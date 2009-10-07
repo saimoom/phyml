@@ -64,7 +64,8 @@ void Usage()
   PhyML_Printf("\n");
 
   PhyML_Printf("%s\n\t-d (or --datatype) ""%sdata_type%s\n",BOLD,LINE,FLAT);
-  PhyML_Printf("%s\t\tdata_type%s is 'nt' for nucleotide (default), 'aa' for amino-acid sequences, or 'generic' (use NEXUS file format and the 'symbols' parameter here).\n",LINE,FLAT);
+  PhyML_Printf("\t\t%sdata_type%s is 'nt' for nucleotide (default), 'aa' for amino-acid sequences, or 'generic',\n",LINE,FLAT); 
+  PhyML_Printf("\t\t(use NEXUS file format and the 'symbols' parameter here).\n");
 
   PhyML_Printf("\n");
 
@@ -74,7 +75,7 @@ void Usage()
   PhyML_Printf("\n");
 
   PhyML_Printf("%s\n\t-n (or --multiple) ""%snb_data_sets%s\n",BOLD,LINE,FLAT);
-  PhyML_Printf("%s\t\tnb_data_sets%s is an integer corresponding to the number of data sets to analyse.\n",LINE,FLAT);
+  PhyML_Printf("\t\t%snb_data_sets%s is an integer corresponding to the number of data sets to analyse.\n",LINE,FLAT);
 
   PhyML_Printf("\n");
 
