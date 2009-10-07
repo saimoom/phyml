@@ -485,7 +485,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
   /* For all classes of rates */
   For(catg,tree->mod->n_catg)
     {
-      /* Get the scaling factors */
+      /* Get the scaling factor values for subtrees of the left and right handsides of b  */
       sum_scale_left =
 	(b->sum_scale_f_left)?
 	(b->sum_scale_f_left[catg*tree->n_pattern+site]):
@@ -495,7 +495,6 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
 	(b->sum_scale_f_rght)?
 	(b->sum_scale_f_rght[catg*tree->n_pattern+site]):
 	(0.0);
-
 
       site_lk_cat = .0;
 
@@ -558,44 +557,29 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
 	    }
 	}
 
+      /* Correct the likelihood using the scaling factor values */
       site_lk_cat *= pow(2,sum_scale_left+sum_scale_rght);
+
       tree->log_site_lk_cat[catg][site] = (phydbl)site_lk_cat;
       site_lk += site_lk_cat * (double)tree->mod->gamma_r_proba[catg];
-
-/*       if(site_lk_cat < MDBL_MIN)  */
-/* 	{ */
-/* 	  PhyML_Printf("\n. scale_left = %G scale_rght = %G",sum_scale_left,sum_scale_rght); */
-/* 	  PhyML_Printf("\n. 2^(scale_left+scale_rght) = %G",pow(2,sum_scale_left+sum_scale_rght)); */
-/* 	  PhyML_Printf("\n. Lk = %G",site_lk_cat); */
-/* 	  PhyML_Printf("\n. unnorm Lk = %G",tree->log_site_lk_cat[catg][site] ); */
-/* 	} */
     }
 
-  /* The substitution model does not consider invariable sites */
+  /* The substitution model does not include invariable sites */
   if(!tree->mod->invar)
     {
       log_site_lk = log(site_lk);
     }
   else
     {
-      /* !!!!!!!!!!!!!!!!! */
-      PhyML_Printf("\n. TO DO HERE\n");
-      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
-      Exit("");
-
       /* The site is invariant */
-      if((phydbl)tree->data->invar[site] > -0.5)
-	{
-	  if((sum_scale_left + sum_scale_rght > 0.0) || (sum_scale_left + sum_scale_rght < 0.0))
-	    site_lk *= (phydbl)exp(sum_scale_left + sum_scale_rght);
-	  
-	  log_site_lk =
-	    (phydbl)log(site_lk*(1.0-tree->mod->pinvar) + tree->mod->pinvar*tree->mod->pi[tree->data->invar[site]]);
+      if(tree->data->invar[site] > -0.5)
+	{	  
+	  log_site_lk = (double)(log(site_lk*(1.0-tree->mod->pinvar) + tree->mod->pinvar*tree->mod->pi[tree->data->invar[site]]));
 	  /* log(P(D)) = log(P(D | subst. rate > 0) * P(subst. rate > 0) + P(D | subst. rate = 0) * P(subst. rate = 0)) */
 	}
       else
 	{
-	  log_site_lk = (phydbl)log(site_lk*(1.0-tree->mod->pinvar)) + (phydbl)sum_scale_left + (phydbl)sum_scale_rght;
+	  log_site_lk = (double)(log(site_lk*(1.0-tree->mod->pinvar)));
 	  /* Same formula as above with P(D | subs, rate = 0) = 0 */
 	}
     }
@@ -608,14 +592,10 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
       Warn_And_Exit("\n. log_site_lk < -MDBL_MAX\n");
     }
 
-  /* !!!!!!!!!!!!!!!! */
-  For(catg,tree->mod->n_catg)
-    tree->log_site_lk_cat[catg][site] =
-    log(tree->log_site_lk_cat[catg][site]) +
-    sum_scale_left +
-    sum_scale_rght;
+  For(catg,tree->mod->n_catg) tree->log_site_lk_cat[catg][site] = log(tree->log_site_lk_cat[catg][site]);
   
-  tree->site_lk[site]  = log_site_lk;
+  tree->site_lk[site] = (phydbl)log_site_lk;
+
   /* Multiply log likelihood by the number of times this site pattern is found oin the data */
   tree->c_lnL_sorted[site] = (phydbl)tree->data->wght[site]*log_site_lk;
   return (phydbl)log_site_lk;
@@ -735,8 +715,6 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
   /* For every site in the alignment */
   For(site,n_patterns)
     {
-
-/*       scale_f = -MDBL_MAX; */
       state_v1 = state_v2 = -1;
       ambiguity_check_v1 = ambiguity_check_v2 = -1;
       
@@ -840,9 +818,6 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
 	      
 	      p_lk[site*dim1+catg*dim2+i] = (phydbl)(p1_lk1 * p2_lk2);
 	      
-	      /* Work out the maximum value of the partial likelihoods at node d */
-/* 	      if(p_lk[site*dim1+catg*dim2+i] > scale_f) scale_f = p_lk[site*dim1+catg*dim2+i];	       */
-
 	      if(p_lk[site*dim1+catg*dim2+i] < scale_f)     do_scale_small = YES;
 	      if(p_lk[site*dim1+catg*dim2+i] > inv_scale_f) do_scale_big   = YES;
 	    }
@@ -853,10 +828,6 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
 	      /* For each state at node d */
 	      For(i,tree->mod->ns)
 		{
-/* 		  PhyML_Printf("\n. p_lk[%3d][%2d][%3d] = %G", */
-/* 			       site,catg,i, */
-/* 			       p_lk[site*dim1+catg*dim2+i]); */
-		  
 		  /* Divide the corresponding partial likelihood by the scaling factor. */
 		  p_lk[site*dim1+catg*dim2+i] /= (do_scale_small)?(scale_f):(inv_scale_f);
 		  

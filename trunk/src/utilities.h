@@ -190,7 +190,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 
 /* #define USE_OLD_LK */
 
-typedef	double phydbl;
+typedef	float phydbl;
 typedef double plkflt;
 
 /*********************************************************/
