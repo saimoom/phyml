@@ -64,14 +64,14 @@ phydbl tt800()
   */
   y ^= (y >> 16); /* added to the 1994 version */
   k++;
-  return( (double) y / (unsigned long) 0xffffffff);
+  return( (phydbl) y / (unsigned long) 0xffffffff);
 }
 
 /*********************************************************************/
 
-double Uni()
+phydbl Uni()
 {
-  double r; 
+  phydbl r; 
   r=rand();
   r/=RAND_MAX;
 /*   r = tt800(); */
@@ -112,21 +112,21 @@ int Rand_Int(int min, int max)
 * Apply Ahrens-Dieter algorithm for Gamma(delta,1)
 */
  
-double Ahrensdietergamma(double alpha)
+phydbl Ahrensdietergamma(phydbl alpha)
 {
-  double x = 0.;
+  phydbl x = 0.;
 
   if (alpha>0.) 
     {
-      double y = 0.;
-      double b = (alpha+exp(1.))/exp(1.);
-      double p = 1./alpha;
+      phydbl y = 0.;
+      phydbl b = (alpha+exp(1.))/exp(1.);
+      phydbl p = 1./alpha;
       int go = 0;
       while (go==0) 
 	{
-	  double u = Uni();
-	  double w = Uni();
-	  double v = b*u;
+	  phydbl u = Uni();
+	  phydbl w = Uni();
+	  phydbl v = b*u;
 	  if (v<=1.) 
 	    {
 	      x = pow(v,p);
@@ -145,27 +145,27 @@ double Ahrensdietergamma(double alpha)
 
 /*********************************************************/
 
-double Rgamma(double shape, double scale)
+phydbl Rgamma(phydbl shape, phydbl scale)
 {
   int i;
-  double x1 = 0.;
-  double delta = shape;
+  phydbl x1 = 0.;
+  phydbl delta = shape;
   if (shape>=1.) 
     {
       int k = (int) floor(shape);
       delta = shape - k;
-      double u = 1.;
+      phydbl u = 1.;
       for (i=0; i<k; i++)
 	u *= Uni();
       x1 = -log(u);
     }
-  double x2 = Ahrensdietergamma(delta);
+  phydbl x2 = Ahrensdietergamma(delta);
   return (x1 + x2)*scale;
 }
 
 /*********************************************************/
 
-double Rexp(double lambda)
+phydbl Rexp(phydbl lambda)
 {
   return -log(Uni()+1.E-30)/lambda;
 }
@@ -616,7 +616,7 @@ phydbl Dgamma(phydbl x, phydbl shape, phydbl scale)
 {
   phydbl v;
 
-  if(x == INFINITY) 
+  if(x > INFINITY) 
     {
       PhyML_Printf("\n. WARNING: huge value of x -> x = %G",x);
       x = 1.E+10;
@@ -707,25 +707,25 @@ phydbl Dpois(phydbl x, phydbl param)
 
 phydbl Pnorm(phydbl x, phydbl mean, phydbl sd)
 {
-/*   const double b1 =  0.319381530; */
-/*   const double b2 = -0.356563782; */
-/*   const double b3 =  1.781477937; */
-/*   const double b4 = -1.821255978; */
-/*   const double b5 =  1.330274429; */
-/*   const double p  =  0.2316419; */
-/*   const double c  =  0.39894228; */
+/*   const phydbl b1 =  0.319381530; */
+/*   const phydbl b2 = -0.356563782; */
+/*   const phydbl b3 =  1.781477937; */
+/*   const phydbl b4 = -1.821255978; */
+/*   const phydbl b5 =  1.330274429; */
+/*   const phydbl p  =  0.2316419; */
+/*   const phydbl c  =  0.39894228; */
   
   x = (x-mean)/sd;
   
 /*   if(x >= 0.0)  */
 /*     { */
-/*       double t = 1.0 / ( 1.0 + p * x ); */
+/*       phydbl t = 1.0 / ( 1.0 + p * x ); */
 /*       return (1.0 - c * exp( -x * x / 2.0 ) * t * */
 /* 	      ( t *( t * ( t * ( t * b5 + b4 ) + b3 ) + b2 ) + b1 )); */
 /*     } */
 /*   else  */
 /*     { */
-/*       double t = 1.0 / ( 1.0 - p * x ); */
+/*       phydbl t = 1.0 / ( 1.0 - p * x ); */
 /*       return ( c * exp( -x * x / 2.0 ) * t * */
 /* 	       ( t *( t * ( t * ( t * b5 + b4 ) + b3 ) + b2 ) + b1 )); */
 /*     } */
@@ -742,23 +742,23 @@ phydbl Pnorm(phydbl x, phydbl mean, phydbl sd)
 /* Stolen from R source code */
 #define SIXTEN 16
 
-double Pnorm_Ihaka_Derived_From_Cody(double x)
+phydbl Pnorm_Ihaka_Derived_From_Cody(phydbl x)
 {
 
-    const static double a[5] = {
+    const static phydbl a[5] = {
 	2.2352520354606839287,
 	161.02823106855587881,
 	1067.6894854603709582,
 	18154.981253343561249,
 	0.065682337918207449113
     };
-    const static double b[4] = {
+    const static phydbl b[4] = {
 	47.20258190468824187,
 	976.09855173777669322,
 	10260.932208618978205,
 	45507.789335026729956
     };
-    const static double c[9] = {
+    const static phydbl c[9] = {
 	0.39894151208813466764,
 	8.8831497943883759412,
 	93.506656132177855979,
@@ -769,7 +769,7 @@ double Pnorm_Ihaka_Derived_From_Cody(double x)
 	9842.7148383839780218,
 	1.0765576773720192317e-8
     };
-    const static double d[8] = {
+    const static phydbl d[8] = {
 	22.266688044328115691,
 	235.38790178262499861,
 	1519.377599407554805,
@@ -779,7 +779,7 @@ double Pnorm_Ihaka_Derived_From_Cody(double x)
 	38912.003286093271411,
 	19685.429676859990727
     };
-    const static double p[6] = {
+    const static phydbl p[6] = {
 	0.21589853405795699,
 	0.1274011611602473639,
 	0.022235277870649807,
@@ -787,7 +787,7 @@ double Pnorm_Ihaka_Derived_From_Cody(double x)
 	2.9112874951168792e-5,
 	0.02307344176494017303
     };
-    const static double q[5] = {
+    const static phydbl q[5] = {
 	1.28426009614491121,
 	0.468238212480865118,
 	0.0659881378689285515,
@@ -795,9 +795,9 @@ double Pnorm_Ihaka_Derived_From_Cody(double x)
 	7.29751555083966205e-5
     };
 
-    double xden, xnum, temp, del, eps, xsq, y;
+    phydbl xden, xnum, temp, del, eps, xsq, y;
     int i, lower, upper;
-    double cum,ccum;
+    phydbl cum,ccum;
     int i_tail;
     
     i_tail = 0;
@@ -1004,12 +1004,12 @@ phydbl PointNormal (phydbl p)
 /*    z = y + ((((y*a4+a3)*y+a2)*y+a1)*y+a0) / ((((y*b4+b3)*y+b2)*y+b1)*y+b0); */
 /*    return (p<0.5 ? -z : z); */
 
-  static double zero = 0.0, one = 1.0, half = 0.5;
-  static double split1 = 0.425, split2 = 5.0;
-  static double const1 = 0.180625, const2 = 1.6;
+  static phydbl zero = 0.0, one = 1.0, half = 0.5;
+  static phydbl split1 = 0.425, split2 = 5.0;
+  static phydbl const1 = 0.180625, const2 = 1.6;
   
   /* coefficients for p close to 0.5 */
-  static double a[8] = {
+  static phydbl a[8] = {
     3.3871328727963666080e0,
     1.3314166789178437745e+2,
     1.9715909503065514427e+3,
@@ -1019,7 +1019,7 @@ phydbl PointNormal (phydbl p)
     3.3430575583588128105e+4,
     2.5090809287301226727e+3
   };
-  static double b[8] = { 
+  static phydbl b[8] = { 
     0.0,
     4.2313330701600911252e+1,
     6.8718700749205790830e+2,
@@ -1032,7 +1032,7 @@ phydbl PointNormal (phydbl p)
   
   /* hash sum ab    55.8831928806149014439 */
   /* coefficients for p not close to 0, 0.5 or 1. */
-  static double c[8] = {
+  static phydbl c[8] = {
     1.42343711074968357734e0,
     4.63033784615654529590e0,
     5.76949722146069140550e0,
@@ -1042,7 +1042,7 @@ phydbl PointNormal (phydbl p)
     2.27238449892691845833e-2,
     7.74545014278341407640e-4
   };
-  static double d[8] = { 
+  static phydbl d[8] = { 
     0.0,
     2.05319162663775882187e0,
     1.67638483018380384940e0,
@@ -1055,7 +1055,7 @@ phydbl PointNormal (phydbl p)
   
   /* hash sum cd    49.33206503301610289036 */
   /* coefficients for p near 0 or 1. */
-  static double e[8] = {
+  static phydbl e[8] = {
     6.65790464350110377720e0,
     5.46378491116411436990e0,
     1.78482653991729133580e0,
@@ -1065,7 +1065,7 @@ phydbl PointNormal (phydbl p)
     2.71155556874348757815e-5,
     2.01033439929228813265e-7
   };
-  static double f[8] = { 
+  static phydbl f[8] = { 
     0.0,
     5.99832206555887937690e-1,
     1.36929880922735805310e-1,
@@ -1077,7 +1077,7 @@ phydbl PointNormal (phydbl p)
   };
   
   /* hash sum ef    47.52583317549289671629 */
-  double q, r, ret;
+  phydbl q, r, ret;
   
   q = p - half;
   if (fabs(q) <= split1) {
@@ -1141,7 +1141,7 @@ phydbl Factln(int n)
   
   if (n < 0)    { Warn_And_Exit("\n. Err: negative factorial in routine FACTLN"); }
   if (n <= 1)     return 0.0;
-  if (n <= 100)   return a[n] ? a[n] : (a[n]=Gammln(n+1.0));
+  if (n <= 100)   return (a[n]>MDBL_MIN) ? a[n] : (a[n]=Gammln(n+1.0));
   else return     Gammln(n+1.0);
 }
 
@@ -1215,7 +1215,7 @@ phydbl IncompleteGamma(phydbl x, phydbl alpha, phydbl ln_gamma_alpha)
    phydbl accurate=1e-8, overflow=1e30;
    phydbl factor, gin=0, rn=0, a=0,b=0,an=0,dif=0, term=0, pn[6];
 
-   if (x==0) return (0);
+   if (fabs(x) < MDBL_MIN) return (.0);
    if (x<0 || p<=0) return (-1);
 
    factor=(phydbl)exp(p*(phydbl)log(x)-x-g);
@@ -1237,7 +1237,7 @@ phydbl IncompleteGamma(phydbl x, phydbl alpha, phydbl ln_gamma_alpha)
  l32:
    a++;  b+=2;  term++;   an=a*term;
    for (i=0; i<2; i++) pn[i+4]=b*pn[i+2]-an*pn[i];
-   if (pn[5] == 0) goto l35;
+   if (fabs(pn[5]) < .0) goto l35;
    rn=pn[4]/pn[5];   dif=fabs(gin-rn);
    if (dif>accurate) goto l34;
    if (dif<=accurate*rn) goto l42;
@@ -2131,7 +2131,7 @@ phydbl Constraint_Normal_Trunc_Mean(phydbl wanted_mu, phydbl sd, phydbl min, phy
 
 /*********************************************************/
 
-int Matinv(double *x, int n, int m)
+int Matinv(phydbl *x, int n, int m)
 {
 
 /* x[n*m]  ... m>=n
@@ -2139,8 +2139,8 @@ int Matinv(double *x, int n, int m)
 
    int i,j,k;
    int *irow;
-   double ee, t,t1,xmax;
-   double det;
+   phydbl ee, t,t1,xmax;
+   phydbl det;
 
    ee = 1.0E-10;
    det = 1.0;
@@ -2200,7 +2200,7 @@ int Matinv(double *x, int n, int m)
    return (1);
 
 /*   int i, j, k, lower, upper; */
-/*   double temp; */
+/*   phydbl temp; */
 /*   phydbl *a; */
 /*   int nsize; */
 

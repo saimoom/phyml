@@ -89,9 +89,16 @@ phydbl Brent_1dim(phydbl ax, phydbl bx, phydbl cx,
 
 int Min_With_Derivatives(t_tree *tree, phydbl *p, int n, phydbl ftol, phydbl step_size, 
 			 phydbl (*func) (), void (*dfunc)(), phydbl (*linmin)());
-void BFGS(t_tree *tree, phydbl *p, int n, phydbl gtol, phydbl step_size,
-	  phydbl(*func)(), void (*dfunc)(), void (*lnsrch)(),int *failed);
-void Lnsrch_RR_Param(t_tree *tree, int n, phydbl *xold, phydbl fold, phydbl *g, phydbl *p, phydbl *x,
+void BFGS(t_tree *tree, 
+	  phydbl *p, 
+	  int n, 
+	  phydbl gtol, 
+	  phydbl step_size,
+	  phydbl(*func)(t_tree *tree), 
+	  int(*dfunc)(t_tree *tree,phydbl *param,int n_param,phydbl stepsize,phydbl(*func)(t_tree *tree),phydbl *derivatives), 
+	  int(*lnsrch)(t_tree *tree, int n, phydbl *xold, phydbl fold,phydbl *g, phydbl *p, phydbl *x,phydbl *f, phydbl stpmax, int *check),
+	  int *failed);
+int Lnsrch_RR_Param(t_tree *tree, int n, phydbl *xold, phydbl fold, phydbl *g, phydbl *p, phydbl *x,
 		     phydbl *f, phydbl stpmax, int *check);
 void Optimize_Single_Param_Generic(t_tree *tree, phydbl *param, phydbl lim_inf, phydbl lim_sup, phydbl tol, int n_max_iter, int quickdirty);
 int Generic_Brak(phydbl *param,
@@ -102,7 +109,7 @@ int Generic_Brak(phydbl *param,
 phydbl Generic_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, 
 		     phydbl *xmin, t_tree *tree, int n_iter_max,int quickdirty);
 void Optimize_Br_Len_Serie(t_node *a, t_node *d, t_edge *b_fcus, t_tree *tree,calign *cdata);
-void Lnsrch_Nucleotide_Frequencies(t_tree *tree, int n, phydbl *xold, 
+int Lnsrch_Nucleotide_Frequencies(t_tree *tree, int n, phydbl *xold, 
 				   phydbl fold, phydbl *g, phydbl *p, phydbl *x,
 				   phydbl *f, phydbl stpmax, int *check);
 
@@ -119,7 +126,7 @@ phydbl Missing_Dist_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, int n_ite
 int Missing_Dist_Brak(phydbl *ax, phydbl *bx, phydbl *cx, int x, int y, matrix *mat);
 void Opt_Missing_Dist(int x, int y, matrix *mat);
 int Optimiz_Alpha_And_Pinv(t_tree *tree);
-void Lnsrch_RR_Cov_Param(t_tree *tree, int n, phydbl *xold, phydbl fold, 
+int Lnsrch_RR_Cov_Param(t_tree *tree, int n, phydbl *xold, phydbl fold, 
 			 phydbl *g, phydbl *p, phydbl *x,
 			 phydbl *f, phydbl stpmax, int *check);
 phydbl Node_Time_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,

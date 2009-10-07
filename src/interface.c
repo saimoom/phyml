@@ -966,7 +966,7 @@ void Launch_Interface_Model(option *io)
 	      PhyML_Printf("\n. Enter your value of alpha > ");
 	      Getstring_Stdin(a);
 	      n_trial = 0;
-	      while((!atof(a)) || (atof(a) < 1.E-10))
+	      while(atof(a) < 1.E-10)
 		{
 		  if(++n_trial > 10) Exit("\n. Err : alpha must be > 1.E-10\n");
 		  PhyML_Printf("\n. Alpha must be 1.E-10\n");
@@ -1153,7 +1153,7 @@ void Launch_Interface_Model(option *io)
 	      PhyML_Printf("\n. Enter your value of the ts/tv ratio > ");
 	      Getstring_Stdin(t);
 	      n_trial = 0;
-	      while((!atof(t)) || (atof(t) < .0))
+	      while(atof(t) < .0)
 		{
 		  if(++n_trial > 10) Exit("\n. Err : the ts/tv ratio must be a positive number\n");
 		  PhyML_Printf("\n. The ratio must be a positive number");
@@ -1377,10 +1377,15 @@ void Launch_Interface_Topo_Search(option *io)
     }
   else
     {
+      switch(io->in_tree)
+	{
+	case 0: { strcpy(s,"BioNJ");     break; }
+	case 2: { strcpy(s,"user tree"); break; }
+	}
+
       PhyML_Printf("                [U] "
 		   "..................... Input tree (BioNJ/user tree) "
-		   " %-15s \n",
-		   (!io->in_tree)?("BioNJ"):("user tree"));
+		   " %-15s \n",s);
     }
 
   if(io->mod->s_opt->opt_topo)
@@ -1462,6 +1467,10 @@ void Launch_Interface_Topo_Search(option *io)
     case 'U' :
       {
 	io->in_tree++;
+	if(!io->mod->s_opt->opt_topo)
+	  {
+	    if(io->in_tree == 1) io->in_tree = 2;
+	  }
 	if(io->in_tree == 3) io->in_tree = 0;
 	break;
       }

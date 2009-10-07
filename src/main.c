@@ -142,6 +142,25 @@ int main(int argc, char **argv)
 		  Prepare_Tree_For_Lk(tree);
 
 		  if((!num_data_set) && (!num_tree) && (!num_rand_tree)) Check_Memory_Amount(tree);
+		  
+		  int i;
+		  int j,k;
+		  tree->both_sides = 1;
+		  Lk(tree);
+		  PhyML_Printf("\n. LK = %f",tree->c_lnL);
+		  For(i,2*tree->n_otu-3)
+		    {
+/* 		      For(j,4) */
+/* 			{ */
+/* 			  For(k,4) */
+/* 			    { */
+/* 			      PhyML_Printf("%10f ",tree->t_edges[i]->Pij_rr[4*j+k]); */
+/* 			    } */
+/* 			  PhyML_Printf("\n"); */
+/* 			} */
+
+		      PhyML_Printf("\n. %7f %7f",tree->t_edges[i]->l,Lk_At_Given_Edge(tree->t_edges[i],tree));
+		    }
 
 		  if(io->in_tree == 1) Spr_Pars(tree);
 		  

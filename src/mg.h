@@ -36,7 +36,7 @@ int PART_Try_One_Spr_Move(spr *st_move, supert_tree *st);
 void PART_Map_Gt_Edges_In_St(t_tree *gt, supert_tree *st);
 void PART_NNI(t_edge *st_b, supert_tree *st);
 void PART_Swap(t_node *st_a, t_node *st_b, t_node *st_c, t_node *st_d, supert_tree *st);
-void PART_Set_Bl(double **bl, supert_tree *st);
+void PART_Set_Bl(phydbl **bl, supert_tree *st);
 void PART_Restore_Br_Len(supert_tree *st);
 void PART_Record_Br_Len(supert_tree *st);
 phydbl PART_Lk_At_Given_Edge(t_edge *st_b, supert_tree *st);

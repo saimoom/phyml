@@ -195,7 +195,7 @@ void Simu_Pars(t_tree *tree, int n_step_max)
 	}
       
 
-      if(old_pars == tree->c_pars) break;
+      if(fabs(old_pars - tree->c_pars) < MDBL_MIN) break;
 	      
       if((tree->c_pars > old_pars) && (step > 1))
 	{

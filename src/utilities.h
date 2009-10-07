@@ -75,6 +75,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  PI             3.14159265358979311600
 #define  SQRT2PI        2.50662827463100024161
 #define  LOG2PI         1.83787706640934533908
+#define  LOG2           0.69314718055994528623
 
 #define  NORMAL 1
 #define  EXACT  2
@@ -125,7 +126,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  ALPHA_MIN           0.04
 #define  ALPHA_MAX            100
 #ifdef PHYML
-#define  BL_MIN            1.e-8
+#define  BL_MIN             1.e-4
 #else
 #define  BL_MIN             1.e-4
 #endif
@@ -142,17 +143,16 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  AROUND_LK           50.0
 #define  PROP_STEP            1.0
 #define  T_MAX_ALPHABET       100
-#define  MDBL_MIN   2.225074E-308
-#define  MDBL_MAX   1.797693E+308
+#define  MDBL_MIN             pow(2,FLT_MIN_EXP-1)
+#define  MDBL_MAX             pow(2,FLT_MAX_EXP-1)
 #define  POWELL_ITMAX         200
 #define  LINMIN_TOL       2.0E-04
-#define  LIM_SCALE              3
-#define  LIM_SCALE_VAL     1.E-50
-/* #define  LIM_SCALE           3000 */
-/* #define  LIM_SCALE_VAL    1.E-500 */
-#define  DEFAULT_SIZE_SPR_LIST  20
+#define  SCALE_POW            -40 /* Scaling factor will be 2^SCALE_POW or 2^(-SCALE_POW) */
+#define  DEFAULT_SIZE_SPR_LIST 20
 #define  OUTPUT_TREE_FORMAT  0 /* 0-->Newick; 1-->Nexus */
 #define  MAX_PARS        1000000000
+
+#define  LIM_SCALE_VAL     1.E-50
 
 #define  MIN_CLOCK_RATE   1.E-10
 #define  MIN_VAR_BL        1.E-7
@@ -187,6 +187,8 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define EXPONENTIAL    2
 #define GAMMA          3
 #define THORNE         4
+
+/* #define USE_OLD_LK */
 
 typedef	double phydbl;
 typedef double plkflt;
@@ -252,13 +254,13 @@ typedef struct __Edge {
 					      bip_score = 1 iif the branch is found in both trees to be compared,
 					      bip_score = 0 otherwise. */
 
-  plkflt            *p_lk_left,*p_lk_rght; /* likelihoods of the subtree on the left and
+  phydbl            *p_lk_left,*p_lk_rght; /* likelihoods of the subtree on the left and
 					      right side (for each site and each relative rate category) */
   short int      *p_lk_tip_r, *p_lk_tip_l; 
   short int           *div_post_pred_left; /* posterior prediction of nucleotide/aa diversity (left-hand subtree) */
   short int           *div_post_pred_rght; /* posterior prediction of nucleotide/aa diversity (rght-hand subtree) */
 
-  double                          *Pij_rr; /* matrix of change probabilities and its first and secnd derivates */
+  phydbl                          *Pij_rr; /* matrix of change probabilities and its first and secnd derivates */
   int                     *pars_l,*pars_r; /* parsimony of the subtree on the left and right sides (for each site) */
   unsigned int               *ui_l, *ui_r; /* union - intersection vectors used in Fitch's parsimony algorithm */
   int                *p_pars_l, *p_pars_r; /* conditional parsimony vectors */
@@ -271,8 +273,8 @@ typedef struct __Edge {
      `Get_All_Partial_Lk_Scale' in lk.c */
   int                          scale_left;
   int                          scale_rght;
-  plkflt                *sum_scale_f_left;
-  plkflt                *sum_scale_f_rght;
+  phydbl                *sum_scale_f_left;
+  phydbl                *sum_scale_f_rght;
 
   phydbl                          bootval; /* bootstrap value (if exists) */
 
@@ -348,7 +350,7 @@ typedef struct __Arbre {
   phydbl                              init_lnL;
   phydbl                              best_lnL; /* highest value of the loglikelihood found so far */
   int                                best_pars; /* highest value of the parsimony found so far */
-  phydbl                                 c_lnL; /* loglikelihood */
+  double                                 c_lnL; /* loglikelihood */
   phydbl                         *c_lnL_sorted; /* used to compute c_lnL by adding sorted terms to minimize CPU errors */
   phydbl                              *site_lk; /* vector of likelihoods at individual sites */
   phydbl                     **log_site_lk_cat; /* loglikelihood at individual sites and for each class of rate*/
@@ -564,7 +566,7 @@ typedef struct __Model {
 
   phydbl               *rr; /* relative rate parameters of the GTR or custom model (given by rr_val[rr_num[i]]) */
   phydbl           *rr_val; /* relative rate parameters of the GTR or custom model */
-  double           *Pij_rr; /* matrix of change probabilities */
+  phydbl           *Pij_rr; /* matrix of change probabilities */
   phydbl                mr; /* mean rate = branch length/time interval  mr = -sum(i)(vct_pi[i].mat_Q[ii]) */
   phydbl      *user_b_freq; /* user-defined nucleotide frequencies */
   phydbl             *qmat;
@@ -583,14 +585,14 @@ typedef struct __Model {
 
 typedef struct __Eigen{
   int              size;
-  double             *q; /* matrix which eigen values and vectors are computed */
-  double         *space;
+  phydbl             *q; /* matrix which eigen values and vectors are computed */
+  phydbl         *space;
   int        *space_int;
-  double         *e_val; /* eigen values (vector), real part. */
-  double      *e_val_im; /* eigen values (vector), imaginary part */
-  double      *r_e_vect; /* right eigen vector (matrix), real part */
-  double   *r_e_vect_im; /* right eigen vector (matrix), imaginary part */
-  double      *l_e_vect; /* left eigen vector (matrix), real part */
+  phydbl         *e_val; /* eigen values (vector), real part. */
+  phydbl      *e_val_im; /* eigen values (vector), imaginary part */
+  phydbl      *r_e_vect; /* right eigen vector (matrix), real part */
+  phydbl   *r_e_vect_im; /* right eigen vector (matrix), imaginary part */
+  phydbl      *l_e_vect; /* left eigen vector (matrix), real part */
 }eigen;
 
 /*********************************************************/
@@ -831,7 +833,7 @@ typedef struct __Tdraw {
   int         page_height;
   int      tree_box_width;
 
-  double max_dist_to_root;
+  phydbl max_dist_to_root;
 }tdraw;
 
 /*********************************************************/
@@ -1075,7 +1077,7 @@ void Br_Len_Not_Involving_Invar(t_tree *tree);
 void Getstring_Stdin(char *file_name);
 void Print_Freq(t_tree *tree);
 phydbl Num_Derivatives_One_Param(phydbl(*func)(t_tree *tree),t_tree *tree,phydbl f0,phydbl *param,phydbl stepsize,phydbl *err,int precise);
-void Num_Derivative_Several_Param(t_tree *tree,phydbl *param,int n_param,phydbl stepsize,phydbl(*func)(t_tree *tree),phydbl *derivatives);
+int Num_Derivative_Several_Param(t_tree *tree,phydbl *param,int n_param,phydbl stepsize,phydbl(*func)(t_tree *tree),phydbl *derivatives);
 int Compare_Two_States(char *state1,char *state2,int state_size);
 void Copy_One_State(char *from,char *to,int state_size);
 model *Make_Model_Basic();
@@ -1185,7 +1187,7 @@ phydbl Compare_Bip_On_Existing_Edges(phydbl thresh_len, t_tree *tree1, t_tree *t
 void NNI_Pars(t_tree *tree, t_edge *b_fcus, int do_swap);
 void Evaluate_One_Regraft_Pos_Triple(spr *move, t_tree *tree);
 int Get_State_From_Ui(int ui, int datatype);
-void Read_Qmat(double *daa, phydbl *pi, FILE *fp);
+void Read_Qmat(phydbl *daa, phydbl *pi, FILE *fp);
 void Traverse_Prefix_Tree(int site, int seqnum, int *patt_num, int *n_patt, align **data, option *input, pnode *n);
 pnode *Create_Pnode(int size);
 int Assign_State_With_Ambiguity(char *c, int datatype, int stepsize);
@@ -1214,13 +1216,13 @@ void Print_Diversity(FILE *fp, t_tree *tree);
 void Print_Diversity_Header(FILE *fp, t_tree *tree);
 void Print_Diversity_Pre(t_node *a, t_node *d, t_edge *b, FILE *fp, t_tree *tree);
 void Make_New_Edge_Label(t_edge *b);
-void Print_Qmat_AA(double *daa, phydbl *pi);
+void Print_Qmat_AA(phydbl *daa, phydbl *pi);
 trate *Make_Rate_Struct(t_tree *tree);
 void Init_Rate_Struct(trate *rates, t_tree *tree);
-double Uni();
-double Ahrensdietergamma(double alpha);
-double Rgamma(double shape, double scale);
-double Rexp(double lambda);
+phydbl Uni();
+phydbl Ahrensdietergamma(phydbl alpha);
+phydbl Rgamma(phydbl shape, phydbl scale);
+phydbl Rexp(phydbl lambda);
 phydbl Univariate_Kernel_Density_Estimate(phydbl where, phydbl *x, int n);
 phydbl Var(phydbl *x, int n);
 phydbl Mean(phydbl *x, int n);

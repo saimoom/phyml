@@ -219,7 +219,7 @@ void DR_Get_X_Coord_Pre(t_node *a, t_node *d, t_edge *b, tdraw *w, t_tree *tree)
 {
   int i;
 
-  if(b) w->xcoord[d->num] =  d->dist_to_root * (double)w->tree_box_width/w->max_dist_to_root;
+  if(b) w->xcoord[d->num] =  d->dist_to_root * (phydbl)w->tree_box_width/w->max_dist_to_root;
 
   if(d->tax) return;
   else
@@ -234,8 +234,8 @@ void DR_Get_X_Coord_Pre(t_node *a, t_node *d, t_edge *b, tdraw *w, t_tree *tree)
 
 void DR_Get_X_Coord(tdraw *w, t_tree *tree)
 {
-  w->xcoord[tree->n_root->v[0]->num] = tree->n_root->v[0]->dist_to_root * (double)w->tree_box_width/w->max_dist_to_root;
-  w->xcoord[tree->n_root->v[1]->num] = tree->n_root->v[1]->dist_to_root * (double)w->tree_box_width/w->max_dist_to_root;
+  w->xcoord[tree->n_root->v[0]->num] = tree->n_root->v[0]->dist_to_root * (phydbl)w->tree_box_width/w->max_dist_to_root;
+  w->xcoord[tree->n_root->v[1]->num] = tree->n_root->v[1]->dist_to_root * (phydbl)w->tree_box_width/w->max_dist_to_root;
   DR_Get_X_Coord_Pre(tree->n_root,tree->n_root->v[0],NULL,w,tree);
   DR_Get_X_Coord_Pre(tree->n_root,tree->n_root->v[1],NULL,w,tree);
 }
@@ -320,9 +320,9 @@ void DR_Get_Tree_Box_Width(tdraw *w, t_tree *tree)
 
 /*********************************************************/
 
-double DR_Get_Max_Dist_To_Root(t_tree *tree)
+phydbl DR_Get_Max_Dist_To_Root(t_tree *tree)
 {
-  double mx;
+  phydbl mx;
   int i;
 
   mx = .0;
