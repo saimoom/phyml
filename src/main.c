@@ -141,8 +141,7 @@ int main(int argc, char **argv)
 
 		  Prepare_Tree_For_Lk(tree);
 
-		  if((!num_data_set) && (!num_tree) && (!num_rand_tree)) Check_Memory_Amount(tree);
-		  
+		  if((!num_data_set) && (!num_tree) && (!num_rand_tree)) Check_Memory_Amount(tree);		  
 
 		  if(io->in_tree == 1) Spr_Pars(tree);
 		  

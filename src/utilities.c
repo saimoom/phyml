@@ -583,6 +583,7 @@ void Init_Tree(t_tree *tree, int n_otu)
   tree->ps_page_number            = 0;
   tree->init_lnL                  = UNLIKELY;
   tree->best_lnL                  = UNLIKELY;
+  tree->old_lnL                   = UNLIKELY;
   tree->c_lnL                     = UNLIKELY;
   tree->n_swap                    = 0;
   tree->best_pars                 = 1E+5;
@@ -966,18 +967,6 @@ align **Get_Seq(option *io)
 	    }
 
 	  For(j,io->n_otu) buff[j][i] = io->data[j]->state[i];
-	}
-
-      if(n_removed > 0)
-	{
-	  if(io->datatype == NT)
-	    {
-	      if(!io->quiet) PhyML_Printf("\n. %d sites are made from completely undetermined states ('X', '-', '?' or 'N')...\n",n_removed);
-	    }
-	  else
-	    {
-	      if(!io->quiet) PhyML_Printf("\n. %d sites are made from completely undetermined states ('X', '-', '?')...\n",n_removed);
-	    }
 	}
 
       pos = 0;
@@ -2892,7 +2881,7 @@ void Print_Site_Lk(t_tree *tree, FILE *fp)
       For(site,tree->data->init_len)
 	{
 	  PhyML_Fprintf(fp,"%-7d",site+1);
-	  PhyML_Fprintf(fp,"%-16g",(phydbl)exp(tree->site_lk[tree->data->sitepatt[site]]));      
+	  PhyML_Fprintf(fp,"%-16g",(phydbl)exp(tree->cur_site_lk[tree->data->sitepatt[site]]));      
 	  if(tree->mod->n_catg > 1)
 	    {
 	      For(catg,tree->mod->n_catg)
@@ -2904,7 +2893,7 @@ void Print_Site_Lk(t_tree *tree, FILE *fp)
 		tree->mod->gamma_rr[catg] * 
 		exp(tree->log_site_lk_cat[catg][tree->data->sitepatt[site]]) * 
 		tree->mod->gamma_r_proba[catg];
-	      postmean /= exp(tree->site_lk[tree->data->sitepatt[site]]);
+	      postmean /= exp(tree->cur_site_lk[tree->data->sitepatt[site]]);
 
 	      PhyML_Fprintf(fp,"%-22g",postmean);
 	    }
@@ -2922,7 +2911,7 @@ void Print_Site_Lk(t_tree *tree, FILE *fp)
   else
     {
       For(site,tree->data->init_len)
-	PhyML_Fprintf(fp,"%.2f\t",tree->site_lk[tree->data->sitepatt[site]]);
+	PhyML_Fprintf(fp,"%.2f\t",tree->cur_site_lk[tree->data->sitepatt[site]]);
       PhyML_Fprintf(fp,"\n");
     }
 }
@@ -3241,7 +3230,8 @@ void Share_Lk_Struct(t_tree *t_full, t_tree *t_empt)
   t_empt->e_root          = t_full->e_root;
   t_empt->c_lnL_sorted    = t_full->c_lnL_sorted;
   t_empt->log_site_lk_cat = t_full->log_site_lk_cat;
-  t_empt->site_lk         = t_full->site_lk;
+  t_empt->cur_site_lk     = t_full->cur_site_lk;
+  t_empt->old_site_lk     = t_full->old_site_lk;
   t_empt->triplet_struct  = t_full->triplet_struct;
   t_empt->log_lks_aLRT    = t_full->log_lks_aLRT;
 
@@ -10756,6 +10746,21 @@ void Set_Model_Name(model *mod)
     }
 }
 
-
 /*********************************************************/
+
+void Adjust_Min_Diff_Lk(t_tree *tree)
+{
+  int exponent;
+  
+  exponent = (int)floor(log10(fabs(tree->c_lnL)));
+
+  if(sizeof(phydbl) == 4)
+    {
+      tree->mod->s_opt->min_diff_lk_global = pow(10.,exponent - FLT_DIG + 1);
+      tree->mod->s_opt->min_diff_lk_local  = tree->mod->s_opt->min_diff_lk_global;
+      tree->mod->s_opt->min_diff_lk_move   = tree->mod->s_opt->min_diff_lk_global;
+    }
+/*   PhyML_Printf("\n. Exponent = %d Precision = %E DIG = %d",exponent,tree->mod->s_opt->min_diff_lk_global,FLT_DIG); */
+}
+
 /*********************************************************/

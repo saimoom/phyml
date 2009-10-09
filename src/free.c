@@ -272,7 +272,8 @@ void Free_Tree_Lk(t_tree *tree)
   Free(tree->log_lks_aLRT);
 
   Free(tree->c_lnL_sorted);
-  Free(tree->site_lk);
+  Free(tree->cur_site_lk);
+  Free(tree->old_site_lk);
 
   For(i,tree->mod->n_catg) Free(tree->log_site_lk_cat[i]);
   Free(tree->log_site_lk_cat);

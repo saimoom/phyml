@@ -116,7 +116,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  N_MAX_LABEL           10
 #define  BLOCK_LABELS         100
 
-#define  NODE_DEG_MAX          50
+#define  NODE_DEG_MAX          10
 #define  BRENT_ITMAX        10000
 #define  BRENT_CGOLD    0.3819660
 #define  BRENT_ZEPS        1.e-10
@@ -152,7 +152,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  OUTPUT_TREE_FORMAT  0 /* 0-->Newick; 1-->Nexus */
 #define  MAX_PARS        1000000000
 
-#define  LIM_SCALE_VAL     1.E-50
+#define  LIM_SCALE_VAL     1.E-50 /* Scaling limit (deprecated) */
 
 #define  MIN_CLOCK_RATE   1.E-10
 #define  MIN_VAR_BL        1.E-7
@@ -190,8 +190,8 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 
 /* #define USE_OLD_LK */
 
-typedef	float phydbl;
-typedef double plkflt;
+/* typedef	float phydbl; */
+typedef	double phydbl;
 
 /*********************************************************/
 
@@ -350,9 +350,11 @@ typedef struct __Arbre {
   phydbl                              init_lnL;
   phydbl                              best_lnL; /* highest value of the loglikelihood found so far */
   int                                best_pars; /* highest value of the parsimony found so far */
-  double                                 c_lnL; /* loglikelihood */
+  phydbl                                 c_lnL; /* loglikelihood */
+  phydbl                               old_lnL; /* old loglikelihood */
   phydbl                         *c_lnL_sorted; /* used to compute c_lnL by adding sorted terms to minimize CPU errors */
-  phydbl                              *site_lk; /* vector of likelihoods at individual sites */
+  phydbl                          *cur_site_lk; /* vector of likelihoods at individual sites */
+  phydbl                          *old_site_lk; /* vector of likelihoods at individual sites */
   phydbl                     **log_site_lk_cat; /* loglikelihood at individual sites and for each class of rate*/
   phydbl                       unconstraint_lk; /* unconstrained (or multinomial) likelihood  */
   phydbl             prop_of_sites_to_consider;
@@ -1297,6 +1299,7 @@ nexparm *Make_Nexus_Parm();
 void Free_Nexus_Parm(nexparm *parm);
 void Read_Ntax_Len_Phylip(FILE *fp ,int *n_otu, int *n_tax);
 void Set_Model_Name(model *mod);
+void Adjust_Min_Diff_Lk(t_tree *tree);
 
 #include "free.h"
 #include "spr.h"
