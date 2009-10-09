@@ -57,7 +57,6 @@ void Init_Tips_At_One_Site_Generic_Int(char *state, int ns, int state_len, int p
 void Init_Tips_At_One_Site_Generic_Float(char *state, int ns, int state_len, int pos, phydbl *p_lk);
 
 
-
 #endif
 
 

@@ -514,15 +514,13 @@ phydbl Br_Len_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 	  return tree->c_lnL;	  
 	}
 
-      if(((fabs(tree->c_lnL-old_lnL) < tol) && 
-	  (tree->c_lnL > init_lnL - tol)) ||	 
-	 (iter > n_iter_max - 1))
+/*       if(((fabs(tree->c_lnL-old_lnL) < tol) && (tree->c_lnL > init_lnL - tol)) || (iter > n_iter_max - 1)) */
+      if((fabs(tree->c_lnL-old_lnL) < tol) || (iter > n_iter_max - 1))
 	{
 	  b_fcus->l=x;
 	  Lk_At_Given_Edge(b_fcus,tree);
 /* 	  PhyML_Printf("\n. iter=%3d max=%3d l=%f lnL=%f init_lnL=%f",iter,n_iter_max,b_fcus->l,tree->c_lnL,init_lnL); */
 /* 	  Exit("\n"); */
-
 	  return tree->c_lnL;
 	}
       
@@ -592,325 +590,6 @@ phydbl Br_Len_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 
 /*********************************************************/
 
-phydbl Node_Time_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
-		       t_node *anc, t_node *des, t_tree *tree, int n_iter_max)
-{
-  int iter;
-  phydbl a,b,d,etemp,fu,fv,fw,fx,p,q,r,tol1,tol2,u,v,w,x,xm;
-  phydbl e=0.0;
-  phydbl old_lnL, init_lnL;
-
-  d=0.0;
-  a=((ax < cx) ? ax : cx);
-  b=((ax > cx) ? ax : cx);
-  x=w=v=bx;
-  old_lnL = UNLIKELY;
-  tree->rates->nd_t[des->num] = fabs(bx);
-  fw=fv=fx=fu=-Lk_Triplet(anc,des,tree);
-  init_lnL = -fw;
-
-  for(iter=1;iter<=BRENT_ITMAX;iter++)
-    {
-      xm=0.5*(a+b);
-      tol2=2.0*(tol1=tol*fabs(x)+BRENT_ZEPS);
-      if(
-	 ((fabs(tree->c_lnL-old_lnL) < tol) && 
-	  (tree->c_lnL > init_lnL - tol)) ||	 
-	 (iter > n_iter_max - 1))
-	{
-	  tree->rates->nd_t[des->num]=x;
-	  Lk_Triplet(anc,des,tree);
-/* 	  PhyML_Printf("\n. iter=%3d max=%3d l=%f lnL=%f init_lnL=%f",iter,n_iter_max,des->t,tree->c_lnL,init_lnL); */
-	  return tree->c_lnL;
-	}
-      
-      if(fabs(e) > tol1)
-	{
-	  r=(x-w)*(fx-fv);
-	  q=(x-v)*(fx-fw);
-	  p=(x-v)*q-(x-w)*r;
-	  q=2.0*(q-r);
-	  if(q > 0.0) p = -p;
-	  q=fabs(q);
-	  etemp=e;
-	  e=d;
-	  if(fabs(p) >= fabs(0.5*q*etemp) || p <= q*(a-x) || p >= q*(b-x))
-	    d=BRENT_CGOLD*(e=(x >= xm ? a-x : b-x));
-	  else{
-	    d=p/q;
-	    u=x+d;
-	    if (u-a < tol2 || b-u < tol2)
-	      d=SIGN(tol1,xm-x);
-	  }
-	}
-      else
-	{
-	  d=BRENT_CGOLD*(e=(x >= xm ? a-x : b-x));
-	}
-      u=(fabs(d) >= tol1 ? x+d : x+SIGN(tol1,d));
-      if(u<BL_MIN) u = BL_MIN;
-      tree->rates->nd_t[des->num] = fabs(u);
-      old_lnL = tree->c_lnL;
-      fu=-Lk_Triplet(anc,des,tree);
-
-/*       PhyML_Printf("\n. BRENT t_node %3d t=%f lnL=%20f iter=%3d",des->num,des->t,fu,iter); */
-
-/*       if(fu <= fx) */
-      if(fu < fx)
-	{
-/* 	  if(u >= x) a=x; else b=x; */
-	  if(u > x) a=x; else b=x;
-	  SHFT(v,w,x,u)
-	  SHFT(fv,fw,fx,fu)
-	}
-      else
-	{
-	  if (u < x) a=u; else b=u;
-/* 	  if (fu <= fw || w == x) */
-	  if (fu < fw || fabs(w-x) < MDBL_MIN)
-	    {
-	      v=w;
-	      w=u;
-	      fv=fw;
-	      fw=fu;
-	    }
-	  else if (fu < fv || fabs(v-x) < MDBL_MIN || fabs(v-w) < MDBL_MIN)
-/* 	  else if (fu <= fv || v == x || v == w)  */
-	    {
-	      v=u;
-	      fv=fu;
-	    }
-	}
-    }
-  if(iter > BRENT_ITMAX) PhyML_Printf("\n. Too many iterations in BRENT (%d) (%f)",iter,tree->rates->nd_t[des->num]);
-  return(-1);
-  /* Not Reached ??  *xmin=x;   */
-  /* Not Reached ??  return fx; */
-}
-
-/*********************************************************/
-#ifdef MC
-phydbl Time_Stamps_Mult_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
-			      t_tree *tree, int n_iter_max)
-{
-  int iter;
-  phydbl a,b,d,etemp,fu,fv,fw,fx,p,q,r,tol1,tol2,u,v,w,x,xm;
-  phydbl e=0.0;
-  phydbl old_lnL, init_lnL;
-
-  d=0.0;
-  a=((ax < cx) ? ax : cx);
-  b=((ax > cx) ? ax : cx);
-  x=w=v=bx;
-  old_lnL = UNLIKELY;
-  tree->mod->s_opt->tree_size_mult = fabs(bx);
-  MC_Mult_Time_Stamps(tree);
-  tree->both_sides = 1;
-  fw=fv=fx=fu=-Lk(tree);
-  MC_Div_Time_Stamps(tree);
-  init_lnL = -fw;
-
-  for(iter=1;iter<=BRENT_ITMAX;iter++)
-    {
-      xm=0.5*(a+b);
-      tol2=2.0*(tol1=tol*fabs(x)+BRENT_ZEPS);
-      if(
-	 ((fabs(tree->c_lnL-old_lnL) < tol) && 
-	  (tree->c_lnL > init_lnL - tol)) ||	 
-	 (iter > n_iter_max - 1))
-	{
-	  tree->mod->s_opt->tree_size_mult=fabs(x);
-	  MC_Mult_Time_Stamps(tree);
-	  tree->both_sides = 1;
-	  Lk(tree);
-	  tree->mod->s_opt->tree_size_mult = 1.0;
-	  return tree->c_lnL;
-	}
-      
-      if(fabs(e) > tol1)
-	{
-	  r=(x-w)*(fx-fv);
-	  q=(x-v)*(fx-fw);
-	  p=(x-v)*q-(x-w)*r;
-	  q=2.0*(q-r);
-	  if(q > 0.0) p = -p;
-	  q=fabs(q);
-	  etemp=e;
-	  e=d;
-	  if(fabs(p) >= fabs(0.5*q*etemp) || p <= q*(a-x) || p >= q*(b-x))
-	    d=BRENT_CGOLD*(e=(x >= xm ? a-x : b-x));
-	  else{
-	    d=p/q;
-	    u=x+d;
-	    if (u-a < tol2 || b-u < tol2)
-	      d=SIGN(tol1,xm-x);
-	  }
-	}
-      else
-	{
-	  d=BRENT_CGOLD*(e=(x >= xm ? a-x : b-x));
-	}
-      u=(fabs(d) >= tol1 ? x+d : x+SIGN(tol1,d));
-      old_lnL = tree->c_lnL;
-
-      tree->mod->s_opt->tree_size_mult = fabs(u);
-      MC_Mult_Time_Stamps(tree);
-      tree->both_sides = 1;
-      fu=-Lk(tree);
-      MC_Div_Time_Stamps(tree);
-
-/*       PhyML_Printf("\n. BRENT mult=%f lnL=%20f", */
-/* 	     tree->mod->s_opt->tree_size_mult, */
-/* 	     tree->c_lnL); */
-
-      if(fu <= fx)
-	{
-	  if(u >= x) a=x; else b=x;
-	  SHFT(v,w,x,u)
-	  SHFT(fv,fw,fx,fu)
-	}
-      else
-	{
-	  if (u < x) a=u; else b=u;
-	  if (fu <= fw || w == x)
-	    {
-	      v=w;
-	      w=u;
-	      fv=fw;
-	      fw=fu;
-	    }
-	  else if (fu <= fv || v == x || v == w) 
-	    {
-	      v=u;
-	      fv=fu;
-	    }
-	}
-    }
-  tree->mod->s_opt->tree_size_mult = 1.0;
-  if(iter > BRENT_ITMAX) PhyML_Printf("\n. Too many iterations in BRENT (%d)",iter);
-  return(-1);
-  /* Not Reached ??  *xmin=x;   */
-  /* Not Reached ??  return fx; */
-}
-#endif
-
-/*********************************************************/
-
-phydbl Branch_Rate_Shape_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, 
-			       phydbl *xmin, t_tree *tree, int n_iter_max)
-{
-  int iter;
-  phydbl a,b,d,etemp,fu,fv,fw,fx,p,q,r,tol1,tol2,u,v,w,x,xm;
-  phydbl e=0.0;
-  phydbl old_fu,init_fu;
-  phydbl best_fu, best_x;
-
-  
-  d=0.0;
-  a=((ax < cx) ? ax : cx);
-  b=((ax > cx) ? ax : cx);
-  x=w=v=bx;
-  old_fu = UNLIKELY;
-  (*xmin) = fabs(bx);
-  fw=fv=fx=-Lk_With_MAP_Branch_Rates(tree);
-  init_fu = fw;
-  best_fu = fw;
-  fu      = fw;
-  best_x  = fabs(bx);;
-
-  PhyML_Printf("init_lnL = %f\n",fw);
-
-  for(iter=1;iter<=BRENT_ITMAX;iter++) 
-    {
-      xm=0.5*(a+b);
-      tol2=2.0*(tol1=tol*fabs(x)+BRENT_ZEPS);
-      if(
-	 ((fabs(fu-old_fu) < tol) && (fu < init_fu-tol)) || (iter > n_iter_max - 1))
-	{
-	  (*xmin) = best_x;
-	  PhyML_Printf("\n> iter=%d/%d param val=%f fu=%f (best_fu=%f best_x=%f old_fu=%f)",iter,BRENT_ITMAX,*xmin,fu,best_fu,best_x,old_fu);
-	  return Lk_With_MAP_Branch_Rates(tree);
-	}
-      
-      if(fabs(e) > tol1) 
-	{
-	  r=(x-w)*(fx-fv);
-	  q=(x-v)*(fx-fw);
-	  p=(x-v)*q-(x-w)*r;
-	  q=2.0*(q-r);
-	  if(q > 0.0) p = -p;
-	  q=fabs(q);
-	  etemp=e;
-	  e=d;
-	  if(fabs(p) >= fabs(0.5*q*etemp) || p <= q*(a-x) || p >= q*(b-x))
-	    {
-	      d=BRENT_CGOLD*(e=(x >= xm ? a-x : b-x));
-	      /*                   PhyML_Printf("Golden section step\n"); */
-	    }
-	  else
-	    {
-	      d=p/q;
-	      u=x+d;
-	      if (u-a < tol2 || b-u < tol2)
-		d=SIGN(tol1,xm-x);
-	      /*                   PhyML_Printf("Parabolic step\n"); */
-	    }
-        }
-      else
-	{
-	  d=BRENT_CGOLD*(e=(x >= xm ? a-x : b-x));
-	  /*               PhyML_Printf("Golden section step (default)\n"); */
-	}
-      
-      u=(fabs(d) >= tol1 ? x+d : x+SIGN(tol1,d));
-      (*xmin) = fabs(u);
-      old_fu = fu;
-      fu = -Lk_With_MAP_Branch_Rates(tree);
-      
-      if(fu < best_fu)
-	{
-	  best_fu = fu;
-	  best_x = fabs(u);
-	}
-
-      PhyML_Printf("\n. iter=%d/%d param val=%f fu=%f (best_fu=%f best_x=%f old_fu=%f)",iter,BRENT_ITMAX,*xmin,fu,best_fu,best_x,old_fu);
-
-      if(fu < fx)
-/*       if(fu <= fx)  */
-	{
-/* 	  if(u >= x) a=x; else b=x; */
-	  if(u > x) a=x; else b=x;
-	  SHFT(v,w,x,u)
-	  SHFT(fv,fw,fx,fu)
-	} 
-      else
-	{
-	  if (u < x) a=u; else b=u;
-	  if (fu < fw || fabs(w-x) < MDBL_MIN)
-/* 	  if (fu <= fw || w == x)  */
-	    {
-	      v=w;
-	      w=u;
-	      fv=fw;
-	      fw=fu;
-	    } 
-	  else if (fu < fv || fabs(v-x) < MDBL_MIN || fabs(v-w) < MDBL_MIN)
-/* 	  else if (fu <= fv || v == x || v == w)  */
-	    {
-	      v=u;
-	      fv=fu;
-	    }
-	}
-    }
-
-  Exit("\n. Too many iterations in BRENT !");
-  return(-1);
-  /* Not Reached ??  *xmin=x;   */
-  /* Not Reached ??  return fx; */
-}
-
-/*********************************************************/
-
 void Round_Optimize(t_tree *tree, calign *data, int n_round_max)
 {
   int n_round,each;
@@ -950,7 +629,6 @@ void Round_Optimize(t_tree *tree, calign *data, int n_round_max)
       lk_new = tree->c_lnL;      
       if(lk_new < lk_old - tree->mod->s_opt->min_diff_lk_global) Exit("\n. Optimisation failed ! (Round_Optimize)\n");
       if(fabs(lk_new - lk_old) < tree->mod->s_opt->min_diff_lk_global)  break;
-/*       if(fabs(lk_new - lk_old) < tree->mod->s_opt->min_diff_lk_local)  break; */
       else lk_old  = lk_new;
       n_round++;
       each--;
@@ -2634,7 +2312,8 @@ phydbl Generic_Brent_Lk(phydbl *param, phydbl ax, phydbl cx, phydbl tol,
 	  return (stree)?(stree->tree->c_lnL):(tree->c_lnL);	  
 	}
 
-      if(((fabs(cur_lnL-old_lnL) < tol) && (cur_lnL > init_lnL - tol)) || (iter > n_iter_max - 1))
+/*       if(((fabs(cur_lnL-old_lnL) < tol) && (cur_lnL > init_lnL - tol)) || (iter > n_iter_max - 1)) */
+      if((fabs(cur_lnL-old_lnL) < tol) || (iter > n_iter_max - 1))
 	{
 	  (*param) = x;
 	  (*obj_func)(branch,tree,stree);

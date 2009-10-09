@@ -85,8 +85,7 @@ int Simu(t_tree *tree, int n_step_max)
       old_loglk = tree->c_lnL;	    
       tree->both_sides = 1;
       Lk(tree);
-      
-      
+            
       if(tree->c_lnL < old_loglk)
 	{
 	  if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n\n. Moving backward\n");
@@ -109,11 +108,9 @@ int Simu(t_tree *tree, int n_step_max)
 
       if((tree->mod->s_opt->print) && (!tree->io->quiet)) Print_Lk(tree,"[Topology           ]");
       
-      if(((tree->c_lnL > old_loglk) &&
-	  (fabs(old_loglk-tree->c_lnL) < tree->mod->s_opt->min_diff_lk_global)) ||
-	 (n_without_swap > it_lim_without_swap)) break;
+/*       if(((tree->c_lnL > old_loglk) && (fabs(old_loglk-tree->c_lnL) < tree->mod->s_opt->min_diff_lk_global)) || (n_without_swap > it_lim_without_swap)) break; */
+      if((fabs(old_loglk-tree->c_lnL) < tree->mod->s_opt->min_diff_lk_global) || (n_without_swap > it_lim_without_swap)) break;
       
-
       Fill_Dir_Table(tree);
       Fix_All(tree);
       n_neg = 0;
