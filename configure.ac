@@ -3,7 +3,7 @@
 
 AC_PREREQ(2.61)
 dnl AC_INIT([PhyML(beta)],m4_esyscmd([sh -c "head -n 1 version | sed -e 's|^|v3.0-|g' | sed -e 's|$||g' | tr -d '\n'"]), [guindon@stat.auckland.ac.nz])
-AC_INIT([PhyML],[beta],[guindon@stat.auckland.ac.nz])
+AC_INIT([PhyML],[beta2],[guindon@stat.auckland.ac.nz])
 dnl AC_CONFIG_SRCDIR([simu.c])
 AC_CONFIG_SRCDIR([src/simu.c])
 AC_CONFIG_HEADER([config.h])
@@ -61,7 +61,7 @@ dnl             LDFLAGS+=" -arch i386 -arch ppc";;
 esac
 # End of cross-compilation macros
 
-CFLAGS="-O3 -Wfloat-equal -fsingle-precision-constant -m32"
+CFLAGS="-O3 -Wfloat-equal -fsingle-precision-constant"
 dnl CFLAGS="-O3 -Wfloat-equal"
 dnl CFLAGS="-g -Wall -Wfloat-equal -fsingle-precision-constant"
 
