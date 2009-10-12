@@ -2,7 +2,8 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.61)
-AC_INIT([PhyML(beta)],m4_esyscmd([sh -c "head -n 1 version | sed -e 's|^|v3.0-|g' | sed -e 's|$||g' | tr -d '\n'"]), [guindon@stat.auckland.ac.nz])
+dnl AC_INIT([PhyML(beta)],m4_esyscmd([sh -c "head -n 1 version | sed -e 's|^|v3.0-|g' | sed -e 's|$||g' | tr -d '\n'"]), [guindon@stat.auckland.ac.nz])
+AC_INIT([PhyML],[beta],[guindon@stat.auckland.ac.nz])
 dnl AC_CONFIG_SRCDIR([simu.c])
 AC_CONFIG_SRCDIR([src/simu.c])
 AC_CONFIG_HEADER([config.h])
@@ -33,6 +34,7 @@ AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([floor pow rint sqrt strchr strstr])
 
 
+
 # Added for cross-compilation (thanks to Alban Mancheron)
 MACOS_BASE="/Developer"
 AC_ARG_WITH([macos_base],
@@ -52,15 +54,18 @@ case $host_os in
   darwin*)  CFLAGS+=" -I$MACOS_SDK/usr/include/gcc/                                    \
                       -I$MACOS_BASE/include/                                           \
                       -arch i386 -arch ppc                                             \
-                      -Wno-long-long -Wno-variadic-macros"
-            LDFLAGS+=" -arch i386 -arch ppc";;
+                      -Wno-long-long -Wno-variadic-macros";;
+dnl             LDFLAGS+=" -arch i386 -arch ppc";;
   mingw32*) CFLAGS+=" -std=gnu99";;
   linux*|*) :;;
 esac
 # End of cross-compilation macros
 
-CFLAGS="-O3 -fomit-frame-pointer -funroll-loops -Wall"
-dnl CFLAGS="-g -Wall"
+CFLAGS="-O3 -Wfloat-equal -fsingle-precision-constant -m32"
+dnl CFLAGS="-O3 -Wfloat-equal"
+dnl CFLAGS="-g -Wall -Wfloat-equal -fsingle-precision-constant"
+
+
 
 AC_ARG_ENABLE([mc],[  --enable-mc    Compile mc],[mc=yes])
 AM_CONDITIONAL([WANT_MC], [test "$mc" = yes]) 
