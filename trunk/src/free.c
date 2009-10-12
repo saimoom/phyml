@@ -274,6 +274,7 @@ void Free_Tree_Lk(t_tree *tree)
   Free(tree->c_lnL_sorted);
   Free(tree->cur_site_lk);
   Free(tree->old_site_lk);
+  Free(tree->site_lk_cat);
 
   For(i,tree->mod->n_catg) Free(tree->log_site_lk_cat[i]);
   Free(tree->log_site_lk_cat);
@@ -306,7 +307,7 @@ void Free_Edge_Lk(t_tree *tree, t_edge *b)
   if(b->p_lk_left)
     {
       Free(b->p_lk_left);
-      if(b->sum_scale_f_left) Free(b->sum_scale_f_left);
+      if(b->sum_scale_left) Free(b->sum_scale_left);
     }
 
   if(b->p_lk_tip_l) Free(b->p_lk_tip_l);
@@ -315,10 +316,13 @@ void Free_Edge_Lk(t_tree *tree, t_edge *b)
   if(b->p_lk_rght)
     {
       Free(b->p_lk_rght);
-      if(b->sum_scale_f_rght) Free(b->sum_scale_f_rght);
+      if(b->sum_scale_rght) Free(b->sum_scale_rght);
     }
   
   if(b->p_lk_tip_r) Free(b->p_lk_tip_r);
+
+  Free(b->sum_scale_left_cat);
+  Free(b->sum_scale_rght_cat);
 
   Free(b->Pij_rr);
 }

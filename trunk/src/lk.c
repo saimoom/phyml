@@ -340,16 +340,7 @@ phydbl Lk(t_tree *tree)
   if(tree->bl_from_node_stamps) MC_Bl_From_T(tree);
 #endif
 
-  For(br,2*tree->n_otu-3)
-    {
-      if(!tree->t_edges[br]->rght->tax)
-	For(site,n_patterns) tree->t_edges[br]->sum_scale_f_rght[site] = .0;
-
-      if(!tree->t_edges[br]->left->tax)
-	For(site,n_patterns) tree->t_edges[br]->sum_scale_f_left[site] = .0;
-      
-      Update_PMat_At_Given_Edge(tree->t_edges[br],tree);
-    }
+  For(br,2*tree->n_otu-3) Update_PMat_At_Given_Edge(tree->t_edges[br],tree);
 
   Post_Order_Lk(tree->noeud[0],tree->noeud[0]->v[0],tree);
   if(tree->both_sides)
@@ -447,22 +438,25 @@ phydbl Lk_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
 }
 
 
-#ifndef USE_OLD_LK
 
 /*********************************************************/
 /* Core of the likelihood calculcation. Assume that the partial likelihoods on both
    sides of t_edge *b are up-to-date. Calculate the log-likelihood at one site.
 */
 
+#ifndef USE_OLD_LK
 phydbl Lk_Core(t_edge *b, t_tree *tree)
 {
   phydbl log_site_lk;
-  double site_lk_cat, site_lk;
-  phydbl sum_scale_left, sum_scale_rght;
+  phydbl site_lk_cat, site_lk;
+  int sum_scale_left, sum_scale_rght;
+  int min_sum_scale;
   phydbl sum;
   int ambiguity_check,state;
   int catg,ns,k,l,site;
   int dim1,dim2,dim3;
+  int *sum_scale_left_cat,*sum_scale_rght_cat;
+  int n_iter;
 
   dim1 = tree->mod->n_catg * tree->mod->ns;
   dim2 = tree->mod->ns;
@@ -487,20 +481,34 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
   
   if(tree->mod->use_m4mod) ambiguity_check = 1;
   
+
+  sum_scale_left_cat = b->sum_scale_left_cat;
+  sum_scale_rght_cat = b->sum_scale_rght_cat;
+
+  /* Get the minimum of scaling factors */
+  min_sum_scale = 0;
+  For(catg,tree->mod->n_catg)
+    {
+      sum_scale_left_cat[catg] =
+        (b->sum_scale_left)?
+        (b->sum_scale_left[catg*tree->n_pattern+site]):
+        (0.0);
+      
+      sum_scale_rght_cat[catg] =
+        (b->sum_scale_rght)?
+        (b->sum_scale_rght[catg*tree->n_pattern+site]):
+        (0.0);
+
+      if(sum_scale_left_cat[catg] + sum_scale_rght_cat[catg] < min_sum_scale) 
+	min_sum_scale = sum_scale_left_cat[catg] + sum_scale_rght_cat[catg];
+    }
+
+
+
+  /* Actual likelihood calculation */
   /* For all classes of rates */
   For(catg,tree->mod->n_catg)
     {
-      /* Get the scaling factor values for subtrees of the left and right handsides of b  */
-      sum_scale_left =
-        (b->sum_scale_f_left)?
-        (b->sum_scale_f_left[catg*tree->n_pattern+site]):
-        (0.0);
-      
-      sum_scale_rght =
-        (b->sum_scale_f_rght)?
-        (b->sum_scale_f_rght[catg*tree->n_pattern+site]):
-        (0.0);
-
       site_lk_cat = .0;
 
       /* b is an external edge */
@@ -561,20 +569,50 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
                 }
             }
         }
+      tree->site_lk_cat[catg] = site_lk_cat;
+    }
+  
+  /* Correct the minimum of scaling factors in order to avoid overflows in site_lk_cat */
+  n_iter = 0;
+  do
+    {
+      For(catg,tree->mod->n_catg)
+	{	  
+	  site_lk_cat = tree->site_lk_cat[catg] * pow(2.,sum_scale_left_cat[catg]+sum_scale_rght_cat[catg]-min_sum_scale);
+	  if(site_lk_cat > 1.E+30)
+	    {
+	      min_sum_scale -= SCALE_POW;
+	      break;
+	    }
+	}
 
-      /* Correct the likelihood using the scaling factor values */
-      site_lk_cat *= pow(2,(double)sum_scale_left+sum_scale_rght);
-      tree->log_site_lk_cat[catg][site] = (phydbl)site_lk_cat;
-      site_lk += site_lk_cat * (double)tree->mod->gamma_r_proba[catg];
+      n_iter++;
+
+      if(n_iter > 100)
+	{
+	  PhyML_Printf("\n. Could not correct scaling factor.");
+	  PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
+	  Warn_And_Exit("\n");
+
+	}
+    }
+  while(catg != tree->mod->n_catg);
+
+  site_lk = .0;
+  For(catg,tree->mod->n_catg)
+    {
+      site_lk_cat = tree->site_lk_cat[catg] * pow(2.,sum_scale_left_cat[catg]+sum_scale_rght_cat[catg]-min_sum_scale);
+      tree->site_lk_cat[catg] = site_lk_cat;
+      site_lk += site_lk_cat * tree->mod->gamma_r_proba[catg];
     }
 
-  /* The substitution model does not include invariable sites */
-  if(!tree->mod->invar)
+  log_site_lk = (phydbl)log(site_lk) + (phydbl)LOG2 * min_sum_scale;
+
+
+  /* The substitution model does include invariable sites */ 
+  if(tree->mod->invar)
     {
-      log_site_lk = (phydbl)log(site_lk);
-    }
-  else
-    {
+      site_lk = exp(log_site_lk);
       /* The site is invariant */
       if(tree->data->invar[site] > -0.5)
         {         
@@ -590,7 +628,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
   
   if(log_site_lk < -MDBL_MAX) 
     {
-      PhyML_Printf("\n. scale_left = %G scale_rght = %G",sum_scale_left,sum_scale_rght);
+      PhyML_Printf("\n. scale_left = %d scale_rght = %d",sum_scale_left,sum_scale_rght);
       PhyML_Printf("\n. 2^(scale_left+scale_rght) = %G",pow(2,sum_scale_left+sum_scale_rght));
       PhyML_Printf("\n. Lk = %G log(Lk) = %f < %G",site_lk,log_site_lk,-MDBL_MAX);
       Warn_And_Exit("\n. log_site_lk < -MDBL_MAX\n");
@@ -626,8 +664,8 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
   phydbl p1_lk1,p2_lk2;
   phydbl *p_lk,*p_lk_v1,*p_lk_v2;
   phydbl *Pij1,*Pij2;
-  phydbl *sum_scale, *sum_scale_v1, *sum_scale_v2;
-  phydbl scale_v1, scale_v2;
+  int *sum_scale, *sum_scale_v1, *sum_scale_v2;
+  int sum_scale_v1_val, sum_scale_v2_val;
   int i,j;
   int catg,site;
   int dir1,dir2;
@@ -647,7 +685,7 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
 
   state_v1 = state_v2 = -1;
   ambiguity_check_v1 = ambiguity_check_v2 = -1;
-  scale_v1 = scale_v2 = 0.0;
+  sum_scale_v1_val = sum_scale_v2_val = 0;
   p1_lk1 = p2_lk2 = .0;
 
   if(d->tax)
@@ -682,34 +720,34 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
   if(d == b->left)
     {
       p_lk = b->p_lk_left;
-      sum_scale = b->sum_scale_f_left;
+      sum_scale = b->sum_scale_left;
     }
   else
     {
       p_lk = b->p_lk_rght;
-      sum_scale = b->sum_scale_f_rght;
+      sum_scale = b->sum_scale_rght;
     }
       
   if(d == d->b[dir1]->left)
     {
       p_lk_v1 = d->b[dir1]->p_lk_rght;
-      sum_scale_v1 = d->b[dir1]->sum_scale_f_rght;
+      sum_scale_v1 = d->b[dir1]->sum_scale_rght;
     }
   else
     {
       p_lk_v1 = d->b[dir1]->p_lk_left;
-      sum_scale_v1 = d->b[dir1]->sum_scale_f_left;
+      sum_scale_v1 = d->b[dir1]->sum_scale_left;
     }
   
   if(d == d->b[dir2]->left)
     {
       p_lk_v2 = d->b[dir2]->p_lk_rght;
-      sum_scale_v2 = d->b[dir2]->sum_scale_f_rght;
+      sum_scale_v2 = d->b[dir2]->sum_scale_rght;
     }
   else
     {
       p_lk_v2 = d->b[dir2]->p_lk_left;
-      sum_scale_v2 = d->b[dir2]->sum_scale_f_left;
+      sum_scale_v2 = d->b[dir2]->sum_scale_left;
     }
   
   /* Change probability matrices on the two pendant edges */
@@ -750,10 +788,10 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
       For(catg,tree->mod->n_catg)
 	{
 	  /* Current scaling values at that site */
-	  scale_v1 = (sum_scale_v1)?(sum_scale_v1[catg*n_patterns+site]):(0.0);
-	  scale_v2 = (sum_scale_v2)?(sum_scale_v2[catg*n_patterns+site]):(0.0);
+	  sum_scale_v1_val = (sum_scale_v1)?(sum_scale_v1[catg*n_patterns+site]):(0);
+	  sum_scale_v2_val = (sum_scale_v2)?(sum_scale_v2[catg*n_patterns+site]):(0);
 
-	  sum_scale[catg*n_patterns+site] = scale_v1 + scale_v2;
+	  sum_scale[catg*n_patterns+site] = sum_scale_v1_val + sum_scale_v2_val;
 
 	  do_scale_small = NO;
 	  do_scale_big   = NO;
@@ -1139,9 +1177,9 @@ void Make_Tree_4_Lk(t_tree *tree, calign *cdata, int n_site)
   int i;
 
   tree->c_lnL_sorted = (phydbl *)mCalloc(tree->n_pattern, sizeof(phydbl));
-  tree->cur_site_lk      = (phydbl *)mCalloc(cdata->crunch_len,sizeof(phydbl));
-  tree->old_site_lk      = (phydbl *)mCalloc(cdata->crunch_len,sizeof(phydbl));
-
+  tree->cur_site_lk  = (phydbl *)mCalloc(cdata->crunch_len,sizeof(phydbl));
+  tree->old_site_lk  = (phydbl *)mCalloc(cdata->crunch_len,sizeof(phydbl));
+  tree->site_lk_cat  = (phydbl *)mCalloc(tree->mod->n_catg,sizeof(phydbl));  
   tree->log_site_lk_cat      = (phydbl **)mCalloc(tree->mod->n_catg,sizeof(phydbl *));
   For(i,tree->mod->n_catg)
     tree->log_site_lk_cat[i] = (phydbl *)mCalloc(cdata->crunch_len,sizeof(phydbl));
@@ -1678,13 +1716,13 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
 
   /* Get the vectors of partial likelihood scaling */
   scale_left =
-    (b->sum_scale_f_left)?
-    (b->sum_scale_f_left[site]):
+    (b->sum_scale_left)?
+    (b->sum_scale_left[site]):
     (0.0);
   
   scale_rght =
-    (b->sum_scale_f_rght)?
-    (b->sum_scale_f_rght[site]):
+    (b->sum_scale_rght)?
+    (b->sum_scale_rght[site]):
     (0.0);
 
   if((b->rght->tax) && (!tree->mod->s_opt->greedy))
@@ -1878,12 +1916,12 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
   if(d == b->left)
     {
       p_lk = b->p_lk_left;
-      sum_scale = b->sum_scale_f_left;
+      sum_scale = b->sum_scale_left;
     }
   else
     {
       p_lk = b->p_lk_rght;
-      sum_scale = b->sum_scale_f_rght;
+      sum_scale = b->sum_scale_rght;
     }
       
   if(d == d->b[dir1]->left)
