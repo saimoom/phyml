@@ -781,7 +781,7 @@ void M4_Post_Prob_H_Class_Edge_Site(t_edge *b, phydbl ****integral, phydbl *post
 	    }
 	  sum += postprob[i];
 	}
-      For(i,n_h) postprob[i] *= exp(b->sum_scale_f_left[tree->curr_site]); 
+      For(i,n_h) postprob[i] *= exp(b->sum_scale_left[tree->curr_site]); 
     }
   else
     {
@@ -811,7 +811,7 @@ void M4_Post_Prob_H_Class_Edge_Site(t_edge *b, phydbl ****integral, phydbl *post
 	    }
 	  sum += postprob[i];
 	}
-      For(i,n_h) postprob[i] *= exp(b->sum_scale_f_left[tree->curr_site] + b->sum_scale_f_rght[tree->curr_site]); 
+      For(i,n_h) postprob[i] *= exp(b->sum_scale_left[tree->curr_site] + b->sum_scale_rght[tree->curr_site]); 
     }
 
   For(i,n_h) 

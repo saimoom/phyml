@@ -134,7 +134,7 @@ void Init_SPR (t_tree *tree)
 /*       } */
     Free(edge_0->p_lk_rght);
 
-    if(!edge_0->rght->tax) Free(edge_0->sum_scale_f_rght);
+    if(!edge_0->rght->tax) Free(edge_0->sum_scale_rght);
 
 
 /*     For(i,tree->data->crunch_len) */
@@ -147,7 +147,7 @@ void Init_SPR (t_tree *tree)
 /*       } */
     Free(edge_1->p_lk_rght);
 	
-    if(!edge_1->rght->tax) Free(edge_1->sum_scale_f_rght);
+    if(!edge_1->rght->tax) Free(edge_1->sum_scale_rght);
       
 
 /*     For(i,tree->data->crunch_len) */
@@ -160,7 +160,7 @@ void Init_SPR (t_tree *tree)
 /*       } */
     Free(edge_2->p_lk_rght);
 	
-    if(!edge_2->rght->tax) Free(edge_2->sum_scale_f_rght);
+    if(!edge_2->rght->tax) Free(edge_2->sum_scale_rght);
   }
 
   /*
@@ -190,7 +190,7 @@ void Init_SPR (t_tree *tree)
 /*       } */
     Free(edge_4->p_lk_rght);
 	
-    if(!edge_4->rght->tax) Free(edge_4->sum_scale_f_rght);
+    if(!edge_4->rght->tax) Free(edge_4->sum_scale_rght);
 
 
 /*     For(i,tree->data->crunch_len) */
@@ -203,7 +203,7 @@ void Init_SPR (t_tree *tree)
 /*       } */
     Free(edge_4->p_lk_left);
 
-    if(!edge_4->left->tax) Free(edge_4->sum_scale_f_left);
+    if(!edge_4->left->tax) Free(edge_4->sum_scale_left);
   }
 
   /*
@@ -1270,7 +1270,8 @@ int Est_Lk_Change (t_edge *e_prune, t_node *v_prune, t_tree *tree)
   int     i, j, cand, best_cand, d0, d1, d2, n, pat, cat, ste;
   phydbl  d_uu, best_d_lk, l_connect, l_01, l_02, l_12, l_est[3], new_lk,
           l_simple[3], l_dist[3];
-  phydbl *p_lk1_tmp, *p_lk2_tmp, *p_lk, *p_sum;
+  phydbl *p_lk1_tmp, *p_lk2_tmp, *p_lk;
+  int *p_sum;
   t_node   *u_prune, *v_n, *v_nx1, *u_n, *u1, *u2;
   t_edge   *e_regraft, *e_tmp;
   _move_ *tmp_cand;
@@ -1304,12 +1305,12 @@ int Est_Lk_Change (t_edge *e_prune, t_node *v_prune, t_tree *tree)
   if (v_prune == e_prune->left)
   {
     v_tmp->b[0]->p_lk_rght = e_prune->p_lk_rght;
-    v_tmp->b[0]->sum_scale_f_rght = e_prune->sum_scale_f_rght;
+    v_tmp->b[0]->sum_scale_rght = e_prune->sum_scale_rght;
   }
   else
   {
     v_tmp->b[0]->p_lk_rght = e_prune->p_lk_left;
-    v_tmp->b[0]->sum_scale_f_rght = e_prune->sum_scale_f_left;
+    v_tmp->b[0]->sum_scale_rght = e_prune->sum_scale_left;
   }
   v_tmp->num = v_prune->num;
   v_tmp->v[0]->num = u_prune->num;
@@ -1517,12 +1518,12 @@ int Est_Lk_Change (t_edge *e_prune, t_node *v_prune, t_tree *tree)
 	if (rgrft_cand[cand]->path[i] == e_tmp->left)
 	  {
 	    p_lk  = e_tmp->p_lk_left;
-	    p_sum = e_tmp->sum_scale_f_left;
+	    p_sum = e_tmp->sum_scale_left;
 	  }
 	else
 	  {
 	    p_lk  = e_tmp->p_lk_rght;
-	    p_sum = e_tmp->sum_scale_f_rght;
+	    p_sum = e_tmp->sum_scale_rght;
 	  }
 
 	for (pat = 0; pat < tree->n_pattern; pat++)
@@ -1543,15 +1544,15 @@ int Est_Lk_Change (t_edge *e_prune, t_node *v_prune, t_tree *tree)
     {
       v_tmp->b[1]->p_lk_rght = e_regraft->p_lk_left;
       v_tmp->b[2]->p_lk_rght = e_regraft->p_lk_rght;
-      v_tmp->b[1]->sum_scale_f_rght = e_regraft->sum_scale_f_left;
-      v_tmp->b[2]->sum_scale_f_rght = e_regraft->sum_scale_f_rght;
+      v_tmp->b[1]->sum_scale_rght = e_regraft->sum_scale_left;
+      v_tmp->b[2]->sum_scale_rght = e_regraft->sum_scale_rght;
     }
     else
     {
       v_tmp->b[1]->p_lk_rght = e_regraft->p_lk_rght;
       v_tmp->b[2]->p_lk_rght = e_regraft->p_lk_left;
-      v_tmp->b[1]->sum_scale_f_rght = e_regraft->sum_scale_f_rght;
-      v_tmp->b[2]->sum_scale_f_rght = e_regraft->sum_scale_f_left;
+      v_tmp->b[1]->sum_scale_rght = e_regraft->sum_scale_rght;
+      v_tmp->b[2]->sum_scale_rght = e_regraft->sum_scale_left;
     }
 
     /*
@@ -1833,7 +1834,8 @@ int Best_Lk_Change (t_edge *e_prune, t_node *v_prune, t_tree *tree)
   int     i, j, cand, best_cand, d0, d1, d2, n, pat, cat, ste;
   phydbl  d_uu, best_d_lk, l_connect, l_01, l_02, l_12, l_est[3], new_lk,
     l_simple[3], l_dist[3];
-  phydbl *p_lk1_tmp, *p_lk2_tmp, *p_lk, *p_sum; 
+  phydbl *p_lk1_tmp, *p_lk2_tmp, *p_lk;
+  int *p_sum; 
   t_node   *u_prune, *v_n, *v_nx1, *u_n, *u1, *u2;
   t_edge   *e_regraft, *e_tmp;
   _move_ *tmp_cand;
@@ -1866,12 +1868,12 @@ int Best_Lk_Change (t_edge *e_prune, t_node *v_prune, t_tree *tree)
   if (v_prune == e_prune->left)
   {
     v_tmp->b[0]->p_lk_rght = e_prune->p_lk_rght;
-    v_tmp->b[0]->sum_scale_f_rght = e_prune->sum_scale_f_rght;
+    v_tmp->b[0]->sum_scale_rght = e_prune->sum_scale_rght;
   }
   else
   {
     v_tmp->b[0]->p_lk_rght = e_prune->p_lk_left;
-    v_tmp->b[0]->sum_scale_f_rght = e_prune->sum_scale_f_left;
+    v_tmp->b[0]->sum_scale_rght = e_prune->sum_scale_left;
   }
   v_tmp->num = v_prune->num;
   v_tmp->v[0]->num = u_prune->num;
@@ -2079,12 +2081,12 @@ int Best_Lk_Change (t_edge *e_prune, t_node *v_prune, t_tree *tree)
 	if (rgrft_cand[cand]->path[i] == e_tmp->left)
 	{
 	  p_lk = e_tmp->p_lk_left;
-	  p_sum = e_tmp->sum_scale_f_left;
+	  p_sum = e_tmp->sum_scale_left;
 	}
 	else
 	{
 	  p_lk = e_tmp->p_lk_rght;
-	  p_sum = e_tmp->sum_scale_f_rght;
+	  p_sum = e_tmp->sum_scale_rght;
 	}
 	for (pat = 0; pat < tree->n_pattern; pat++)
 	{
@@ -2104,15 +2106,15 @@ int Best_Lk_Change (t_edge *e_prune, t_node *v_prune, t_tree *tree)
     {
       v_tmp->b[1]->p_lk_rght = e_regraft->p_lk_left;
       v_tmp->b[2]->p_lk_rght = e_regraft->p_lk_rght;
-      v_tmp->b[1]->sum_scale_f_rght = e_regraft->sum_scale_f_left;
-      v_tmp->b[2]->sum_scale_f_rght = e_regraft->sum_scale_f_rght;
+      v_tmp->b[1]->sum_scale_rght = e_regraft->sum_scale_left;
+      v_tmp->b[2]->sum_scale_rght = e_regraft->sum_scale_rght;
     }
     else
     {
       v_tmp->b[1]->p_lk_rght = e_regraft->p_lk_rght;
       v_tmp->b[2]->p_lk_rght = e_regraft->p_lk_left;
-      v_tmp->b[1]->sum_scale_f_rght = e_regraft->sum_scale_f_rght;
-      v_tmp->b[2]->sum_scale_f_rght = e_regraft->sum_scale_f_left;
+      v_tmp->b[1]->sum_scale_rght = e_regraft->sum_scale_rght;
+      v_tmp->b[2]->sum_scale_rght = e_regraft->sum_scale_left;
     }
 
     /*
@@ -2727,7 +2729,8 @@ void Prune (t_edge *e, t_node *v, t_edge **e_connect, t_edge **e_avail, t_tree *
   int     dir0, dir1, dir2, v0, v1, v2, tmp_dir, i, j, k;
   t_node   *u1, *u2, *tmp_node;
   t_edge   *e1, *e2;
-  phydbl *sum_scale_f, *p_lk;
+  int *sum_scale_f;
+  phydbl *p_lk;
   int dim1, dim2;
 
 
@@ -2779,7 +2782,7 @@ void Prune (t_edge *e, t_node *v, t_edge **e_connect, t_edge **e_avail, t_tree *
     v0 = e2->l_r;
     v1 = e2->l_v1;
     v2 = e2->l_v2;
-    sum_scale_f = e2->sum_scale_f_left;
+    sum_scale_f = e2->sum_scale_left;
     p_lk = e2->p_lk_left;
   }
   else
@@ -2787,7 +2790,7 @@ void Prune (t_edge *e, t_node *v, t_edge **e_connect, t_edge **e_avail, t_tree *
     v0 = e2->r_l;
     v1 = e2->r_v1;
     v2 = e2->r_v2;
-    sum_scale_f = e2->sum_scale_f_rght;
+    sum_scale_f = e2->sum_scale_rght;
     p_lk = e2->p_lk_rght;
   }
   if (u1 == e1->left)
@@ -2798,7 +2801,7 @@ void Prune (t_edge *e, t_node *v, t_edge **e_connect, t_edge **e_avail, t_tree *
     e1->r_v2 = v2;
     for (i = 0; i < tree->n_pattern; i++)
     {
-      e1->sum_scale_f_rght[i] = sum_scale_f[i];
+      e1->sum_scale_rght[i] = sum_scale_f[i];
       for (j = 0; j < tree->mod->n_catg; j++)
       {
 	for (k = 0; k < tree->mod->ns; k++)
@@ -2816,7 +2819,7 @@ void Prune (t_edge *e, t_node *v, t_edge **e_connect, t_edge **e_avail, t_tree *
     e1->l_v2 = v2;
     for (i = 0; i < tree->n_pattern; i++)
     {
-      e1->sum_scale_f_left[i] = sum_scale_f[i];
+      e1->sum_scale_left[i] = sum_scale_f[i];
       for (j = 0; j < tree->mod->n_catg; j++)
       {
 	for (k = 0; k < tree->mod->ns; k++)
@@ -2863,9 +2866,9 @@ void Prune (t_edge *e, t_node *v, t_edge **e_connect, t_edge **e_avail, t_tree *
     p_lk = e1->p_lk_left;
     e1->p_lk_left = e1->p_lk_rght;
     e1->p_lk_rght = p_lk;
-    sum_scale_f = e1->sum_scale_f_left;
-    e1->sum_scale_f_left = e1->sum_scale_f_rght;
-    e1->sum_scale_f_rght = sum_scale_f;
+    sum_scale_f = e1->sum_scale_left;
+    e1->sum_scale_left = e1->sum_scale_rght;
+    e1->sum_scale_rght = sum_scale_f;
   }
 
   /*
@@ -2901,7 +2904,8 @@ void Prune (t_edge *e, t_node *v, t_edge **e_connect, t_edge **e_avail, t_tree *
 void Regraft (t_edge *e, t_node *v, t_edge *avail, t_tree *tree)
 {
   int     dir0, dir1, dir2, i, j, k;
-  phydbl *sum_scale_f, *p_lk;
+  int *sum_scale_f;
+  phydbl *p_lk;
   t_node   *u1, *u2;
   int dim1, dim2;
 
@@ -2926,14 +2930,14 @@ void Regraft (t_edge *e, t_node *v, t_edge *avail, t_tree *tree)
   {
     u1 = e->left;
     u2 = e->rght;
-    sum_scale_f = e->sum_scale_f_rght;
+    sum_scale_f = e->sum_scale_rght;
     p_lk = e->p_lk_rght;
   }
   else
   {
     u1 = e->rght;
     u2 = e->left;
-    sum_scale_f = e->sum_scale_f_left;
+    sum_scale_f = e->sum_scale_left;
     p_lk = e->p_lk_left;
   }
 
@@ -2964,7 +2968,7 @@ void Regraft (t_edge *e, t_node *v, t_edge *avail, t_tree *tree)
   }
   for (i = 0; i < tree->n_pattern; i++)
   {
-    avail->sum_scale_f_rght[i] = sum_scale_f[i];
+    avail->sum_scale_rght[i] = sum_scale_f[i];
     for (j = 0; j < tree->mod->n_catg; j++)
     {
       for (k = 0; k < tree->mod->ns; k++)
@@ -3968,7 +3972,7 @@ int Try_One_Spr_Move_Triple(spr *move, t_tree *tree)
       Lk(tree);
       Pars(tree);
 
-      if(fabs(tree->c_lnL - move->lnL) > 1.E-3)
+      if(fabs(tree->c_lnL - move->lnL) > tree->mod->s_opt->min_diff_lk_move)
 	{
 	  if(tree->mod->s_opt->print) PhyML_Printf("\n. c_lnL = %f move_lnL = %f\n",
 						   tree->c_lnL,move->lnL);

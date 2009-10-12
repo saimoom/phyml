@@ -25,6 +25,7 @@ the GNU public licence. See http://www.opensource.org for details.
 #include <errno.h>
 #include <float.h>
 
+
 #define For(i,n)                     for(i=0; i<n; i++)
 #define Fors(i,n,s)                  for(i=0; i<n; i+=s)
 #define PointGamma(prob,alpha,beta)  PointChi2(prob,2.0*(alpha))/(2.0*(beta))
@@ -190,8 +191,21 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 
 /* #define USE_OLD_LK */
 
-/* typedef	float phydbl; */
-typedef	double phydbl;
+/* Uncomment the lines below to switch to single precision */
+typedef	float phydbl;
+#define pow powf
+#define exp expf
+#define fabs fabsf
+#define sqrt sqrtf
+#define ceil ceilf
+#define floor floorf
+#define rint rintf
+#define round roundf
+#define trunc truncf
+
+/* Uncomment the line below to switch to double precision */
+/* typedef	double phydbl; */
+
 
 /*********************************************************/
 
@@ -271,10 +285,10 @@ typedef struct __Edge {
 
   /* Below are the likelihood scaling factors (used in functions
      `Get_All_Partial_Lk_Scale' in lk.c */
-  int                          scale_left;
-  int                          scale_rght;
-  phydbl                *sum_scale_f_left;
-  phydbl                *sum_scale_f_rght;
+  int                 *sum_scale_left_cat;
+  int                 *sum_scale_rght_cat;
+  int                     *sum_scale_left;
+  int                     *sum_scale_rght;
 
   phydbl                          bootval; /* bootstrap value (if exists) */
 
@@ -356,6 +370,7 @@ typedef struct __Arbre {
   phydbl                          *cur_site_lk; /* vector of likelihoods at individual sites */
   phydbl                          *old_site_lk; /* vector of likelihoods at individual sites */
   phydbl                     **log_site_lk_cat; /* loglikelihood at individual sites and for each class of rate*/
+  phydbl                          *site_lk_cat; /* loglikelihood at a single site and for each class of rate*/
   phydbl                       unconstraint_lk; /* unconstrained (or multinomial) likelihood  */
   phydbl             prop_of_sites_to_consider;
   phydbl                        **log_lks_aLRT; /* used to compute several branch supports */

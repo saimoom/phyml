@@ -31,6 +31,7 @@ the GNU public licence. See http://www.opensource.org for details.
 
 int main(int argc, char **argv)
 {
+  
   calign *cdata;
   option *io;
   t_tree *tree;
@@ -139,9 +140,9 @@ int main(int argc, char **argv)
 
 		  if(mod->s_opt->random_input_tree) Random_Tree(tree);
 
-		  Prepare_Tree_For_Lk(tree);
-
 		  if((!num_data_set) && (!num_tree) && (!num_rand_tree)) Check_Memory_Amount(tree);		  
+
+		  Prepare_Tree_For_Lk(tree);
 
 		  if(io->in_tree == 1) Spr_Pars(tree);
 		  

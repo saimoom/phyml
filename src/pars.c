@@ -20,13 +20,12 @@ void Make_Tree_4_Pars(t_tree *tree, calign *cdata, int n_site)
 {
   int i;
 
+
   tree->site_pars = (int *)mCalloc(tree->n_pattern, sizeof(int));
   tree->step_mat = (int *)mCalloc(tree->mod->ns * tree->mod->ns, sizeof(int));
   For(i,2*tree->n_otu-3) Make_Edge_Pars(tree->t_edges[i],tree);
-
   Init_Ui_Tips(tree);
   Init_P_Pars_Tips(tree); /* Must be called after Init_Ui_Tips is called */
-
   Get_Step_Mat(tree);
 }
 

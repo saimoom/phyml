@@ -737,6 +737,7 @@ void Make_Edge_Dirs(t_edge *b, t_node *a, t_node *d)
 
 /*********************************************************/
 
+
 void Make_Edge_Pars(t_edge *b, t_tree *tree)
 {
 /*   int site; */
@@ -744,11 +745,14 @@ void Make_Edge_Pars(t_edge *b, t_tree *tree)
   b->pars_l = (int *)mCalloc(tree->data->crunch_len,sizeof(int));
   b->pars_r = (int *)mCalloc(tree->data->crunch_len,sizeof(int));
 
+
   b->ui_l = (unsigned int *)mCalloc(tree->data->crunch_len,sizeof(unsigned int));
   b->ui_r = (unsigned int *)mCalloc(tree->data->crunch_len,sizeof(unsigned int));
 
+
   b->p_pars_l = (int *)mCalloc(tree->data->crunch_len*tree->mod->ns,sizeof(int ));
   b->p_pars_r = (int *)mCalloc(tree->data->crunch_len*tree->mod->ns,sizeof(int ));
+
 }
 
 /*********************************************************/
@@ -768,17 +772,18 @@ void Make_Edge_Lk(t_edge *b, t_tree *tree)
 
   b->Pij_rr = (phydbl *)mCalloc(tree->mod->n_catg*tree->mod->ns*tree->mod->ns,sizeof(phydbl));
   
-  b->scale_left = b->scale_rght = 0;
-  
+  b->sum_scale_left_cat = (int *)mCalloc(tree->mod->n_catg,sizeof(int));  
+  b->sum_scale_rght_cat = (int *)mCalloc(tree->mod->n_catg,sizeof(int));
+
   if(!b->left->tax)
-    b->sum_scale_f_left = (phydbl *)mCalloc(tree->data->crunch_len*tree->mod->n_catg,sizeof(phydbl ));
+    b->sum_scale_left = (int *)mCalloc(tree->data->crunch_len*tree->mod->n_catg,sizeof(int));
   else
-    b->sum_scale_f_left = NULL;
+    b->sum_scale_left = NULL;
   
   if(!b->rght->tax)
-    b->sum_scale_f_rght = (phydbl *)mCalloc(tree->data->crunch_len*tree->mod->n_catg,sizeof(phydbl ));
+    b->sum_scale_rght = (int *)mCalloc(tree->data->crunch_len*tree->mod->n_catg,sizeof(int));
   else
-    b->sum_scale_f_rght = NULL;
+    b->sum_scale_rght = NULL;
   
   
   if((!b->left->tax) || (tree->mod->s_opt->greedy))
@@ -2628,7 +2633,8 @@ void *mCalloc(int nb, size_t size)
 {
   void *allocated;
 
-  if((allocated = calloc((size_t)nb,(size_t)size)) != NULL)
+  if((allocated = calloc((size_t)nb,size)) != NULL)
+/*   if((allocated = malloc((size_t)nb*(size_t)size)) != NULL) */
     {
       return allocated;
     }
@@ -3258,13 +3264,13 @@ void Share_Lk_Struct(t_tree *t_full, t_tree *t_empt)
 	      if(n_e->b[j]->left == n_e)
 		{
 		  n_e->b[j]->p_lk_left        = n_f->b[j]->p_lk_left;
-		  n_e->b[j]->sum_scale_f_left = n_f->b[j]->sum_scale_f_left;
+		  n_e->b[j]->sum_scale_left = n_f->b[j]->sum_scale_left;
 		  n_e->b[j]->p_lk_tip_l       = n_f->b[j]->p_lk_tip_l;
 		}
 	      else
 		{
 		  n_e->b[j]->p_lk_rght        = n_f->b[j]->p_lk_left;
-		  n_e->b[j]->sum_scale_f_rght = n_f->b[j]->sum_scale_f_left;
+		  n_e->b[j]->sum_scale_rght = n_f->b[j]->sum_scale_left;
 		  n_e->b[j]->p_lk_tip_r       = n_f->b[j]->p_lk_tip_l;
 		}
 	    }
@@ -3273,13 +3279,13 @@ void Share_Lk_Struct(t_tree *t_full, t_tree *t_empt)
 	      if(n_e->b[j]->rght == n_e)
 		{
 		  n_e->b[j]->p_lk_rght        = n_f->b[j]->p_lk_rght;
-		  n_e->b[j]->sum_scale_f_rght = n_f->b[j]->sum_scale_f_rght;
+		  n_e->b[j]->sum_scale_rght = n_f->b[j]->sum_scale_rght;
 		  n_e->b[j]->p_lk_tip_r       = n_f->b[j]->p_lk_tip_r;
 		}
 	      else
 		{
 		  n_e->b[j]->p_lk_left        = n_f->b[j]->p_lk_rght;
-		  n_e->b[j]->sum_scale_f_left = n_f->b[j]->sum_scale_f_rght;
+		  n_e->b[j]->sum_scale_left = n_f->b[j]->sum_scale_rght;
 		  n_e->b[j]->p_lk_tip_l       = n_f->b[j]->p_lk_tip_r;
 		}
 	    }
@@ -3294,7 +3300,7 @@ void Share_Lk_Struct(t_tree *t_full, t_tree *t_empt)
       if(n_f->b[0]->rght == n_f)
 	{
 	  n_e->b[0]->p_lk_rght        = n_f->b[0]->p_lk_rght;
-	  n_e->b[0]->sum_scale_f_rght = n_f->b[0]->sum_scale_f_rght;
+	  n_e->b[0]->sum_scale_rght = n_f->b[0]->sum_scale_rght;
 	  n_e->b[0]->p_lk_tip_r       = n_f->b[0]->p_lk_tip_r;
 	}
       else
@@ -6903,7 +6909,7 @@ void Prune_Subtree(t_node *a, t_node *d, t_edge **target, t_edge **residual, t_t
   int i;
 /*   phydbl ***buff_p_lk; */
   phydbl *buff_p_lk;
-  phydbl *buff_scale;
+  int *buff_scale;
   int *buff_p_pars, *buff_pars;
   unsigned int *buff_ui;
   short int *buff_p_lk_tip;
@@ -6960,9 +6966,9 @@ void Prune_Subtree(t_node *a, t_node *d, t_edge **target, t_edge **residual, t_t
 	  b1->p_lk_tip_r       = b2->p_lk_tip_l;
 	  b2->p_lk_tip_l       = buff_p_lk_tip;
 
-	  buff_scale           = b1->sum_scale_f_rght;
-	  b1->sum_scale_f_rght = b2->sum_scale_f_left;
-	  b2->sum_scale_f_left = buff_scale;
+	  buff_scale           = b1->sum_scale_rght;
+	  b1->sum_scale_rght = b2->sum_scale_left;
+	  b2->sum_scale_left = buff_scale;
 
 	  buff_pars            = b1->pars_r;
 	  b1->pars_r           = b2->pars_l;
@@ -6986,9 +6992,9 @@ void Prune_Subtree(t_node *a, t_node *d, t_edge **target, t_edge **residual, t_t
 	  b1->p_lk_tip_r       = b2->p_lk_tip_r;
 	  b2->p_lk_tip_r       = buff_p_lk_tip;
 
-	  buff_scale           = b1->sum_scale_f_rght;
-	  b1->sum_scale_f_rght = b2->sum_scale_f_rght;
-	  b2->sum_scale_f_rght = buff_scale;
+	  buff_scale           = b1->sum_scale_rght;
+	  b1->sum_scale_rght = b2->sum_scale_rght;
+	  b2->sum_scale_rght = buff_scale;
 
 	  buff_pars            = b1->pars_r;
 	  b1->pars_r           = b2->pars_r;
@@ -7017,9 +7023,9 @@ void Prune_Subtree(t_node *a, t_node *d, t_edge **target, t_edge **residual, t_t
 	  b1->p_lk_tip_l       = b2->p_lk_tip_l;
 	  b2->p_lk_tip_l       = buff_p_lk_tip;
 
-	  buff_scale           = b1->sum_scale_f_left;
-	  b1->sum_scale_f_left = b2->sum_scale_f_left;
-	  b2->sum_scale_f_left = buff_scale;
+	  buff_scale           = b1->sum_scale_left;
+	  b1->sum_scale_left = b2->sum_scale_left;
+	  b2->sum_scale_left = buff_scale;
 
 	  buff_pars            = b1->pars_l;
 	  b1->pars_l           = b2->pars_l;
@@ -7043,9 +7049,9 @@ void Prune_Subtree(t_node *a, t_node *d, t_edge **target, t_edge **residual, t_t
 	  b1->p_lk_tip_l       = b2->p_lk_tip_r;
 	  b2->p_lk_tip_r       = buff_p_lk_tip;
 
-	  buff_scale           = b1->sum_scale_f_left;
-	  b1->sum_scale_f_left = b2->sum_scale_f_rght;
-	  b2->sum_scale_f_rght = buff_scale;
+	  buff_scale           = b1->sum_scale_left;
+	  b1->sum_scale_left = b2->sum_scale_rght;
+	  b2->sum_scale_rght = buff_scale;
 
 	  buff_pars            = b1->pars_l;
 	  b1->pars_l           = b2->pars_r;
@@ -7121,7 +7127,7 @@ void Graft_Subtree(t_edge *target, t_node *link, t_edge *residual, t_tree *tree)
   t_node *v1, *v2;
   int i, dir_v1, dir_v2;
   phydbl *buff_p_lk;
-  phydbl *buff_scale;
+  int *buff_scale;
   int *buff_p_pars, *buff_pars; 
   short int *buff_p_lk_tip;
   unsigned int *buff_ui;
@@ -7152,9 +7158,9 @@ void Graft_Subtree(t_edge *target, t_node *link, t_edge *residual, t_tree *tree)
       residual->p_lk_tip_r         = target->p_lk_tip_r;
       target->p_lk_tip_r           = buff_p_lk_tip;
 
-      buff_scale                   = residual->sum_scale_f_rght;
-      residual->sum_scale_f_rght   = target->sum_scale_f_rght;
-      target->sum_scale_f_rght     = buff_scale;
+      buff_scale                   = residual->sum_scale_rght;
+      residual->sum_scale_rght   = target->sum_scale_rght;
+      target->sum_scale_rght     = buff_scale;
 
       buff_pars                    = residual->pars_r;
       residual->pars_r             = target->pars_r;
@@ -7181,9 +7187,9 @@ void Graft_Subtree(t_edge *target, t_node *link, t_edge *residual, t_tree *tree)
       residual->p_lk_tip_r         = target->p_lk_tip_l;
       target->p_lk_tip_l           = buff_p_lk_tip;
 
-      buff_scale                   = residual->sum_scale_f_rght;
-      residual->sum_scale_f_rght   = target->sum_scale_f_left;
-      target->sum_scale_f_left     = buff_scale;
+      buff_scale                   = residual->sum_scale_rght;
+      residual->sum_scale_rght   = target->sum_scale_left;
+      target->sum_scale_left     = buff_scale;
 
       buff_pars                    = residual->pars_r;
       residual->pars_r             = target->pars_l;
@@ -8511,37 +8517,39 @@ void Check_Memory_Amount(t_tree *tree)
   int n_otu;
   model *mod;
 
-
   mod    = tree->mod;
   n_otu  = tree->io->n_otu;
   nbytes = 0;
 
+  /* Partial Pars */
+  nbytes += (2*n_otu-3) * 2 * tree->data->crunch_len * sizeof(int);
+  nbytes += (2*n_otu-3) * 2 * tree->data->crunch_len * sizeof(unsigned int);
+  nbytes += (2*n_otu-3) * 2 * tree->data->crunch_len * mod->ns * sizeof(int);
+
   /* Pmat */
   nbytes += (2*n_otu-3) * mod->n_catg * mod->ns * mod->ns * sizeof(phydbl);
   
+
   /* Partial Lk */
-  nbytes += ((2*n_otu-3) * 2 - tree->n_otu) * tree->n_pattern * mod->n_catg * mod->ns * sizeof(phydbl);
+  nbytes += ((2*n_otu-3) * 2 - tree->n_otu) * tree->data->crunch_len * mod->n_catg * mod->ns * sizeof(phydbl);
+
 
   /* Scaling factors */
-  nbytes += ((2*n_otu-3) * 2 - tree->n_otu) * tree->n_pattern * sizeof(phydbl);
-
-  /* Partial Pars */
-  nbytes += (2*n_otu-3) * 2 * tree->n_pattern * mod->ns * sizeof(short int);
-  nbytes += (2*n_otu-3) * 2 * tree->n_pattern * mod->ns * sizeof(int);
-  nbytes += (2*n_otu-3) * 2 * tree->n_pattern * sizeof(int);
-  nbytes += (2*n_otu-3) * 2 * tree->n_pattern * sizeof(int);
-
+  nbytes += ((2*n_otu-3) * 2 - tree->n_otu) * tree->data->crunch_len * sizeof(int);
+  
+      
+    
   if(((phydbl)nbytes/(1.E+06)) > 256.)
     {
       char answer;
-      PhyML_Printf("\n. WARNING: this analysis requires at least %.0f Mo of memory space.\n",(phydbl)nbytes/(1.E+06));
+      PhyML_Printf("\n. WARNING: this analysis requires at least %.0f MB of memory space.\n",(phydbl)nbytes/(1.E+06));
 #ifndef BATCH
       if (! tree->io->quiet) {
-        PhyML_Printf("\n. Do you really want to continue ? [Y/n] ");
+        PhyML_Printf("\n. Do you really want to proceed? [Y/n] ");
         if(scanf("%c", &answer))
 	  {
 	    if(answer == '\n') answer = 'Y';
-	    else if(answer == 'n' || answer == 'N') Warn_And_Exit("\n\n");
+	    else if(answer == 'n' || answer == 'N') Warn_And_Exit("\n");
 	    else getchar();
 	  }
 	else
