@@ -1,4 +1,5 @@
 \documentclass[a4paper,12pt]{article}
+\usepackage{fancyvrb}
 \usepackage{graphicx}
 \usepackage{tabularx}
 \usepackage{color}
@@ -571,9 +572,8 @@ PhyML reads data from standard text files,  without the need for any particular 
 \subsection{Sequence formats}
 
 \begin{figure}
-a)
 \begin{small}
-\begin{verbatim}
+\begin{Verbatim}[frame=single, label=PHYLIP interleaved, samepage=true, baselinestretch=0.5]
 5 80
 seq1  CCATCTCACGGTCGGTACGATACACCKGCTTTTGGCAGGAAATGGTCAATATTACAAGGT
 seq2  CCATCTCACGGTCAG---GATACACCKGCTTTTGGCGGGAAATGGTCAACATTAAAAGAT
@@ -586,37 +586,128 @@ ATCKGCTTTTGGCGGGAAAT
 AGCKGCTGTTG?????????
 ATCTGCTTTTGGCGGGAAAT
 ATCTGCTTTTGGCGGGAAAT
-\end{verbatim}
-\begin{verbatim}
+\end{Verbatim}
+\begin{Verbatim}[frame=single, label=PHYLIP sequential, samepage=true, baselinestretch=0.5]
 5 40
 seq1  CCATCTCANNNNNNNNACGATACACCKGCTTTTGGCAGG
 seq2  CCATCTCANNNNNNNNGGGATACACCKGCTTTTGGCGGG
 seq3  RCATCTCCCGCTCAGTGAGATACCCCKGCTGTTGXXXXX
 seq4  RCATCTCATGGTCAATG-AATACTCCTGCTTTTGXXXXX
 seq5  RCATCTCACGGTCGGTAAGATACACCTGCTTTTGxxxxx
-\end{verbatim}
+\end{Verbatim}
 \end{small}
 \label{fig:align_tree}
-\caption{\bf PHYLIP interleaved (a) and sequential (b) formats.}
+\caption{\bf PHYLIP interleaved and sequential formats.}
 \end{figure}
 
-Alignments  of  DNA  or  protein   sequences  must  be  in  PHYLIP  sequential\index{sequential}  or
-interleaved\index{interleaved} format  (Figure \ref{fig:align_tree}).  The  first line of  the input
-file contains  the number  of species and  the number  of characters, in  free format,  separated by
-blanks.  One  slight difference with PHYLIP format  deals with sequence name  lengths.  While PHYLIP
-format limits this  length to ten characters, PhyML  can read up to hundred  character long sequence
-names.  Blanks  and the symbols ``(),:''  are not allowed  within sequence names because  the Newick
-tree format  makes special use of  these symbols.  Another  slight difference with PHYLIP  format is
-that actual sequences must be separated from their names by at least one blank character.
 
-An input sequence file may also display more than a single data set. Each of these data sets must be
-in  PHYLIP format  and two  successive alignments  must be  separated by  an empty  line. Processing
-multiple data sets requires to toggle the `\x{M}' option in the {\em Input Data} sub-menu or use the
-`\x{-n}' command line  option and enter the number  of data sets to analyse.  The  multiple data set
-option can be used  to process re-sampled data that were generated  using a non-parametric procedure
-such  as cross-validation or  jackknife (a  bootstrap option  is already  included in  PhyML).  This
-option is also useful  in multiple gene studies, even if fitting the  same substitution model to all
-data sets may not be suitable.
+
+\begin{figure}
+\begin{small}
+\begin{Verbatim}[frame=single, label=Nexus nucleotides, samepage=true, baselinestretch=0.5]
+[ This is a comment ]
+#NEXUS
+BEGIN DATA;
+DIMENSIONS NTAX=10 NCHAR=20;
+FORMAT DATATYPE=DNA;
+MATRIX
+tax1       ?ATGATTTCCTTAGTAGCGG
+tax2       CAGGATTTCCTTAGTAGCGG
+tax3       ?AGGATTTCCTTAGTAGCGG
+tax4       ?????????????GTAGCGG
+tax5       CAGGATTTCCTTAGTAGCGG
+tax6       CAGGATTTCCTTAGTAGCGG
+tax7       ???GATTTCCTTAGTAGCGG
+tax8       ????????????????????
+tax9       ???GGATTTCTTCGTAGCGG
+tax10      ???????????????AGCGG;
+END;	                      	                                      	                                      	                  
+\end{Verbatim}
+\end{small}
+
+\begin{small}
+\begin{Verbatim}[frame=single, label=Nexus digits, samepage=true, baselinestretch=0.5]
+[ This is a comment ]
+#NEXUS
+BEGIN DATA;
+DIMENSIONS NTAX=10 NCHAR=20;
+FORMAT DATATYPE=STANDARD SYMBOLS="0 1 2 3";
+MATRIX
+tax1       ?0320333113302302122
+tax2       10220333113302302122
+tax3       ?0220333113302302122
+tax4       ?????????????2302122
+tax5       10220333113302302122
+tax6       10220333113302302122
+tax7       ???20333113302302122
+tax8       ????????????????????
+tax9       ???22033313312302122
+tax10      ???????????????02122;
+END;	                      	                                      	                                      	                  
+\end{Verbatim}
+\end{small}
+
+\begin{small}
+\begin{Verbatim}[frame=single, label=Nexus digits, samepage=true, baselinestretch=0.5]
+[ This is a comment ]
+#NEXUS
+BEGIN DATA;
+DIMENSIONS NTAX=10 NCHAR=20;
+FORMAT DATATYPE=STANDARD SYMBOLS="00 01 02 03";
+MATRIX
+tax1       ??00030200030303010103030002030002010202
+tax2       0100020200030303010103030002030002010202
+tax3       ??00020200030303010103030002030002010202
+tax4       ??????????????????????????02030002010202
+tax5       0100020200030303010103030002030002010202
+tax6       0100020200030303010103030002030002010202
+tax7       ??????0200030303010103030002030002010202
+tax8       ????????????????????????????????????????
+tax9       ??????0202000303030103030102030002010202
+tax10      ??????????????????????????????0002010202;
+END;	                      	                                      	                                      	                  
+\end{Verbatim}
+\end{small}
+\caption{\bf NEXUS formats.}\label{fig:nexus}
+\end{figure}
+
+
+Alignments   of   DNA   or   protein   sequences   must  be   in   PHYLIP\index{PHYLIP}   or   NEXUS
+\cite{maddison97}\index{NEXUS} sequential\index{sequential} or interleaved\index{interleaved} format
+(Figures \ref{fig:align_tree}  and \ref{fig:nexus}).  For  PHYLIP formated sequence  alignments, the
+first line of  the input file contains the number  of species and the number  of characters, in free
+format, separated by blank characters.  One slight difference with PHYLIP format deals with sequence
+name  lengths.  While PHYLIP  format limits  this length  to ten  characters, PhyML  can read  up to
+hundred  character long sequence  names.  Blanks  and the  symbols ``(),:''  are not  allowed within
+sequence names because  the Newick tree format  makes special use of these  symbols.  Another slight
+difference with  PHYLIP format is  that actual sequences  must be separated  from their names  by at
+least one blank character.
+
+A PHYLIP input sequence file  may also display more than a single data set.  Each of these data sets
+must  be  in  PHYLIP   format  and  two  successive  alignments  must  be   separated  by  an  empty
+line. Processing multiple  data sets requires to toggle  the `\x{M}' option in the  {\em Input Data}
+sub-menu or use the `\x{-n}' command line option  and enter the number of data sets to analyse.  The
+multiple  data set  option can  be  used to  process re-sampled  data  that were  generated using  a
+non-parametric  procedure such  as  cross-validation or  jackknife  (a bootstrap  option is  already
+included in PhyML).  This  option is also useful in multiple gene studies,  even if fitting the same
+substitution model to all data sets may not be suitable.
+
+PhyML can  also process alignments in  NEXUS format. Although not  all the options  provided by this
+format are supported  by PhyML, a few specific  features are exploited.  Of course,  this format can
+handle nucleotide and  protein sequence alignments in sequential or interleaved  format.  It is also
+possible  to  use custom  alphabets,  replacing  the standard  4-state  and  20-state alphabets  for
+nucleotides and amino-acids respectively. Examples of  a 4-state custom alphabet are given in Figure
+\ref{fig:nexus}. Each state must  here correspond to one digit or more. The set  of states must be a
+list of consecutive  digits starting from 0.  For instance,  the list ``0, 1, 3, 4''  is not a valid
+alphabet. Each  state in the  symbol list  must be separated  from the next  one by a  space. Hence,
+alphabets with up to  100 states can be easily defined by using  two-digit number, starting with 00,
+up  to 99.   Most importantly,  this feature  gives the  opportunity to  analyse data  sets  made of
+presence/absence   character   states   (use   the   \texttt{symbols=``0  1''}   option   for   such
+data).\index{binary characters} Alignments made of custom-defined states will be processed using the
+Jukes and Cantor model.   Other options of the program (e.g., number  of rate classes, tree topology
+search algorithm) are freely configurable.
+
+
 
 \subsubsection{Gaps and ambiguous characters}
 

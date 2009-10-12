@@ -10,7 +10,7 @@ Version  date		what has been changed
 			- INSTALL checked
           27.08.2000	- test code excluded
 			- '-randseed#' added for debugging purposes
-			- ./data added to autoconf/automake
+			- ./align added to autoconf/automake
 			- warning output if cmdline parameter unknown
           11.10.2000	- fixed output of rate categories of sites before 
 			  computing them

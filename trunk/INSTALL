@@ -53,7 +53,7 @@ The simplest way to compile this package is:
   3. Optionally, type `make check' to run any self-tests that come with
      the package.
 
-  4. Type `make install' to install the programs and any data files and
+  4. Type `make install' to install the programs and any align files and
      documentation.
 
   5. You can remove the program binaries and object files from the
@@ -107,7 +107,7 @@ option `--prefix=PATH'.
 architecture-specific files and architecture-independent files.  If you
 give `configure' the option `--exec-prefix=PATH', the package will use
 PATH as the prefix for installing programs and libraries.
-Documentation and other data files will still use the regular prefix.
+Documentation and other align files will still use the regular prefix.
 
    In addition, if you use an unusual directory layout you can give
 options like `--bindir=PATH' to specify different values for particular
