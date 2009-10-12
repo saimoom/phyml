@@ -192,19 +192,19 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 /* #define USE_OLD_LK */
 
 /* Uncomment the lines below to switch to single precision */
-typedef	float phydbl;
-#define pow powf
-#define exp expf
-#define fabs fabsf
-#define sqrt sqrtf
-#define ceil ceilf
-#define floor floorf
-#define rint rintf
-#define round roundf
-#define trunc truncf
+/* typedef	float phydbl; */
+/* #define pow powf */
+/* #define exp expf */
+/* #define fabs fabsf */
+/* #define sqrt sqrtf */
+/* #define ceil ceilf */
+/* #define floor floorf */
+/* #define rint rintf */
+/* #define round roundf */
+/* #define trunc truncf */
 
 /* Uncomment the line below to switch to double precision */
-/* typedef	double phydbl; */
+typedef	double phydbl;
 
 
 /*********************************************************/
