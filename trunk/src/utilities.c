@@ -585,6 +585,7 @@ void Init_Tree(t_tree *tree, int n_otu)
   tree->best_lnL                  = UNLIKELY;
   tree->old_lnL                   = UNLIKELY;
   tree->c_lnL                     = UNLIKELY;
+  tree->sum_min_sum_scale         = .0;
   tree->n_swap                    = 0;
   tree->best_pars                 = 1E+5;
 
@@ -3240,6 +3241,7 @@ void Share_Lk_Struct(t_tree *t_full, t_tree *t_empt)
   t_empt->old_site_lk     = t_full->old_site_lk;
   t_empt->triplet_struct  = t_full->triplet_struct;
   t_empt->log_lks_aLRT    = t_full->log_lks_aLRT;
+  t_empt->site_lk_cat     = t_full->site_lk_cat;
 
   For(i,2*n_otu-3)
     {
@@ -3263,30 +3265,34 @@ void Share_Lk_Struct(t_tree *t_full, t_tree *t_empt)
 	    {
 	      if(n_e->b[j]->left == n_e)
 		{
-		  n_e->b[j]->p_lk_left        = n_f->b[j]->p_lk_left;
-		  n_e->b[j]->sum_scale_left = n_f->b[j]->sum_scale_left;
-		  n_e->b[j]->p_lk_tip_l       = n_f->b[j]->p_lk_tip_l;
+		  n_e->b[j]->p_lk_left          = n_f->b[j]->p_lk_left;
+		  n_e->b[j]->sum_scale_left     = n_f->b[j]->sum_scale_left;
+		  n_e->b[j]->sum_scale_left_cat = n_f->b[j]->sum_scale_left_cat;
+		  n_e->b[j]->p_lk_tip_l         = n_f->b[j]->p_lk_tip_l;
 		}
 	      else
 		{
-		  n_e->b[j]->p_lk_rght        = n_f->b[j]->p_lk_left;
-		  n_e->b[j]->sum_scale_rght = n_f->b[j]->sum_scale_left;
-		  n_e->b[j]->p_lk_tip_r       = n_f->b[j]->p_lk_tip_l;
+		  n_e->b[j]->p_lk_rght          = n_f->b[j]->p_lk_left;
+		  n_e->b[j]->sum_scale_rght     = n_f->b[j]->sum_scale_left;
+		  n_e->b[j]->sum_scale_rght_cat = n_f->b[j]->sum_scale_left_cat;
+		  n_e->b[j]->p_lk_tip_r         = n_f->b[j]->p_lk_tip_l;
 		}
 	    }
 	  else
 	    {
 	      if(n_e->b[j]->rght == n_e)
 		{
-		  n_e->b[j]->p_lk_rght        = n_f->b[j]->p_lk_rght;
-		  n_e->b[j]->sum_scale_rght = n_f->b[j]->sum_scale_rght;
-		  n_e->b[j]->p_lk_tip_r       = n_f->b[j]->p_lk_tip_r;
+		  n_e->b[j]->p_lk_rght          = n_f->b[j]->p_lk_rght;
+		  n_e->b[j]->sum_scale_rght     = n_f->b[j]->sum_scale_rght;
+		  n_e->b[j]->sum_scale_rght_cat = n_f->b[j]->sum_scale_rght_cat;
+		  n_e->b[j]->p_lk_tip_r         = n_f->b[j]->p_lk_tip_r;
 		}
 	      else
 		{
-		  n_e->b[j]->p_lk_left        = n_f->b[j]->p_lk_rght;
-		  n_e->b[j]->sum_scale_left = n_f->b[j]->sum_scale_rght;
-		  n_e->b[j]->p_lk_tip_l       = n_f->b[j]->p_lk_tip_r;
+		  n_e->b[j]->p_lk_left          = n_f->b[j]->p_lk_rght;
+		  n_e->b[j]->sum_scale_left     = n_f->b[j]->sum_scale_rght;
+		  n_e->b[j]->sum_scale_left_cat = n_f->b[j]->sum_scale_rght_cat;
+		  n_e->b[j]->p_lk_tip_l         = n_f->b[j]->p_lk_tip_r;
 		}
 	    }
 	}
@@ -3299,9 +3305,10 @@ void Share_Lk_Struct(t_tree *t_full, t_tree *t_empt)
 
       if(n_f->b[0]->rght == n_f)
 	{
-	  n_e->b[0]->p_lk_rght        = n_f->b[0]->p_lk_rght;
-	  n_e->b[0]->sum_scale_rght = n_f->b[0]->sum_scale_rght;
-	  n_e->b[0]->p_lk_tip_r       = n_f->b[0]->p_lk_tip_r;
+	  n_e->b[0]->p_lk_rght          = n_f->b[0]->p_lk_rght;
+	  n_e->b[0]->sum_scale_rght     = n_f->b[0]->sum_scale_rght;
+	  n_e->b[0]->sum_scale_rght_cat = n_f->b[0]->sum_scale_rght_cat;
+	  n_e->b[0]->p_lk_tip_r         = n_f->b[0]->p_lk_tip_r;
 	}
       else
 	{
@@ -5240,6 +5247,7 @@ void Bootstrap(t_tree *tree)
 	  boot_tree->mat = boot_mat;
 	}
 
+
       boot_tree->mod                = boot_mod;
       boot_tree->io                 = tree->io;
       boot_tree->data               = boot_data;
@@ -5263,7 +5271,6 @@ void Bootstrap(t_tree *tree)
       Init_P_Pars_Tips(boot_tree);
       Br_Len_Not_Involving_Invar(boot_tree);
       
-
       if(boot_tree->mod->s_opt->opt_topo)
 	{
 	  if(boot_tree->mod->s_opt->topo_search == NNI_MOVE) 
@@ -5283,7 +5290,7 @@ void Bootstrap(t_tree *tree)
 	  else
 	    Lk(boot_tree);
 	}
-
+	    
       Alloc_Bip(boot_tree);
 
       Get_Bip(boot_tree->noeud[0],
@@ -6967,8 +6974,12 @@ void Prune_Subtree(t_node *a, t_node *d, t_edge **target, t_edge **residual, t_t
 	  b2->p_lk_tip_l       = buff_p_lk_tip;
 
 	  buff_scale           = b1->sum_scale_rght;
-	  b1->sum_scale_rght = b2->sum_scale_left;
-	  b2->sum_scale_left = buff_scale;
+	  b1->sum_scale_rght   = b2->sum_scale_left;
+	  b2->sum_scale_left   = buff_scale;
+
+	  buff_scale             = b1->sum_scale_rght_cat;
+	  b1->sum_scale_rght_cat = b2->sum_scale_left_cat;
+	  b2->sum_scale_left_cat = buff_scale;
 
 	  buff_pars            = b1->pars_r;
 	  b1->pars_r           = b2->pars_l;
@@ -7027,6 +7038,10 @@ void Prune_Subtree(t_node *a, t_node *d, t_edge **target, t_edge **residual, t_t
 	  b1->sum_scale_left = b2->sum_scale_left;
 	  b2->sum_scale_left = buff_scale;
 
+	  buff_scale             = b1->sum_scale_left_cat;
+	  b1->sum_scale_left_cat = b2->sum_scale_left_cat;
+	  b2->sum_scale_left_cat = buff_scale;
+
 	  buff_pars            = b1->pars_l;
 	  b1->pars_l           = b2->pars_l;
 	  b2->pars_l           = buff_pars;
@@ -7052,6 +7067,10 @@ void Prune_Subtree(t_node *a, t_node *d, t_edge **target, t_edge **residual, t_t
 	  buff_scale           = b1->sum_scale_left;
 	  b1->sum_scale_left = b2->sum_scale_rght;
 	  b2->sum_scale_rght = buff_scale;
+
+	  buff_scale             = b1->sum_scale_left_cat;
+	  b1->sum_scale_left_cat = b2->sum_scale_rght_cat;
+	  b2->sum_scale_rght_cat = buff_scale;
 
 	  buff_pars            = b1->pars_l;
 	  b1->pars_l           = b2->pars_r;
@@ -7188,8 +7207,12 @@ void Graft_Subtree(t_edge *target, t_node *link, t_edge *residual, t_tree *tree)
       target->p_lk_tip_l           = buff_p_lk_tip;
 
       buff_scale                   = residual->sum_scale_rght;
-      residual->sum_scale_rght   = target->sum_scale_left;
-      target->sum_scale_left     = buff_scale;
+      residual->sum_scale_rght     = target->sum_scale_left;
+      target->sum_scale_left       = buff_scale;
+
+      buff_scale                   = residual->sum_scale_rght_cat;
+      residual->sum_scale_rght_cat = target->sum_scale_left_cat;
+      target->sum_scale_left_cat   = buff_scale;
 
       buff_pars                    = residual->pars_r;
       residual->pars_r             = target->pars_l;
@@ -8469,8 +8492,6 @@ phydbl Least_Square_Missing_Dist_XY(int x, int y, phydbl dxy, matrix *mat)
 
 void Print_Banner(FILE *fp)
 {
-
-
   PhyML_Fprintf(fp,"\n");
   PhyML_Fprintf(fp," oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo\n");
   PhyML_Fprintf(fp,"                                                                                                  \n");

@@ -127,7 +127,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  ALPHA_MIN           0.04
 #define  ALPHA_MAX            100
 #ifdef PHYML
-#define  BL_MIN             1.e-4
+#define  BL_MIN             1.e-6
 #else
 #define  BL_MIN             1.e-4
 #endif
@@ -366,6 +366,7 @@ typedef struct __Arbre {
   int                                best_pars; /* highest value of the parsimony found so far */
   phydbl                                 c_lnL; /* loglikelihood */
   phydbl                               old_lnL; /* old loglikelihood */
+  phydbl                     sum_min_sum_scale; /* common factor of scaling factors */
   phydbl                         *c_lnL_sorted; /* used to compute c_lnL by adding sorted terms to minimize CPU errors */
   phydbl                          *cur_site_lk; /* vector of likelihoods at individual sites */
   phydbl                          *old_site_lk; /* vector of likelihoods at individual sites */
