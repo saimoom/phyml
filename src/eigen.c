@@ -24,10 +24,11 @@
 
 
 #define BASE        2    /* base of floating point arithmetic */
-#define DIGITS     40    /* no. of digits to the base BASE in the fraction */
-/*
-#define DIGITS     53
-*/
+
+/* no. of digits to the base BASE in the fraction */
+#define DIGITS 24
+/* #define DIGITS 53 */
+
 #define MAXITER    30    /* max2. no. of iterations to converge */
 
 #define pos(i,j,n)      ((i)*(n)+(j))
@@ -45,7 +46,7 @@ int Eigen(int job, phydbl *A, int n, phydbl *rr, phydbl *ri,
    phydbl w[n*2]: work space
 */
     int low,hi,i,j,k, it, istate=0;
-    phydbl tiny=sqrt(pow((phydbl)BASE,(phydbl)(1-DIGITS))), t; 
+    phydbl tiny=sqrt(pow((phydbl)BASE,(phydbl)(1-(int)DIGITS))), t; 
 
 
     balance(A,n,&low,&hi,work);
@@ -474,7 +475,7 @@ int realeig(int job,phydbl *mat,int n,int low, int hi, phydbl *valr,
    complex v;
    phydbl p=.0,q=.0,r=.0,s=.0,t,w,x,y,z=0,ra,sa,norm,eps;
    int niter,en,i,j,k,l,m;
-   phydbl precision  = pow((phydbl)BASE,(phydbl)(1-DIGITS));
+   phydbl precision  = pow((phydbl)BASE,(phydbl)(1-(int)DIGITS));
 
    eps = precision;
    for (i=0; i<n; i++) {

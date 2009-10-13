@@ -313,9 +313,9 @@ void Pre_Order_Lk(t_node *a, t_node *d, t_tree *tree)
 
 phydbl Lk(t_tree *tree)
 {
-  int br,site;
+  int br;
   int n_patterns;
-
+  
   tree->old_lnL = tree->c_lnL;
 
   if(tree->rates && tree->rates->lk_approx == NORMAL)
@@ -348,27 +348,16 @@ phydbl Lk(t_tree *tree)
 		 tree->noeud[0]->v[0],
 		 tree);
 
-  tree->c_lnL     = .0;
-  tree->curr_catg =  0;
-  tree->curr_site =  0;
-  For(site,n_patterns)
+  tree->c_lnL             = .0;
+  tree->sum_min_sum_scale = .0;
+  For(tree->curr_site,n_patterns)
     {
-      tree->c_lnL_sorted[site] = .0;
-      tree->cur_site_lk[site]      = .0;
-      tree->curr_site          = site;
-      Site_Lk(tree);
+      if(tree->data->wght[tree->curr_site] > MDBL_MIN) Lk_Core(tree->noeud[0]->b[0],tree);
     }
+
+/*   tree->c_lnL += (phydbl)LOG2 * tree->sum_min_sum_scale; */
 
 /*   Qksort(tree->c_lnL_sorted,NULL,0,n_patterns-1); */
-
-  tree->c_lnL = .0;
-  For(site,n_patterns)
-    {
-      if(tree->c_lnL_sorted[site] < .0) /* WARNING : change cautiously */
-	{
-	  tree->c_lnL += tree->c_lnL_sorted[site];
-	}
-    }
     
   Adjust_Min_Diff_Lk(tree);
 
@@ -377,28 +366,10 @@ phydbl Lk(t_tree *tree)
 
 /*********************************************************/
 
-void Site_Lk(t_tree *tree)
-{
-  t_edge *eroot;
-
-  eroot = tree->noeud[0]->b[0];
-
-  if(!eroot->rght->tax)
-    {
-      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
-      Warn_And_Exit("");
-    }
-
-  if(tree->data->wght[tree->curr_site] > MDBL_MIN) Lk_Core(eroot,tree);
-  else tree->c_lnL_sorted[tree->curr_site] = 1.; /* WARNING : change cautiously */
-}
-
-/*********************************************************/
-
 phydbl Lk_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
 {
   int n_patterns;
-
+  
   tree->number_of_branch_lk_calls++;
 
   n_patterns = tree->n_pattern;
@@ -416,28 +387,21 @@ phydbl Lk_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
       Warn_And_Exit("");
     }
 
-  tree->c_lnL = .0;
+  tree->c_lnL             = .0;
+  tree->sum_min_sum_scale = .0;
   For(tree->curr_site,n_patterns)
     {
       if(tree->data->wght[tree->curr_site] > MDBL_MIN) Lk_Core(b_fcus,tree);
-      else tree->c_lnL_sorted[tree->curr_site] = 1.; /* WARNING : change cautiously */      
     }
 
-  /* Qksort(tree->c_lnL_sorted,NULL,0,n_patterns-1); */
+/*   tree->c_lnL += (phydbl)LOG2 * tree->sum_min_sum_scale; */
 
-  tree->c_lnL = .0;
-  For(tree->curr_site,n_patterns)
-    if(tree->c_lnL_sorted[tree->curr_site] < .0) /* WARNING : change cautiously */
-      {
-	tree->c_lnL += tree->c_lnL_sorted[tree->curr_site];
-      }
+  /* Qksort(tree->c_lnL_sorted,NULL,0,n_patterns-1); */
 
   Adjust_Min_Diff_Lk(tree);
 
   return tree->c_lnL;
 }
-
-
 
 /*********************************************************/
 /* Core of the likelihood calculcation. Assume that the partial likelihoods on both
@@ -572,6 +536,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
       tree->site_lk_cat[catg] = site_lk_cat;
     }
   
+
   /* Correct the minimum of scaling factors in order to avoid overflows in site_lk_cat */
   n_iter = 0;
   do
@@ -598,6 +563,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
     }
   while(catg != tree->mod->n_catg);
 
+  /* Apply corrected scaling factor */
   site_lk = .0;
   For(catg,tree->mod->n_catg)
     {
@@ -607,11 +573,14 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
     }
 
   log_site_lk = (phydbl)log(site_lk) + (phydbl)LOG2 * min_sum_scale;
-
+/*   log_site_lk = (phydbl)log(site_lk); */
 
   /* The substitution model does include invariable sites */ 
   if(tree->mod->invar)
     {
+      PhyML_Printf("\n. TO DO...");
+      Exit("\n");
+
       site_lk = exp(log_site_lk);
       /* The site is invariant */
       if(tree->data->invar[site] > -0.5)
@@ -634,12 +603,16 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
       Warn_And_Exit("\n. log_site_lk < -MDBL_MAX\n");
     }
 
-  For(catg,tree->mod->n_catg) tree->log_site_lk_cat[catg][site] = log(tree->log_site_lk_cat[catg][site]);
+/*   For(catg,tree->mod->n_catg) tree->log_site_lk_cat[catg][site] = log(tree->log_site_lk_cat[catg][site]); */
   
-  tree->cur_site_lk[site] = log_site_lk;
+  tree->cur_site_lk[site] = (phydbl)log_site_lk + (phydbl)LOG2 * min_sum_scale;
 
-  /* Multiply log likelihood by the number of times this site pattern is found oin the data */
-  tree->c_lnL_sorted[site] = tree->data->wght[site]*log_site_lk;
+  /* Multiply log likelihood by the number of times this site pattern is found in the data */
+  tree->c_lnL_sorted[site] = tree->data->wght[site]*tree->cur_site_lk[site];
+
+  tree->c_lnL             += tree->data->wght[site]*log_site_lk;
+  tree->sum_min_sum_scale += (int)tree->data->wght[site]*min_sum_scale;
+
   return log_site_lk;
 }
 
