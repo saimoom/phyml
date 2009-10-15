@@ -355,9 +355,15 @@ phydbl Lk(t_tree *tree)
       if(tree->data->wght[tree->curr_site] > MDBL_MIN) Lk_Core(tree->noeud[0]->b[0],tree);
     }
 
-/*   tree->c_lnL += (phydbl)LOG2 * tree->sum_min_sum_scale; */
+  Qksort(tree->c_lnL_sorted,NULL,0,n_patterns-1);
 
-/*   Qksort(tree->c_lnL_sorted,NULL,0,n_patterns-1); */
+  tree->c_lnL = .0;
+  For(tree->curr_site,n_patterns)
+    {
+      tree->c_lnL += tree->c_lnL_sorted[tree->curr_site];
+    }
+
+/*   tree->c_lnL += (phydbl)LOG2 * tree->sum_min_sum_scale; */
     
   Adjust_Min_Diff_Lk(tree);
 
@@ -394,9 +400,15 @@ phydbl Lk_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
       if(tree->data->wght[tree->curr_site] > MDBL_MIN) Lk_Core(b_fcus,tree);
     }
 
-/*   tree->c_lnL += (phydbl)LOG2 * tree->sum_min_sum_scale; */
+  Qksort(tree->c_lnL_sorted,NULL,0,n_patterns-1);
 
-  /* Qksort(tree->c_lnL_sorted,NULL,0,n_patterns-1); */
+  tree->c_lnL = .0;
+  For(tree->curr_site,n_patterns)
+    {
+      tree->c_lnL += tree->c_lnL_sorted[tree->curr_site];
+    }
+
+/*   tree->c_lnL += (phydbl)LOG2 * tree->sum_min_sum_scale; */
 
   Adjust_Min_Diff_Lk(tree);
 
@@ -572,15 +584,14 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
       site_lk += site_lk_cat * tree->mod->gamma_r_proba[catg];
     }
 
-  log_site_lk = (phydbl)log(site_lk) + (phydbl)LOG2 * min_sum_scale;
+  For(catg,tree->mod->n_catg) tree->log_site_lk_cat[catg][site] = log(tree->site_lk_cat[catg]) + (phydbl)LOG2 * min_sum_scale;
+
+  log_site_lk = log(site_lk) + (phydbl)LOG2 * min_sum_scale;
 /*   log_site_lk = (phydbl)log(site_lk); */
 
   /* The substitution model does include invariable sites */ 
   if(tree->mod->invar)
     {
-      PhyML_Printf("\n. TO DO...");
-      Exit("\n");
-
       site_lk = exp(log_site_lk);
       /* The site is invariant */
       if(tree->data->invar[site] > -0.5)
@@ -602,10 +613,8 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
       PhyML_Printf("\n. Lk = %G log(Lk) = %f < %G",site_lk,log_site_lk,-MDBL_MAX);
       Warn_And_Exit("\n. log_site_lk < -MDBL_MAX\n");
     }
-
-/*   For(catg,tree->mod->n_catg) tree->log_site_lk_cat[catg][site] = log(tree->log_site_lk_cat[catg][site]); */
   
-  tree->cur_site_lk[site] = (phydbl)log_site_lk + (phydbl)LOG2 * min_sum_scale;
+  tree->cur_site_lk[site] = log_site_lk;
 
   /* Multiply log likelihood by the number of times this site pattern is found in the data */
   tree->c_lnL_sorted[site] = tree->data->wght[site]*tree->cur_site_lk[site];
