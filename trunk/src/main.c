@@ -120,6 +120,7 @@ int main(int argc, char **argv)
 
 		  Init_Model(cdata,mod,io);
 
+
 		  switch(io->in_tree)
 		    {
 		    case 0 : case 1 : { tree = Dist_And_BioNJ(cdata,mod,io);    break; }

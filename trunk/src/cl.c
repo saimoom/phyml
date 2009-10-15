@@ -1171,6 +1171,14 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	io->mod->s_opt->opt_rr     = 0;	
       }
 
+    if(io->mod->whichmodel != K80 && 
+       io->mod->whichmodel != HKY85 && 
+       io->mod->whichmodel != F84 &&
+       io->mod->whichmodel != TN93)
+      {
+	io->mod->s_opt->opt_kappa = 0;
+      }
+
     io->fp_out_tree  = Openfile(io->out_tree_file,writemode);
     io->fp_out_stats = Openfile(io->out_stats_file,writemode);
 

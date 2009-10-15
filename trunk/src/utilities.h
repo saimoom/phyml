@@ -148,7 +148,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  MDBL_MAX             pow(2,FLT_MAX_EXP-1)
 #define  POWELL_ITMAX         200
 #define  LINMIN_TOL       2.0E-04
-#define  SCALE_POW            -40 /* Scaling factor will be 2^SCALE_POW or 2^(-SCALE_POW) */
+#define  SCALE_POW            -50 /* Scaling factor will be 2^SCALE_POW or 2^(-SCALE_POW) */
 #define  DEFAULT_SIZE_SPR_LIST 20
 #define  OUTPUT_TREE_FORMAT  0 /* 0-->Newick; 1-->Nexus */
 #define  MAX_PARS        1000000000
