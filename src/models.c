@@ -2279,6 +2279,8 @@ void Init_Model(calign *data, model *mod, option *io)
       if((mod->whichmodel != GTR)    && 
 	 (mod->whichmodel != CUSTOM) && 
 	 (mod->whichmodel != HKY85)) mod->update_eigen = 0;
+
+
     }
   else if(mod->io->datatype == AA)
     { 
@@ -2476,7 +2478,8 @@ void Init_Model(calign *data, model *mod, option *io)
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
-
+  
+		  
   mod->alpha_old  = mod->alpha;
   mod->kappa_old  = mod->kappa;
   mod->lambda_old = mod->lambda;

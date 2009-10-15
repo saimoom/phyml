@@ -355,13 +355,13 @@ phydbl Lk(t_tree *tree)
       if(tree->data->wght[tree->curr_site] > MDBL_MIN) Lk_Core(tree->noeud[0]->b[0],tree);
     }
 
-  Qksort(tree->c_lnL_sorted,NULL,0,n_patterns-1);
+/*   Qksort(tree->c_lnL_sorted,NULL,0,n_patterns-1); */
 
-  tree->c_lnL = .0;
-  For(tree->curr_site,n_patterns)
-    {
-      tree->c_lnL += tree->c_lnL_sorted[tree->curr_site];
-    }
+/*   tree->c_lnL = .0; */
+/*   For(tree->curr_site,n_patterns) */
+/*     { */
+/*       tree->c_lnL += tree->c_lnL_sorted[tree->curr_site]; */
+/*     } */
 
 /*   tree->c_lnL += (phydbl)LOG2 * tree->sum_min_sum_scale; */
     
@@ -400,13 +400,13 @@ phydbl Lk_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
       if(tree->data->wght[tree->curr_site] > MDBL_MIN) Lk_Core(b_fcus,tree);
     }
 
-  Qksort(tree->c_lnL_sorted,NULL,0,n_patterns-1);
+/*   Qksort(tree->c_lnL_sorted,NULL,0,n_patterns-1); */
 
-  tree->c_lnL = .0;
-  For(tree->curr_site,n_patterns)
-    {
-      tree->c_lnL += tree->c_lnL_sorted[tree->curr_site];
-    }
+/*   tree->c_lnL = .0; */
+/*   For(tree->curr_site,n_patterns) */
+/*     { */
+/*       tree->c_lnL += tree->c_lnL_sorted[tree->curr_site]; */
+/*     } */
 
 /*   tree->c_lnL += (phydbl)LOG2 * tree->sum_min_sum_scale; */
 
@@ -909,6 +909,7 @@ matrix *ML_Dist(calign *data, model *mod)
   phydbl *F;
   eigen *eigen_struct;
 
+
   tmpdata         = (calign *)mCalloc(1,sizeof(calign));
   tmpdata->c_seq  = (align **)mCalloc(2,sizeof(align *));
   tmpdata->b_frq  = (phydbl *)mCalloc(mod->ns,sizeof(phydbl));
@@ -920,6 +921,7 @@ matrix *ML_Dist(calign *data, model *mod)
 
   tmpdata->crunch_len = data->crunch_len;
   tmpdata->init_len   = data->init_len;
+
 
   mat = NULL;
   if(mod->io->datatype == NT)
@@ -945,6 +947,7 @@ matrix *ML_Dist(calign *data, model *mod)
 
       for(k=j+1;k<data->n_otu;k++)
 	{
+
 	  tmpdata->c_seq[1]       = data->c_seq[k];
 	  tmpdata->c_seq[1]->name = data->c_seq[k]->name;
 
@@ -989,6 +992,7 @@ matrix *ML_Dist(calign *data, model *mod)
 	    }
 	  	  	  
 	  if(d_max >= DIST_MAX) d_max = DIST_MAX;
+	  
 	  
 	  /* Do not correct for dist < BL_MIN, otherwise Fill_Missing_Dist
 	   *  will not be called

@@ -168,6 +168,14 @@ void Launch_Interface(option *io)
 
   if(io->mod->n_catg == 1) io->mod->s_opt->opt_alpha = 0;
 
+  if(io->mod->whichmodel != K80 && 
+     io->mod->whichmodel != HKY85 && 
+     io->mod->whichmodel != F84 &&
+     io->mod->whichmodel != TN93)
+    {
+      io->mod->s_opt->opt_kappa = 0;
+    }
+
   io->fp_out_tree  = Openfile(io->out_tree_file,1);
   io->fp_out_stats = Openfile(io->out_stats_file,1);
 

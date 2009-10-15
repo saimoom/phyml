@@ -927,9 +927,11 @@ phydbl PointChi2 (phydbl prob, phydbl v)
        Chi2 distribution.  Applied Statistics 24: 385-388.  (AS91)
    Converted into C by Ziheng Yang, Oct. 1993.
 */
-   phydbl e=.5e-6, aa=.6931471805, p=prob, g;
+   phydbl aa=.6931471805, p=prob, g;
    phydbl xx, c, ch, a=0,q=0,p1=0,p2=0,t=0,x=0,b=0,s1,s2,s3,s4,s5,s6;
-
+   phydbl e=.5e-5;
+/*    phydbl e=.5e-6; */
+   
    if (p<.000002 || p>.999998 || v<=0) return (-1);
 
    g = LnGamma (v/2);
@@ -1282,6 +1284,7 @@ int DiscreteGamma (phydbl freqK[], phydbl rK[],
        for (i=0; i<K; i++)     rK[i]*=factor/t;
      }
    else {
+
       lnga1=LnGamma(alfa+1);
       for (i=0; i<K-1; i++)
 	 freqK[i]=PointGamma((i+1.0)/K, alfa, beta);
