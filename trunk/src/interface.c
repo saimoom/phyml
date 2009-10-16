@@ -1,7 +1,7 @@
 /*
 
-PhyML:  a program that  computes maximum likelihood phylogenies from
-DNA or AA homologous sequences.
+PhyML:  a program that  computes maximum likelihood phyLOGenies from
+DNA or AA homoLOGous sequences.
 
 Copyright (C) Stephane Guindon. Oct 2003 onward.
 
@@ -1365,7 +1365,7 @@ void Launch_Interface_Topo_Search(option *io)
   PhyML_Printf("\n");
 
   PhyML_Printf("                [O] "
-	 "........................... Optimise tree topology "
+	 "........................... Optimise tree topoLOGy "
 	 " %-15s \n",
 	 (io->mod->s_opt->opt_topo)?("yes"):("no"));
 
@@ -1415,7 +1415,7 @@ void Launch_Interface_Topo_Search(option *io)
 	}
 
       PhyML_Printf("                [S] "
-	     ".................. Tree topology search operations "
+	     ".................. Tree topoLOGy search operations "
 	     " %-15s \n",s);
 
       Free(s);

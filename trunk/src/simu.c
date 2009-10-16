@@ -1,7 +1,7 @@
 /*
 
-PHYML :  a program that  computes maximum likelihood  phylogenies from
-DNA or AA homologous sequences 
+PHYML :  a program that  computes maximum likelihood  phyLOGenies from
+DNA or AA homoLOGous sequences 
 
 Copyright (C) Stephane Guindon. Oct 2003 onward
 
@@ -72,7 +72,7 @@ int Simu(t_tree *tree, int n_step_max)
       
   if(tree->lock_topo)
     {
-      PhyML_Printf("\n. The tree topology is locked.");
+      PhyML_Printf("\n. The tree topoLOGy is locked.");
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
@@ -106,10 +106,10 @@ int Simu(t_tree *tree, int n_step_max)
 	  if(tree->io->print_site_lnl) Print_Site_Lk(tree,tree->io->fp_out_lk); fflush(tree->io->fp_out_lk);
 	}
 
-      if((tree->mod->s_opt->print) && (!tree->io->quiet)) Print_Lk(tree,"[Topology           ]");
+      if((tree->mod->s_opt->print) && (!tree->io->quiet)) Print_Lk(tree,"[TopoLOGy           ]");
       
-/*       if(((tree->c_lnL > old_loglk) && (fabs(old_loglk-tree->c_lnL) < tree->mod->s_opt->min_diff_lk_global)) || (n_without_swap > it_lim_without_swap)) break; */
-      if((fabs(old_loglk-tree->c_lnL) < tree->mod->s_opt->min_diff_lk_global) || (n_without_swap > it_lim_without_swap)) break;
+/*       if(((tree->c_lnL > old_loglk) && (FABS(old_loglk-tree->c_lnL) < tree->mod->s_opt->min_diff_lk_global)) || (n_without_swap > it_lim_without_swap)) break; */
+      if((FABS(old_loglk-tree->c_lnL) < tree->mod->s_opt->min_diff_lk_global) || (n_without_swap > it_lim_without_swap)) break;
       
       Fill_Dir_Table(tree);
       Fix_All(tree);
@@ -126,7 +126,7 @@ int Simu(t_tree *tree, int n_step_max)
       Update_Bl(tree,lambda);
 	  	        
       n_tested = 0;
-      For(i,(int)ceil((phydbl)n_neg*(lambda)))
+      For(i,(int)CEIL((phydbl)n_neg*(lambda)))
 	tested_b[n_tested++] = sorted_b[i];
       
       Make_N_Swap(tree,tested_b,0,n_tested);
@@ -192,12 +192,12 @@ void Simu_Pars(t_tree *tree, int n_step_max)
 	}
       
 
-      if(fabs(old_pars - tree->c_pars) < MDBL_MIN) break;
+      if(FABS(old_pars - tree->c_pars) < MDBL_MIN) break;
 	      
       if((tree->c_pars > old_pars) && (step > 1))
 	{
 	  if((tree->mod->s_opt->print) && (!tree->io->quiet))
-	    PhyML_Printf("\n\n. Moving backward (topology) \n");
+	    PhyML_Printf("\n\n. Moving backward (topoLOGy) \n");
 	  if(!Mov_Backward_Topo_Pars(tree,old_pars,tested_b,n_tested))
 	    Exit("\n. Err: mov_back failed\n");
 	  if(!tree->n_swap) n_neg = 0;
@@ -221,7 +221,7 @@ void Simu_Pars(t_tree *tree, int n_step_max)
 	  Sort_Edges_NNI_Score(tree,sorted_b,n_neg);	    
 	  
 	  n_tested = 0;
-	  For(i,(int)ceil((phydbl)n_neg*(lambda)))
+	  For(i,(int)CEIL((phydbl)n_neg*(lambda)))
 	    tested_b[n_tested++] = sorted_b[i];
 	  
 	  Make_N_Swap(tree,tested_b,0,n_tested);
@@ -291,7 +291,7 @@ void Make_N_Swap(t_tree *tree,t_edge **b, int beg, int end)
   tree->n_swap = 0;
   for(i=beg;i<end;i++)
     {
-      /* we use t_dir here to take into account previous modifications of the topology */
+      /* we use t_dir here to take into account previous modifications of the topoLOGy */
       Swap(b[i]->nni->swap_node_v2->v[tree->t_dir[b[i]->nni->swap_node_v2->num][b[i]->nni->swap_node_v1->num]],
 	   b[i]->nni->swap_node_v2,
 	   b[i]->nni->swap_node_v3,
@@ -379,11 +379,11 @@ int Mov_Backward_Topo_Bl(t_tree *tree, phydbl lk_old, t_edge **tested_b, int n_t
 	  b->l = b->l_old + (1./step) * (l_init[i] - b->l_old);
 	}
 
-      beg = (int)floor((phydbl)n_tested/(step-1));
+      beg = (int)FLOOR((phydbl)n_tested/(step-1));
       end = 0;
       Unswap_N_Branch(tree,tested_b,beg,end);
       beg = 0;
-      end = (int)floor((phydbl)n_tested/step);
+      end = (int)FLOOR((phydbl)n_tested/step);
       Swap_N_Branch(tree,tested_b,beg,end);
       
       if(!end) tree->n_swap = 0;
@@ -436,11 +436,11 @@ int Mov_Backward_Topo_Pars(t_tree *tree, int pars_old, t_edge **tested_b, int n_
   tree->both_sides = 0;
   do
     {
-      beg = (int)floor((phydbl)n_tested/(step-1));
+      beg = (int)FLOOR((phydbl)n_tested/(step-1));
       end = 0;
       Unswap_N_Branch(tree,tested_b,beg,end);
       beg = 0;
-      end = (int)floor((phydbl)n_tested/step);
+      end = (int)FLOOR((phydbl)n_tested/step);
       Swap_N_Branch(tree,tested_b,beg,end);
       
       if(!end) tree->n_swap = 0;

@@ -1,7 +1,7 @@
 /*
 
-PhyML:  a program that  computes maximum likelihood phylogenies from
-DNA or AA homologous sequences.
+PhyML:  a program that  computes maximum likelihood phyLOGenies from
+DNA or AA homoLOGous sequences.
 
 Copyright (C) Stephane Guindon. Oct 2003 onward.
 
@@ -313,7 +313,7 @@ fflush(stdout);
   if (Global_myRank == 0)
     if(((bootRecv)%20)) PhyML_Printf("] %4d/%4d\n ",bootRecv,tree->mod->bootstrap);
 
-  tree->lock_topo = 1; /* Topology should not be modified afterwards */
+  tree->lock_topo = 1; /* TopoLOGy should not be modified afterwards */
 
   if(tree->io->print_boot_trees)
     {
@@ -383,7 +383,7 @@ void Print_Fp_Out_Lines_MPI(t_tree *tree, option *io, int n_data_set, char *boot
 
     strncat (s, "taxa\t", T_MAX_LINE);
 
-    strncat (s, "loglk     \t", T_MAX_LINE);
+    strncat (s, "LOGlk     \t", T_MAX_LINE);
 
     strncat (s, "gamma model\t", T_MAX_LINE);
 

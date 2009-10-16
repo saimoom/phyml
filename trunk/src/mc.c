@@ -1,7 +1,7 @@
 /*
 
-PhyML:  a program that  computes maximum likelihood phylogenies from
-DNA or AA homologous sequences.
+PhyML:  a program that  computes maximum likelihood phyLOGenies from
+DNA or AA homoLOGous sequences.
 
 Copyright (C) Stephane Guindon. Oct 2003 onward.
 
@@ -412,7 +412,7 @@ int MC_main(int argc, char **argv)
     }
 
 
-  if(io->mod->s_opt->n_rand_starts > 1) PhyML_Printf("\n\n. Best log likelihood : %f\n",best_lnL);
+  if(io->mod->s_opt->n_rand_starts > 1) PhyML_Printf("\n\n. Best LOG likelihood : %f\n",best_lnL);
 
   Free_Model(mod);
 
@@ -505,10 +505,10 @@ void MC_Least_Square_Node_Times(t_edge *e_root, t_tree *tree)
   For(i,2*tree->n_otu-3)
     if(tree->t_edges[i] != tree->e_root)
       time_tree_length +=
-	fabs(tree->rates->nd_t[tree->t_edges[i]->left->num] -
+	FABS(tree->rates->nd_t[tree->t_edges[i]->left->num] -
 	     tree->rates->nd_t[tree->t_edges[i]->rght->num]);
-  time_tree_length += fabs(tree->rates->nd_t[root->num] - tree->rates->nd_t[root->v[0]->num]);
-  time_tree_length += fabs(tree->rates->nd_t[root->num] - tree->rates->nd_t[root->v[1]->num]);
+  time_tree_length += FABS(tree->rates->nd_t[root->num] - tree->rates->nd_t[root->v[0]->num]);
+  time_tree_length += FABS(tree->rates->nd_t[root->num] - tree->rates->nd_t[root->v[1]->num]);
   
   tree_length = 0.0;
   For(i,2*tree->n_otu-3) tree_length += tree->t_edges[i]->l;
@@ -557,7 +557,7 @@ void MC_Least_Square_Node_Times_Pre(t_node *a, t_node *d, phydbl *A, phydbl *b, 
 /*********************************************************/
 
 /* Adjust t_node times in order to have correct time stamp ranking with
- respect to the tree topology */
+ respect to the tree topoLOGy */
 
 void MC_Adjust_Node_Times(t_tree *tree)
 {
@@ -616,8 +616,8 @@ void MC_Adjust_Node_Times_Pre(t_node *a, t_node *d, t_tree *tree)
 void MC_Mult_Time_Stamps(t_tree *tree)
 {
   int i;
-  For(i,2*tree->n_otu-2) tree->rates->nd_t[tree->noeud[i]->num] *= fabs(tree->mod->s_opt->tree_size_mult);
-  tree->rates->nd_t[tree->n_root->num] *= fabs(tree->mod->s_opt->tree_size_mult);
+  For(i,2*tree->n_otu-2) tree->rates->nd_t[tree->noeud[i]->num] *= FABS(tree->mod->s_opt->tree_size_mult);
+  tree->rates->nd_t[tree->n_root->num] *= FABS(tree->mod->s_opt->tree_size_mult);
 }
 
 /*********************************************************/
@@ -628,8 +628,8 @@ void MC_Mult_Time_Stamps(t_tree *tree)
 void MC_Div_Time_Stamps(t_tree *tree)
 {
   int i;
-  For(i,2*tree->n_otu-2) tree->rates->nd_t[tree->noeud[i]->num] /= fabs(tree->mod->s_opt->tree_size_mult);
-  tree->rates->nd_t[tree->n_root->num] /= fabs(tree->mod->s_opt->tree_size_mult);
+  For(i,2*tree->n_otu-2) tree->rates->nd_t[tree->noeud[i]->num] /= FABS(tree->mod->s_opt->tree_size_mult);
+  tree->rates->nd_t[tree->n_root->num] /= FABS(tree->mod->s_opt->tree_size_mult);
 }
 
 /*********************************************************/
@@ -784,20 +784,20 @@ void MC_Compute_Rates_And_Times_Least_Square_Adjustments_Post(t_node *a, t_node 
       else
 	{
 	  K = 
-	    (pow(mu2,2)*t2)/(pow(t1-t2,2)) +
-	    (pow(mu1,2)*t0)/(pow(t0-t1,2)) +
-	    (pow(mu3,2)*t3)/(pow(t1-t3,2)) +
-	    (pow(mu1,2)*t0)/(pow(t0-t1,2)) +
+	    (POW(mu2,2)*t2)/(POW(t1-t2,2)) +
+	    (POW(mu1,2)*t0)/(POW(t0-t1,2)) +
+	    (POW(mu3,2)*t3)/(POW(t1-t3,2)) +
+	    (POW(mu1,2)*t0)/(POW(t0-t1,2)) +
 	    mu2 * mu1 * (t0 + t2) / ((t1-t2)*(t0-t1)) +
 	    mu3 * mu1 * (t0 + t3) / ((t1-t3)*(t0-t1)) ;
 
 	  K /= 
 	    t1 *
 	    (
-	    (pow(mu2,2))/(pow(t1-t2,2))  +
-	    (pow(mu1,2))/(pow(t0-t1,2))  +
-	    (pow(mu3,2))/(pow(t1-t3,2))  +
-	    (pow(mu1,2))/(pow(t0-t1,2))  +
+	    (POW(mu2,2))/(POW(t1-t2,2))  +
+	    (POW(mu1,2))/(POW(t0-t1,2))  +
+	    (POW(mu3,2))/(POW(t1-t3,2))  +
+	    (POW(mu1,2))/(POW(t0-t1,2))  +
 	    2.*mu2*mu1/((t1-t2)*(t0-t1)) +
 	    2.*mu3*mu1/((t1-t3)*(t0-t1)) 
 	    );
@@ -825,7 +825,7 @@ int MC_Check_MC(t_tree *tree)
   
   For(i,tree->n_otu)
     {
-      if(fabs(tree->noeud[i]->dist_to_root - dist) > eps)
+      if(FABS(tree->noeud[i]->dist_to_root - dist) > eps)
 	{
 	  return 0;
 	}

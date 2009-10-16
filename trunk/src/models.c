@@ -1,7 +1,7 @@
 /*
 
-PHYML :  a program that  computes maximum likelihood  phylogenies from
-DNA or AA homologous sequences 
+PHYML :  a program that  computes maximum likelihood  phyLOGenies from
+DNA or AA homoLOGous sequences 
 
 Copyright (C) Stephane Guindon. Oct 2003 onward
 
@@ -22,11 +22,11 @@ void PMat_JC69(phydbl l, int pos, phydbl *Pij, model *mod)
 
   ns = mod->ns;
 
-  For(i,ns) Pij[pos+ ns*i+i] = 1. - ((ns - 1.)/ns)*(1. - exp(-ns*l/(ns - 1.)));
+  For(i,ns) Pij[pos+ ns*i+i] = 1. - ((ns - 1.)/ns)*(1. - EXP(-ns*l/(ns - 1.)));
   For(i,ns-1) 
     for(j=i+1;j<ns;j++) 
       {
-	Pij[pos+ ns*i+j] = (1./ns)*(1. - exp(-ns*l/(ns - 1.)));
+	Pij[pos+ ns*i+j] = (1./ns)*(1. - EXP(-ns*l/(ns - 1.)));
 	if(Pij[pos+ns*i+j] < 1.E-10) Pij[pos+ns*i+j] = 1.E-10;
 	Pij[pos+ ns*j+i] = Pij[pos+ ns*i+j];
       }
@@ -47,9 +47,9 @@ void PMat_K80(phydbl l, phydbl kappa, int pos, phydbl *Pij)
   /* Tv -> transversion*/
 
   aux = -2*l/(kappa+2);
-  e1 = (phydbl)exp(aux *2);
+  e1 = (phydbl)EXP(aux *2);
  
-  e2 = (phydbl)exp(aux *(kappa+1));
+  e2 = (phydbl)EXP(aux *(kappa+1));
   Tv = .25*(1-e1);
   Ts = .25*(1+e1-2*e2);
 
@@ -121,9 +121,9 @@ void PMat_TN93(phydbl l, model *mod, int pos, phydbl *Pij)
   a2t = kappa2;
   a1t*=bt; a2t*=bt;
 
-  e1 = (phydbl)exp(-a1t*R-bt*Y);
-  e2 = (phydbl)exp(-a2t*Y-bt*R);
-  e3 = (phydbl)exp(-bt);
+  e1 = (phydbl)EXP(-a1t*R-bt*Y);
+  e2 = (phydbl)EXP(-a2t*Y-bt*R);
+  e3 = (phydbl)EXP(-bt);
 
 
   /*A->A*/Pij[pos + 4*0+0] = A+Y*A/R*e3+G/R*e1; 
@@ -189,7 +189,7 @@ void PMat_TN93(phydbl l, model *mod, int pos, phydbl *Pij)
 /* ouput : Pij , substitution probability matrix                    */
 /*                                                                  */
 /* matrix P(l) is computed as follows :                             */
-/* P(l) = exp(Q*t) , where :                                        */
+/* P(l) = EXP(Q*t) , where :                                        */
 /*                                                                  */
 /*   Q = substitution rate matrix = Vr*D*inverse(Vr) , where :      */
 /*                                                                  */
@@ -205,14 +205,14 @@ void PMat_TN93(phydbl l, model *mod, int pos, phydbl *Pij)
 /*       p(i->j) = subst. probability from i to a different state   */
 /*               = -Q[ii] , as sum(j)(Q[ij]) +Q[ii] =0              */
 /*                                                                  */
-/* the Taylor development of exp(Q*t) gives :                       */
-/* P(l) = Vr*exp(D*t)        *inverse(Vr)                           */
-/*      = Vr*pow(exp(D/mr),l)*inverse(Vr)                           */
+/* the Taylor development of EXP(Q*t) gives :                       */
+/* P(l) = Vr*EXP(D*t)        *inverse(Vr)                           */
+/*      = Vr*POW(EXP(D/mr),l)*inverse(Vr)                           */
 /*                                                                  */
 /* for performance we compute only once the following matrixes :    */
-/* Vr, inverse(Vr), exp(D/mr)                                       */
+/* Vr, inverse(Vr), EXP(D/mr)                                       */
 /* thus each time we compute P(l) we only have to :                 */
-/* make 20 times the operation pow()                                */
+/* make 20 times the operation POW()                                */
 /* make 2 20x20 matrix multiplications , that is :                  */
 /*   16000 = 2x20x20x20 times the operation *                       */
 /*   16000 = 2x20x20x20 times the operation +                       */
@@ -237,10 +237,10 @@ void PMat_Empirical(phydbl l, model *mod, int pos, phydbl *Pij)
 
   For(i,n) For(k,n) Pij[pos+mod->ns*i+k] = .0;
 
-  /* compute pow(exp(D/mr),l) into mat_eDmrl */
-  For(k,n) expt[k] = (phydbl)pow(R[k],l);
+  /* compute POW(EXP(D/mr),l) into mat_eDmrl */
+  For(k,n) expt[k] = (phydbl)POW(R[k],l);
   
-  /* multiply Vr*pow(exp(D/mr),l)*Vi into Pij */
+  /* multiply Vr*POW(EXP(D/mr),l)*Vi into Pij */
   For (i,n) For (k,n) uexpt[i*n+k] = U[i*n+k] * expt[k];
 
   For (i,n) 
@@ -325,8 +325,8 @@ void PMat_Gamma(phydbl l, model *mod, int pos, phydbl *Pij)
       Warn_And_Exit("");
     }
 
-  /* Formula 13.42, page 220 of Felsenstein's book ``Inferring Phylogenies'' */ 
-  For(k,n) expt[k] = pow(shape/(shape-log(R[k])*l),shape);
+  /* Formula 13.42, page 220 of Felsenstein's book ``Inferring PhyLOGenies'' */ 
+  For(k,n) expt[k] = POW(shape/(shape-LOG(R[k])*l),shape);
 
   /* multiply Vr*expt*Vi into Pij */
   For(i,n) For(k,n) uexpt[i*n+k] = U[i*n+k] * expt[k];
@@ -397,7 +397,7 @@ void PMat_Zero_Br_Len(model  *mod, int pos, phydbl *Pij)
 
 void PMat(phydbl l, model *mod, int pos, phydbl *Pij)
 {
-  if(l < BL_MIN-pow(2,-27))
+  if(l < BL_MIN-POW(2,-27))
     {
       PMat_Zero_Br_Len(mod,pos,Pij);
     }
@@ -493,7 +493,7 @@ int GetDaa (phydbl *daa, phydbl *pi, char *file_name)
      }
    sum = 0.0;
    For(i, naa) sum += pi[i];
-   if (fabs(1-sum)>1e-4) {
+   if (FABS(1-sum)>1e-4) {
      PhyML_Printf("\nSum of freq. = %.6f != 1 in aaRateFile\n",sum); 
      exit(-1);
    }
@@ -943,7 +943,7 @@ int Init_Qmat_MtArt(phydbl *daa, phydbl *pi) // Added by Federico Abascal
             Apis mellifera                [NCBI_TaxID 7469]      
             Anopheles gambiae             [NCBI_TaxID 7165]      
               
-       The topology used for inferring the model was:
+       The topoLOGy used for inferring the model was:
             (((Daph_pulex,Trio_longi),((((((Aleu_aceri,Aleu_duges),Schi_grami),lepi_RS_20),
             ((((Ostr_furna,Bomb_manda),(Dros_yakub,Anop_gambi)),Apis_melli),Trib_casta)),
             ((Gryl_orien,Locu_migra),(Pter_princ,Peri_fulig))),(Tric_gerts,Ther_domes)),
@@ -951,8 +951,8 @@ int Init_Qmat_MtArt(phydbl *daa, phydbl *pi) // Added by Federico Abascal
             (Habr_orego,Hept_hangz)),Limu_polyp),(Poll_polym,Mega_volca),(Gomp_hodgs,Tetr_biela),
             ((Pagu_longi,Pena_monod),Harp_harpa),Spel_tulum));
             
-            Note this is not the ML topology but the consensus one (based on morphological data, 
-            phylogenetic reconstruction using nuclear genes, etc). Where relationships are
+            Note this is not the ML topoLOGy but the consensus one (based on morphoLOGical data, 
+            phyLOGenetic reconstruction using nuclear genes, etc). Where relationships are
             not clear, a polytomy was introduced (it contains quite a lot of polytomies!).
        
        The model was estimated using (the great and helpful) Ziheng Yang's Paml software package.
@@ -1014,7 +1014,7 @@ int Init_Qmat_MtArt(phydbl *daa, phydbl *pi) // Added by Federico Abascal
     daa[19*20+ 13] = 51.9;  daa[19*20+ 14] = 31.7;  daa[19*20+ 15] = 60.6;  daa[19*20+ 16] = 544.1;
     daa[19*20+ 17] = 0.2;   daa[19*20+ 18] = 1.6;
         
-/*  MtArt.old: esta es la MtArt que hice con 26 secuencias (2 outgroups) con una topologia incorrecta
+/*  MtArt.old: esta es la MtArt que hice con 26 secuencias (2 outgroups) con una topoLOGia incorrecta
     daa[1*20+ 0] = 0.2;     daa[2*20+ 0] = 0.2;     daa[2*20+ 1] = 8.0;     daa[3*20+ 0] = 0.2;
     daa[3*20+ 1] = 0.2;     daa[3*20+ 2] = 441.7;   daa[4*20+ 0] = 287.9;   daa[4*20+ 1] = 48.4;
     daa[4*20+ 2] = 82.4;    daa[4*20+ 3] = 0.2;     daa[5*20+ 0] = 0.2;     daa[5*20+ 1] = 149.9;
@@ -1769,7 +1769,7 @@ int Init_Qmat_RtREV(phydbl *daa, phydbl *pi)
     /* 
     Dimmic M.W., J.S. Rest, D.P. Mindell, and D. Goldstein. 2002. RArtREV:
     An amino acid substitution matrix for inference of retrovirus and
-    reverse transcriptase phylogeny. Journal of Molecular Evolution
+    reverse transcriptase phyLOGeny. Journal of Molecular Evolution
     55: 65-73.
     */
 
@@ -1846,7 +1846,7 @@ int Init_Qmat_CpREV(phydbl *daa, phydbl *pi)
 
     /*
       Adachi, J., P. Waddell, W. Martin, and M. Hasegawa. 2000. Plastid          
-      genome phylogeny and a model of amino acid substitution for proteins    
+      genome phyLOGeny and a model of amino acid substitution for proteins    
       encoded by chloroplast DNA. Journal of Molecular Evolution              
       50:348-358.
     */
@@ -1924,7 +1924,7 @@ int Init_Qmat_VT(phydbl *daa, phydbl *pi)
 
     /*
       Muller, T., and M. Vingron. 2000. Modeling amino acid replacement.         
-      Journal of Computational Biology 7:761-776.                             
+      Journal of Computational BioLOGy 7:761-776.                             
     */
 
     int i,j,naa;
@@ -2079,7 +2079,7 @@ int Init_Qmat_MtMam(phydbl *daa, phydbl *pi)
 
     /*
       Cao, Y. et al. 1998 Conflict amongst individual mitochondrial 
-      proteins in resolving the phylogeny of eutherian orders. Journal 
+      proteins in resolving the phyLOGeny of eutherian orders. Journal 
       of Molecular Evolution 15:1600-1611.
     */
 
@@ -2453,8 +2453,8 @@ void Init_Model(calign *data, model *mod, option *io)
 	      Exit("\n");      
 	    }
 	  
-	  /* compute the diagonal terms of exp(D) */
-	  For(i,mod->ns) mod->eigen->e_val[i] = (phydbl)exp(mod->eigen->e_val[i]);
+	  /* compute the diagonal terms of EXP(D) */
+	  For(i,mod->ns) mod->eigen->e_val[i] = (phydbl)EXP(mod->eigen->e_val[i]);
 	}
       else
 	{
@@ -2520,7 +2520,7 @@ void Update_Qmat_Generic(phydbl *rr, phydbl *pi, int ns, phydbl *qmat)
       for(j=i+1;j<ns;j++)
 	{
 	  qmat[i*ns+j] = rr[MIN(i,j) * ns + MAX(i,j) -
-			    (MIN(i,j)+1+(int)pow(MIN(i,j)+1,2))/2];
+			    (MIN(i,j)+1+(int)POW(MIN(i,j)+1,2))/2];
 	  qmat[j*ns+i] = qmat[i*ns+j];
 	}
     }
@@ -2678,8 +2678,8 @@ void Set_Model_Parameters(model *mod)
   if((mod->io->datatype == NT) && (mod->s_opt->opt_state_freq))
     {
       sum = .0;
-      For(i,mod->ns) sum += fabs(mod->pi_unscaled[i]);
-      For(i,mod->ns) mod->pi[i] = fabs(mod->pi_unscaled[i])/sum;
+      For(i,mod->ns) sum += FABS(mod->pi_unscaled[i]);
+      For(i,mod->ns) mod->pi[i] = FABS(mod->pi_unscaled[i])/sum;
       
       do
 	{
@@ -2755,8 +2755,8 @@ void Set_Model_Parameters(model *mod)
 	    };
 	  For(i,mod->eigen->size) mod->eigen->e_val[i] /= scalar;
 
-	  /* compute the diagonal terms of exp(D) */
-	  For(i,mod->ns) mod->eigen->e_val[i] = (phydbl)exp(mod->eigen->e_val[i]);
+	  /* compute the diagonal terms of EXP(D) */
+	  For(i,mod->ns) mod->eigen->e_val[i] = (phydbl)EXP(mod->eigen->e_val[i]);
 	}
       else
 	{
@@ -2849,14 +2849,14 @@ phydbl General_Dist(phydbl *F, model *mod, eigen *eigen_struct)
       return -1.;
     }
 
-  /* log of eigen values */
+  /* LOG of eigen values */
   For(i,eigen_struct->size) 
     {
 /*       if(eigen_struct->e_val[i] < 0.0) eigen_struct->e_val[i] = 0.0001; */
-      eigen_struct->e_val[i] = (phydbl)log(eigen_struct->e_val[i]);
+      eigen_struct->e_val[i] = (phydbl)LOG(eigen_struct->e_val[i]);
      }
   
-  /* Matrix multiplications log(pi^{-1} x F) */
+  /* Matrix multiplications LOG(pi^{-1} x F) */
   For(i,eigen_struct->size) For(j,eigen_struct->size)
     eigen_struct->r_e_vect[eigen_struct->size*i+j] = 
     eigen_struct->r_e_vect[eigen_struct->size*i+j] * 
@@ -2951,12 +2951,12 @@ phydbl GTR_Dist(phydbl *F, phydbl alpha, eigen *eigen_struct)
 	  eigen_struct->e_val[i] = 0.0001;
 	}
       if(alpha < .0)
-	eigen_struct->e_val[i] = (phydbl)log(eigen_struct->e_val[i]);
+	eigen_struct->e_val[i] = (phydbl)LOG(eigen_struct->e_val[i]);
       else
-	eigen_struct->e_val[i] = alpha * (1. - (phydbl)pow(eigen_struct->e_val[i],-1./alpha));
+	eigen_struct->e_val[i] = alpha * (1. - (phydbl)POW(eigen_struct->e_val[i],-1./alpha));
      }
   
-  /* Matrix multiplications pi x log(pi^{-1} x F) */
+  /* Matrix multiplications pi x LOG(pi^{-1} x F) */
   For(i,eigen_struct->size) For(j,eigen_struct->size)
     eigen_struct->r_e_vect[eigen_struct->size*i+j] = 
     eigen_struct->r_e_vect[eigen_struct->size*i+j] * eigen_struct->e_val[j];

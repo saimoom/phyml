@@ -1,7 +1,7 @@
 /*
 
-PhyML:  a program that  computes maximum likelihood phylogenies from
-DNA or AA homologous sequences.
+PhyML:  a program that  computes maximum likelihood phyLOGenies from
+DNA or AA homoLOGous sequences.
 
 Copyright (C) Stephane Guindon. Oct 2003 onward.
 
@@ -252,7 +252,7 @@ int main(int argc, char **argv)
   
   if(most_likely_tree) Free(most_likely_tree);
 
-  if(mod->s_opt->n_rand_starts > 1) PhyML_Printf("\n. Best log likelihood: %f\n",best_lnL);
+  if(mod->s_opt->n_rand_starts > 1) PhyML_Printf("\n. Best LOG likelihood: %f\n",best_lnL);
 
   Free_Optimiz(mod->s_opt);
   Free_Model_Basic(mod);

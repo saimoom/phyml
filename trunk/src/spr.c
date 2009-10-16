@@ -1,7 +1,7 @@
 /*
 
-PhyML:  a program that  computes maximum likelihood phylogenies from
-DNA or AA homologous sequences.
+PhyML:  a program that  computes maximum likelihood phyLOGenies from
+DNA or AA homoLOGous sequences.
 
 Copyright (C) Stephane Guindon. Oct 2003 onward.
 
@@ -384,7 +384,7 @@ void Optim_SPR (t_tree *tree, int max_size, int method)
   tree->both_sides = 1;
   cur_lk = Lk (tree);
   time(&(tree->t_current));
-  if(tree->mod->s_opt->print) Print_Lk(tree,"topology");
+  if(tree->mod->s_opt->print) Print_Lk(tree,"topoLOGy");
 
   /*
   ** Optimize all t_edge lengths and calculate the new likelihood value.
@@ -395,7 +395,7 @@ void Optim_SPR (t_tree *tree, int max_size, int method)
   tree->both_sides = 1;
   cur_lk = Lk (tree);
   time(&(tree->t_current));
-  if(tree->mod->s_opt->print) Print_Lk(tree,"topology");
+  if(tree->mod->s_opt->print) Print_Lk(tree,"topoLOGy");
 
   /*
   ** While improvements were found, perform another round of SPR moves.
@@ -626,7 +626,7 @@ int Perform_SPR_Moves (t_tree *tree, int max_size)
   tree->both_sides = 1;
   cur_lk = Lk (tree);
   time(&(tree->t_current));
-  if(tree->mod->s_opt->print) Print_Lk(tree,"topology");
+  if(tree->mod->s_opt->print) Print_Lk(tree,"topoLOGy");
 
   /*
   ** Return the result.
@@ -785,7 +785,7 @@ int Perform_Best_SPR (t_tree *tree, int max_size)
   tree->both_sides = 1;
   cur_lk = Lk (tree);
   time(&(tree->t_current));
-  if(tree->mod->s_opt->print) Print_Lk(tree,"topology");
+  if(tree->mod->s_opt->print) Print_Lk(tree,"topoLOGy");
 
   /*
   ** Return the result.
@@ -964,7 +964,7 @@ int Perform_One_SPR(t_tree *tree, int max_size)
   tree->both_sides = 1;
   cur_lk = Lk (tree);
   time(&(tree->t_current));
-  if(tree->mod->s_opt->print) Print_Lk(tree,"topology");
+  if(tree->mod->s_opt->print) Print_Lk(tree,"topoLOGy");
 
   /*
   ** Return the result.
@@ -1472,7 +1472,7 @@ int Est_Lk_Change (t_edge *e_prune, t_node *v_prune, t_tree *tree)
     /*
     ** If there are no more candidates, bail out...
     */
-    if (fabs(rgrft_cand[cand]->d_L - 1.0*BIG) < MDBL_MIN)
+    if (FABS(rgrft_cand[cand]->d_L - 1.0*BIG) < MDBL_MIN)
     {
       break;
     }
@@ -2035,7 +2035,7 @@ int Best_Lk_Change (t_edge *e_prune, t_node *v_prune, t_tree *tree)
     /*
     ** If there are no more candidates, bail out...
     */
-    if (fabs(rgrft_cand[cand]->d_L - 1.0*BIG) < MDBL_MIN)
+    if (FABS(rgrft_cand[cand]->d_L - 1.0*BIG) < MDBL_MIN)
     {
       break;
     }
@@ -3150,7 +3150,7 @@ void Randomize_Spr_List(t_tree *tree)
 
   For(i,tree->size_spr_list)
     {
-      j = (int)floor(rand()/(RAND_MAX+1.)*tree->size_spr_list);
+      j = (int)FLOOR(rand()/(RAND_MAX+1.)*tree->size_spr_list);
       buff              = tree->spr_list[i];
       tree->spr_list[i] = tree->spr_list[j];
       tree->spr_list[j] = buff;
@@ -3553,7 +3553,7 @@ void Speed_Spr_Loop(t_tree *tree)
       lk_old = tree->c_lnL;
       Speed_Spr(tree,1);
       if(tree->n_improvements) Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
-      if((!tree->n_improvements) || (fabs(lk_old-tree->c_lnL) < 1.)) break;
+      if((!tree->n_improvements) || (FABS(lk_old-tree->c_lnL) < 1.)) break;
     }
   while(1);
   /*****************************/
@@ -3569,7 +3569,7 @@ void Speed_Spr_Loop(t_tree *tree)
 	  lk_old = tree->c_lnL;
 	  Speed_Spr(tree,1);
 	  if(tree->n_improvements) Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
-	  if((!tree->n_improvements) || (fabs(lk_old-tree->c_lnL) < 1.)) break;
+	  if((!tree->n_improvements) || (FABS(lk_old-tree->c_lnL) < 1.)) break;
 	}
       while(1);
     }
@@ -3583,7 +3583,7 @@ void Speed_Spr_Loop(t_tree *tree)
       Simu(tree,10);
       Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
     }
-  while(fabs(lk_old - tree->c_lnL) > tree->mod->s_opt->min_diff_lk_global);
+  while(FABS(lk_old - tree->c_lnL) > tree->mod->s_opt->min_diff_lk_global);
   /*****************************/
 
   /*****************************/
@@ -3605,7 +3605,7 @@ void Speed_Spr(t_tree *tree, int max_cycles)
 
   if(tree->lock_topo)
     {
-      PhyML_Printf("\n. The tree topology is locked.");
+      PhyML_Printf("\n. The tree topoLOGy is locked.");
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
@@ -3649,7 +3649,7 @@ void Speed_Spr(t_tree *tree, int max_cycles)
 	  tree->both_sides = 1;
 	  Lk(tree);
 
-	  /* Print log-likelihood and parsimony scores */
+	  /* Print LOG-likelihood and parsimony scores */
 	  if((tree->mod->s_opt->print) && (!tree->io->quiet)) Print_Lk(tree,"[Branch lengths     ]");
 	}
       else
@@ -3666,7 +3666,7 @@ void Speed_Spr(t_tree *tree, int max_cycles)
 	}
 
 
-      /* Record the current best log-likelihood and parsimony */
+      /* Record the current best LOG-likelihood and parsimony */
       tree->best_lnL  = tree->c_lnL;
       tree->best_pars = tree->c_pars;
 
@@ -3694,8 +3694,8 @@ void Speed_Spr(t_tree *tree, int max_cycles)
 
       /* Exit if no improvements after complete optimization */      
       if(step+1 > max_cycles) break;
-      if((!tree->mod->s_opt->spr_pars) && (fabs(old_lnL-tree->c_lnL) < tree->mod->s_opt->min_diff_lk_global)) break;
-/*       if(( tree->mod->s_opt->spr_pars) && (fabs(old_pars-tree->c_pars) < 1.)) break; */
+      if((!tree->mod->s_opt->spr_pars) && (FABS(old_lnL-tree->c_lnL) < tree->mod->s_opt->min_diff_lk_global)) break;
+/*       if(( tree->mod->s_opt->spr_pars) && (FABS(old_pars-tree->c_pars) < 1.)) break; */
       if(!tree->n_improvements) break;
 
     }while(1);
@@ -3972,7 +3972,7 @@ int Try_One_Spr_Move_Triple(spr *move, t_tree *tree)
       Lk(tree);
       Pars(tree);
 
-      if(fabs(tree->c_lnL - move->lnL) > tree->mod->s_opt->min_diff_lk_move)
+      if(FABS(tree->c_lnL - move->lnL) > tree->mod->s_opt->min_diff_lk_move)
 	{
 	  if(tree->mod->s_opt->print) PhyML_Printf("\n. c_lnL = %f move_lnL = %f\n",
 						   tree->c_lnL,move->lnL);
@@ -4045,7 +4045,7 @@ int Try_One_Spr_Move_Full(spr *move, t_tree *tree)
   if(tree->c_lnL > tree->best_lnL + tree->mod->s_opt->min_diff_lk_move)
     {
       Pars(tree);
-      if((tree->mod->s_opt->print) && (!tree->io->quiet)) Print_Lk(tree,"[Topology           ]");
+      if((tree->mod->s_opt->print) && (!tree->io->quiet)) Print_Lk(tree,"[TopoLOGy           ]");
       tree->n_improvements++;
       tree->best_lnL = tree->c_lnL;
       Record_Br_Len(NULL,tree);

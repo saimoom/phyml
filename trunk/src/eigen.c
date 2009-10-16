@@ -46,7 +46,7 @@ int Eigen(int job, phydbl *A, int n, phydbl *rr, phydbl *ri,
    phydbl w[n*2]: work space
 */
     int low,hi,i,j,k, it, istate=0;
-    phydbl tiny=sqrt(pow((phydbl)BASE,(phydbl)(1-(int)DIGITS))), t; 
+    phydbl tiny=SQRT(POW((phydbl)BASE,(phydbl)(1-(int)DIGITS))), t; 
 
 
     balance(A,n,&low,&hi,work);
@@ -64,7 +64,7 @@ int Eigen(int job, phydbl *A, int n, phydbl *rr, phydbl *ri,
           t=vr[k*n+it];  vr[k*n+it]=vr[k*n+i];  vr[k*n+i]=t;
           t=vi[k*n+it];  vi[k*n+it]=vi[k*n+i];  vi[k*n+i]=t;
        }
-       if (fabs(ri[i])>tiny) istate=1;
+       if (FABS(ri[i])>tiny) istate=1;
    }
 
     return (istate) ;
@@ -88,7 +88,6 @@ complex _conj (complex a)
     return(a);
 }
 
-#define csize(a) (fabs(a.re)+fabs(a.im))
 
 complex cplus (complex a, complex b)
 {
@@ -119,7 +118,7 @@ complex cdiv (complex a,complex b)
     phydbl ratio, den;
     complex c;
 
-    if (fabs(b.re) <= fabs(b.im)) {
+    if (FABS(b.re) <= FABS(b.im)) {
         ratio = b.re / b.im;
         den = b.im * (1 + ratio * ratio);
         c.re = (a.re * ratio + a.im) / den;
@@ -137,8 +136,8 @@ complex cdiv (complex a,complex b)
 /* complex local_cexp (complex a) */
 /* { */
 /*    complex c; */
-/*    c.re = exp(a.re); */
-/*    if (fabs(a.im)==0) c.im = 0;  */
+/*    c.re = EXP(a.re); */
+/*    if (FABS(a.im)==0) c.im = 0;  */
 /*    else  { c.im = c.re*sin(a.im); c.re*=cos(a.im); } */
 /*    return (c); */
 /* } */
@@ -236,7 +235,7 @@ void balance(phydbl *mat, int n,int *low, int *hi, phydbl *scale)
 	  {
 	    for (i = 0; i <= k; i++) 
 	      {
-		if (i != j && fabs(mat[pos(j,i,n)]) > MDBL_MIN) break;
+		if (i != j && FABS(mat[pos(j,i,n)]) > MDBL_MIN) break;
 	      }
 
             if (i > k) {
@@ -266,7 +265,7 @@ void balance(phydbl *mat, int n,int *low, int *hi, phydbl *scale)
     for (l = 0; l <= k; l++) {
         for (j = l; j <= k; j++) {
             for (i = l; i <= k; i++) {
-	      if (i != j && fabs(mat[pos(i,j,n)]) > MDBL_MIN) break;
+	      if (i != j && FABS(mat[pos(i,j,n)]) > MDBL_MIN) break;
             }
             if (i > k) {
                 scale[l] = j;
@@ -304,13 +303,13 @@ void balance(phydbl *mat, int n,int *low, int *hi, phydbl *scale)
         for (done = 1,i = l; i <= k; i++) {
             for (c = 0,r = 0,j = l; j <= k; j++) {
                 if (j != i) {
-                    c += fabs(mat[pos(j,i,n)]);
-                    r += fabs(mat[pos(i,j,n)]);
+                    c += FABS(mat[pos(j,i,n)]);
+                    r += FABS(mat[pos(i,j,n)]);
                 }
             }
 
 /*             if (c != 0 && r != 0) {  */
-            if (fabs(c) > MDBL_MIN && fabs(r) > MDBL_MIN) {
+            if (FABS(c) > MDBL_MIN && FABS(r) > MDBL_MIN) {
                g = r / BASE;
                 f = 1;
                 s = c + r;
@@ -404,7 +403,7 @@ void elemhess(int job,phydbl *mat,int n,int low,int hi, phydbl *vr,
 
     for (m = low + 1; m < hi; m++) {
         for (x = 0,i = m,j = m; j <= hi; j++) {
-            if (fabs(mat[pos(j,m-1,n)]) > fabs(x)) {
+            if (FABS(mat[pos(j,m-1,n)]) > FABS(x)) {
                 x = mat[pos(j,m-1,n)];
                 i = j;
             }
@@ -424,9 +423,9 @@ void elemhess(int job,phydbl *mat,int n,int low,int hi, phydbl *vr,
             }
         }
 
-        if (fabs(x) > MDBL_MIN) {
+        if (FABS(x) > MDBL_MIN) {
             for (i = m + 1; i <= hi; i++) {
-	      if (fabs(y = mat[pos(i,m-1,n)]) > MDBL_MIN) {
+	      if (FABS(y = mat[pos(i,m-1,n)]) > MDBL_MIN) {
                     y = mat[pos(i,m-1,n)] = y / x;
 
                     for (j = m; j < n; j++) {
@@ -475,7 +474,7 @@ int realeig(int job,phydbl *mat,int n,int low, int hi, phydbl *valr,
    complex v;
    phydbl p=.0,q=.0,r=.0,s=.0,t,w,x,y,z=0,ra,sa,norm,eps;
    int niter,en,i,j,k,l,m;
-   phydbl precision  = pow((phydbl)BASE,(phydbl)(1-(int)DIGITS));
+   phydbl precision  = POW((phydbl)BASE,(phydbl)(1-(int)DIGITS));
 
    eps = precision;
    for (i=0; i<n; i++) {
@@ -485,7 +484,7 @@ int realeig(int job,phydbl *mat,int n,int low, int hi, phydbl *valr,
       /* store isolated roots and calculate norm */
    for (norm = 0,i = 0; i < n; i++) {
       for (j = MAX(0,i-1); j < n; j++) {
-         norm += fabs(mat[pos(i,j,n)]);
+         norm += FABS(mat[pos(i,j,n)]);
       }
       if (i < low || i > hi) valr[i] = mat[pos(i,i,n)];
    }
@@ -499,9 +498,9 @@ int realeig(int job,phydbl *mat,int n,int low, int hi, phydbl *valr,
        /* look for single small subdiagonal element */
 
          for (l = en; l > low; l--) {
-            s = fabs(mat[pos(l-1,l-1,n)]) + fabs(mat[pos(l,l,n)]);
-            if (fabs(s) < MDBL_MIN) s = norm;
-            if (fabs(mat[pos(l,l-1,n)]) <= eps * s) break;
+            s = FABS(mat[pos(l-1,l-1,n)]) + FABS(mat[pos(l,l,n)]);
+            if (FABS(s) < MDBL_MIN) s = norm;
+            if (FABS(mat[pos(l,l-1,n)]) <= eps * s) break;
          }
 
          /* form shift */
@@ -521,7 +520,7 @@ int realeig(int job,phydbl *mat,int n,int low, int hi, phydbl *valr,
          if (l == en - 1) {                /* two roots found */
             p = (y - x) / 2;
             q = p * p + w;
-            z = sqrt(fabs(q));
+            z = SQRT(FABS(q));
             x += t;
             if (job) {
                mat[pos(en,en,n)] = x;
@@ -536,13 +535,13 @@ int realeig(int job,phydbl *mat,int n,int low, int hi, phydbl *valr,
             else {                      /* real pair */
                z = (p < 0) ? p - z : p + z;
                valr[en-1] = x + z;
-               valr[en] = (fabs(z) < MDBL_MIN) ? x + z : x - w / z;
+               valr[en] = (FABS(z) < MDBL_MIN) ? x + z : x - w / z;
                if (job) {
                   x = mat[pos(en,en-1,n)];
-                  s = fabs(x) + fabs(z);
+                  s = FABS(x) + FABS(z);
                   p = x / s;
                   q = z / s;
-                  r = sqrt(p*p+q*q);
+                  r = SQRT(p*p+q*q);
                   p /= r;
                   q /= r;
                   for (j = en - 1; j < n; j++) {
@@ -570,7 +569,7 @@ int realeig(int job,phydbl *mat,int n,int low, int hi, phydbl *valr,
          if (niter != 0 && niter % 10 == 0) {
             t += x;
             for (i = low; i <= en; i++) mat[pos(i,i,n)] -= x;
-            s = fabs(mat[pos(en,en-1,n)]) + fabs(mat[pos(en-1,en-2,n)]);
+            s = FABS(mat[pos(en,en-1,n)]) + FABS(mat[pos(en-1,en-2,n)]);
             x = y = 0.75 * s;
             w = -0.4375 * s * s;
          }
@@ -583,13 +582,13 @@ int realeig(int job,phydbl *mat,int n,int low, int hi, phydbl *valr,
             p = (r * s - w) / mat[pos(m+1,m,n)] + mat[pos(m,m+1,n)];
             q = mat[pos(m+1,m+1,n)] - z - r - s;
             r = mat[pos(m+2,m+1,n)];
-            s = fabs(p) + fabs(q) + fabs(r);
+            s = FABS(p) + FABS(q) + FABS(r);
             p /= s;
             q /= s;
             r /= s;
-            if (m == l || fabs(mat[pos(m,m-1,n)]) * (fabs(q)+fabs(r)) <=
-                eps * (fabs(mat[pos(m-1,m-1,n)]) + fabs(z) +
-                fabs(mat[pos(m+1,m+1,n)])) * fabs(p)) break;
+            if (m == l || FABS(mat[pos(m,m-1,n)]) * (FABS(q)+FABS(r)) <=
+                eps * (FABS(mat[pos(m-1,m-1,n)]) + FABS(z) +
+                FABS(mat[pos(m+1,m+1,n)])) * FABS(p)) break;
          }
          for (i = m + 2; i <= en; i++) mat[pos(i,i-2,n)] = 0;
          for (i = m + 3; i <= en; i++) mat[pos(i,i-3,n)] = 0;
@@ -599,12 +598,12 @@ int realeig(int job,phydbl *mat,int n,int low, int hi, phydbl *valr,
                p = mat[pos(k,k-1,n)];
                q = mat[pos(k+1,k-1,n)];
                r = (k == en - 1) ? 0 : mat[pos(k+2,k-1,n)];
-               if (fabs(x = fabs(p) + fabs(q) + fabs(r)) < MDBL_MIN) continue;
+               if (FABS(x = FABS(p) + FABS(q) + FABS(r)) < MDBL_MIN) continue;
                p /= x;
                q /= x;
                r /= x;
             }
-            s = sqrt(p*p+q*q+r*r);
+            s = SQRT(p*p+q*q+r*r);
             if (p < 0) s = -s;
             if (k != m) {
                mat[pos(k,k-1,n)] = -s * x;
@@ -655,13 +654,13 @@ int realeig(int job,phydbl *mat,int n,int low, int hi, phydbl *valr,
    }
 
    if (!job) return(0);
-   if (fabs(norm) > MDBL_MIN) {
+   if (FABS(norm) > MDBL_MIN) {
        /* back substitute to find vectors of upper triangular form */
       for (en = n-1; en >= 0; en--) {
          p = valr[en];
          if ((q = vali[en]) < 0) {            /* complex vector */
             m = en - 1;
-            if (fabs(mat[pos(en,en-1,n)]) > fabs(mat[pos(en-1,en,n)])) {
+            if (FABS(mat[pos(en,en-1,n)]) > FABS(mat[pos(en-1,en,n)])) {
                mat[pos(en-1,en-1,n)] = q / mat[pos(en,en-1,n)];
                mat[pos(en-1,en,n)] = (p - mat[pos(en,en,n)]) /
                      mat[pos(en,en-1,n)];
@@ -689,7 +688,7 @@ int realeig(int job,phydbl *mat,int n,int low, int hi, phydbl *valr,
                }
                else {
                   m = i;
-                  if (fabs(vali[i]) < MDBL_MIN) {
+                  if (FABS(vali[i]) < MDBL_MIN) {
                      v = cdiv(compl(-ra,-sa),compl(w,q));
                      mat[pos(i,en-1,n)] = v.re;
                      mat[pos(i,en,n)] = v.im;
@@ -699,14 +698,14 @@ int realeig(int job,phydbl *mat,int n,int low, int hi, phydbl *valr,
                      y = mat[pos(i+1,i,n)];
                      v.re = (valr[i]- p)*(valr[i]-p) + vali[i]*vali[i] - q*q;
                      v.im = (valr[i] - p)*2*q;
-                     if (fabs(v.re) + fabs(v.im) < MDBL_MIN) {
-                        v.re = eps * norm * (fabs(w) +
-                                fabs(q) + fabs(x) + fabs(y) + fabs(z));
+                     if (FABS(v.re) + FABS(v.im) < MDBL_MIN) {
+                        v.re = eps * norm * (FABS(w) +
+                                FABS(q) + FABS(x) + FABS(y) + FABS(z));
                      }
                      v = cdiv(compl(x*r-z*ra+q*sa,x*s-z*sa-q*ra),v);
                      mat[pos(i,en-1,n)] = v.re;
                      mat[pos(i,en,n)] = v.im;
-                     if (fabs(x) > fabs(z) + fabs(q)) {
+                     if (FABS(x) > FABS(z) + FABS(q)) {
                         mat[pos(i+1,en-1,n)] = 
                              (-ra - w * mat[pos(i,en-1,n)] +
                              q * mat[pos(i,en,n)]) / x;
@@ -723,7 +722,7 @@ int realeig(int job,phydbl *mat,int n,int low, int hi, phydbl *valr,
                }
             }
          }
-         else if (fabs(q) < MDBL_MIN) {                             /* real vector */
+         else if (FABS(q) < MDBL_MIN) {                             /* real vector */
             m = en;
             mat[pos(en,en,n)] = 1;
             for (i = en - 1; i >= 0; i--) {
@@ -738,8 +737,8 @@ int realeig(int job,phydbl *mat,int n,int low, int hi, phydbl *valr,
                }
                else {
                   m = i;
-                  if (fabs(vali[i]) < MDBL_MIN) {
-                     if (fabs(t = w) < MDBL_MIN) t = eps * norm;
+                  if (FABS(vali[i]) < MDBL_MIN) {
+                     if (FABS(t = w) < MDBL_MIN) t = eps * norm;
                      mat[pos(i,en,n)] = -r / t;
                   }
                   else {            /* solve real equations */
@@ -748,7 +747,7 @@ int realeig(int job,phydbl *mat,int n,int low, int hi, phydbl *valr,
                      q = (valr[i] - p) * (valr[i] - p) + vali[i]*vali[i];
                      t = (x * s - z * r) / q;
                      mat[pos(i,en,n)] = t;
-                     if (fabs(x) <= fabs(z)) {
+                     if (FABS(x) <= FABS(z)) {
                         mat[pos(i+1,en,n)] = (-s - y * t) / z;
                      }
                      else {
@@ -781,7 +780,7 @@ int realeig(int job,phydbl *mat,int n,int low, int hi, phydbl *valr,
    }
     /* rearrange complex eigenvectors */
    for (j = 0; j < n; j++) {
-     if (fabs(vali[j]) > MDBL_MIN) {
+     if (FABS(vali[j]) > MDBL_MIN) {
          for (i = 0; i < n; i++) {
             vi[pos(i,j,n)] = vr[pos(i,j+1,n)];
             vr[pos(i,j+1,n)] = vr[pos(i,j,n)];
@@ -810,8 +809,8 @@ int ludcmp(phydbl **a, int n, phydbl *d)
      {
        big=0.0;
        for (j=0;j<n;j++)
-         if ((temp=fabs(a[i][j])) > big) big=temp;
-       if (fabs(big) < MDBL_MIN) Exit("\n. Singular matrix in routine LUDCMP");
+         if ((temp=FABS(a[i][j])) > big) big=temp;
+       if (FABS(big) < MDBL_MIN) Exit("\n. Singular matrix in routine LUDCMP");
        vv[i]=1.0/big;
      }
    for (j=0;j<n;j++) 
@@ -828,7 +827,7 @@ int ludcmp(phydbl **a, int n, phydbl *d)
 	for (k=0;k<j;k++)
 	  sum -= a[i][k]*a[k][j];
 	a[i][j]=sum;
-	if ((dum=vv[i]*fabs(sum)) >= big) 
+	if ((dum=vv[i]*FABS(sum)) >= big) 
 	  {
             big=dum;
             imax=i;
@@ -845,7 +844,7 @@ int ludcmp(phydbl **a, int n, phydbl *d)
 	  *d = -(*d);
 	  vv[imax]=vv[j];
 	}
-      if (fabs(a[j][j]) < MDBL_MIN) a[j][j]=LUDCMP_TINY;
+      if (FABS(a[j][j]) < MDBL_MIN) a[j][j]=LUDCMP_TINY;
       if (j != n) {
 	dum=1.0/(a[j][j]);
 	for (i=j+1;i<n;i++) a[i][j] *= dum;
@@ -878,8 +877,8 @@ int ludcmp_1D(phydbl *a, int n, phydbl *d)
      {
        big=0.0;
        for (j=0;j<n;j++)
-         if ((temp=fabs(a[i*n+j])) > big) big=temp;
-       if (fabs(big) < MDBL_MIN) Exit("\n. Singular matrix in routine LUDCMP");
+         if ((temp=FABS(a[i*n+j])) > big) big=temp;
+       if (FABS(big) < MDBL_MIN) Exit("\n. Singular matrix in routine LUDCMP");
        vv[i]=1.0/big;
      }
    for (j=0;j<n;j++) 
@@ -896,7 +895,7 @@ int ludcmp_1D(phydbl *a, int n, phydbl *d)
 	for (k=0;k<j;k++)
 	  sum -= a[i*n+k]*a[k*n+j];
 	a[i*n+j]=sum;
-	if ((dum=vv[i]*fabs(sum)) >= big) 
+	if ((dum=vv[i]*FABS(sum)) >= big) 
 	  {
             big=dum;
             imax=i;
@@ -913,7 +912,7 @@ int ludcmp_1D(phydbl *a, int n, phydbl *d)
 	  *d = -(*d);
 	  vv[imax]=vv[j];
 	}
-      if (fabs(a[j*n+j]) < MDBL_MIN) a[j*n+j]=LUDCMP_TINY;
+      if (FABS(a[j*n+j]) < MDBL_MIN) a[j*n+j]=LUDCMP_TINY;
       if (j != n) {
 	dum=1.0/(a[j*n+j]);
 	for (i=j+1;i<n;i++) a[i*n+j] *= dum;
@@ -955,7 +954,7 @@ phydbl *Cholesky_Decomp(phydbl *A,  int dim)
 		  PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
 		  Warn_And_Exit("");
 		}
-	      L[j*dim+i] = sqrt(sum);
+	      L[j*dim+i] = SQRT(sum);
 	    }
 
 	  else L[j*dim+i] = sum / (L[i*dim+i]);
