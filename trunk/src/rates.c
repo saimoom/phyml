@@ -91,7 +91,7 @@ void RATES_Lk_Rates_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 	  }
 	case EXPONENTIAL:
 	  {
-	    log_dens = DEXP(mu2,tree->rates->lexp);
+	    log_dens = Dexp(mu2,tree->rates->lexp);
 	    log_dens = LOG(log_dens);
 	    break;
 	  }
@@ -233,7 +233,7 @@ void RATES_Update_Triplet(t_node *n, t_tree *tree)
 	  }
 	case EXPONENTIAL : 
 	  {
-	    log_dens = DEXP(mu0,tree->rates->lexp) * DEXP(mu1,tree->rates->lexp);
+	    log_dens = Dexp(mu0,tree->rates->lexp) * Dexp(mu1,tree->rates->lexp);
 	    log_dens = LOG(log_dens);
 	    break;
 	  }
@@ -348,7 +348,7 @@ phydbl RATES_Lk_Rates_Core(phydbl mu1, phydbl mu2, int n1, int n2, phydbl dt1, p
       
     case EXPONENTIAL :
       {
-	log_dens = DEXP(mu2,tree->rates->lexp);
+	log_dens = Dexp(mu2,tree->rates->lexp);
 	log_dens = LOG(log_dens);
 	break;
       }
@@ -1016,7 +1016,7 @@ void RATES_Expect_Number_Subst(phydbl t_beg, phydbl t_end, phydbl r_beg,  int *n
 	    *mean_r = curr_r;
 	  }
 
-	curr_t = t_beg + REXP(rates->lexp); /* Exponentially distributed waiting times */
+	curr_t = t_beg + Rexp(rates->lexp); /* Exponentially distributed waiting times */
 	next_t = curr_t;
 	
 	*n_jumps = 0;
@@ -1026,7 +1026,7 @@ void RATES_Expect_Number_Subst(phydbl t_beg, phydbl t_end, phydbl r_beg,  int *n
 	    
 	    (*n_jumps)++;
 	    
-	    next_t = curr_t + REXP(rates->lexp);
+	    next_t = curr_t + Rexp(rates->lexp);
 	    
 	    if(next_t < t_end)
 	      {
@@ -1051,7 +1051,7 @@ void RATES_Expect_Number_Subst(phydbl t_beg, phydbl t_end, phydbl r_beg,  int *n
 
     case EXPONENTIAL:
       {
-	*mean_r = REXP(rates->lexp);
+	*mean_r = Rexp(rates->lexp);
 
 	if(*mean_r < rates->min_rate) *mean_r = rates->min_rate;
 	if(*mean_r > rates->max_rate) *mean_r = rates->max_rate;
