@@ -1,7 +1,7 @@
 /*
 
-PhyML:  a program that  computes maximum likelihood phylogenies from
-DNA or AA homologous sequences.
+PhyML:  a program that  computes maximum likelihood phyLOGenies from
+DNA or AA homoLOGous sequences.
 
 Copyright (C) Stephane Guindon. Oct 2003 onward.
 
@@ -2888,19 +2888,19 @@ void Print_Site_Lk(t_tree *tree, FILE *fp)
       For(site,tree->data->init_len)
 	{
 	  PhyML_Fprintf(fp,"%-7d",site+1);
-	  PhyML_Fprintf(fp,"%-16g",(phydbl)exp(tree->cur_site_lk[tree->data->sitepatt[site]]));      
+	  PhyML_Fprintf(fp,"%-16g",(phydbl)EXP(tree->cur_site_lk[tree->data->sitepatt[site]]));      
 	  if(tree->mod->n_catg > 1)
 	    {
 	      For(catg,tree->mod->n_catg)
-		PhyML_Fprintf(fp,"%-22g",(phydbl)exp(tree->log_site_lk_cat[catg][tree->data->sitepatt[site]]));
+		PhyML_Fprintf(fp,"%-22g",(phydbl)EXP(tree->log_site_lk_cat[catg][tree->data->sitepatt[site]]));
 
 	      postmean = .0;
 	      For(catg,tree->mod->n_catg) 
 		postmean += 
 		tree->mod->gamma_rr[catg] * 
-		exp(tree->log_site_lk_cat[catg][tree->data->sitepatt[site]]) * 
+		EXP(tree->log_site_lk_cat[catg][tree->data->sitepatt[site]]) * 
 		tree->mod->gamma_r_proba[catg];
-	      postmean /= exp(tree->cur_site_lk[tree->data->sitepatt[site]]);
+	      postmean /= EXP(tree->cur_site_lk[tree->data->sitepatt[site]]);
 
 	      PhyML_Fprintf(fp,"%-22g",postmean);
 	    }
@@ -3583,7 +3583,7 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
 
    lk0_init = Update_Lk_At_Given_Edge(b_fcus,tree);
 
-   if(fabs(lk0_init - lk_init) > tree->mod->s_opt->min_diff_lk_local)
+   if(FABS(lk0_init - lk_init) > tree->mod->s_opt->min_diff_lk_local)
      {
        PhyML_Printf("\n. lk_init = %f; lk = %f diff = %f l = %G\n",
 		    lk_init,
@@ -4176,13 +4176,13 @@ void Print_Fp_Out(FILE *fp_out, time_t t_beg, time_t t_end, t_tree *tree, option
   
   if(io->mod->s_opt->opt_topo)
     {
-      if(io->mod->s_opt->topo_search == NNI_MOVE) PhyML_Fprintf(fp_out,"\n\n. Tree topology search : \t\tNNIs");
-      else if(io->mod->s_opt->topo_search == SPR_MOVE) PhyML_Fprintf(fp_out,"\n\n. Tree topology search : \t\tSPRs");
-      else if(io->mod->s_opt->topo_search == BEST_OF_NNI_AND_SPR) PhyML_Fprintf(fp_out,"\n\n. Tree topology search : \t\tBest of NNIs and SPRs");
+      if(io->mod->s_opt->topo_search == NNI_MOVE) PhyML_Fprintf(fp_out,"\n\n. Tree topoLOGy search : \t\tNNIs");
+      else if(io->mod->s_opt->topo_search == SPR_MOVE) PhyML_Fprintf(fp_out,"\n\n. Tree topoLOGy search : \t\tSPRs");
+      else if(io->mod->s_opt->topo_search == BEST_OF_NNI_AND_SPR) PhyML_Fprintf(fp_out,"\n\n. Tree topoLOGy search : \t\tBest of NNIs and SPRs");
     }
   else
     {
-      PhyML_Fprintf(fp_out,"\n\n. Tree topology: \t\t\tfixed");
+      PhyML_Fprintf(fp_out,"\n\n. Tree topoLOGy: \t\t\tfixed");
     }
 
 
@@ -4323,8 +4323,8 @@ void Print_Fp_Out(FILE *fp_out, time_t t_beg, time_t t_end, t_tree *tree, option
   PhyML_Fprintf(fp_out," oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo\n");
   PhyML_Fprintf(fp_out," Suggested citation:\n");
   PhyML_Fprintf(fp_out," S. Guindon & O. Gascuel\n");
-  PhyML_Fprintf(fp_out," \"A simple, fast, and accurate algorithm to estimate large phylogenies by maximum likelihood\"\n");
-  PhyML_Fprintf(fp_out," Systematic Biology. 2003. 52(5):696-704.\n");
+  PhyML_Fprintf(fp_out," \"A simple, fast, and accurate algorithm to estimate large phyLOGenies by maximum likelihood\"\n");
+  PhyML_Fprintf(fp_out," Systematic BioLOGy. 2003. 52(5):696-704.\n");
   PhyML_Fprintf(fp_out," oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo\n");
 
 
@@ -4400,7 +4400,7 @@ void Print_Fp_Out_Lines(FILE *fp_out, time_t t_beg, time_t t_end, t_tree *tree, 
 
 	PhyML_Fprintf(fp_out,"taxa\t");
 
-	PhyML_Fprintf(fp_out,"loglk     \t");
+	PhyML_Fprintf(fp_out,"LOGlk     \t");
 
 	PhyML_Fprintf(fp_out, "gamma model\t");
 
@@ -4601,8 +4601,8 @@ matrix *K80_dist(calign *data, phydbl g_shape)
 	  }
 
 	mat->dist[i][j] = (g_shape/2)*
-	  (pow(1-2*mat->P[i][j]-mat->Q[i][j],-1./g_shape) +
-	   0.5*pow(1-2*mat->Q[i][j],-1./g_shape) - 1.5);
+	  (POW(1-2*mat->P[i][j]-mat->Q[i][j],-1./g_shape) +
+	   0.5*POW(1-2*mat->Q[i][j],-1./g_shape) - 1.5);
 
 	if(mat->dist[i][j] > DIST_MAX) mat->dist[i][j] = DIST_MAX;
 
@@ -4672,7 +4672,7 @@ matrix *JC69_Dist(calign *data, model *mod)
 
 	if((1.-(mod->ns)/(mod->ns-1.)*mat->P[i][j]) < .0) mat->dist[i][j] = -1.;
 	else
-	  mat->dist[i][j] = -(mod->ns-1.)/(mod->ns)*(phydbl)log(1.-(mod->ns)/(mod->ns-1.)*mat->P[i][j]);
+	  mat->dist[i][j] = -(mod->ns-1.)/(mod->ns)*(phydbl)LOG(1.-(mod->ns)/(mod->ns-1.)*mat->P[i][j]);
 
 /* 	PhyML_Printf("\n. Incorrect JC distances"); */
 /* 	mat->dist[i][j] = len[i][j]; */
@@ -5331,7 +5331,7 @@ fflush(stdout);
 
   if(((replicate)%20)) PhyML_Printf("] %4d/%4d\n ",replicate,tree->mod->bootstrap);
 
-  tree->lock_topo = 1; /* Topology should not be modified afterwards */
+  tree->lock_topo = 1; /* TopoLOGy should not be modified afterwards */
 
   if(tree->io->print_boot_trees)
     {
@@ -5501,7 +5501,7 @@ phydbl Num_Derivatives_One_Param(phydbl (*func)(t_tree *tree), t_tree *tree,
 	      a[j][i]=(a[j-1][i]*fac-a[j-1][i-1])/(fac-1.0);
 	      fac=1.4*1.4*fac;
 
-	      errt=MAX(fabs(a[j][i]-a[j-1][i]),fabs(a[j][i]-a[j-1][i-1]));
+	      errt=MAX(FABS(a[j][i]-a[j-1][i]),FABS(a[j][i]-a[j-1][i-1]));
 
 	      if (errt <= *err)
 		{
@@ -5510,7 +5510,7 @@ phydbl Num_Derivatives_One_Param(phydbl (*func)(t_tree *tree), t_tree *tree,
 		}
 	    }
 
-	  if(fabs(a[i][i]-a[i-1][i-1]) >= 2.0*(*err)) break;
+	  if(FABS(a[i][i]-a[i-1][i-1]) >= 2.0*(*err)) break;
 	}
     }
   For(i,11) Free(a[i]);
@@ -7799,7 +7799,7 @@ void Round_Down_Freq_Patt(phydbl **F, t_tree *tree)
     {
       For(j,tree->mod->ns)
 	{
-	  (*F)[tree->mod->ns*i+j] = rint((*F)[tree->mod->ns*i+j]);
+	  (*F)[tree->mod->ns*i+j] = RINT((*F)[tree->mod->ns*i+j]);
 	}
     }
 }
@@ -8112,10 +8112,10 @@ int KH_Test(phydbl *site_lk_M1, phydbl *site_lk_M2, t_tree *tree)
   For(i,tree->data->init_len) delta[i] -= mean;
 
   sd = .0;
-  For(i,tree->data->init_len) sd += pow(delta[i],2);
+  For(i,tree->data->init_len) sd += POW(delta[i],2);
   sd /= (phydbl)(tree->data->init_len-1.);
 
-/*   threshold = tree->dnorm_thresh*sqrt(sd*tree->data->init_len); */
+/*   threshold = tree->dnorm_thresh*SQRT(sd*tree->data->init_len); */
 
 
 /*   PhyML_Printf("\nObs stat = %f Threshold = %f\n",obs_stat,threshold); */
@@ -8148,7 +8148,7 @@ void Random_Tree(t_tree *tree)
   step = 0;
   do
     {
-/*       node_num = (int)rint(rand()/(phydbl)(RAND_MAX+1.0)*(tree->n_otu-1-step)); */
+/*       node_num = (int)RINT(rand()/(phydbl)(RAND_MAX+1.0)*(tree->n_otu-1-step)); */
       node_num = Rand_Int(0,tree->n_otu-1-step);
       node_num = list_of_nodes[node_num];
       is_available[node_num] = 0;
@@ -8159,7 +8159,7 @@ void Random_Tree(t_tree *tree)
       tree->noeud[node_num]->v[0] = tree->noeud[tree->n_otu+step];
       tree->noeud[tree->n_otu+step]->v[1] = tree->noeud[node_num];
 
-/*       node_num = (int)rint(rand()/(phydbl)(RAND_MAX+1.0)*(tree->n_otu-2-step)); */
+/*       node_num = (int)RINT(rand()/(phydbl)(RAND_MAX+1.0)*(tree->n_otu-2-step)); */
       node_num = Rand_Int(0,tree->n_otu-2-step);
       node_num = list_of_nodes[node_num];
       is_available[node_num] = 0;
@@ -8313,7 +8313,7 @@ void Print_Settings(option *io)
 	}
     }
 
-  PhyML_Printf("\n                . Optimise tree topology:\t\t\t %s", (io->mod->s_opt->opt_topo) ? "yes": "no");
+  PhyML_Printf("\n                . Optimise tree topoLOGy:\t\t\t %s", (io->mod->s_opt->opt_topo) ? "yes": "no");
 
   switch(io->in_tree)
     {
@@ -8326,9 +8326,9 @@ void Print_Settings(option *io)
 
   if(io->mod->s_opt->opt_topo)
     {
-      if(io->mod->s_opt->topo_search == NNI_MOVE) PhyML_Printf("\n                . Tree topology search:\t\t\t\t NNIs");
-      else if(io->mod->s_opt->topo_search == SPR_MOVE) PhyML_Printf("\n                . Tree topology search:\t\t\t\t SPRs");
-      else if(io->mod->s_opt->topo_search == BEST_OF_NNI_AND_SPR) PhyML_Printf("\n                . Tree topology search:\t\t\t\t Best of NNIs and SPRs");
+      if(io->mod->s_opt->topo_search == NNI_MOVE) PhyML_Printf("\n                . Tree topoLOGy search:\t\t\t\t NNIs");
+      else if(io->mod->s_opt->topo_search == SPR_MOVE) PhyML_Printf("\n                . Tree topoLOGy search:\t\t\t\t SPRs");
+      else if(io->mod->s_opt->topo_search == BEST_OF_NNI_AND_SPR) PhyML_Printf("\n                . Tree topoLOGy search:\t\t\t\t Best of NNIs and SPRs");
 
 
 
@@ -8470,15 +8470,15 @@ phydbl Least_Square_Missing_Dist_XY(int x, int y, phydbl dxy, matrix *mat)
 		    {
 		      if(dxy < MIN(mat->dist[i][x] + mat->dist[j][y] - mat->dist[i][j] , mat->dist[i][y] + mat->dist[j][x] - mat->dist[i][j]))
 			{
-			  fit += pow((mat->dist[i][x] + mat->dist[j][y]) - (mat->dist[i][y] + mat->dist[j][x]),2);
+			  fit += POW((mat->dist[i][x] + mat->dist[j][y]) - (mat->dist[i][y] + mat->dist[j][x]),2);
 			}
 		      else if((mat->dist[i][x] + mat->dist[j][y]) < (mat->dist[i][y] + mat->dist[j][x]))
 			{
-			  fit += pow(dxy - (mat->dist[i][y] + mat->dist[j][x] - mat->dist[i][j]),2);
+			  fit += POW(dxy - (mat->dist[i][y] + mat->dist[j][x] - mat->dist[i][j]),2);
 			}
 		      else
 			{
-			  fit += pow(dxy - (mat->dist[i][x] + mat->dist[j][y] - mat->dist[i][j]),2);
+			  fit += POW(dxy - (mat->dist[i][x] + mat->dist[j][y] - mat->dist[i][j]),2);
 			}
 		    }
 		}
@@ -8497,7 +8497,7 @@ void Print_Banner(FILE *fp)
   PhyML_Fprintf(fp,"                                                                                                  \n");
   PhyML_Fprintf(fp,"                                 ---  PhyML %s  ---                                             \n",VERSION);
   PhyML_Fprintf(fp,"                                                                                                  \n");
-  PhyML_Fprintf(fp,"    A simple, fast, and accurate algorithm to estimate large phylogenies by maximum likelihood    \n");
+  PhyML_Fprintf(fp,"    A simple, fast, and accurate algorithm to estimate large phyLOGenies by maximum likelihood    \n");
   PhyML_Fprintf(fp,"                            Stephane Guindon & Olivier Gascuel                                      \n");
   PhyML_Fprintf(fp,"                                                                                                  \n");
   PhyML_Fprintf(fp,"                           http://www.atgc-montpellier.fr/phyml                                          \n");
@@ -8728,7 +8728,7 @@ void Read_Qmat(phydbl *daa, phydbl *pi, FILE *fp)
     }
   sum = .0;
   For(i,20) sum += pi[i];
-  if(fabs(sum - 1.) > 1.E-06)
+  if(FABS(sum - 1.) > 1.E-06)
     {
       PhyML_Printf("\n. Scaling amino-acid frequencies...\n");
       For(i,20) pi[i] /= sum;
@@ -8775,7 +8775,7 @@ void Randomize_Sequence_Order(calign *cdata)
       buff_dbl  = rand();
       buff_dbl /= (RAND_MAX+1.);
       buff_dbl *= cdata->n_otu;
-      exchange_with = (int)floor(buff_dbl);
+      exchange_with = (int)FLOOR(buff_dbl);
       
       buff_name                         = cdata->c_seq[i]->name;
       cdata->c_seq[i]->name             = cdata->c_seq[exchange_with]->name;
@@ -8927,7 +8927,7 @@ t_tree *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
   mu     = 2.5;
   rho    = 9./150.;
 
-  expval = exp(mu-lambda);
+  expval = EXP(mu-lambda);
   phi = (rho*lambda*(expval-1.) + (mu-lambda)*expval)/(expval-1.); /* Equation 16 */
 
   For(i,tree->n_otu-1)
@@ -8935,8 +8935,8 @@ t_tree *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
       u = rand();
       u /= RAND_MAX;
 
-      if(fabs(lambda - mu) > 1.E-4)
-	t[i] = (log(phi-u*rho*lambda) - log(phi-u*rho*lambda + u*(lambda-mu)))/(mu-lambda); /* Equation 15 */
+      if(FABS(lambda - mu) > 1.E-4)
+	t[i] = (LOG(phi-u*rho*lambda) - LOG(phi-u*rho*lambda + u*(lambda-mu)))/(mu-lambda); /* Equation 15 */
       else
 	t[i] = u / (1.+lambda*rho*(1-u)); /* Equation 17 */
     }
@@ -9424,14 +9424,14 @@ void Binary_Decomposition(int value, int *bit_vect, int size)
   cumul = 0;
   for(i=size-1;i>=0;i--)
     {
-      if(value - cumul < (int)pow(2,i))
+      if(value - cumul < (int)POW(2,i))
 	{
 	  bit_vect[i] = 0;
 	}
       else
 	{
 	  bit_vect[i] = 1;
-	  cumul += (int)pow(2,i);
+	  cumul += (int)POW(2,i);
 	}
     }
 }
@@ -9529,13 +9529,13 @@ phydbl Univariate_Kernel_Density_Estimate(phydbl where, phydbl *x, int sample_si
 
   sqrt2pi = 2.506628;
 
-  sd = sqrt(Var(x,sample_size));
-  h = 1.06 * sd * pow(sample_size,-1./5.); /* Quick and dirty way to set the bandwidth */
+  sd = SQRT(Var(x,sample_size));
+  h = 1.06 * sd * POW(sample_size,-1./5.); /* Quick and dirty way to set the bandwidth */
   
   cons = (1./sample_size) * (1./h) * (1./sqrt2pi);
 
   density = .0;
-  For(i,sample_size) density += exp(-0.5 * pow((x[i] - where)/h,2));
+  For(i,sample_size) density += EXP(-0.5 * POW((x[i] - where)/h,2));
   density *= cons;
 
   return density;
@@ -9564,15 +9564,15 @@ phydbl Multivariate_Kernel_Density_Estimate(phydbl *where, phydbl **x, int sampl
   
   For(i,vect_size)
     {
-      sd = sqrt(Var(x[i],sample_size));
-/*       h[i] = pow(4./(vect_size+2.),1./(vect_size+4)) * sd * pow(sample_size,-1./(vect_size+4)); */
-      h[i] = sd * pow(sample_size,-1./(vect_size+4));
+      sd = SQRT(Var(x[i],sample_size));
+/*       h[i] = POW(4./(vect_size+2.),1./(vect_size+4)) * sd * POW(sample_size,-1./(vect_size+4)); */
+      h[i] = sd * POW(sample_size,-1./(vect_size+4));
 /*       PhyML_Printf("\n. sd = %f, h[i] = %f",sd,h[i]); */
     }
 
   cons = sample_size;
   For(i,vect_size) cons *= h[i];
-  cons *= pow(_2pi,vect_size/2.);
+  cons *= POW(_2pi,vect_size/2.);
   cons = 1./cons;
 
   density = .0;
@@ -9581,7 +9581,7 @@ phydbl Multivariate_Kernel_Density_Estimate(phydbl *where, phydbl **x, int sampl
       tmp = 1.0;
       For(j,vect_size) 
 	{
-	  tmp *= exp(-0.5 * pow((x[j][i] - where[j])/h[j],2));
+	  tmp *= EXP(-0.5 * POW((x[j][i] - where[j])/h[j],2));
 	}
       density += tmp;
     }
@@ -9605,7 +9605,7 @@ phydbl Var(phydbl *x, int n)
   sum2 = .0;
   For(i,n) sum2 += x[i] * x[i];
   
-  return (1./n) * (sum2 - n * pow(mean,2));
+  return (1./n) * (sum2 - n * POW(mean,2));
 }
 
 /*********************************************************/
@@ -9660,18 +9660,18 @@ void Best_Of_NNI_And_SPR(t_tree *tree)
       Simu_Loop(tree); /* Perform simultaneous NNIs */
       best_lnL = tree->c_lnL; /* Record the likelihood */
       nni_lnL = tree->c_lnL;
-      Copy_Tree(tree,best_tree); /* Record the tree topology and branch lengths */
+      Copy_Tree(tree,best_tree); /* Record the tree topoLOGy and branch lengths */
       Record_Br_Len(best_bl,tree);
       Restore_Br_Len(best_bl,best_tree);
       Record_Model(tree->mod,best_mod);
       
-      Copy_Tree(ori_tree,tree); /* Back to the original tree topology */
+      Copy_Tree(ori_tree,tree); /* Back to the original tree topoLOGy */
       Restore_Br_Len(ori_bl,tree); /* Back to the original branch lengths */
       Record_Model(ori_mod,tree->mod); /* Back to the original model */
       
       /* Make sure the tree is in its original form */
       Lk(tree);
-      if(fabs(tree->c_lnL - ori_lnL) > tree->mod->s_opt->min_diff_lk_global)
+      if(FABS(tree->c_lnL - ori_lnL) > tree->mod->s_opt->min_diff_lk_global)
 	{
 	  PhyML_Printf("\n. ori_lnL = %f, c_lnL = %f",ori_lnL,tree->c_lnL);
 	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
@@ -9683,7 +9683,7 @@ void Best_Of_NNI_And_SPR(t_tree *tree)
       if(tree->c_lnL > best_lnL)
 	{
 	  best_lnL = tree->c_lnL;
-	  Copy_Tree(tree,best_tree); /* Record tree topology, branch lengths and model parameters */
+	  Copy_Tree(tree,best_tree); /* Record tree topoLOGy, branch lengths and model parameters */
 	  Record_Br_Len(best_bl,tree);
 	  Restore_Br_Len(best_bl,best_tree);
 	  Record_Model(tree->mod,best_mod);
@@ -9693,9 +9693,9 @@ void Best_Of_NNI_And_SPR(t_tree *tree)
       Restore_Br_Len(best_bl,tree);
       Record_Model(best_mod,tree->mod);
       
-      /* Make sure the current tree has the best topology, branch lengths and model parameters */
+      /* Make sure the current tree has the best topoLOGy, branch lengths and model parameters */
       Lk(tree);
-      if(fabs(tree->c_lnL - best_lnL) > tree->mod->s_opt->min_diff_lk_global)
+      if(FABS(tree->c_lnL - best_lnL) > tree->mod->s_opt->min_diff_lk_global)
 	{
 	  PhyML_Printf("\n. best_lnL = %f, c_lnL = %f",best_lnL,tree->c_lnL);
 	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
@@ -9730,14 +9730,14 @@ int Polint(phydbl *xa, phydbl *ya, int n, phydbl x, phydbl *y, phydbl *dy)
    phydbl den,dif,dift,ho,hp,w;
    phydbl *c,*d;
 
-   dif=fabs(x-xa[1]);
+   dif=FABS(x-xa[1]);
 
    c = (phydbl *)mCalloc(n,sizeof(phydbl));
    d = (phydbl *)mCalloc(n,sizeof(phydbl));
 
    for(i=1;i<=n;i++) 
      {
-       if((dift=fabs(x-xa[i])) < dif) 
+       if((dift=FABS(x-xa[i])) < dif) 
 	 {
 	   ns=i;
 	   dif=dift;
@@ -9777,10 +9777,10 @@ int Polint(phydbl *xa, phydbl *ya, int n, phydbl x, phydbl *y, phydbl *dy)
 
 void JF(t_tree *tree)
 {
-  //printing loglk for each site, to compute SH-like tests */
+  //printing LOGlk for each site, to compute SH-like tests */
   phydbl sum=0.0;
   PhyML_Printf("\n\nSITES LKS:\n");
-  int n_patterns = (int)floor(tree->n_pattern*tree->prop_of_sites_to_consider);
+  int n_patterns = (int)FLOOR(tree->n_pattern*tree->prop_of_sites_to_consider);
   int site=0;
   For(site,n_patterns) {
     int wei=0;
@@ -9802,10 +9802,10 @@ void JF(t_tree *tree)
     }
   
   
-/*   //printing loglk for each site, to compute SH-like tests */
+/*   //printing LOGlk for each site, to compute SH-like tests */
 /*   phydbl sum=0.0; */
 /*   PhyML_Printf("\n\nSITES LKS:\n"); */
-/*   int n_patterns = (int)floor(tree->n_pattern*tree->prop_of_sites_to_consider); */
+/*   int n_patterns = (int)FLOOR(tree->n_pattern*tree->prop_of_sites_to_consider); */
 /*   int site=0; */
 /*   For(site,n_patterns) { */
 /*     int wei=0; */
@@ -10093,7 +10093,7 @@ phydbl Get_Tree_Size(t_tree *tree)
 
 /*   For(i,2*tree->n_otu-3)  */
 /*     tree_size +=  */
-/*     fabs(tree->rates->nd_t[tree->t_edges[i]->left->num] -  */
+/*     FABS(tree->rates->nd_t[tree->t_edges[i]->left->num] -  */
 /* 	 tree->rates->nd_t[tree->t_edges[i]->rght->num]); */
 
   tree->size = tree_size;
@@ -10545,7 +10545,7 @@ t_edge *Find_Root_Edge(FILE *fp_input_tree, t_tree *tree)
 
 /*********************************************************/
 
-void Copy_Tree_Topology_With_Labels(t_tree *ori, t_tree *cpy)
+void Copy_Tree_TopoLOGy_With_Labels(t_tree *ori, t_tree *cpy)
 {
   int i,j;
 
@@ -10783,11 +10783,11 @@ void Adjust_Min_Diff_Lk(t_tree *tree)
 {
   int exponent;
   
-  exponent = (int)floor(log10(fabs(tree->c_lnL)));
+  exponent = (int)FLOOR(log10(FABS(tree->c_lnL)));
 
   if(sizeof(phydbl) == 4)
     {
-      tree->mod->s_opt->min_diff_lk_global = pow(10.,exponent - FLT_DIG + 1);
+      tree->mod->s_opt->min_diff_lk_global = POW(10.,exponent - FLT_DIG + 1);
       tree->mod->s_opt->min_diff_lk_local  = tree->mod->s_opt->min_diff_lk_global;
       tree->mod->s_opt->min_diff_lk_move   = tree->mod->s_opt->min_diff_lk_global;
     }

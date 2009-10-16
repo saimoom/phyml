@@ -1,7 +1,7 @@
 /*
 
-PHYML :  a program that  computes maximum likelihood  phylogenies from
-DNA or AA homologous sequences 
+PHYML :  a program that  computes maximum likelihood  phyLOGenies from
+DNA or AA homoLOGous sequences 
 
 Copyright (C) Stephane Guindon. Oct 2003 onward
 
@@ -239,7 +239,7 @@ void Best_Pair(matrix *mat, int *x, int *y,phydbl *score)
 /*     { */
 /*       int cand; */
 /*       *x = *y = -1; */
-/*       cand = (int)rint(rand()/(phydbl)(RAND_MAX) * (n_ties-1)); */
+/*       cand = (int)RINT(rand()/(phydbl)(RAND_MAX) * (n_ties-1)); */
 /*       *x = (int)(ties[cand] / mat->n_otu); */
 /*       *y = (int)(ties[cand] % mat->n_otu); */
 /*     } */
@@ -258,7 +258,7 @@ void Best_Pair(matrix *mat, int *x, int *y,phydbl *score)
       if((i != *y) && (i != *x) && (t_Qij[mat->n_otu*i+(*y)] < Qmin2)) Qmin2 = t_Qij[mat->n_otu*i+(*y)];
     }
 
-  *score = fabs(Qmin2 - Qmin)/fabs(Qmin);
+  *score = FABS(Qmin2 - Qmin)/FABS(Qmin);
 
   Free(t_Qij);
 /*   Free(ties); */

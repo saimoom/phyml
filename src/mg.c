@@ -1,7 +1,7 @@
 /*
 
-PHYML :  a program that  computes maximum likelihood  phylogenies from
-DNA or AA homologous sequences 
+PHYML :  a program that  computes maximum likelihood  phyLOGenies from
+DNA or AA homoLOGous sequences 
 
 Copyright (C) Stephane Guindon. Oct 2003 onward
 
@@ -91,7 +91,7 @@ int PART_main(int argc, char **argv)
 	  st->curr_cdata = cdata[part];
 	  if(!PART_Get_Species_Found_In_St(st,cdata[part])) break;
 	  treelist->tree[part] = Make_Tree_From_Scratch(st->tree->n_otu,NULL);
-	  Copy_Tree_Topology_With_Labels(st->tree,treelist->tree[part]);
+	  Copy_Tree_TopoLOGy_With_Labels(st->tree,treelist->tree[part]);
  	  treelist->tree[part]->num_curr_branch_available = 0;
 	  Connect_Edges_To_Nodes_Recur(treelist->tree[part]->noeud[0],
 				       treelist->tree[part]->noeud[0]->v[0],
@@ -749,7 +749,7 @@ void PART_Simu(supert_tree *st)
   int i,j,step,n_without_swap,it_lim_without_swap;
   t_edge **sorted_b,*st_b,**tested_b;
   int n_neg,n_tested,each;
-  phydbl lambda,old_loglk;
+  phydbl lambda,old_LOGlk;
 
   sorted_b = (t_edge **)mCalloc(st->tree->n_otu-3,sizeof(t_edge *));
   tested_b = (t_edge **)mCalloc(st->tree->n_otu-3,sizeof(t_edge *));
@@ -762,7 +762,7 @@ void PART_Simu(supert_tree *st)
   lambda              = .75;
   n_tested            = 0;
   n_without_swap      = 0;
-  old_loglk           = UNLIKELY; 
+  old_LOGlk           = UNLIKELY; 
   it_lim_without_swap = 2;
   st_b                = NULL; 
   do
@@ -786,14 +786,14 @@ void PART_Simu(supert_tree *st)
 	     st->tree->c_lnL,n_tested);
 /*       For(i,st->n_part) PhyML_Printf("\n[gt %3d lnL=%15.5f]",i,st->treelist->tree[i]->c_lnL); */
       
-      if((fabs(old_loglk-st->tree->c_lnL) < st->tree->mod->s_opt->min_diff_lk_global) || 
+      if((FABS(old_LOGlk-st->tree->c_lnL) < st->tree->mod->s_opt->min_diff_lk_global) || 
 	 (n_without_swap > it_lim_without_swap)) break;
 
-      if(st->tree->c_lnL < old_loglk)
+      if(st->tree->c_lnL < old_LOGlk)
 	{
-	  PhyML_Printf("\n. Moving backward (topology + branch lengths) \n");
+	  PhyML_Printf("\n. Moving backward (topoLOGy + branch lengths) \n");
 	  
-	  if(!PART_Mov_Backward_Topo_Bl(st,old_loglk,tested_b,n_tested))
+	  if(!PART_Mov_Backward_Topo_Bl(st,old_LOGlk,tested_b,n_tested))
 	    Warn_And_Exit("\n. Err: mov_back failed\n");
 
 	  if(!st->tree->n_swap) n_neg = 0;
@@ -813,7 +813,7 @@ void PART_Simu(supert_tree *st)
 	      st->tree->c_pars = PART_Pars(st);
 	    }
 	  
-	  old_loglk = st->tree->c_lnL;
+	  old_LOGlk = st->tree->c_lnL;
 	  
 
 	  For(i,2*st->tree->n_otu-3) Init_NNI(st->tree->t_edges[i]->nni);
@@ -847,7 +847,7 @@ void PART_Simu(supert_tree *st)
 	  Sort_Edges_NNI_Score(st->tree,sorted_b,n_neg);	  
 
 	  n_tested = 0;
-	  For(i,(int)ceil((phydbl)n_neg*(lambda)))
+	  For(i,(int)CEIL((phydbl)n_neg*(lambda)))
 	    tested_b[n_tested++] = sorted_b[i];
 
 	  if(n_tested > 0) n_without_swap = 0;
@@ -907,7 +907,7 @@ int PART_Mov_Backward_Topo_Bl(supert_tree *st, phydbl lk_old, t_edge **tested_b,
 	    }
 	}
       
-      beg = (int)floor((phydbl)n_tested/(step-1));
+      beg = (int)FLOOR((phydbl)n_tested/(step-1));
       end = 0;
       st_b = NULL;
 
@@ -932,7 +932,7 @@ int PART_Mov_Backward_Topo_Bl(supert_tree *st, phydbl lk_old, t_edge **tested_b,
 	}
 
       beg = 0;
-      end = (int)floor((phydbl)n_tested/step);
+      end = (int)FLOOR((phydbl)n_tested/step);
       st_b = NULL;
 
       for(i=beg;i<end;i++)
@@ -980,7 +980,7 @@ int PART_Mov_Backward_Topo_Bl(supert_tree *st, phydbl lk_old, t_edge **tested_b,
   PART_Lk(st);
 
   if(st->tree->c_lnL > lk_old)                                                    return  1;
-  else if(fabs(st->tree->c_lnL-lk_old) < st->tree->mod->s_opt->min_diff_lk_local) return -1;
+  else if(FABS(st->tree->c_lnL-lk_old) < st->tree->mod->s_opt->min_diff_lk_local) return -1;
   else                                                                            return  0;
 
   For(i,st->n_part) Free(l_init[i]);
@@ -1400,7 +1400,7 @@ int PART_Spr(phydbl init_lnL, supert_tree *st)
       if(st->tree->n_moves)
 	{
 	  best_move = PART_Test_List_Of_Regraft_Pos(st->tree->spr_list,
-						  (int)ceil(0.1*(st->tree->n_moves)),
+						  (int)CEIL(0.1*(st->tree->n_moves)),
 						  st);	  
 	  
 	  if(st->tree->spr_list[best_move]->lnL > init_lnL)
@@ -1492,7 +1492,7 @@ void PART_Speed_Spr(supert_tree *st)
 	     (int)(st->tree->t_current-st->tree->t_beg),
 	     st->tree->c_lnL,st->tree->c_pars);
 
-      /* Record the current best log-likleihood  */
+      /* Record the current best LOG-likleihood  */
       st->tree->best_lnL = st->tree->c_lnL;
 
       if(st->tree->c_lnL < old_lnL)
@@ -1507,7 +1507,7 @@ void PART_Speed_Spr(supert_tree *st)
 
       /* Exit if no improvements after complete optimization */
       if((!st->tree->n_improvements) || 
-	 (fabs(old_lnL-st->tree->c_lnL) < st->tree->mod->s_opt->min_diff_lk_global)) break;
+	 (FABS(old_lnL-st->tree->c_lnL) < st->tree->mod->s_opt->min_diff_lk_global)) break;
             
     }while(1);
   
@@ -1897,7 +1897,7 @@ int PART_Try_One_Spr_Move(spr *st_move, supert_tree *st)
 	  st->tree->c_pars     = PART_Pars(st);
 	  
 	  
-	  if(fabs(st->tree->c_lnL - st_move->lnL) > st->tree->mod->s_opt->min_diff_lk_local)
+	  if(FABS(st->tree->c_lnL - st_move->lnL) > st->tree->mod->s_opt->min_diff_lk_local)
 	    {
 	      PhyML_Printf("\n. st->tree->c_lnL = %f st_move->lnL = %f\n",
 		     st->tree->c_lnL,st_move->lnL);
@@ -2090,7 +2090,7 @@ void PART_NNI(t_edge *st_b, supert_tree *st)
   For(i,st->n_part) map_edge_bef_swap[i] = NULL;
   For(i,st->n_part) if(st->map_st_edge_in_gt[i][st_b->num]) map_edge_bef_swap[i] = st->map_st_edge_in_gt[i][st_b->num];
 
-  /* First alternative topological configuration */
+  /* First alternative topoLOGical configuration */
   /* Swap */
   PART_Swap(v2,st_b->left,st_b->rght,v3,st);
   Swap(v2,st_b->left,st_b->rght,v3,st->tree);
@@ -2145,7 +2145,7 @@ void PART_NNI(t_edge *st_b, supert_tree *st)
 
 
 
-  /* Second alternative topological configuration */
+  /* Second alternative topoLOGical configuration */
   /* Swap */
   PART_Swap(v2,st_b->left,st_b->rght,v4,st);
   Swap(v2,st_b->left,st_b->rght,v4,st->tree);
@@ -2200,7 +2200,7 @@ void PART_NNI(t_edge *st_b, supert_tree *st)
     }
 
 
-  /* Back to the initial topological configuration 
+  /* Back to the initial topoLOGical configuration 
    * and branch lengths.
    */
   PART_Do_Mapping(st);

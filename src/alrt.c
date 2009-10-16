@@ -1,7 +1,7 @@
 /*
 
-PHYML :  a program that  computes maximum likelihood  phylogenies from
-DNA or AA homologous sequences
+PHYML :  a program that  computes maximum likelihood  phyLOGenies from
+DNA or AA homoLOGous sequences
 
 Copyright (C) Stephane Guindon. Oct 2003 onward
 
@@ -35,7 +35,7 @@ int Check_NNI_Five_Branches(t_tree *tree)
   phydbl best_gain;
   int best_config;
   int i;
-  int better_found; /* = 1 if a phylogeny with greater likelihood than current one was found */
+  int better_found; /* = 1 if a phyLOGeny with greater likelihood than current one was found */
   int result;
   phydbl init_lnL;
 
@@ -133,9 +133,9 @@ int Check_NNI_Five_Branches(t_tree *tree)
 	  Warn_And_Exit("\n");
 	}
 
-      //Don't do any NNI if the user doesn't want to optimize topology
+      //Don't do any NNI if the user doesn't want to optimize topoLOGy
       if(!tree->mod->s_opt->opt_topo) better_found = 0;
-/*       if(fabs(best_gain) <= tree->mod->s_opt->min_diff_lk_move) better_found = 0; */
+/*       if(FABS(best_gain) <= tree->mod->s_opt->min_diff_lk_move) better_found = 0; */
 
       //If there is one swap to do, make the best one.
       if(better_found)
@@ -150,7 +150,7 @@ int Check_NNI_Five_Branches(t_tree *tree)
 	      Warn_And_Exit("\n");
 	    }
 
-	  if((tree->mod->s_opt->print) && (!tree->io->quiet)) Print_Lk(tree,"[Topology           ]");
+	  if((tree->mod->s_opt->print) && (!tree->io->quiet)) Print_Lk(tree,"[TopoLOGy           ]");
 	  return 1;
 	}
     }
@@ -168,8 +168,8 @@ void aLRT(t_tree *tree)
   /* aLRT support will label each internal branch */
   tree->print_alrt_val = 1;
 
-  /* The topology will not be modified when assessing the branch support. We make sure that it will
-     not be modified afterwards by locking the topology */
+  /* The topoLOGy will not be modified when assessing the branch support. We make sure that it will
+     not be modified afterwards by locking the topoLOGy */
   
   tree->both_sides = 1;
   Lk(tree);
@@ -194,7 +194,7 @@ void aLRT(t_tree *tree)
 * and convert supports as wished by the user.
 * param tree : the tree to check
 * param tested_t_edge : the tested t_edge of the tree
-* param old_loglk : the initial likelihood, before any aLRT analysis
+* param old_LOGlk : the initial likelihood, before any aLRT analysis
 * param isBoot : 1 if used from the Bootstrap procedure, 0 if not
 * return an integer, informative to analyse the results and potential NNIs to do
 */
@@ -277,7 +277,7 @@ int Compute_Likelihood_Ratio_Test(t_edge *tested_edge, t_tree *tree)
 * Test the 3 NNI positions for one branch.
 * param tree : the tree to check
 * param tested_t_edge : the tested t_edge of the tree
-* param old_loglk : the initial likelihood, before any aLRT analysis
+* param old_LOGlk : the initial likelihood, before any aLRT analysis
 * param isBoot : 1 if used from the Bootstrap procedure, 0 if not
 */
 int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
@@ -401,7 +401,7 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
 	  Warn_And_Exit("");
 	}
     }
-  while(fabs(lk_temp-lk0) > tree->mod->s_opt->min_diff_lk_global);
+  while(FABS(lk_temp-lk0) > tree->mod->s_opt->min_diff_lk_global);
 
 
   lk0 = tree->c_lnL;
@@ -502,7 +502,7 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
 	  Warn_And_Exit("");
 	}
     }
-  while(fabs(lk_temp-lk1) > tree->mod->s_opt->min_diff_lk_global);
+  while(FABS(lk_temp-lk1) > tree->mod->s_opt->min_diff_lk_global);
   //until no significative improvement is detected
 
   lk1 = tree->c_lnL;
@@ -609,7 +609,7 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
 	  Warn_And_Exit("");
 	}
     }
-  while(fabs(lk_temp-lk2) > tree->mod->s_opt->min_diff_lk_global);
+  while(FABS(lk_temp-lk2) > tree->mod->s_opt->min_diff_lk_global);
   //until no significative improvement is detected
 
   lk2 = tree->c_lnL;
@@ -847,7 +847,7 @@ void Make_Target_Swap(t_tree *tree, t_edge *b_fcus, int swaptodo)
 	  Warn_And_Exit("");
 	}
     }
-  while(fabs(lk_temp-lktodo) > tree->mod->s_opt->min_diff_lk_global);
+  while(FABS(lk_temp-lktodo) > tree->mod->s_opt->min_diff_lk_global);
   //until no significative improvement is detected
 
 
@@ -1074,7 +1074,7 @@ phydbl Statistics_to_RELL(t_tree *tree)
 	  buff /= (RAND_MAX+1.);
 /* 	  buff *= tree->data->crunch_len; */
 	  buff *= tree->data->init_len;
-	  position = (int)floor(buff);
+	  position = (int)FLOOR(buff);
 
 	  lk0+=tree->log_lks_aLRT[0][position];
 	  lk1+=tree->log_lks_aLRT[1][position];
@@ -1111,7 +1111,7 @@ phydbl Statistics_To_SH(t_tree *tree)
   phydbl delta_local=-1.;
 
 
-  //Compute the total log-lk of each NNI position
+  //Compute the total LOG-lk of each NNI position
   For(site, tree->data->init_len)
     {
       c0+=tree->log_lks_aLRT[0][site];
@@ -1166,7 +1166,7 @@ phydbl Statistics_To_SH(t_tree *tree)
 	  buff  = rand();
 	  buff /= (RAND_MAX+1.);
 	  buff *= tree->data->init_len;
-	  position = (int)floor(buff);
+	  position = (int)FLOOR(buff);
 
 	  lk0+=tree->log_lks_aLRT[0][position];
 	  lk1+=tree->log_lks_aLRT[1][position];

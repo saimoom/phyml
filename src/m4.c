@@ -1,7 +1,7 @@
 /*
 
-PhyML:  a program that  computes maximum likelihood phylogenies from
-DNA or AA homologous sequences.
+PhyML:  a program that  computes maximum likelihood phyLOGenies from
+DNA or AA homoLOGous sequences.
 
 Copyright (C) Stephane Guindon. Oct 2003 onward.
 
@@ -242,7 +242,7 @@ int M4_main(int argc, char **argv)
 		  if(tree->io->ratio_test) aLRT(tree);
 
 		  Lk(tree);
-		  PhyML_Printf("\n\n. Final log likelihood : %f",tree->c_lnL);
+		  PhyML_Printf("\n\n. Final LOG likelihood : %f",tree->c_lnL);
 		  
 
 		  /* */
@@ -332,7 +332,7 @@ int M4_main(int argc, char **argv)
 	}
     }
 
-  if(io->mod->s_opt->n_rand_starts > 1) PhyML_Printf("\n\n. Best log likelihood : %f\n",best_lnL);
+  if(io->mod->s_opt->n_rand_starts > 1) PhyML_Printf("\n\n. Best LOG likelihood : %f\n",best_lnL);
 
   Free_Model(mod);
 
@@ -467,8 +467,8 @@ void M4_Update_Qmat(m4 *m4mod, model *mod)
   else if(mod->m4mod->use_cov_free)
     {
       sum = .0;
-      For(i,mod->m4mod->n_h) sum += fabs(mod->m4mod->h_fq_unscaled[i]);
-      For(i,mod->m4mod->n_h) mod->m4mod->h_fq[i] = fabs(mod->m4mod->h_fq_unscaled[i])/sum;
+      For(i,mod->m4mod->n_h) sum += FABS(mod->m4mod->h_fq_unscaled[i]);
+      For(i,mod->m4mod->n_h) mod->m4mod->h_fq[i] = FABS(mod->m4mod->h_fq_unscaled[i])/sum;
       
       do
 	{
@@ -486,7 +486,7 @@ void M4_Update_Qmat(m4 *m4mod, model *mod)
 
       /* Make sure the multipliers are centered around 1.0 */
       sum = .0;
-      For(i,mod->m4mod->n_h) sum += fabs(mod->m4mod->multipl_unscaled[i]) * mod->m4mod->h_fq[i];
+      For(i,mod->m4mod->n_h) sum += FABS(mod->m4mod->multipl_unscaled[i]) * mod->m4mod->h_fq[i];
       For(i,mod->m4mod->n_h) mod->m4mod->multipl[i] = mod->m4mod->multipl_unscaled[i] / sum;
       
 
@@ -750,7 +750,7 @@ void M4_Post_Prob_H_Class_Edge_Site(t_edge *b, phydbl ****integral, phydbl *post
   ns = tree->mod->ns;
   n_h = tree->mod->m4mod->n_h; /* number of classes, i.e., number of hidden states */
 
-  site_lk = (phydbl)exp(tree->site_lk[tree->curr_site]);
+  site_lk = (phydbl)EXP(tree->site_lk[tree->curr_site]);
 
   if(b->rght->tax)
     {
@@ -781,7 +781,7 @@ void M4_Post_Prob_H_Class_Edge_Site(t_edge *b, phydbl ****integral, phydbl *post
 	    }
 	  sum += postprob[i];
 	}
-      For(i,n_h) postprob[i] *= exp(b->sum_scale_left[tree->curr_site]); 
+      For(i,n_h) postprob[i] *= EXP(b->sum_scale_left[tree->curr_site]); 
     }
   else
     {
@@ -811,7 +811,7 @@ void M4_Post_Prob_H_Class_Edge_Site(t_edge *b, phydbl ****integral, phydbl *post
 	    }
 	  sum += postprob[i];
 	}
-      For(i,n_h) postprob[i] *= exp(b->sum_scale_left[tree->curr_site] + b->sum_scale_rght[tree->curr_site]); 
+      For(i,n_h) postprob[i] *= EXP(b->sum_scale_left[tree->curr_site] + b->sum_scale_rght[tree->curr_site]); 
     }
 
   For(i,n_h) 

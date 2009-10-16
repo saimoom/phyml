@@ -64,7 +64,7 @@ phydbl tt800()
   */
   y ^= (y >> 16); /* added to the 1994 version */
   k++;
-  return( (phydbl) y / (unsigned long) 0xffffffff);
+  return(phydbl)(y / (unsigned long) 0xffffffff);
 }
 
 /*********************************************************************/
@@ -72,8 +72,8 @@ phydbl tt800()
 phydbl Uni()
 {
   phydbl r; 
-  r=rand();
-  r/=RAND_MAX;
+  r  = (phydbl)rand();
+  r /= RAND_MAX;
 /*   r = tt800(); */
   return r;
 }
@@ -87,7 +87,7 @@ int Rand_Int(int min, int max)
 /*   u /=  (RAND_MAX); */
 /*   u *= (max - min + 1); */
 /*   u += min; */
-/*   return (int)floor(u); */
+/*   return (int)FLOOR(u); */
 
   int u;
   u = rand();
@@ -104,7 +104,7 @@ int Rand_Int(int min, int max)
 * (2) X1 = Gamma(alpha1,1), X2 = Gamma(alpha2,1) independent
 *     then X = X1+X2 = Gamma(alpha1+alpha2,1)
 * (3) alpha = k = integer then
-*     X = Gamma(k,1) = Erlang(k,1) = -sum(log(Ui)) = -log(prod(Ui))
+*     X = Gamma(k,1) = Erlang(k,1) = -sum(LOG(Ui)) = -LOG(prod(Ui))
 *     where U1,...Uk iid uniform(0,1)
 *
 * Decompose alpha = k+delta with k = [alpha], and 0<delta<1
@@ -119,7 +119,7 @@ phydbl Ahrensdietergamma(phydbl alpha)
   if (alpha>0.) 
     {
       phydbl y = 0.;
-      phydbl b = (alpha+exp(1.))/exp(1.);
+      phydbl b = (alpha+EXP(1.))/EXP(1.);
       phydbl p = 1./alpha;
       int go = 0;
       while (go==0) 
@@ -129,13 +129,13 @@ phydbl Ahrensdietergamma(phydbl alpha)
 	  phydbl v = b*u;
 	  if (v<=1.) 
 	    {
-	      x = pow(v,p);
-	      y = exp(-x);
+	      x = POW(v,p);
+	      y = EXP(-x);
 	    }
 	  else 
 	    {
-	      x = -log(p*(b-v));
-	      y = pow(x,alpha-1.);
+	      x = -LOG(p*(b-v));
+	      y = POW(x,alpha-1.);
 	    }
 	  go = (w<y); // x is accepted when go=1
 	}
@@ -152,12 +152,12 @@ phydbl Rgamma(phydbl shape, phydbl scale)
   phydbl delta = shape;
   if (shape>=1.) 
     {
-      int k = (int) floor(shape);
+      int k = (int)FLOOR(shape);
       delta = shape - k;
       phydbl u = 1.;
       for (i=0; i<k; i++)
 	u *= Uni();
-      x1 = -log(u);
+      x1 = -LOG(u);
     }
   phydbl x2 = Ahrensdietergamma(delta);
   return (x1 + x2)*scale;
@@ -167,7 +167,7 @@ phydbl Rgamma(phydbl shape, phydbl scale)
 
 phydbl Rexp(phydbl lambda)
 {
-  return -log(Uni()+1.E-30)/lambda;
+  return -LOG(Uni()+1.E-30)/lambda;
 }
 
 /*********************************************************/
@@ -180,7 +180,7 @@ phydbl Rnorm(phydbl mean, phydbl sd)
   u1=(phydbl)rand()/(RAND_MAX);
   u2=(phydbl)rand()/(RAND_MAX);
  
-  u1 = sqrt(-2*log(u1))*cos(2*PI*u2);
+  u1 = SQRT(-2*LOG(u1))*COS(2*PI*u2);
 
   return u1*sd+mean;
 }
@@ -305,9 +305,9 @@ phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max, int *error)
       iter = 0;
       do
 	{
-	  y   = Uni()*exp(-(z*z)/2.);
-	  slice_min = MAX(z_min,-sqrt(-2.*log(y)));
-	  slice_max = MIN(z_max, sqrt(-2.*log(y)));
+	  y   = Uni()*EXP(-(z*z)/2.);
+	  slice_min = MAX(z_min,-SQRT(-2.*LOG(y)));
+	  slice_max = MIN(z_max, SQRT(-2.*LOG(y)));
 	  z   = Uni()*(slice_max - slice_min) + slice_min;
 	  iter++;
 	  if(iter > 1000) break;
@@ -417,9 +417,9 @@ phydbl Dnorm_Moments(phydbl x, phydbl mean, phydbl var)
   phydbl dens,sd,pi;
 
   pi = 3.141593;
-  sd = sqrt(var);
+  sd = SQRT(var);
 
-  dens = 1./(sqrt(2*pi)*sd)*exp(-((x-mean)*(x-mean)/(2.*sd*sd)));
+  dens = 1./(SQRT(2*pi)*sd)*EXP(-((x-mean)*(x-mean)/(2.*sd*sd)));
 
   return dens;
 }
@@ -429,8 +429,8 @@ phydbl Dnorm_Moments(phydbl x, phydbl mean, phydbl var)
 phydbl Dnorm(phydbl x, phydbl mean, phydbl sd)
 {
   phydbl dens;
-  dens = -(.5*LOG2PI+log(sd))  - .5*pow(x-mean,2)/pow(sd,2);
-  return exp(dens);
+  dens = -(.5*LOG2PI+LOG(sd))  - .5*POW(x-mean,2)/POW(sd,2);
+  return EXP(dens);
 }
 
 /*********************************************************/
@@ -448,7 +448,7 @@ phydbl Log_Dnorm(phydbl x, phydbl mean, phydbl sd, int *err)
   var = sd*sd;
   ctrxsq = (x-mean)*(x-mean);
 
-  dens = -(.5*LOG2PI+log(sd))  - .5*ctrxsq/var;
+  dens = -(.5*LOG2PI+LOG(sd))  - .5*ctrxsq/var;
 
   if(dens < -MDBL_MAX)
     {
@@ -475,7 +475,7 @@ phydbl Dnorm_Trunc(phydbl x, phydbl mean, phydbl sd, phydbl lo, phydbl up)
 
   dens /= (cdf_up - cdf_lo);
 
-  if(isnan(dens) || isinf(fabs(dens)))
+  if(isnan(dens) || isinf(FABS(dens)))
     {
       PhyML_Printf("\n. mean=%f sd=%f lo=%f up=%f cdf_lo=%G CDF_up=%G",mean,sd,lo,up,cdf_lo,cdf_up);
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
@@ -512,17 +512,17 @@ phydbl Dnorm_Multi(phydbl *x, phydbl *mu, phydbl *cov, int size, int _log)
   det = Matrix_Det(cov,size,NO);
   /* det_1D(cov,size,&det); */
 
-  density = size * LOG2PI + log(det) + buff2[0];
+  density = size * LOG2PI + LOG(det) + buff2[0];
   density /= -2.;
 
-/*   density = (1./(pow(2.*PI,size/2.)*sqrt(fabs(det)))) * exp(-0.5*buff2[0]); */
+/*   density = (1./(POW(2.*PI,size/2.)*SQRT(FABS(det)))) * EXP(-0.5*buff2[0]); */
 
   Free(xmmu);
   Free(invcov);
   Free(buff1);
   Free(buff2);
 
-  return (_log)?(density):(exp(density));
+  return (_log)?(density):(EXP(density));
 }
 
 /*********************************************************/
@@ -548,14 +548,14 @@ phydbl Dnorm_Multi_Given_InvCov_Det(phydbl *x, phydbl *mu, phydbl *invcov, phydb
   Free(buff1);
   Free(buff2);
   
-  return (_log)?(density):(exp(density));
+  return (_log)?(density):(EXP(density));
 }
 
 /*********************************************************/
 
 phydbl Pbinom(int N, int ni, phydbl p)
 {
-  return Bico(N,ni)*pow(p,ni)*pow(1-p,N-ni);
+  return Bico(N,ni)*POW(p,ni)*POW(1-p,N-ni);
 }
 
 /*********************************************************/
@@ -574,8 +574,8 @@ phydbl Bivariate_Normal_Density(phydbl x, phydbl y, phydbl mux, phydbl muy, phyd
 
   rho2 = rho*rho;
 
-  dens = 1./(2*pi*sdx*sdy*sqrt(1.-rho2));
-  dens *= exp((-1./(2.*(1.-rho2)))*(cx*cx/(sdx*sdx)+cy*cy/(sdy*sdy)+2*rho*cx*cy/(sdx*sdy)));
+  dens = 1./(2*pi*sdx*sdy*SQRT(1.-rho2));
+  dens *= EXP((-1./(2.*(1.-rho2)))*(cx*cx/(sdx*sdx)+cy*cy/(sdy*sdy)+2*rho*cx*cy/(sdx*sdy)));
 	      
   return dens;
 }
@@ -586,7 +586,7 @@ phydbl Dgamma_Moments(phydbl x, phydbl mean, phydbl var)
 {
   phydbl shape, scale;
 
-  if(var  < 1.E-20) 
+  if(var < 1.E-20) 
     {
 /*       var  = 1.E-20;  */
       PhyML_Printf("\n. var=%f mean=%f",var,mean);
@@ -640,17 +640,17 @@ phydbl Dgamma(phydbl x, phydbl shape, phydbl scale)
     }
 
 
-  v = (shape-1.) * log(x) - shape * log(scale) - x / scale - LnGamma(shape);
+  v = (shape-1.) * LOG(x) - shape * LOG(scale) - x / scale - LnGamma(shape);
 
 
   if(v < 500.)
     {
-      v = exp(v);
+      v = EXP(v);
     }
   else
     {
       PhyML_Printf("\n. WARNING v=%f x=%f shape=%f scale=%f",v,x,shape,scale);
-      PhyML_Printf("\n. log(x) = %G LnGamma(shape)=%G",log(x),LnGamma(shape));
+      PhyML_Printf("\n. LOG(x) = %G LnGamma(shape)=%G",LOG(x),LnGamma(shape));
       Exit("\n");
     }
 
@@ -662,7 +662,7 @@ phydbl Dgamma(phydbl x, phydbl shape, phydbl scale)
 
 phydbl Dexp(phydbl x, phydbl param)
 {
-  return param * exp(-param * x);
+  return param * EXP(-param * x);
 }
 
 /*********************************************************/
@@ -677,23 +677,23 @@ phydbl Dpois(phydbl x, phydbl param)
       Warn_And_Exit("");
     }
 
-  v = x * log(param) - param - LnGamma(x+1);
+  v = x * LOG(param) - param - LnGamma(x+1);
 
   if(v < 500)
     {
-      v = exp(v);
+      v = EXP(v);
     }
   else
     {
       PhyML_Printf("\n. WARNING v=%f x=%f param=%f",v,x,param);
-      v = exp(500);
+      v = EXP(500);
     }
   
 /*   PhyML_Printf("\n. Poi %f %f (x=%f param=%f)", */
 /* 	 v, */
-/* 	 pow(param,x) * exp(-param) / exp(LnGamma(x+1)), */
+/* 	 POW(param,x) * EXP(-param) / EXP(LnGamma(x+1)), */
 /* 	 x,param); */
-/*   return pow(param,x) * exp(-param) / exp(LnGamma(x+1)); */
+/*   return POW(param,x) * EXP(-param) / EXP(LnGamma(x+1)); */
   
   return v;
 }
@@ -720,13 +720,13 @@ phydbl Pnorm(phydbl x, phydbl mean, phydbl sd)
 /*   if(x >= 0.0)  */
 /*     { */
 /*       phydbl t = 1.0 / ( 1.0 + p * x ); */
-/*       return (1.0 - c * exp( -x * x / 2.0 ) * t * */
+/*       return (1.0 - c * EXP( -x * x / 2.0 ) * t * */
 /* 	      ( t *( t * ( t * ( t * b5 + b4 ) + b3 ) + b2 ) + b1 )); */
 /*     } */
 /*   else  */
 /*     { */
 /*       phydbl t = 1.0 / ( 1.0 - p * x ); */
-/*       return ( c * exp( -x * x / 2.0 ) * t * */
+/*       return ( c * EXP( -x * x / 2.0 ) * t * */
 /* 	       ( t *( t * ( t * ( t * b5 + b4 ) + b3 ) + b2 ) + b1 )); */
 /*     } */
 
@@ -745,20 +745,20 @@ phydbl Pnorm(phydbl x, phydbl mean, phydbl sd)
 phydbl Pnorm_Ihaka_Derived_From_Cody(phydbl x)
 {
 
-    const static phydbl a[5] = {
+    const static double a[5] = {
 	2.2352520354606839287,
 	161.02823106855587881,
 	1067.6894854603709582,
 	18154.981253343561249,
 	0.065682337918207449113
     };
-    const static phydbl b[4] = {
+    const static double b[4] = {
 	47.20258190468824187,
 	976.09855173777669322,
 	10260.932208618978205,
 	45507.789335026729956
     };
-    const static phydbl c[9] = {
+    const static double c[9] = {
 	0.39894151208813466764,
 	8.8831497943883759412,
 	93.506656132177855979,
@@ -769,7 +769,7 @@ phydbl Pnorm_Ihaka_Derived_From_Cody(phydbl x)
 	9842.7148383839780218,
 	1.0765576773720192317e-8
     };
-    const static phydbl d[8] = {
+    const static double d[8] = {
 	22.266688044328115691,
 	235.38790178262499861,
 	1519.377599407554805,
@@ -779,7 +779,7 @@ phydbl Pnorm_Ihaka_Derived_From_Cody(phydbl x)
 	38912.003286093271411,
 	19685.429676859990727
     };
-    const static phydbl p[6] = {
+    const static double p[6] = {
 	0.21589853405795699,
 	0.1274011611602473639,
 	0.022235277870649807,
@@ -787,7 +787,7 @@ phydbl Pnorm_Ihaka_Derived_From_Cody(phydbl x)
 	2.9112874951168792e-5,
 	0.02307344176494017303
     };
-    const static phydbl q[5] = {
+    const static double q[5] = {
 	1.28426009614491121,
 	0.468238212480865118,
 	0.0659881378689285515,
@@ -795,15 +795,15 @@ phydbl Pnorm_Ihaka_Derived_From_Cody(phydbl x)
 	7.29751555083966205e-5
     };
 
-    phydbl xden, xnum, temp, del, eps, xsq, y;
+    double xden, xnum, temp, del, eps, xsq, y;
     int i, lower, upper;
-    phydbl cum,ccum;
+    double cum,ccum;
     int i_tail;
     
     i_tail = 0;
     cum = ccum = 0.0;
 
-    if(isnan(x)) { cum = ccum = x; return cum; }
+    if(isnan(x)) { cum = ccum = x; return (phydbl)cum; }
 
     /* Consider changing these : */
     eps = DBL_EPSILON * 0.5;
@@ -830,7 +830,7 @@ phydbl Pnorm_Ihaka_Derived_From_Cody(phydbl x)
 	}    
     else if (y <= M_SQRT_32) {
 
-	/* Evaluate pnorm for 0.674.. = qnorm(3/4) < |x| <= sqrt(32) ~= 5.657 */
+	/* Evaluate pnorm for 0.674.. = qnorm(3/4) < |x| <= SQRT(32) ~= 5.657 */
 
 	xnum = c[8] * y;
 	xden = y;
@@ -855,7 +855,7 @@ phydbl Pnorm_Ihaka_Derived_From_Cody(phydbl x)
 	swap_tail;
     }
 
-/* else	  |x| > sqrt(32) = 5.657 :
+/* else	  |x| > SQRT(32) = 5.657 :
  * the next two case differentiations were really for lower=T, log=F
  * Particularly	 *not*	for  log_p !
 
@@ -865,7 +865,6 @@ phydbl Pnorm_Ihaka_Derived_From_Cody(phydbl x)
  */
     else if((lower && -37.5193 < x  &&  x < 8.2924) || (upper && -8.2924  < x  &&  x < 37.5193)) 
       {
-	
 	/* Evaluate pnorm for x in (-37.5, -5.657) union (5.657, 37.5) */
 	xsq = 1.0 / (x * x);
 	xnum = p[5] * xsq;
@@ -885,7 +884,8 @@ phydbl Pnorm_Ihaka_Derived_From_Cody(phydbl x)
 	if(x > 0) {	cum = 1.; ccum = 0.;	}
 	else {	        cum = 0.; ccum = 1.;	}
       }
-    return cum;
+
+    return (phydbl)cum;
 
 
 }
@@ -927,42 +927,41 @@ phydbl PointChi2 (phydbl prob, phydbl v)
        Chi2 distribution.  Applied Statistics 24: 385-388.  (AS91)
    Converted into C by Ziheng Yang, Oct. 1993.
 */
-   phydbl aa=.6931471805, p=prob, g;
-   phydbl xx, c, ch, a=0,q=0,p1=0,p2=0,t=0,x=0,b=0,s1,s2,s3,s4,s5,s6;
-   phydbl e=.5e-5;
-/*    phydbl e=.5e-6; */
+   double aa=.6931471805, p=prob, g;
+   double xx, c, ch, a=0,q=0,p1=0,p2=0,t=0,x=0,b=0,s1,s2,s3,s4,s5,s6;
+   double e=.5e-6;
    
-   if (p<.000002 || p>.999998 || v<=0) return (-1);
+   if (p<.000002 || p>.999998 || v<=0) return ((phydbl)-1);
 
-   g = LnGamma (v/2);
+   g = (double)LnGamma(v/2);
    xx=v/2;   c=xx-1;
-   if (v >= -1.24*(phydbl)log(p)) goto l1;
+   if (v >= -1.24*log(p)) goto l1;
 
-   ch=pow((p*xx*(phydbl)exp(g+xx*aa)), 1/xx);
+   ch=pow((p*xx*exp(g+xx*aa)), 1/xx);
    if (ch-e<0) return (ch);
    goto l4;
 l1:
    if (v>.32) goto l3;
-   ch=0.4;   a=(phydbl)log(1-p);
+   ch=0.4;   a=log(1-p);
 l2:
    q=ch;  p1=1+ch*(4.67+ch);  p2=ch*(6.73+ch*(6.66+ch));
    t=-0.5+(4.67+2*ch)/p1 - (6.73+ch*(13.32+3*ch))/p2;
-   ch-=(1-(phydbl)exp(a+g+.5*ch+c*aa)*p2/p1)/t;
+   ch-=(1-exp(a+g+.5*ch+c*aa)*p2/p1)/t;
    if (fabs(q/ch-1)-.01 <= 0) goto l4;
    else                       goto l2;
 
 l3:
-   x=PointNormal (p);
+   x=(double)PointNormal (p);
    p1=0.222222/v;   ch=v*pow((x*sqrt(p1)+1-p1), 3.0);
-   if (ch>2.2*v+6)  ch=-2*((phydbl)log(1-p)-c*(phydbl)log(.5*ch)+g);
+   if (ch>2.2*v+6)  ch=-2*(log(1-p)-c*log(.5*ch)+g);
 l4:
    q=ch;   p1=.5*ch;
-   if ((t=IncompleteGamma (p1, xx, g))<0) {
+   if ((t=(double)IncompleteGamma (p1, xx, g))<0) {
       PhyML_Printf ("\nerr IncompleteGamma");
-      return (-1);
+      return ((phydbl)-1.);
    }
    p2=p-t;
-   t=p2*(phydbl)exp(xx*aa+g+p1-c*(phydbl)log(ch));
+   t=p2*exp(xx*aa+g+p1-c*log(ch));
    b=t/ch;  a=0.5*t-b*c;
 
    s1=(210+a*(140+a*(105+a*(84+a*(70+60*a))))) / 420;
@@ -972,9 +971,9 @@ l4:
    s5=(84+264*a+c*(175+606*a))/2520;
    s6=(120+c*(346+127*c))/5040;
    ch+=t*(1+0.5*t*s1-b*c*(s1-b*(s2-b*(s3-b*(s4-b*(s5-b*s6))))));
-   if (fabs(q/ch-1) > e) goto l4;
+   if (FABS(q/ch-1) > e) goto l4;
 
-   return (ch);
+   return (phydbl)(ch);
 }
 
 /*********************************************************/
@@ -1002,16 +1001,16 @@ phydbl PointNormal (phydbl p)
 /*    if (p1<1e-20) return (-INFINITY); */
 /* /\*    if (p1<1e-20) return (-999.); *\/ */
 
-/*    y = sqrt ((phydbl)log(1/(p1*p1))); */
+/*    y = sqrt ((phydbl)LOG(1/(p1*p1))); */
 /*    z = y + ((((y*a4+a3)*y+a2)*y+a1)*y+a0) / ((((y*b4+b3)*y+b2)*y+b1)*y+b0); */
 /*    return (p<0.5 ? -z : z); */
 
-  static phydbl zero = 0.0, one = 1.0, half = 0.5;
-  static phydbl split1 = 0.425, split2 = 5.0;
-  static phydbl const1 = 0.180625, const2 = 1.6;
+  static double zero = 0.0, one = 1.0, half = 0.5;
+  static double split1 = 0.425, split2 = 5.0;
+  static double const1 = 0.180625, const2 = 1.6;
   
   /* coefficients for p close to 0.5 */
-  static phydbl a[8] = {
+  static double a[8] = {
     3.3871328727963666080e0,
     1.3314166789178437745e+2,
     1.9715909503065514427e+3,
@@ -1021,7 +1020,7 @@ phydbl PointNormal (phydbl p)
     3.3430575583588128105e+4,
     2.5090809287301226727e+3
   };
-  static phydbl b[8] = { 
+  static double b[8] = { 
     0.0,
     4.2313330701600911252e+1,
     6.8718700749205790830e+2,
@@ -1034,7 +1033,7 @@ phydbl PointNormal (phydbl p)
   
   /* hash sum ab    55.8831928806149014439 */
   /* coefficients for p not close to 0, 0.5 or 1. */
-  static phydbl c[8] = {
+  static double c[8] = {
     1.42343711074968357734e0,
     4.63033784615654529590e0,
     5.76949722146069140550e0,
@@ -1044,7 +1043,7 @@ phydbl PointNormal (phydbl p)
     2.27238449892691845833e-2,
     7.74545014278341407640e-4
   };
-  static phydbl d[8] = { 
+  static double d[8] = { 
     0.0,
     2.05319162663775882187e0,
     1.67638483018380384940e0,
@@ -1057,7 +1056,7 @@ phydbl PointNormal (phydbl p)
   
   /* hash sum cd    49.33206503301610289036 */
   /* coefficients for p near 0 or 1. */
-  static phydbl e[8] = {
+  static double e[8] = {
     6.65790464350110377720e0,
     5.46378491116411436990e0,
     1.78482653991729133580e0,
@@ -1067,7 +1066,7 @@ phydbl PointNormal (phydbl p)
     2.71155556874348757815e-5,
     2.01033439929228813265e-7
   };
-  static phydbl f[8] = { 
+  static double f[8] = { 
     0.0,
     5.99832206555887937690e-1,
     1.36929880922735805310e-1,
@@ -1079,7 +1078,7 @@ phydbl PointNormal (phydbl p)
   };
   
   /* hash sum ef    47.52583317549289671629 */
-  phydbl q, r, ret;
+  double q, r, ret;
   
   q = p - half;
   if (fabs(q) <= split1) {
@@ -1089,7 +1088,7 @@ phydbl PointNormal (phydbl p)
       (((((((b[7] * r + b[6]) * r + b[5]) * r + b[4]) * r + b[3])
 	 * r + b[2]) * r + b[1]) * r + one);
     
-    return ret;
+    return (phydbl)ret;
   }
   /* else */
   
@@ -1099,7 +1098,7 @@ phydbl PointNormal (phydbl p)
     r = one - p;
   
   if (r <= zero)
-    return zero;
+    return (phydbl)zero;
   
   r = sqrt(-log(r));
   if (r <= split2) {
@@ -1120,7 +1119,7 @@ phydbl PointNormal (phydbl p)
   if (q < zero)
     ret = -ret;
   
-  return ret;
+  return (phydbl)ret;
 }
 
 /*********************************************************/
@@ -1131,7 +1130,7 @@ phydbl PointNormal (phydbl p)
 
 phydbl Bico(int n, int k)
 {
-  return floor(0.5+exp(Factln(n)-Factln(k)-Factln(n-k)));
+  return FLOOR(0.5+EXP(Factln(n)-Factln(k)-Factln(n-k)));
 }
 
 
@@ -1151,30 +1150,30 @@ phydbl Factln(int n)
 
 phydbl Gammln(phydbl xx)
 {
-  phydbl x,tmp,ser;
-  static phydbl cof[6]={76.18009173,-86.50532033,24.01409822,
+  double x,tmp,ser;
+  static double cof[6]={76.18009173,-86.50532033,24.01409822,
 			-1.231739516,0.120858003e-2,-0.536382e-5};
   int j;
   
   x=xx-1.0;
   tmp=x+5.5;
-  tmp -= (x+0.5)*(phydbl)log(tmp);
+  tmp -= (x+0.5)*log(tmp);
   ser=1.0;
   for (j=0;j<=5;j++) 
     {
       x += 1.0;
       ser += cof[j]/x;
     }
-  return -tmp+(phydbl)log(2.50662827465*ser);
+  return (phydbl)(-tmp+log(2.50662827465*ser));
 }
 
 /*********************************************************/
 
 /* void Plim_Binom(phydbl pH0, int N, phydbl *pinf, phydbl *psup) */
 /* { */
-/*   *pinf = pH0 - 1.64*sqrt(pH0*(1-pH0)/(phydbl)N); */
+/*   *pinf = pH0 - 1.64*SQRT(pH0*(1-pH0)/(phydbl)N); */
 /*   if(*pinf < 0) *pinf = .0; */
-/*   *psup = pH0 + 1.64*sqrt(pH0*(1-pH0)/(phydbl)N); */
+/*   *psup = pH0 + 1.64*SQRT(pH0*(1-pH0)/(phydbl)N); */
 /* } */
 
 /*********************************************************/
@@ -1186,16 +1185,16 @@ phydbl LnGamma (phydbl alpha)
    Pike MC & Hill ID (1966) Algorithm 291: Logarithm of the gamma function.
    Communications of the Association for Computing Machinery, 9:684
 */
-   phydbl x=alpha, f=0, z;
+   double x=alpha, f=0, z;
    if (x<7) {
       f=1;  z=x-1;
       while (++z<7)  f*=z;
-      x=z;   f=-(phydbl)log(f);
+      x=z;   f=-log(f);
    }
    z = 1/(x*x);
-   return  f + (x-0.5)*(phydbl)log(x) - x + .918938533204673
-	  + (((-.000595238095238*z+.000793650793651)*z-.002777777777778)*z
-	       +.083333333333333)/x;
+   return (phydbl)(f + (x-0.5)*log(x) - x + .918938533204673
+		   + (((-.000595238095238*z+.000793650793651)*z-.002777777777778)*z
+		      +.083333333333333)/x);
 }
 
 /*********************************************************/
@@ -1213,14 +1212,14 @@ phydbl IncompleteGamma(phydbl x, phydbl alpha, phydbl ln_gamma_alpha)
    19: 285-287 (AS32)
 */
    int i;
-   phydbl p=alpha, g=ln_gamma_alpha;
-   phydbl accurate=1e-8, overflow=1e30;
-   phydbl factor, gin=0, rn=0, a=0,b=0,an=0,dif=0, term=0, pn[6];
+   double p=alpha, g=ln_gamma_alpha;
+   double accurate=1e-8, overflow=1e30;
+   double factor, gin=0, rn=0, a=0,b=0,an=0,dif=0, term=0, pn[6];
 
-   if (fabs(x) < MDBL_MIN) return (.0);
-   if (x<0 || p<=0) return (-1);
+   if (fabs(x) < MDBL_MIN) return ((phydbl).0);
+   if (x<0 || p<=0)        return ((phydbl)-1);
 
-   factor=(phydbl)exp(p*(phydbl)log(x)-x-g);
+   factor=exp(p*log(x)-x-g);
    if (x>1 && x>=p) goto l30;
    /* (1) series expansion */
    gin=1;  term=1;  rn=p;
@@ -1254,7 +1253,7 @@ phydbl IncompleteGamma(phydbl x, phydbl alpha, phydbl ln_gamma_alpha)
    gin=1-factor*gin;
 
  l50:
-   return (gin);
+   return (phydbl)(gin);
 }
 
 
@@ -1300,7 +1299,7 @@ int DiscreteGamma (phydbl freqK[], phydbl rK[],
 
 /*********************************************************/
 
-/* Return log(n!) */
+/* Return LOG(n!) */
 
 phydbl LnFact(int n)
 {
@@ -1308,7 +1307,7 @@ phydbl LnFact(int n)
   phydbl res;
 
   res = 0;
-  for(i=2;i<=n;i++) res += log(i);
+  for(i=2;i<=n;i++) res += LOG(i);
   
   return(res);
 }
@@ -1347,7 +1346,7 @@ phydbl *Covariance_Matrix(t_tree *tree)
   ori_wght = (int *)mCalloc(tree->data->crunch_len,sizeof(int));
   site_num = (int *)mCalloc(tree->data->init_len,sizeof(int));
   
-  var_min = 1./pow(tree->data->init_len,2);
+  var_min = 1./POW(tree->data->init_len,2);
 
   For(i,tree->data->crunch_len) ori_wght[i] = tree->data->wght[i];
 
@@ -1374,13 +1373,13 @@ phydbl *Covariance_Matrix(t_tree *tree)
 
       Round_Optimize(tree,tree->data,ROUND_MAX);
       
-      For(i,2*tree->n_otu-3) For(j,2*tree->n_otu-3) cov[i*dim+j] += log(tree->t_edges[i]->l) * log(tree->t_edges[j]->l);  
-      For(i,2*tree->n_otu-3) mean[i] += log(tree->t_edges[i]->l);
+      For(i,2*tree->n_otu-3) For(j,2*tree->n_otu-3) cov[i*dim+j] += LOG(tree->t_edges[i]->l) * LOG(tree->t_edges[j]->l);  
+      For(i,2*tree->n_otu-3) mean[i] += LOG(tree->t_edges[i]->l);
 
       PhyML_Printf("[%3d/%3d]",replicate,sample_size); fflush(NULL);
 /*       PhyML_Printf("\n. %3d %12f %12f %12f ", */
 /* 	     replicate, */
-/*  	     cov[1*dim+1]/(replicate+1)-mean[1]*mean[1]/pow(replicate+1,2), */
+/*  	     cov[1*dim+1]/(replicate+1)-mean[1]*mean[1]/POW(replicate+1,2), */
 /* 	     tree->t_edges[1]->l, */
 /* 	     mean[1]/(replicate+1)); */
    }
@@ -1574,7 +1573,7 @@ phydbl *Hessian(t_tree *tree)
     {
       if(is_ok[i])
 	{
-	  hessian[i*dim+i] = (plus_zero[i]-2*zero_zero+minus_zero[i])/(pow(inc[i],2));
+	  hessian[i*dim+i] = (plus_zero[i]-2*zero_zero+minus_zero[i])/(POW(inc[i],2));
 
 	  for(j=i+1;j<dim;j++)
 	    {
@@ -1621,7 +1620,7 @@ phydbl *Hessian(t_tree *tree)
 	tree->t_edges[i]->l += eps;
 	lnL2 = Lk_At_Given_Edge(tree->t_edges[i],tree);
 
-	hessian[i*dim+i] = (lnL2 - 2*lnL1 + lnL) / pow(eps,2);
+	hessian[i*dim+i] = (lnL2 - 2*lnL1 + lnL) / POW(eps,2);
 	hessian[i*dim+i] = -1.0 / hessian[i*dim+i];
       }
 
@@ -1634,7 +1633,7 @@ phydbl *Hessian(t_tree *tree)
 	tree->t_edges[i]->l += eps;
 	lnL2 = Lk_At_Given_Edge(tree->t_edges[i],tree);
 
-	hessian[i*dim+i] = (lnL2 - 2*lnL1 + lnL) / pow(eps,2);
+	hessian[i*dim+i] = (lnL2 - 2*lnL1 + lnL) / POW(eps,2);
 	hessian[i*dim+i] = -1.0 / hessian[i*dim+i];
       }
 
@@ -1667,7 +1666,7 @@ phydbl *Hessian(t_tree *tree)
     {
       For(j,dim)
 	{
-	  if(fabs(hessian[i*dim+j]-hessian[j*dim+i]) > 1.E-3)
+	  if(FABS(hessian[i*dim+j]-hessian[j*dim+i]) > 1.E-3)
 	    {
 	      PhyML_Printf("\n. Hessian not symmetrical.");
 	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
@@ -1932,16 +1931,16 @@ phydbl *Hessian_Log(t_tree *tree)
 	}
     }
 
-/*   For(i,dim) if(is_ok[i]) inc[i] = pow(tree->t_edges[i]->l+inc[i],2)-pow(tree->t_edges[i]->l,2); */
-  For(i,dim) if(is_ok[i]) inc[i] = log(tree->t_edges[i]->l+inc[i])-log(tree->t_edges[i]->l);
+/*   For(i,dim) if(is_ok[i]) inc[i] = POW(tree->t_edges[i]->l+inc[i],2)-POW(tree->t_edges[i]->l,2); */
+  For(i,dim) if(is_ok[i]) inc[i] = LOG(tree->t_edges[i]->l+inc[i])-LOG(tree->t_edges[i]->l);
 /*   For(i,dim) inc[i] = 2.*inc[i]; */
-/*   For(i,dim) if(is_ok[i]) inc[i] = sqrt(tree->t_edges[i]->l+inc[i])-sqrt(tree->t_edges[i]->l); */
+/*   For(i,dim) if(is_ok[i]) inc[i] = SQRT(tree->t_edges[i]->l+inc[i])-SQRT(tree->t_edges[i]->l); */
   
   For(i,dim)
     {
       if(is_ok[i])
 	{
-	  hessian[i*dim+i] = (plus_zero[i]-2*zero_zero[i]+minus_zero[i])/(pow(inc[i],2));
+	  hessian[i*dim+i] = (plus_zero[i]-2*zero_zero[i]+minus_zero[i])/(POW(inc[i],2));
 
 	  for(j=i+1;j<dim;j++)
 	    {
@@ -1983,7 +1982,7 @@ phydbl *Hessian_Log(t_tree *tree)
   For(i,dim)
     if(!is_ok[i])
       {
-	hessian[i*dim+i] = 1./pow(tree->data->init_len,2);
+	hessian[i*dim+i] = 1./POW(tree->data->init_len,2);
       }
 
   if(!Matinv(hessian,dim,dim))
@@ -2076,9 +2075,9 @@ phydbl Log_Det(int *is_ok, t_tree *tree)
   phydbl ldet;
 
   ldet = 0.0;
-/*   For(i,2*tree->n_otu-3) if(is_ok[i]) ldet += log(2.*sqrt(tree->t_edges[i]->l)); */
-  For(i,2*tree->n_otu-3) if(is_ok[i]) ldet += log(tree->t_edges[i]->l);
-/*   For(i,2*tree->n_otu-3) if(is_ok[i]) ldet -= log(2*tree->t_edges[i]->l); */
+/*   For(i,2*tree->n_otu-3) if(is_ok[i]) ldet += LOG(2.*SQRT(tree->t_edges[i]->l)); */
+  For(i,2*tree->n_otu-3) if(is_ok[i]) ldet += LOG(tree->t_edges[i]->l);
+/*   For(i,2*tree->n_otu-3) if(is_ok[i]) ldet -= LOG(2*tree->t_edges[i]->l); */
   
   return ldet;
 
@@ -2154,9 +2153,9 @@ int Matinv(phydbl *x, int n, int m)
      {
        xmax = 0.;
        for (j=i; j<n; j++)
-         if (xmax < fabs(x[j*m+i]))
+         if (xmax < FABS(x[j*m+i]))
 	   {
-	     xmax = fabs(x[j*m+i]);
+	     xmax = FABS(x[j*m+i]);
 	     irow[i]=j;
 	   }
 
@@ -2297,12 +2296,12 @@ phydbl Matrix_Det(phydbl *A, int size, int _log)
 
   triA = Cholesky_Decomp(A,size);
   det = 0.0;
-  For(i,size) det += log(triA[i*size+i]);
+  For(i,size) det += LOG(triA[i*size+i]);
   Free(triA);
  
   if(_log == NO)
     {
-      det = exp(det);
+      det = EXP(det);
       return det*det;
     }
   else
@@ -2469,7 +2468,7 @@ void Normal_Conditional(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is
 /*   For(i,n1) */
 /*     { */
 /*       for(j=i;j<n1;j++) */
-/* 	if(fabs(cond_cov_norder[i*n1+j] - cond_cov_norder[j*n1+i]) > 1.E-3) */
+/* 	if(FABS(cond_cov_norder[i*n1+j] - cond_cov_norder[j*n1+i]) > 1.E-3) */
 /* 	  { */
 /* 	    PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
 /* 	    Warn_And_Exit(""); */
@@ -2480,7 +2479,7 @@ void Normal_Conditional(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is
   For(i,n)
     {
       for(j=i+1;j<n;j++)
-	if(fabs(cond_cov[i*n+j] - cond_cov[j*n+i]) > 1.E-3)
+	if(FABS(cond_cov[i*n+j] - cond_cov[j*n+i]) > 1.E-3)
 	  {
 	    PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
 	    Warn_And_Exit("");
@@ -2765,9 +2764,9 @@ phydbl Norm_Trunc_Sd(phydbl mu, phydbl sd, phydbl a, phydbl b)
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
     }
 	    
-  cond_var = sd*sd*(1. + (ctra*pdfa - ctrb*pdfb)/cdfbmcdfa - pow((pdfa - pdfb)/cdfbmcdfa,2));
+  cond_var = sd*sd*(1. + (ctra*pdfa - ctrb*pdfb)/cdfbmcdfa - POW((pdfa - pdfb)/cdfbmcdfa,2));
 
-  return sqrt(cond_var);
+  return SQRT(cond_var);
 }
 
 /*********************************************************/
@@ -2836,8 +2835,8 @@ int Norm_Trunc_Mean_Sd(phydbl mu, phydbl sd, phydbl a, phydbl b, phydbl *trunc_m
     }
   
   *trunc_mu = mu + sd*(pdfa - pdfb)/cdfbmcdfa;
-  *trunc_sd = sd*sd*(1. + (ctra*pdfa - ctrb*pdfb)/cdfbmcdfa - pow((pdfa - pdfb)/cdfbmcdfa,2));
-  *trunc_sd = sqrt(*trunc_sd);
+  *trunc_sd = sd*sd*(1. + (ctra*pdfa - ctrb*pdfb)/cdfbmcdfa - POW((pdfa - pdfb)/cdfbmcdfa,2));
+  *trunc_sd = SQRT(*trunc_sd);
   return 1;
 }
 

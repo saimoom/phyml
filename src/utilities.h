@@ -127,7 +127,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  ALPHA_MIN           0.04
 #define  ALPHA_MAX            100
 #ifdef PHYML
-#define  BL_MIN             1.e-6
+#define  BL_MIN             1.e-8
 #else
 #define  BL_MIN             1.e-4
 #endif
@@ -144,11 +144,11 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  AROUND_LK           50.0
 #define  PROP_STEP            1.0
 #define  T_MAX_ALPHABET       100
-#define  MDBL_MIN             pow(2,FLT_MIN_EXP-1)
-#define  MDBL_MAX             pow(2,FLT_MAX_EXP-1)
+#define  MDBL_MIN         FLT_MIN
+#define  MDBL_MAX         FLT_MAX
 #define  POWELL_ITMAX         200
 #define  LINMIN_TOL       2.0E-04
-#define  SCALE_POW            -50 /* Scaling factor will be 2^SCALE_POW or 2^(-SCALE_POW) */
+#define  SCALE_POW            -40 /* Scaling factor will be 2^SCALE_POW or 2^(-SCALE_POW) */
 #define  DEFAULT_SIZE_SPR_LIST 20
 #define  OUTPUT_TREE_FORMAT  0 /* 0-->Newick; 1-->Nexus */
 #define  MAX_PARS        1000000000
@@ -193,18 +193,35 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 
 /* Uncomment the lines below to switch to single precision */
 typedef	float phydbl;
-#define pow powf
-#define exp expf
-#define fabs fabsf
-#define sqrt sqrtf
-#define ceil ceilf
-#define floor floorf
-#define rint rintf
-#define round roundf
-#define trunc truncf
+#define LOG logf
+#define POW powf
+#define EXP expf
+#define FABS fabsf
+#define SQRT sqrtf
+#define CEIL ceilf
+#define FLOOR floorf
+#define RINT rintf
+#define ROUND roundf
+#define TRUNC truncf
+#define COS cosf
+#define SIN sinf
+#define TAN tanf
 
 /* Uncomment the line below to switch to double precision */
 /* typedef	double phydbl; */
+/* #define LOG log */
+/* #define POW pow */
+/* #define EXP exp */
+/* #define FABS fabs */
+/* #define SQRT sqrt */
+/* #define CEIL ceil */
+/* #define FLOOR floor */
+/* #define RINT rint */
+/* #define ROUND round */
+/* #define TRUNC trunc */
+/* #define COS cos */
+/* #define SIN sin */
+/* #define TAN tan */
 
 
 /*********************************************************/
@@ -1012,17 +1029,7 @@ typedef struct __Tnexparm {
 /*********************************************************/
 /*********************************************************/
 
-phydbl Rand_Normal_Deviate(phydbl mean, phydbl sd);
-phydbl bico(int n,int k);
-phydbl factln(int n);
-phydbl gammln(phydbl xx);
-phydbl Pbinom(int N,int ni,phydbl p);
 void Plim_Binom(phydbl pH0,int N,phydbl *pinf,phydbl *psup);
-phydbl LnGamma(phydbl alpha);
-phydbl IncompleteGamma(phydbl x,phydbl alpha,phydbl ln_gamma_alpha);
-phydbl PointChi2(phydbl prob,phydbl v);
-phydbl PointNormal(phydbl prob);
-int DiscreteGamma(phydbl freqK[],phydbl rK[],phydbl alfa,phydbl beta,int K,int median);
 t_tree *Read_Tree(char *s_tree);
 void Make_All_Edges_Light(t_node *a,t_node *d);
 void Make_All_Edges_Lk(t_node *a,t_node *d,t_tree *tree);
@@ -1237,17 +1244,9 @@ void Make_New_Edge_Label(t_edge *b);
 void Print_Qmat_AA(phydbl *daa, phydbl *pi);
 trate *Make_Rate_Struct(t_tree *tree);
 void Init_Rate_Struct(trate *rates, t_tree *tree);
-phydbl Uni();
-phydbl Ahrensdietergamma(phydbl alpha);
-phydbl Rgamma(phydbl shape, phydbl scale);
-phydbl Rexp(phydbl lambda);
-phydbl Univariate_Kernel_Density_Estimate(phydbl where, phydbl *x, int n);
 phydbl Var(phydbl *x, int n);
 phydbl Mean(phydbl *x, int n);
 phydbl Multivariate_Kernel_Density_Estimate(phydbl *where, phydbl **x, int sample_size, int vect_size);
-phydbl Dgamma(phydbl x, phydbl shape, phydbl scale);
-phydbl Dgamma_Moments(phydbl x, phydbl mean, phydbl var);
-phydbl Dpois(phydbl x, phydbl param);
 void Record_Model(model *ori, model *cpy);
 void Best_Of_NNI_And_SPR(t_tree *tree);
 int Polint(phydbl *xa, phydbl *ya, int n, phydbl x, phydbl *y, phydbl *dy);
@@ -1264,22 +1263,15 @@ char *aLRT_From_String(char *s_tree, calign *cdata, model *mod, option *io);
 int Rand_Int(int min, int max);
 void PhyML_Printf(char *format, ...);
 void PhyML_Fprintf(FILE *fp, char *format, ...);
-phydbl CDF_Pois(phydbl x, phydbl param);
-phydbl Dnorm_Moments(phydbl x, phydbl mean, phydbl var);
-int Choose(int n, int k);
-phydbl Dnorm(phydbl x, phydbl mean, phydbl sd);
-phydbl LnFact(int n);
 void Update_Ancestors(t_node *a, t_node *d, t_tree *tree);
 void Find_Common_Tips(t_tree *tree1, t_tree *tree2);
 phydbl Get_Tree_Size(t_tree *tree);
 int Find_Bipartition(char **target_bip, int bip_size, t_tree *tree);
 int Find_Duplication_Node(char **tax_set, int n_tax, t_tree *tree);
 void Get_Rid_Of_Prefix(char delim, t_tree *tree);
-phydbl Bivariate_Normal_Density(phydbl x, phydbl y, phydbl mux, phydbl muy, phydbl sdx, phydbl sdy, phydbl rho);
 void Dist_To_Root_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree);
 void Dist_To_Root(t_node *n_root, t_tree *tree);
 int Is_Duplication_Node(t_node *n, char **tax_set, int n_tax, t_tree *tree);
-phydbl Dexp(phydbl x, phydbl param);
 int Sort_Edges_Depth(t_tree *tree, t_edge **sorted_edges, int n_elem);
 char *Basename(char *path);
 void Get_List_Of_Ancestors(t_node *ref_nod, t_node **list, int *size, t_tree *tree);

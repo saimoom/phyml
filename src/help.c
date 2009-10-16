@@ -1,7 +1,7 @@
 /*
 
-PhyML:  a program that  computes maximum likelihood phylogenies from
-DNA or AA homologous sequences.
+PhyML:  a program that  computes maximum likelihood phyLOGenies from
+DNA or AA homoLOGous sequences.
 
 Copyright (C) Stephane Guindon. Oct 2003 onward.
 
@@ -47,9 +47,9 @@ void Usage()
   PhyML_Printf("%sNAME\n"
 	 "%s\t- PhyML %s - \n\n"
 	 "%s\t\''A simple, fast, and accurate algorithm to estimate\n"
-	 "%s\tlarge phylogenies by maximum likelihood\''\n\n"
+	 "%s\tlarge phyLOGenies by maximum likelihood\''\n\n"
 	 "%s\tStephane Guindon and Olivier Gascuel,\n"
-	 "%s\tSystematic Biology 52(5):696-704, 2003.\n\n"
+	 "%s\tSystematic BioLOGy 52(5):696-704, 2003.\n\n"
 	 "%s\tPlease cite this paper if you use this software in your publications.\n",BOLD,FLAT,VERSION,FLAT,FLAT,FLAT,FLAT,FLAT);
 
   PhyML_Printf("%s\nSYNOPSIS:\n\n"
@@ -81,7 +81,7 @@ void Usage()
 
   PhyML_Printf("%s\n\t-p (or --pars)%s\n",BOLD,FLAT);
   PhyML_Printf("%s\t\tUse a minimum parsimony starting tree. This option is taken into account when the '-u' option\n",FLAT);
-  PhyML_Printf("%s\t\tis absent and when tree topology modifications are to be done.\n",FLAT);
+  PhyML_Printf("%s\t\tis absent and when tree topoLOGy modifications are to be done.\n",FLAT);
 
   PhyML_Printf("%s\n\t-b (or --bootstrap) %sint%s\n",BOLD,LINE,FLAT);
   PhyML_Printf("\t\t%sint%s >  0: %sint%s is the number of bootstrap replicates.\n",LINE,FLAT,LINE,FLAT);
@@ -166,7 +166,7 @@ void Usage()
   PhyML_Printf("\n");
 
   PhyML_Printf("%s\n\t-s (or --search) %smove%s\n",BOLD,LINE,FLAT);
-  PhyML_Printf("\t\tTree topology search operation option.\n");
+  PhyML_Printf("\t\tTree topoLOGy search operation option.\n");
   PhyML_Printf("\t\tCan be either %sNNI%s (default, fast) or %sSPR%s (a bit slower than NNI) or %sBEST%s (best of NNI and SPR search).\n",LINE,FLAT,LINE,FLAT,LINE,FLAT);
   
   PhyML_Printf("\n");
@@ -178,8 +178,8 @@ void Usage()
 
   PhyML_Printf("%s\n\t-o %sparams%s\n",BOLD,LINE,FLAT);
   PhyML_Printf("\t\tThis option focuses on specific parameter optimisation.\n");
-  PhyML_Printf("\t\t%sparams%s=tlr : tree topology (t), branch length (l) and rate parameters (r) are optimised.\n",LINE,FLAT);
-  PhyML_Printf("\t\t%sparams%s=tl  : tree topology and branch length are optimised.\n",LINE,FLAT);
+  PhyML_Printf("\t\t%sparams%s=tlr : tree topoLOGy (t), branch length (l) and rate parameters (r) are optimised.\n",LINE,FLAT);
+  PhyML_Printf("\t\t%sparams%s=tl  : tree topoLOGy and branch length are optimised.\n",LINE,FLAT);
   PhyML_Printf("\t\t%sparams%s=lr  : branch length and rate parameters are optimised.\n",LINE,FLAT);
   PhyML_Printf("\t\t%sparams%s=l   : branch length are optimised.\n",LINE,FLAT);
   PhyML_Printf("\t\t%sparams%s=r   : rate parameters are optimised.\n",LINE,FLAT);
@@ -211,7 +211,7 @@ void Usage()
   PhyML_Printf("\n");
 
   PhyML_Printf("%s\n\t--print_trace%s\n",BOLD,FLAT);
-  PhyML_Printf("\t\t%sPrint each phylogeny explored during the tree search process\n",FLAT);
+  PhyML_Printf("\t\t%sPrint each phyLOGeny explored during the tree search process\n",FLAT);
   PhyML_Printf("\t\t%sin file *_phyml_trace.txt.\n",FLAT);
 
   PhyML_Printf("\n");

@@ -27,7 +27,7 @@ void det(phydbl **a, int n, phydbl *d);
 /* complex functions */
 
 typedef struct { phydbl re, im; } complex;
-#define csize(a) (fabs(a.re)+fabs(a.im))
+#define csize(a) (FABS(a.re)+FABS(a.im))
 
 complex compl (phydbl re,phydbl im);
 complex _conj (complex a);

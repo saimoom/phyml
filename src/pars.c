@@ -1,7 +1,7 @@
 /*
 
-PHYML :  a program that  computes maximum likelihood  phylogenies from
-DNA or AA homologous sequences 
+PHYML :  a program that  computes maximum likelihood  phyLOGenies from
+DNA or AA homoLOGous sequences 
 
 Copyright (C) Stephane Guindon. Oct 2003 onward
 
@@ -188,7 +188,7 @@ void Init_Ui_Tips(t_tree *tree)
 						    0,
 						    state_v);	      
 	      tree->noeud[i]->b[0]->ui_r[curr_site] = 0;
-	      For(j,tree->mod->ns) tree->noeud[i]->b[0]->ui_r[curr_site] += (unsigned int)(state_v[j] * pow(2,j));
+	      For(j,tree->mod->ns) tree->noeud[i]->b[0]->ui_r[curr_site] += (unsigned int)(state_v[j] * POW(2,j));
 	    }
 	  else if(tree->io->datatype == AA)
 	    {
@@ -196,7 +196,7 @@ void Init_Ui_Tips(t_tree *tree)
 					   0,
 					   state_v);
 	      tree->noeud[i]->b[0]->ui_r[curr_site] = 0;
-	      For(j,tree->mod->ns) tree->noeud[i]->b[0]->ui_r[curr_site] += (unsigned int)(state_v[j] * pow(2,j));
+	      For(j,tree->mod->ns) tree->noeud[i]->b[0]->ui_r[curr_site] += (unsigned int)(state_v[j] * POW(2,j));
 	    }
 	  else if(tree->io->datatype == GENERIC)
 	    {
@@ -206,7 +206,7 @@ void Init_Ui_Tips(t_tree *tree)
 						0,
 						state_v);
 	      tree->noeud[i]->b[0]->ui_r[curr_site] = 0;
-	      For(j,tree->mod->ns) tree->noeud[i]->b[0]->ui_r[curr_site] += (unsigned int)(state_v[j] * pow(2,j));
+	      For(j,tree->mod->ns) tree->noeud[i]->b[0]->ui_r[curr_site] += (unsigned int)(state_v[j] * POW(2,j));
 	    }
 	}
     }
@@ -452,7 +452,7 @@ int Pars_At_Given_Edge(t_edge *b, t_tree *tree)
 {
   int site,n_patterns;
   
-/*   n_patterns = (int)floor(tree->n_pattern*tree->prop_of_sites_to_consider); */
+/*   n_patterns = (int)FLOOR(tree->n_pattern*tree->prop_of_sites_to_consider); */
   n_patterns = tree->n_pattern;
 
   tree->c_pars = .0;
