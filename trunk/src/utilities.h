@@ -127,7 +127,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  ALPHA_MIN           0.04
 #define  ALPHA_MAX            100
 #ifdef PHYML
-#define  BL_MIN             1.e-8
+#define  BL_MIN             1.e-6
 #else
 #define  BL_MIN             1.e-4
 #endif
@@ -148,7 +148,9 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  MDBL_MAX         FLT_MAX
 #define  POWELL_ITMAX         200
 #define  LINMIN_TOL       2.0E-04
-#define  SCALE_POW            -40 /* Scaling factor will be 2^SCALE_POW or 2^(-SCALE_POW) */
+#define  SCALE_POW             10    /* Scaling factor will be 2^SCALE_POW or 2^(-SCALE_POW) [[ WARNING: SCALE_POW < 31 ]]*/
+#define  P_LK_LIM_INF   9.094947e-13 /* 2^-40 */  
+#define  P_LK_LIM_SUP   1.099512e+12 /* 2^40 */
 #define  DEFAULT_SIZE_SPR_LIST 20
 #define  OUTPUT_TREE_FORMAT  0 /* 0-->Newick; 1-->Nexus */
 #define  MAX_PARS        1000000000

@@ -1034,8 +1034,6 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	  }
       }
 
-  if(io->mod->whichmodel == GTR) Make_Custom_Model(io->mod);
-
 /*   if((io->mod->whichmodel == K80) || (io->mod->whichmodel == JC69)) */
 /*     { */
 /*       if(io->mod->s_opt->opt_state_freq) */
@@ -1181,6 +1179,12 @@ void Read_Command_Line(option *io, int argc, char **argv)
 
     io->fp_out_tree  = Openfile(io->out_tree_file,writemode);
     io->fp_out_stats = Openfile(io->out_stats_file,writemode);
+
+    if(io->mod->whichmodel == GTR) 
+      {
+	Make_Custom_Model(io->mod);
+	io->mod->s_opt->opt_rr = 1;
+      }
 
     return;
 }

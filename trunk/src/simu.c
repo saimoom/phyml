@@ -1,7 +1,7 @@
 /*
 
-PHYML :  a program that  computes maximum likelihood  phyLOGenies from
-DNA or AA homoLOGous sequences 
+PHYML :  a program that  computes maximum likelihood  phylogenies from
+DNA or AA homologous sequences 
 
 Copyright (C) Stephane Guindon. Oct 2003 onward
 
@@ -72,7 +72,7 @@ int Simu(t_tree *tree, int n_step_max)
       
   if(tree->lock_topo)
     {
-      PhyML_Printf("\n. The tree topoLOGy is locked.");
+      PhyML_Printf("\n. The tree topology is locked.");
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
@@ -106,7 +106,7 @@ int Simu(t_tree *tree, int n_step_max)
 	  if(tree->io->print_site_lnl) Print_Site_Lk(tree,tree->io->fp_out_lk); fflush(tree->io->fp_out_lk);
 	}
 
-      if((tree->mod->s_opt->print) && (!tree->io->quiet)) Print_Lk(tree,"[TopoLOGy           ]");
+      if((tree->mod->s_opt->print) && (!tree->io->quiet)) Print_Lk(tree,"[Topology           ]");
       
 /*       if(((tree->c_lnL > old_loglk) && (FABS(old_loglk-tree->c_lnL) < tree->mod->s_opt->min_diff_lk_global)) || (n_without_swap > it_lim_without_swap)) break; */
       if((FABS(old_loglk-tree->c_lnL) < tree->mod->s_opt->min_diff_lk_global) || (n_without_swap > it_lim_without_swap)) break;
@@ -197,7 +197,7 @@ void Simu_Pars(t_tree *tree, int n_step_max)
       if((tree->c_pars > old_pars) && (step > 1))
 	{
 	  if((tree->mod->s_opt->print) && (!tree->io->quiet))
-	    PhyML_Printf("\n\n. Moving backward (topoLOGy) \n");
+	    PhyML_Printf("\n\n. Moving backward (topoLlogy) \n");
 	  if(!Mov_Backward_Topo_Pars(tree,old_pars,tested_b,n_tested))
 	    Exit("\n. Err: mov_back failed\n");
 	  if(!tree->n_swap) n_neg = 0;
@@ -291,7 +291,7 @@ void Make_N_Swap(t_tree *tree,t_edge **b, int beg, int end)
   tree->n_swap = 0;
   for(i=beg;i<end;i++)
     {
-      /* we use t_dir here to take into account previous modifications of the topoLOGy */
+      /* we use t_dir here to take into account previous modifications of the topology */
       Swap(b[i]->nni->swap_node_v2->v[tree->t_dir[b[i]->nni->swap_node_v2->num][b[i]->nni->swap_node_v1->num]],
 	   b[i]->nni->swap_node_v2,
 	   b[i]->nni->swap_node_v3,
