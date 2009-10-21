@@ -748,11 +748,11 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
       failed = 0;
       
       tree->mod->update_eigen = 1;
-      BFGS(tree,tree->mod->rr_val,tree->mod->n_diff_rr,1.e-5,1.e-7,
+      BFGS(tree,tree->mod->rr_val,tree->mod->n_diff_rr,1.e-5,1.e-4,
 	   &Return_Abs_Lk,
 	   &Num_Derivative_Several_Param,
 	   &Lnsrch_RR_Param,&failed);
-
+      
       if(failed)
 	{
 	  int i;
@@ -1241,7 +1241,6 @@ int Lnsrch_RR_Param(t_tree *tree, int n, phydbl *xold, phydbl fold,
   local_xold = (phydbl *)mCalloc(n,sizeof(phydbl));
   For(i,n) local_xold[i] = xold[i];
 
-
   *check=0;
   for(sum=0.0,i=0;i<n;i++) sum += p[i]*p[i];
   sum=SQRT(sum);
@@ -1274,7 +1273,6 @@ int Lnsrch_RR_Param(t_tree *tree, int n, phydbl *xold, phydbl fold,
       if(i==n) 
 	{
 	  *f=Return_Abs_Lk(tree);
-/* 	  PhyML_Printf("LOGlk = %f\n",*f); */
 	}
       else *f=1.+fold+ALF*alam*slope;
       if (alam < alamin)

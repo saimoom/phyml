@@ -4176,13 +4176,13 @@ void Print_Fp_Out(FILE *fp_out, time_t t_beg, time_t t_end, t_tree *tree, option
   
   if(io->mod->s_opt->opt_topo)
     {
-      if(io->mod->s_opt->topo_search == NNI_MOVE) PhyML_Fprintf(fp_out,"\n\n. Tree topoLOGy search : \t\tNNIs");
-      else if(io->mod->s_opt->topo_search == SPR_MOVE) PhyML_Fprintf(fp_out,"\n\n. Tree topoLOGy search : \t\tSPRs");
-      else if(io->mod->s_opt->topo_search == BEST_OF_NNI_AND_SPR) PhyML_Fprintf(fp_out,"\n\n. Tree topoLOGy search : \t\tBest of NNIs and SPRs");
+      if(io->mod->s_opt->topo_search == NNI_MOVE) PhyML_Fprintf(fp_out,"\n\n. Tree topology search : \t\tNNIs");
+      else if(io->mod->s_opt->topo_search == SPR_MOVE) PhyML_Fprintf(fp_out,"\n\n. Tree topology search : \t\tSPRs");
+      else if(io->mod->s_opt->topo_search == BEST_OF_NNI_AND_SPR) PhyML_Fprintf(fp_out,"\n\n. Tree topology search : \t\tBest of NNIs and SPRs");
     }
   else
     {
-      PhyML_Fprintf(fp_out,"\n\n. Tree topoLOGy: \t\t\tfixed");
+      PhyML_Fprintf(fp_out,"\n\n. Tree topology: \t\t\tfixed");
     }
 
 
@@ -5469,7 +5469,6 @@ phydbl Num_Derivatives_One_Param(phydbl (*func)(t_tree *tree), t_tree *tree,
       a[0][0]  -= f0;
       a[0][0]  /= hh;
       *param   = *param-hh;
-
 
       *err=1e30;
       for(i=1;i<n_iter;i++)
@@ -8313,7 +8312,7 @@ void Print_Settings(option *io)
 	}
     }
 
-  PhyML_Printf("\n                . Optimise tree topoLOGy:\t\t\t %s", (io->mod->s_opt->opt_topo) ? "yes": "no");
+  PhyML_Printf("\n                . Optimise tree topology:\t\t\t %s", (io->mod->s_opt->opt_topo) ? "yes": "no");
 
   switch(io->in_tree)
     {
@@ -8326,9 +8325,9 @@ void Print_Settings(option *io)
 
   if(io->mod->s_opt->opt_topo)
     {
-      if(io->mod->s_opt->topo_search == NNI_MOVE) PhyML_Printf("\n                . Tree topoLOGy search:\t\t\t\t NNIs");
-      else if(io->mod->s_opt->topo_search == SPR_MOVE) PhyML_Printf("\n                . Tree topoLOGy search:\t\t\t\t SPRs");
-      else if(io->mod->s_opt->topo_search == BEST_OF_NNI_AND_SPR) PhyML_Printf("\n                . Tree topoLOGy search:\t\t\t\t Best of NNIs and SPRs");
+      if(io->mod->s_opt->topo_search == NNI_MOVE) PhyML_Printf("\n                . Tree topology search:\t\t\t\t NNIs");
+      else if(io->mod->s_opt->topo_search == SPR_MOVE) PhyML_Printf("\n                . Tree topology search:\t\t\t\t SPRs");
+      else if(io->mod->s_opt->topo_search == BEST_OF_NNI_AND_SPR) PhyML_Printf("\n                . Tree topology search:\t\t\t\t Best of NNIs and SPRs");
 
 
 
@@ -9660,12 +9659,12 @@ void Best_Of_NNI_And_SPR(t_tree *tree)
       Simu_Loop(tree); /* Perform simultaneous NNIs */
       best_lnL = tree->c_lnL; /* Record the likelihood */
       nni_lnL = tree->c_lnL;
-      Copy_Tree(tree,best_tree); /* Record the tree topoLOGy and branch lengths */
+      Copy_Tree(tree,best_tree); /* Record the tree topology and branch lengths */
       Record_Br_Len(best_bl,tree);
       Restore_Br_Len(best_bl,best_tree);
       Record_Model(tree->mod,best_mod);
       
-      Copy_Tree(ori_tree,tree); /* Back to the original tree topoLOGy */
+      Copy_Tree(ori_tree,tree); /* Back to the original tree topology */
       Restore_Br_Len(ori_bl,tree); /* Back to the original branch lengths */
       Record_Model(ori_mod,tree->mod); /* Back to the original model */
       
@@ -9683,7 +9682,7 @@ void Best_Of_NNI_And_SPR(t_tree *tree)
       if(tree->c_lnL > best_lnL)
 	{
 	  best_lnL = tree->c_lnL;
-	  Copy_Tree(tree,best_tree); /* Record tree topoLOGy, branch lengths and model parameters */
+	  Copy_Tree(tree,best_tree); /* Record tree topology, branch lengths and model parameters */
 	  Record_Br_Len(best_bl,tree);
 	  Restore_Br_Len(best_bl,best_tree);
 	  Record_Model(tree->mod,best_mod);
@@ -9693,7 +9692,7 @@ void Best_Of_NNI_And_SPR(t_tree *tree)
       Restore_Br_Len(best_bl,tree);
       Record_Model(best_mod,tree->mod);
       
-      /* Make sure the current tree has the best topoLOGy, branch lengths and model parameters */
+      /* Make sure the current tree has the best topology, branch lengths and model parameters */
       Lk(tree);
       if(FABS(tree->c_lnL - best_lnL) > tree->mod->s_opt->min_diff_lk_global)
 	{

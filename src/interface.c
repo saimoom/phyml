@@ -179,8 +179,11 @@ void Launch_Interface(option *io)
   io->fp_out_tree  = Openfile(io->out_tree_file,1);
   io->fp_out_stats = Openfile(io->out_stats_file,1);
 
-  if(io->mod->whichmodel == GTR) Make_Custom_Model(io->mod);
-
+  if(io->mod->whichmodel == GTR) 
+    {
+      Make_Custom_Model(io->mod);
+      io->mod->s_opt->opt_rr = 1;
+    }
 }
 
 /*********************************************************/
