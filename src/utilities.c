@@ -5443,7 +5443,7 @@ phydbl Num_Derivatives_One_Param(phydbl (*func)(t_tree *tree), t_tree *tree,
 
   ans  = .0;
 
-  if(stepsize < MDBL_MIN) Warn_And_Exit("\n. h must be nonzero in Dfridr.");
+  if(stepsize < SMALL) Warn_And_Exit("\n. h must be nonzero in Dfridr.");
 
   hh=stepsize;
 
@@ -8426,7 +8426,7 @@ void Fill_Missing_Dist_XY(int x, int y, matrix *mat)
   for(i=1;i<cpt;i++) local_mins[i] = (i*local_mins[i-1] + S1S2[i][1])/(phydbl)(i+1);
  
   pos_best_estimate = 0;
-  min_crit = curr_crit = MDBL_MAX;
+  min_crit = curr_crit = BIG;
 	
   For(i,cpt-1)
     {
@@ -9093,7 +9093,7 @@ void Random_Lineage_Rates(t_node *a, t_node *d, t_edge *b, phydbl stick_prob, ph
 	  uni  = rand();
 	  uni /= RAND_MAX;
 	  uni = (phydbl)(uni * (n_rates-1));	  
-	  if(uni-(int)(uni) > 0.5-MDBL_MAX) new_rate = (int)(uni)+1;
+	  if(uni-(int)(uni) > 0.5-BIG) new_rate = (int)(uni)+1;
 	  else new_rate = (int)(uni);	  
 	}
       else
@@ -9754,7 +9754,7 @@ int Polint(phydbl *xa, phydbl *ya, int n, phydbl x, phydbl *y, phydbl *dy)
 	   ho=xa[i]-x;
 	   hp=xa[i+m]-x;
 	   w=c[i+1]-d[i];
-	   if((den=ho-hp) < MDBL_MIN && (den=ho-hp) > -MDBL_MIN )
+	   if((den=ho-hp) < SMALL && (den=ho-hp) > -SMALL )
 	     {
 /* 	       Rprintf("\n. Error in routine POLINT.\n"); */
 	       Exit("\n. Error in routine POLINT.\n");

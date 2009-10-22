@@ -235,7 +235,7 @@ void balance(phydbl *mat, int n,int *low, int *hi, phydbl *scale)
 	  {
 	    for (i = 0; i <= k; i++) 
 	      {
-		if (i != j && FABS(mat[pos(j,i,n)]) > MDBL_MIN) break;
+		if (i != j && FABS(mat[pos(j,i,n)]) > SMALL) break;
 	      }
 
             if (i > k) {
@@ -265,7 +265,7 @@ void balance(phydbl *mat, int n,int *low, int *hi, phydbl *scale)
     for (l = 0; l <= k; l++) {
         for (j = l; j <= k; j++) {
             for (i = l; i <= k; i++) {
-	      if (i != j && FABS(mat[pos(i,j,n)]) > MDBL_MIN) break;
+	      if (i != j && FABS(mat[pos(i,j,n)]) > SMALL) break;
             }
             if (i > k) {
                 scale[l] = j;
@@ -309,7 +309,7 @@ void balance(phydbl *mat, int n,int *low, int *hi, phydbl *scale)
             }
 
 /*             if (c != 0 && r != 0) {  */
-            if (FABS(c) > MDBL_MIN && FABS(r) > MDBL_MIN) {
+            if (FABS(c) > SMALL && FABS(r) > SMALL) {
                g = r / BASE;
                 f = 1;
                 s = c + r;
@@ -423,9 +423,9 @@ void elemhess(int job,phydbl *mat,int n,int low,int hi, phydbl *vr,
             }
         }
 
-        if (FABS(x) > MDBL_MIN) {
+        if (FABS(x) > SMALL) {
             for (i = m + 1; i <= hi; i++) {
-	      if (FABS(y = mat[pos(i,m-1,n)]) > MDBL_MIN) {
+	      if (FABS(y = mat[pos(i,m-1,n)]) > SMALL) {
                     y = mat[pos(i,m-1,n)] = y / x;
 
                     for (j = m; j < n; j++) {
@@ -499,7 +499,7 @@ int realeig(int job,phydbl *mat,int n,int low, int hi, phydbl *valr,
 
          for (l = en; l > low; l--) {
             s = FABS(mat[pos(l-1,l-1,n)]) + FABS(mat[pos(l,l,n)]);
-            if (FABS(s) < MDBL_MIN) s = norm;
+            if (FABS(s) < SMALL) s = norm;
             if (FABS(mat[pos(l,l-1,n)]) <= eps * s) break;
          }
 
@@ -535,7 +535,7 @@ int realeig(int job,phydbl *mat,int n,int low, int hi, phydbl *valr,
             else {                      /* real pair */
                z = (p < 0) ? p - z : p + z;
                valr[en-1] = x + z;
-               valr[en] = (FABS(z) < MDBL_MIN) ? x + z : x - w / z;
+               valr[en] = (FABS(z) < SMALL) ? x + z : x - w / z;
                if (job) {
                   x = mat[pos(en,en-1,n)];
                   s = FABS(x) + FABS(z);
@@ -598,7 +598,7 @@ int realeig(int job,phydbl *mat,int n,int low, int hi, phydbl *valr,
                p = mat[pos(k,k-1,n)];
                q = mat[pos(k+1,k-1,n)];
                r = (k == en - 1) ? 0 : mat[pos(k+2,k-1,n)];
-               if (FABS(x = FABS(p) + FABS(q) + FABS(r)) < MDBL_MIN) continue;
+               if (FABS(x = FABS(p) + FABS(q) + FABS(r)) < SMALL) continue;
                p /= x;
                q /= x;
                r /= x;
@@ -654,7 +654,7 @@ int realeig(int job,phydbl *mat,int n,int low, int hi, phydbl *valr,
    }
 
    if (!job) return(0);
-   if (FABS(norm) > MDBL_MIN) {
+   if (FABS(norm) > SMALL) {
        /* back substitute to find vectors of upper triangular form */
       for (en = n-1; en >= 0; en--) {
          p = valr[en];
@@ -688,7 +688,7 @@ int realeig(int job,phydbl *mat,int n,int low, int hi, phydbl *valr,
                }
                else {
                   m = i;
-                  if (FABS(vali[i]) < MDBL_MIN) {
+                  if (FABS(vali[i]) < SMALL) {
                      v = cdiv(compl(-ra,-sa),compl(w,q));
                      mat[pos(i,en-1,n)] = v.re;
                      mat[pos(i,en,n)] = v.im;
@@ -698,7 +698,7 @@ int realeig(int job,phydbl *mat,int n,int low, int hi, phydbl *valr,
                      y = mat[pos(i+1,i,n)];
                      v.re = (valr[i]- p)*(valr[i]-p) + vali[i]*vali[i] - q*q;
                      v.im = (valr[i] - p)*2*q;
-                     if (FABS(v.re) + FABS(v.im) < MDBL_MIN) {
+                     if (FABS(v.re) + FABS(v.im) < SMALL) {
                         v.re = eps * norm * (FABS(w) +
                                 FABS(q) + FABS(x) + FABS(y) + FABS(z));
                      }
@@ -722,7 +722,7 @@ int realeig(int job,phydbl *mat,int n,int low, int hi, phydbl *valr,
                }
             }
          }
-         else if (FABS(q) < MDBL_MIN) {                             /* real vector */
+         else if (FABS(q) < SMALL) {                             /* real vector */
             m = en;
             mat[pos(en,en,n)] = 1;
             for (i = en - 1; i >= 0; i--) {
@@ -737,8 +737,8 @@ int realeig(int job,phydbl *mat,int n,int low, int hi, phydbl *valr,
                }
                else {
                   m = i;
-                  if (FABS(vali[i]) < MDBL_MIN) {
-                     if (FABS(t = w) < MDBL_MIN) t = eps * norm;
+                  if (FABS(vali[i]) < SMALL) {
+                     if (FABS(t = w) < SMALL) t = eps * norm;
                      mat[pos(i,en,n)] = -r / t;
                   }
                   else {            /* solve real equations */
@@ -780,7 +780,7 @@ int realeig(int job,phydbl *mat,int n,int low, int hi, phydbl *valr,
    }
     /* rearrange complex eigenvectors */
    for (j = 0; j < n; j++) {
-     if (FABS(vali[j]) > MDBL_MIN) {
+     if (FABS(vali[j]) > SMALL) {
          for (i = 0; i < n; i++) {
             vi[pos(i,j,n)] = vr[pos(i,j+1,n)];
             vr[pos(i,j+1,n)] = vr[pos(i,j,n)];
@@ -810,7 +810,7 @@ int ludcmp(phydbl **a, int n, phydbl *d)
        big=0.0;
        for (j=0;j<n;j++)
          if ((temp=FABS(a[i][j])) > big) big=temp;
-       if (FABS(big) < MDBL_MIN) Exit("\n. Singular matrix in routine LUDCMP");
+       if (FABS(big) < SMALL) Exit("\n. Singular matrix in routine LUDCMP");
        vv[i]=1.0/big;
      }
    for (j=0;j<n;j++) 
@@ -844,7 +844,7 @@ int ludcmp(phydbl **a, int n, phydbl *d)
 	  *d = -(*d);
 	  vv[imax]=vv[j];
 	}
-      if (FABS(a[j][j]) < MDBL_MIN) a[j][j]=LUDCMP_TINY;
+      if (FABS(a[j][j]) < SMALL) a[j][j]=LUDCMP_TINY;
       if (j != n) {
 	dum=1.0/(a[j][j]);
 	for (i=j+1;i<n;i++) a[i][j] *= dum;
@@ -878,7 +878,7 @@ int ludcmp_1D(phydbl *a, int n, phydbl *d)
        big=0.0;
        for (j=0;j<n;j++)
          if ((temp=FABS(a[i*n+j])) > big) big=temp;
-       if (FABS(big) < MDBL_MIN) Exit("\n. Singular matrix in routine LUDCMP");
+       if (FABS(big) < SMALL) Exit("\n. Singular matrix in routine LUDCMP");
        vv[i]=1.0/big;
      }
    for (j=0;j<n;j++) 
@@ -912,7 +912,7 @@ int ludcmp_1D(phydbl *a, int n, phydbl *d)
 	  *d = -(*d);
 	  vv[imax]=vv[j];
 	}
-      if (FABS(a[j*n+j]) < MDBL_MIN) a[j*n+j]=LUDCMP_TINY;
+      if (FABS(a[j*n+j]) < SMALL) a[j*n+j]=LUDCMP_TINY;
       if (j != n) {
 	dum=1.0/(a[j*n+j]);
 	for (i=j+1;i<n;i++) a[i*n+j] *= dum;

@@ -27,7 +27,7 @@ void PMat_JC69(phydbl l, int pos, phydbl *Pij, model *mod)
     for(j=i+1;j<ns;j++) 
       {
 	Pij[pos+ ns*i+j] = (1./ns)*(1. - EXP(-ns*l/(ns - 1.)));
-	if(Pij[pos+ns*i+j] < 1.E-10) Pij[pos+ns*i+j] = 1.E-10;
+	if(Pij[pos+ns*i+j] < SMALL_PIJ) Pij[pos+ns*i+j] = SMALL_PIJ;
 	Pij[pos+ ns*j+i] = Pij[pos+ ns*i+j];
       }
 }
@@ -66,7 +66,7 @@ void PMat_K80(phydbl l, phydbl kappa, int pos, phydbl *Pij)
   Pij[pos+ 4*2+3] = Pij[pos+ 4*3+2] = Tv;
 
   For(i,4) For(j,4)
-    if(Pij[pos + 4*i+j] < 1.E-10) Pij[pos + 4*i+j] = 1.E-10;
+    if(Pij[pos + 4*i+j] < SMALL_PIJ) Pij[pos + 4*i+j] = SMALL_PIJ;
 
 }
 
@@ -147,7 +147,7 @@ void PMat_TN93(phydbl l, model *mod, int pos, phydbl *Pij)
   /*T->T*/Pij[pos + 4*3+3] = T+R*T/Y*e3+C/Y*e2;
   
   For(i,4) For(j,4)
-    if(Pij[pos + 4*i+j] < 1.E-10) Pij[pos + 4*i+j] = 1.E-10;
+    if(Pij[pos + 4*i+j] < SMALL_PIJ) Pij[pos + 4*i+j] = SMALL_PIJ;
 
 /*   /\*A->A*\/(*Pij)[0][0] = A+Y*A/R*e3+G/R*e1;  */
 /*   /\*A->C*\/(*Pij)[0][1] = C*(1-e3); */
@@ -170,7 +170,7 @@ void PMat_TN93(phydbl l, model *mod, int pos, phydbl *Pij)
 /*   /\*T->T*\/(*Pij)[3][3] = T+R*T/Y*e3+C/Y*e2; */
   
 /*   For(i,4) For(j,4) */
-/*     if((*Pij)[i][j] < MDBL_MIN) (*Pij)[i][j] = MDBL_MIN; */
+/*     if((*Pij)[i][j] < SMALL) (*Pij)[i][j] = SMALL; */
 
 }
 
@@ -251,8 +251,8 @@ void PMat_Empirical(phydbl l, model *mod, int pos, phydbl *Pij)
 	    {
 	      Pij[pos+mod->ns*i+j] += (uexpt[i*n+k] * V[k*n+j]);
 	    }
-/* 	  if(Pij[pos+mod->ns*i+j] < MDBL_MIN) Pij[pos+mod->ns*i+j] = MDBL_MIN; */
-	  if(Pij[pos+mod->ns*i+j] < 1.E-10) Pij[pos+mod->ns*i+j] = 1.E-10;
+/* 	  if(Pij[pos+mod->ns*i+j] < SMALL) Pij[pos+mod->ns*i+j] = SMALL; */
+	  if(Pij[pos+mod->ns*i+j] < SMALL_PIJ) Pij[pos+mod->ns*i+j] = SMALL_PIJ;
 	}
 
 /* #ifdef PHYML */
@@ -339,7 +339,7 @@ void PMat_Gamma(phydbl l, model *mod, int pos, phydbl *Pij)
 	    {
 	      Pij[pos+mod->ns*i+j] += (uexpt[i*n+k] * V[k*n+j]);
 	    }
-	  if(Pij[pos+mod->ns*i+j] < 1.E-10) Pij[pos+mod->ns*i+j] = 1.E-10;
+	  if(Pij[pos+mod->ns*i+j] < SMALL_PIJ) Pij[pos+mod->ns*i+j] = SMALL_PIJ;
 	}
 
 #ifdef DEBUG

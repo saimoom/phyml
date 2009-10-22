@@ -474,7 +474,7 @@ phydbl RATES_Compound_Core_Marginal(phydbl mu1, phydbl mu2, phydbl dt1, phydbl d
   /*   dens = v0; */
 /*   dens *= dmu1; */
   
-  if(dens < MDBL_MIN)
+  if(dens < SMALL)
     {
       PhyML_Printf("\n. dens=%12G mu1=%12G mu2=%12G dt1=%12G dt2=%12G lexp=%12G alpha=%f v0=%f v1=%f v2=%f p0=%f p1=%f p2=%f",
 	     dens,
@@ -821,8 +821,8 @@ void RATES_Init_Rate_Struct(trate *rates, int n_otu)
 	}
       else
 	{
-	  rates->t_prior_max[i] =  MDBL_MAX;
-	  rates->t_prior_min[i] = -MDBL_MAX;
+	  rates->t_prior_max[i] =  BIG;
+	  rates->t_prior_min[i] = -BIG;
 	}
     }
 }
@@ -958,7 +958,7 @@ phydbl RATES_Dmu_One(phydbl mu, phydbl dt, phydbl a, phydbl b, phydbl lexp)
       Warn_And_Exit("");
     }
   
-  if(lexpdt < MDBL_MIN)
+  if(lexpdt < SMALL)
     {
       PhyML_Printf("\n. lexpdt=%G lexp=%G dt=%G",lexpdt,lexp,dt);
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
@@ -2481,7 +2481,7 @@ void RATES_Posterior_Time_Root(t_tree *tree)
   u0 = 1.0;
   cr = tree->rates->clock_r;
 
-  t0_min = -MDBL_MAX;
+  t0_min = -BIG;
 
 
   t0_max = MIN(t1,t2);

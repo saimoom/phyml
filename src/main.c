@@ -147,6 +147,16 @@ int main(int argc, char **argv)
 
 		  if(io->in_tree == 1) Spr_Pars(tree);
 		  
+		  int i;
+		  time(&t_beg);
+		  For(i,10)
+		    {
+		      PhyML_Printf("\n. %3d %f",i,Lk(tree));
+		    }
+		  time(&t_end);
+		  PhyML_Printf("\n[%6d]\t",(int)(t_end-t_beg));
+		  Exit("\n");
+
 		  if(tree->mod->s_opt->opt_topo)
 		    {
 		      if(tree->mod->s_opt->topo_search      == NNI_MOVE) Simu_Loop(tree);

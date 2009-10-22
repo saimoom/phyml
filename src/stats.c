@@ -450,7 +450,7 @@ phydbl Log_Dnorm(phydbl x, phydbl mean, phydbl sd, int *err)
 
   dens = -(.5*LOG2PI+LOG(sd))  - .5*ctrxsq/var;
 
-  if(dens < -MDBL_MAX)
+  if(dens < -BIG)
     {
       PhyML_Printf("\n. dens=%f -- x=%f mean=%f sd=%f\n",dens,x,mean,sd);
       *err = 1;
@@ -903,7 +903,7 @@ phydbl Pgamma(phydbl x, phydbl shape, phydbl scale)
 phydbl Ppois(phydbl x, phydbl param)
 {
   /* Press et al. (1990) approximation of the CDF for the Poisson distribution */
-  if(param < MDBL_MIN || x < 0.0) 
+  if(param < SMALL || x < 0.0) 
     {
       PhyML_Printf("\n. param = %G x=%G",param,x);
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
@@ -1142,7 +1142,7 @@ phydbl Factln(int n)
   
   if (n < 0)    { Warn_And_Exit("\n. Err: negative factorial in routine FACTLN"); }
   if (n <= 1)     return 0.0;
-  if (n <= 100)   return (a[n]>MDBL_MIN) ? a[n] : (a[n]=Gammln(n+1.0));
+  if (n <= 100)   return (a[n]>SMALL) ? a[n] : (a[n]=Gammln(n+1.0));
   else return     Gammln(n+1.0);
 }
 
@@ -1216,7 +1216,7 @@ phydbl IncompleteGamma(phydbl x, phydbl alpha, phydbl ln_gamma_alpha)
    double accurate=1e-8, overflow=1e30;
    double factor, gin=0, rn=0, a=0,b=0,an=0,dif=0, term=0, pn[6];
 
-   if (fabs(x) < MDBL_MIN) return ((phydbl).0);
+   if (fabs(x) < SMALL) return ((phydbl).0);
    if (x<0 || p<=0)        return ((phydbl)-1);
 
    factor=exp(p*log(x)-x-g);
@@ -2756,9 +2756,9 @@ phydbl Norm_Trunc_Sd(phydbl mu, phydbl sd, phydbl a, phydbl b)
 
   cdfbmcdfa = cdfb - cdfa;
 
-  if(cdfbmcdfa < MDBL_MIN) 
+  if(cdfbmcdfa < SMALL) 
     {
-      cdfbmcdfa = MDBL_MIN;
+      cdfbmcdfa = SMALL;
       PhyML_Printf("\n. mu=%G sd=%G a=%G b=%G",mu,sd,a,b);
       PhyML_Printf("\n. Numerical precision issue detected.");
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
@@ -2790,9 +2790,9 @@ phydbl Norm_Trunc_Mean(phydbl mu, phydbl sd, phydbl a, phydbl b)
   
   cdfbmcdfa = cdfb - cdfa;
 
-  if(cdfbmcdfa < MDBL_MIN)
+  if(cdfbmcdfa < SMALL)
     {
-      cdfbmcdfa = MDBL_MIN;
+      cdfbmcdfa = SMALL;
       PhyML_Printf("\n. mu=%G sd=%G a=%G b=%G",mu,sd,a,b);
       PhyML_Printf("\n. Numerical precision issue detected.");
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
@@ -2824,9 +2824,9 @@ int Norm_Trunc_Mean_Sd(phydbl mu, phydbl sd, phydbl a, phydbl b, phydbl *trunc_m
   
   cdfbmcdfa = cdfb - cdfa;
 
-  if(cdfbmcdfa < MDBL_MIN)
+  if(cdfbmcdfa < SMALL)
     {
-      cdfbmcdfa = MDBL_MIN;
+      cdfbmcdfa = SMALL;
       PhyML_Printf("\n. mu=%G sd=%G a=%G b=%G",mu,sd,a,b);
       PhyML_Printf("\n. cdfa=%G cdfb=%G",cdfa,cdfb);
       PhyML_Printf("\n. Numerical precision issue detected.");

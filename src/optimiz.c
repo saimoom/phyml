@@ -246,7 +246,7 @@ phydbl Generic_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 	{
 	  if (u < x) a=u; else b=u;
 /* 	  if (fu <= fw || w == x) */
-	  if (fu < fw || FABS(w-x) < MDBL_MIN)
+	  if (fu < fw || FABS(w-x) < SMALL)
 	    {
 	      v=w;
 	      w=u;
@@ -254,7 +254,7 @@ phydbl Generic_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 	      fw=fu;
 	    } 
 /* 	  else if (fu <= fv || v == x || v == w) */
-	  else if (fu < fv || FABS(v-x) < MDBL_MIN || FABS(v-w) < MDBL_MIN)
+	  else if (fu < fv || FABS(v-x) < SMALL || FABS(v-w) < SMALL)
 	    {
 	      v=u;
 	      fv=fu;
@@ -567,14 +567,14 @@ phydbl Br_Len_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 	{
 	  if (u < x) a=u; else b=u;
 /* 	  if (fu <= fw || w == x) */
-	  if (fu < fw || FABS(w-x) < MDBL_MIN)
+	  if (fu < fw || FABS(w-x) < SMALL)
 	    {
 	      v=w;
 	      w=u;
 	      fv=fw;
 	      fw=fu;
 	    }
-	  else if (fu < fv || FABS(v-x) < MDBL_MIN || FABS(v-w) < MDBL_MIN)
+	  else if (fu < fv || FABS(v-x) < SMALL || FABS(v-w) < SMALL)
 /* 	  else if (fu <= fv || v == x || v == w)  */
 	    {
 	      v=u;
@@ -1067,7 +1067,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 #define TOLX (4*EPS)
 #define STPMX 100.0
 static phydbl sqrarg;
-#define SQR(a) ((sqrarg=(a)) < MDBL_MIN ? 0.0 : sqrarg*sqrarg)
+#define SQR(a) ((sqrarg=(a)) < SMALL ? 0.0 : sqrarg*sqrarg)
 
 void BFGS(t_tree *tree, 
 	  phydbl *p, 
@@ -1302,7 +1302,7 @@ int Lnsrch_RR_Param(t_tree *tree, int n, phydbl *xold, phydbl fold,
       else 
 	{
 /* 	  if (alam == 1.0) */
-	  if ((alam < 1.0+MDBL_MIN) && (alam > 1.0-MDBL_MIN))
+	  if ((alam < 1.0+SMALL) && (alam > 1.0-SMALL))
 	    tmplam = -slope/(2.0*(*f-fold-slope));
 	  else 
 	    {
@@ -1310,7 +1310,7 @@ int Lnsrch_RR_Param(t_tree *tree, int n, phydbl *xold, phydbl fold,
 	      rhs2=f2-fold2-alam2*slope;
 	      a=(rhs1/(alam*alam)-rhs2/(alam2*alam2))/(alam-alam2);
 	      b=(-alam2*rhs1/(alam*alam)+alam*rhs2/(alam2*alam2))/(alam-alam2);
-	      if (a < MDBL_MIN && a > -MDBL_MIN) tmplam = -slope/(2.0*b);
+	      if (a < SMALL && a > -SMALL) tmplam = -slope/(2.0*b);
 	      else 
 		{
 		  disc=b*b-3.0*a*slope;
@@ -1415,7 +1415,7 @@ int Lnsrch_RR_Cov_Param(t_tree *tree, int n, phydbl *xold, phydbl fold,
       else 
 	{
 /* 	  if (alam == 1.0) */
-	  if ((alam < 1.0+MDBL_MIN) && (alam > 1.0-MDBL_MIN))
+	  if ((alam < 1.0+SMALL) && (alam > 1.0-SMALL))
 	    tmplam = -slope/(2.0*(*f-fold-slope));
 	  else 
 	    {
@@ -1424,7 +1424,7 @@ int Lnsrch_RR_Cov_Param(t_tree *tree, int n, phydbl *xold, phydbl fold,
 	      a=(rhs1/(alam*alam)-rhs2/(alam2*alam2))/(alam-alam2);
 	      b=(-alam2*rhs1/(alam*alam)+alam*rhs2/(alam2*alam2))/(alam-alam2);
 /* 	      if (a == 0.0) tmplam = -slope/(2.0*b); */
-	      if (a < MDBL_MIN && a > -MDBL_MIN) tmplam = -slope/(2.0*b);
+	      if (a < SMALL && a > -SMALL) tmplam = -slope/(2.0*b);
 	      else 
 		{
 		  disc=b*b-3.0*a*slope;
@@ -1517,7 +1517,7 @@ int Lnsrch_Nucleotide_Frequencies(t_tree *tree, int n, phydbl *xold, phydbl fold
 	}
       else 
 	{
-	  if ((alam < 1.0+MDBL_MIN) && (alam > 1.0-MDBL_MIN))
+	  if ((alam < 1.0+SMALL) && (alam > 1.0-SMALL))
 /* 	  if (alam == 1.0) */
 	    tmplam = -slope/(2.0*(*f-fold-slope));
 	  else 
@@ -1526,7 +1526,7 @@ int Lnsrch_Nucleotide_Frequencies(t_tree *tree, int n, phydbl *xold, phydbl fold
 	      rhs2=f2-fold2-alam2*slope;
 	      a=(rhs1/(alam*alam)-rhs2/(alam2*alam2))/(alam-alam2);
 	      b=(-alam2*rhs1/(alam*alam)+alam*rhs2/(alam2*alam2))/(alam-alam2);
-	      if (a < MDBL_MIN && a > -MDBL_MIN) tmplam = -slope/(2.0*b);
+	      if (a < SMALL && a > -SMALL) tmplam = -slope/(2.0*b);
 /* 	      if (a == 0.0) tmplam = -slope/(2.0*b); */
 	      else 
 		{
@@ -1725,7 +1725,7 @@ phydbl Dist_F_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, int n_iter_max,
 	{
 	  if (u < x) a=u; else b=u;
 /* 	  if (fu <= fw || w == x)  */
-	  if (fu < fw || FABS(w-x) < MDBL_MIN)
+	  if (fu < fw || FABS(w-x) < SMALL)
 	    {
 	      v=w;
 	      w=u;
@@ -1733,7 +1733,7 @@ phydbl Dist_F_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, int n_iter_max,
 	      fw=fu;
 	    } 
 /* 	  else if (fu <= fv || v == x || v == w)  */
-	  else if (fu < fv || FABS(v-x) < MDBL_MIN || FABS(v-w) < MDBL_MIN)
+	  else if (fu < fv || FABS(v-x) < SMALL || FABS(v-w) < SMALL)
 	    {
 	      v=u;
 	      fv=fu;
@@ -1914,7 +1914,7 @@ phydbl Missing_Dist_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, int n_ite
 	{
 	  if (u < xx) a=u; else b=u;
 /* 	  if (fu <= fw || w == xx)  */
-	  if (fu < fw || FABS(w-xx) < MDBL_MIN)
+	  if (fu < fw || FABS(w-xx) < SMALL)
 	    {
 	      v=w;
 	      w=u;
@@ -1922,7 +1922,7 @@ phydbl Missing_Dist_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, int n_ite
 	      fw=fu;
 	    } 
 /* 	  else if (fu <= fv || v == xx || v == w)  */
-	  else if (fu < fv || FABS(v-xx) < MDBL_MIN || FABS(v-w) < MDBL_MIN)
+	  else if (fu < fv || FABS(v-xx) < SMALL || FABS(v-w) < SMALL)
 	    {
 	      v=u;
 	      fv=fu;
@@ -2365,7 +2365,7 @@ phydbl Generic_Brent_Lk(phydbl *param, phydbl ax, phydbl cx, phydbl tol,
 	{
 	  if (u < x) a=u; else b=u;
 /* 	  if (fu <= fw || w == x) */
-	  if (fu < fw || FABS(w-x) < MDBL_MIN)
+	  if (fu < fw || FABS(w-x) < SMALL)
 	    {
 	      v=w;
 	      w=u;
@@ -2373,7 +2373,7 @@ phydbl Generic_Brent_Lk(phydbl *param, phydbl ax, phydbl cx, phydbl tol,
 	      fw=fu;
 	    } 
 /* 	  else if (fu <= fv || v == x || v == w) */
-	  else if (fu < fv || FABS(v-x) < MDBL_MIN || FABS(v-w) < MDBL_MIN)
+	  else if (fu < fv || FABS(v-x) < SMALL || FABS(v-w) < SMALL)
 	    {
 	      v=u;
 	      fv=fu;
