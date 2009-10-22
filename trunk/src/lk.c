@@ -678,13 +678,13 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
         }
     }
   
-  if(isinf(log_site_lk) || isnan(log_site_lk)) 
-    {
-      PhyML_Printf("\n. scale_left = %d scale_rght = %d",sum_scale_left,sum_scale_rght);
-      PhyML_Printf("\n. Lk = %G LOG(Lk) = %f < %G",site_lk,log_site_lk,-BIG);
-      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
-      Warn_And_Exit("\n");
-    }
+/*   if(isinf(log_site_lk) || isnan(log_site_lk))  */
+/*     { */
+/*       PhyML_Printf("\n. scale_left = %d scale_rght = %d",sum_scale_left,sum_scale_rght); */
+/*       PhyML_Printf("\n. Lk = %G LOG(Lk) = %f < %G",site_lk,log_site_lk,-BIG); */
+/*       PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__); */
+/*       Warn_And_Exit("\n"); */
+/*     } */
   
   tree->cur_site_lk[site] = log_site_lk;
 
