@@ -956,7 +956,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	      else
 		{
 		  io->mod->pinvar = (phydbl)atof(optarg);
-		  if (io->mod->pinvar > 0.0+MDBL_MIN)
+		  if (io->mod->pinvar > 0.0+SMALL)
 		    io->mod->invar = 1;
 		  else
 		    io->mod->invar = 0;

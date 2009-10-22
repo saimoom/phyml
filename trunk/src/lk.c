@@ -15,8 +15,8 @@ the GNU public licence. See http://www.opensource.org for details.
 
 /* int    LIM_SCALE; */
 /* phydbl LIM_SCALE_VAL; */
-/* phydbl MDBL_MAX; */
-/* phydbl MDBL_MIN; */
+/* phydbl BIG; */
+/* phydbl SMALL; */
 
 /*********************************************************/
 
@@ -352,7 +352,7 @@ phydbl Lk(t_tree *tree)
   tree->sum_min_sum_scale = .0;
   For(tree->curr_site,n_patterns)
     {
-      if(tree->data->wght[tree->curr_site] > MDBL_MIN) Lk_Core(tree->noeud[0]->b[0],tree);
+      if(tree->data->wght[tree->curr_site] > SMALL) Lk_Core(tree->noeud[0]->b[0],tree);
     }
 
 /*   Qksort(tree->c_lnL_sorted,NULL,0,n_patterns-1); */
@@ -397,7 +397,7 @@ phydbl Lk_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
   tree->sum_min_sum_scale = .0;
   For(tree->curr_site,n_patterns)
     {
-      if(tree->data->wght[tree->curr_site] > MDBL_MIN) Lk_Core(b_fcus,tree);
+      if(tree->data->wght[tree->curr_site] > SMALL) Lk_Core(b_fcus,tree);
     }
 
 /*   Qksort(tree->c_lnL_sorted,NULL,0,n_patterns-1); */
@@ -437,6 +437,9 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
   phydbl multiplier;
   int exponent, piecewise_exponent;
   phydbl tmp;
+  phydbl logbig;
+
+  logbig = LOG((phydbl)BIG);
 
   dim1 = tree->mod->n_catg * tree->mod->ns;
   dim2 = tree->mod->ns;
@@ -536,8 +539,8 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
     }
     
 
-  min_sum_scale = -(phydbl)FLT_MAX;
-  max_sum_scale =  (phydbl)FLT_MAX;
+  min_sum_scale = -(phydbl)BIG;
+  max_sum_scale =  (phydbl)BIG;
   For(catg,tree->mod->n_catg)
     {
       sum_scale_left_cat[catg] =
@@ -559,15 +562,17 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
 	  Warn_And_Exit("\n");
 	}
 
-      tmp = sum + (LOG((phydbl)FLT_MIN) - LOG(tree->site_lk_cat[catg]))/(phydbl)LOG2;
+      tmp = sum + (LOG((phydbl)SMALL) - LOG(tree->site_lk_cat[catg]))/(phydbl)LOG2;
       if(tmp > min_sum_scale) min_sum_scale = tmp; /* max of the mins */
-      tmp = sum + (LOG((phydbl)FLT_MAX) - LOG(tree->site_lk_cat[catg]))/(phydbl)LOG2;
+
+      tmp = sum + (logbig - LOG(tree->site_lk_cat[catg]))/(phydbl)LOG2;
       if(tmp < max_sum_scale) max_sum_scale = tmp; /* min of the maxs */
     }
 
   fact_sum_scale = (int)((max_sum_scale + min_sum_scale) / 2);
-/*   printf("fact_sum =%d",fact_sum_scale); */
-/*   if(max_sum_scale < min_sum_scale) PhyML_Printf("\n. Trouble ahead\n"); */
+
+/*   fact_sum_scale = (int)(max_sum_scale / 2); */
+
 
   /* Apply scaling factors */
   For(catg,tree->mod->n_catg)
@@ -628,11 +633,25 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
 /* 		       fact_sum_scale, */
 /* 		       -(sum_scale_left_cat[catg]+sum_scale_rght_cat[catg])+fact_sum_scale, */
 /* 		       (double)tree->site_lk_cat[catg] * pow(2.,-(sum_scale_left_cat[catg]+sum_scale_rght_cat[catg])+fact_sum_scale)); */
-	  site_lk_cat = FLT_MAX / 10;
+	  site_lk_cat = BIG / 10;
+	}
+      if(site_lk_cat < SMALL)
+	{
+/* 	  PhyML_Printf("\n- site=%4d site_lk_cat=%G sum_scale=%d min=%G max=%G fact=%d expo=%d dbl=%G", */
+/* 		       tree->curr_site, */
+/* 		       site_lk_cat, */
+/* /\* 		       tree->site_lk_cat[catg], *\/ */
+/* 		       sum_scale_left_cat[catg]+sum_scale_rght_cat[catg], */
+/* 		       min_sum_scale, */
+/* 		       max_sum_scale, */
+/* 		       fact_sum_scale, */
+/* 		       -(sum_scale_left_cat[catg]+sum_scale_rght_cat[catg])+fact_sum_scale, */
+/* 		       (double)tree->site_lk_cat[catg] * pow(2.,-(sum_scale_left_cat[catg]+sum_scale_rght_cat[catg])+fact_sum_scale)); */
+
+	  site_lk_cat = .0;
 	}
 
       tree->site_lk_cat[catg] = site_lk_cat;
-
     }
 
   site_lk = .0;
@@ -640,9 +659,6 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
 
   For(catg,tree->mod->n_catg) tree->log_site_lk_cat[catg][site] = LOG(tree->site_lk_cat[catg]) - (phydbl)LOG2 * fact_sum_scale;
   log_site_lk = LOG(site_lk) - (phydbl)LOG2 * fact_sum_scale;
-
-/*   For(catg,tree->mod->n_catg) tree->log_site_lk_cat[catg][site] = LOG(tree->site_lk_cat[catg]) - (phydbl)LOG2 * (fact_sum_scale); */
-/*   log_site_lk = LOG(site_lk) - (phydbl)LOG2 * (fact_sum_scale); */
 
 
   /* The substitution model does include invariable sites */ 
@@ -665,7 +681,8 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
   if(isinf(log_site_lk) || isnan(log_site_lk)) 
     {
       PhyML_Printf("\n. scale_left = %d scale_rght = %d",sum_scale_left,sum_scale_rght);
-      PhyML_Printf("\n. Lk = %G LOG(Lk) = %f < %G",site_lk,log_site_lk,-MDBL_MAX);
+      PhyML_Printf("\n. Lk = %G LOG(Lk) = %f < %G",site_lk,log_site_lk,-BIG);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("\n");
     }
   
@@ -730,7 +747,6 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
     {
       PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("\n");
-
     }
 
   if(small_scaler_pow > 63)
@@ -917,21 +933,6 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
 		}
 	      
 	      p_lk[site*dim1+catg*dim2+i] = p1_lk1 * p2_lk2;	    
-
-	      if(isinf(p_lk[site*dim1+catg*dim2+i])) 
-		{
- 		  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-		  PhyML_Printf("\n. p_lk[%3d][%2d][%3d] = %13G  p_lk[%3d][%2d][%3d] = %13G p_lk[%3d][%2d][%3d] = %13G p_lk[%3d][%2d][%3d] = %13G %3.0d",
-			       site,catg,0,
-			       p_lk[site*dim1+catg*dim2+0],
-			       site,catg,1,
-			       p_lk[site*dim1+catg*dim2+1],
-			       site,catg,2,
-			       p_lk[site*dim1+catg*dim2+2],
-			       site,catg,3,
-			       p_lk[site*dim1+catg*dim2+3],curr_scaler_pow);
-		  Exit("\n");
-		}
 	    }
 	      
 
@@ -1111,7 +1112,7 @@ matrix *ML_Dist(calign *data, model *mod)
 	  
 	  init = mat->dist[j][k];
 	  
-	  if((init > DIST_MAX-MDBL_MIN) || (init < .0)) init = 0.1;
+	  if((init > DIST_MAX-SMALL) || (init < .0)) init = 0.1;
 	  	  
 	  d_max = init;
   
@@ -1966,7 +1967,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
         }
     }
   
-  if(log_site_lk < -MDBL_MAX) Warn_And_Exit("\nlog_site_lk < -MDBL_MAX\n");
+  if(log_site_lk < -BIG) Warn_And_Exit("\nlog_site_lk < -BIG\n");
 
   For(catg,tree->mod->n_catg)
     tree->log_site_lk_cat[catg][site] =
@@ -2093,7 +2094,7 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
 /*       scale_v2 = (sum_scale_v2)?(sum_scale_v2[site]):(0.0);  */
 /*       sum_scale[site] = scale_v1 + scale_v2; */
 
-      max_p_lk = -MDBL_MAX;
+      max_p_lk = -BIG;
       state_v1 = state_v2 = -1;
       ambiguity_check_v1 = ambiguity_check_v2 = -1;
       
@@ -2207,7 +2208,7 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
                      classes and states. */
                   p_lk[site*dim1+catg*dim2+i] /= max_p_lk;
                   
-/*                if((p_lk[site][catg][i] > MDBL_MAX) || (p_lk[site][catg][i] < MDBL_MIN)) */
+/*                if((p_lk[site][catg][i] > BIG) || (p_lk[site][catg][i] < SMALL)) */
 /*                  { */
 /*                    PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__); */
 /*                    PhyML_Printf("\n. p_lk[%3d][%2d][%3d] = %G max_p_lk = %G",site,catg,i,p_lk[site][catg][i],max_p_lk); */

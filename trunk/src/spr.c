@@ -24,7 +24,7 @@ the GNU public licence. See http://www.opensource.org for details.
 ** BIG: Some big number.
 */
 
-#define BIG  1e05
+/* #define BIG  1e05 */
 
 /*
 ** Global vars.
@@ -1472,7 +1472,7 @@ int Est_Lk_Change (t_edge *e_prune, t_node *v_prune, t_tree *tree)
     /*
     ** If there are no more candidates, bail out...
     */
-    if (FABS(rgrft_cand[cand]->d_L - 1.0*BIG) < MDBL_MIN)
+    if (FABS(rgrft_cand[cand]->d_L - 1.0*BIG) < SMALL)
     {
       break;
     }
@@ -2035,7 +2035,7 @@ int Best_Lk_Change (t_edge *e_prune, t_node *v_prune, t_tree *tree)
     /*
     ** If there are no more candidates, bail out...
     */
-    if (FABS(rgrft_cand[cand]->d_L - 1.0*BIG) < MDBL_MIN)
+    if (FABS(rgrft_cand[cand]->d_L - 1.0*BIG) < SMALL)
     {
       break;
     }

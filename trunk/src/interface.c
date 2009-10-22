@@ -1084,7 +1084,7 @@ void Launch_Interface_Model(option *io)
 		}
 	      io->mod->pinvar = (phydbl)atof(p);
 
-	      if(io->mod->pinvar > 0.0+MDBL_MIN) io->mod->invar = 1;
+	      if(io->mod->pinvar > 0.0+SMALL) io->mod->invar = 1;
 	      else                             io->mod->invar = 0;
 
 	      Free(p);

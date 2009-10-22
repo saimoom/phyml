@@ -15,7 +15,7 @@ the GNU public licence. See http://www.opensource.org for details.
 
 
 /* int  T_MAX_FILE; */
-/* phydbl MDBL_MIN; */
+/* phydbl SMALL; */
 /* phydbl UNLIKELY; */
 
 /*********************************************************/
