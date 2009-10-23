@@ -743,13 +743,7 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
   small_scaler_pow = 10;
   curr_scaler_pow = big_scaler_pow;
 
-  if(big_scaler_pow > 63)
-    {
-      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
-      Warn_And_Exit("\n");
-    }
-
-  if(small_scaler_pow > 63)
+  if(fabs(big_scaler_pow) > 63 || fabs(small_scaler_pow) > 63)
     {
       PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("\n");
@@ -995,20 +989,20 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
 		      if(p_lk[site*dim1+catg*dim2+i] < p_lk_lim_inf) do_scale_small = YES;
 		      if(p_lk[site*dim1+catg*dim2+i] > p_lk_lim_sup) do_scale_big   = YES;
 
-		      if(isinf(p_lk[site*dim1+catg*dim2+i])) 
-			{ 
-			  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-			  PhyML_Printf("\n. p_lk[%3d][%2d][%3d] = %13G  p_lk[%3d][%2d][%3d] = %13G p_lk[%3d][%2d][%3d] = %13G p_lk[%3d][%2d][%3d] = %13G %3.0d",
-				       site,catg,0,
-				       p_lk[site*dim1+catg*dim2+0],
-				       site,catg,1,
-				       p_lk[site*dim1+catg*dim2+1],
-				       site,catg,2,
-				       p_lk[site*dim1+catg*dim2+2],
-				       site,catg,3,
-				       p_lk[site*dim1+catg*dim2+3],curr_scaler_pow);
-			  Exit("\n."); 
-			}			
+/* 		      if(isinf(p_lk[site*dim1+catg*dim2+i]))  */
+/* 			{  */
+/* 			  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
+/* 			  PhyML_Printf("\n. p_lk[%3d][%2d][%3d] = %13G  p_lk[%3d][%2d][%3d] = %13G p_lk[%3d][%2d][%3d] = %13G p_lk[%3d][%2d][%3d] = %13G %3.0d", */
+/* 				       site,catg,0, */
+/* 				       p_lk[site*dim1+catg*dim2+0], */
+/* 				       site,catg,1, */
+/* 				       p_lk[site*dim1+catg*dim2+1], */
+/* 				       site,catg,2, */
+/* 				       p_lk[site*dim1+catg*dim2+2], */
+/* 				       site,catg,3, */
+/* 				       p_lk[site*dim1+catg*dim2+3],curr_scaler_pow); */
+/* 			  Exit("\n.");  */
+/* 			}			 */
 		    }
 		  /* Update the sum of scaling factor powers */
 		  sum_scale[catg*n_patterns+site] += curr_scaler_pow;
