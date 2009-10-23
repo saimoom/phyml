@@ -5449,14 +5449,15 @@ phydbl Num_Derivatives_One_Param(phydbl (*func)(t_tree *tree), t_tree *tree,
 
   if(!precise)
     {
-
       *param   = *param+hh;
       a[0][0]  = (*func)(tree);
+/*       printf("\n. f0=%f f1=%f hh=%G",f0,a[0][0],hh); */
       a[0][0]  -= f0;
       a[0][0]  /= hh;
       *param   = *param-hh;
 
       ans =  a[0][0];
+
     }
   else
     {
