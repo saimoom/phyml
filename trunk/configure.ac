@@ -61,9 +61,10 @@ dnl             LDFLAGS+=" -arch i386 -arch ppc";;
 esac
 # End of cross-compilation macros
 
-CFLAGS="-O3 -Wfloat-equal -fsingle-precision-constant"
+CFLAGS="-O3 -fomit-frame-pointer -funroll-loops"
+dnl CFLAGS="-O3 -Wfloat-equal -fomit-frame-pointer -funroll-loops"
 dnl CFLAGS="-O3 -Wfloat-equal"
-dnl CFLAGS="-g -Wall -Wfloat-equal -fsingle-precision-constant"
+dnl CFLAGS="-pg"
 
 
 
