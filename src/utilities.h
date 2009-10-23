@@ -194,44 +194,44 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 /* #define USE_OLD_LK */
 
 /* Uncomment the lines below to switch to single precision */
-typedef	float phydbl;
-#define LOG logf
-#define POW powf
-#define EXP expf
-#define FABS fabsf
-#define SQRT sqrtf
-#define CEIL ceilf
-#define FLOOR floorf
-#define RINT rintf
-#define ROUND roundf
-#define TRUNC truncf
-#define COS cosf
-#define SIN sinf
-#define TAN tanf
-#define SMALL FLT_MIN
-#define BIG  FLT_MAX
-#define SMALL_PIJ 1.E-10
-#define BL_MIN 1.E-6
+/* typedef	float phydbl; */
+/* #define LOG logf */
+/* #define POW powf */
+/* #define EXP expf */
+/* #define FABS fabsf */
+/* #define SQRT sqrtf */
+/* #define CEIL ceilf */
+/* #define FLOOR floorf */
+/* #define RINT rintf */
+/* #define ROUND roundf */
+/* #define TRUNC truncf */
+/* #define COS cosf */
+/* #define SIN sinf */
+/* #define TAN tanf */
+/* #define SMALL FLT_MIN */
+/* #define BIG  FLT_MAX */
+/* #define SMALL_PIJ 1.E-10 */
+/* #define BL_MIN 1.E-6 */
 
 /* Uncomment the line below to switch to double precision */
-/* typedef	double phydbl; */
-/* #define LOG log */
-/* #define POW pow */
-/* #define EXP exp */
-/* #define FABS fabs */
-/* #define SQRT sqrt */
-/* #define CEIL ceil */
-/* #define FLOOR floor */
-/* #define RINT rint */
-/* #define ROUND round */
-/* #define TRUNC trunc */
-/* #define COS cos */
-/* #define SIN sin */
-/* #define TAN tan */
-/* #define SMALL DBL_MIN */
-/* #define BIG  DBL_MAX */
-/* #define SMALL_PIJ 0.0 */
-/* #define BL_MIN 1.E-8 */
+typedef	double phydbl;
+#define LOG log
+#define POW pow
+#define EXP exp
+#define FABS fabs
+#define SQRT sqrt
+#define CEIL ceil
+#define FLOOR floor
+#define RINT rint
+#define ROUND round
+#define TRUNC trunc
+#define COS cos
+#define SIN sin
+#define TAN tan
+#define SMALL DBL_MIN
+#define BIG  DBL_MAX
+#define SMALL_PIJ 0.0
+#define BL_MIN 1.E-8
 
 /*********************************************************/
 
