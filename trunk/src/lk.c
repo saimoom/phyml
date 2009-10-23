@@ -864,6 +864,9 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
       /* For all the rate classes */
       For(catg,tree->mod->n_catg)
 	{
+	  do_scale_small = NO;
+	  do_scale_big   = NO;
+
 	  /* For all the state at node d */
 	  For(i,tree->mod->ns)
 	    {
@@ -927,108 +930,105 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
 		}
 	      
 	      p_lk[site*dim1+catg*dim2+i] = p1_lk1 * p2_lk2;	    
+
+	      if(p_lk[site*dim1+catg*dim2+i] < p_lk_lim_inf) { do_scale_small = YES; }
+	      if(p_lk[site*dim1+catg*dim2+i] > p_lk_lim_sup) { do_scale_big   = YES; }
 	    }
 	      
 
 	  /* Scaling */
-
-	  /* Current scaling values at that site */
-	  sum_scale_v1_val = (sum_scale_v1)?(sum_scale_v1[catg*n_patterns+site]):(0);
-	  sum_scale_v2_val = (sum_scale_v2)?(sum_scale_v2[catg*n_patterns+site]):(0);
-
-	  sum_scale[catg*n_patterns+site] = sum_scale_v1_val + sum_scale_v2_val;
-
-	  do_scale_small = NO;
-	  do_scale_big   = NO;
-	  For(i,tree->mod->ns)
+	  if(do_scale_small || do_scale_big)
 	    {
-	      if(p_lk[site*dim1+catg*dim2+i] < p_lk_lim_inf) { do_scale_small = YES; }
-	      if(p_lk[site*dim1+catg*dim2+i] > p_lk_lim_sup) { do_scale_big   = YES; }
-	    }
-	  
-	  if(do_scale_small)
-	    {
-	      curr_scaler     = big_scaler_up;
-	      curr_scaler_pow = big_scaler_pow;
-	    }
-	  else
-	    {
-	      curr_scaler     =  big_scaler_down;
-	      curr_scaler_pow = -big_scaler_pow;
-	    }
-
-	  iter = 0;
-	  do
-	    {
-	      if(do_scale_small && do_scale_big)
-		{
- 		  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-		  PhyML_Printf("\n. p_lk[%3d][%2d][%3d] = %13G  p_lk[%3d][%2d][%3d] = %13G p_lk[%3d][%2d][%3d] = %13G p_lk[%3d][%2d][%3d] = %13G %3.0d",
-			       site,catg,0,
-			       p_lk[site*dim1+catg*dim2+0],
-			       site,catg,1,
-			       p_lk[site*dim1+catg*dim2+1],
-			       site,catg,2,
-			       p_lk[site*dim1+catg*dim2+2],
-			       site,catg,3,
-			       p_lk[site*dim1+catg*dim2+3],curr_scaler_pow);
-		  Exit("\n");
-		}
-
-	      if(do_scale_small || do_scale_big)
-		{
-		  do_scale_small = NO;
-		  do_scale_big   = NO;
+	      /* Current scaling values at that site */
+	      sum_scale_v1_val = (sum_scale_v1)?(sum_scale_v1[catg*n_patterns+site]):(0);
+	      sum_scale_v2_val = (sum_scale_v2)?(sum_scale_v2[catg*n_patterns+site]):(0);
 	      
-		  /* For each state at node d */
-		  For(i,tree->mod->ns)
-		    {
-		      /* Multiply the corresponding partial likelihood by the scaling factor. */
-		      p_lk[site*dim1+catg*dim2+i] *= curr_scaler;
-
-		      if(p_lk[site*dim1+catg*dim2+i] < p_lk_lim_inf) do_scale_small = YES;
-		      if(p_lk[site*dim1+catg*dim2+i] > p_lk_lim_sup) do_scale_big   = YES;
-
-/* 		      if(isinf(p_lk[site*dim1+catg*dim2+i]))  */
-/* 			{  */
-/* 			  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
-/* 			  PhyML_Printf("\n. p_lk[%3d][%2d][%3d] = %13G  p_lk[%3d][%2d][%3d] = %13G p_lk[%3d][%2d][%3d] = %13G p_lk[%3d][%2d][%3d] = %13G %3.0d", */
-/* 				       site,catg,0, */
-/* 				       p_lk[site*dim1+catg*dim2+0], */
-/* 				       site,catg,1, */
-/* 				       p_lk[site*dim1+catg*dim2+1], */
-/* 				       site,catg,2, */
-/* 				       p_lk[site*dim1+catg*dim2+2], */
-/* 				       site,catg,3, */
-/* 				       p_lk[site*dim1+catg*dim2+3],curr_scaler_pow); */
-/* 			  Exit("\n.");  */
-/* 			}			 */
-		    }
-		  /* Update the sum of scaling factor powers */
-		  sum_scale[catg*n_patterns+site] += curr_scaler_pow;
-		}
-	      else break;
-
+	      sum_scale[catg*n_patterns+site] = sum_scale_v1_val + sum_scale_v2_val;
+	      	      
 	      if(do_scale_small)
 		{
-		  curr_scaler     = small_scaler_up;
-		  curr_scaler_pow = small_scaler_pow;
+		  curr_scaler     = big_scaler_up;
+		  curr_scaler_pow = big_scaler_pow;
 		}
-	      else if(do_scale_big)
+	      else
 		{
-		  curr_scaler     =  small_scaler_down;
-		  curr_scaler_pow = -small_scaler_pow;
+		  curr_scaler     =  big_scaler_down;
+		  curr_scaler_pow = -big_scaler_pow;
 		}
-
-	      iter++;
-	      if(iter > 100)
+	      
+	      iter = 0;
+	      do
 		{
-		  PhyML_Printf("\n. Unable to scale partial likelihoods properly.");
-		  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-		  Exit("\n."); 
+		  if(do_scale_small && do_scale_big)
+		    {
+		      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+		      PhyML_Printf("\n. p_lk[%3d][%2d][%3d] = %13G  p_lk[%3d][%2d][%3d] = %13G p_lk[%3d][%2d][%3d] = %13G p_lk[%3d][%2d][%3d] = %13G %3.0d",
+				   site,catg,0,
+				   p_lk[site*dim1+catg*dim2+0],
+				   site,catg,1,
+				   p_lk[site*dim1+catg*dim2+1],
+				   site,catg,2,
+				   p_lk[site*dim1+catg*dim2+2],
+				   site,catg,3,
+				   p_lk[site*dim1+catg*dim2+3],curr_scaler_pow);
+		      Exit("\n");
+		    }
+		  
+		  if(do_scale_small || do_scale_big)
+		    {
+		      do_scale_small = NO;
+		      do_scale_big   = NO;
+		      
+		      /* For each state at node d */
+		      For(i,tree->mod->ns)
+			{
+			  /* Multiply the corresponding partial likelihood by the scaling factor. */
+			  p_lk[site*dim1+catg*dim2+i] *= curr_scaler;
+			  
+			  if(p_lk[site*dim1+catg*dim2+i] < p_lk_lim_inf) do_scale_small = YES;
+			  if(p_lk[site*dim1+catg*dim2+i] > p_lk_lim_sup) do_scale_big   = YES;
+			  
+			  /* 		      if(isinf(p_lk[site*dim1+catg*dim2+i]))  */
+			  /* 			{  */
+			  /* 			  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
+			  /* 			  PhyML_Printf("\n. p_lk[%3d][%2d][%3d] = %13G  p_lk[%3d][%2d][%3d] = %13G p_lk[%3d][%2d][%3d] = %13G p_lk[%3d][%2d][%3d] = %13G %3.0d", */
+			  /* 				       site,catg,0, */
+			  /* 				       p_lk[site*dim1+catg*dim2+0], */
+			  /* 				       site,catg,1, */
+			  /* 				       p_lk[site*dim1+catg*dim2+1], */
+			  /* 				       site,catg,2, */
+			  /* 				       p_lk[site*dim1+catg*dim2+2], */
+			  /* 				       site,catg,3, */
+			  /* 				       p_lk[site*dim1+catg*dim2+3],curr_scaler_pow); */
+			  /* 			  Exit("\n.");  */
+			  /* 			}			 */
+			}
+		      /* Update the sum of scaling factor powers */
+		      sum_scale[catg*n_patterns+site] += curr_scaler_pow;
+		    }
+		  else break;
+		  
+		  if(do_scale_small)
+		    {
+		      curr_scaler     = small_scaler_up;
+		      curr_scaler_pow = small_scaler_pow;
+		    }
+		  else if(do_scale_big)
+		    {
+		      curr_scaler     =  small_scaler_down;
+		      curr_scaler_pow = -small_scaler_pow;
+		    }
+		  
+		  iter++;
+		  if(iter > 100)
+		    {
+		      PhyML_Printf("\n. Unable to scale partial likelihoods properly.");
+		      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+		      Exit("\n."); 
+		    }
 		}
+	      while(do_scale_small || do_scale_big);	      
 	    }
-	  while(do_scale_small || do_scale_big);	      
 	}
     }
 }
