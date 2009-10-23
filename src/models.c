@@ -2757,6 +2757,36 @@ void Set_Model_Parameters(model *mod)
 
 	  /* compute the diagonal terms of EXP(D) */
 	  For(i,mod->ns) mod->eigen->e_val[i] = (phydbl)EXP(mod->eigen->e_val[i]);
+
+
+/* 	  int j; */
+/* 	  double *U,*V,*R; */
+/* 	  double *expt;  */
+/* 	  double *uexpt; */
+/* 	  int n; */
+
+/* 	  expt  = mod->eigen->e_val_im; */
+/* 	  uexpt = mod->eigen->r_e_vect_im; */
+/* 	  U     = mod->eigen->r_e_vect; */
+/* 	  V     = mod->eigen->l_e_vect; */
+/* 	  R     = mod->eigen->e_val; /\* exponential of the eigen value matrix *\/ */
+/* 	  n     = mod->ns; */
+
+/* 	  PhyML_Printf("\n"); */
+/* 	  PhyML_Printf("\n. Q\n"); */
+/* 	  For(i,n) { For(j,n) PhyML_Printf("%7.3f ",mod->eigen->q[i*n+j]); PhyML_Printf("\n"); } */
+/* 	  PhyML_Printf("\n. U\n"); */
+/* 	  For(i,n) { For(j,n) PhyML_Printf("%7.3f ",U[i*n+j]); PhyML_Printf("\n"); } */
+/* 	  PhyML_Printf("\n"); */
+/* 	  PhyML_Printf("\n. V\n"); */
+/* 	  For(i,n) { For(j,n) PhyML_Printf("%7.3f ",V[i*n+j]); PhyML_Printf("\n"); } */
+/* 	  PhyML_Printf("\n"); */
+/* 	  PhyML_Printf("\n. Eigen\n"); */
+/* 	  For(i,n)  PhyML_Printf("%E ",expt[i]); */
+/* 	  PhyML_Printf("\n"); */
+	  
+/* 	  Exit("\n"); */
+
 	}
       else
 	{

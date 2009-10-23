@@ -748,7 +748,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
       failed = 0;
       
       tree->mod->update_eigen = 1;
-      BFGS(tree,tree->mod->rr_val,tree->mod->n_diff_rr,1.e-5,1.e-7,
+      BFGS(tree,tree->mod->rr_val,tree->mod->n_diff_rr,1.e-5,1.e-5,
 	   &Return_Abs_Lk,
 	   &Num_Derivative_Several_Param,
 	   &Lnsrch_RR_Param,&failed);
@@ -889,7 +889,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
         
         failed = 0;
         tree->mod->update_eigen = 1;
-        BFGS(tree,tree->mod->pi,4,1.e-5,1.e-7,
+        BFGS(tree,tree->mod->pi,4,1.e-5,1.e-5,
 	     &Return_Abs_Lk,
 	     &Num_Derivative_Several_Param,
 	     &Lnsrch_Nucleotide_Frequencies,&failed);
@@ -1027,7 +1027,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 
       failed = 0;
       tree->mod->update_eigen = 1;
-      BFGS(tree,tree->mod->m4mod->o_rr,5,1.e-5,1.e-7,
+      BFGS(tree,tree->mod->m4mod->o_rr,5,1.e-5,1.e-5,
 	   &Return_Abs_Lk,
 	   &Num_Derivative_Several_Param,
 	   &Lnsrch_RR_Cov_Param,&failed);
@@ -1092,6 +1092,8 @@ void BFGS(t_tree *tree,
   hdg  = (phydbl *)mCalloc(n,sizeof(phydbl ));
   xi   = (phydbl *)mCalloc(n,sizeof(phydbl ));
   
+
+/*   PhyML_Printf("\n. ENTER BFGS WITH: %f\n",Lk(tree)); */
 
   fp=(*func)(tree);
   (*dfunc)(tree,p,n,step_size,func,g);
