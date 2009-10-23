@@ -210,8 +210,8 @@ typedef	float phydbl;
 #define TAN tanf
 #define SMALL FLT_MIN
 #define BIG  FLT_MAX
-#define SMALL_PIJ 0.0
-#define BL_MIN 1.E-4
+#define SMALL_PIJ 1.E-10
+#define BL_MIN 1.E-6
 
 /* Uncomment the line below to switch to double precision */
 /* typedef	double phydbl; */
