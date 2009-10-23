@@ -748,13 +748,6 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
       PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("\n");
     }
-
-  big_scaler_up = (phydbl)((unsigned long long)(1) << big_scaler_pow); /* 2^big_scaler_pow */
-  big_scaler_down = 1./(phydbl)((unsigned long long)(1) << big_scaler_pow); /* 2^-big_scaler_pow */
-
-  small_scaler_up = (phydbl)((unsigned long long)(1) << small_scaler_pow); /* 2^small_scaler_pow */
-  small_scaler_down = 1./(phydbl)((unsigned long long)(1) << small_scaler_pow); /* 2^-small_scaler_pow */
-
  
   dim1 = tree->mod->n_catg * tree->mod->ns;
   dim2 = tree->mod->ns;
@@ -935,15 +928,21 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
 	      if(p_lk[site*dim1+catg*dim2+i] > p_lk_lim_sup) { do_scale_big   = YES; }
 	    }
 	      
+	  /* Current scaling values at that site */
+	  sum_scale_v1_val = (sum_scale_v1)?(sum_scale_v1[catg*n_patterns+site]):(0);
+	  sum_scale_v2_val = (sum_scale_v2)?(sum_scale_v2[catg*n_patterns+site]):(0);
+	  
+	  sum_scale[catg*n_patterns+site] = sum_scale_v1_val + sum_scale_v2_val;
+
 
 	  /* Scaling */
 	  if(do_scale_small || do_scale_big)
 	    {
-	      /* Current scaling values at that site */
-	      sum_scale_v1_val = (sum_scale_v1)?(sum_scale_v1[catg*n_patterns+site]):(0);
-	      sum_scale_v2_val = (sum_scale_v2)?(sum_scale_v2[catg*n_patterns+site]):(0);
+	      big_scaler_up = (phydbl)((unsigned long long)(1) << big_scaler_pow); /* 2^big_scaler_pow */
+	      big_scaler_down = 1./(phydbl)((unsigned long long)(1) << big_scaler_pow); /* 2^-big_scaler_pow */
 	      
-	      sum_scale[catg*n_patterns+site] = sum_scale_v1_val + sum_scale_v2_val;
+	      small_scaler_up = (phydbl)((unsigned long long)(1) << small_scaler_pow); /* 2^small_scaler_pow */
+	      small_scaler_down = 1./(phydbl)((unsigned long long)(1) << small_scaler_pow); /* 2^-small_scaler_pow */
 	      	      
 	      if(do_scale_small)
 		{
