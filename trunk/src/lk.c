@@ -742,12 +742,6 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
   big_scaler_pow   = 30;
   small_scaler_pow = 10;
   curr_scaler_pow = big_scaler_pow;
-
-  if(fabs(big_scaler_pow) > 63 || fabs(small_scaler_pow) > 63)
-    {
-      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
-      Warn_And_Exit("\n");
-    }
  
   dim1 = tree->mod->n_catg * tree->mod->ns;
   dim2 = tree->mod->ns;
@@ -938,6 +932,12 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
 	  /* Scaling */
 	  if(do_scale_small || do_scale_big)
 	    {
+/* 	      if(fabs(big_scaler_pow) > 63 || fabs(small_scaler_pow) > 63) */
+/* 		{ */
+/* 		  PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__); */
+/* 		  Warn_And_Exit("\n"); */
+/* 		} */
+
 	      big_scaler_up = (phydbl)((unsigned long long)(1) << big_scaler_pow); /* 2^big_scaler_pow */
 	      big_scaler_down = 1./(phydbl)((unsigned long long)(1) << big_scaler_pow); /* 2^-big_scaler_pow */
 	      
