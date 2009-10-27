@@ -6223,6 +6223,9 @@ void Test_Multiple_Data_Set_Format(option *io)
 
   while(fgets(line,T_MAX_LINE,io->fp_in_tree)) if(strstr(line,";")) io->n_trees++;
 
+  printf("\n. n_trees = %d",
+	 io->n_trees);
+
   Free(line);
 
   if((io->mod->bootstrap > 1) && (io->n_trees > 1))
@@ -7607,6 +7610,14 @@ void Fast_Br_Len(t_edge *b, t_tree *tree, int approx)
   int dim1,dim2,dim3;
   phydbl eps_bl,old_l,new_l;
   int n_iter;
+  phydbl scale_rght;
+
+/*   Br_Len_Brent(0.02*b->l,b->l,50.*b->l, */
+/* 	       tree->mod->s_opt->min_diff_lk_local, */
+/* 	       b,tree, */
+/* 	       tree->mod->s_opt->brent_it_max, */
+/* 	       tree->mod->s_opt->quickdirty); */
+/*   return; */
 
   n_iter = 0;
   dim1   = tree->mod->ns * tree->mod->n_catg;
@@ -7632,13 +7643,15 @@ void Fast_Br_Len(t_edge *b, t_tree *tree, int approx)
 	      For(k,tree->mod->n_catg)
 		{
 		  v_rght = (b->rght->tax)?((phydbl)(b->p_lk_tip_r[site*dim2+j])):(b->p_lk_rght[site*dim1+k*dim2+j]);
-		  
+		  scale_rght = (b->rght->tax)?(0.0):(b->sum_scale_rght[k*tree->n_pattern+site]);
+
 		  prob[dim3*k+dim2*i+j]              =
 		    tree->mod->gamma_r_proba[k]      *
 		    tree->mod->pi[i]                 *
 		    b->Pij_rr[k*dim3+i*dim2+j]       *
 		    b->p_lk_left[site*dim1+k*dim2+i] *
-		    v_rght;
+		    v_rght *
+		    POW(2.,-(b->sum_scale_left[k*tree->n_pattern+site] + scale_rght));
 		}
 	    }
 	}
@@ -7653,6 +7666,19 @@ void Fast_Br_Len(t_edge *b, t_tree *tree, int approx)
 	F[dim3*k+dim2*i+j] += tree->data->wght[site] * prob[dim3*k+dim2*i+j];
     }     
   
+/*   For(k,tree->mod->n_catg) */
+/*     { */
+/*       For(i,tree->mod->ns)  */
+/* 	{ */
+/* 	  For(j,tree->mod->ns)  */
+/* 	    { */
+/* 	      printf("%f ",F[dim3*k+dim2*i+j]); */
+/* 	    } */
+/* 	  printf("\n"); */
+/* 	} */
+/*       printf("\n"); */
+/*     } */
+
   old_l = b->l;
   Opt_Dist_F(&(b->l),F,tree->mod);
   new_l = b->l;
@@ -10791,6 +10817,7 @@ void Adjust_Min_Diff_Lk(t_tree *tree)
       tree->mod->s_opt->min_diff_lk_local  = tree->mod->s_opt->min_diff_lk_global;
       tree->mod->s_opt->min_diff_lk_move   = tree->mod->s_opt->min_diff_lk_global;
     }
+
 /*   PhyML_Printf("\n. Exponent = %d Precision = %E DIG = %d",exponent,tree->mod->s_opt->min_diff_lk_global,FLT_DIG); */
 }
 

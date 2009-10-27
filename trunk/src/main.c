@@ -84,6 +84,11 @@ int main(int argc, char **argv)
       io->n_trees     = MIN(io->n_trees,io->n_data_sets);
     }
 
+
+  printf("\n. n_seq = %d n_trees = %d",
+	 io->n_data_sets,
+	 io->n_trees);
+
   For(num_data_set,io->n_data_sets)
     {
       n_otu = 0;

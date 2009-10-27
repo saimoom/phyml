@@ -355,15 +355,15 @@ phydbl Lk(t_tree *tree)
       if(tree->data->wght[tree->curr_site] > SMALL) Lk_Core(tree->noeud[0]->b[0],tree);
     }
 
-/*   Qksort(tree->c_lnL_sorted,NULL,0,n_patterns-1); */
+  Qksort(tree->c_lnL_sorted,NULL,0,n_patterns-1);
 
-/*   tree->c_lnL = .0; */
-/*   For(tree->curr_site,n_patterns) */
-/*     { */
-/*       tree->c_lnL += tree->c_lnL_sorted[tree->curr_site]; */
-/*     } */
+  tree->c_lnL = .0;
+  For(tree->curr_site,n_patterns)
+    {
+      tree->c_lnL += tree->c_lnL_sorted[tree->curr_site];
+    }
 
-/*   tree->c_lnL += (phydbl)LOG2 * tree->sum_min_sum_scale; */
+  tree->c_lnL += (phydbl)LOG2 * tree->sum_min_sum_scale;
     
   Adjust_Min_Diff_Lk(tree);
 
@@ -400,13 +400,13 @@ phydbl Lk_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
       if(tree->data->wght[tree->curr_site] > SMALL) Lk_Core(b_fcus,tree);
     }
 
-/*   Qksort(tree->c_lnL_sorted,NULL,0,n_patterns-1); */
+  Qksort(tree->c_lnL_sorted,NULL,0,n_patterns-1);
 
-/*   tree->c_lnL = .0; */
-/*   For(tree->curr_site,n_patterns) */
-/*     { */
-/*       tree->c_lnL += tree->c_lnL_sorted[tree->curr_site]; */
-/*     } */
+  tree->c_lnL = .0;
+  For(tree->curr_site,n_patterns)
+    {
+      tree->c_lnL += tree->c_lnL_sorted[tree->curr_site];
+    }
 
 /*   tree->c_lnL += (phydbl)LOG2 * tree->sum_min_sum_scale; */
 
@@ -427,7 +427,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
   phydbl site_lk_cat, site_lk;
   int sum_scale_left, sum_scale_rght;
   int fact_sum_scale;
-  phydbl min_sum_scale,max_sum_scale;
+  phydbl max_sum_scale;
   phydbl sum;
   int ambiguity_check,state;
   int catg,ns,k,l,site;
@@ -438,6 +438,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
   int exponent, piecewise_exponent;
   phydbl tmp;
   phydbl logbig;
+  phydbl inv_site_lk;
 
   logbig = LOG((phydbl)BIG);
 
@@ -539,7 +540,6 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
     }
     
 
-  min_sum_scale = -(phydbl)BIG;
   max_sum_scale =  (phydbl)BIG;
   For(catg,tree->mod->n_catg)
     {
@@ -562,16 +562,13 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
 	  Warn_And_Exit("\n");
 	}
 
-      tmp = sum + (LOG((phydbl)SMALL) - LOG(tree->site_lk_cat[catg]))/(phydbl)LOG2;
-      if(tmp > min_sum_scale) min_sum_scale = tmp; /* max of the mins */
-
       tmp = sum + (logbig - LOG(tree->site_lk_cat[catg]))/(phydbl)LOG2;
       if(tmp < max_sum_scale) max_sum_scale = tmp; /* min of the maxs */
     }
 
-  fact_sum_scale = (int)((max_sum_scale + min_sum_scale) / 2);
+/*   fact_sum_scale = (int)((max_sum_scale + min_sum_scale) / 2); */
 
-/*   fact_sum_scale = (int)(max_sum_scale / 2); */
+  fact_sum_scale = (int)(max_sum_scale / 2);
 
 
   /* Apply scaling factors */
@@ -624,15 +621,14 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
 
       if(isinf(site_lk_cat))
 	{
-/* 	  PhyML_Printf("\n+ site=%4d site_lk_cat=%G sum_scale=%d min=%G max=%G fact=%d expo=%d dbl=%G", */
-/* 		       tree->curr_site, */
-/* 		       tree->site_lk_cat[catg], */
-/* 		       sum_scale_left_cat[catg]+sum_scale_rght_cat[catg], */
-/* 		       min_sum_scale, */
-/* 		       max_sum_scale, */
-/* 		       fact_sum_scale, */
-/* 		       -(sum_scale_left_cat[catg]+sum_scale_rght_cat[catg])+fact_sum_scale, */
-/* 		       (double)tree->site_lk_cat[catg] * pow(2.,-(sum_scale_left_cat[catg]+sum_scale_rght_cat[catg])+fact_sum_scale)); */
+	  PhyML_Printf("\n+ site=%4d site_lk_cat=%G sum_scale=%d max=%G fact=%d expo=%d dbl=%G",
+		       tree->curr_site,
+		       tree->site_lk_cat[catg],
+		       sum_scale_left_cat[catg]+sum_scale_rght_cat[catg],
+		       max_sum_scale,
+		       fact_sum_scale,
+		       -(sum_scale_left_cat[catg]+sum_scale_rght_cat[catg])+fact_sum_scale,
+		       (double)tree->site_lk_cat[catg] * pow(2.,-(sum_scale_left_cat[catg]+sum_scale_rght_cat[catg])+fact_sum_scale));
 	  site_lk_cat = BIG / 10;
 	}
       if(site_lk_cat < SMALL)
@@ -656,43 +652,57 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
 
   site_lk = .0;
   For(catg,tree->mod->n_catg) site_lk += tree->site_lk_cat[catg] * tree->mod->gamma_r_proba[catg];
-
-  For(catg,tree->mod->n_catg) tree->log_site_lk_cat[catg][site] = LOG(tree->site_lk_cat[catg]) - (phydbl)LOG2 * fact_sum_scale;
-  log_site_lk = LOG(site_lk) - (phydbl)LOG2 * fact_sum_scale;
-
-
+  
   /* The substitution model does include invariable sites */ 
   if(tree->mod->invar)
     {
-      site_lk = EXP(log_site_lk);
       /* The site is invariant */
       if(tree->data->invar[site] > -0.5)
         {
-	  log_site_lk = (phydbl)LOG(site_lk*(1.0-tree->mod->pinvar) + tree->mod->pinvar*tree->mod->pi[tree->data->invar[site]]);
-          /* LOG(P(D)) = LOG(P(D | subst. rate > 0) * P(subst. rate > 0) + P(D | subst. rate = 0) * P(subst. rate = 0)) */
+	  /* Multiply P(D|r=0) by 2^(fact_sum_scale) */
+
+	  inv_site_lk = tree->mod->pi[tree->data->invar[site]];
+	  exponent = fact_sum_scale;
+	  do
+	    {
+	      piecewise_exponent = MIN(exponent,63);
+	      multiplier = (phydbl)((unsigned long long)(1) << piecewise_exponent);
+	      inv_site_lk *= multiplier;
+	      exponent -= piecewise_exponent;
+	    }
+	  while(exponent != 0);
+	  inv_site_lk *= tree->mod->pinvar;
+	  /* Update the value of site_lk */
+	  site_lk *= (1. - tree->mod->pinvar);
+	  site_lk += inv_site_lk;
         }
       else
         {
-          log_site_lk = (phydbl)LOG(site_lk*(1.0-tree->mod->pinvar));
           /* Same formula as above with P(D | subs, rate = 0) = 0 */
+	  site_lk *= (1. - tree->mod->pinvar);
         }
     }
   
-/*   if(isinf(log_site_lk) || isnan(log_site_lk))  */
-/*     { */
-/*       PhyML_Printf("\n. scale_left = %d scale_rght = %d",sum_scale_left,sum_scale_rght); */
-/*       PhyML_Printf("\n. Lk = %G LOG(Lk) = %f < %G",site_lk,log_site_lk,-BIG); */
-/*       PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__); */
-/*       Warn_And_Exit("\n"); */
-/*     } */
+  log_site_lk = LOG(site_lk) - (phydbl)LOG2 * fact_sum_scale;
+
+  For(catg,tree->mod->n_catg) tree->log_site_lk_cat[catg][site] = LOG(tree->site_lk_cat[catg]) - (phydbl)LOG2 * fact_sum_scale;
+  
+  if(isinf(log_site_lk) || isnan(log_site_lk))
+    {
+      PhyML_Printf("\n. invar = %f",tree->data->invar[site]);
+      PhyML_Printf("\n. scale_left = %d scale_rght = %d",sum_scale_left,sum_scale_rght);
+      PhyML_Printf("\n. Lk = %G LOG(Lk) = %f < %G",site_lk,log_site_lk,-BIG);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
+      Warn_And_Exit("\n");
+    }
   
   tree->cur_site_lk[site] = log_site_lk;
 
   /* Multiply log likelihood by the number of times this site pattern is found in the data */
-  tree->c_lnL_sorted[site] = tree->data->wght[site]*tree->cur_site_lk[site];
+  tree->c_lnL_sorted[site] = tree->data->wght[site]*log_site_lk;
 
   tree->c_lnL             += tree->data->wght[site]*log_site_lk;
-  tree->sum_min_sum_scale += (int)tree->data->wght[site]*min_sum_scale;
+/*   tree->sum_min_sum_scale += (int)tree->data->wght[site]*min_sum_scale; */
   
   return log_site_lk;
 }
@@ -727,21 +737,12 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
   short int ambiguity_check_v1,ambiguity_check_v2;
   int state_v1,state_v2;
   int dim1, dim2, dim3;
-  short int do_scale_small,do_scale_big;
-  phydbl small_scaler_up, small_scaler_down;
   phydbl curr_scaler;
-  phydbl big_scaler_up, big_scaler_down;
-  int curr_scaler_pow;
-  int big_scaler_pow,small_scaler_pow;
-  int iter;
-  phydbl p_lk_lim_inf, p_lk_lim_sup;
+  int curr_scaler_pow, piecewise_scaler_pow;
+  phydbl p_lk_lim_inf;
+  phydbl smallest_p_lk;
 
   p_lk_lim_inf = (phydbl)P_LK_LIM_INF;
-  p_lk_lim_sup = (phydbl)P_LK_LIM_SUP;
-
-  big_scaler_pow   = 30;
-  small_scaler_pow = 10;
-  curr_scaler_pow = big_scaler_pow;
  
   dim1 = tree->mod->n_catg * tree->mod->ns;
   dim2 = tree->mod->ns;
@@ -766,15 +767,15 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
   dir1=dir2=-1;
   For(i,3) if(d->b[i] != b) (dir1<0)?(dir1=i):(dir2=i);
 
-  if((dir1 == -1) || (dir2 == -1))
-    {
-      PhyML_Printf("\n. d = %d",d->num);
-      PhyML_Printf("\n. d->v[0] = %d, d->v[1] = %d, d->v[2] = %d",d->v[0]->num,d->v[1]->num,d->v[2]->num);
-      PhyML_Printf("\n. d->b[0] = %d, d->b[1] = %d, d->b[2] = %d",d->b[0]->num,d->b[1]->num,d->b[2]->num);
-      PhyML_Printf("\n. d->num = %d dir1 = %d dir2 = %d",d->num,dir1,dir2);
-      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
-      Exit("");
-    }
+/*   if((dir1 == -1) || (dir2 == -1)) */
+/*     { */
+/*       PhyML_Printf("\n. d = %d",d->num); */
+/*       PhyML_Printf("\n. d->v[0] = %d, d->v[1] = %d, d->v[2] = %d",d->v[0]->num,d->v[1]->num,d->v[2]->num); */
+/*       PhyML_Printf("\n. d->b[0] = %d, d->b[1] = %d, d->b[2] = %d",d->b[0]->num,d->b[1]->num,d->b[2]->num); */
+/*       PhyML_Printf("\n. d->num = %d dir1 = %d dir2 = %d",d->num,dir1,dir2); */
+/*       PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__); */
+/*       Exit(""); */
+/*     } */
   
   n_v1 = d->v[dir1];
   n_v2 = d->v[dir2];
@@ -851,8 +852,7 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
       /* For all the rate classes */
       For(catg,tree->mod->n_catg)
 	{
-	  do_scale_small = NO;
-	  do_scale_big   = NO;
+	  smallest_p_lk  =  BIG;
 
 	  /* For all the state at node d */
 	  For(i,tree->mod->ns)
@@ -918,115 +918,50 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
 	      
 	      p_lk[site*dim1+catg*dim2+i] = p1_lk1 * p2_lk2;	    
 
-	      if(p_lk[site*dim1+catg*dim2+i] < p_lk_lim_inf) { do_scale_small = YES; }
-	      if(p_lk[site*dim1+catg*dim2+i] > p_lk_lim_sup) { do_scale_big   = YES; }
+	      if(p_lk[site*dim1+catg*dim2+i] < smallest_p_lk) smallest_p_lk = p_lk[site*dim1+catg*dim2+i] ; 
 	    }
 	      
 	  /* Current scaling values at that site */
-	  sum_scale_v1_val = (sum_scale_v1)?(sum_scale_v1[catg*n_patterns+site]):(0);
+ 	  sum_scale_v1_val = (sum_scale_v1)?(sum_scale_v1[catg*n_patterns+site]):(0);
 	  sum_scale_v2_val = (sum_scale_v2)?(sum_scale_v2[catg*n_patterns+site]):(0);
 	  
 	  sum_scale[catg*n_patterns+site] = sum_scale_v1_val + sum_scale_v2_val;
-
-
+	  
 	  /* Scaling */
-	  if(do_scale_small || do_scale_big)
+	  if(smallest_p_lk < p_lk_lim_inf)
 	    {
-/* 	      if(fabs(big_scaler_pow) > 63 || fabs(small_scaler_pow) > 63) */
+	      curr_scaler_pow = (int)(LOG(p_lk_lim_inf)-LOG(smallest_p_lk))/LOG2;
+	      curr_scaler     = (phydbl)((unsigned long long)(1) << curr_scaler_pow);
+
+/* 	      if(fabs(curr_scaler_pow) > 63 || fabs(curr_scaler_pow) > 63) */
 /* 		{ */
-/* 		  PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__); */
+/* 		  PhyML_Printf("\n. p_lk_lim_inf = %G smallest_p_lk = %G",p_lk_lim_inf,smallest_p_lk); */
+/* 		  PhyML_Printf("\n. curr_scaler_pow = %d",curr_scaler_pow); */
+/* 		  PhyML_Printf("\n. Err in file %s at line %d.",__FILE__,__LINE__); */
 /* 		  Warn_And_Exit("\n"); */
 /* 		} */
 
-	      big_scaler_up = (phydbl)((unsigned long long)(1) << big_scaler_pow); /* 2^big_scaler_pow */
-	      big_scaler_down = 1./(phydbl)((unsigned long long)(1) << big_scaler_pow); /* 2^-big_scaler_pow */
-	      
-	      small_scaler_up = (phydbl)((unsigned long long)(1) << small_scaler_pow); /* 2^small_scaler_pow */
-	      small_scaler_down = 1./(phydbl)((unsigned long long)(1) << small_scaler_pow); /* 2^-small_scaler_pow */
-	      	      
-	      if(do_scale_small)
-		{
-		  curr_scaler     = big_scaler_up;
-		  curr_scaler_pow = big_scaler_pow;
-		}
-	      else
-		{
-		  curr_scaler     =  big_scaler_down;
-		  curr_scaler_pow = -big_scaler_pow;
-		}
-	      
-	      iter = 0;
+	      sum_scale[catg*n_patterns+site] += curr_scaler_pow;
+
 	      do
 		{
-		  if(do_scale_small && do_scale_big)
+		  piecewise_scaler_pow = MIN(curr_scaler_pow,63);
+		  curr_scaler = (phydbl)((unsigned long long)(1) << piecewise_scaler_pow);
+		  For(i,tree->mod->ns)
 		    {
-		      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-		      PhyML_Printf("\n. p_lk[%3d][%2d][%3d] = %13G  p_lk[%3d][%2d][%3d] = %13G p_lk[%3d][%2d][%3d] = %13G p_lk[%3d][%2d][%3d] = %13G %3.0d",
-				   site,catg,0,
-				   p_lk[site*dim1+catg*dim2+0],
-				   site,catg,1,
-				   p_lk[site*dim1+catg*dim2+1],
-				   site,catg,2,
-				   p_lk[site*dim1+catg*dim2+2],
-				   site,catg,3,
-				   p_lk[site*dim1+catg*dim2+3],curr_scaler_pow);
-		      Exit("\n");
-		    }
-		  
-		  if(do_scale_small || do_scale_big)
-		    {
-		      do_scale_small = NO;
-		      do_scale_big   = NO;
+		      p_lk[site*dim1+catg*dim2+i] *= curr_scaler;
 		      
-		      /* For each state at node d */
-		      For(i,tree->mod->ns)
+		      if(p_lk[site*dim1+catg*dim2+i] > BIG)
 			{
-			  /* Multiply the corresponding partial likelihood by the scaling factor. */
-			  p_lk[site*dim1+catg*dim2+i] *= curr_scaler;
-			  
-			  if(p_lk[site*dim1+catg*dim2+i] < p_lk_lim_inf) do_scale_small = YES;
-			  if(p_lk[site*dim1+catg*dim2+i] > p_lk_lim_sup) do_scale_big   = YES;
-			  
-			  /* 		      if(isinf(p_lk[site*dim1+catg*dim2+i]))  */
-			  /* 			{  */
-			  /* 			  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
-			  /* 			  PhyML_Printf("\n. p_lk[%3d][%2d][%3d] = %13G  p_lk[%3d][%2d][%3d] = %13G p_lk[%3d][%2d][%3d] = %13G p_lk[%3d][%2d][%3d] = %13G %3.0d", */
-			  /* 				       site,catg,0, */
-			  /* 				       p_lk[site*dim1+catg*dim2+0], */
-			  /* 				       site,catg,1, */
-			  /* 				       p_lk[site*dim1+catg*dim2+1], */
-			  /* 				       site,catg,2, */
-			  /* 				       p_lk[site*dim1+catg*dim2+2], */
-			  /* 				       site,catg,3, */
-			  /* 				       p_lk[site*dim1+catg*dim2+3],curr_scaler_pow); */
-			  /* 			  Exit("\n.");  */
-			  /* 			}			 */
+			  PhyML_Printf("\n. p_lk_lim_inf = %G smallest_p_lk = %G",p_lk_lim_inf,smallest_p_lk);
+			  PhyML_Printf("\n. curr_scaler_pow = %d",curr_scaler_pow);
+			  PhyML_Printf("\n. Err in file %s at line %d.",__FILE__,__LINE__);
+			  Warn_And_Exit("\n");
 			}
-		      /* Update the sum of scaling factor powers */
-		      sum_scale[catg*n_patterns+site] += curr_scaler_pow;
 		    }
-		  else break;
-		  
-		  if(do_scale_small)
-		    {
-		      curr_scaler     = small_scaler_up;
-		      curr_scaler_pow = small_scaler_pow;
-		    }
-		  else if(do_scale_big)
-		    {
-		      curr_scaler     =  small_scaler_down;
-		      curr_scaler_pow = -small_scaler_pow;
-		    }
-		  
-		  iter++;
-		  if(iter > 100)
-		    {
-		      PhyML_Printf("\n. Unable to scale partial likelihoods properly.");
-		      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-		      Exit("\n."); 
-		    }
+		  curr_scaler_pow -= piecewise_scaler_pow;
 		}
-	      while(do_scale_small || do_scale_big);	      
+	      while(curr_scaler_pow != 0);
 	    }
 	}
     }
