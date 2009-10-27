@@ -127,7 +127,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  ALPHA_MIN           0.04
 #define  ALPHA_MAX            100
 #define  BL_START          1.e-04
-#define  BL_MAX               2.0
+#define  BL_MAX             100.0
 #define  GOLDEN_R      0.61803399
 #define  GOLDEN_C  (1.0-GOLDEN_R)
 #define  N_MAX_INSERT          20
@@ -144,16 +144,9 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  POWELL_ITMAX         200
 #define  LINMIN_TOL       2.0E-04
 #define  SCALE_POW             10    /* Scaling factor will be 2^SCALE_POW or 2^(-SCALE_POW) [[ WARNING: SCALE_POW < 31 ]]*/
-#define  P_LK_LIM_INF   9.094947e-13 /* 2^-40 */  
-#define  P_LK_LIM_SUP   1.099512e+12 /* 2^40 */
 #define  DEFAULT_SIZE_SPR_LIST 20
 #define  OUTPUT_TREE_FORMAT  0 /* 0-->Newick; 1-->Nexus */
 #define  MAX_PARS        1000000000
-
-
-
-
-
 
 #define  LIM_SCALE_VAL     1.E-50 /* Scaling limit (deprecated) */
 
@@ -211,7 +204,9 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 /* #define SMALL FLT_MIN */
 /* #define BIG  FLT_MAX */
 /* #define SMALL_PIJ 1.E-10 */
-/* #define BL_MIN 1.E-6 */
+/* #define BL_MIN 1.E-5 */
+/* #define  P_LK_LIM_INF   2.168404e-19 /\* 2^-62 *\/ */
+/* #define  P_LK_LIM_SUP   4.611686e+18 /\* 2^62 *\/ */
 
 /* Uncomment the line below to switch to double precision */
 typedef	double phydbl;
@@ -231,7 +226,9 @@ typedef	double phydbl;
 #define SMALL DBL_MIN
 #define BIG  DBL_MAX
 #define SMALL_PIJ 1.E-10
-#define BL_MIN 1.E-8
+#define BL_MIN 1.E-10
+#define  P_LK_LIM_INF   3.054936e-151 /* 2^-500 */
+#define  P_LK_LIM_SUP   3.273391e+150 /* 2^500 */
 
 /*********************************************************/
 

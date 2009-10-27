@@ -3176,7 +3176,7 @@ int Spr(phydbl init_lnL, t_tree *tree)
   For(br,2*tree->n_otu-3)
     {
       b = tree->t_edges[br];
-   
+
       old_pars = tree->c_pars;
       Spr_Subtree(b,b->left,tree); 
       new_pars = tree->c_pars;
