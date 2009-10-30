@@ -5252,7 +5252,7 @@ void Bootstrap(t_tree *tree)
       boot_tree->io                 = tree->io;
       boot_tree->data               = boot_data;
       boot_tree->both_sides         = 1;
-      boot_tree->mod->s_opt->print  = 1;
+      boot_tree->mod->s_opt->print  = 0;
       boot_tree->n_pattern          = boot_tree->data->crunch_len;
       boot_tree->io->print_site_lnl = 0;
       boot_tree->io->print_trace    = 0;
