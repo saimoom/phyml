@@ -578,15 +578,6 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
 
       site_lk_cat = tree->site_lk_cat[catg];
       
-/*       PhyML_Printf("\n- site=%4d site_lk_cat=%G sum_scale=%d min=%G max=%G fact=%d expo=%d", */
-/* 		   tree->curr_site, */
-/* 		   site_lk_cat, */
-/* 		   sum_scale_left_cat[catg]+sum_scale_rght_cat[catg], */
-/* 		   min_sum_scale, */
-/* 		   max_sum_scale, */
-/* 		   fact_sum_scale, */
-/* 		   exponent); */
-
       if(exponent > 0)
 	{
 	  do
@@ -610,15 +601,6 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
 	  while(exponent != 0);
 	}
 
-/*       PhyML_Printf("\n+ site=%4d site_lk_cat=%G sum_scale=%d min=%G max=%G fact=%d expo=%d", */
-/* 		   tree->curr_site, */
-/* 		   site_lk_cat, */
-/* 		   sum_scale_left_cat[catg]+sum_scale_rght_cat[catg], */
-/* 		   min_sum_scale, */
-/* 		   max_sum_scale, */
-/* 		   fact_sum_scale, */
-/* 		   exponent); */
-
       if(isinf(site_lk_cat))
 	{
 	  PhyML_Printf("\n+ site=%4d site_lk_cat=%G sum_scale=%d max=%G fact=%d expo=%d dbl=%G",
@@ -631,21 +613,8 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
 		       (double)tree->site_lk_cat[catg] * pow(2.,-(sum_scale_left_cat[catg]+sum_scale_rght_cat[catg])+fact_sum_scale));
 	  site_lk_cat = BIG / 10;
 	}
-      if(site_lk_cat < SMALL)
-	{
-/* 	  PhyML_Printf("\n- site=%4d site_lk_cat=%G sum_scale=%d min=%G max=%G fact=%d expo=%d dbl=%G", */
-/* 		       tree->curr_site, */
-/* 		       site_lk_cat, */
-/* /\* 		       tree->site_lk_cat[catg], *\/ */
-/* 		       sum_scale_left_cat[catg]+sum_scale_rght_cat[catg], */
-/* 		       min_sum_scale, */
-/* 		       max_sum_scale, */
-/* 		       fact_sum_scale, */
-/* 		       -(sum_scale_left_cat[catg]+sum_scale_rght_cat[catg])+fact_sum_scale, */
-/* 		       (double)tree->site_lk_cat[catg] * pow(2.,-(sum_scale_left_cat[catg]+sum_scale_rght_cat[catg])+fact_sum_scale)); */
 
-	  site_lk_cat = .0;
-	}
+      if(site_lk_cat < SMALL) site_lk_cat = .0;
 
       tree->site_lk_cat[catg] = site_lk_cat;
     }
@@ -701,7 +670,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
   /* Multiply log likelihood by the number of times this site pattern is found in the data */
   tree->c_lnL_sorted[site] = tree->data->wght[site]*log_site_lk;
 
-  tree->c_lnL             += tree->data->wght[site]*log_site_lk;
+  tree->c_lnL += tree->data->wght[site]*log_site_lk;
 /*   tree->sum_min_sum_scale += (int)tree->data->wght[site]*min_sum_scale; */
   
   return log_site_lk;
