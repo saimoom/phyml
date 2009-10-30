@@ -355,15 +355,14 @@ phydbl Lk(t_tree *tree)
       if(tree->data->wght[tree->curr_site] > SMALL) Lk_Core(tree->noeud[0]->b[0],tree);
     }
 
-  Qksort(tree->c_lnL_sorted,NULL,0,n_patterns-1);
+/*   Qksort(tree->c_lnL_sorted,NULL,0,n_patterns-1); */
 
-  tree->c_lnL = .0;
-  For(tree->curr_site,n_patterns)
-    {
-      tree->c_lnL += tree->c_lnL_sorted[tree->curr_site];
-    }
+/*   tree->c_lnL = .0; */
+/*   For(tree->curr_site,n_patterns) */
+/*     { */
+/*       tree->c_lnL += tree->c_lnL_sorted[tree->curr_site]; */
+/*     } */
 
-  tree->c_lnL += (phydbl)LOG2 * tree->sum_min_sum_scale;
     
   Adjust_Min_Diff_Lk(tree);
 
@@ -400,15 +399,14 @@ phydbl Lk_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
       if(tree->data->wght[tree->curr_site] > SMALL) Lk_Core(b_fcus,tree);
     }
 
-  Qksort(tree->c_lnL_sorted,NULL,0,n_patterns-1);
+/*   Qksort(tree->c_lnL_sorted,NULL,0,n_patterns-1); */
 
-  tree->c_lnL = .0;
-  For(tree->curr_site,n_patterns)
-    {
-      tree->c_lnL += tree->c_lnL_sorted[tree->curr_site];
-    }
+/*   tree->c_lnL = .0; */
+/*   For(tree->curr_site,n_patterns) */
+/*     { */
+/*       tree->c_lnL += tree->c_lnL_sorted[tree->curr_site]; */
+/*     } */
 
-/*   tree->c_lnL += (phydbl)LOG2 * tree->sum_min_sum_scale; */
 
   Adjust_Min_Diff_Lk(tree);
 
