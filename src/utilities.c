@@ -1767,7 +1767,7 @@ int Read_Nexus_Translate(char *token, nexparm *curr_parm, option *io)
 
   int i;
   io->tax_table = (char **)mCalloc(500,sizeof(char *));
-  For(i,100) io->tax_table[i] = (char *)mCalloc(T_MAX_NAME,sizeof(char));;
+  For(i,500) io->tax_table[i] = (char *)mCalloc(500,sizeof(char));;
 
   do
     {
