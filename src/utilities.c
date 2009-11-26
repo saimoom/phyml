@@ -1774,10 +1774,10 @@ int Read_Nexus_Translate(char *token, nexparm *curr_parm, option *io)
 	{
 	  io->size_tax_table++;
 	  Get_Token(io->fp_in_tree,token);
-	  io->tax_table = (char **)realloc(io->tax_table,tax_num*sizeof(char *));
-	  io->tax_table[tax_num-1] = (char *)mCalloc(T_MAX_NAME,sizeof(char));
-	  strcpy(io->tax_table[tax_num-1],token);
-	  printf("\n. Copying %s",io->tax_table[tax_num-1]);
+	  io->tax_table = (char **)realloc(io->tax_table,io->size_tax_table*sizeof(char *));
+	  io->tax_table[io->size_tax_table-1] = (char *)mCalloc(T_MAX_NAME,sizeof(char));
+	  strcpy(io->tax_table[io->size_tax_table-1],token);
+	  printf("\n. Copying %s number %d",io->tax_table[io->size_tax_table-1],tax_num-1);
 	}
     }while(strlen(token) > 0);
   
