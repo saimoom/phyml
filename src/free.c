@@ -28,7 +28,7 @@ void Free_All_Nodes_Light(t_tree *tree)
 void Free_All_Edges_Light(t_tree *tree)
 {
   int i;
-  For(i,2*tree->n_otu-3) 
+  For(i,2*tree->n_otu-2) 
     if(tree->t_edges[i])
       Free_Edge(tree->t_edges[i]);
   Free(tree->t_edges);
@@ -92,11 +92,13 @@ void Free_Tree(t_tree *tree)
 	  For(j,3)
 	    {
 	      Free(tree->noeud[i]->bip_node[j]);
-	      For(k,tree->n_otu) Free(tree->noeud[i]->bip_name[j][k]);
-	      Free(tree->noeud[i]->bip_name[j]);
+/* 	      For(k,tree->n_otu) Free(tree->noeud[i]->bip_name[j][k]); */
+/* 	      Free(tree->noeud[i]->bip_name[j]); */
+	      Free(tree->noeud[i]->bip_num[j]);
 	    }
 	  Free(tree->noeud[i]->bip_node);
-	  Free(tree->noeud[i]->bip_name);
+/* 	  Free(tree->noeud[i]->bip_name); */
+	  Free(tree->noeud[i]->bip_num);
 	}
     }
   
@@ -410,7 +412,18 @@ void Free_Input(option *io)
   Free(io->clade_list_file);
   For(i,T_MAX_ALPHABET) Free(io->alphabet[i]);
   Free(io->alphabet);
+  For(i,io->size_tax_table) Free(io->tax_table[i]);
+  Free(io->tax_table);
+  Free_Tree_List(io->treelist);
   Free(io);
+}
+
+/*********************************************************/
+
+void Free_Tree_List(t_treelist *list)
+{
+  Free(list->tree);
+  Free(list);
 }
 
 /*********************************************************/

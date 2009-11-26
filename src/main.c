@@ -69,7 +69,8 @@ int main(int argc, char **argv)
 
   io = (option *)Get_Input(argc,argv);
   r_seed = (io->r_seed < 0)?(time(NULL)):(io->r_seed);
-  srand(r_seed); rand();
+  srand(r_seed);
+  io->r_seed = r_seed;
 
   if(io->in_tree == 2) Test_Multiple_Data_Set_Format(io);
   else io->n_trees = 1;
@@ -83,11 +84,6 @@ int main(int argc, char **argv)
       io->n_data_sets = MIN(io->n_trees,io->n_data_sets);
       io->n_trees     = MIN(io->n_trees,io->n_data_sets);
     }
-
-
-  printf("\n. n_seq = %d n_trees = %d",
-	 io->n_data_sets,
-	 io->n_trees);
 
   For(num_data_set,io->n_data_sets)
     {
@@ -440,4 +436,13 @@ int main(int argc, char **argv)
   return 1;
 }
 
+#elif(TIPORDER)
+#include "tiporder.h"
+int main(int argc, char **argv)
+{
+  TIPORDER_main(argc, argv);
+  return 1;
+}
+
 #endif
+

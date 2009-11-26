@@ -30,6 +30,7 @@ the GNU public licence. See http://www.opensource.org for details.
 #include "rates.h"
 #include "mcmc.h"
 #include "stats.h"
+#include "tiporder.h"
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>

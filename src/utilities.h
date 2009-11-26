@@ -109,7 +109,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 
 #define  T_MAX_FILE           500
 #define  T_MAX_LINE       2000000
-#define  T_MAX_NAME           500
+#define  T_MAX_NAME           10
 #define  T_MAX_SEQ        2000000
 #define  T_MAX_OPTION         100
 #define  T_MAX_LABEL           10
@@ -241,10 +241,11 @@ typedef struct __Node {
 
   int                *n_of_reachable_tips; /* sizes of the list_of_reachable_tips (in each direction) */
   int                           *bip_size; /* Size of each of the three lists from bip_node */
+  int                           **bip_num; /* Number of the nodes that can be reached in each of the three directions */
   int                                 num; /* t_node number */
   int                                 tax; /* tax = 1 -> external node, else -> internal t_node */
   int                        check_branch; /* check_branch=1 is the corresponding branch is labelled with '*' */
-  char                        ***bip_name; /* three lists of tip t_node names. One list for each direction */
+/*   char                        ***bip_name; /\* three lists of tip t_node names. One list for each direction *\/ */
   char                              *name; /* taxon name (if exists) */
 
   phydbl                           *score; /* score used in BioNJ to determine the best pair of nodes to agglomerate */
@@ -252,6 +253,10 @@ typedef struct __Node {
   phydbl                     dist_to_root; /* distance to the root t_node */
 
   short int                        common;
+  phydbl                           y_rank;
+  phydbl                          y_width;
+  struct __Node                 *ext_node;
+
 }t_node;
 
 
@@ -413,7 +418,9 @@ typedef struct __Arbre {
   struct __Triplet            *triplet_struct;
   
   int                     bl_from_node_stamps; /* == 1 -> Branch lengths are determined by t_node times */
-  
+  phydbl                        sum_y_dist_sq;
+  phydbl                           sum_y_dist;
+  phydbl                      tip_order_score;
 }t_tree;
 
 /*********************************************************/
@@ -644,7 +651,8 @@ typedef struct __Option { /* mostly used in 'help.c' */
   struct __Align              **data; /* pointer to the uncompressed sequences */
   struct __Calign             *cdata; /* pointer to the compressed sequences */
   struct __Super_Arbre           *st; /* pointer to supertree */
-  struct __Tnexcom    **nex_com_list; /* pointer to supertree */
+  struct __Tnexcom    **nex_com_list;
+  struct __List_Arbre      *treelist; /* list of trees. */
 
 
   int                    interleaved; /* interleaved or sequential sequence file format ? */
@@ -698,7 +706,8 @@ typedef struct __Option { /* mostly used in 'help.c' */
   int                        curr_gt;
   int                     ratio_test; /* from 1 to 4 for specific branch supports, 0 of not */
   int                    ready_to_go;
-  int                    data_format; /* Data format: Phylip or Nexus */
+  int                data_file_format; /* Data format: Phylip or Nexus */
+  int                tree_file_format; /* Tree format: Phylip or Nexus */
 
   int                 curr_interface;
   int                         r_seed; /* random seed */
@@ -714,6 +723,8 @@ typedef struct __Option { /* mostly used in 'help.c' */
   int                          quiet; /* 0 is the default. 1: no interactive question (for batch mode) */
   char                    **alphabet;
 
+  char                   **tax_table;
+  int                 size_tax_table;
 }option;
 
 /*********************************************************/
@@ -870,9 +881,16 @@ typedef struct __M4 {
 typedef struct __Tdraw {
   int             *xcoord; /* t_node coordinates on the x axis */
   int             *ycoord; /* t_node coordinates on the y axis */
+  phydbl        *xcoord_s; /* t_node coordinates on the x axis (scaled) */
+  phydbl        *ycoord_s; /* t_node coordinates on the y axis (scaled) */
   int          page_width;
   int         page_height;
   int      tree_box_width;
+
+  int         *cdf_mat;
+  phydbl       *cdf_mat_x;
+  phydbl       *cdf_mat_y;
+
 
   phydbl max_dist_to_root;
 }tdraw;
@@ -1054,7 +1072,6 @@ t_node *Make_Node_Light(int num);
 void Make_Node_Lk(t_node *n);
 align **Get_Seq(option *input);
 align **Get_Seq_Phylip(option *input);
-align **Get_Seq_Nexus(option *input);
 align **Read_Seq_Sequential(option *io);
 align **Read_Seq_Interleaved(option *io);
 int Read_One_Line_Seq(align ***data,int num_otu,FILE *in);
@@ -1064,7 +1081,8 @@ calign *Compact_Data(align **data,option *input);
 calign *Compact_Cdata(calign *data, option *io);
 void Get_Base_Freqs(calign *data);
 void Get_AA_Freqs(calign *data);
-t_tree *Read_Tree_File(FILE *fp_input_tree);
+t_tree *Read_Tree_File(option *io);
+t_tree *Read_Tree_File_Phylip(FILE *fp_input_tree);
 void Connect_Edges_To_Nodes(t_node *a,t_node *d,t_tree *tree,int *cur);
 void Exit(char *message);
 void *mCalloc(int nb,size_t size);
@@ -1072,6 +1090,7 @@ void *mRealloc(void *p,int nb,size_t size);
 /* t_tree *Make_Light_Tree_Struct(int n_otu); */
 int Sort_Phydbl_Decrease(const void *a, const void *b);
 void Qksort(phydbl *A, phydbl *B, int ilo,int ihi);
+void Qksort_Int(int *A, int *B, int ilo,int ihi);
 void Print_Site(calign *cdata,int num,int n_otu,char *sep,int stepsize);
 void Print_Seq(align **data,int n_otu);
 void Print_CSeq(FILE *fp,calign *cdata);
@@ -1126,7 +1145,6 @@ void Test_Multiple_Data_Set_Format(option *input);
 int Are_Compatible(char *statea,char *stateb,int stepsize,int datatype);
 void Hide_Ambiguities(calign *data);
 void Print_Site_Lk(t_tree *tree, FILE *fp);
-t_treelist *Make_Tree_List(int n_trees);
 option *Make_Input();
 t_tree *Make_Tree();
 void Make_All_Tree_Nodes(t_tree *tree);
@@ -1286,7 +1304,7 @@ int Edge_Num_To_Node_Num(int edge_num, t_tree *tree);
 void Branch_Lengths_To_Time_Lengths(t_tree *tree);
 void Branch_Lengths_To_Time_Lengths_Pre(t_node *a, t_node *d, t_tree *tree);
 int Find_Clade(char **tax_name_list, int list_size, t_tree *tree);
-void Find_Clade_Pre(t_node *a, t_node *d, char **tax_name_list, int list_size, int *num, t_tree *tree);
+void Find_Clade_Pre(t_node *a, t_node *d, int *tax_num_list, int list_size, int *num, t_tree *tree);
 void Read_Clade_Priors(char *file_name, t_tree *tree);
 t_edge *Find_Root_Edge(FILE *fp_input_tree, t_tree *tree);
 void Copy_Tree_Topology_With_Labels(t_tree *ori, t_tree *cpy);
@@ -1307,13 +1325,21 @@ int Read_Nexus_Statelabels(char *token, nexparm *curr_parm, option *io);
 int Read_Nexus_Matrix(char *token, nexparm *curr_parm, option *io);
 int Read_Nexus_Begin(char *token, nexparm *curr_parm, option *io);
 int Read_Nexus_Matrix(char *token, nexparm *curr_parm, option *io);
-void Detect_Align_Format(option *io);
-void Get_Token(char **line, char *token);
+int Read_Nexus_Translate(char *token, nexparm *curr_parm, option *io);
+int Read_Nexus_Tree(char *token, nexparm *curr_parm, option *io);
+int Read_Nexus_Taxa(char *token, nexparm *curr_parm, option *io);
+void Detect_Align_File_Format(option *io);
+void Detect_Tree_File_Format(option *io);
+int Get_Token(FILE *fp, char *token);
 nexparm *Make_Nexus_Parm();
 void Free_Nexus_Parm(nexparm *parm);
 void Read_Ntax_Len_Phylip(FILE *fp ,int *n_otu, int *n_tax);
 void Set_Model_Name(model *mod);
 void Adjust_Min_Diff_Lk(t_tree *tree);
+void Match_Tip_Numbers(t_tree *tree1, t_tree *tree2);
+void Get_Nexus_Data(FILE *fp, option *io);
+void Translate_Tax_Names(char **tax_names, t_tree *tree);
+void Skip_Comment(FILE *fp);
 
 #include "free.h"
 #include "spr.h"
