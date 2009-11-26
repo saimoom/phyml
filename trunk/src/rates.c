@@ -10,9 +10,8 @@ the GNU public licence. See http://www.opensource.org for details.
 
 */
 
-
 /* Routines for molecular clock trees and molecular dating */
-#if defined (MC) ||  defined (RWRAPPER)
+
 
 #include "rates.h"
 
@@ -2604,7 +2603,7 @@ void RATES_Update_Cur_Bl(t_tree *tree)
     tree->rates->cur_l[tree->n_root->v[1]->num] ;
 
   tree->rates->u_cur_l[tree->e_root->num] = tree->e_root->l;
-
+  
   if(tree->e_root->l < 0.0)
     {
       PhyML_Printf("\n. l=%f",tree->e_root->l);
@@ -3317,4 +3316,3 @@ void RATES_Min_Max_Interval(phydbl u0, phydbl u1, phydbl u2, phydbl u3, phydbl t
 /*********************************************************/
 
 
-#endif

@@ -91,7 +91,7 @@ int PART_main(int argc, char **argv)
 	  st->curr_cdata = cdata[part];
 	  if(!PART_Get_Species_Found_In_St(st,cdata[part])) break;
 	  treelist->tree[part] = Make_Tree_From_Scratch(st->tree->n_otu,NULL);
-	  Copy_Tree_TopoLOGy_With_Labels(st->tree,treelist->tree[part]);
+	  Copy_Tree_Topology_With_Labels(st->tree,treelist->tree[part]);
  	  treelist->tree[part]->num_curr_branch_available = 0;
 	  Connect_Edges_To_Nodes_Recur(treelist->tree[part]->noeud[0],
 				       treelist->tree[part]->noeud[0]->v[0],
@@ -325,7 +325,7 @@ void PART_Make_Supert_tree_Full(supert_tree *st, option *io, calign **data)
       PhyML_Printf("\n. Reading user tree...\n");
       rewind(io->fp_in_tree);
       
-      st->tree = Read_Tree_File(io->fp_in_tree);
+      st->tree = Read_Tree_File_Phylip(io->fp_in_tree);
       
       if(!st->tree->has_branch_lengths)
 	{

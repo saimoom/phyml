@@ -1,7 +1,7 @@
 /*
 
-PhyML:  a program that  computes maximum likelihood phyLOGenies from
-DNA or AA homoLOGous sequences.
+PhyML:  a program that  computes maximum likelihood phylogenies from
+DNA or AA homologous sequences.
 
 Copyright (C) Stephane Guindon. Oct 2003 onward.
 
@@ -58,9 +58,11 @@ t_tree *Read_Tree(char *s_tree)
   int i,n_ext,n_int,n_otu;
   t_tree *tree;
   int degree;
+  t_node *root_node;
 
-
-  n_otu=0;
+  n_int = n_ext = 0;
+  
+n_otu=0;
   For(i,(int)strlen(s_tree)) if(s_tree[i] == ',') n_otu++;
   n_otu+=1;
 
@@ -71,19 +73,47 @@ t_tree *Read_Tree(char *s_tree)
   Make_Tree_Path(tree);
   Make_List_Of_Reachable_Tips(tree);
 
-  tree->noeud[n_otu]->num = n_otu;
-  tree->noeud[n_otu]->tax = 0;
 
   subs = Sub_Trees(s_tree,&degree);
   Clean_Multifurcation(subs,degree,3);
-  if(degree == 2) Unroot_Tree(subs);
-  degree = 3;
+  if(degree == 2) 
+    {
+/*       Unroot_Tree(subs); */
+/*       degree = 3; */
+/*       root_node = tree->noeud[n_otu]; */
+      root_node      = tree->noeud[2*n_otu-2];
+      root_node->num = 2*n_otu-2;
+      tree->n_root   = root_node;
+      n_int         -= 1;
+    }
+  else
+    {
+      root_node      = tree->noeud[n_otu];
+      root_node->num = n_otu;
+      tree->n_root   = NULL;
+   }
+  
+  root_node->tax = 0;
 
   tree->has_branch_lengths = 0;
   tree->num_curr_branch_available = 0;
-  n_int = n_ext = 0;
-  For(i,degree) R_rtree(s_tree,subs[i],tree->noeud[n_otu],tree,&n_int,&n_ext);
-
+  For(i,degree) R_rtree(s_tree,subs[i],root_node,tree,&n_int,&n_ext);
+  
+  if(tree->n_root)
+    {
+      tree->e_root = tree->t_edges[tree->num_curr_branch_available];
+      
+      tree->n_root->v[0]->v[0] = tree->n_root->v[1];
+      tree->n_root->v[1]->v[0] = tree->n_root->v[0];
+      
+      Connect_One_Edge_To_Two_Nodes(tree->n_root->v[0],
+				    tree->n_root->v[1],
+				    tree->e_root,
+				    tree);      
+      tree->e_root->l = tree->n_root->l[0] + tree->n_root->l[1];
+      tree->n_root_pos = tree->n_root->l[0] / tree->e_root->l;
+    }
+  
   For(i,NODE_DEG_MAX) Free(subs[i]);
   Free(subs);
   return tree;
@@ -100,7 +130,7 @@ void R_rtree(char *s_tree_a, char *s_tree_d, t_node *a, t_tree *tree, int *n_int
   t_node *d;
   int n_otu = tree->n_otu;
 
-  if(strstr(s_tree_a," ")) Warn_And_Exit("\n Err: the tree must not contain a ' ' character\n");
+  if(strstr(s_tree_a," ")) Warn_And_Exit("\n. Err: the tree must not contain a ' ' character\n");
 
   if(s_tree_d[0] == '(')
     {
@@ -111,24 +141,28 @@ void R_rtree(char *s_tree_a, char *s_tree_d, t_node *a, t_tree *tree, int *n_int
       d      = tree->noeud[n_otu+*n_int];
       d->num = n_otu+*n_int;
       d->tax = 0;
-
+      
       Read_Branch_Label(s_tree_d,s_tree_a,tree->t_edges[tree->num_curr_branch_available]);
       Read_Branch_Length(s_tree_d,s_tree_a,tree);
-
+      
       For(i,3)
-       {
-	 if(!a->v[i])
-	   {
-	     a->v[i]=d;
-	     d->l[0]=a->l[i]=tree->t_edges[tree->num_curr_branch_available]->l;
-	     break;
-	   }
-       }
+	{
+	  if(!a->v[i])
+	    {
+	      a->v[i]=d;
+	      d->l[0]=tree->t_edges[tree->num_curr_branch_available]->l;
+	      a->l[i]=tree->t_edges[tree->num_curr_branch_available]->l;
+	      break;
+	    }
+	}
       d->v[0]=a;
 
-      Connect_One_Edge_To_Two_Nodes(a,d,tree->t_edges[tree->num_curr_branch_available],tree);
-      tree->num_curr_branch_available++;
-
+      if(a != tree->n_root)
+	{
+	  Connect_One_Edge_To_Two_Nodes(a,d,tree->t_edges[tree->num_curr_branch_available],tree);
+	  tree->num_curr_branch_available++;
+	}
+      
       subs=Sub_Trees(s_tree_d,&degree);
       Clean_Multifurcation(subs,degree,2);
       R_rtree(s_tree_d,subs[0],d,tree,n_int,n_ext);
@@ -144,24 +178,28 @@ void R_rtree(char *s_tree_a, char *s_tree_d, t_node *a, t_tree *tree, int *n_int
       d      = tree->noeud[*n_ext];
       d->tax = 1;
 
+      Read_Node_Name(d,s_tree_d,tree);
       Read_Branch_Label(s_tree_d,s_tree_a,tree->t_edges[tree->num_curr_branch_available]); 
       Read_Branch_Length(s_tree_d,s_tree_a,tree);
-      Read_Node_Name(d,s_tree_d,tree);
       
       For(i,3)
 	{
 	 if(!a->v[i])
 	   {
 	     a->v[i]=d;
-	     d->l[0]=a->l[i]=tree->t_edges[tree->num_curr_branch_available]->l;
+	     d->l[0]=tree->t_edges[tree->num_curr_branch_available]->l;
+	     a->l[i]=tree->t_edges[tree->num_curr_branch_available]->l;
 	     break;
 	   }
 	}
       d->v[0]=a;
 
-      Connect_One_Edge_To_Two_Nodes(a,d,tree->t_edges[tree->num_curr_branch_available],tree);
-      tree->num_curr_branch_available++;
-      
+      if(a != tree->n_root)
+	{
+	  Connect_One_Edge_To_Two_Nodes(a,d,tree->t_edges[tree->num_curr_branch_available],tree);
+	  tree->num_curr_branch_available++;
+	}
+
       d->num=*n_ext;
       (*n_ext)+=1;
     }
@@ -177,9 +215,20 @@ void Read_Branch_Label(char *s_d, char *s_a, t_edge *b)
 
   sub_tp = (char *)mCalloc(T_MAX_LINE,sizeof(char));
 
-  strcpy(sub_tp,s_d);
+  sub_tp[0] = '(';
+  sub_tp[1] = '\0';
+  strcat(sub_tp,s_d);
   strcat(sub_tp,"#");
   p = strstr(s_a,sub_tp);
+  if(!p)
+    {
+      sub_tp[0] = ',';
+      sub_tp[1] = '\0';
+      strcat(sub_tp,s_d);
+      strcat(sub_tp,"#");
+      p = strstr(s_a,sub_tp);
+    }
+
   i = 0;
   b->n_labels = 0;
   if(p)
@@ -237,20 +286,31 @@ void Read_Branch_Length(char *s_d, char *s_a, t_tree *tree)
 
   sub_tp = (char *)mCalloc(T_MAX_LINE,sizeof(char));
 
-  For(i,b->n_labels) 
+  For(i,b->n_labels)
     {
       strcat(s_d,"#");
       strcat(s_d,b->labels[i]);
     }
 
-  strcpy(sub_tp,s_d);
+  sub_tp[0] = '(';
+  sub_tp[1] = '\0';
+  strcat(sub_tp,s_d);
   strcat(sub_tp,":");
   p = strstr(s_a,sub_tp);
-  if(p) 
+  if(!p)
+    {
+      sub_tp[0] = ',';
+      sub_tp[1] = '\0';
+      strcat(sub_tp,s_d);
+      strcat(sub_tp,":");
+      p = strstr(s_a,sub_tp);
+    }
+
+  if(p)
     {
       b->l = atof((char *)p+(int)strlen(sub_tp));
       tree->has_branch_lengths = 1;
-    }
+    }      
   Free(sub_tp);
 }
 
@@ -440,7 +500,6 @@ void Print_Tree(FILE *fp, t_tree *tree)
 
 char *Write_Tree(t_tree *tree)
 {
-
   char *s;
   int i;
 
@@ -502,11 +561,26 @@ void R_wtree(t_node *pere, t_node *fils, char *s_tree, t_tree *tree)
 	    }
 
 	  strcat(s_tree,":");
-
+	  
+#ifndef MC
+	  if(!tree->n_root)
+	    sprintf(s_tree+(int)strlen(s_tree),"%.10f",fils->b[0]->l);
+	  else
+	    {
+	      if(pere == tree->n_root)
+		{
+		  phydbl pos = (fils == tree->n_root->v[0])?(tree->n_root_pos):(1.-tree->n_root_pos);
+		  sprintf(s_tree+(int)strlen(s_tree),"%.10f",tree->e_root->l * pos);
+		}
+	      else
+		sprintf(s_tree+(int)strlen(s_tree),"%.10f",fils->b[0]->l);
+	    }		
+#else
 	  if(!tree->n_root)
 	    sprintf(s_tree+(int)strlen(s_tree),"%.10f",fils->b[0]->l);
 	  else
 	    sprintf(s_tree+(int)strlen(s_tree),"%.10f",tree->rates->cur_l[fils->num]);
+#endif
 	}
       sprintf(s_tree+(int)strlen(s_tree),",");
    }
@@ -551,10 +625,25 @@ void R_wtree(t_node *pere, t_node *fils, char *s_tree, t_tree *tree)
 
 	  strcat(s_tree,":");
 
+#ifndef MC
+	  if(!tree->n_root)
+	    sprintf(s_tree+(int)strlen(s_tree),"%.10f",fils->b[p]->l);
+	  else
+	    {
+	      if(pere == tree->n_root)
+		{
+		  phydbl pos = (fils == tree->n_root->v[0])?(tree->n_root_pos):(1.-tree->n_root_pos);
+		  sprintf(s_tree+(int)strlen(s_tree),"%.10f",tree->e_root->l * pos);
+		}
+	      else
+		sprintf(s_tree+(int)strlen(s_tree),"%.10f",fils->b[p]->l);
+	    }
+#else
 	  if(!tree->n_root)
 	    sprintf(s_tree+(int)strlen(s_tree),"%.10f",fils->b[p]->l);
 	  else
 	    sprintf(s_tree+(int)strlen(s_tree),"%.10f",tree->rates->cur_l[fils->num]);
+#endif
 	}
       strcat(s_tree,",");
     }
@@ -597,6 +686,8 @@ void Init_Tree(t_tree *tree, int n_otu)
   tree->print_boot_val            = 0;
   tree->print_alrt_val            = 0;
   tree->num_curr_branch_available = 0;
+
+  tree->tip_order_score           = .0;
 }
 
 /*********************************************************/
@@ -681,6 +772,7 @@ void Init_Node_Light(t_node *n, int num)
   n->tax                    = -1;
   n->dist_to_root           = .0;
   n->common                 = 1;
+  n->ext_node               = NULL;
 }
 
 /*********************************************************/
@@ -879,16 +971,18 @@ void Make_Node_Lk(t_node *n)
 
 /*********************************************************/
 
-void Detect_Align_Format(option *io)
+void Detect_Align_File_Format(option *io)
 {
   int c;
   fpos_t curr_pos;
   
   fgetpos(io->fp_in_align,&curr_pos);
+  
+  errno = 0;
 
   while((c=fgetc(io->fp_in_align)) != EOF)
     {
-      if(errno) io->data_format = PHYLIP;
+      if(errno) io->data_file_format = PHYLIP;
       else if(c == '#')
 	{
 	  char s[10],t[6]="NEXUS";
@@ -896,7 +990,7 @@ void Detect_Align_Format(option *io)
 	  if(!strcmp(t,s)) 
 	    {
 	      fsetpos(io->fp_in_align,&curr_pos);
-	      io->data_format = NEXUS;
+	      io->data_file_format = NEXUS;
 	      return;
 	    }
 	}
@@ -907,13 +1001,48 @@ void Detect_Align_Format(option *io)
 
 /*********************************************************/
 
+void Detect_Tree_File_Format(option *io)
+{
+  int c;
+  fpos_t curr_pos;
+  
+  fgetpos(io->fp_in_tree,&curr_pos);
+
+  errno = 0;
+
+  while((c=fgetc(io->fp_in_tree)) != EOF)
+    {
+      if(errno) 
+	{
+	  io->tree_file_format = PHYLIP;
+	  PhyML_Printf("\n. Detected PHYLIP tree file format.");
+	}
+      else if(c == '#')
+	{
+	  char s[10],t[6]="NEXUS";
+	  fgets(s,6,io->fp_in_tree);
+	  if(!strcmp(t,s))
+	    {
+	      fsetpos(io->fp_in_tree,&curr_pos);
+	      io->tree_file_format = NEXUS;
+	      PhyML_Printf("\n. Detected NEXUS tree file format.");
+	      return;
+	    }
+	}
+    }
+  
+  fsetpos(io->fp_in_tree,&curr_pos);
+}
+
+/*********************************************************/
+
 align **Get_Seq(option *io)
 {
   io->data = NULL;
 
-  Detect_Align_Format(io);
+  Detect_Align_File_Format(io);
 
-  switch(io->data_format)
+  switch(io->data_file_format)
     {
     case PHYLIP: 
       {
@@ -924,7 +1053,7 @@ align **Get_Seq(option *io)
       {
 	io->nex_com_list = Make_Nexus_Com();
 	Init_Nexus_Format(io->nex_com_list);
-	io->data = Get_Seq_Nexus(io);
+	Get_Nexus_Data(io->fp_in_align,io);
 	Free_Nexus(io);
 	break;
       }
@@ -997,149 +1126,287 @@ align **Get_Seq(option *io)
 
 /*********************************************************/
 
-align **Get_Seq_Nexus(option *io)
+/* align **Get_Seq_Nexus(option *io) */
+/* { */
+/*   char *s,*ori_s; */
+/*   char *token; */
+/*   int in_comment; */
+/*   nexcom *curr_com; */
+/*   nexparm *curr_parm; */
+/*   int nxt_token_t,cur_token_t; */
+
+/*   s = (char *)mCalloc(T_MAX_LINE,sizeof(char)); */
+/*   token = (char *)mCalloc(T_MAX_TOKEN,sizeof(char)); */
+      	  
+/*   ori_s      = s; */
+/*   in_comment = NO; */
+/*   curr_com   = NULL; */
+/*   curr_parm  = NULL; */
+/*   nxt_token_t = NEXUS_COM;  */
+/*   cur_token_t = -1;  */
+
+/*   while(fgets(s,T_MAX_LINE,io->fp_in_align)) */
+/*     {       */
+/*       do */
+/* 	{	   */
+/* 	  Get_Token(&s,token);	   */
+
+/* /\* 	  PhyML_Printf("\n. Token: '%s' next_token=%d cur_token=%d",token,nxt_token_t,cur_token_t); *\/ */
+
+/* 	  if(token[0] == '\0') break; */
+
+/* 	  if(token[0] == ';')  */
+/* 	    { */
+/* 	      curr_com   = NULL; */
+/* 	      curr_parm  = NULL; */
+/* 	      nxt_token_t = NEXUS_COM; */
+/* 	      cur_token_t = -1; */
+/* 	      break; /\* End of command *\/  */
+/* 	    } */
+
+/* 	  if(nxt_token_t == NEXUS_EQUAL)  */
+/* 	    { */
+/* 	      cur_token_t = NEXUS_VALUE; */
+/* 	      nxt_token_t = NEXUS_PARM; */
+/* 	      continue; */
+/* 	    } */
+
+/* 	  if((nxt_token_t == NEXUS_COM) && (cur_token_t != NEXUS_VALUE))  */
+/* 	    { */
+/* 	      Find_Nexus_Com(token,&curr_com,&curr_parm,io->nex_com_list); */
+/* 	      if(curr_com)  */
+/* 		{ */
+/* 		  nxt_token_t = curr_com->nxt_token_t; */
+/* 		  cur_token_t = curr_com->cur_token_t; */
+/* 		} */
+/* 	      if(cur_token_t != NEXUS_VALUE) continue; */
+/* 	    } */
+
+/* 	  if((nxt_token_t == NEXUS_PARM) && (cur_token_t != NEXUS_VALUE))  */
+/* 	    { */
+/* 	      Find_Nexus_Parm(token,&curr_parm,curr_com); */
+/* 	      if(curr_parm)  */
+/* 		{ */
+/* 		  nxt_token_t = curr_parm->nxt_token_t; */
+/* 		  cur_token_t = curr_parm->cur_token_t; */
+/* 		} */
+/* 	      if(cur_token_t != NEXUS_VALUE) continue; */
+/* 	    } */
+
+/* 	  if(cur_token_t == NEXUS_VALUE) */
+/* 	    { */
+/* 	      if((curr_parm->fp)(token,curr_parm,io))  /\* Read in parameter value *\/ */
+/* 		{ */
+/* 		  nxt_token_t = NEXUS_PARM; */
+/* 		  cur_token_t = -1; */
+/* 		} */
+/* 	    } */
+/* 	} */
+/*       while(strlen(token) > 0); */
+/*     } */
+
+/*   Free(ori_s); */
+/*   Free(token); */
+
+/*   return io->data; */
+/* } */
+
+/* /\*********************************************************\/ */
+
+void Get_Nexus_Data(FILE *fp, option *io)
 {
-  char *s,*ori_s;
   char *token;
   int in_comment;
   nexcom *curr_com;
   nexparm *curr_parm;
   int nxt_token_t,cur_token_t;
 
-  s = (char *)mCalloc(T_MAX_LINE,sizeof(char));
   token = (char *)mCalloc(T_MAX_TOKEN,sizeof(char));
       	  
-  ori_s      = s;
   in_comment = NO;
   curr_com   = NULL;
   curr_parm  = NULL;
   nxt_token_t = NEXUS_COM; 
   cur_token_t = -1; 
 
-  while(fgets(s,T_MAX_LINE,io->fp_in_align))
-    {      
-      do
-	{	  
-	  Get_Token(&s,token);	  
+  do
+    {
+      if(!Get_Token(fp,token)) break;
 
-/* 	  PhyML_Printf("\n. Token: '%s' next_token=%d cur_token=%d",token,nxt_token_t,cur_token_t); */
+/*       PhyML_Printf("\n+ Token: '%s' next_token=%d cur_token=%d",token,nxt_token_t,cur_token_t); */
 
-	  if(token[0] == '\0') break;
-
-	  if(token[0] == ';') 
+      if(token[0] == ';') 
+	{
+	  curr_com    = NULL;
+	  curr_parm   = NULL;
+	  nxt_token_t = NEXUS_COM;
+	  cur_token_t = -1;
+	}
+      
+      if(nxt_token_t == NEXUS_EQUAL) 
+	{
+	  cur_token_t = NEXUS_VALUE;
+	  nxt_token_t = NEXUS_PARM;
+	  continue;
+	}
+      
+      if((nxt_token_t == NEXUS_COM) && (cur_token_t != NEXUS_VALUE)) 
+	{
+	  Find_Nexus_Com(token,&curr_com,&curr_parm,io->nex_com_list);
+	  if(curr_com) 
 	    {
-	      curr_com   = NULL;
-	      curr_parm  = NULL;
-	      nxt_token_t = NEXUS_COM;
-	      cur_token_t = -1;
-	      break; /* End of command */ 
+	      nxt_token_t = curr_com->nxt_token_t;
+	      cur_token_t = curr_com->cur_token_t;
 	    }
-
-	  if(nxt_token_t == NEXUS_EQUAL) 
+	  if(cur_token_t != NEXUS_VALUE) continue;
+	}
+      
+      if((nxt_token_t == NEXUS_PARM) && (cur_token_t != NEXUS_VALUE)) 
+	{
+	  Find_Nexus_Parm(token,&curr_parm,curr_com);
+	  if(curr_parm) 
 	    {
-	      cur_token_t = NEXUS_VALUE;
+	      nxt_token_t = curr_parm->nxt_token_t;
+	      cur_token_t = curr_parm->cur_token_t;
+	    }
+	  if(cur_token_t != NEXUS_VALUE) continue;
+	}
+      
+      if(cur_token_t == NEXUS_VALUE)
+	{
+	  if((curr_parm->fp)(token,curr_parm,io))  /* Read in parameter value */
+	    {
 	      nxt_token_t = NEXUS_PARM;
-	      continue;
-	    }
-
-
-	  if((nxt_token_t == NEXUS_COM) && (cur_token_t != NEXUS_VALUE)) 
-	    {
-	      Find_Nexus_Com(token,&curr_com,&curr_parm,io->nex_com_list);
-	      if(curr_com) 
-		{
-		  nxt_token_t = curr_com->nxt_token_t;
-		  cur_token_t = curr_com->cur_token_t;
-		}
-	      if(cur_token_t != NEXUS_VALUE) continue;
-	    }
-
-	  if((nxt_token_t == NEXUS_PARM) && (cur_token_t != NEXUS_VALUE)) 
-	    {
-	      Find_Nexus_Parm(token,&curr_parm,curr_com);
-	      if(curr_parm) 
-		{
-		  nxt_token_t = curr_parm->nxt_token_t;
-		  cur_token_t = curr_parm->cur_token_t;
-		}
-	      if(cur_token_t != NEXUS_VALUE) continue;
-	    }
-
-	  if(cur_token_t == NEXUS_VALUE)
-	    {
-	      if((curr_parm->fp)(token,curr_parm,io))  /* Read in parameter value */
-		{
-		  nxt_token_t = NEXUS_PARM;
-		  cur_token_t = -1;
-		}
+	      cur_token_t = -1;
 	    }
 	}
-      while(strlen(token) > 0);
     }
-
-  Free(ori_s);
+  while(strlen(token) > 0);
+  
   Free(token);
-
-  return io->data;
 }
 
 /*********************************************************/
 
-void Get_Token(char **line, char *token)
+int Get_Token(FILE *fp, char *token)
 {
-
-  while(**line == ' ' || **line == '\t') (*line)++;
-
-  if(**line == '"') 
+  char c;
+  
+  c = ' ';
+  while(c == ' ' || c == '\t' || c == '\n') 
     {
-      do { *token = **line; (*line)++; token++; } while(**line != '"');
-      *token = **line;
-      (*line)++;
+      c = fgetc(fp);
+      if(c == EOF) return 0;
+    }
+
+  if(c == '"')
+    {
+      do
+	{
+	  *token = c;
+	  token++;
+	  c = fgetc(fp);
+	  if(c == EOF) return 0;
+	}
+      while(c != '"');
+      *token = c;
+      c = fgetc(fp);
+      if(c == EOF) return 0;
       *(token+1) = '\0';
       return;
     }
 
-  if(**line == '[') 
+  if(c == '[')
     {
-      int in_comment;
-
-      in_comment = 1;
-      do 
-	{ 
-	  (*line)++; 
-	  if(**line == '[') 
-	    {
-	      in_comment++;
-	    }
-	  else if(**line == ']') in_comment--;	  
-	}
-      while(in_comment);
-      (*line)++;
-      return;
+      Skip_Comment(fp);
+      c = fgetc(fp);
+      if(c == EOF) return 0;
+      return 1;
     }
 
-
-  if(**line == '#')      {*token = **line; (*line)++; token++; }
-  else if(**line == ';') {*token = **line; (*line)++; token++; }
-  else if(**line == ',') {*token = **line; (*line)++; token++; }
-  else if(**line == '.') {*token = **line; (*line)++; token++; }
-  else if(**line == '=') {*token = **line; (*line)++; token++; }
-  else if(**line == '(') {*token = **line; (*line)++; token++; }
-  else if(**line == ')') {*token = **line; (*line)++; token++; }
-  else if(**line == '{') {*token = **line; (*line)++; token++; }
-  else if(**line == '}') {*token = **line; (*line)++; token++; }
-  else if(**line == '?') {*token = **line; (*line)++; token++; }
-  else if(**line == '-') {*token = **line; (*line)++; token++; }
+  if(c == '#')      { *token = c; token++; }
+  else if(c == ';') { *token = c; token++; }
+  else if(c == ',') { *token = c; token++; }
+  else if(c == '.') { *token = c; token++; }
+  else if(c == '=') { *token = c; token++; }
+  else if(c == '(') { *token = c; token++; }
+  else if(c == ')') { *token = c; token++; }
+  else if(c == '{') { *token = c; token++; }
+  else if(c == '}') { *token = c; token++; }
+  else if(c == '?') { *token = c; token++; }
+  else if(c == '-') { *token = c; token++; }
   else
     {
-      while(isgraph(**line) && **line != ';' && **line != '=') 
+      while(isgraph(c) && c != ';' && c != '-' && c != ',')
 	{
-	  *(token++) = **line;
-	  (*line)++; 
+	  *(token++) = c;
+	  c = fgetc(fp);
+	  if(c == EOF) return 0;
 	}
+
+      fseek(fp,-1*sizeof(char),SEEK_CUR);
+
     }
   *token = '\0';
+  return 1;
 }
+
+
+/* void Get_Token(char *line, char *token) */
+/* { */
+/*   while(**line == ' ' || **line == '\t') (*line)++; */
+
+
+/*   if(**line == '"')  */
+/*     { */
+/*       do { *token = **line; (*line)++; token++; } while(**line != '"'); */
+/*       *token = **line; */
+/*       (*line)++; */
+/*       *(token+1) = '\0'; */
+/*       return; */
+/*     } */
+
+/*   if(**line == '[')  */
+/*     { */
+/*       int in_comment; */
+
+/*       in_comment = 1; */
+/*       do  */
+/* 	{  */
+/* 	  (*line)++;  */
+/* 	  if(**line == '[')  */
+/* 	    { */
+/* 	      in_comment++; */
+/* 	    } */
+/* 	  else if(**line == ']') in_comment--;	   */
+/* 	} */
+/*       while(in_comment); */
+/*       (*line)++; */
+/*       return; */
+/*     } */
+
+
+/*   if(**line == '#')      {*token = **line; (*line)++; token++; } */
+/*   else if(**line == ';') {*token = **line; (*line)++; token++; } */
+/*   else if(**line == ',') {*token = **line; (*line)++; token++; } */
+/*   else if(**line == '.') {*token = **line; (*line)++; token++; } */
+/*   else if(**line == '=') {*token = **line; (*line)++; token++; } */
+/*   else if(**line == '(') {*token = **line; (*line)++; token++; } */
+/*   else if(**line == ')') {*token = **line; (*line)++; token++; } */
+/*   else if(**line == '{') {*token = **line; (*line)++; token++; } */
+/*   else if(**line == '}') {*token = **line; (*line)++; token++; } */
+/*   else if(**line == '?') {*token = **line; (*line)++; token++; } */
+/*   else if(**line == '-') {*token = **line; (*line)++; token++; } */
+/*   else */
+/*     { */
+/*       while(isgraph(**line) && **line != ';' && **line != '=' && **line != ',')  */
+/* 	{ */
+/* 	  *(token++) = **line; */
+/* 	  (*line)++;  */
+/* 	} */
+/*     } */
+/*   *token = '\0'; */
+/* } */
 
 /*********************************************************/
 
@@ -1179,6 +1446,7 @@ void Init_Nexus_Format(nexcom **com)
 {
 
   /*****************************/
+
   strcpy(com[0]->name,"dimensions");
   com[0]->nparm = 2;
   com[0]->nxt_token_t = NEXUS_PARM;
@@ -1198,15 +1466,12 @@ void Init_Nexus_Format(nexcom **com)
   com[0]->parm[1]->nxt_token_t = NEXUS_EQUAL;
   com[0]->parm[1]->cur_token_t = NEXUS_PARM;
 
-  
-
-
   /*****************************/
+
   strcpy(com[1]->name,"format");
   com[1]->nparm = 11;
   com[1]->nxt_token_t = NEXUS_PARM;
   com[1]->cur_token_t = NEXUS_COM;
-
 
   com[1]->parm[0] = Make_Nexus_Parm();
   strcpy(com[1]->parm[0]->name,"datatype");
@@ -1285,42 +1550,47 @@ void Init_Nexus_Format(nexcom **com)
   com[1]->parm[10]->nxt_token_t = NEXUS_EQUAL;
   com[1]->parm[10]->cur_token_t = NEXUS_PARM;
 
-	
   /*****************************/
+
   strcpy(com[2]->name,"eliminate");
   com[2]->nparm = 0;
   com[2]->nxt_token_t = NEXUS_VALUE;
   com[2]->cur_token_t = NEXUS_COM;
 
   /*****************************/
+
   strcpy(com[3]->name,"taxlabels");
   com[3]->nparm = 0;
   com[3]->nxt_token_t = -1;
   com[3]->cur_token_t = -1;
  
  /*****************************/
+
   strcpy(com[4]->name,"charstatelabels");
   com[4]->nparm = 0;
   com[4]->nxt_token_t = -1;
   com[4]->cur_token_t = -1;
 
   /*****************************/
+
   strcpy(com[5]->name,"charlabels");
   com[5]->nparm = 0;
   com[5]->nxt_token_t = -1;
   com[5]->cur_token_t = -1;
 
   /*****************************/
+
   strcpy(com[6]->name,"statelabels");
   com[6]->nparm = 0;
   com[6]->nxt_token_t = -1;
   com[6]->cur_token_t = -1;
 
   /*****************************/
+
   strcpy(com[7]->name,"matrix");
   com[7]->nparm = 1;
   com[7]->nxt_token_t = NEXUS_COM;
-  com[7]->cur_token_t = NEXUS_VALUE; /* This will allows us to skip directly 
+  com[7]->cur_token_t = NEXUS_VALUE; /* This will allow us to skip directly 
 					to the matrix reading function */
 
   com[7]->parm[0] = Make_Nexus_Parm();
@@ -1331,11 +1601,12 @@ void Init_Nexus_Format(nexcom **com)
   com[7]->parm[0]->cur_token_t = -1; 
 
   /*****************************/
+
   strcpy(com[8]->name,"begin");
-  com[8]->nparm = 1;
+  com[8]->nparm = 3;
+
   com[8]->nxt_token_t = NEXUS_PARM;
   com[8]->cur_token_t = NEXUS_COM;
-
 
   com[8]->parm[0] = Make_Nexus_Parm();
   strcpy(com[8]->parm[0]->name,"data");
@@ -1344,13 +1615,64 @@ void Init_Nexus_Format(nexcom **com)
   com[8]->parm[0]->nxt_token_t = NEXUS_COM;
   com[8]->parm[0]->cur_token_t = NEXUS_PARM;
 
+
+  com[8]->parm[1] = Make_Nexus_Parm();
+  strcpy(com[8]->parm[1]->name,"trees");
+  com[8]->parm[1]->fp = Read_Nexus_Begin;
+  com[8]->parm[1]->com = com[8];
+  com[8]->parm[1]->nxt_token_t = NEXUS_COM;
+  com[8]->parm[1]->cur_token_t = NEXUS_PARM;
+
+
+  com[8]->parm[2] = Make_Nexus_Parm();
+  strcpy(com[8]->parm[2]->name,"taxa");
+  com[8]->parm[2]->fp = Read_Nexus_Taxa;
+  com[8]->parm[2]->com = com[8];
+  com[8]->parm[2]->nxt_token_t = NEXUS_COM;
+  com[8]->parm[2]->cur_token_t = NEXUS_VALUE; 
+
+
   /*****************************/
 
   strcpy(com[9]->name,"end");
   com[9]->nparm = 0;
   com[9]->nxt_token_t = -1;
   com[9]->cur_token_t = -1;
+ 
+  /*****************************/
+
+  strcpy(com[10]->name,"translate");
+  com[10]->nparm = 1;
+  com[10]->nxt_token_t = NEXUS_COM;
+  com[10]->cur_token_t = NEXUS_VALUE;
+
+  com[10]->parm[0] = Make_Nexus_Parm();
+  strcpy(com[10]->parm[0]->name,"translate");
+  com[10]->parm[0]->fp = Read_Nexus_Translate;
+  com[10]->parm[0]->com = com[10];
+  com[10]->parm[0]->nxt_token_t = NEXUS_COM;
+  com[10]->parm[0]->cur_token_t = -1; 
+
+  /*****************************/
+
+  strcpy(com[11]->name,"tree");
+  com[11]->nparm = 1;
+  com[11]->nxt_token_t = NEXUS_COM;
+  com[11]->cur_token_t = NEXUS_VALUE;
+
+  com[11]->parm[0] = Make_Nexus_Parm();
+  strcpy(com[11]->parm[0]->name,"tree");
+  com[11]->parm[0]->fp = Read_Nexus_Tree;
+  com[11]->parm[0]->com = com[11];
+  com[11]->parm[0]->nxt_token_t = -1;
+  com[11]->parm[0]->cur_token_t = -1; 
+
+
+  /*****************************/
+
 }
+
+
 
 /*********************************************************/
 
@@ -1416,6 +1738,56 @@ void Find_Nexus_Parm(char *token, nexparm **found_parm, nexcom *curr_com)
 
 /*********************************************************/
 
+int Read_Nexus_Taxa(char *token, nexparm *curr_parm, option *io)
+{
+
+  PhyML_Printf("\n. Skipping 'taxa' block");
+
+  do
+    {
+      Get_Token(io->fp_in_tree,token);
+      if(token[0] == ';') break;
+    }while(strlen(token) > 0);
+  
+  fseek(io->fp_in_tree,-1*sizeof(char),SEEK_CUR);
+
+  
+  return 1;
+}
+
+/*********************************************************/
+
+int Read_Nexus_Translate(char *token, nexparm *curr_parm, option *io)
+{
+  int tax_num;
+  char *end;
+
+  PhyML_Printf("\n. Reading 'translate' block");
+  io->size_tax_table = 0;
+
+  do
+    {
+      Get_Token(io->fp_in_tree,token);
+      if(token[0] == ';') break;
+      tax_num = (int)strtol(token,&end,10);
+      if(*end =='\0' && token[0])
+	{
+	  io->size_tax_table++;
+	  Get_Token(io->fp_in_tree,token);
+	  io->tax_table = (char **)realloc(io->tax_table,tax_num*sizeof(char *));
+	  io->tax_table[tax_num-1] = (char *)mCalloc(T_MAX_NAME,sizeof(char));
+	  strcpy(io->tax_table[tax_num-1],token);
+	  printf("\n. Copying %s",io->tax_table[tax_num-1]);
+	}
+    }while(strlen(token) > 0);
+  
+  fseek(io->fp_in_tree,-1*sizeof(char),SEEK_CUR);
+
+  return 1;
+}
+
+/*********************************************************/
+
 int Read_Nexus_Matrix(char *token, nexparm *curr_parm, option *io)
 {
 
@@ -1424,6 +1796,20 @@ int Read_Nexus_Matrix(char *token, nexparm *curr_parm, option *io)
 
   fseek(io->fp_in_align,-1*sizeof(char),SEEK_CUR);
 
+  return 1;
+}
+
+/*********************************************************/
+
+int Read_Nexus_Tree(char *token, nexparm *curr_parm, option *io)
+{
+  io->treelist->tree = (t_tree **)realloc(io->treelist->tree,(io->treelist->list_size+1)*sizeof(t_tree *));
+  PhyML_Printf("\n. Reading tree %d",io->treelist->list_size+1);
+  io->tree = Read_Tree_File_Phylip(io->fp_in_tree);
+  io->treelist->tree[io->treelist->list_size] = io->tree;
+  io->treelist->list_size++;
+
+  fseek(io->fp_in_tree,-1*sizeof(char),SEEK_CUR);
   return 1;
 }
 
@@ -1439,7 +1825,8 @@ int Read_Nexus_Begin(char *token, nexparm *curr_parm, option *io)
       Warn_And_Exit("");
     }
 
-  if(!strcmp(curr_parm->name,"data")) PhyML_Printf("\n. Reading '%s' block.\n",curr_parm->value);
+  if(!strcmp(curr_parm->name,"data") || !strcmp(curr_parm->name,"trees")) 
+    PhyML_Printf("\n. Reading '%s' block.\n",curr_parm->value);
   else
     {
       PhyML_Printf("\n. The '%s' block type is not supported by PhyML. Sorry.\n",curr_parm->name);
@@ -2500,7 +2887,40 @@ void Get_AA_Freqs(calign *data)
 
 /*********************************************************/
 
-t_tree *Read_Tree_File(FILE *fp_input_tree)
+t_tree *Read_Tree_File(option *io)
+{
+  t_tree *tree;
+
+
+  Detect_Tree_File_Format(io);
+
+  switch(io->tree_file_format)
+    {
+    case PHYLIP: 
+      {
+	tree = Read_Tree_File_Phylip(io->fp_in_tree);
+	break;
+      }
+    case NEXUS:
+      {
+	io->nex_com_list = Make_Nexus_Com();
+	Init_Nexus_Format(io->nex_com_list);
+	Get_Nexus_Data(io->fp_in_tree,io);
+	Free_Nexus(io);
+	break;
+      }
+    default:
+      {
+	PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	Warn_And_Exit("");
+	break;
+      }
+    }
+}
+
+/*********************************************************/
+
+t_tree *Read_Tree_File_Phylip(FILE *fp_input_tree)
 {
   char *line;
   t_tree *tree;
@@ -2531,12 +2951,20 @@ t_tree *Read_Tree_File(FILE *fp_input_tree)
 	  else continue;
 	}
       
+      if(c == '[')
+	{
+	  Skip_Comment(fp_input_tree);
+	  c = fgetc(fp_input_tree);
+	  if(c == EOF) break;
+	}
+      
+
       line[i]=c;
       i++;
       c=fgetc(fp_input_tree);
       if(c==EOF || c==';') break;
     }
-  
+
   tree = Read_Tree(line);
   Free(line);
   return tree;
@@ -2569,7 +2997,6 @@ void Connect_One_Edge_To_Two_Nodes(t_node *a, t_node *d, t_edge *b, t_tree *tree
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
-
 
   a->b[dir_a_d] = b;
   b->num        = tree->num_curr_branch_available;
@@ -2687,6 +3114,84 @@ int Sort_Phydbl_Decrease(const void *a, const void *b)
 }
 
 /*********************************************************/
+
+void Qksort_Int(int *A, int *B, int ilo, int ihi)
+{
+    phydbl pivot;	// pivot value for partitioning array
+    int ulo, uhi;	// indices at ends of unpartitioned region
+    int ieq;		// least index of array entry with value equal to pivot
+    int tempEntry;	// temporary entry used for swapping
+
+    if (ilo >= ihi) {
+	return;
+    }
+    // Select a pivot value.
+    pivot = A[(ilo + ihi)/2];
+    // Initialize ends of unpartitioned region and least index of entry
+    // with value equal to pivot.
+    ieq = ulo = ilo;
+    uhi = ihi;
+    // While the unpartitioned region is not empty, try to reduce its size.
+    while (ulo <= uhi) {
+      if (A[uhi] > pivot) {
+	    // Here, we can reduce the size of the unpartitioned region and
+	    // try again.
+	    uhi--;
+	} else {
+	    // Here, A[uhi] <= pivot, so swap entries at indices ulo and
+	    // uhi.
+	    tempEntry = A[ulo];
+	    A[ulo]    = A[uhi];
+	    A[uhi]    = tempEntry;
+
+	    if(B)
+	      {
+		tempEntry = B[ulo];
+		B[ulo]    = B[uhi];
+		B[uhi]    = tempEntry;
+	      }
+
+
+
+	    // After the swap, A[ulo] <= pivot.
+	    if (A[ulo] < pivot) {
+		// Swap entries at indices ieq and ulo.
+		tempEntry = A[ieq];
+		A[ieq] = A[ulo];
+		A[ulo] = tempEntry;
+
+
+		if(B)
+		  {
+		    tempEntry = B[ieq];
+		    B[ieq] = B[ulo];
+		    B[ulo] = tempEntry;
+		  }
+
+
+		// After the swap, A[ieq] < pivot, so we need to change
+		// ieq.
+		ieq++;
+		// We also need to change ulo, but we also need to do
+		// that when A[ulo] = pivot, so we do it after this if
+		// statement.
+	    }
+	    // Once again, we can reduce the size of the unpartitioned
+	    // region and try again.
+	    ulo++;
+	}
+    }
+    // Now, all entries from index ilo to ieq - 1 are less than the pivot
+    // and all entries from index uhi to ihi + 1 are greater than the
+    // pivot.  So we have two regions of the array that can be sorted
+    // recursively to put all of the entries in order.
+    Qksort_Int(A, B, ilo, ieq - 1);
+    Qksort_Int(A, B, uhi + 1, ihi);
+
+}
+
+/*********************************************************/
+
 /* Sort in ascending order. Elements in B (if provided) are also re-ordered according to the ordering of A  */
 void Qksort(phydbl *A, phydbl *B, int ilo, int ihi)
 {
@@ -3162,10 +3667,10 @@ void Make_All_Tree_Edges(t_tree *tree)
 {
   int i;
 
-  tree->t_edges      = (t_edge **)mCalloc(2*tree->n_otu-3,sizeof(t_edge *));
+  tree->t_edges      = (t_edge **)mCalloc(2*tree->n_otu-2,sizeof(t_edge *));
 /*   tree->t_dead_edges = (t_edge **)mCalloc(2*tree->n_otu-3,sizeof(t_edge *)); */
 
-  For(i,2*tree->n_otu-3) tree->t_edges[i] = (t_edge *)Make_Edge_Light(NULL,NULL,i);
+  For(i,2*tree->n_otu-2) tree->t_edges[i] = (t_edge *)Make_Edge_Light(NULL,NULL,i);
 }
 
 /*********************************************************/
@@ -4216,9 +4721,13 @@ void Print_Fp_Out(FILE *fp_out, time_t t_beg, time_t t_end, t_tree *tree, option
       if(io->mod->whichmodel == CUSTOM)
       fprintf(fp_out," (%s)",io->mod->custom_mod_string);
     }
-  else
+  else if(tree->io->datatype == AA)
     {
       fprintf(fp_out,"\n\n. Model of amino acids substitution: \t%s",io->mod->modelname);
+    }
+  else
+    {
+      fprintf(fp_out,"\n\n. Substitution model: \t\t\t%s",io->mod->modelname);
     }
 
 
@@ -4323,8 +4832,8 @@ void Print_Fp_Out(FILE *fp_out, time_t t_beg, time_t t_end, t_tree *tree, option
   PhyML_Fprintf(fp_out," oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo\n");
   PhyML_Fprintf(fp_out," Suggested citation:\n");
   PhyML_Fprintf(fp_out," S. Guindon & O. Gascuel\n");
-  PhyML_Fprintf(fp_out," \"A simple, fast, and accurate algorithm to estimate large phyLOGenies by maximum likelihood\"\n");
-  PhyML_Fprintf(fp_out," Systematic BioLOGy. 2003. 52(5):696-704.\n");
+  PhyML_Fprintf(fp_out," \"A simple, fast, and accurate algorithm to estimate large phylogenies by maximum likelihood\"\n");
+  PhyML_Fprintf(fp_out," Systematic Biology. 2003. 52(5):696-704.\n");
   PhyML_Fprintf(fp_out," oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo\n");
 
 
@@ -4400,7 +4909,7 @@ void Print_Fp_Out_Lines(FILE *fp_out, time_t t_beg, time_t t_end, t_tree *tree, 
 
 	PhyML_Fprintf(fp_out,"taxa\t");
 
-	PhyML_Fprintf(fp_out,"LOGlk     \t");
+	PhyML_Fprintf(fp_out,"loglk     \t");
 
 	PhyML_Fprintf(fp_out, "gamma model\t");
 
@@ -5235,7 +5744,7 @@ void Bootstrap(t_tree *tree)
       if(tree->io->in_tree == 2)
 	{
 	  rewind(tree->io->fp_in_tree);
-	  boot_tree = Read_Tree_File(tree->io->fp_in_tree);
+	  boot_tree = Read_Tree_File_Phylip(tree->io->fp_in_tree);
 	}
       else
 	{
@@ -5293,6 +5802,8 @@ void Bootstrap(t_tree *tree)
 	    
       Alloc_Bip(boot_tree);
 
+      Match_Tip_Numbers(tree,boot_tree);
+
       Get_Bip(boot_tree->noeud[0],
 	      boot_tree->noeud[0]->v[0],
 	      boot_tree);
@@ -5331,7 +5842,7 @@ fflush(stdout);
 
   if(((replicate)%20)) PhyML_Printf("] %4d/%4d\n ",replicate,tree->mod->bootstrap);
 
-  tree->lock_topo = 1; /* TopoLOGy should not be modified afterwards */
+  tree->lock_topo = 1; /* Topology should not be modified afterwards */
 
   if(tree->io->print_boot_trees)
     {
@@ -5727,6 +6238,7 @@ option *Make_Input()
   io->clade_list_file      = (char *)mCalloc(T_MAX_FILE,sizeof(char));
   io->alphabet             = (char **)mCalloc(T_MAX_ALPHABET,sizeof(char *));
   For(i,T_MAX_ALPHABET) io->alphabet[i] = (char *)mCalloc(T_MAX_STATE,sizeof(char ));
+  io->treelist             = (t_treelist *)mCalloc(1,sizeof(t_treelist));
   return io;
 }
 
@@ -5770,7 +6282,8 @@ void Set_Defaults_Input(option* io)
   io->quiet                      = 0;
   io->datatype                   = NT;
   io->colalias                   = YES;
-  io->data_format                = PHYLIP;
+  io->data_file_format           = PHYLIP;
+  io->tree_file_format           = PHYLIP;
 }
 
 /*********************************************************/
@@ -5869,7 +6382,8 @@ void Get_Bip(t_node *a, t_node *d, t_tree *tree)
 	{
 	  d->bip_node[0][0] = d;
 	  d->bip_size[0]    = 1;
-	  strcpy(d->bip_name[0][0],d->name);
+/* 	  strcpy(d->bip_name[0][0],d->name); */
+	  d->bip_num[0][0]  = d->num;
 
 	  For(i,3)
 	    {
@@ -5880,12 +6394,15 @@ void Get_Bip(t_node *a, t_node *d, t_tree *tree)
 		    {
 		      if(strcmp(tree->noeud[j]->name,d->name))
 			{
-			  a->bip_node[i][a->bip_size[i]] = d;
-			  strcpy(a->bip_name[i][a->bip_size[i]],tree->noeud[j]->name);
+/* 			  a->bip_node[i][a->bip_size[i]] = d; */
+			  a->bip_node[i][a->bip_size[i]] = tree->noeud[j];
+/* 			  strcpy(a->bip_name[i][a->bip_size[i]],tree->noeud[j]->name); */
+			  a->bip_num[i][a->bip_size[i]] = tree->noeud[j]->num;
 			  a->bip_size[i]++;
 			}
 		    }
-		  qsort(a->bip_name[i],a->bip_size[i],sizeof(char *),Sort_String);
+/* 		  qsort(a->bip_name[i],a->bip_size[i],sizeof(char *),Sort_String); */
+		  Qksort_Int(a->bip_num[i],NULL,0,a->bip_size[i]-1);
 		  break;
 		}
 	    }
@@ -5902,7 +6419,7 @@ void Get_Bip(t_node *a, t_node *d, t_tree *tree)
       For(i,3)
 	{
 	  if(d->v[i] != a) Get_Bip(d,d->v[i],tree);
-	  else d_a = i;
+	  else if(d->v[i] == a) d_a = i;
 	}
 
       d->bip_size[d_a] = 0;
@@ -5916,7 +6433,8 @@ void Get_Bip(t_node *a, t_node *d, t_tree *tree)
 		    For(k,d->v[i]->bip_size[j])
 		      {
 			d->bip_node[d_a][d->bip_size[d_a]] = d->v[i]->bip_node[j][k];
-			strcpy(d->bip_name[d_a][d->bip_size[d_a]],d->v[i]->bip_node[j][k]->name);
+/* 			strcpy(d->bip_name[d_a][d->bip_size[d_a]],d->v[i]->bip_node[j][k]->name); */
+			d->bip_num[d_a][d->bip_size[d_a]] = d->v[i]->bip_node[j][k]->num;
 			d->bip_size[d_a]++;
 		      }
 		    break;
@@ -5924,7 +6442,8 @@ void Get_Bip(t_node *a, t_node *d, t_tree *tree)
 	      }
 	  }
 
-      qsort(d->bip_name[d_a],d->bip_size[d_a],sizeof(char *),Sort_String);
+/*       qsort(d->bip_name[d_a],d->bip_size[d_a],sizeof(char *),Sort_String); */
+      Qksort_Int(d->bip_num[d_a],NULL,0,d->bip_size[d_a]-1);
 
       For(i,3)
 	if(a->v[i] == d)
@@ -5942,12 +6461,14 @@ void Get_Bip(t_node *a, t_node *d, t_tree *tree)
 		  /* 		if(k == d->bip_size[d_a]) */
 		  {
 		    a->bip_node[i][a->bip_size[i]] = tree->noeud[j];
-		    strcpy(a->bip_name[i][a->bip_size[i]],tree->noeud[j]->name);
+/* 		    strcpy(a->bip_name[i][a->bip_size[i]],tree->noeud[j]->name); */
+		    a->bip_num[i][a->bip_size[i]] = tree->noeud[j]->num;
 		    a->bip_size[i]++;
 		  }
 	      }
 	    
-	    qsort(a->bip_name[i],a->bip_size[i],sizeof(char *),Sort_String);
+/* 	    qsort(a->bip_name[i],a->bip_size[i],sizeof(char *),Sort_String); */
+	    Qksort_Int(a->bip_num[i],NULL,0,a->bip_size[i]-1);
 	    
 	    /* 	    if(a->bip_size[i] != tree->n_otu - d->bip_size[d_a]) */
 	    /* 	      { */
@@ -5973,18 +6494,23 @@ void Alloc_Bip(t_tree *tree)
     {
       tree->noeud[i]->bip_size = (int *)mCalloc(3,sizeof(int));
       tree->noeud[i]->bip_node = (t_node ***)mCalloc(3,sizeof(t_node **));
-      tree->noeud[i]->bip_name = (char ***)mCalloc(3,sizeof(char **));
+/*       tree->noeud[i]->bip_name = (char ***)mCalloc(3,sizeof(char **)); */
+      tree->noeud[i]->bip_num = (int **)mCalloc(3,sizeof(int *));
+
       For(j,3)
 	{
 	  tree->noeud[i]->bip_node[j] =
 	    (t_node **)mCalloc(tree->n_otu,sizeof(t_node *));
 
-	  tree->noeud[i]->bip_name[j] =
-	    (char **)mCalloc(tree->n_otu,sizeof(char *));
+	  tree->noeud[i]->bip_num[j] =
+	    (int *)mCalloc(tree->n_otu,sizeof(int));
 
-	  For(k,tree->n_otu)
-	    tree->noeud[i]->bip_name[j][k] =
-	    (char *)mCalloc(T_MAX_NAME,sizeof(char ));
+/* 	  tree->noeud[i]->bip_name[j] = */
+/* 	    (char **)mCalloc(tree->n_otu,sizeof(char *)); */
+
+/* 	  For(k,tree->n_otu) */
+/* 	    tree->noeud[i]->bip_name[j][k] = */
+/* 	    (char *)mCalloc(T_MAX_NAME,sizeof(char )); */
 	}
     }
 }
@@ -6006,129 +6532,12 @@ int Sort_String(const void *a, const void *b)
 
 /*********************************************************/
 
-phydbl Compare_Bip_On_Existing_Edges(phydbl thresh_len, t_tree *tree1, t_tree *tree2)
-{
-  int i,j,k;
-  t_edge *b1,*b2;
-  char **bip1,**bip2;
-  int bip_size,n_edges1,n_edges2;
-  phydbl rf;
-  int bip_size1, bip_size2;
-
-  n_edges1 = 0;
-  For(i,2*tree1->n_otu-3)
-    {
-      if((!tree1->t_edges[i]->left->tax) &&
-	 (!tree1->t_edges[i]->rght->tax) &&
-	 (tree1->t_edges[i]->l > thresh_len))
-	{
-	  n_edges1++;
-	}
-    }
-  n_edges2 = 0;
-  For(i,2*tree2->n_otu-3)
-    {
-      if((!tree2->t_edges[i]->left->tax) &&
-	 (!tree2->t_edges[i]->rght->tax) &&
-	 (tree2->t_edges[i]->l > thresh_len))
-	{
-	  n_edges2++;
-	}
-    }
-
-
-  rf = 0.0;
-  For(i,2*tree1->n_otu-3)
-    {
-      b1 = tree1->t_edges[i];     
-      bip_size1 = MIN(b1->left->bip_size[b1->l_r],b1->rght->bip_size[b1->r_l]);
-      
-      if((bip_size1 > 1) && (b1->l > thresh_len))
-	{
-	  For(j,2*tree2->n_otu-3)
-	    {
-	      b2 = tree2->t_edges[j];	      
-	      bip_size2 = MIN(b2->left->bip_size[b2->l_r],b2->rght->bip_size[b2->r_l]);
-
-	      if((bip_size2 > 1) && (b2->l > thresh_len))
-		{
-		  if(bip_size1 == bip_size2)
-		    {
-		      bip_size = bip_size1;
-
-		      if(b1->left->bip_size[b1->l_r] == b1->rght->bip_size[b1->r_l])
-			{
-			  if(b1->left->bip_name[b1->l_r][0][0] < b1->rght->bip_name[b1->r_l][0][0])
-			    {
-			      bip1 = b1->left->bip_name[b1->l_r];
-			    }
-			  else
-			    {
-			      bip1 = b1->rght->bip_name[b1->r_l];
-			    }
-			}
-		      else if(b1->left->bip_size[b1->l_r] < b1->rght->bip_size[b1->r_l])
-			{
-			  bip1 = b1->left->bip_name[b1->l_r];
-			}
-		      else
-			{
-			  bip1 = b1->rght->bip_name[b1->r_l];
-			}
-
-		      if(b2->left->bip_size[b2->l_r] == b2->rght->bip_size[b2->r_l])
-			{
-			  if(b2->left->bip_name[b2->l_r][0][0] < b2->rght->bip_name[b2->r_l][0][0])
-			    {
-			      bip2 = b2->left->bip_name[b2->l_r];
-			    }
-			  else
-			    {
-			      bip2 = b2->rght->bip_name[b2->r_l];
-			    }
-			}
-		      else if(b2->left->bip_size[b2->l_r] < b2->rght->bip_size[b2->r_l])
-			{
-			  bip2 = b2->left->bip_name[b2->l_r];
-			}
-		      else
-			{
-			  bip2 = b2->rght->bip_name[b2->r_l];
-			}
-
-		      if(bip_size == 1) Warn_And_Exit("\n. Problem in Compare_Bip\n");
-
-
-		      For(k,bip_size)
-			{
-			  if(strcmp(bip1[k],bip2[k])) break;
-			}
-
-		      if(k == bip_size)
-			{
-			  b2->bip_score++;
-			  b1->bip_score++;
-			  rf+=1.0;
-			  break;
-			}
-		    }
-		}
-	    }
-	}
-    }
-
-  PhyML_Printf("\n. rf= %f n_edges1=%d n_edges2=%d",rf,n_edges1,n_edges2);
-  rf /= MIN(n_edges1,n_edges2);
-  return 1-rf;
-}
-
-/*********************************************************/
-
 void Compare_Bip(t_tree *tree1, t_tree *tree2)
 {
   int i,j,k;
   t_edge *b1,*b2;
-  char **bip1,**bip2;
+/*   char **bip1,**bip2; */
+  int *bip1,*bip2;
   int bip_size1, bip_size2, bip_size;
 
 
@@ -6153,43 +6562,53 @@ void Compare_Bip(t_tree *tree1, t_tree *tree2)
 
 		      if(b1->left->bip_size[b1->l_r] == b1->rght->bip_size[b1->r_l])
 			{
-			  if(b1->left->bip_name[b1->l_r][0][0] < b1->rght->bip_name[b1->r_l][0][0])
+/* 			  if(b1->left->bip_name[b1->l_r][0][0] < b1->rght->bip_name[b1->r_l][0][0]) */
+			  if(b1->left->bip_num[b1->l_r][0] < b1->rght->bip_num[b1->r_l][0])
 			    {
-			      bip1 = b1->left->bip_name[b1->l_r];
+/* 			      bip1 = b1->left->bip_name[b1->l_r]; */
+			      bip1 = b1->left->bip_num[b1->l_r];
 			    }
 			  else
 			    {
-			      bip1 = b1->rght->bip_name[b1->r_l];
+/* 			      bip1 = b1->rght->bip_name[b1->r_l]; */
+			      bip1 = b1->rght->bip_num[b1->r_l];
 			    }
 			}
 		      else if(b1->left->bip_size[b1->l_r] < b1->rght->bip_size[b1->r_l])
 			{
-			  bip1 = b1->left->bip_name[b1->l_r];
+/* 			  bip1 = b1->left->bip_name[b1->l_r]; */
+			  bip1 = b1->left->bip_num[b1->l_r];
 			}
 		      else
 			{
-			  bip1 = b1->rght->bip_name[b1->r_l];
+/* 			  bip1 = b1->rght->bip_name[b1->r_l]; */
+			  bip1 = b1->rght->bip_num[b1->r_l];
 			}
 
 
 		      if(b2->left->bip_size[b2->l_r] == b2->rght->bip_size[b2->r_l])
 			{
-			  if(b2->left->bip_name[b2->l_r][0][0] < b2->rght->bip_name[b2->r_l][0][0])
+/* 			  if(b2->left->bip_name[b2->l_r][0][0] < b2->rght->bip_name[b2->r_l][0][0]) */
+			  if(b2->left->bip_num[b2->l_r][0] < b2->rght->bip_num[b2->r_l][0])
 			    {
-			      bip2 = b2->left->bip_name[b2->l_r];
+/* 			      bip2 = b2->left->bip_name[b2->l_r]; */
+			      bip2 = b2->left->bip_num[b2->l_r];
 			    }
 			  else
 			    {
-			      bip2 = b2->rght->bip_name[b2->r_l];
+/* 			      bip2 = b2->rght->bip_name[b2->r_l]; */
+			      bip2 = b2->rght->bip_num[b2->r_l];
 			    }
 			}
 		      else if(b2->left->bip_size[b2->l_r] < b2->rght->bip_size[b2->r_l])
 			{
-			  bip2 = b2->left->bip_name[b2->l_r];
+/* 			  bip2 = b2->left->bip_name[b2->l_r]; */
+			  bip2 = b2->left->bip_num[b2->l_r];
 			}
 		      else
 			{
-			  bip2 = b2->rght->bip_name[b2->r_l];
+/* 			  bip2 = b2->rght->bip_name[b2->r_l]; */
+			  bip2 = b2->rght->bip_num[b2->r_l];
 			}
 
 		      if(bip_size == 1) Warn_And_Exit("\n. Problem in Compare_Bip\n");
@@ -6197,7 +6616,8 @@ void Compare_Bip(t_tree *tree1, t_tree *tree2)
 
 		      For(k,bip_size)
 			{
-			  if(strcmp(bip1[k],bip2[k])) break;
+/* 			  if(strcmp(bip1[k],bip2[k])) break; */
+			  if(bip1[k] != bip2[k]) break;
 			}
 
 		      if(k == bip_size)
@@ -6211,6 +6631,26 @@ void Compare_Bip(t_tree *tree1, t_tree *tree2)
 	    }
 	}
     }
+}
+
+/*********************************************************/
+
+void Match_Tip_Numbers(t_tree *tree1, t_tree *tree2)
+{
+  int i,j;
+
+  For(i,tree1->n_otu)
+    {
+      For(j,tree2->n_otu)
+	{
+	  if(!strcmp(tree1->noeud[i]->name,tree2->noeud[j]->name))
+	    {
+	      tree2->noeud[j]->num = tree1->noeud[i]->num;
+	      break;
+	    }
+	}
+    }
+
 }
 
 /*********************************************************/
@@ -8382,6 +8822,7 @@ void Print_Settings(option *io)
   PhyML_Printf("\n                . Optimise substitution model parameters:\t %s", (answer) ? "yes": "no");
 
   PhyML_Printf("\n                . Run ID:\t\t\t\t\t %s", (io->append_run_ID) ? (io->run_id_string): ("none"));
+  PhyML_Printf("\n                . Random seed:\t\t\t\t\t %d", io->r_seed);
   PhyML_Printf("\n                . Version:\t\t\t\t\t %s", VERSION);
 
 
@@ -8525,7 +8966,7 @@ void Print_Banner(FILE *fp)
   PhyML_Fprintf(fp,"                                                                                                  \n");
   PhyML_Fprintf(fp,"                                 ---  PhyML %s  ---                                             \n",VERSION);
   PhyML_Fprintf(fp,"                                                                                                  \n");
-  PhyML_Fprintf(fp,"    A simple, fast, and accurate algorithm to estimate large phyLOGenies by maximum likelihood    \n");
+  PhyML_Fprintf(fp,"    A simple, fast, and accurate algorithm to estimate large phylogenies by maximum likelihood    \n");
   PhyML_Fprintf(fp,"                            Stephane Guindon & Olivier Gascuel                                      \n");
   PhyML_Fprintf(fp,"                                                                                                  \n");
   PhyML_Fprintf(fp,"                           http://www.atgc-montpellier.fr/phyml                                          \n");
@@ -8722,7 +9163,7 @@ void Warn_And_Exit(char *s)
 #ifndef BATCH
 //  if (! tree->io->quiet) {
     char c;
-    PhyML_Fprintf(stdout,"\n. Type any key to exit.\n");
+    PhyML_Fprintf(stdout,"\n. Type enter to exit.\n");
     if(!fscanf(stdin,"%c",&c)) Exit("");
 //  }
 #endif
@@ -8830,8 +9271,8 @@ void Update_Root_Pos(t_tree *tree)
     }
   else
     {
-      tree->n_root->l[0] = tree->e_root->l / 2.;
-      tree->n_root->l[1] = tree->e_root->l / 2.;
+/*       tree->n_root->l[0] = tree->e_root->l / 2.; */
+/*       tree->n_root->l[1] = tree->e_root->l / 2.; */
     }
 }
 
@@ -8858,7 +9299,6 @@ void Add_Root(t_edge *target, t_tree *tree)
 
   tree->n_root->b[0] = tree->e_root;
   tree->n_root->b[1] = tree->e_root;
-
 
   if(tree->n_root_pos > -1.0)
     {
@@ -9805,7 +10245,7 @@ int Polint(phydbl *xa, phydbl *ya, int n, phydbl x, phydbl *y, phydbl *dy)
 
 void JF(t_tree *tree)
 {
-  //printing LOGlk for each site, to compute SH-like tests */
+  //printing loglk for each site, to compute SH-like tests */
   phydbl sum=0.0;
   PhyML_Printf("\n\nSITES LKS:\n");
   int n_patterns = (int)FLOOR(tree->n_pattern*tree->prop_of_sites_to_consider);
@@ -9830,7 +10270,7 @@ void JF(t_tree *tree)
     }
   
   
-/*   //printing LOGlk for each site, to compute SH-like tests */
+/*   //printing loglk for each site, to compute SH-like tests */
 /*   phydbl sum=0.0; */
 /*   PhyML_Printf("\n\nSITES LKS:\n"); */
 /*   int n_patterns = (int)FLOOR(tree->n_pattern*tree->prop_of_sites_to_consider); */
@@ -9904,7 +10344,7 @@ t_tree *Read_User_Tree(calign *cdata, model *mod, option *io)
   
   PhyML_Printf("\n. Reading tree...\n"); fflush(NULL);
   if(io->n_trees == 1) rewind(io->fp_in_tree);
-  tree = Read_Tree_File(io->fp_in_tree);
+  tree = Read_Tree_File_Phylip(io->fp_in_tree);
   if(!tree) Exit("\n. Input tree not found...\n");
   /* Add branch lengths if necessary */
   if(!tree->has_branch_lengths) Add_BioNJ_Branch_Lengths(tree,cdata,mod);
@@ -10130,48 +10570,6 @@ phydbl Get_Tree_Size(t_tree *tree)
 
 /*********************************************************/
 
-/* check whether target_bip can be found within tree. WARNING: target_bip names
-   must be sorted in alphabetical order */
-int Find_Bipartition(char **target_bip, int bip_size, t_tree *tree)
-{
-  int score,i,j;
-  t_edge *b;
-
-  score = 0;
-
-  For(i,2*tree->n_otu-3)
-    {
-      b = tree->t_edges[i];
-
-/*       PhyML_Printf("\n. %d %d",b->left->bip_size[b->l_r],b->rght->bip_size[b->r_l]); */
-
-      if(b->left->bip_size[b->l_r] == bip_size)
-	{
-	  For(j,bip_size)
-	    {
-/* 	      PhyML_Printf("%s %s\n",b->left->bip_name[b->l_r][j]); */
-	      if(strcmp(b->left->bip_name[b->l_r][j],target_bip[j])) break;
-	    }
-	  if(j == bip_size) score++;
-	}
-
-      if(b->rght->bip_size[b->r_l] == bip_size)
-	{
-	  For(j,bip_size)
-	    {
-/* 	      PhyML_Printf("%s %s\n",b->rght->bip_name[b->r_l][j]); */
-	      if(strcmp(b->rght->bip_name[b->r_l][j],target_bip[j])) break;
-	    }
-	  if(j == bip_size) score++;
-	}
-    }
-
-  return score;
-}
-
-/*********************************************************/
-
-
 void Dist_To_Root_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 {
   int i;
@@ -10191,8 +10589,10 @@ void Dist_To_Root_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 
 void Dist_To_Root(t_node *n_root, t_tree *tree)
 {  
-  n_root->v[0]->dist_to_root = tree->n_root->l[0];
-  n_root->v[1]->dist_to_root = tree->n_root->l[1];
+/*   n_root->v[0]->dist_to_root = tree->n_root->l[0]; */
+/*   n_root->v[1]->dist_to_root = tree->n_root->l[1]; */
+  n_root->v[0]->dist_to_root = tree->e_root->l * tree->n_root_pos;
+  n_root->v[1]->dist_to_root = tree->e_root->l * (1. - tree->n_root_pos);
   Dist_To_Root_Pre(n_root,n_root->v[0],NULL,tree);
   Dist_To_Root_Pre(n_root,n_root->v[1],NULL,tree);
 }
@@ -10318,6 +10718,22 @@ void Branch_Lengths_To_Time_Lengths_Pre(t_node *a, t_node *d, t_tree *tree)
 
 int Find_Clade(char **tax_name_list, int list_size, t_tree *tree)
 {
+  int *tax_num_list;
+  int i,j;
+
+  tax_num_list = (int *)mCalloc(list_size,sizeof(int));
+  
+  For(i,list_size)
+    {
+      For(j,tree->n_otu)
+	{
+	  if(!strcmp(tax_name_list[i],tree->noeud[j]->name))
+	    {
+	      tax_num_list[i] = tree->noeud[j]->num;
+	    }
+	}
+    }
+  
   if(list_size == tree->n_otu)
     {
       int i,j;
@@ -10328,10 +10744,12 @@ int Find_Clade(char **tax_name_list, int list_size, t_tree *tree)
 	{
 	  For(j,tree->n_otu)
 	    {
-	      if(!strcmp(tax_name_list[i],tree->noeud[j]->name)) score++;
+/* 	      if(!strcmp(tax_name_list[i],tree->noeud[j]->name)) score++; */
+	      if(tax_num_list[i] == tree->noeud[j]->num) score++;
 	    }
 	}
 
+      Free(tax_num_list);
       if(score == tree->n_otu) return tree->n_root->num;
       else return -1;
     }
@@ -10341,16 +10759,19 @@ int Find_Clade(char **tax_name_list, int list_size, t_tree *tree)
       num = -1;
       Alloc_Bip(tree);
       Get_Bip(tree->noeud[0],tree->noeud[0]->v[0],tree);
-      Find_Clade_Pre(tree->n_root,tree->n_root->v[0],tax_name_list,list_size,&num,tree);
-      Find_Clade_Pre(tree->n_root,tree->n_root->v[1],tax_name_list,list_size,&num,tree);
+      Find_Clade_Pre(tree->n_root,tree->n_root->v[0],tax_num_list,list_size,&num,tree);
+      Find_Clade_Pre(tree->n_root,tree->n_root->v[1],tax_num_list,list_size,&num,tree);
+      Free(tax_num_list);
       return num;
     }
+  
+  Free(tax_num_list);
   return -1;
 }
 
 /*********************************************************/
 
-void Find_Clade_Pre(t_node *a, t_node *d, char **tax_name_list, int list_size, int *num, t_tree *tree)
+void Find_Clade_Pre(t_node *a, t_node *d, int *tax_num_list, int list_size, int *num, t_tree *tree)
 {
   int i,j,k;
   int score;
@@ -10367,7 +10788,8 @@ void Find_Clade_Pre(t_node *a, t_node *d, char **tax_name_list, int list_size, i
 		For(k,list_size)
 		  {
 /* 		    PhyML_Printf("\n>> %s",d->bip_name[i][j]); */
-		    if(!strcmp(tax_name_list[k],d->bip_name[i][j]))
+/* 		    if(!strcmp(tax_name_list[k],d->bip_name[i][j])) */
+		    if(tax_num_list[k] == d->bip_num[i][j])
 		      {
 			score++;
 			break;
@@ -10383,7 +10805,7 @@ void Find_Clade_Pre(t_node *a, t_node *d, char **tax_name_list, int list_size, i
   else
     For(i,3)
       if((d->v[i] != a) && (d->b[i] != tree->e_root))
-	Find_Clade_Pre(d,d->v[i],tax_name_list,list_size,num, tree);
+	Find_Clade_Pre(d,d->v[i],tax_num_list,list_size,num,tree);
 }
 
 /*********************************************************/
@@ -10547,11 +10969,13 @@ t_edge *Find_Root_Edge(FILE *fp_input_tree, t_tree *tree)
       r_l  = tree->t_edges[i]->r_l;
       
       score = 0;
-      For(j,left->bip_size[l_r]) if(strstr(subs[1],left->bip_name[l_r][j])) score++;
+/*       For(j,left->bip_size[l_r]) if(strstr(subs[1],left->bip_name[l_r][j])) score++; */
+      For(j,left->bip_size[l_r]) if(strstr(subs[1],left->bip_node[l_r][j]->name)) score++;
       if(score == left->bip_size[l_r]) break;
 
       score = 0;
-      For(j,rght->bip_size[r_l]) if(strstr(subs[1],rght->bip_name[r_l][j])) score++;
+/*       For(j,rght->bip_size[r_l]) if(strstr(subs[1],rght->bip_name[r_l][j])) score++; */
+      For(j,rght->bip_size[r_l]) if(strstr(subs[1],rght->bip_node[r_l][j]->name)) score++;
       if(score == rght->bip_size[r_l]) break;
     }
 
@@ -10573,7 +10997,7 @@ t_edge *Find_Root_Edge(FILE *fp_input_tree, t_tree *tree)
 
 /*********************************************************/
 
-void Copy_Tree_TopoLOGy_With_Labels(t_tree *ori, t_tree *cpy)
+void Copy_Tree_Topology_With_Labels(t_tree *ori, t_tree *cpy)
 {
   int i,j;
 
@@ -10823,4 +11247,44 @@ void Adjust_Min_Diff_Lk(t_tree *tree)
 /*   PhyML_Printf("\n. Exponent = %d Precision = %E DIG = %d",exponent,tree->mod->s_opt->min_diff_lk_global,FLT_DIG); */
 }
 
+/*********************************************************/
+
+void Translate_Tax_Names(char **tax_names, t_tree *tree)
+{
+  int i;
+  int tax_num;
+
+  For(i,tree->n_otu)
+    {
+      tax_num = strtol(tree->noeud[i]->name,NULL,10);
+      strcpy(tree->noeud[i]->name,tax_names[tax_num-1]);
+    }
+}
+
+/*********************************************************/
+
+void Skip_Comment(FILE *fp)
+{
+  int in_comment;
+  char c;
+
+  in_comment = 1;
+  do
+    {
+      c = fgetc(fp);
+      if(c == EOF) break;
+      if(c == '[')      in_comment++;
+      else if(c == ']') in_comment--;
+    }
+  while(in_comment);
+}
+
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
 /*********************************************************/

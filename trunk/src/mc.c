@@ -1,7 +1,7 @@
 /*
 
-PhyML:  a program that  computes maximum likelihood phyLOGenies from
-DNA or AA homoLOGous sequences.
+PhyML:  a program that  computes maximum likelihood phylogenies from
+DNA or AA homologous sequences.
 
 Copyright (C) Stephane Guindon. Oct 2003 onward.
 
@@ -13,11 +13,11 @@ the GNU public licence. See http://www.opensource.org for details.
 
 /* Routines for molecular clock trees and molecular dating */
 
-#ifdef MC
 
 #include "mc.h"
 
 /*********************************************************/
+#ifdef MC
 
 int MC_main(int argc, char **argv)
 {
@@ -412,7 +412,7 @@ int MC_main(int argc, char **argv)
     }
 
 
-  if(io->mod->s_opt->n_rand_starts > 1) PhyML_Printf("\n\n. Best LOG likelihood : %f\n",best_lnL);
+  if(io->mod->s_opt->n_rand_starts > 1) PhyML_Printf("\n\n. Best log likelihood : %f\n",best_lnL);
 
   Free_Model(mod);
 
@@ -435,6 +435,8 @@ int MC_main(int argc, char **argv)
 
   return 0;
 }
+
+#endif
 
 /*********************************************************/
 
@@ -500,6 +502,8 @@ void MC_Least_Square_Node_Times(t_edge *e_root, t_tree *tree)
 
   scale_f = -100./tree->rates->nd_t[root->num];
   For(i,2*tree->n_otu-1) tree->rates->nd_t[i] *= scale_f;
+  For(i,2*tree->n_otu-1) if(tree->rates->nd_t[i] > .0) tree->rates->nd_t[i] = .0;
+
 
   time_tree_length = 0.0;
   For(i,2*tree->n_otu-3)
@@ -557,7 +561,7 @@ void MC_Least_Square_Node_Times_Pre(t_node *a, t_node *d, phydbl *A, phydbl *b, 
 /*********************************************************/
 
 /* Adjust t_node times in order to have correct time stamp ranking with
- respect to the tree topoLOGy */
+ respect to the tree topology */
 
 void MC_Adjust_Node_Times(t_tree *tree)
 {
@@ -565,10 +569,10 @@ void MC_Adjust_Node_Times(t_tree *tree)
   MC_Adjust_Node_Times_Pre(tree->n_root->v[1],tree->n_root->v[0],tree);
 
   if(tree->rates->nd_t[tree->n_root->num] > MIN(tree->rates->nd_t[tree->n_root->v[0]->num],
-					     tree->rates->nd_t[tree->n_root->v[1]->num]))
+						tree->rates->nd_t[tree->n_root->v[1]->num]))
     {
       tree->rates->nd_t[tree->n_root->num] = MIN(tree->rates->nd_t[tree->n_root->v[0]->num],
-					      tree->rates->nd_t[tree->n_root->v[1]->num]);
+						 tree->rates->nd_t[tree->n_root->v[1]->num]);
     }
 }
 
@@ -835,7 +839,6 @@ int MC_Check_MC(t_tree *tree)
 
 /*********************************************************/
 
-#endif
 /*********************************************************/
 /*********************************************************/
 /*********************************************************/

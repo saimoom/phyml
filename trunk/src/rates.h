@@ -31,7 +31,6 @@ the GNU public licence. See http://www.opensource.org for details.
 #include "mcmc.h"
 #include "stats.h"
 
-
 void RATES_Monte_Carlo_Mean_Rates(t_tree *tree);
 void RATES_Monte_Carlo_Mean_Rates_Pre(t_node *a, t_node *d, t_edge *b, phydbl curr_rate, t_tree *tree);
 void RATES_Print_Rates(t_tree *tree);
