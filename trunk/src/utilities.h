@@ -117,7 +117,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  N_MAX_LABEL           10
 #define  BLOCK_LABELS         100
 
-#define  NODE_DEG_MAX          10
+#define  NODE_DEG_MAX           3
 #define  BRENT_ITMAX        10000
 #define  BRENT_CGOLD    0.3819660
 #define  BRENT_ZEPS        1.e-10
@@ -247,6 +247,7 @@ typedef struct __Node {
   int                        check_branch; /* check_branch=1 is the corresponding branch is labelled with '*' */
 /*   char                        ***bip_name; /\* three lists of tip t_node names. One list for each direction *\/ */
   char                              *name; /* taxon name (if exists) */
+  char                          *ori_name; /* taxon name (if exists) */
 
   phydbl                           *score; /* score used in BioNJ to determine the best pair of nodes to agglomerate */
   phydbl                               *l; /* lengths of the (three or one) branche(s) connected this t_node */

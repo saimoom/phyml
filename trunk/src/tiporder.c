@@ -34,6 +34,20 @@ int TIPORDER_main(int argc, char **argv)
   fp_list_tree = (FILE *)fopen(argv[2],"r");
   ps_tree      = (FILE *)fopen(argv[3],"w");
 
+  if(!fp_ref_tree) 
+    {
+      PhyML_Printf("\n. Can't find %s",argv[1]);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+
+  if(!fp_list_tree) 
+    {
+      PhyML_Printf("\n. Can't find %s",argv[1]);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+
   ref_io->fp_in_tree = fp_ref_tree;
   Read_Tree_File(ref_io);
   fclose(ref_io->fp_in_tree);
@@ -56,7 +70,15 @@ int TIPORDER_main(int argc, char **argv)
   list_tree = list_io->treelist->tree;
   n_trees = list_io->treelist->list_size;
   For(i,n_trees) Translate_Tax_Names(list_io->tax_table,list_tree[i]);
-  
+
+  For(i,n_trees)
+    {
+      char *s;
+      s=Write_Tree(list_tree[i]);
+      printf("%s\n",s);
+      Free(s);
+    }
+
 
 /*   list_tree = (t_tree **)mCalloc(1,sizeof(t_tree *)); */
 /*   n_trees = 0; */

@@ -130,7 +130,11 @@ void R_rtree(char *s_tree_a, char *s_tree_d, t_node *a, t_tree *tree, int *n_int
   t_node *d;
   int n_otu = tree->n_otu;
 
-  if(strstr(s_tree_a," ")) Warn_And_Exit("\n. Err: the tree must not contain a ' ' character\n");
+  if(strstr(s_tree_a," ")) 
+    {
+      PhyML_Printf("\n. [%s]",s_tree_a);
+      Warn_And_Exit("\n. Err: the tree must not contain a ' ' character\n");
+    }
 
   if(s_tree_d[0] == '(')
     {
@@ -213,7 +217,7 @@ void Read_Branch_Label(char *s_d, char *s_a, t_edge *b)
   char *p;
   int i,pos;
 
-  sub_tp = (char *)mCalloc(T_MAX_LINE,sizeof(char));
+  sub_tp = (char *)mCalloc(3+(int)strlen(s_d)+1,sizeof(char));
 
   sub_tp[0] = '(';
   sub_tp[1] = '\0';
@@ -284,7 +288,8 @@ void Read_Branch_Length(char *s_d, char *s_a, t_tree *tree)
 
   b = tree->t_edges[tree->num_curr_branch_available];
 
-  sub_tp = (char *)mCalloc(T_MAX_LINE,sizeof(char));
+/*   sub_tp = (char *)mCalloc(T_MAX_LINE,sizeof(char)); */
+  sub_tp = (char *)mCalloc(4+strlen(s_d)+1,sizeof(char));
 
   For(i,b->n_labels)
     {
@@ -337,6 +342,8 @@ void Read_Node_Name(t_node *d, char *s_tree_d, t_tree *tree)
       while(s_tree_d[i] != '#');
       d->name[i] = '\0';
     }
+  d->ori_name = d->name;
+
 }
 /*********************************************************/
 
@@ -377,7 +384,11 @@ void Clean_Multifurcation(char **subtrees, int current_deg, int end_deg)
       char *s_tmp;
       int i;
 
-      s_tmp = (char *)mCalloc(T_MAX_LINE,sizeof(char));
+/*       s_tmp = (char *)mCalloc(T_MAX_LINE,sizeof(char)); */
+      s_tmp = (char *)mCalloc(6+
+			      (int)strlen(subtrees[0])+1+
+			      (int)strlen(subtrees[1])+1,
+			      sizeof(char));
 
       strcat(s_tmp,"(\0");
       strcat(s_tmp,subtrees[0]);
@@ -505,7 +516,8 @@ char *Write_Tree(t_tree *tree)
   char *s;
   int i;
 
-  s=(char *)mCalloc(T_MAX_LINE,sizeof(char));
+  s=(char *)mCalloc(T_MAX_NAME,sizeof(char));
+/*   s=(char *)mCalloc(T_MAX_LINE,sizeof(char)); */
 
   s[0]='(';
   
@@ -543,6 +555,9 @@ char *Write_Tree(t_tree *tree)
 void R_wtree(t_node *pere, t_node *fils, char *s_tree, t_tree *tree)
 {
   int i,p;
+
+  if((int)strlen(s_tree)%T_MAX_NAME > (int)T_MAX_NAME/2) 
+    s_tree = (char *)realloc(s_tree,((int)strlen(s_tree)+T_MAX_NAME)*sizeof(char));
 
   p = -1;
   if(fils->tax)
@@ -775,6 +790,8 @@ void Init_Node_Light(t_node *n, int num)
   n->dist_to_root           = .0;
   n->common                 = 1;
   n->ext_node               = NULL;
+  n->name                   = NULL;
+  n->ori_name               = NULL;
 }
 
 /*********************************************************/
@@ -956,7 +973,6 @@ t_node *Make_Node_Light(int num)
   n->v     = (t_node **)mCalloc(3,sizeof(t_node *));
   n->l     = (phydbl *)mCalloc(3,sizeof(phydbl));
   n->b     = (t_edge **)mCalloc(3,sizeof(t_edge *));
-/*   n->name  = (char *)mCalloc(T_MAX_NAME,sizeof(char)); */
   n->score = (phydbl *)mCalloc(3,sizeof(phydbl));
   Init_Node_Light(n,num);
   return n;
@@ -2950,7 +2966,7 @@ t_tree *Read_Tree_File_Phylip(FILE *fp_input_tree)
       if((c == ' ') || (c == '\n'))
 	{
 	  c=fgetc(fp_input_tree);
-	  if(c==EOF) break;
+	  if(c == EOF || c == ';') break;
 	  else continue;
 	}
       
@@ -2958,7 +2974,7 @@ t_tree *Read_Tree_File_Phylip(FILE *fp_input_tree)
 	{
 	  Skip_Comment(fp_input_tree);
 	  c = fgetc(fp_input_tree);
-	  if(c == EOF) break;
+	  if(c == EOF || c == ';') break;
 	}
       
 
@@ -6378,15 +6394,18 @@ void Set_Defaults_Optimiz(optimiz *s_opt)
 void Get_Bip(t_node *a, t_node *d, t_tree *tree)
 {
   int i,j;
+  t_node *tmp;
+  int swapped;
 
   if(d->tax)
     {      
       if(d->common)
 	{
+	  d->bip_node[0] = (t_node **)mCalloc(1,sizeof(t_node *));
 	  d->bip_node[0][0] = d;
+/* 	  d->bip_num[0]     = (int *)mCalloc(1,sizeof(int)); */
+/* 	  d->bip_num[0][0]  = d->num; */
 	  d->bip_size[0]    = 1;
-/* 	  strcpy(d->bip_name[0][0],d->name); */
-	  d->bip_num[0][0]  = d->num;
 
 	  For(i,3)
 	    {
@@ -6397,16 +6416,36 @@ void Get_Bip(t_node *a, t_node *d, t_tree *tree)
 		    {
 		      if(strcmp(tree->noeud[j]->name,d->name))
 			{
-/* 			  a->bip_node[i][a->bip_size[i]] = d; */
+
+			  a->bip_node[i] = (t_node **)realloc(a->bip_node[i],(a->bip_size[i]+1)*sizeof(t_node *));
 			  a->bip_node[i][a->bip_size[i]] = tree->noeud[j];
-/* 			  strcpy(a->bip_name[i][a->bip_size[i]],tree->noeud[j]->name); */
-			  a->bip_num[i][a->bip_size[i]] = tree->noeud[j]->num;
+
+/* 			  a->bip_num[i] = (int *)realloc(a->bip_num[i],(a->bip_size[i]+1)*sizeof(int)); */
+/* 			  a->bip_num[i][a->bip_size[i]] = tree->noeud[j]->num; */
+
 			  a->bip_size[i]++;
 			}
 		    }
-/* 		  qsort(a->bip_name[i],a->bip_size[i],sizeof(char *),Sort_String); */
-		  Qksort_Int(a->bip_num[i],NULL,0,a->bip_size[i]-1);
+
+/* 		  Qksort_Int(a->bip_num[i],NULL,0,a->bip_size[i]-1); */
+
+		  do
+		    {
+		      swapped = NO;
+		      For(j,a->bip_size[i]-1)
+			{
+			  if(a->bip_node[i][j]->num > a->bip_node[i][j+1]->num)
+			    {
+			      swapped = YES;
+			      tmp                 = a->bip_node[i][j];
+			      a->bip_node[i][j]   = a->bip_node[i][j+1];
+			      a->bip_node[i][j+1] = tmp;
+			    }
+			}
+		    }while(swapped == YES);
+
 		  break;
+
 		}
 	    }
 	}
@@ -6435,9 +6474,12 @@ void Get_Bip(t_node *a, t_node *d, t_tree *tree)
 		  {
 		    For(k,d->v[i]->bip_size[j])
 		      {
+			d->bip_node[d_a] = (t_node **)realloc(d->bip_node[d_a],(d->bip_size[d_a]+1)*sizeof(t_node *));
 			d->bip_node[d_a][d->bip_size[d_a]] = d->v[i]->bip_node[j][k];
-/* 			strcpy(d->bip_name[d_a][d->bip_size[d_a]],d->v[i]->bip_node[j][k]->name); */
-			d->bip_num[d_a][d->bip_size[d_a]] = d->v[i]->bip_node[j][k]->num;
+
+/* 			d->bip_num[d_a] = (int *)realloc(d->bip_num[d_a],(d->bip_size[d_a]+1)*sizeof(int)); */
+/* 			d->bip_num[d_a][d->bip_size[d_a]] = d->v[i]->bip_num[j][k]; */
+
 			d->bip_size[d_a]++;
 		      }
 		    break;
@@ -6445,8 +6487,24 @@ void Get_Bip(t_node *a, t_node *d, t_tree *tree)
 	      }
 	  }
 
-/*       qsort(d->bip_name[d_a],d->bip_size[d_a],sizeof(char *),Sort_String); */
-      Qksort_Int(d->bip_num[d_a],NULL,0,d->bip_size[d_a]-1);
+/*       Qksort_Int(d->bip_num[d_a],NULL,0,d->bip_size[d_a]-1); */
+      
+      do
+	{
+	  swapped = NO;
+	  For(j,d->bip_size[d_a]-1)
+	    {
+	      if(d->bip_node[d_a][j]->num > d->bip_node[d_a][j+1]->num)
+		{
+		  swapped = YES;
+		  tmp                   = d->bip_node[d_a][j];
+		  d->bip_node[d_a][j]   = d->bip_node[d_a][j+1];
+		  d->bip_node[d_a][j+1] = tmp;
+		}
+	    }
+	}while(swapped == YES);
+      
+
 
       For(i,3)
 	if(a->v[i] == d)
@@ -6456,28 +6514,45 @@ void Get_Bip(t_node *a, t_node *d, t_tree *tree)
 	      {
 		For(k,d->bip_size[d_a])
 		  {
+/* 		    if(d->bip_num[d_a][k] == tree->noeud[j]->num) */
 		    if(d->bip_node[d_a][k] == tree->noeud[j])
 		      break;
 		  }
 		
 		if((k == d->bip_size[d_a]) && (tree->noeud[j]->common))
-		  /* 		if(k == d->bip_size[d_a]) */
 		  {
+		    a->bip_node[i] = (t_node **)realloc(a->bip_node[i],(a->bip_size[i]+1)*sizeof(t_node *));
 		    a->bip_node[i][a->bip_size[i]] = tree->noeud[j];
-/* 		    strcpy(a->bip_name[i][a->bip_size[i]],tree->noeud[j]->name); */
-		    a->bip_num[i][a->bip_size[i]] = tree->noeud[j]->num;
+
+/* 		    a->bip_num[i] = (int *)realloc(a->bip_num[i],(a->bip_size[i]+1)*sizeof(int)); */
+/* 		    a->bip_num[i][a->bip_size[i]] = tree->noeud[j]->num; */
+
 		    a->bip_size[i]++;
 		  }
 	      }
 	    
-/* 	    qsort(a->bip_name[i],a->bip_size[i],sizeof(char *),Sort_String); */
-	    Qksort_Int(a->bip_num[i],NULL,0,a->bip_size[i]-1);
+/* 	    Qksort_Int(a->bip_num[i],NULL,0,a->bip_size[i]-1); */
 	    
-	    /* 	    if(a->bip_size[i] != tree->n_otu - d->bip_size[d_a]) */
-	    /* 	      { */
-	    /* 		PhyML_Printf("%d %d \n",a->bip_size[i],tree->n_otu - d->bip_size[d_a]); */
-	    /* 		Warn_And_Exit("\n. Problem in counting bipartitions \n"); */
-	    /* 	      } */
+	    do
+	      {
+		swapped = NO;
+		For(j,a->bip_size[i]-1)
+		  {
+		    if(a->bip_node[i][j]->num > a->bip_node[i][j+1]->num)
+		      {
+			swapped = YES;
+			tmp                 = a->bip_node[i][j];
+			a->bip_node[i][j]   = a->bip_node[i][j+1];
+			a->bip_node[i][j+1] = tmp;
+		      }
+		  }
+	      }while(swapped == YES);
+	    
+	    if(a->bip_size[i] != tree->n_otu - d->bip_size[d_a])
+	      {
+		PhyML_Printf("%d %d \n",a->bip_size[i],tree->n_otu - d->bip_size[d_a]);
+		Warn_And_Exit("\n. Problem in counting bipartitions \n");
+	      }
 	    break;
 	  }
     }
@@ -6497,23 +6572,15 @@ void Alloc_Bip(t_tree *tree)
     {
       tree->noeud[i]->bip_size = (int *)mCalloc(3,sizeof(int));
       tree->noeud[i]->bip_node = (t_node ***)mCalloc(3,sizeof(t_node **));
-/*       tree->noeud[i]->bip_name = (char ***)mCalloc(3,sizeof(char **)); */
-      tree->noeud[i]->bip_num = (int **)mCalloc(3,sizeof(int *));
+/*       tree->noeud[i]->bip_num = (int **)mCalloc(3,sizeof(int *)); */
 
       For(j,3)
 	{
 	  tree->noeud[i]->bip_node[j] =
 	    (t_node **)mCalloc(tree->n_otu,sizeof(t_node *));
 
-	  tree->noeud[i]->bip_num[j] =
-	    (int *)mCalloc(tree->n_otu,sizeof(int));
-
-/* 	  tree->noeud[i]->bip_name[j] = */
-/* 	    (char **)mCalloc(tree->n_otu,sizeof(char *)); */
-
-/* 	  For(k,tree->n_otu) */
-/* 	    tree->noeud[i]->bip_name[j][k] = */
-/* 	    (char *)mCalloc(T_MAX_NAME,sizeof(char )); */
+/* 	  tree->noeud[i]->bip_num[j] = */
+/* 	    (int *)mCalloc(tree->n_otu,sizeof(int)); */
 	}
     }
 }
@@ -6540,7 +6607,8 @@ void Compare_Bip(t_tree *tree1, t_tree *tree2)
   int i,j,k;
   t_edge *b1,*b2;
 /*   char **bip1,**bip2; */
-  int *bip1,*bip2;
+/*   int *bip1,*bip2; */
+  t_node **bip1, **bip2;
   int bip_size1, bip_size2, bip_size;
 
 
@@ -6566,61 +6634,60 @@ void Compare_Bip(t_tree *tree1, t_tree *tree2)
 		      if(b1->left->bip_size[b1->l_r] == b1->rght->bip_size[b1->r_l])
 			{
 /* 			  if(b1->left->bip_name[b1->l_r][0][0] < b1->rght->bip_name[b1->r_l][0][0]) */
-			  if(b1->left->bip_num[b1->l_r][0] < b1->rght->bip_num[b1->r_l][0])
+			  if(b1->left->bip_node[b1->l_r][0]->num < b1->rght->bip_node[b1->r_l][0]->num)
 			    {
 /* 			      bip1 = b1->left->bip_name[b1->l_r]; */
-			      bip1 = b1->left->bip_num[b1->l_r];
+			      bip1 = b1->left->bip_node[b1->l_r];
 			    }
 			  else
 			    {
 /* 			      bip1 = b1->rght->bip_name[b1->r_l]; */
-			      bip1 = b1->rght->bip_num[b1->r_l];
+			      bip1 = b1->rght->bip_node[b1->r_l];
 			    }
 			}
 		      else if(b1->left->bip_size[b1->l_r] < b1->rght->bip_size[b1->r_l])
 			{
 /* 			  bip1 = b1->left->bip_name[b1->l_r]; */
-			  bip1 = b1->left->bip_num[b1->l_r];
+			  bip1 = b1->left->bip_node[b1->l_r];
 			}
 		      else
 			{
 /* 			  bip1 = b1->rght->bip_name[b1->r_l]; */
-			  bip1 = b1->rght->bip_num[b1->r_l];
+			  bip1 = b1->rght->bip_node[b1->r_l];
 			}
 
 
 		      if(b2->left->bip_size[b2->l_r] == b2->rght->bip_size[b2->r_l])
 			{
 /* 			  if(b2->left->bip_name[b2->l_r][0][0] < b2->rght->bip_name[b2->r_l][0][0]) */
-			  if(b2->left->bip_num[b2->l_r][0] < b2->rght->bip_num[b2->r_l][0])
+			  if(b2->left->bip_node[b2->l_r][0]->num < b2->rght->bip_node[b2->r_l][0]->num)
 			    {
 /* 			      bip2 = b2->left->bip_name[b2->l_r]; */
-			      bip2 = b2->left->bip_num[b2->l_r];
+			      bip2 = b2->left->bip_node[b2->l_r];
 			    }
 			  else
 			    {
 /* 			      bip2 = b2->rght->bip_name[b2->r_l]; */
-			      bip2 = b2->rght->bip_num[b2->r_l];
+			      bip2 = b2->rght->bip_node[b2->r_l];
 			    }
 			}
 		      else if(b2->left->bip_size[b2->l_r] < b2->rght->bip_size[b2->r_l])
 			{
 /* 			  bip2 = b2->left->bip_name[b2->l_r]; */
-			  bip2 = b2->left->bip_num[b2->l_r];
+			  bip2 = b2->left->bip_node[b2->l_r];
 			}
 		      else
 			{
 /* 			  bip2 = b2->rght->bip_name[b2->r_l]; */
-			  bip2 = b2->rght->bip_num[b2->r_l];
+			  bip2 = b2->rght->bip_node[b2->r_l];
 			}
 
 		      if(bip_size == 1) Warn_And_Exit("\n. Problem in Compare_Bip\n");
 
-
 		      For(k,bip_size)
 			{
 /* 			  if(strcmp(bip1[k],bip2[k])) break; */
-			  if(bip1[k] != bip2[k]) break;
+			  if(bip1[k]->num != bip2[k]->num) break;
 			}
 
 		      if(k == bip_size)
@@ -10790,9 +10857,7 @@ void Find_Clade_Pre(t_node *a, t_node *d, int *tax_num_list, int list_size, int 
 	      {
 		For(k,list_size)
 		  {
-/* 		    PhyML_Printf("\n>> %s",d->bip_name[i][j]); */
-/* 		    if(!strcmp(tax_name_list[k],d->bip_name[i][j])) */
-		    if(tax_num_list[k] == d->bip_num[i][j])
+		    if(tax_num_list[k] == d->bip_node[i][j]->num)
 		      {
 			score++;
 			break;
@@ -10972,12 +11037,10 @@ t_edge *Find_Root_Edge(FILE *fp_input_tree, t_tree *tree)
       r_l  = tree->t_edges[i]->r_l;
       
       score = 0;
-/*       For(j,left->bip_size[l_r]) if(strstr(subs[1],left->bip_name[l_r][j])) score++; */
       For(j,left->bip_size[l_r]) if(strstr(subs[1],left->bip_node[l_r][j]->name)) score++;
       if(score == left->bip_size[l_r]) break;
 
       score = 0;
-/*       For(j,rght->bip_size[r_l]) if(strstr(subs[1],rght->bip_name[r_l][j])) score++; */
       For(j,rght->bip_size[r_l]) if(strstr(subs[1],rght->bip_node[r_l][j]->name)) score++;
       if(score == rght->bip_size[r_l]) break;
     }
@@ -11260,7 +11323,7 @@ void Translate_Tax_Names(char **tax_names, t_tree *tree)
   For(i,tree->n_otu)
     {
       tax_num = strtol(tree->noeud[i]->name,NULL,10);
-      strcpy(tree->noeud[i]->name,tax_names[tax_num-1]);
+      tree->noeud[i]->name = tax_names[tax_num-1];
     }
 }
 
