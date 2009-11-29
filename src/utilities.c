@@ -62,7 +62,7 @@ t_tree *Read_Tree(char *s_tree)
 
   n_int = n_ext = 0;
   
-n_otu=0;
+  n_otu=0;
   For(i,(int)strlen(s_tree)) if(s_tree[i] == ',') n_otu++;
   n_otu+=1;
 
@@ -319,9 +319,10 @@ void Read_Branch_Length(char *s_d, char *s_a, t_tree *tree)
 void Read_Node_Name(t_node *d, char *s_tree_d, t_tree *tree)
 {
   int i;
-
+  
   if(!tree->t_edges[tree->num_curr_branch_available]->n_labels)
     {
+      d->name = (char *)mCalloc(strlen(s_tree_d)+1,sizeof(char ));
       strcpy(d->name,s_tree_d);
     }
   else
@@ -329,6 +330,7 @@ void Read_Node_Name(t_node *d, char *s_tree_d, t_tree *tree)
       i = 0;
       do
 	{
+	  d->name = (char *)realloc(d->name,(i+1)*sizeof(char ));
 	  d->name[i] = s_tree_d[i];
 	  i++;
 	}
@@ -954,7 +956,7 @@ t_node *Make_Node_Light(int num)
   n->v     = (t_node **)mCalloc(3,sizeof(t_node *));
   n->l     = (phydbl *)mCalloc(3,sizeof(phydbl));
   n->b     = (t_edge **)mCalloc(3,sizeof(t_edge *));
-  n->name  = (char *)mCalloc(T_MAX_NAME,sizeof(char));
+/*   n->name  = (char *)mCalloc(T_MAX_NAME,sizeof(char)); */
   n->score = (phydbl *)mCalloc(3,sizeof(phydbl));
   Init_Node_Light(n,num);
   return n;
@@ -1765,9 +1767,6 @@ int Read_Nexus_Translate(char *token, nexparm *curr_parm, option *io)
   PhyML_Printf("\n. Reading 'translate' block");
   io->size_tax_table = 0;
 
-  int i;
-  io->tax_table = (char **)mCalloc(500,sizeof(char *));
-  For(i,500) io->tax_table[i] = (char *)mCalloc(500,sizeof(char));;
 
   do
     {
@@ -1778,10 +1777,10 @@ int Read_Nexus_Translate(char *token, nexparm *curr_parm, option *io)
 	{
 	  io->size_tax_table++;
 	  Get_Token(io->fp_in_tree,token);
-/* 	  io->tax_table = (char **)realloc(io->tax_table,io->size_tax_table*sizeof(char *)); */
-/* 	  io->tax_table[io->size_tax_table-1] = (char *)mCalloc(strlen(token)+1,sizeof(char)); */
+	  io->tax_table = (char **)realloc(io->tax_table,io->size_tax_table*sizeof(char *));
+	  io->tax_table[io->size_tax_table-1] = (char *)mCalloc(strlen(token)+1,sizeof(char));
 	  strcpy(io->tax_table[io->size_tax_table-1],token);
-	  printf("\n. Copying %s number %d",io->tax_table[io->size_tax_table-1],tax_num-1);
+/* 	  printf("\n. Copying %s number %d",io->tax_table[io->size_tax_table-1],tax_num-1); */
 	}
     }while(strlen(token) > 0);
   

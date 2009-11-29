@@ -109,7 +109,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 
 #define  T_MAX_FILE           500
 #define  T_MAX_LINE       2000000
-#define  T_MAX_NAME           10
+#define  T_MAX_NAME           200
 #define  T_MAX_SEQ        2000000
 #define  T_MAX_OPTION         100
 #define  T_MAX_LABEL           10
