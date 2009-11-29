@@ -92,13 +92,10 @@ void Free_Tree(t_tree *tree)
 	  For(j,3)
 	    {
 	      Free(tree->noeud[i]->bip_node[j]);
-/* 	      For(k,tree->n_otu) Free(tree->noeud[i]->bip_name[j][k]); */
-/* 	      Free(tree->noeud[i]->bip_name[j]); */
-	      Free(tree->noeud[i]->bip_num[j]);
+/* 	      Free(tree->noeud[i]->bip_num[j]); */
 	    }
 	  Free(tree->noeud[i]->bip_node);
-/* 	  Free(tree->noeud[i]->bip_name); */
-	  Free(tree->noeud[i]->bip_num);
+/* 	  Free(tree->noeud[i]->bip_num); */
 	}
     }
   
@@ -138,7 +135,7 @@ void Free_Node(t_node *n)
   Free(n->v);
   Free(n->l);
   Free(n->score);
-  Free(n->name);
+  if(n->ori_name) Free(n->ori_name);
 
   if(n->list_of_reachable_tips)
     {
