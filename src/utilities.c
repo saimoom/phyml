@@ -558,6 +558,7 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char *s_tree, t_tree *t
 
   if(*available < (int)T_MAX_NAME/2) 
     {
+      printf("\n. av = %d strlen = %d",*available,(int)strlen(s_tree));
       s_tree = (char *)realloc(s_tree,((int)strlen(s_tree)+(int)T_MAX_NAME)*sizeof(char));
       s_tree[(int)strlen(s_tree)] = '\0';
       *available += (int)T_MAX_NAME;
@@ -605,15 +606,20 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char *s_tree, t_tree *t
 	    sprintf(s_tree+(int)strlen(s_tree),"%.10f",tree->rates->cur_l[fils->num]);
 #endif
 	}
-      sprintf(s_tree+(int)strlen(s_tree),",");
-      *available -= (int)strlen(s_tree) - ori_len;
+/*       sprintf(s_tree+(int)strlen(s_tree),","); */
+      strcat(s_tree,",");
+
+      (*available) = (*available) - ((int)strlen(s_tree) - ori_len);
+      printf("\n+ori=%d len = %d av = %d %s",
+	     ori_len,
+	     (int)strlen(s_tree),
+	     *available,s_tree);
    }
   else
     {
-      ori_len = (int)strlen(s_tree);
 
       s_tree[(int)strlen(s_tree)]='(';
-
+      
       if(tree->n_root)
 	{
 	  For(i,3)
@@ -632,6 +638,8 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char *s_tree, t_tree *t
 	      else p=i;
 	    }
 	}
+
+      ori_len = (int)strlen(s_tree);
 
       s_tree[(int)strlen(s_tree)-1]=')';
       if((fils->b) && (fils->b[0]->l > -1.))
@@ -671,8 +679,12 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char *s_tree, t_tree *t
 	    sprintf(s_tree+(int)strlen(s_tree),"%.10f",tree->rates->cur_l[fils->num]);
 #endif
 	}
-      strcat(s_tree,",\0");
-      *available -= (int)strlen(s_tree) - ori_len;
+      strcat(s_tree,",");
+      (*available) = (*available) - ((int)strlen(s_tree) - ori_len);
+      printf("\n++ori=%d len = %d av = %d %s",
+	     ori_len,
+	     (int)strlen(s_tree),
+	     *available,s_tree);
     }
 }
 
