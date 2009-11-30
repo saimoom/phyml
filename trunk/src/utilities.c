@@ -516,7 +516,7 @@ char *Write_Tree(t_tree *tree)
   char *s;
   int i,available;
 
-  s=(char *)mCalloc(T_MAX_NAME,sizeof(char));
+  s=(char *)mCalloc((int)T_MAX_NAME,sizeof(char));
   available = (int)T_MAX_NAME-1;
 
   s[0]='(';
@@ -556,7 +556,7 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char *s_tree, t_tree *t
 {
   int i,p,ori_len;
 
-  if(*available < (int)T_MAX_NAME) 
+  if(*available < (int)T_MAX_NAME/2) 
     {
       s_tree = (char *)realloc(s_tree,((int)strlen(s_tree)+(int)T_MAX_NAME)*sizeof(char));
       s_tree[(int)strlen(s_tree)] = '\0';
