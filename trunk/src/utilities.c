@@ -5786,7 +5786,6 @@ void Bootstrap(t_tree *tree)
   Free_Bip(tree);
   Alloc_Bip(tree);
   Get_Bip(tree->noeud[0],tree->noeud[0]->v[0],tree);
-  tree->has_bip = YES;
 
   n_site = 0;
   For(j,tree->data->crunch_len) For(k,tree->data->wght[j])
@@ -5900,7 +5899,6 @@ void Bootstrap(t_tree *tree)
 	      boot_tree->noeud[0]->v[0],
 	      boot_tree);
 
-      boot_tree->has_bip = YES;
 
       Compare_Bip(tree,boot_tree);
 
@@ -6616,17 +6614,17 @@ void Alloc_Bip(t_tree *tree)
 
   if(tree->has_bip) return;
 
-  tree->has_bip = 1;
+  tree->has_bip = YES;
 
   For(i,2*tree->n_otu-2)
     {
       tree->noeud[i]->bip_size = (int *)mCalloc(3,sizeof(int));
       tree->noeud[i]->bip_node = (t_node ***)mCalloc(3,sizeof(t_node **));
 
-      For(j,3)
-	{
-	  tree->noeud[i]->bip_node[j] = (t_node **)mCalloc(tree->n_otu,sizeof(t_node *));
-	}
+/*       For(j,3) */
+/* 	{ */
+/* 	  tree->noeud[i]->bip_node[j] = (t_node **)mCalloc(tree->n_otu,sizeof(t_node *)); */
+/* 	} */
     }
 }
 
@@ -8187,7 +8185,6 @@ void Fill_Dir_Table(t_tree *tree)
   Free_Bip(tree);
   Alloc_Bip(tree);
   Get_Bip(tree->noeud[0],tree->noeud[0]->v[0],tree);
-  tree->has_bip = YES;
   Update_Dir_To_Tips(tree->noeud[0],tree->noeud[0]->v[0],tree);
 
   for(i=tree->n_otu;i<2*tree->n_otu-2;i++)
@@ -10938,7 +10935,6 @@ int Find_Clade(char **tax_name_list, int list_size, t_tree *tree)
       Free_Bip(tree);
       Alloc_Bip(tree);
       Get_Bip(tree->noeud[0],tree->noeud[0]->v[0],tree);
-      tree->has_bip = YES;
       Find_Clade_Pre(tree->n_root,tree->n_root->v[0],tax_num_list,list_size,&num,tree);
       Find_Clade_Pre(tree->n_root,tree->n_root->v[1],tax_num_list,list_size,&num,tree);
       Free(tax_num_list);
@@ -11127,7 +11123,6 @@ t_edge *Find_Root_Edge(FILE *fp_input_tree, t_tree *tree)
   Free_Bip(tree);
   Alloc_Bip(tree);
   Get_Bip(tree->noeud[0],tree->noeud[0]->v[0],tree);
-  tree->has_bip = YES;
 
   subs = Sub_Trees(line,&degree);
   Clean_Multifurcation(subs,degree,3);
