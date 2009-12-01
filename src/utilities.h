@@ -117,7 +117,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  N_MAX_LABEL           10
 #define  BLOCK_LABELS         100
 
-#define  NODE_DEG_MAX           3
+#define  NODE_DEG_MAX          10
 #define  BRENT_ITMAX        10000
 #define  BRENT_CGOLD    0.3819660
 #define  BRENT_ZEPS        1.e-10

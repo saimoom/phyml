@@ -517,7 +517,9 @@ char *Write_Tree(t_tree *tree)
   int i,available;
 
   s=(char *)mCalloc((int)T_MAX_NAME,sizeof(char));
+/*   s=(char *)mCalloc((int)T_MAX_LINE,sizeof(char)); */
   available = (int)T_MAX_NAME-1;
+
 
   s[0]='(';
   
@@ -556,16 +558,7 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, t_tree *
 {
   int i,p,ori_len;
 
-  if(*available < (int)T_MAX_NAME/2)
-    {
-      int len;
-      len = (int)strlen(*s_tree);
-      Free(*s_tree);
-      *s_tree = (char *)mCalloc(len+(int)T_MAX_NAME,sizeof(char));
-      *s_tree[(int)strlen(*s_tree)] = '\0';
-      (*available) = (*available) + (int)T_MAX_NAME;
-    }
-  
+
   p = -1;
   if(fils->tax)
     {
@@ -612,12 +605,34 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, t_tree *
       strcat(*s_tree,",");
 
       (*available) = (*available) - ((int)strlen(*s_tree) - ori_len);
+/*       printf("\n. <<< %s %d %d",*s_tree,*available,strlen(*s_tree)); */
+      if(*available < 0)
+	{
+	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  Warn_And_Exit("");
+	}
+
+      if(*available < (int)T_MAX_NAME/2)
+	{
+	  int len;
+	  char *new_s_tree;
+	  
+	  len = (int)strlen(*s_tree);
+	  new_s_tree = (char *)mCalloc(len+(int)T_MAX_NAME,sizeof(char));
+	  strcpy(new_s_tree,*s_tree);
+	  Free(*s_tree);
+	  *s_tree = new_s_tree;
+	  (*available) = (*available) + (int)T_MAX_NAME;
+	}
+  
+
+
     }
   else
     {
 
       (*s_tree)[(int)strlen(*s_tree)]='(';
-      
+
       if(tree->n_root)
 	{
 	  For(i,3)
@@ -679,6 +694,25 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, t_tree *
 	}
       strcat(*s_tree,",");
       (*available) = (*available) - ((int)strlen(*s_tree) - ori_len);
+/*       printf("\n. >>> %s %d %d",*s_tree,*available,strlen(*s_tree)); */
+      if(*available < 0)
+	{
+	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  Warn_And_Exit("");
+	}
+
+      if(*available < (int)T_MAX_NAME/2)
+	{
+	  int len;
+	  char *new_s_tree;
+	  
+	  len = (int)strlen(*s_tree);
+	  new_s_tree = (char *)mCalloc(len+(int)T_MAX_NAME,sizeof(char));
+	  strcpy(new_s_tree,*s_tree);
+	  Free(*s_tree);
+	  *s_tree = new_s_tree;
+	  (*available) = (*available) + (int)T_MAX_NAME;
+	}
     }
 }
 
@@ -6556,15 +6590,10 @@ void Alloc_Bip(t_tree *tree)
     {
       tree->noeud[i]->bip_size = (int *)mCalloc(3,sizeof(int));
       tree->noeud[i]->bip_node = (t_node ***)mCalloc(3,sizeof(t_node **));
-/*       tree->noeud[i]->bip_num = (int **)mCalloc(3,sizeof(int *)); */
 
       For(j,3)
 	{
-	  tree->noeud[i]->bip_node[j] =
-	    (t_node **)mCalloc(tree->n_otu,sizeof(t_node *));
-
-/* 	  tree->noeud[i]->bip_num[j] = */
-/* 	    (int *)mCalloc(tree->n_otu,sizeof(int)); */
+	  tree->noeud[i]->bip_node[j] = (t_node **)mCalloc(tree->n_otu,sizeof(t_node *));
 	}
     }
 }
@@ -7998,9 +8027,11 @@ void Find_Mutual_Direction(t_node *n1, t_node *n2, int *dir_n1_to_n2, int *dir_n
 {
   int scores[3][3];
   int n_zero_line, n_zero_col;
-  int i,j;
+  int i,j,k,l;
+  int n_otu;
 
-  For(i,3) For(j,3) scores[i][j] = 0;
+  if(n1 == n2) return;
+
 
   For(i,3)
     {
@@ -8010,33 +8041,66 @@ void Find_Mutual_Direction(t_node *n1, t_node *n2, int *dir_n1_to_n2, int *dir_n
 /* 							n1->n_of_reachable_tips[i], */
 /* 							n2->list_of_reachable_tips[j], */
 /* 							n2->n_of_reachable_tips[j]); */
-	  scores[i][j] = Compare_List_Of_Reachable_Tips(n1->bip_node[i],
-							n1->bip_size[i],
-							n2->bip_node[j],
-							n2->bip_size[j]);
+
+/* 	  scores[i][j] = Compare_List_Of_Reachable_Tips(n1->bip_node[i], */
+/* 							n1->bip_size[i], */
+/* 							n2->bip_node[j], */
+/* 							n2->bip_size[j]); */
+	  scores[i][j] = 0;
+
+	  For(k,n1->bip_size[i])
+	    {
+	      For(l,n2->bip_size[j])
+		{
+		  if(n1->bip_node[i][k] == n2->bip_node[j][l])
+		    {
+		      scores[i][j]++;
+		      break;
+		    }
+		}
+	    }
 	}
     }
 
   For(i,3)
     {
-      n_zero_line = 0;
       For(j,3)
 	{
-	  if(!scores[i][j]) n_zero_line++;
+	  if(!scores[i][j]) 
+	    {
+	      *dir_n1_to_n2 = i; 
+	      *dir_n2_to_n1 = j; 
+	      return;
+	    } 
 	}
-      if(n_zero_line != 2) {*dir_n1_to_n2 = i; break;}
     }
 
+  PhyML_Printf("\n. n1=%d n2=%d",n1->num,n2->num);
+  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+  Warn_And_Exit("");
 
-  For(i,3)
-    {
-      n_zero_col = 0;
-      For(j,3)
-	{
-	  if(!scores[j][i]) n_zero_col++;
-	}
-      if(n_zero_col != 2) {*dir_n2_to_n1 = i; break;}
-    }
+  
+
+/*   For(i,3) */
+/*     { */
+/*       n_zero_line = 0; */
+/*       For(j,3) */
+/* 	{ */
+/* 	  if(!scores[i][j]) n_zero_line++; */
+/* 	} */
+/*       if(n_zero_line != 2) {*dir_n1_to_n2 = i; break;} */
+/*     } */
+
+
+/*   For(i,3) */
+/*     { */
+/*       n_zero_col = 0; */
+/*       For(j,3) */
+/* 	{ */
+/* 	  if(!scores[j][i]) n_zero_col++; */
+/* 	} */
+/*       if(n_zero_col != 2) {*dir_n2_to_n1 = i; break;} */
+/*     } */
 
 }
 
@@ -8045,49 +8109,41 @@ void Find_Mutual_Direction(t_node *n1, t_node *n2, int *dir_n1_to_n2, int *dir_n
 void Update_Dir_To_Tips(t_node *a, t_node *d, t_tree *tree)
 {
   int i,j,k;
+  short int *inout;
+  int d_a;
+
+  inout = (short int *)mCalloc(tree->n_otu,sizeof(short int));
 
   For(i,3)
     {
       if(a->v[i] == d)
 	{
-	  For(j,tree->n_otu)
-	    {
-	      For(k,a->bip_size[i]) if(a->bip_node[i][k] == tree->noeud[j]) break;
-	      
-	      if(k == a->bip_size[i])
-		{
-		  tree->t_dir[a->num][tree->noeud[j]->num] = i;
-		}
-	    }
+	  For(j,tree->n_otu) inout[j] = 1;
+	  For(k,a->bip_size[i]) inout[a->bip_node[i][k]->num] = 0;
+	  For(j,tree->n_otu) if(inout[tree->noeud[j]->num]) tree->t_dir[a->num][tree->noeud[j]->num] = i;
+	  break;
 	}
     }
 
 
-  if(d->tax) return;
-  else
+  if(!d->tax)
     {
-      int k;
-      int d_a;
 
       d_a = -1;
 
       For(i,3)
 	{
-	  if(d->v[i] != a) Update_Dir_To_Tips(d,d->v[i],tree);
+	  if(d->v[i] != a && d->b[i] != tree->e_root) Update_Dir_To_Tips(d,d->v[i],tree);
 	  else if(d->v[i] == a) d_a = i;
 	}
 
-      /* Update node directions */
-      For(j,tree->n_otu)
-	{
-	  For(k,d->bip_size[d_a]) if(d->bip_node[d_a][k] == tree->noeud[j]) break;
-	  
-	  if(k == d->bip_size[d_a])
-	    {
-	      tree->t_dir[d->num][tree->noeud[j]->num] = i;
-	    }
-	}
+      For(j,tree->n_otu) inout[j] = 1;
+      For(k,d->bip_size[d_a]) inout[d->bip_node[d_a][k]->num] = 0;
+      For(j,tree->n_otu) if(inout[tree->noeud[j]->num]) tree->t_dir[d->num][tree->noeud[j]->num] = d_a;
     }
+
+  Free(inout);
+
 }
 
 /*********************************************************/
@@ -8095,15 +8151,36 @@ void Update_Dir_To_Tips(t_node *a, t_node *d, t_tree *tree)
 void Fill_Dir_Table(t_tree *tree)
 {
   int i,j;
-
+  For(i,2*tree->n_otu-2) For(j,2*tree->n_otu-2) tree->t_dir[i][j] = 0;
   Free_Bip(tree);
   Alloc_Bip(tree);
   Get_Bip(tree->noeud[0],tree->noeud[0]->v[0],tree);
   tree->has_bip = YES;
-
-  For(i,2*tree->n_otu-2) For(j,2*tree->n_otu-2) tree->t_dir[i][j] = 0;
-
   Update_Dir_To_Tips(tree->noeud[0],tree->noeud[0]->v[0],tree);
+
+/*   int i,j,k,l; */
+/*   int found; */
+/*   Get_List_Of_Reachable_Tips(tree);   */
+/*   For(i,tree->n_otu) For(j,2*tree->n_otu-2) tree->t_dir[i][j] = 0; */
+/*   for(i=tree->n_otu;i<2*tree->n_otu-2;i++) */
+/*     For(j,tree->n_otu) */
+/*       { */
+/* 	found = 0; */
+/* 	For(k,3) */
+/* 	  { */
+/* 	    For(l,tree->noeud[i]->n_of_reachable_tips[k]) */
+/* 	      { */
+/* 		if(tree->noeud[i]->list_of_reachable_tips[k][l] == tree->noeud[j]) */
+/* 		  { */
+/* 		    found = 1; */
+/* 		    tree->t_dir[i][j] = k; */
+/* 		    break; */
+/* 		  } */
+/* 	      } */
+/* 	    if(found) break; */
+/* 	  } */
+/*       } */
+  
 
   for(i=tree->n_otu;i<2*tree->n_otu-2;i++)
     for(j=i;j<2*tree->n_otu-2;j++)
