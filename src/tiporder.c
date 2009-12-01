@@ -71,15 +71,6 @@ int TIPORDER_main(int argc, char **argv)
   n_trees = list_io->treelist->list_size;
   For(i,n_trees) Translate_Tax_Names(list_io->tax_table,list_tree[i]);
 
-  For(i,n_trees)
-    {
-      char *s;
-      s=Write_Tree(list_tree[i]);
-      printf("%s\n",s);
-      Free(s);
-    }
-
-
 /*   list_tree = (t_tree **)mCalloc(1,sizeof(t_tree *)); */
 /*   n_trees = 0; */
 /*   do */
