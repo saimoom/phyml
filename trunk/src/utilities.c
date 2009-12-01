@@ -695,7 +695,7 @@ void Init_Tree(t_tree *tree, int n_otu)
   tree->ps_tree                   = NULL;
 
   tree->depth_curr_path           = 0;
-  tree->has_bip                   = 0;
+  tree->has_bip                   = NO;
   tree->n_moves                   = 0;
   tree->n_improvements            = 0;
   tree->number_of_lk_calls        = 0;
@@ -3703,7 +3703,6 @@ void Make_All_Tree_Edges(t_tree *tree)
   int i;
 
   tree->t_edges      = (t_edge **)mCalloc(2*tree->n_otu-2,sizeof(t_edge *));
-/*   tree->t_dead_edges = (t_edge **)mCalloc(2*tree->n_otu-3,sizeof(t_edge *)); */
 
   For(i,2*tree->n_otu-2) tree->t_edges[i] = (t_edge *)Make_Edge_Light(NULL,NULL,i);
 }
@@ -3716,6 +3715,7 @@ void Copy_Tax_Names_To_Tip_Labels(t_tree *tree, calign *data)
 
   For(i,tree->n_otu)
     {
+      tree->noeud[i]->name = (char *)mCalloc((int)strlen(data->c_seq[i]->name)+1,sizeof(char));
       strcpy(tree->noeud[i]->name,data->c_seq[i]->name);
       tree->noeud[i]->tax = 1;
       tree->noeud[i]->num = i;
@@ -3886,19 +3886,6 @@ void Share_Pars_Struct(t_tree *t_full, t_tree *t_empt)
 
       t_empt->t_edges[i]->p_pars_l = t_full->t_edges[i]->p_pars_l;
       t_empt->t_edges[i]->p_pars_r = t_full->t_edges[i]->p_pars_r;
-    }
-}
-
-/*********************************************************/
-
-void Share_List_Of_Reachable_Tips_Struct(t_tree *t_full, t_tree *t_empt)
-{
-  int i;
-
-  For(i,2*t_full->n_otu-2)
-    {
-      t_empt->noeud[i]->list_of_reachable_tips = t_full->noeud[i]->list_of_reachable_tips;
-      t_empt->noeud[i]->n_of_reachable_tips    = t_full->noeud[i]->n_of_reachable_tips;
     }
 }
 
@@ -5730,8 +5717,10 @@ void Bootstrap(t_tree *tree)
 
   site_num = (int *)mCalloc(tree->data->init_len,sizeof(int));
 
+  Free_Bip(tree);
   Alloc_Bip(tree);
   Get_Bip(tree->noeud[0],tree->noeud[0]->v[0],tree);
+  tree->has_bip = YES;
 
   n_site = 0;
   For(j,tree->data->crunch_len) For(k,tree->data->wght[j])
@@ -5834,14 +5823,18 @@ void Bootstrap(t_tree *tree)
 	  else
 	    Lk(boot_tree);
 	}
-	    
+      
+      Free_Bip(boot_tree);
+
       Alloc_Bip(boot_tree);
 
       Match_Tip_Numbers(tree,boot_tree);
-
+      
       Get_Bip(boot_tree->noeud[0],
 	      boot_tree->noeud[0]->v[0],
 	      boot_tree);
+
+      boot_tree->has_bip = YES;
 
       Compare_Bip(tree,boot_tree);
 
@@ -6404,9 +6397,6 @@ void Set_Defaults_Optimiz(optimiz *s_opt)
 
 /*********************************************************/
 
-
-/*********************************************************/
-
 void Get_Bip(t_node *a, t_node *d, t_tree *tree)
 {
   int i,j;
@@ -6414,13 +6404,11 @@ void Get_Bip(t_node *a, t_node *d, t_tree *tree)
   int swapped;
 
   if(d->tax)
-    {      
+    {
       if(d->common)
 	{
 	  d->bip_node[0] = (t_node **)mCalloc(1,sizeof(t_node *));
 	  d->bip_node[0][0] = d;
-/* 	  d->bip_num[0]     = (int *)mCalloc(1,sizeof(int)); */
-/* 	  d->bip_num[0][0]  = d->num; */
 	  d->bip_size[0]    = 1;
 
 	  For(i,3)
@@ -6432,34 +6420,28 @@ void Get_Bip(t_node *a, t_node *d, t_tree *tree)
 		    {
 		      if(strcmp(tree->noeud[j]->name,d->name))
 			{
-
 			  a->bip_node[i] = (t_node **)realloc(a->bip_node[i],(a->bip_size[i]+1)*sizeof(t_node *));
 			  a->bip_node[i][a->bip_size[i]] = tree->noeud[j];
-
-/* 			  a->bip_num[i] = (int *)realloc(a->bip_num[i],(a->bip_size[i]+1)*sizeof(int)); */
-/* 			  a->bip_num[i][a->bip_size[i]] = tree->noeud[j]->num; */
-
 			  a->bip_size[i]++;
 			}
 		    }
-
-/* 		  Qksort_Int(a->bip_num[i],NULL,0,a->bip_size[i]-1); */
-
+		  
+		  /* Sort bipartition */
 		  do
 		    {
-		      swapped = NO;
-		      For(j,a->bip_size[i]-1)
-			{
-			  if(a->bip_node[i][j]->num > a->bip_node[i][j+1]->num)
+			  swapped = NO;
+			  For(j,a->bip_size[i]-1)
 			    {
-			      swapped = YES;
-			      tmp                 = a->bip_node[i][j];
-			      a->bip_node[i][j]   = a->bip_node[i][j+1];
-			      a->bip_node[i][j+1] = tmp;
+			      if(a->bip_node[i][j]->num > a->bip_node[i][j+1]->num)
+				{
+				  swapped = YES;
+				  tmp                 = a->bip_node[i][j];
+				  a->bip_node[i][j]   = a->bip_node[i][j+1];
+				  a->bip_node[i][j+1] = tmp;
+				}
 			    }
-			}
 		    }while(swapped == YES);
-
+				      
 		  break;
 
 		}
@@ -6492,18 +6474,12 @@ void Get_Bip(t_node *a, t_node *d, t_tree *tree)
 		      {
 			d->bip_node[d_a] = (t_node **)realloc(d->bip_node[d_a],(d->bip_size[d_a]+1)*sizeof(t_node *));
 			d->bip_node[d_a][d->bip_size[d_a]] = d->v[i]->bip_node[j][k];
-
-/* 			d->bip_num[d_a] = (int *)realloc(d->bip_num[d_a],(d->bip_size[d_a]+1)*sizeof(int)); */
-/* 			d->bip_num[d_a][d->bip_size[d_a]] = d->v[i]->bip_num[j][k]; */
-
 			d->bip_size[d_a]++;
 		      }
 		    break;
 		  }
 	      }
 	  }
-
-/*       Qksort_Int(d->bip_num[d_a],NULL,0,d->bip_size[d_a]-1); */
       
       do
 	{
@@ -6516,12 +6492,11 @@ void Get_Bip(t_node *a, t_node *d, t_tree *tree)
 		  tmp                   = d->bip_node[d_a][j];
 		  d->bip_node[d_a][j]   = d->bip_node[d_a][j+1];
 		  d->bip_node[d_a][j+1] = tmp;
-		}
+		    }
 	    }
 	}while(swapped == YES);
+	
       
-
-
       For(i,3)
 	if(a->v[i] == d)
 	  {
@@ -6530,7 +6505,6 @@ void Get_Bip(t_node *a, t_node *d, t_tree *tree)
 	      {
 		For(k,d->bip_size[d_a])
 		  {
-/* 		    if(d->bip_num[d_a][k] == tree->noeud[j]->num) */
 		    if(d->bip_node[d_a][k] == tree->noeud[j])
 		      break;
 		  }
@@ -6539,16 +6513,10 @@ void Get_Bip(t_node *a, t_node *d, t_tree *tree)
 		  {
 		    a->bip_node[i] = (t_node **)realloc(a->bip_node[i],(a->bip_size[i]+1)*sizeof(t_node *));
 		    a->bip_node[i][a->bip_size[i]] = tree->noeud[j];
-
-/* 		    a->bip_num[i] = (int *)realloc(a->bip_num[i],(a->bip_size[i]+1)*sizeof(int)); */
-/* 		    a->bip_num[i][a->bip_size[i]] = tree->noeud[j]->num; */
-
 		    a->bip_size[i]++;
 		  }
 	      }
-	    
-/* 	    Qksort_Int(a->bip_num[i],NULL,0,a->bip_size[i]-1); */
-	    
+
 	    do
 	      {
 		swapped = NO;
@@ -8038,10 +8006,14 @@ void Find_Mutual_Direction(t_node *n1, t_node *n2, int *dir_n1_to_n2, int *dir_n
     {
       For(j,3)
 	{
-	  scores[i][j] = Compare_List_Of_Reachable_Tips(n1->list_of_reachable_tips[i],
-							n1->n_of_reachable_tips[i],
-							n2->list_of_reachable_tips[j],
-							n2->n_of_reachable_tips[j]);
+/* 	  scores[i][j] = Compare_List_Of_Reachable_Tips(n1->list_of_reachable_tips[i], */
+/* 							n1->n_of_reachable_tips[i], */
+/* 							n2->list_of_reachable_tips[j], */
+/* 							n2->n_of_reachable_tips[j]); */
+	  scores[i][j] = Compare_List_Of_Reachable_Tips(n1->bip_node[i],
+							n1->bip_size[i],
+							n2->bip_node[j],
+							n2->bip_size[j]);
 	}
     }
 
@@ -8070,33 +8042,68 @@ void Find_Mutual_Direction(t_node *n1, t_node *n2, int *dir_n1_to_n2, int *dir_n
 
 /*********************************************************/
 
-void Fill_Dir_Table(t_tree *tree)
+void Update_Dir_To_Tips(t_node *a, t_node *d, t_tree *tree)
 {
-  int i,j,k,l;
-  int found;
+  int i,j,k;
 
-  Get_List_Of_Reachable_Tips(tree);
-
-  For(i,tree->n_otu) For(j,2*tree->n_otu-2) tree->t_dir[i][j] = 0;
-
-  for(i=tree->n_otu;i<2*tree->n_otu-2;i++)
-    For(j,tree->n_otu)
+  For(i,3)
     {
-      found = 0;
-      For(k,3)
+      if(a->v[i] == d)
 	{
-	  For(l,tree->noeud[i]->n_of_reachable_tips[k])
+	  For(j,tree->n_otu)
 	    {
-	      if(tree->noeud[i]->list_of_reachable_tips[k][l] == tree->noeud[j])
+	      For(k,a->bip_size[i]) if(a->bip_node[i][k] == tree->noeud[j]) break;
+	      
+	      if(k == a->bip_size[i])
 		{
-		  found = 1;
-		  tree->t_dir[i][j] = k;
-		  break;
+		  tree->t_dir[a->num][tree->noeud[j]->num] = i;
 		}
 	    }
-	  if(found) break;
 	}
     }
+
+
+  if(d->tax) return;
+  else
+    {
+      int k;
+      int d_a;
+
+      d_a = -1;
+
+      For(i,3)
+	{
+	  if(d->v[i] != a) Update_Dir_To_Tips(d,d->v[i],tree);
+	  else if(d->v[i] == a) d_a = i;
+	}
+
+      /* Update node directions */
+      For(j,tree->n_otu)
+	{
+	  For(k,d->bip_size[d_a]) if(d->bip_node[d_a][k] == tree->noeud[j]) break;
+	  
+	  if(k == d->bip_size[d_a])
+	    {
+	      tree->t_dir[d->num][tree->noeud[j]->num] = i;
+	    }
+	}
+    }
+}
+
+/*********************************************************/
+
+void Fill_Dir_Table(t_tree *tree)
+{
+  int i,j;
+
+  Free_Bip(tree);
+  Alloc_Bip(tree);
+  Get_Bip(tree->noeud[0],tree->noeud[0]->v[0],tree);
+  tree->has_bip = YES;
+
+  For(i,2*tree->n_otu-2) For(j,2*tree->n_otu-2) tree->t_dir[i][j] = 0;
+
+  Update_Dir_To_Tips(tree->noeud[0],tree->noeud[0]->v[0],tree);
 
   for(i=tree->n_otu;i<2*tree->n_otu-2;i++)
     for(j=i;j<2*tree->n_otu-2;j++)
@@ -10843,8 +10850,10 @@ int Find_Clade(char **tax_name_list, int list_size, t_tree *tree)
     {
       int num;
       num = -1;
+      Free_Bip(tree);
       Alloc_Bip(tree);
       Get_Bip(tree->noeud[0],tree->noeud[0]->v[0],tree);
+      tree->has_bip = YES;
       Find_Clade_Pre(tree->n_root,tree->n_root->v[0],tax_num_list,list_size,&num,tree);
       Find_Clade_Pre(tree->n_root,tree->n_root->v[1],tax_num_list,list_size,&num,tree);
       Free(tax_num_list);
@@ -11030,8 +11039,10 @@ t_edge *Find_Root_Edge(FILE *fp_input_tree, t_tree *tree)
     }
   
 
+  Free_Bip(tree);
   Alloc_Bip(tree);
   Get_Bip(tree->noeud[0],tree->noeud[0]->v[0],tree);
+  tree->has_bip = YES;
 
   subs = Sub_Trees(line,&degree);
   Clean_Multifurcation(subs,degree,3);

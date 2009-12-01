@@ -84,6 +84,22 @@ void Free_Tree(t_tree *tree)
   For(i,2*tree->n_otu-2) Free(tree->t_dir[i]);
   Free(tree->t_dir);
 
+  Free_Bip(tree);
+
+  Free(tree->curr_path);
+
+  Free_All_Edges_Light(tree);
+  Free_All_Nodes_Light(tree);
+
+  Free(tree);
+}
+
+/*********************************************************/
+
+void Free_Bip(t_tree *tree)
+{
+  int i,j;
+
   if(tree->has_bip)
     {
       For(i,2*tree->n_otu-2)
@@ -92,19 +108,10 @@ void Free_Tree(t_tree *tree)
 	  For(j,3)
 	    {
 	      Free(tree->noeud[i]->bip_node[j]);
-/* 	      Free(tree->noeud[i]->bip_num[j]); */
 	    }
 	  Free(tree->noeud[i]->bip_node);
-/* 	  Free(tree->noeud[i]->bip_num); */
 	}
     }
-  
-  Free(tree->curr_path);
-
-  Free_All_Edges_Light(tree);
-  Free_All_Nodes_Light(tree);
-
-  Free(tree);
 }
 
 /*********************************************************/

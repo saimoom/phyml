@@ -56,5 +56,6 @@ void Free_Nexus_Parm(nexparm *parm);
 void Free_Nexus(option *io);
 void Free_Optimiz(optimiz *s_opt);
 void Free_Tree_List(t_treelist *list);
+void Free_Bip(t_tree *tree);
 
 #endif

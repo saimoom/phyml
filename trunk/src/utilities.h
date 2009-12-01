@@ -1214,7 +1214,6 @@ void Make_Edge_Pars(t_edge *b, t_tree *tree);
 void Make_Tree_Path(t_tree *tree);
 void Share_Pars_Struct(t_tree *t_full, t_tree *t_empt);
 void Share_Spr_Struct(t_tree *t_full, t_tree *t_empt);
-void Share_List_Of_Reachable_Tips_Struct(t_tree *t_full, t_tree *t_empt);
 void Clean_Tree_Connections(t_tree *tree);
 void Print_Settings(option *input);
 void Fill_Missing_Dist(matrix *mat);
@@ -1341,6 +1340,7 @@ void Match_Tip_Numbers(t_tree *tree1, t_tree *tree2);
 void Get_Nexus_Data(FILE *fp, option *io);
 void Translate_Tax_Names(char **tax_names, t_tree *tree);
 void Skip_Comment(FILE *fp);
+void Update_Dir_To_Tips(t_node *a, t_node *d, t_tree *tree);
 
 #include "free.h"
 #include "spr.h"
