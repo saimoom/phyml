@@ -112,6 +112,7 @@ void Free_Bip(t_tree *tree)
 	  Free(tree->noeud[i]->bip_node);
 	}
     }
+  tree->has_bip = NO;
 }
 
 /*********************************************************/

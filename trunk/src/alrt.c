@@ -20,7 +20,6 @@ Authors : Jean-Francois Dufayard & Stephane Guindon.
 
 #include "alrt.h"
 
-
 /*********************************************************/
 
 /*
