@@ -8190,30 +8190,6 @@ void Fill_Dir_Table(t_tree *tree)
   tree->has_bip = YES;
   Update_Dir_To_Tips(tree->noeud[0],tree->noeud[0]->v[0],tree);
 
-/*   int i,j,k,l; */
-/*   int found; */
-/*   Get_List_Of_Reachable_Tips(tree);   */
-/*   For(i,tree->n_otu) For(j,2*tree->n_otu-2) tree->t_dir[i][j] = 0; */
-/*   for(i=tree->n_otu;i<2*tree->n_otu-2;i++) */
-/*     For(j,tree->n_otu) */
-/*       { */
-/* 	found = 0; */
-/* 	For(k,3) */
-/* 	  { */
-/* 	    For(l,tree->noeud[i]->n_of_reachable_tips[k]) */
-/* 	      { */
-/* 		if(tree->noeud[i]->list_of_reachable_tips[k][l] == tree->noeud[j]) */
-/* 		  { */
-/* 		    found = 1; */
-/* 		    tree->t_dir[i][j] = k; */
-/* 		    break; */
-/* 		  } */
-/* 	      } */
-/* 	    if(found) break; */
-/* 	  } */
-/*       } */
-  
-
   for(i=tree->n_otu;i<2*tree->n_otu-2;i++)
     for(j=i;j<2*tree->n_otu-2;j++)
       {

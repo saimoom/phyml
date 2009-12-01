@@ -211,8 +211,7 @@ int main(int argc, char **argv)
 		  Free_Tree_Pars(tree);
 		  Free_Tree_Lk(tree);
 		  Free_Tree(tree);
-		}	      
-
+		}
 
 	      /* Launch bootstrap analysis */
 	      if(mod->bootstrap) 
