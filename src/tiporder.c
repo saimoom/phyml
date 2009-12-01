@@ -155,8 +155,6 @@ int TIPORDER_main(int argc, char **argv)
       Get_Bip(list_tree[i]->noeud[0],
 	      list_tree[i]->noeud[0]->v[0],
 	      list_tree[i]);
-      list_tree[i]->has_bip = YES;
-
     }
 
 

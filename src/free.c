@@ -105,10 +105,7 @@ void Free_Bip(t_tree *tree)
       For(i,2*tree->n_otu-2)
 	{
 	  Free(tree->noeud[i]->bip_size);
-	  For(j,3)
-	    {
-	      Free(tree->noeud[i]->bip_node[j]);
-	    }
+	  For(j,3) Free(tree->noeud[i]->bip_node[j]);
 	  Free(tree->noeud[i]->bip_node);
 	}
     }

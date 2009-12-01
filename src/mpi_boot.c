@@ -45,7 +45,6 @@ void Bootstrap_MPI(t_tree *tree)
   Free_Bip(tree);
   Alloc_Bip(tree);
   Get_Bip(tree->noeud[0],tree->noeud[0]->v[0],tree);
-  tree->has_bip = YES;
 
   n_site = 0;
   For(j,tree->data->crunch_len) For(k,tree->data->wght[j])
@@ -221,8 +220,6 @@ fflush(stderr);
       Get_Bip(boot_tree->noeud[0],
               boot_tree->noeud[0]->v[0],
               boot_tree);
-
-      boot_tree->has_bip = YES;
 
       if(!tree->io->collapse_boot) 
         Compare_Bip(tree,boot_tree);
