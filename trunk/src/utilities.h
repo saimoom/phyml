@@ -1063,7 +1063,7 @@ void Clean_Multifurcation(char **subtrees,int current_deg,int end_deg);
 char **Sub_Trees(char *tree,int *degree);
 int Next_Par(char *s,int pos);
 char *Write_Tree(t_tree *tree);
-void R_wtree(t_node *pere,t_node *fils,int *available,char *s_tree,t_tree *tree);
+void R_wtree(t_node *pere,t_node *fils,int *available,char **s_tree,t_tree *tree);
 void Init_Tree(t_tree *tree, int n_otu);
 t_edge *Make_Edge_Light(t_node *a, t_node *d, int num);
 void Init_Edge_Light(t_edge *b, int num);

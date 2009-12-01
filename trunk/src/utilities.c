@@ -534,14 +534,14 @@ char *Write_Tree(t_tree *tree)
 	    (!tree->noeud[tree->n_otu+i]->v[1]) ||
 	    (!tree->noeud[tree->n_otu+i]->v[2])) i++;
       
-      R_wtree(tree->noeud[tree->n_otu+i],tree->noeud[tree->n_otu+i]->v[0],&available,s,tree);
-      R_wtree(tree->noeud[tree->n_otu+i],tree->noeud[tree->n_otu+i]->v[1],&available,s,tree);
-      R_wtree(tree->noeud[tree->n_otu+i],tree->noeud[tree->n_otu+i]->v[2],&available,s,tree);
+      R_wtree(tree->noeud[tree->n_otu+i],tree->noeud[tree->n_otu+i]->v[0],&available,&s,tree);
+      R_wtree(tree->noeud[tree->n_otu+i],tree->noeud[tree->n_otu+i]->v[1],&available,&s,tree);
+      R_wtree(tree->noeud[tree->n_otu+i],tree->noeud[tree->n_otu+i]->v[2],&available,&s,tree);
     }
   else
     {
-      R_wtree(tree->n_root,tree->n_root->v[0],&available,s,tree);
-      R_wtree(tree->n_root,tree->n_root->v[1],&available,s,tree);
+      R_wtree(tree->n_root,tree->n_root->v[0],&available,&s,tree);
+      R_wtree(tree->n_root,tree->n_root->v[1],&available,&s,tree);
     }
 
   s[(int)strlen(s)-1]=')';
@@ -552,73 +552,71 @@ char *Write_Tree(t_tree *tree)
 
 /*********************************************************/
 
-void R_wtree(t_node *pere, t_node *fils, int *available, char *s_tree, t_tree *tree)
+void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, t_tree *tree)
 {
   int i,p,ori_len;
 
-  if(*available < (int)T_MAX_NAME/2) 
+  if(*available < (int)T_MAX_NAME/2)
     {
-      printf("\n. av = %d strlen = %d",*available,(int)strlen(s_tree));
-      s_tree = (char *)realloc(s_tree,((int)strlen(s_tree)+(int)T_MAX_NAME)*sizeof(char));
-      s_tree[(int)strlen(s_tree)] = '\0';
-      *available += (int)T_MAX_NAME;
+      int len;
+      len = (int)strlen(*s_tree);
+      Free(*s_tree);
+      *s_tree = (char *)mCalloc(len+(int)T_MAX_NAME,sizeof(char));
+      *s_tree[(int)strlen(*s_tree)] = '\0';
+      (*available) = (*available) + (int)T_MAX_NAME;
     }
   
   p = -1;
   if(fils->tax)
     {
-      ori_len = (int)strlen(s_tree);
+      ori_len = (int)strlen(*s_tree);
 
       if(OUTPUT_TREE_FORMAT == 0)
-	strcat(s_tree,fils->name);
+	strcat(*s_tree,fils->name);
       else
-	sprintf(s_tree+(int)strlen(s_tree),"%d",fils->num+1);
+	sprintf(*s_tree+(int)strlen(*s_tree),"%d",fils->num+1);
 
       if((fils->b) && (fils->b[0]) && (fils->b[0]->l > -1.))
 	{
 	  if(tree->print_labels)
 	    {
 	      if(fils->b[0]->n_labels < 10)
-		For(i,fils->b[0]->n_labels) sprintf(s_tree+(int)strlen(s_tree),"#%s",fils->b[0]->labels[i]);
+		For(i,fils->b[0]->n_labels) sprintf(*s_tree+(int)strlen(*s_tree),"#%s",fils->b[0]->labels[i]);
 	      else
-		sprintf(s_tree+(int)strlen(s_tree),"#%d_labels",fils->b[0]->n_labels);
+		sprintf(*s_tree+(int)strlen(*s_tree),"#%d_labels",fils->b[0]->n_labels);
 	    }
 
-	  strcat(s_tree,":");
+	  strcat(*s_tree,":");
 	  
 #ifndef MC
 	  if(!tree->n_root)
-	    sprintf(s_tree+(int)strlen(s_tree),"%.10f",fils->b[0]->l);
+	    sprintf(*s_tree+(int)strlen(*s_tree),"%.10f",fils->b[0]->l);
 	  else
 	    {
 	      if(pere == tree->n_root)
 		{
 		  phydbl pos = (fils == tree->n_root->v[0])?(tree->n_root_pos):(1.-tree->n_root_pos);
-		  sprintf(s_tree+(int)strlen(s_tree),"%.10f",tree->e_root->l * pos);
+		  sprintf(*s_tree+(int)strlen(*s_tree),"%.10f",tree->e_root->l * pos);
 		}
 	      else
-		sprintf(s_tree+(int)strlen(s_tree),"%.10f",fils->b[0]->l);
+		sprintf(*s_tree+(int)strlen(*s_tree),"%.10f",fils->b[0]->l);
 	    }		
 #else
 	  if(!tree->n_root)
-	    sprintf(s_tree+(int)strlen(s_tree),"%.10f",fils->b[0]->l);
+	    sprintf(*s_tree+(int)strlen(*s_tree),"%.10f",fils->b[0]->l);
 	  else
-	    sprintf(s_tree+(int)strlen(s_tree),"%.10f",tree->rates->cur_l[fils->num]);
+	    sprintf(*s_tree+(int)strlen(*s_tree),"%.10f",tree->rates->cur_l[fils->num]);
 #endif
 	}
-/*       sprintf(s_tree+(int)strlen(s_tree),","); */
-      strcat(s_tree,",");
+/*       sprintf(*s_tree+(int)strlen(*s_tree),","); */
+      strcat(*s_tree,",");
 
-      (*available) = (*available) - ((int)strlen(s_tree) - ori_len);
-      printf("\n+ori=%d len = %d av = %d %s",
-	     ori_len,
-	     (int)strlen(s_tree),
-	     *available,s_tree);
-   }
+      (*available) = (*available) - ((int)strlen(*s_tree) - ori_len);
+    }
   else
     {
 
-      s_tree[(int)strlen(s_tree)]='(';
+      (*s_tree)[(int)strlen(*s_tree)]='(';
       
       if(tree->n_root)
 	{
@@ -639,52 +637,48 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char *s_tree, t_tree *t
 	    }
 	}
 
-      ori_len = (int)strlen(s_tree);
+      ori_len = (int)strlen(*s_tree);
 
-      s_tree[(int)strlen(s_tree)-1]=')';
+      (*s_tree)[(int)strlen(*s_tree)-1]=')';
       if((fils->b) && (fils->b[0]->l > -1.))
 	{
 	  if(tree->print_boot_val)
-	    sprintf(s_tree+(int)strlen(s_tree),"%d",fils->b[p]->bip_score);
+	    sprintf(*s_tree+(int)strlen(*s_tree),"%d",fils->b[p]->bip_score);
 	  else if(tree->print_alrt_val)
-	    sprintf(s_tree+(int)strlen(s_tree),"%.10f",fils->b[p]->ratio_test);
+	    sprintf(*s_tree+(int)strlen(*s_tree),"%.10f",fils->b[p]->ratio_test);
 
 	  if(tree->print_labels)
 	    {
 	      if(fils->b[p]->n_labels < 10)
-		For(i,fils->b[p]->n_labels) sprintf(s_tree+(int)strlen(s_tree),"#%s",fils->b[p]->labels[i]);
+		For(i,fils->b[p]->n_labels) sprintf(*s_tree+(int)strlen(*s_tree),"#%s",fils->b[p]->labels[i]);
 	      else
-		sprintf(s_tree+(int)strlen(s_tree),"#%d_labels",fils->b[p]->n_labels);
+		sprintf(*s_tree+(int)strlen(*s_tree),"#%d_labels",fils->b[p]->n_labels);
 	    }
 
-	  strcat(s_tree,":");
+	  strcat(*s_tree,":");
 
 #ifndef MC
 	  if(!tree->n_root)
-	    sprintf(s_tree+(int)strlen(s_tree),"%.10f",fils->b[p]->l);
+	    sprintf(*s_tree+(int)strlen(*s_tree),"%.10f",fils->b[p]->l);
 	  else
 	    {
 	      if(pere == tree->n_root)
 		{
 		  phydbl pos = (fils == tree->n_root->v[0])?(tree->n_root_pos):(1.-tree->n_root_pos);
-		  sprintf(s_tree+(int)strlen(s_tree),"%.10f",tree->e_root->l * pos);
+		  sprintf(*s_tree+(int)strlen(*s_tree),"%.10f",tree->e_root->l * pos);
 		}
 	      else
-		sprintf(s_tree+(int)strlen(s_tree),"%.10f",fils->b[p]->l);
+		sprintf(*s_tree+(int)strlen(*s_tree),"%.10f",fils->b[p]->l);
 	    }
 #else
 	  if(!tree->n_root)
-	    sprintf(s_tree+(int)strlen(s_tree),"%.10f",fils->b[p]->l);
+	    sprintf(*s_tree+(int)strlen(*s_tree),"%.10f",fils->b[p]->l);
 	  else
-	    sprintf(s_tree+(int)strlen(s_tree),"%.10f",tree->rates->cur_l[fils->num]);
+	    sprintf(*s_tree+(int)strlen(*s_tree),"%.10f",tree->rates->cur_l[fils->num]);
 #endif
 	}
-      strcat(s_tree,",");
-      (*available) = (*available) - ((int)strlen(s_tree) - ori_len);
-      printf("\n++ori=%d len = %d av = %d %s",
-	     ori_len,
-	     (int)strlen(s_tree),
-	     *available,s_tree);
+      strcat(*s_tree,",");
+      (*available) = (*available) - ((int)strlen(*s_tree) - ori_len);
     }
 }
 
@@ -2968,19 +2962,16 @@ t_tree *Read_Tree_File_Phylip(FILE *fp_input_tree)
   int i;
   char c;
 
-  line = (char *)mCalloc(T_MAX_LINE,sizeof(char));
-  
+ 
   do
     {
       c=fgetc(fp_input_tree);
     }
   while((c != '(') && (c != EOF));
   
-  if(c==EOF)
-    {
-      Free(line);
-      return NULL;
-    }
+  if(c==EOF) return NULL;
+
+  line = (char *)mCalloc(1,sizeof(char));
   
   i=0;
   for(;;)
@@ -3000,11 +2991,14 @@ t_tree *Read_Tree_File_Phylip(FILE *fp_input_tree)
 	}
       
 
+      line = (char *)mRealloc(line,i+2,sizeof(char));
+
       line[i]=c;
       i++;
       c=fgetc(fp_input_tree);
       if(c==EOF || c==';') break;
     }
+  line[i] = '\0';
 
   tree = Read_Tree(line);
   Free(line);
