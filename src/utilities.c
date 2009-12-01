@@ -515,19 +515,22 @@ char *Write_Tree(t_tree *tree)
 {
   char *s;
   int i,available;
+  int pos;
 
   s=(char *)mCalloc((int)T_MAX_NAME,sizeof(char));
 /*   s=(char *)mCalloc((int)T_MAX_LINE,sizeof(char)); */
   available = (int)T_MAX_NAME-1;
 
-
+  
   s[0]='(';
+  pos = 1;
   
   #ifdef PHYML 
   tree->n_root = NULL;
   tree->e_root = NULL;
   #endif
 
+  printf("\n. s = %p\n",s);
   
   if(!tree->n_root)
     {
@@ -536,76 +539,102 @@ char *Write_Tree(t_tree *tree)
 	    (!tree->noeud[tree->n_otu+i]->v[1]) ||
 	    (!tree->noeud[tree->n_otu+i]->v[2])) i++;
       
-      R_wtree(tree->noeud[tree->n_otu+i],tree->noeud[tree->n_otu+i]->v[0],&available,&s,tree);
-      R_wtree(tree->noeud[tree->n_otu+i],tree->noeud[tree->n_otu+i]->v[1],&available,&s,tree);
-      R_wtree(tree->noeud[tree->n_otu+i],tree->noeud[tree->n_otu+i]->v[2],&available,&s,tree);
+      R_wtree(tree->noeud[tree->n_otu+i],tree->noeud[tree->n_otu+i]->v[0],&available,&s,&pos,tree);
+      R_wtree(tree->noeud[tree->n_otu+i],tree->noeud[tree->n_otu+i]->v[1],&available,&s,&pos,tree);
+      R_wtree(tree->noeud[tree->n_otu+i],tree->noeud[tree->n_otu+i]->v[2],&available,&s,&pos,tree);
     }
   else
     {
-      R_wtree(tree->n_root,tree->n_root->v[0],&available,&s,tree);
-      R_wtree(tree->n_root,tree->n_root->v[1],&available,&s,tree);
+      R_wtree(tree->n_root,tree->n_root->v[0],&available,&s,&pos,tree);
+      R_wtree(tree->n_root,tree->n_root->v[1],&available,&s,&pos,tree);
     }
 
-  s[(int)strlen(s)-1]=')';
-  s[(int)strlen(s)]=';';
+  printf("\n. s = %p\n",s);
+  printf("\n. s=%s\n",s);
+
+  s[pos-1]=')';
+  s[pos]=';';
+  s[pos+1]='\0';
 
   return s;
 }
 
 /*********************************************************/
 
-void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, t_tree *tree)
+void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos, t_tree *tree)
 {
   int i,p,ori_len;
 
-
+  printf("\n. a=%4d d=%4d %p",pere->num,fils->num,*s_tree);
   p = -1;
   if(fils->tax)
     {
+
+      printf("\n. Writing on %p\n",*s_tree);
       ori_len = (int)strlen(*s_tree);
 
       if(OUTPUT_TREE_FORMAT == 0)
-	strcat(*s_tree,fils->name);
+	{
+	  strcat(*s_tree,fils->name);
+	  (*pos) += (int)strlen(fils->name);
+	}
       else
-	sprintf(*s_tree+(int)strlen(*s_tree),"%d",fils->num+1);
+	{
+	  (*pos) += sprintf(*s_tree+*pos,"%d",fils->num+1);
+	}
 
       if((fils->b) && (fils->b[0]) && (fils->b[0]->l > -1.))
 	{
 	  if(tree->print_labels)
 	    {
 	      if(fils->b[0]->n_labels < 10)
-		For(i,fils->b[0]->n_labels) sprintf(*s_tree+(int)strlen(*s_tree),"#%s",fils->b[0]->labels[i]);
+		For(i,fils->b[0]->n_labels) 
+		  {
+		    (*pos) += sprintf(*s_tree+*pos,"#%s",fils->b[0]->labels[i]);
+		  }
 	      else
-		sprintf(*s_tree+(int)strlen(*s_tree),"#%d_labels",fils->b[0]->n_labels);
+		{
+		  (*pos) += sprintf(*s_tree+*pos,"#%d_labels",fils->b[0]->n_labels);
+		}
 	    }
 
 	  strcat(*s_tree,":");
-	  
+	  (*pos)++;
+
 #ifndef MC
 	  if(!tree->n_root)
-	    sprintf(*s_tree+(int)strlen(*s_tree),"%.10f",fils->b[0]->l);
+	    {
+	      (*pos) += sprintf(*s_tree+*pos,"%.10f",fils->b[0]->l);
+	    }
 	  else
 	    {
 	      if(pere == tree->n_root)
 		{
-		  phydbl pos = (fils == tree->n_root->v[0])?(tree->n_root_pos):(1.-tree->n_root_pos);
-		  sprintf(*s_tree+(int)strlen(*s_tree),"%.10f",tree->e_root->l * pos);
+		  phydbl root_pos = (fils == tree->n_root->v[0])?(tree->n_root_pos):(1.-tree->n_root_pos);
+		  (*pos) += sprintf(*s_tree+*pos,"%.10f",tree->e_root->l * root_pos);
 		}
 	      else
-		sprintf(*s_tree+(int)strlen(*s_tree),"%.10f",fils->b[0]->l);
+		{
+		  (*pos) += sprintf(*s_tree+*pos,"%.10f",fils->b[0]->l);
+		}
 	    }		
 #else
 	  if(!tree->n_root)
-	    sprintf(*s_tree+(int)strlen(*s_tree),"%.10f",fils->b[0]->l);
+	    {
+	      (*pos) += sprintf(*s_tree+*pos,"%.10f",fils->b[0]->l);
+	    }
 	  else
-	    sprintf(*s_tree+(int)strlen(*s_tree),"%.10f",tree->rates->cur_l[fils->num]);
+	    {
+	      (*pos) += sprintf(*s_tree+*pos,"%.10f",tree->rates->cur_l[fils->num]);
+	    }
 #endif
 	}
-/*       sprintf(*s_tree+(int)strlen(*s_tree),","); */
+
       strcat(*s_tree,",");
+      (*pos)++;
 
       (*available) = (*available) - ((int)strlen(*s_tree) - ori_len);
-/*       printf("\n. <<< %s %d %d",*s_tree,*available,strlen(*s_tree)); */
+
       if(*available < 0)
 	{
 	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
@@ -621,24 +650,24 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, t_tree *
 	  new_s_tree = (char *)mCalloc(len+(int)T_MAX_NAME,sizeof(char));
 	  strcpy(new_s_tree,*s_tree);
 	  Free(*s_tree);
+	  printf("\n. Freeing %p\n",*s_tree);
 	  *s_tree = new_s_tree;
 	  (*available) = (*available) + (int)T_MAX_NAME;
 	}
-  
-
-
     }
   else
     {
 
-      (*s_tree)[(int)strlen(*s_tree)]='(';
+      (*s_tree)[(*pos)]='(';
+      (*s_tree)[(*pos)+1]='\0';
+      (*pos)++;
 
       if(tree->n_root)
 	{
 	  For(i,3)
 	    {
 	      if((fils->v[i] != pere) && (fils->b[i] != tree->e_root))
-		R_wtree(fils,fils->v[i],available,s_tree,tree);
+		R_wtree(fils,fils->v[i],available,s_tree,pos,tree);
 	      else p=i;
 	    }
 	}
@@ -647,54 +676,75 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, t_tree *
 	  For(i,3)
 	    {
 	      if(fils->v[i] != pere)
-		R_wtree(fils,fils->v[i],available,s_tree,tree);
+		R_wtree(fils,fils->v[i],available,s_tree,pos,tree);
 	      else p=i;
 	    }
 	}
 
       ori_len = (int)strlen(*s_tree);
 
-      (*s_tree)[(int)strlen(*s_tree)-1]=')';
+      printf("\n. Writing on %p\n",*s_tree);
+      (*s_tree)[(*pos)-1] = ')';
+      (*s_tree)[(*pos)]   = '\0';
+
       if((fils->b) && (fils->b[0]->l > -1.))
 	{
 	  if(tree->print_boot_val)
-	    sprintf(*s_tree+(int)strlen(*s_tree),"%d",fils->b[p]->bip_score);
+	    {
+	      (*pos) += sprintf(*s_tree+*pos,"%d",fils->b[p]->bip_score);
+	    }
 	  else if(tree->print_alrt_val)
-	    sprintf(*s_tree+(int)strlen(*s_tree),"%.10f",fils->b[p]->ratio_test);
-
+	    {
+	      (*pos) += sprintf(*s_tree+*pos,"%.10f",fils->b[p]->ratio_test);
+	    }
 	  if(tree->print_labels)
 	    {
 	      if(fils->b[p]->n_labels < 10)
-		For(i,fils->b[p]->n_labels) sprintf(*s_tree+(int)strlen(*s_tree),"#%s",fils->b[p]->labels[i]);
+		For(i,fils->b[p]->n_labels) 
+		  {
+		    (*pos) += sprintf(*s_tree+*pos,"#%s",fils->b[p]->labels[i]);
+		  }
 	      else
-		sprintf(*s_tree+(int)strlen(*s_tree),"#%d_labels",fils->b[p]->n_labels);
+		{
+		  (*pos) += sprintf(*s_tree+*pos,"#%d_labels",fils->b[p]->n_labels);
+		}
 	    }
 
 	  strcat(*s_tree,":");
+	  (*pos)++;
 
 #ifndef MC
 	  if(!tree->n_root)
-	    sprintf(*s_tree+(int)strlen(*s_tree),"%.10f",fils->b[p]->l);
+	    {
+	      (*pos) += sprintf(*s_tree+*pos,"%.10f",fils->b[p]->l);
+	    }
 	  else
 	    {
 	      if(pere == tree->n_root)
 		{
-		  phydbl pos = (fils == tree->n_root->v[0])?(tree->n_root_pos):(1.-tree->n_root_pos);
-		  sprintf(*s_tree+(int)strlen(*s_tree),"%.10f",tree->e_root->l * pos);
+		  phydbl root_pos = (fils == tree->n_root->v[0])?(tree->n_root_pos):(1.-tree->n_root_pos);
+		  (*pos) += sprintf(*s_tree+*pos,"%.10f",tree->e_root->l * root_pos);
 		}
 	      else
-		sprintf(*s_tree+(int)strlen(*s_tree),"%.10f",fils->b[p]->l);
+		{
+		  (*pos) += sprintf(*s_tree+*pos,"%.10f",fils->b[p]->l);
+		}
 	    }
 #else
 	  if(!tree->n_root)
-	    sprintf(*s_tree+(int)strlen(*s_tree),"%.10f",fils->b[p]->l);
+	    {
+	      (*pos) += sprintf(*s_tree+*pos,"%.10f",fils->b[p]->l);
+	    }
 	  else
-	    sprintf(*s_tree+(int)strlen(*s_tree),"%.10f",tree->rates->cur_l[fils->num]);
+	    {
+	      (*pos) += sprintf(*s_tree+*pos,"%.10f",tree->rates->cur_l[fils->num]);
+	    }
 #endif
 	}
       strcat(*s_tree,",");
+      (*pos)++;
       (*available) = (*available) - ((int)strlen(*s_tree) - ori_len);
-/*       printf("\n. >>> %s %d %d",*s_tree,*available,strlen(*s_tree)); */
+
       if(*available < 0)
 	{
 	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
@@ -709,6 +759,7 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, t_tree *
 	  len = (int)strlen(*s_tree);
 	  new_s_tree = (char *)mCalloc(len+(int)T_MAX_NAME,sizeof(char));
 	  strcpy(new_s_tree,*s_tree);
+	  printf("\n. Freeing %p\n",*s_tree);
 	  Free(*s_tree);
 	  *s_tree = new_s_tree;
 	  (*available) = (*available) + (int)T_MAX_NAME;
