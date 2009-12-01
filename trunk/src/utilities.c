@@ -3781,6 +3781,7 @@ void Copy_Tax_Names_To_Tip_Labels(t_tree *tree, calign *data)
   For(i,tree->n_otu)
     {
       tree->noeud[i]->name = (char *)mCalloc((int)strlen(data->c_seq[i]->name)+1,sizeof(char));
+      tree->noeud[i]->ori_name = tree->noeud[i]->name;
       strcpy(tree->noeud[i]->name,data->c_seq[i]->name);
       tree->noeud[i]->tax = 1;
       tree->noeud[i]->num = i;
