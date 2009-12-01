@@ -565,13 +565,11 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
 {
   int i,p,ori_len;
 
-  printf("\n. a=%4d d=%4d %p",pere->num,fils->num,*s_tree);
   p = -1;
   if(fils->tax)
     {
-
-      printf("\n. Writing on %p\n",*s_tree);
-      ori_len = (int)strlen(*s_tree);
+/*       printf("\n- Writing on %p",*s_tree); */
+      ori_len = *pos;
 
       if(OUTPUT_TREE_FORMAT == 0)
 	{
@@ -633,7 +631,7 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
       strcat(*s_tree,",");
       (*pos)++;
 
-      (*available) = (*available) - ((int)strlen(*s_tree) - ori_len);
+      (*available) = (*available) - (*pos - ori_len);
 
       if(*available < 0)
 	{
@@ -646,14 +644,21 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
 	  int len;
 	  char *new_s_tree;
 	  
-	  len = (int)strlen(*s_tree);
-	  new_s_tree = (char *)mCalloc(len+(int)T_MAX_NAME,sizeof(char));
-	  strcpy(new_s_tree,*s_tree);
-	  Free(*s_tree);
-	  printf("\n. Freeing %p\n",*s_tree);
-	  *s_tree = new_s_tree;
-	  (*available) = (*available) + (int)T_MAX_NAME;
+	  len = *pos;
+/* 	  new_s_tree = (char *)mCalloc(len+(int)T_MAX_NAME,sizeof(char)); */
+/* 	  strcpy(new_s_tree,*s_tree); */
+/* 	  Free(*s_tree); */
+/* /\* 	  printf("\n- Available %d",*available); *\/ */
+/* /\* 	  printf("\n- Length = %d",(int)strlen(*s_tree)); *\/ */
+/* /\* 	  printf("\n. Allocating %d",len+(int)T_MAX_NAME); *\/ */
+/* /\* 	  printf("\n. Freeing %p\n",*s_tree); *\/ */
+/* 	  *s_tree = new_s_tree; */
+
+	  (*s_tree) = (char *)mRealloc(*s_tree,len+(int)T_MAX_NAME,sizeof(char));
+	  (*available) = (int)T_MAX_NAME;
 	}
+
+/*       printf(" %s [%d,%d]",*s_tree,(int)strlen(*s_tree),*available); */
     }
   else
     {
@@ -661,6 +666,7 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
       (*s_tree)[(*pos)]='(';
       (*s_tree)[(*pos)+1]='\0';
       (*pos)++;
+      (*available)--;
 
       if(tree->n_root)
 	{
@@ -681,9 +687,9 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
 	    }
 	}
 
-      ori_len = (int)strlen(*s_tree);
+      ori_len = *pos;
 
-      printf("\n. Writing on %p\n",*s_tree);
+/*       printf("\n+ Writing on %p",*s_tree); */
       (*s_tree)[(*pos)-1] = ')';
       (*s_tree)[(*pos)]   = '\0';
 
@@ -743,7 +749,7 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
 	}
       strcat(*s_tree,",");
       (*pos)++;
-      (*available) = (*available) - ((int)strlen(*s_tree) - ori_len);
+      (*available) = (*available) - (*pos - ori_len);
 
       if(*available < 0)
 	{
@@ -756,14 +762,20 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
 	  int len;
 	  char *new_s_tree;
 	  
-	  len = (int)strlen(*s_tree);
-	  new_s_tree = (char *)mCalloc(len+(int)T_MAX_NAME,sizeof(char));
-	  strcpy(new_s_tree,*s_tree);
-	  printf("\n. Freeing %p\n",*s_tree);
-	  Free(*s_tree);
-	  *s_tree = new_s_tree;
-	  (*available) = (*available) + (int)T_MAX_NAME;
+	  len = *pos;
+/* 	  new_s_tree = (char *)mCalloc(len+(int)T_MAX_NAME,sizeof(char)); */
+/* 	  strcpy(new_s_tree,*s_tree); */
+/* /\* 	  printf("\n+ Available %d",*available); *\/ */
+/* /\*  	  printf("\n. Allocating %d",len+(int)T_MAX_NAME); *\/ */
+/* /\* 	  printf("\n. Freeing %p\n",*s_tree); *\/ */
+/* 	  Free(*s_tree); */
+/* 	  *s_tree = new_s_tree; */
+
+
+	  (*s_tree) = (char *)mRealloc(*s_tree,len+(int)T_MAX_NAME,sizeof(char));
+	  (*available) = (int)T_MAX_NAME;
 	}
+/*       printf(" %s [%d,%d]",*s_tree,(int)strlen(*s_tree),*available); */
     }
 }
 
