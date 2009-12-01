@@ -529,8 +529,6 @@ char *Write_Tree(t_tree *tree)
   tree->n_root = NULL;
   tree->e_root = NULL;
   #endif
-
-  printf("\n. s = %p\n",s);
   
   if(!tree->n_root)
     {
@@ -548,9 +546,6 @@ char *Write_Tree(t_tree *tree)
       R_wtree(tree->n_root,tree->n_root->v[0],&available,&s,&pos,tree);
       R_wtree(tree->n_root,tree->n_root->v[1],&available,&s,&pos,tree);
     }
-
-  printf("\n. s = %p\n",s);
-  printf("\n. s=%s\n",s);
 
   s[pos-1]=')';
   s[pos]=';';
@@ -641,23 +636,9 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
 
       if(*available < (int)T_MAX_NAME/2)
 	{
-	  int len;
-	  char *new_s_tree;
-	  
-	  len = *pos;
-/* 	  new_s_tree = (char *)mCalloc(len+(int)T_MAX_NAME,sizeof(char)); */
-/* 	  strcpy(new_s_tree,*s_tree); */
-/* 	  Free(*s_tree); */
-/* /\* 	  printf("\n- Available %d",*available); *\/ */
-/* /\* 	  printf("\n- Length = %d",(int)strlen(*s_tree)); *\/ */
-/* /\* 	  printf("\n. Allocating %d",len+(int)T_MAX_NAME); *\/ */
-/* /\* 	  printf("\n. Freeing %p\n",*s_tree); *\/ */
-/* 	  *s_tree = new_s_tree; */
-
-	  (*s_tree) = (char *)mRealloc(*s_tree,len+(int)T_MAX_NAME,sizeof(char));
+	  (*s_tree) = (char *)mRealloc(*s_tree,*pos+(int)T_MAX_NAME,sizeof(char));
 	  (*available) = (int)T_MAX_NAME;
 	}
-
 /*       printf(" %s [%d,%d]",*s_tree,(int)strlen(*s_tree),*available); */
     }
   else
@@ -759,20 +740,7 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
 
       if(*available < (int)T_MAX_NAME/2)
 	{
-	  int len;
-	  char *new_s_tree;
-	  
-	  len = *pos;
-/* 	  new_s_tree = (char *)mCalloc(len+(int)T_MAX_NAME,sizeof(char)); */
-/* 	  strcpy(new_s_tree,*s_tree); */
-/* /\* 	  printf("\n+ Available %d",*available); *\/ */
-/* /\*  	  printf("\n. Allocating %d",len+(int)T_MAX_NAME); *\/ */
-/* /\* 	  printf("\n. Freeing %p\n",*s_tree); *\/ */
-/* 	  Free(*s_tree); */
-/* 	  *s_tree = new_s_tree; */
-
-
-	  (*s_tree) = (char *)mRealloc(*s_tree,len+(int)T_MAX_NAME,sizeof(char));
+	  (*s_tree) = (char *)mRealloc(*s_tree,*pos+(int)T_MAX_NAME,sizeof(char));
 	  (*available) = (int)T_MAX_NAME;
 	}
 /*       printf(" %s [%d,%d]",*s_tree,(int)strlen(*s_tree),*available); */
