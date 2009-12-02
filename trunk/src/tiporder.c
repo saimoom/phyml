@@ -91,6 +91,8 @@ int TIPORDER_main(int argc, char **argv)
 
   For(i,ref_tree->n_otu) 
     {
+      Free(ref_tree->noeud[i]->name);
+      ref_tree->noeud[i]->name = (char *)mCalloc(strlen(name_table[i])+1,sizeof(char));
       strcpy(ref_tree->noeud[i]->name,name_table[i]);
       Free(name_table[i]);
     }
