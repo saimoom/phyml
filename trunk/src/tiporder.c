@@ -81,6 +81,8 @@ int TIPORDER_main(int argc, char **argv)
 		      break;
 		    }
 		}
+	      Free(ref_io->short_tax_names[i]);
+	      ref_io->short_tax_names[i] = (char *)mCalloc(strlen(list_io->short_tax_names[j])+1,sizeof(char));
 	      strcpy(ref_io->short_tax_names[i],list_io->short_tax_names[j]);
 	      break;
 	    }
