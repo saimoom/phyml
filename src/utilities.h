@@ -187,48 +187,48 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 /* #define USE_OLD_LK */
 
 /* Uncomment the lines below to switch to single precision */
-/* typedef	float phydbl; */
-/* #define LOG logf */
-/* #define POW powf */
-/* #define EXP expf */
-/* #define FABS fabsf */
-/* #define SQRT sqrtf */
-/* #define CEIL ceilf */
-/* #define FLOOR floorf */
-/* #define RINT rintf */
-/* #define ROUND roundf */
-/* #define TRUNC truncf */
-/* #define COS cosf */
-/* #define SIN sinf */
-/* #define TAN tanf */
-/* #define SMALL FLT_MIN */
-/* #define BIG  FLT_MAX */
-/* #define SMALL_PIJ 1.E-10 */
-/* #define BL_MIN 1.E-5 */
-/* #define  P_LK_LIM_INF   2.168404e-19 /\* 2^-62 *\/ */
-/* #define  P_LK_LIM_SUP   4.611686e+18 /\* 2^62 *\/ */
+typedef	float phydbl;
+#define LOG logf
+#define POW powf
+#define EXP expf
+#define FABS fabsf
+#define SQRT sqrtf
+#define CEIL ceilf
+#define FLOOR floorf
+#define RINT rintf
+#define ROUND roundf
+#define TRUNC truncf
+#define COS cosf
+#define SIN sinf
+#define TAN tanf
+#define SMALL FLT_MIN
+#define BIG  FLT_MAX
+#define SMALL_PIJ 1.E-10
+#define BL_MIN 1.E-5
+#define  P_LK_LIM_INF   2.168404e-19 /* 2^-62 */
+#define  P_LK_LIM_SUP   4.611686e+18 /* 2^62 */
 
 /* Uncomment the line below to switch to double precision */
-typedef	double phydbl;
-#define LOG log
-#define POW pow
-#define EXP exp
-#define FABS fabs
-#define SQRT sqrt
-#define CEIL ceil
-#define FLOOR floor
-#define RINT rint
-#define ROUND round
-#define TRUNC trunc
-#define COS cos
-#define SIN sin
-#define TAN tan
-#define SMALL DBL_MIN
-#define BIG  DBL_MAX
-#define SMALL_PIJ 1.E-10
-#define BL_MIN 1.E-10
-#define  P_LK_LIM_INF   3.054936e-151 /* 2^-500 */
-#define  P_LK_LIM_SUP   3.273391e+150 /* 2^500 */
+/* typedef	double phydbl; */
+/* #define LOG log */
+/* #define POW pow */
+/* #define EXP exp */
+/* #define FABS fabs */
+/* #define SQRT sqrt */
+/* #define CEIL ceil */
+/* #define FLOOR floor */
+/* #define RINT rint */
+/* #define ROUND round */
+/* #define TRUNC trunc */
+/* #define COS cos */
+/* #define SIN sin */
+/* #define TAN tan */
+/* #define SMALL DBL_MIN */
+/* #define BIG  DBL_MAX */
+/* #define SMALL_PIJ 1.E-10 */
+/* #define BL_MIN 1.E-10 */
+/* #define  P_LK_LIM_INF   3.054936e-151 /\* 2^-500 *\/ */
+/* #define  P_LK_LIM_SUP   3.273391e+150 /\* 2^500 *\/ */
 
 /*********************************************************/
 
@@ -237,12 +237,12 @@ typedef struct __Node {
   struct __Node               ***bip_node; /* three lists of pointer to tip nodes. One list for each direction */
   struct __Edge                       **b; /* table of pointers to neighbor branches */
   struct __Node                      *anc; /* direct ancestor t_node (for rooted tree only) */
+  struct __Node                 *ext_node;
 
   int                           *bip_size; /* Size of each of the three lists from bip_node */
   int                                 num; /* t_node number */
   int                                 tax; /* tax = 1 -> external node, else -> internal t_node */
   int                        check_branch; /* check_branch=1 is the corresponding branch is labelled with '*' */
-/*   char                        ***bip_name; /\* three lists of tip t_node names. One list for each direction *\/ */
   char                              *name; /* taxon name (if exists) */
   char                          *ori_name; /* taxon name (if exists) */
 
@@ -253,7 +253,6 @@ typedef struct __Node {
   short int                        common;
   phydbl                           y_rank;
   phydbl                          y_width;
-  struct __Node                 *ext_node;
 
 }t_node;
 
@@ -348,8 +347,6 @@ typedef struct __Arbre {
   struct __Edge                       *e_root; /* t_edge on which lies the root */
   struct __Node                       **noeud; /* array of nodes that defines the tree topology */
   struct __Edge                     **t_edges; /* array of edges */
-  struct __Arbre                    *old_tree; /* old copy of the tree */
-  struct __Arbre                   *best_tree; /* best tree found so far */
   struct __Model                         *mod; /* substitution model */
   struct __Calign                       *data; /* sequences */
   struct __Option                         *io; /* input/output */
@@ -384,8 +381,6 @@ typedef struct __Arbre {
 
   int                                      dp; /* Data partition */
   int                               s_mod_num; /* Substitution model number */
-  int                      number_of_lk_calls;
-  int               number_of_branch_lk_calls;
   int                               lock_topo; /* = 1 any subsequent topological modification will be banished */
   int                            print_labels;
 
@@ -401,7 +396,6 @@ typedef struct __Arbre {
   phydbl                     **log_site_lk_cat; /* loglikelihood at individual sites and for each class of rate*/
   phydbl                          *site_lk_cat; /* loglikelihood at a single site and for each class of rate*/
   phydbl                       unconstraint_lk; /* unconstrained (or multinomial) likelihood  */
-  phydbl             prop_of_sites_to_consider;
   phydbl                        **log_lks_aLRT; /* used to compute several branch supports */
   phydbl                            n_root_pos; /* position of the root on its t_edge */
   phydbl                                  size; /* tree size */
@@ -721,8 +715,9 @@ typedef struct __Option { /* mostly used in 'help.c' */
   int                          quiet; /* 0 is the default. 1: no interactive question (for batch mode) */
   char                    **alphabet;
 
-  char                   **tax_table;
-  int                 size_tax_table;
+  char              **long_tax_names;
+  char             **short_tax_names;
+  int                 size_tax_names;
 }option;
 
 /*********************************************************/
