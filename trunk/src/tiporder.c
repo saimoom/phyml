@@ -59,6 +59,8 @@ int TIPORDER_main(int argc, char **argv)
   fclose(list_io->fp_in_tree);
   list_tree = list_io->treelist->tree;
   n_trees = list_io->treelist->list_size;
+  PhyML_Printf("\n. Read %d trees\n",n_trees);
+ 
   For(i,n_trees) list_tree[i]->io = list_io;
 
   name_table = (char **)mCalloc(ref_tree->n_otu,sizeof(char **));
@@ -92,7 +94,6 @@ int TIPORDER_main(int argc, char **argv)
     }
   Free(name_table);
 
-  Exit("\n");
 
   /* Find matching tips */
   For(i,n_trees)
@@ -127,6 +128,7 @@ int TIPORDER_main(int argc, char **argv)
   PhyML_Printf("\n. Getting bipartitions"); fflush(NULL);
   For(i,n_trees) 
     {
+      if(!(i%10)) PhyML_Printf("\n. Getting bipartition for tree %d",i);
       Free_Bip(list_tree[i]);
       Alloc_Bip(list_tree[i]);
       Get_Bip(list_tree[i]->noeud[0],
