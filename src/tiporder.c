@@ -92,6 +92,7 @@ int TIPORDER_main(int argc, char **argv)
     }
   Free(name_table);
 
+  Exit("\n");
 
   /* Find matching tips */
   For(i,n_trees)
