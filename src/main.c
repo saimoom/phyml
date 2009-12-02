@@ -118,9 +118,7 @@ int main(int argc, char **argv)
 		  if((io->mod->s_opt->random_input_tree) && (io->mod->s_opt->topo_search != NNI_MOVE))
 		    if(!io->quiet) PhyML_Printf("\n. [Random start %3d/%3d]\n",num_rand_tree+1,io->mod->s_opt->n_rand_starts);
 
-
 		  Init_Model(cdata,mod,io);
-
 
 		  switch(io->in_tree)
 		    {

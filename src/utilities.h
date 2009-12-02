@@ -109,7 +109,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 
 #define  T_MAX_FILE           500
 #define  T_MAX_LINE       2000000
-#define  T_MAX_NAME           200
+#define  T_MAX_NAME           100
 #define  T_MAX_SEQ        2000000
 #define  T_MAX_OPTION         100
 #define  T_MAX_LABEL           10
@@ -236,12 +236,9 @@ typedef struct __Node {
   struct __Node                       **v; /* table of pointers to neighbor nodes. Dimension = 3 */
   struct __Node               ***bip_node; /* three lists of pointer to tip nodes. One list for each direction */
   struct __Edge                       **b; /* table of pointers to neighbor branches */
-  struct __Node ***list_of_reachable_tips; /* list of tip nodes that can be reached in each direction from that t_node */
   struct __Node                      *anc; /* direct ancestor t_node (for rooted tree only) */
 
-  int                *n_of_reachable_tips; /* sizes of the list_of_reachable_tips (in each direction) */
   int                           *bip_size; /* Size of each of the three lists from bip_node */
-  int                           **bip_num; /* Number of the nodes that can be reached in each of the three directions */
   int                                 num; /* t_node number */
   int                                 tax; /* tax = 1 -> external node, else -> internal t_node */
   int                        check_branch; /* check_branch=1 is the corresponding branch is labelled with '*' */
@@ -346,6 +343,7 @@ typedef struct __Edge {
 /*********************************************************/
 
 typedef struct __Arbre {
+
   struct __Node                       *n_root; /* root t_node */
   struct __Edge                       *e_root; /* t_edge on which lies the root */
   struct __Node                       **noeud; /* array of nodes that defines the tree topology */
@@ -362,6 +360,7 @@ typedef struct __Arbre {
   struct __Tdraw                     *ps_tree; /* structure for drawing trees in postscript format */
   struct __Trate                       *rates; /* structure for handling rates of evolution */
   struct __Tmcmc                        *mcmc;
+  struct __Triplet            *triplet_struct;
 
   int                          ps_page_number; /* when multiple trees are printed, this variable give the current page number */
   int                         depth_curr_path; /* depth of the t_node path defined by curr_path */
@@ -379,7 +378,7 @@ typedef struct __Arbre {
 						  traversals are required to compute the likelihood
 						  of every subtree in the phylogeny*/
   int               num_curr_branch_available; /*gives the number of the next cell in t_edges that is free to receive a pointer to a branch */
-  int                                 **t_dir;
+  short int                            *t_dir;
   int                          n_improvements;
   int                                 n_moves;
 
@@ -415,8 +414,6 @@ typedef struct __Arbre {
 
   time_t                                t_beg;
   time_t                            t_current;
-
-  struct __Triplet            *triplet_struct;
   
   int                     bl_from_node_stamps; /* == 1 -> Branch lengths are determined by t_node times */
   phydbl                        sum_y_dist_sq;
@@ -1163,10 +1160,6 @@ void Copy_Tree(t_tree *ori, t_tree *cpy);
 void Reassign_Edge_Nums(t_node *a, t_node *d, int *curr_br, t_tree *tree);
 void Init_Node_Light(t_node *n, int num);
 void Make_All_Edge_Dirs(t_node *a, t_node *d, t_tree *tree);
-void Get_List_Of_Reachable_Tips(t_tree *tree);
-void Get_List_Of_Reachable_Tips_Post(t_node *a, t_node *d, t_tree *tree);
-void Get_List_Of_Reachable_Tips_Pre(t_node *a, t_node *d, t_tree *tree);
-void Make_List_Of_Reachable_Tips(t_tree *tree);
 void Graft_Subtree(t_edge *target, t_node *link, t_edge *add_br, t_tree *tree);
 int Get_Subtree_Size(t_node *a, t_node *d);
 void Pull_Subtree_From_Dead_Objects(t_node *a, t_node *d, t_tree *tree);
@@ -1181,8 +1174,7 @@ void Record_Br_Len(phydbl *where, t_tree *tree);
 void Restore_Br_Len(phydbl *from, t_tree *tree);
 void Get_Dist_Btw_Edges(t_node *a, t_node *d, t_tree *tree);
 void Detect_Polytomies(t_edge *b, phydbl l_thresh, t_tree *tree);
-int Compare_List_Of_Reachable_Tips(t_node **list1, int size_list1, t_node **list2, int size_list2);
-void Find_Mutual_Direction(t_node *n1, t_node *n2, int *dir_n1_to_n2, int *dir_n2_to_n1);
+void Find_Mutual_Direction(t_node *n1, t_node *n2, short int *dir_n1_to_n2, short int *dir_n2_to_n1);
 void Fill_Dir_Table(t_tree *tree);
 void Get_List_Of_Nodes_In_Polytomy(t_node *a, t_node *d, t_node ***list, int *size_list);
 void NNI_Polytomies(t_tree *tree, t_edge *b_fcus, int do_swap);

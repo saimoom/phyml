@@ -43,7 +43,7 @@ int TIPORDER_main(int argc, char **argv)
 
   if(!fp_list_tree) 
     {
-      PhyML_Printf("\n. Can't find %s",argv[1]);
+      PhyML_Printf("\n. Can't find %s",argv[2]);
       PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
@@ -70,7 +70,7 @@ int TIPORDER_main(int argc, char **argv)
   list_tree = list_io->treelist->tree;
   n_trees = list_io->treelist->list_size;
   For(i,n_trees) Translate_Tax_Names(list_io->tax_table,list_tree[i]);
-
+ 
 /*   list_tree = (t_tree **)mCalloc(1,sizeof(t_tree *)); */
 /*   n_trees = 0; */
 /*   do */
@@ -517,7 +517,6 @@ int Untangle_Tree(t_tree *tree)
 
   node_table = (t_node **)mCalloc(tree->n_otu,sizeof(t_node *));
 
-
   For(i,tree->n_otu) node_table[i] = tree->noeud[i];
 
 /*       bubble sort of conflict nodes according to their y_rank */
@@ -549,7 +548,7 @@ int Untangle_Tree(t_tree *tree)
       Untangle_Node(tree->n_root,tree->n_root->v[0],node_table,&conflict,tree);
       Untangle_Node(tree->n_root,tree->n_root->v[1],node_table,&conflict,tree);
       n_trials++;
-      if(n_trials > 100) 
+      if(n_trials > 1000) 
 	{
 	  int i;
 	  FILE *ps_tree;
