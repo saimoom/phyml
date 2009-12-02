@@ -844,8 +844,6 @@ void Init_Edge_Light(t_edge *b, int num)
   b->dist_btw_edges       = .0;
   b->topo_dist_btw_edges  = 0;
   b->has_zero_br_len      = 0;
-  b->is_p_lk_l_u2d        = 0;
-  b->is_p_lk_r_u2d        = 0;
   b->n_jumps              = 0;
 
   b->p_lk_left            = NULL;
