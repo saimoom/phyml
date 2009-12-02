@@ -331,7 +331,6 @@ phydbl Lk(t_tree *tree)
 
   n_patterns = tree->n_pattern;
 
-  tree->number_of_lk_calls++;
 
   Set_Model_Parameters(tree->mod);
 
@@ -375,8 +374,6 @@ phydbl Lk_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
 {
   int n_patterns;
   
-  tree->number_of_branch_lk_calls++;
-
   n_patterns = tree->n_pattern;
 
 #ifdef MC

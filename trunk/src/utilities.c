@@ -749,8 +749,6 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
 void Init_Tree(t_tree *tree, int n_otu)
 {
   tree->n_otu                     = n_otu;
-  tree->best_tree                 = NULL;
-  tree->old_tree                  = NULL;
   tree->mat                       = NULL;
   tree->n_root                    = NULL;
   tree->e_root                    = NULL;
@@ -760,8 +758,6 @@ void Init_Tree(t_tree *tree, int n_otu)
   tree->has_bip                   = NO;
   tree->n_moves                   = 0;
   tree->n_improvements            = 0;
-  tree->number_of_lk_calls        = 0;
-  tree->number_of_branch_lk_calls = 0;
   tree->bl_from_node_stamps       = 0;
   tree->lock_topo                 = 0;
   tree->ps_page_number            = 0;
@@ -774,7 +770,6 @@ void Init_Tree(t_tree *tree, int n_otu)
   tree->best_pars                 = 1E+5;
 
   tree->n_pattern                 = -1;
-  tree->prop_of_sites_to_consider = 1.;
   tree->n_root_pos                = -1.;
   tree->print_labels              = 1;
 
@@ -1858,7 +1853,7 @@ int Read_Nexus_Translate(char *token, nexparm *curr_parm, option *io)
   char *end;
 
   PhyML_Printf("\n. Reading 'translate' block");
-  io->size_tax_table = 0;
+  io->size_tax_names = 0;
 
   do
     {
@@ -1867,12 +1862,19 @@ int Read_Nexus_Translate(char *token, nexparm *curr_parm, option *io)
       tax_num = (int)strtol(token,&end,10);
       if(*end =='\0' && token[0])
 	{
-	  io->size_tax_table++;
+	  io->size_tax_names++;
+
+	  io->short_tax_names = (char **)realloc(io->short_tax_names,io->size_tax_names*sizeof(char *));
+	  io->short_tax_names[io->size_tax_names-1] = (char *)mCalloc(strlen(token)+1,sizeof(char));
+	  sprintf(io->short_tax_names[io->size_tax_names-1],"%d",tax_num);
+
 	  Get_Token(io->fp_in_tree,token);
-	  io->tax_table = (char **)realloc(io->tax_table,io->size_tax_table*sizeof(char *));
-	  io->tax_table[io->size_tax_table-1] = (char *)mCalloc(strlen(token)+1,sizeof(char));
-	  strcpy(io->tax_table[io->size_tax_table-1],token);
-/* 	  printf("\n. Copying %s number %d",io->tax_table[io->size_tax_table-1],tax_num-1); */
+
+	  io->long_tax_names = (char **)realloc(io->long_tax_names,io->size_tax_names*sizeof(char *));
+	  io->long_tax_names[io->size_tax_names-1] = (char *)mCalloc(strlen(token)+1,sizeof(char));
+	  strcpy(io->long_tax_names[io->size_tax_names-1],token);
+
+/* 	  printf("\n. Copying %s number %d",io->long_tax_names[io->size_long_tax_names-1],tax_num-1); */
 	}
     }while(strlen(token) > 0);
   
@@ -1899,7 +1901,8 @@ int Read_Nexus_Matrix(char *token, nexparm *curr_parm, option *io)
 int Read_Nexus_Tree(char *token, nexparm *curr_parm, option *io)
 {
   io->treelist->tree = (t_tree **)realloc(io->treelist->tree,(io->treelist->list_size+1)*sizeof(t_tree *));
-  PhyML_Printf("\n. Reading tree %d",io->treelist->list_size+1);
+
+  if(!(io->treelist->list_size%10)) PhyML_Printf("\n. Reading tree %d",io->treelist->list_size+1);
   io->tree = Read_Tree_File_Phylip(io->fp_in_tree);
   io->treelist->tree[io->treelist->list_size] = io->tree;
   io->treelist->list_size++;
@@ -10260,7 +10263,7 @@ void JF(t_tree *tree)
   //printing loglk for each site, to compute SH-like tests */
   phydbl sum=0.0;
   PhyML_Printf("\n\nSITES LKS:\n");
-  int n_patterns = (int)FLOOR(tree->n_pattern*tree->prop_of_sites_to_consider);
+  int n_patterns = (int)FLOOR(tree->n_pattern);
   int site=0;
   For(site,n_patterns) {
     int wei=0;
@@ -10285,7 +10288,7 @@ void JF(t_tree *tree)
 /*   //printing loglk for each site, to compute SH-like tests */
 /*   phydbl sum=0.0; */
 /*   PhyML_Printf("\n\nSITES LKS:\n"); */
-/*   int n_patterns = (int)FLOOR(tree->n_pattern*tree->prop_of_sites_to_consider); */
+/*   int n_patterns = (int)FLOOR(tree->n_pattern); */
 /*   int site=0; */
 /*   For(site,n_patterns) { */
 /*     int wei=0; */
@@ -10664,6 +10667,32 @@ t_node *Find_Lca(t_node *n1, t_node *n2, t_tree *tree)
 
   Free(list1);
   Free(list2);
+
+
+/*   t_node *lca; */
+/*   int score; */
+/*   int i,j; */
+
+/*   lca = n1->anc; */
+/*   do */
+/*     { */
+/*       if(lca == tree->n_root) break; */
+/*       else */
+/* 	{ */
+/* 	  score = 0; */
+/* 	  For(i,3) if(lca->v[i] == lca->anc) break; */
+/* 	  For(j,lca->bip_size[i]) */
+/* 	    { */
+/* 	      if(lca->bip_node[i][j] == n1 || lca->bip_node[i][j] == n2) */
+/* 		{ */
+/* 		  score++; */
+/* 		  if(score == 2) break; */
+/* 		} */
+/* 	    } */
+/* 	  if(score != 2) lca = lca->anc; */
+/* 	} */
+/*     }while(score != 2); */
+  
 
   return lca;
 }

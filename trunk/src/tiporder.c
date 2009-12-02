@@ -22,17 +22,17 @@ the GNU public licence. See http://www.opensource.org for details.
 int TIPORDER_main(int argc, char **argv)
 {
   t_tree **list_tree,*ref_tree;
-  FILE *fp_ref_tree,*fp_list_tree,*ps_tree;
+  FILE *fp_ref_tree,*fp_list_tree;
   int i,j,k;
   int n_trees;
   option *ref_io,*list_io;
+  char **name_table;
 
   ref_io  = (option *)Make_Input();
   list_io = (option *)Make_Input();
 
   fp_ref_tree  = (FILE *)fopen(argv[1],"r");
   fp_list_tree = (FILE *)fopen(argv[2],"r");
-  ps_tree      = (FILE *)fopen(argv[3],"w");
 
   if(!fp_ref_tree) 
     {
@@ -52,49 +52,48 @@ int TIPORDER_main(int argc, char **argv)
   Read_Tree_File(ref_io);
   fclose(ref_io->fp_in_tree);
   ref_tree = ref_io->tree;
-  Translate_Tax_Names(ref_io->tax_table,ref_tree);
-
-/*   Add_Root(ref_tree->t_edges[0], ref_tree); */
-/*   ref_tree->rates = RATES_Make_Rate_Struct(ref_tree->n_otu); */
-/*   RATES_Init_Rate_Struct(ref_tree->rates, ref_tree->n_otu); */
-/*   MC_Least_Square_Node_Times(ref_tree->t_edges[0],ref_tree); */
-/*   MC_Adjust_Node_Times(ref_tree); */
-/*   RATES_Update_Cur_Bl(ref_tree); */
-
-  ref_tree->ps_tree = DR_Make_Tdraw_Struct(ref_tree);
-  DR_Get_Tree_Coord(ref_tree);
+  ref_tree->io = ref_io;
 
   list_io->fp_in_tree = fp_list_tree;
   Read_Tree_File(list_io);
   fclose(list_io->fp_in_tree);
   list_tree = list_io->treelist->tree;
   n_trees = list_io->treelist->list_size;
-  For(i,n_trees) Translate_Tax_Names(list_io->tax_table,list_tree[i]);
- 
-/*   list_tree = (t_tree **)mCalloc(1,sizeof(t_tree *)); */
-/*   n_trees = 0; */
-/*   do */
-/*     { */
-/*       list_tree = (t_tree **)realloc(list_tree,(n_trees+1)*sizeof(t_tree *)); */
-/*       list_tree[n_trees] = Read_Tree_File_Phylip(fp_list_tree);       */
-/*       PhyML_Printf("\n. Read %d trees",n_trees); */
-/*       n_trees++; */
-/*     } */
-/*   while(list_tree[n_trees-1]); */
-/*   n_trees--; */
+  For(i,n_trees) list_tree[i]->io = list_io;
 
+  name_table = (char **)mCalloc(ref_tree->n_otu,sizeof(char **));
+  For(i,ref_tree->n_otu) name_table[i] = (char *)mCalloc(T_MAX_NAME,sizeof(char));
 
-  For(i,n_trees)
+  /* Make sure the translation tables in ref_tree and list_tree are the same */
+  For(i,ref_tree->n_otu)
     {
-/*       Add_Root(list_tree[i]->t_edges[0],list_tree[i]); */
-/*       list_tree[i]->rates = RATES_Make_Rate_Struct(list_tree[i]->n_otu); */
-/*       RATES_Init_Rate_Struct(list_tree[i]->rates, list_tree[i]->n_otu); */
-/*       MC_Least_Square_Node_Times(list_tree[i]->t_edges[0],list_tree[i]); */
-/*       MC_Adjust_Node_Times(list_tree[i]); */
-/*       RATES_Update_Cur_Bl(list_tree[i]); */
-/*       Dist_To_Root(list_tree[i]->n_root,list_tree[i]); */
+      For(j,ref_tree->n_otu)
+	{
+	  if(!strcmp(ref_io->long_tax_names[i],list_io->long_tax_names[j]))
+	    {
+	      For(k,ref_tree->n_otu)
+		{
+		  if(!strcmp(ref_tree->noeud[k]->name,ref_io->short_tax_names[i]))
+		    {
+		      strcpy(name_table[k],list_io->short_tax_names[j]);
+		      break;
+		    }
+		}
+	      strcpy(ref_io->short_tax_names[i],list_io->short_tax_names[j]);
+	      break;
+	    }
+	}
     }
 
+  For(i,ref_tree->n_otu) 
+    {
+      strcpy(ref_tree->noeud[i]->name,name_table[i]);
+      Free(name_table[i]);
+    }
+  Free(name_table);
+
+
+  /* Find matching tips */
   For(i,n_trees)
     {
       For(j,ref_tree->n_otu) 
@@ -116,28 +115,6 @@ int TIPORDER_main(int argc, char **argv)
 	}
     }
 
-  PhyML_Printf("\n. Rendering trees",n_trees); fflush(NULL);
-
-
-  DR_Print_Postscript_Header(1,ps_tree);
-  For(i,n_trees)
-    {
-      list_tree[i]->ps_tree = DR_Make_Tdraw_Struct(list_tree[i]);
-      DR_Init_Tdraw_Struct(list_tree[i]->ps_tree);
-      DR_Get_Tree_Box_Width(list_tree[i]->ps_tree,list_tree[i]);
-      if(!list_tree[i]->n_root) Add_Root(list_tree[i]->t_edges[0],list_tree[i]);
-      Dist_To_Root(list_tree[i]->n_root,list_tree[i]);
-      list_tree[i]->ps_tree->max_dist_to_root = DR_Get_Max_Dist_To_Root(list_tree[i]);
-      For(j,ref_tree->n_otu) list_tree[i]->ps_tree->ycoord[j] = ref_tree->ps_tree->ycoord[list_tree[i]->noeud[j]->ext_node->num];
-      For(j,ref_tree->n_otu) list_tree[i]->ps_tree->xcoord[j] = ref_tree->ps_tree->xcoord[list_tree[i]->noeud[j]->ext_node->num];
-      DR_Get_X_Coord(YES,list_tree[i]->ps_tree,list_tree[i]);
-      DR_Get_Y_Coord(YES,list_tree[i]->ps_tree,list_tree[i]);
-      if(!i) DR_Print_Tree_Postscript(1,YES,ps_tree,list_tree[i]);
-      else   DR_Print_Tree_Postscript(1, NO,ps_tree,list_tree[i]);
-    }
-  DR_Print_Postscript_EOF(ps_tree);
-    
-
   PhyML_Printf("\n. Getting ancestors"); fflush(NULL);
   For(i,n_trees)   
     {
@@ -151,7 +128,6 @@ int TIPORDER_main(int argc, char **argv)
     {
       Free_Bip(list_tree[i]);
       Alloc_Bip(list_tree[i]);
-      if(!(i%10)) printf("\n. Tree %d",i);
       Get_Bip(list_tree[i]->noeud[0],
 	      list_tree[i]->noeud[0]->v[0],
 	      list_tree[i]);
@@ -173,33 +149,8 @@ int TIPORDER_main(int argc, char **argv)
   PhyML_Printf("\n. Minimizing"); fflush(NULL);
   Minimize_Tip_Order_Score(n_trees,list_tree,ref_tree);
 
-  For(i,n_trees) Get_All_Y_Rank(list_tree[i]);
-/*   For(i,n_trees) Print_Tip_Ordered(list_tree[i]); */
-
-    
-  fclose(ps_tree);
-  ps_tree = (FILE *)fopen(argv[4],"w");
-  DR_Get_Tree_Coord(ref_tree);
-  DR_Print_Postscript_Header(1,ps_tree);
-  For(i,n_trees)
-    {
-      DR_Init_Tdraw_Struct(list_tree[i]->ps_tree);
-      DR_Get_Tree_Box_Width(list_tree[i]->ps_tree,list_tree[i]);
-      if(!list_tree[i]->n_root) Add_Root(list_tree[i]->t_edges[0],list_tree[i]);
-      Dist_To_Root(list_tree[i]->n_root,list_tree[i]);
-      list_tree[i]->ps_tree->max_dist_to_root = DR_Get_Max_Dist_To_Root(list_tree[i]);
-      For(j,ref_tree->n_otu) list_tree[i]->ps_tree->ycoord[j] = ref_tree->ps_tree->ycoord[list_tree[i]->noeud[j]->ext_node->num];
-      For(j,ref_tree->n_otu) list_tree[i]->ps_tree->xcoord[j] = ref_tree->ps_tree->xcoord[list_tree[i]->noeud[j]->ext_node->num];
-      DR_Get_X_Coord(YES,list_tree[i]->ps_tree,list_tree[i]);
-      DR_Get_Y_Coord(YES,list_tree[i]->ps_tree,list_tree[i]);
-      if(!i) DR_Print_Tree_Postscript(1,YES,ps_tree,list_tree[i]);
-      else   DR_Print_Tree_Postscript(1, NO,ps_tree,list_tree[i]);
-    }
-  DR_Print_Postscript_EOF(ps_tree);
-
   fclose(fp_ref_tree);
   fclose(fp_list_tree);
-  fclose(ps_tree);
 }
 
 /*********************************************************/
@@ -366,7 +317,7 @@ void Swap_One_Node(t_node *d, t_tree *tree)
 
 void Minimize_Tip_Order_Score(int n_trees, t_tree **list_tree, t_tree *ref_tree)
 {
-  int i;
+  int i,j;
   phydbl score,min_score,old_min_score;
   phydbl diff,eps;
   t_node **node_table;
@@ -379,7 +330,7 @@ void Minimize_Tip_Order_Score(int n_trees, t_tree **list_tree, t_tree *ref_tree)
 
   do
     {
-      For(i,2*ref_tree->n_otu-1)
+      for(i=ref_tree->n_otu;i<2*ref_tree->n_otu-1;i++)
 	{	  
 	  Swap_One_Node(ref_tree->noeud[i],ref_tree);
 	  Get_Tips_Y_Rank(ref_tree);
@@ -407,8 +358,22 @@ void Minimize_Tip_Order_Score(int n_trees, t_tree **list_tree, t_tree *ref_tree)
 
   PhyML_Printf("\n");
 
-
   node_table = (t_node **)mCalloc(ref_tree->n_otu,sizeof(t_node *));
+
+
+  For(i,ref_tree->n_otu)
+    {
+      For(j,ref_tree->n_otu)
+	{
+	  if(!strcmp(ref_tree->io->short_tax_names[i],ref_tree->noeud[j]->name))
+	    {
+	      Free(ref_tree->noeud[j]->name);
+	      ref_tree->noeud[j]->name = (char *)mCalloc((int)strlen(ref_tree->io->long_tax_names[i])+1,sizeof(char));
+	      strcpy(ref_tree->noeud[j]->name,ref_tree->io->long_tax_names[i]);
+	      break;
+	    }
+	}
+    }
 
   For(i,ref_tree->n_otu) node_table[i] = ref_tree->noeud[i];
 
@@ -492,9 +457,10 @@ int Untangle_Tree_List(int n_trees, t_tree **list_tree, t_tree *ref_tree)
   score = 0;
   For(i,n_trees) 
     {
-/*       PhyML_Printf("\n. Untangling tree %d",i); */
+/*       PhyML_Printf("\n. Untangling tree %3d",i); */
       For(j,ref_tree->n_otu) list_tree[i]->noeud[j]->y_rank = list_tree[i]->noeud[j]->ext_node->y_rank;
       tree_score = Untangle_Tree(list_tree[i]);
+/*       PhyML_Printf(" score = %3d",tree_score); */
       score += tree_score;
       if(tree_score < 0) 
 	{
@@ -597,7 +563,7 @@ void Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict, t_t
       phydbl eps,tmp_rank;
       t_node *tmp_node;
       int n_moved;
-      eps = 1.E-8;
+      eps = (phydbl)1./(2.*tree->n_otu);
 
       For(i,3)
 	{
@@ -637,7 +603,6 @@ void Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict, t_t
 	{
 	  if((node_table[i]->y_rank > min - eps) && (node_table[i]->y_rank < max + eps))
 	    {
-/* 	      conflict_nodes[n_conflicts] = tree->noeud[i]; */
 	      n_conflicts++;	      
 	    }
 	}
@@ -649,49 +614,17 @@ void Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict, t_t
 	      conflict_nodes = node_table+i;
 	      break;
 	    }
-	}
+	}     
 
-
-
-      /* bubble sort of conflict nodes according to their y_rank */
-      /*       do */
-      /* 	{ */
-      /* 	  swapped = NO; */
-      /* 	  For(i,n_conflicts-1)  */
-      /* 	    { */
-      /* 	      if(conflict_nodes[i]->y_rank > conflict_nodes[i+1]->y_rank) */
-      /* 		{ */
-      /* 		  swapped = YES; */
-      /* 		  lca                 = conflict_nodes[i]; */
-      /* 		  conflict_nodes[i]   = conflict_nodes[i+1]; */
-      /* 		  conflict_nodes[i+1] = lca; */
-      /* 		} */
-      /* 	    }	     */
-      /* 	}while(swapped == YES); */
-      
-
-/*       if(n_conflicts) */
-/* 	{ */
-/* 	  PhyML_Printf("\n"); */
-/* 	  For(j,d->bip_size[d_a]) printf("\n. d:%d in bip: %s",d->num,d->bip_node[d_a][j]->name); */
-/* 	} */
 
       beg = 0;
       end = n_conflicts;
       n_moved = 0;
       do
 	{
-/* 	  printf("\n. v0?%s v1?%s %3d n_moved = %d n_sons=%d n_conflicts=%d min=%f max=%f", */
-/* 		 d == tree->n_root->v[0]?"YES":"NO", */
-/* 		 d == tree->n_root->v[1]?"YES":"NO", */
-/* 		 d->num,n_moved,d->bip_size[d_a],n_conflicts,min,max); */
-/* 	  For(i,d->bip_size[d_a]) printf("\n. %d %f",d->bip_node[d_a][i]->num,d->bip_node[d_a][i]->y_rank); */
-
 	  for(i=beg;i<end;i++)
 	    {
-	      For(j,d->bip_size[d_a]) 
-		if(conflict_nodes[i] == d->bip_node[d_a][j]) 
-		  break;
+	      For(j,d->bip_size[d_a]) if(conflict_nodes[i] == d->bip_node[d_a][j]) break;
 	      
 	      if(j == d->bip_size[d_a])
 		{
@@ -716,12 +649,12 @@ void Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict, t_t
 /* 				       conflict_nodes[j]->name,conflict_nodes[j+1]->name, */
 /* 				       conflict_nodes[j]->y_rank,conflict_nodes[j+1]->y_rank); */
 
-			  tmp_rank                  = conflict_nodes[j]->y_rank;
-			  conflict_nodes[j]->y_rank = conflict_nodes[j+1]->y_rank;
+			  tmp_rank                    = conflict_nodes[j]->y_rank;
+			  conflict_nodes[j]->y_rank   = conflict_nodes[j+1]->y_rank;
 			  conflict_nodes[j+1]->y_rank = tmp_rank;
 
-			  tmp_node          = conflict_nodes[j];
-			  conflict_nodes[j] = conflict_nodes[j+1];
+			  tmp_node            = conflict_nodes[j];
+			  conflict_nodes[j]   = conflict_nodes[j+1];
 			  conflict_nodes[j+1] = tmp_node;		     
 
 /* 			  PhyML_Printf(" to (%s,%s) (%f,%f)", */
@@ -740,13 +673,12 @@ void Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict, t_t
 /* 				       conflict_nodes[j]->name,conflict_nodes[j-1]->name, */
 /* 				       conflict_nodes[j]->y_rank,conflict_nodes[j-1]->y_rank); */
 
-			  tmp_rank                  = conflict_nodes[j]->y_rank;
-			  conflict_nodes[j]->y_rank = conflict_nodes[j-1]->y_rank;
+			  tmp_rank                    = conflict_nodes[j]->y_rank;
+			  conflict_nodes[j]->y_rank   = conflict_nodes[j-1]->y_rank;
 			  conflict_nodes[j-1]->y_rank = tmp_rank;
 			  
-
-			  tmp_node          = conflict_nodes[j];
-			  conflict_nodes[j] = conflict_nodes[j-1];
+			  tmp_node            = conflict_nodes[j];
+			  conflict_nodes[j]   = conflict_nodes[j-1];
 			  conflict_nodes[j-1] = tmp_node;		     
 			  
 /* 			  PhyML_Printf(" to (%f,%f)",conflict_nodes[j]->y_rank,conflict_nodes[j-1]->y_rank); */
@@ -781,7 +713,6 @@ void Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict, t_t
 	    }
 	}while(n_moved + d->bip_size[d_a] != n_conflicts);
 
-/*       Free(conflict_nodes); */
       return;
     }
 }
