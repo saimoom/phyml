@@ -529,7 +529,7 @@ int Perform_SPR_Moves (t_tree *tree, int max_size)
 	      rgrft_cand[j]->d_L = -1.0*BIG;
 	    }
 	  v_prune = e_prune->left;
-	  if ((max_size == 0) || (e_prune->num_tax_rght <= max_size))
+/* 	  if ((max_size == 0) || (e_prune->num_tax_rght <= max_size)) */
 	    {
 	      /*
 	      ** Calculate changes in tree length, and estimate changes in likelihood for
@@ -558,7 +558,7 @@ int Perform_SPR_Moves (t_tree *tree, int max_size)
 	      rgrft_cand[j]->d_L = -1.0*BIG;
 	    }
 	  v_prune = e_prune->rght;
-	  if ((max_size == 0) || (e_prune->num_tax_left <= max_size))
+/* 	  if ((max_size == 0) || (e_prune->num_tax_left <= max_size)) */
 	    {
 	      /*
 	      ** Calculate changes in tree length, and estimate changes in likelihood for
@@ -703,7 +703,7 @@ int Perform_Best_SPR (t_tree *tree, int max_size)
 	rgrft_cand[j]->d_L = -1.0*BIG;
       }
       v_prune = e_prune->left;
-      if ((max_size == 0) || (e_prune->num_tax_rght <= max_size))
+/*       if ((max_size == 0) || (e_prune->num_tax_rght <= max_size)) */
       {
 	/*
 	** Calculate changes in tree length, and estimate changes in likelihood for
@@ -726,7 +726,7 @@ int Perform_Best_SPR (t_tree *tree, int max_size)
 	rgrft_cand[j]->d_L = -1.0*BIG;
       }
       v_prune = e_prune->rght;
-      if ((max_size == 0) || (e_prune->num_tax_left <= max_size))
+/*       if ((max_size == 0) || (e_prune->num_tax_left <= max_size)) */
       {
 	/*
 	** Calculate changes in tree length, and estimate changes in likelihood for
@@ -868,7 +868,7 @@ int Perform_One_SPR(t_tree *tree, int max_size)
 	      rgrft_cand[j]->d_L = -1.0*BIG;
 	    }
 	  v_prune = e_prune->left;
-	  if ((max_size == 0) || (e_prune->num_tax_rght <= max_size))
+/* 	  if ((max_size == 0) || (e_prune->num_tax_rght <= max_size)) */
 	    {
 	      /*
 	      ** Calculate changes in tree length, and estimate changes in likelihood for
@@ -895,7 +895,7 @@ int Perform_One_SPR(t_tree *tree, int max_size)
 	      rgrft_cand[j]->d_L = -1.0*BIG;
 	    }
 	  v_prune = e_prune->rght;
-	  if ((max_size == 0) || (e_prune->num_tax_left <= max_size))
+/* 	  if ((max_size == 0) || (e_prune->num_tax_left <= max_size)) */
 	    {
 	      /*
 	      ** Calculate changes in tree length, and estimate changes in likelihood for

@@ -272,7 +272,7 @@ typedef struct __Edge {
   */
 
   struct __Node               *left,*rght; /* t_node on the left/right side of the t_edge */
-  int         l_r,r_l,l_v1,l_v2,r_v1,r_v2;
+  short int         l_r,r_l,l_v1,l_v2,r_v1,r_v2;
   /* these are directions (i.e., 0, 1 or 2): */
   /* l_r (left to right) -> left[b_fcus->l_r] = right */
   /* r_l (right to left) -> right[b_fcus->r_l] = left */
@@ -326,13 +326,6 @@ typedef struct __Edge {
 
   phydbl                       ratio_test; /* approximate likelihood ratio test */
   phydbl                   alrt_statistic; /* aLRT statistic */
-  int          num_tax_left, num_tax_rght; /* number of taxa in subtrees          */
-  phydbl     avg_dist_left, avg_dist_rght; /* average taxon distance in subtrees  */
-
-  int                       is_p_lk_l_u2d; /* is the conditional likelihood vector on the left up
-					      to data ? */
-  int                       is_p_lk_r_u2d; /* is the conditional likelihood vector on the right up
-					      to data ? */
 
   char                           **labels; /* string of characters that labels the corresponding t_edge */
   int                            n_labels; /* number of labels */
