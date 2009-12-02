@@ -132,7 +132,8 @@ int TIPORDER_main(int argc, char **argv)
   PhyML_Printf("\n. Getting bipartitions"); fflush(NULL);
   For(i,n_trees) 
     {
-      if(!(i%10)) PhyML_Printf("\n. Getting bipartition for tree %d",i);
+/*       if(!(i%10))  */
+      PhyML_Printf("\n. Getting bipartition for tree %d",i);
       Free_Bip(list_tree[i]);
       Alloc_Bip(list_tree[i]);
       Get_Bip(list_tree[i]->noeud[0],
