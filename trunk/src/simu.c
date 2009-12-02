@@ -286,16 +286,19 @@ void Update_Bl(t_tree *tree, phydbl fact)
 void Make_N_Swap(t_tree *tree,t_edge **b, int beg, int end)
 {
   int i;
+  int dim;
+
+  dim = 2*tree->n_otu-2;
 
 /*   PhyML_Printf("\n. Beg Actually performing swaps\n"); */
   tree->n_swap = 0;
   for(i=beg;i<end;i++)
     {
       /* we use t_dir here to take into account previous modifications of the topology */
-      Swap(b[i]->nni->swap_node_v2->v[tree->t_dir[b[i]->nni->swap_node_v2->num][b[i]->nni->swap_node_v1->num]],
+      Swap(b[i]->nni->swap_node_v2->v[tree->t_dir[b[i]->nni->swap_node_v2->num*dim+b[i]->nni->swap_node_v1->num]],
 	   b[i]->nni->swap_node_v2,
 	   b[i]->nni->swap_node_v3,
-	   b[i]->nni->swap_node_v3->v[tree->t_dir[b[i]->nni->swap_node_v3->num][b[i]->nni->swap_node_v4->num]],
+	   b[i]->nni->swap_node_v3->v[tree->t_dir[b[i]->nni->swap_node_v3->num*dim+b[i]->nni->swap_node_v4->num]],
 	   tree);
 
       b[i]->l = b[i]->nni->best_l;
@@ -313,7 +316,9 @@ int Make_Best_Swap(t_tree *tree)
 {
   int i,j,return_value;
   t_edge *b,**sorted_b;
-  
+  int dim;
+
+  dim = 2*tree->n_otu-2;
 
   sorted_b = (t_edge **)mCalloc(tree->n_otu-3,sizeof(t_edge *));
   
@@ -329,10 +334,10 @@ int Make_Best_Swap(t_tree *tree)
       b = sorted_b[0];
       return_value = 1;
 
-      Swap(b->nni->swap_node_v2->v[tree->t_dir[b->nni->swap_node_v2->num][b->nni->swap_node_v1->num]],
+      Swap(b->nni->swap_node_v2->v[tree->t_dir[b->nni->swap_node_v2->num*dim+b->nni->swap_node_v1->num]],
 	   b->nni->swap_node_v2,
 	   b->nni->swap_node_v3,
-	   b->nni->swap_node_v3->v[tree->t_dir[b->nni->swap_node_v3->num][b->nni->swap_node_v4->num]],
+	   b->nni->swap_node_v3->v[tree->t_dir[b->nni->swap_node_v3->num*dim+b->nni->swap_node_v4->num]],
 	   tree);
 
 
@@ -479,6 +484,9 @@ int Mov_Backward_Topo_Pars(t_tree *tree, int pars_old, t_edge **tested_b, int n_
 void Unswap_N_Branch(t_tree *tree, t_edge **b, int beg, int end)
 {
   int i;
+  int dim;
+
+  dim = 2*tree->n_otu-2;
 
   if(end>beg)
     {
@@ -495,10 +503,10 @@ void Unswap_N_Branch(t_tree *tree, t_edge **b, int beg, int end)
 /* 		 b[i]->nni->swap_node_v1->num */
 /* 		 ); */
 
-	  Swap(b[i]->nni->swap_node_v2->v[tree->t_dir[b[i]->nni->swap_node_v2->num][b[i]->nni->swap_node_v1->num]],
+	  Swap(b[i]->nni->swap_node_v2->v[tree->t_dir[b[i]->nni->swap_node_v2->num*dim+b[i]->nni->swap_node_v1->num]],
 	       b[i]->nni->swap_node_v2,
 	       b[i]->nni->swap_node_v3,
-	       b[i]->nni->swap_node_v3->v[tree->t_dir[b[i]->nni->swap_node_v3->num][b[i]->nni->swap_node_v4->num]],
+	       b[i]->nni->swap_node_v3->v[tree->t_dir[b[i]->nni->swap_node_v3->num*dim+b[i]->nni->swap_node_v4->num]],
 	       tree);
 
 
@@ -513,10 +521,10 @@ void Unswap_N_Branch(t_tree *tree, t_edge **b, int beg, int end)
     {
       for(i=beg-1;i>=end;i--)
 	{	
-	  Swap(b[i]->nni->swap_node_v2->v[tree->t_dir[b[i]->nni->swap_node_v2->num][b[i]->nni->swap_node_v1->num]],
+	  Swap(b[i]->nni->swap_node_v2->v[tree->t_dir[b[i]->nni->swap_node_v2->num*dim+b[i]->nni->swap_node_v1->num]],
 	       b[i]->nni->swap_node_v2,
 	       b[i]->nni->swap_node_v3,
-	       b[i]->nni->swap_node_v3->v[tree->t_dir[b[i]->nni->swap_node_v3->num][b[i]->nni->swap_node_v4->num]],
+	       b[i]->nni->swap_node_v3->v[tree->t_dir[b[i]->nni->swap_node_v3->num*dim+b[i]->nni->swap_node_v4->num]],
 	       tree);
 
 	  b[i]->l = b[i]->l_old;
@@ -529,15 +537,18 @@ void Unswap_N_Branch(t_tree *tree, t_edge **b, int beg, int end)
 void Swap_N_Branch(t_tree *tree,t_edge **b, int beg, int end)
 {
   int i;
-  
+  int dim;
+
+  dim = 2*tree->n_otu-2;
+
   if(end>beg)
     {
       for(i=beg;i<end;i++)
 	{
-	  Swap(b[i]->nni->swap_node_v2->v[tree->t_dir[b[i]->nni->swap_node_v2->num][b[i]->nni->swap_node_v1->num]],
+	  Swap(b[i]->nni->swap_node_v2->v[tree->t_dir[b[i]->nni->swap_node_v2->num*dim+b[i]->nni->swap_node_v1->num]],
 	       b[i]->nni->swap_node_v2,
 	       b[i]->nni->swap_node_v3,
-	       b[i]->nni->swap_node_v3->v[tree->t_dir[b[i]->nni->swap_node_v3->num][b[i]->nni->swap_node_v4->num]],
+	       b[i]->nni->swap_node_v3->v[tree->t_dir[b[i]->nni->swap_node_v3->num*dim+b[i]->nni->swap_node_v4->num]],
 	       tree);
 
 
@@ -549,10 +560,10 @@ void Swap_N_Branch(t_tree *tree,t_edge **b, int beg, int end)
     {
       for(i=beg-1;i>=end;i--)
 	{
-	  Swap(b[i]->nni->swap_node_v2->v[tree->t_dir[b[i]->nni->swap_node_v2->num][b[i]->nni->swap_node_v1->num]],
+	  Swap(b[i]->nni->swap_node_v2->v[tree->t_dir[b[i]->nni->swap_node_v2->num*dim+b[i]->nni->swap_node_v1->num]],
 	       b[i]->nni->swap_node_v2,
 	       b[i]->nni->swap_node_v3,
-	       b[i]->nni->swap_node_v3->v[tree->t_dir[b[i]->nni->swap_node_v3->num][b[i]->nni->swap_node_v4->num]],
+	       b[i]->nni->swap_node_v3->v[tree->t_dir[b[i]->nni->swap_node_v3->num*dim+b[i]->nni->swap_node_v4->num]],
 	       tree);
 
 	  b[i]->l = b[i]->nni->best_l;

@@ -141,7 +141,7 @@ int PART_main(int argc, char **argv)
       For(part,io->n_part)
 	{
 	  Lk(treelist->tree[part]);
-	  Get_List_Of_Reachable_Tips(treelist->tree[part]);
+/* 	  Get_List_Of_Reachable_Tips(treelist->tree[part]); */
 	  PART_Match_St_Nodes_In_Gt(treelist->tree[part],st);
 	  PART_Match_St_Edges_In_Gt(treelist->tree[part],st);
 	  PART_Map_St_Nodes_In_Gt(treelist->tree[part],st);
@@ -394,8 +394,6 @@ void PART_Make_Supert_tree_Full(supert_tree *st, option *io, calign **data)
 
   For(i,2*st->tree->n_otu-3) Make_Edge_NNI(st->tree->t_edges[i]);
 
-  Get_List_Of_Reachable_Tips(st->tree);
-
   st->match_st_node_in_gt = (t_node ***)mCalloc(io->n_part,sizeof(t_node **));
   For(i,io->n_part) st->match_st_node_in_gt[i] = (t_node **)mCalloc(2*st->tree->n_otu-2,sizeof(t_node *));
 }
@@ -450,7 +448,7 @@ void PART_Prune_St_Topo(t_tree *tree, calign *data, supert_tree *st)
 	}
     }
 
-  For(i,2*tree->n_otu-2) Free(tree->t_dir[i]); Free(tree->t_dir);
+  Free(tree->t_dir);
 
   tree->n_otu -= n_pruned_nodes;
 
@@ -474,8 +472,7 @@ void PART_Prune_St_Topo(t_tree *tree, calign *data, supert_tree *st)
   
   Reassign_Edge_Nums(tree->noeud[0],tree->noeud[0]->v[0],&curr_br,tree);
 
-  tree->t_dir = (int **)mCalloc(2*tree->n_otu-2,sizeof(int *));
-  For(i,2*tree->n_otu-2) tree->t_dir[i] = (int *)mCalloc(2*tree->n_otu-2,sizeof(int));
+  tree->t_dir = (short int *)mCalloc((2*tree->n_otu-2)*(2*tree->n_otu-2),sizeof(short int));
 
   For(i,n_pruned_nodes) 
     {
@@ -616,17 +613,19 @@ void PART_Match_St_Nodes_In_Gt_Recurr(t_node *a_gt, t_node *d_gt, t_node *a_st, 
 	{
 	  For(j,3)
 	    {
-	      For(k,d_st->n_of_reachable_tips[j])
+	      For(k,d_st->bip_size[j])
 		{
-		  if(!strcmp(d_gt->list_of_reachable_tips[i][0]->name,d_st->list_of_reachable_tips[j][k]->name))
-		    break;
+		  if(!strcmp(d_gt->bip_node[i][0]->name,d_st->bip_node[j][k]->name))
+		    {
+		      score_d_st[j] += 1;
+		      break;
+		    }
 		}
-	      if(k != d_st->n_of_reachable_tips[j]) score_d_st[j] += 1;
 	    }
 	}
 
 
-      if((score_d_st[0] == 1) && (score_d_st[1] == 1) && (score_d_st[2] == 1))
+      if((score_d_st[0] == 2) && (score_d_st[1] == 2) && (score_d_st[2] == 2))
 	{
 	  st->match_st_node_in_gt[gt->dp][d_st->num] = d_gt;
 
@@ -635,15 +634,22 @@ void PART_Match_St_Nodes_In_Gt_Recurr(t_node *a_gt, t_node *d_gt, t_node *a_st, 
 	      if(d_gt->v[i] != a_gt)
 		{
 		  For(j,3)
-		    {
-		      For(k,d_st->n_of_reachable_tips[j])
-			if(!strcmp(d_gt->list_of_reachable_tips[i][0]->name,
-				   d_st->list_of_reachable_tips[j][k]->name))
-			  {
-			    PART_Match_St_Nodes_In_Gt_Recurr(d_gt,d_gt->v[i],d_st,d_st->v[j],gt,st);
-			    break;
-			  }
-		      if(k != d_st->n_of_reachable_tips[j]) break;
+		    {		      
+
+		      if(score_d_st[j] != 3)
+			{
+			  PART_Match_St_Nodes_In_Gt_Recurr(d_gt,d_gt->v[i],d_st,d_st->v[j],gt,st);
+			  break;
+			}
+
+/* 		      For(k,d_st->n_of_reachable_tips[j]) */
+/* 			if(!strcmp(d_gt->list_of_reachable_tips[i][0]->name, */
+/* 				   d_st->list_of_reachable_tips[j][k]->name)) */
+/* 			  { */
+/* 			    PART_Match_St_Nodes_In_Gt_Recurr(d_gt,d_gt->v[i],d_st,d_st->v[j],gt,st); */
+/* 			    break; */
+/* 			  } */
+/* 		      if(k != d_st->n_of_reachable_tips[j]) break; */
 		    }
 		}
 	    }
@@ -722,13 +728,13 @@ void PART_Match_St_Edges_In_Gt_Recurr(t_node *a_gt, t_node *d_gt, t_node *a_st, 
 		{
 		  For(j,3)
 		    {
-		      For(k,d_st->n_of_reachable_tips[j])
-			if(!strcmp(d_gt->list_of_reachable_tips[i][0]->name,d_st->list_of_reachable_tips[j][k]->name))
+/* 		      For(k,d_st->n_of_reachable_tips[j]) */
+/* 			if(!strcmp(d_gt->list_of_reachable_tips[i][0]->name,d_st->list_of_reachable_tips[j][k]->name)) */
 			  {
 			    PART_Match_St_Edges_In_Gt_Recurr(d_gt,d_gt->v[i],d_st,d_st->v[j],gt,st);
 			    break;
 			  }
-		      if(k != d_st->n_of_reachable_tips[j]) break;
+/* 		      if(k != d_st->n_of_reachable_tips[j]) break; */
 		    }
 		}
 	    }
@@ -888,6 +894,7 @@ int PART_Mov_Backward_Topo_Bl(supert_tree *st, phydbl lk_old, t_edge **tested_b,
   int i,j,step,beg,end;
   t_edge *st_b;
   phydbl **l_init;
+  int dim;
 
   l_init = (phydbl **)mCalloc(st->n_part,sizeof(phydbl *));
   For(i,st->n_part) l_init[i] = (phydbl *)mCalloc(2*st->tree->n_otu-3,sizeof(phydbl ));
@@ -910,21 +917,22 @@ int PART_Mov_Backward_Topo_Bl(supert_tree *st, phydbl lk_old, t_edge **tested_b,
       beg = (int)FLOOR((phydbl)n_tested/(step-1));
       end = 0;
       st_b = NULL;
+      dim = 2*st->tree->n_otu-2;
 
       for(i=beg-1;i>=end;i--)
 	{
 	  st_b = tested_b[i];
 
-	  PART_Swap(st_b->nni->swap_node_v2->v[st->tree->t_dir[st_b->nni->swap_node_v2->num][st_b->nni->swap_node_v1->num]],
+	  PART_Swap(st_b->nni->swap_node_v2->v[st->tree->t_dir[st_b->nni->swap_node_v2->num*dim+st_b->nni->swap_node_v1->num]],
 		  st_b->nni->swap_node_v2,
 		  st_b->nni->swap_node_v3,
-		  st_b->nni->swap_node_v3->v[st->tree->t_dir[st_b->nni->swap_node_v3->num][st_b->nni->swap_node_v4->num]],
+		  st_b->nni->swap_node_v3->v[st->tree->t_dir[st_b->nni->swap_node_v3->num*dim+st_b->nni->swap_node_v4->num]],
 		  st);
 
-	  Swap(st_b->nni->swap_node_v2->v[st->tree->t_dir[st_b->nni->swap_node_v2->num][st_b->nni->swap_node_v1->num]],
+	  Swap(st_b->nni->swap_node_v2->v[st->tree->t_dir[st_b->nni->swap_node_v2->num*dim+st_b->nni->swap_node_v1->num]],
 	       st_b->nni->swap_node_v2,
 	       st_b->nni->swap_node_v3,
-	       st_b->nni->swap_node_v3->v[st->tree->t_dir[st_b->nni->swap_node_v3->num][st_b->nni->swap_node_v4->num]],
+	       st_b->nni->swap_node_v3->v[st->tree->t_dir[st_b->nni->swap_node_v3->num*dim+st_b->nni->swap_node_v4->num]],
 	       st->tree);
 
 	  PART_Do_Mapping(st);
@@ -934,21 +942,22 @@ int PART_Mov_Backward_Topo_Bl(supert_tree *st, phydbl lk_old, t_edge **tested_b,
       beg = 0;
       end = (int)FLOOR((phydbl)n_tested/step);
       st_b = NULL;
+      dim = 2*st->tree->n_otu-2;
 
       for(i=beg;i<end;i++)
 	{
 	  st_b = tested_b[i];
 	  
-	  PART_Swap(st_b->nni->swap_node_v2->v[st->tree->t_dir[st_b->nni->swap_node_v2->num][st_b->nni->swap_node_v1->num]],
+	  PART_Swap(st_b->nni->swap_node_v2->v[st->tree->t_dir[st_b->nni->swap_node_v2->num*dim+st_b->nni->swap_node_v1->num]],
 		  st_b->nni->swap_node_v2,
 		  st_b->nni->swap_node_v3,
-		  st_b->nni->swap_node_v3->v[st->tree->t_dir[st_b->nni->swap_node_v3->num][st_b->nni->swap_node_v4->num]],
+		  st_b->nni->swap_node_v3->v[st->tree->t_dir[st_b->nni->swap_node_v3->num*dim+st_b->nni->swap_node_v4->num]],
 		  st);
 
-	  Swap(st_b->nni->swap_node_v2->v[st->tree->t_dir[st_b->nni->swap_node_v2->num][st_b->nni->swap_node_v1->num]],
+	  Swap(st_b->nni->swap_node_v2->v[st->tree->t_dir[st_b->nni->swap_node_v2->num*dim+st_b->nni->swap_node_v1->num]],
 	       st_b->nni->swap_node_v2,
 	       st_b->nni->swap_node_v3,
-	       st_b->nni->swap_node_v3->v[st->tree->t_dir[st_b->nni->swap_node_v3->num][st_b->nni->swap_node_v4->num]],
+	       st_b->nni->swap_node_v3->v[st->tree->t_dir[st_b->nni->swap_node_v3->num*dim+st_b->nni->swap_node_v4->num]],
 	       st->tree);
 
 	  PART_Do_Mapping(st);
@@ -2649,6 +2658,9 @@ void PART_Update_P_Lk(t_edge *st_b, t_node *st_n, supert_tree *st)
 void PART_Make_N_Swap(t_edge **st_b, int beg, int end, supert_tree *st)
 {
   int i;
+  int dim;
+
+  dim = 2*st->tree->n_otu-2;
 
   st->tree->n_swap = 0;
   for(i=beg;i<end;i++)
@@ -2660,16 +2672,16 @@ void PART_Make_N_Swap(t_edge **st_b, int beg, int end, supert_tree *st)
 	  Warn_And_Exit("");
 	}
       
-      PART_Swap(st_b[i]->nni->swap_node_v2->v[st->tree->t_dir[st_b[i]->nni->swap_node_v2->num][st_b[i]->nni->swap_node_v1->num]],
+      PART_Swap(st_b[i]->nni->swap_node_v2->v[st->tree->t_dir[st_b[i]->nni->swap_node_v2->num*dim+st_b[i]->nni->swap_node_v1->num]],
 	      st_b[i]->nni->swap_node_v2,
 	      st_b[i]->nni->swap_node_v3,
-	      st_b[i]->nni->swap_node_v3->v[st->tree->t_dir[st_b[i]->nni->swap_node_v3->num][st_b[i]->nni->swap_node_v4->num]],
+	      st_b[i]->nni->swap_node_v3->v[st->tree->t_dir[st_b[i]->nni->swap_node_v3->num*dim+st_b[i]->nni->swap_node_v4->num]],
 	      st);
 
-      Swap(st_b[i]->nni->swap_node_v2->v[st->tree->t_dir[st_b[i]->nni->swap_node_v2->num][st_b[i]->nni->swap_node_v1->num]],
+      Swap(st_b[i]->nni->swap_node_v2->v[st->tree->t_dir[st_b[i]->nni->swap_node_v2->num*dim+st_b[i]->nni->swap_node_v1->num]],
 	   st_b[i]->nni->swap_node_v2,
 	   st_b[i]->nni->swap_node_v3,
-	   st_b[i]->nni->swap_node_v3->v[st->tree->t_dir[st_b[i]->nni->swap_node_v3->num][st_b[i]->nni->swap_node_v4->num]],
+	   st_b[i]->nni->swap_node_v3->v[st->tree->t_dir[st_b[i]->nni->swap_node_v3->num*dim+st_b[i]->nni->swap_node_v4->num]],
 	   st->tree);
 
       PART_Do_Mapping(st);

@@ -71,8 +71,6 @@ t_tree *Read_Tree(char *s_tree)
   Make_All_Tree_Nodes(tree);
   Make_All_Tree_Edges(tree);
   Make_Tree_Path(tree);
-  Make_List_Of_Reachable_Tips(tree);
-
 
   subs = Sub_Trees(s_tree,&degree);
   Clean_Multifurcation(subs,degree,3);
@@ -518,7 +516,6 @@ char *Write_Tree(t_tree *tree)
   int pos;
 
   s=(char *)mCalloc((int)T_MAX_NAME,sizeof(char));
-/*   s=(char *)mCalloc((int)T_MAX_LINE,sizeof(char)); */
   available = (int)T_MAX_NAME-1;
 
   
@@ -865,7 +862,6 @@ void Init_Edge_Light(t_edge *b, int num)
 
 void Init_Node_Light(t_node *n, int num)
 {
-  n->list_of_reachable_tips = NULL;
   n->num                    = num;
   n->tax                    = -1;
   n->dist_to_root           = .0;
@@ -1864,7 +1860,6 @@ int Read_Nexus_Translate(char *token, nexparm *curr_parm, option *io)
   PhyML_Printf("\n. Reading 'translate' block");
   io->size_tax_table = 0;
 
-
   do
     {
       Get_Token(io->fp_in_tree,token);
@@ -1906,6 +1901,7 @@ int Read_Nexus_Tree(char *token, nexparm *curr_parm, option *io)
   io->treelist->tree = (t_tree **)realloc(io->treelist->tree,(io->treelist->list_size+1)*sizeof(t_tree *));
   PhyML_Printf("\n. Reading tree %d",io->treelist->list_size+1);
   io->tree = Read_Tree_File_Phylip(io->fp_in_tree);
+  printf("\n. %s",Write_Tree(io->tree));
   io->treelist->tree[io->treelist->list_size] = io->tree;
   io->treelist->list_size++;
 
@@ -2991,14 +2987,21 @@ t_tree *Read_Tree_File(option *io)
 {
   t_tree *tree;
 
-
   Detect_Tree_File_Format(io);
 
   switch(io->tree_file_format)
     {
     case PHYLIP: 
       {
-	tree = Read_Tree_File_Phylip(io->fp_in_tree);
+	do
+	  {
+	    io->treelist->tree = (t_tree **)realloc(io->treelist->tree,(io->treelist->list_size+1)*sizeof(t_tree *));
+	    PhyML_Printf("\n. Reading tree %d",io->treelist->list_size+1);
+	    io->tree = Read_Tree_File_Phylip(io->fp_in_tree);
+	    if(!io->tree) break;
+	    io->treelist->tree[io->treelist->list_size] = io->tree;
+	    io->treelist->list_size++;
+	  }while(io->tree);
 	break;
       }
     case NEXUS:
@@ -3054,7 +3057,6 @@ t_tree *Read_Tree_File_Phylip(FILE *fp_input_tree)
 	  c = fgetc(fp_input_tree);
 	  if(c == EOF || c == ';') break;
 	}
-      
 
       line = (char *)mRealloc(line,i+2,sizeof(char));
 
@@ -3716,7 +3718,6 @@ t_tree *Make_Tree_From_Scratch(int n_otu, calign *data)
   Make_All_Tree_Nodes(tree);
   Make_All_Tree_Edges(tree);
   Make_Tree_Path(tree);
-  Make_List_Of_Reachable_Tips(tree);
   if(data)
     {
       Copy_Tax_Names_To_Tip_Labels(tree,data);
@@ -3733,8 +3734,7 @@ t_tree *Make_Tree(int n_otu)
   int i;
   tree = (t_tree *)mCalloc(1,sizeof(t_tree ));
   Init_Tree(tree,n_otu);
-  tree->t_dir = (int **)mCalloc(2*n_otu-2,sizeof(int *));
-  For(i,2*n_otu-2) tree->t_dir[i] = (int *)mCalloc(2*n_otu-2,sizeof(int));
+  tree->t_dir = (short int *)mCalloc((2*n_otu-2)*(2*n_otu-2),sizeof(int));
   return tree;
 }
 
@@ -3766,9 +3766,7 @@ void Make_All_Tree_Nodes(t_tree *tree)
 void Make_All_Tree_Edges(t_tree *tree)
 {
   int i;
-
   tree->t_edges      = (t_edge **)mCalloc(2*tree->n_otu-2,sizeof(t_edge *));
-
   For(i,2*tree->n_otu-2) tree->t_edges[i] = (t_edge *)Make_Edge_Light(NULL,NULL,i);
 }
 
@@ -7898,162 +7896,7 @@ void Reassign_Edge_Nums(t_node *a, t_node *d, int *curr_br, t_tree *tree)
 
 /*********************************************************/
 
-void Make_List_Of_Reachable_Tips(t_tree *tree)
-{
-  int i,j;
-
-  For(i,2*tree->n_otu-2)
-    {
-      tree->noeud[i]->list_of_reachable_tips = (t_node ***)mCalloc(3,sizeof(t_node **));
-      tree->noeud[i]->n_of_reachable_tips    = (int *)mCalloc(3,sizeof(int));
-      For(j,3)
-	tree->noeud[i]->list_of_reachable_tips[j] = (t_node **)mCalloc(tree->n_otu,sizeof(t_node *));
-    }
-}
-
-/*********************************************************/
-
-void Get_List_Of_Reachable_Tips(t_tree *tree)
-{
-  int i,j;
-  
-  For(i,2*tree->n_otu-2)
-    {
-      tree->noeud[i]->n_of_reachable_tips[0] = 0;
-      tree->noeud[i]->n_of_reachable_tips[1] = 0;
-      tree->noeud[i]->n_of_reachable_tips[2] = 0;
-      For(j,tree->n_otu)
-	{
-	  tree->noeud[i]->list_of_reachable_tips[0][j] = NULL;
-	  tree->noeud[i]->list_of_reachable_tips[1][j] = NULL;
-	  tree->noeud[i]->list_of_reachable_tips[2][j] = NULL;
-	}
-    }
-  
-  Get_List_Of_Reachable_Tips_Post(tree->noeud[0],
-				  tree->noeud[0]->v[0],
-				  tree);
-  Get_List_Of_Reachable_Tips_Pre(tree->noeud[0],
-				 tree->noeud[0]->v[0],
-				 tree);
-}
-
-/*********************************************************/
-
-void Get_List_Of_Reachable_Tips_Post(t_node *a, t_node *d, t_tree *tree)
-{
-  int i,j,k,cpt;
-
-  if(d->tax)
-    {
-      For(i,3)
-	if(a->v[i] == d)
-	  {
-	    a->list_of_reachable_tips[i][0] = d;
-	    a->n_of_reachable_tips[i]       = 1;
-	    break;
-	  }
-      return;
-    }
-  else
-    {
-      For(i,3)
-	if(d->v[i] != a)
-	  Get_List_Of_Reachable_Tips_Post(d,d->v[i],tree);
-
-      For(i,3)
-	{
-	  if(a->v[i] == d)
-	    {
-	      a->n_of_reachable_tips[i] = 0;
-	      cpt                       = 0;
-	      For(j,3)
-		{
-		  if(d->v[j] != a)
-		    {
-		      For(k,d->n_of_reachable_tips[j])
-			{
-			  a->list_of_reachable_tips[i][cpt] = d->list_of_reachable_tips[j][k];
-			  a->n_of_reachable_tips[i]++;
-			  cpt++;
-			}
-		    }
-		}
-	      break;
-	    }
-	}
-    }
-}
-
-/*********************************************************/
-
-void Get_List_Of_Reachable_Tips_Pre(t_node *a, t_node *d, t_tree *tree)
-{
-  int i,j,k,cpt;
-
-  For(i,3)
-    {
-      if(d->v[i] == a)
-	{
-	  if(a->tax)
-	    {
-	      d->list_of_reachable_tips[i][0] = a;
-	      d->n_of_reachable_tips[i]       = 1;
-	    }
-	  else
-	    {
-	      d->n_of_reachable_tips[i] = 0;
-	      cpt = 0;
-	      For(j,3)
-		{
-		  if(a->v[j] != d)
-		    {
-		      For(k,a->n_of_reachable_tips[j])
-			{
-			  d->list_of_reachable_tips[i][cpt] = a->list_of_reachable_tips[j][k];
-			  d->n_of_reachable_tips[i]++;
-			  cpt++;
-			}
-		    }
-		}
-	    }
-	  break;
-	}
-    }
-
-  if(d->tax) return;
-  else
-    {
-      For(i,3)
-	if(d->v[i] != a)
-	  Get_List_Of_Reachable_Tips_Pre(d,d->v[i],tree);
-
-    }
-}
-
-/*********************************************************/
-
-int Compare_List_Of_Reachable_Tips(t_node **list1, int size_list1, t_node **list2, int size_list2)
-{
-  int i,j,n_matches;
-
-  n_matches = 0;
-  For(i,size_list1)
-    {
-      For(j,size_list2)
-	{
-	  if(list1[i] == list2[j])
-	    {
-	      n_matches++;
-	    }
-	}
-    }
-  return n_matches;
-}
-
-/*********************************************************/
-
-void Find_Mutual_Direction(t_node *n1, t_node *n2, int *dir_n1_to_n2, int *dir_n2_to_n1)
+void Find_Mutual_Direction(t_node *n1, t_node *n2, short int *dir_n1_to_n2, short int *dir_n2_to_n1)
 {
   int scores[3][3];
   int n_zero_line, n_zero_col;
@@ -8067,15 +7910,6 @@ void Find_Mutual_Direction(t_node *n1, t_node *n2, int *dir_n1_to_n2, int *dir_n
     {
       For(j,3)
 	{
-/* 	  scores[i][j] = Compare_List_Of_Reachable_Tips(n1->list_of_reachable_tips[i], */
-/* 							n1->n_of_reachable_tips[i], */
-/* 							n2->list_of_reachable_tips[j], */
-/* 							n2->n_of_reachable_tips[j]); */
-
-/* 	  scores[i][j] = Compare_List_Of_Reachable_Tips(n1->bip_node[i], */
-/* 							n1->bip_size[i], */
-/* 							n2->bip_node[j], */
-/* 							n2->bip_size[j]); */
 	  scores[i][j] = 0;
 
 	  For(k,n1->bip_size[i])
@@ -8141,6 +7975,9 @@ void Update_Dir_To_Tips(t_node *a, t_node *d, t_tree *tree)
   int i,j,k;
   short int *inout;
   int d_a;
+  int dim;
+
+  dim = 2*tree->n_otu-2;
 
   inout = (short int *)mCalloc(tree->n_otu,sizeof(short int));
 
@@ -8150,7 +7987,7 @@ void Update_Dir_To_Tips(t_node *a, t_node *d, t_tree *tree)
 	{
 	  For(j,tree->n_otu) inout[j] = 1;
 	  For(k,a->bip_size[i]) inout[a->bip_node[i][k]->num] = 0;
-	  For(j,tree->n_otu) if(inout[tree->noeud[j]->num]) tree->t_dir[a->num][tree->noeud[j]->num] = i;
+	  For(j,tree->n_otu) if(inout[tree->noeud[j]->num]) tree->t_dir[a->num*dim+tree->noeud[j]->num] = i;
 	  break;
 	}
     }
@@ -8169,7 +8006,7 @@ void Update_Dir_To_Tips(t_node *a, t_node *d, t_tree *tree)
 
       For(j,tree->n_otu) inout[j] = 1;
       For(k,d->bip_size[d_a]) inout[d->bip_node[d_a][k]->num] = 0;
-      For(j,tree->n_otu) if(inout[tree->noeud[j]->num]) tree->t_dir[d->num][tree->noeud[j]->num] = d_a;
+      For(j,tree->n_otu) if(inout[tree->noeud[j]->num]) tree->t_dir[d->num*dim+tree->noeud[j]->num] = d_a;
     }
 
   Free(inout);
@@ -8181,7 +8018,9 @@ void Update_Dir_To_Tips(t_node *a, t_node *d, t_tree *tree)
 void Fill_Dir_Table(t_tree *tree)
 {
   int i,j;
-  For(i,2*tree->n_otu-2) For(j,2*tree->n_otu-2) tree->t_dir[i][j] = 0;
+  int dim;
+  dim = 2*tree->n_otu-2;
+  For(i,dim*dim) tree->t_dir[i] = 0;
   Free_Bip(tree);
   Alloc_Bip(tree);
   Get_Bip(tree->noeud[0],tree->noeud[0]->v[0],tree);
@@ -8191,8 +8030,8 @@ void Fill_Dir_Table(t_tree *tree)
     for(j=i;j<2*tree->n_otu-2;j++)
       {
 	Find_Mutual_Direction(tree->noeud[i],tree->noeud[j],
-			      &(tree->t_dir[i][j]),
-			      &(tree->t_dir[j][i]));
+			      &(tree->t_dir[i*dim+j]),
+			      &(tree->t_dir[j*dim+i]));
       }
 }
 
@@ -8658,7 +8497,7 @@ void Check_Path(t_node *a, t_node *d, t_node *target, t_tree *tree)
 {
   PhyML_Printf("path---------\n");
   if(d==target) return;
-  else Check_Path(d,d->v[tree->t_dir[d->num][target->num]],target,tree);
+  else Check_Path(d,d->v[tree->t_dir[d->num*(2*tree->n_otu-2)+target->num]],target,tree);
 }
 
 
@@ -9529,7 +9368,6 @@ t_tree *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
   Make_All_Tree_Nodes(tree);
   Make_All_Tree_Edges(tree);
   Make_Tree_Path(tree);
-  Make_List_Of_Reachable_Tips(tree);
   tree->rates = RATES_Make_Rate_Struct(tree->n_otu);
   RATES_Init_Rate_Struct(tree->rates,tree->n_otu);
 

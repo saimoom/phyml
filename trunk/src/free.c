@@ -81,7 +81,6 @@ void Free_Tree(t_tree *tree)
 {
   int i,j,k;
 
-  For(i,2*tree->n_otu-2) Free(tree->t_dir[i]);
   Free(tree->t_dir);
 
   Free_Bip(tree);
@@ -141,14 +140,6 @@ void Free_Node(t_node *n)
   Free(n->l);
   Free(n->score);
   if(n->ori_name) Free(n->ori_name);
-
-  if(n->list_of_reachable_tips)
-    {
-      For(i,3) Free(n->list_of_reachable_tips[i]);
-      Free(n->list_of_reachable_tips);
-      Free(n->n_of_reachable_tips);
-    }
-
   Free(n);
 }
 
