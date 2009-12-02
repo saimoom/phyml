@@ -1899,12 +1899,10 @@ int Read_Nexus_Matrix(char *token, nexparm *curr_parm, option *io)
 int Read_Nexus_Tree(char *token, nexparm *curr_parm, option *io)
 {
   io->treelist->tree = (t_tree **)realloc(io->treelist->tree,(io->treelist->list_size+1)*sizeof(t_tree *));
-
-  if(!(io->treelist->list_size%10)) PhyML_Printf("\n. Reading tree %d",io->treelist->list_size+1);
+  if(!(io->treelist->list_size%10)) PhyML_Printf("\n. Reading tree %d",io->treelist->list_size);
   io->tree = Read_Tree_File_Phylip(io->fp_in_tree);
   io->treelist->tree[io->treelist->list_size] = io->tree;
   io->treelist->list_size++;
-
   fseek(io->fp_in_tree,-1*sizeof(char),SEEK_CUR);
   return 1;
 }
