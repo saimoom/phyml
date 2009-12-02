@@ -1901,7 +1901,6 @@ int Read_Nexus_Tree(char *token, nexparm *curr_parm, option *io)
   io->treelist->tree = (t_tree **)realloc(io->treelist->tree,(io->treelist->list_size+1)*sizeof(t_tree *));
   PhyML_Printf("\n. Reading tree %d",io->treelist->list_size+1);
   io->tree = Read_Tree_File_Phylip(io->fp_in_tree);
-  printf("\n. %s",Write_Tree(io->tree));
   io->treelist->tree[io->treelist->list_size] = io->tree;
   io->treelist->list_size++;
 
