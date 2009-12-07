@@ -610,8 +610,8 @@ void Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict, t_t
       phydbl eps,tmp_rank;
       t_node *tmp_node;
       int n_moved;
-      eps = (phydbl)1./(2.*tree->n_otu);
-
+      
+      
       For(i,3)
 	{
 	  if((d->v[i] != d->anc) && (d->b[i] != tree->e_root))
@@ -623,6 +623,7 @@ void Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict, t_t
       if(*conflict == YES) return;
 
       lca = NULL;
+      eps = 1./(phydbl)(2.*tree->n_otu);
 
       For(i,3)
 	{
