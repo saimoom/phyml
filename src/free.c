@@ -406,14 +406,19 @@ void Free_Input(option *io)
   Free(io->clade_list_file);
   For(i,T_MAX_ALPHABET) Free(io->alphabet[i]);
   Free(io->alphabet);
-  For(i,io->size_tax_names) 
+  if(io->short_tax_names)
     {
-      Free(io->short_tax_names[i]);
-      Free(io->long_tax_names[i]);
+      For(i,io->size_tax_names) 
+	{
+	  Free(io->short_tax_names[i]);
+	  Free(io->long_tax_names[i]);
+	}
+      Free(io->long_tax_names);
+      Free(io->short_tax_names);
     }
-  Free(io->long_tax_names);
-  Free(io->short_tax_names);
   Free_Tree_List(io->treelist);
+  if(io->lon) Free(io->lon);
+  if(io->lat) Free(io->lat);
   Free(io);
 }
 

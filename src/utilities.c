@@ -565,8 +565,16 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
 
       if(OUTPUT_TREE_FORMAT == 0)
 	{
-	  strcat(*s_tree,fils->name);
-	  (*pos) += (int)strlen(fils->name);
+	  if(tree->io->long_tax_names) 
+	    {
+	      strcat(*s_tree,tree->io->long_tax_names[fils->num]);
+	      (*pos) += (int)strlen(tree->io->long_tax_names[fils->num]);
+	    }
+	  else
+	    {
+	      strcat(*s_tree,fils->name);
+	      (*pos) += (int)strlen(fils->name);
+	    }		  
 	}
       else
 	{
@@ -1899,8 +1907,13 @@ int Read_Nexus_Matrix(char *token, nexparm *curr_parm, option *io)
 int Read_Nexus_Tree(char *token, nexparm *curr_parm, option *io)
 {
   io->treelist->tree = (t_tree **)realloc(io->treelist->tree,(io->treelist->list_size+1)*sizeof(t_tree *));
-  if(!(io->treelist->list_size%10)) PhyML_Printf("\n. Reading tree %d",io->treelist->list_size);
   io->tree = Read_Tree_File_Phylip(io->fp_in_tree);
+  if(!(io->treelist->list_size%10)) 
+    {
+      PhyML_Printf("\n. Reading tree %d",io->treelist->list_size);
+      if(io->tree->n_root) PhyML_Printf(" (that is a rooted tree)");
+      else                 PhyML_Printf(" (that is an unrooted tree)");
+    }
   io->treelist->tree[io->treelist->list_size] = io->tree;
   io->treelist->list_size++;
   fseek(io->fp_in_tree,-1*sizeof(char),SEEK_CUR);
@@ -6341,6 +6354,11 @@ void Set_Defaults_Input(option* io)
   io->fp_out_boot_tree           = NULL;
   io->fp_out_boot_stats          = NULL;
   io->fp_out_stats               = NULL;
+  io->long_tax_names             = NULL;
+  io->short_tax_names            = NULL;
+  io->lon                        = NULL;
+  io->lat                        = NULL;
+  io->z_scores                   = NULL;
 
   io->tree                       = NULL;
   io->mod                        = NULL;
@@ -6453,6 +6471,23 @@ void Set_Defaults_Optimiz(optimiz *s_opt)
   s_opt->wim_n_optim          = -1;
   s_opt->wim_n_best           = -1;
   s_opt->wim_inside_opt       =  0;
+}
+
+/*********************************************************/
+
+void Test_Node_Table_Consistency(t_tree *tree)
+{
+  int i;
+
+  For(i,2*tree->n_otu-2)
+    {
+      if(tree->noeud[i]->num != i)
+	{
+	  PhyML_Printf("\n. Node table is not consistent with node numbers.");
+	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  Warn_And_Exit("");
+	}
+    }
 }
 
 /*********************************************************/
@@ -10600,8 +10635,8 @@ void Dist_To_Root_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 
 void Dist_To_Root(t_node *n_root, t_tree *tree)
 {  
-/*   n_root->v[0]->dist_to_root = tree->n_root->l[0]; */
-/*   n_root->v[1]->dist_to_root = tree->n_root->l[1]; */
+/*   n_root->v[0]->dist_to_root = tree->rates->cur_l[n_root->v[0]->num]; */
+/*   n_root->v[1]->dist_to_root = tree->rates->cur_l[n_root->v[1]->num]; */
   n_root->v[0]->dist_to_root = tree->e_root->l * tree->n_root_pos;
   n_root->v[1]->dist_to_root = tree->e_root->l * (1. - tree->n_root_pos);
   Dist_To_Root_Pre(n_root,n_root->v[0],NULL,tree);

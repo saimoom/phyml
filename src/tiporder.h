@@ -39,7 +39,6 @@ void Get_Tips_Y_Rank(t_tree *tree);
 void Get_Tips_Y_Rank_Pre(t_node *a, t_node *d, phydbl *curr_rank, t_tree *tree);
 void Get_All_Y_Rank(t_tree *tree);
 void Get_All_Y_Rank_Pre(t_node *a, t_node *d, t_tree *tree);
-phydbl Get_Tip_Order_Score(int n_trees, t_tree **list_tree, t_tree *ref_tree);
 void Swap_One_Node(t_node *d, t_tree *tree);
 void Minimize_Tip_Order_Score(int n_trees, t_tree **list_tree, t_tree *ref_tree);
 void Print_Tip_Ordered(t_tree *ref_tree);
@@ -48,6 +47,11 @@ int Untangle_Tree(t_tree *tree);
 void Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict, t_tree *tree);
 int Untangle_Tree_List(int n_trees, t_tree **list_tree, t_tree *ref_tree);
 int Check_Tip_Ranks(t_tree *tree);
+void Read_Taxa_Coordinates(FILE *fp_coord, t_tree *tree);
+void Get_Tips_Y_Rank_From_Zscores(t_tree *tree);
+void Init_Tip_Num(t_tree *tree);
+void Read_Taxa_Zscores(FILE *fp_coord, t_tree *tree);
+void  Sort_Translation_Table(t_tree *tree);
 
 
 #endif

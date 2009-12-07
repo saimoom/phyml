@@ -54,6 +54,7 @@ void DR_Print_Postscript_Header(int n_pages, FILE *fp)
   PhyML_Fprintf(fp,"/lt {lineto} bind def\n");
   PhyML_Fprintf(fp,"/mt {moveto} bind def\n");
   PhyML_Fprintf(fp,"/sc {setrgbcolor} bind def\n");
+  PhyML_Fprintf(fp,"/ct {curveto} bind def\n");
   
   PhyML_Fprintf(fp,"/Times-Roman findfont\n");
   PhyML_Fprintf(fp,"12 scalefont\n");
@@ -62,11 +63,11 @@ void DR_Print_Postscript_Header(int n_pages, FILE *fp)
   PhyML_Fprintf(fp,"/clipbox\n");
   PhyML_Fprintf(fp,"{\n");
   PhyML_Fprintf(fp,"newpath\n");
-  PhyML_Fprintf(fp,"40 40 moveto\n");
-  PhyML_Fprintf(fp,"560 40 lineto\n");
-  PhyML_Fprintf(fp,"560 820 lineto\n");
-  PhyML_Fprintf(fp,"40 820 lineto\n");
-  PhyML_Fprintf(fp,"40 40 lineto\n");
+  PhyML_Fprintf(fp,"40 40 mt\n");
+  PhyML_Fprintf(fp,"560 40 lt\n");
+  PhyML_Fprintf(fp,"560 820 lt\n");
+  PhyML_Fprintf(fp,"40 820 lt\n");
+  PhyML_Fprintf(fp,"40 40 lt\n");
   PhyML_Fprintf(fp,"closepath\n");
   PhyML_Fprintf(fp,"clip\n");
   PhyML_Fprintf(fp,"} bind def\n");
@@ -95,7 +96,7 @@ void DR_Print_Tree_Postscript(int page_num, int render_name, FILE *fp, t_tree *t
 
 /*   PhyML_Fprintf(fp,"%%%%Page: %d %d\n",page_num,page_num); */
   PhyML_Fprintf(fp,"0.001 setlinewidth\n");
-  PhyML_Fprintf(fp,"0.5 0.5 0.4 setrgbcolor\n");
+  PhyML_Fprintf(fp,"0.5 0.5 0.4 sc\n");
   PhyML_Fprintf(fp,"clipbox\n");
   PhyML_Fprintf(fp,"stroke\n");
   PhyML_Fprintf(fp,"50 50 translate\n");
@@ -111,13 +112,13 @@ void DR_Print_Tree_Postscript(int page_num, int render_name, FILE *fp, t_tree *t
 /*   PhyML_Fprintf(fp,"%d %d lt\n",draw->xcoord[n_root->v[1]->num],draw->ycoord[n_root->v[1]->num]); */
 
 
-  PhyML_Fprintf(fp,"%d %d mt\n",draw->xcoord[n_root->v[0]->num],draw->ycoord[n_root->v[0]->num]);
+  PhyML_Fprintf(fp,"%.1f %.1f mt\n",draw->xcoord[n_root->v[0]->num],draw->ycoord[n_root->v[0]->num]);
 
-  PhyML_Fprintf(fp,"%d %d %d %d %d %d curveto\n",
+  PhyML_Fprintf(fp,"%d %.1f %d %.1f %d %.1f curveto\n",
 		0,draw->ycoord[n_root->v[0]->num],
 		0,(draw->ycoord[n_root->v[0]->num]+draw->ycoord[n_root->v[1]->num])/2,
 		0,(draw->ycoord[n_root->v[0]->num]+draw->ycoord[n_root->v[1]->num])/2);
-  PhyML_Fprintf(fp,"%d %d %d %d %d %d curveto\n",
+  PhyML_Fprintf(fp,"%d %.1f %.1f %.1f %.1f %.1f curveto\n",
 		0,draw->ycoord[n_root->v[1]->num],
 		draw->xcoord[n_root->v[1]->num],draw->ycoord[n_root->v[1]->num],
 		draw->xcoord[n_root->v[1]->num],draw->ycoord[n_root->v[1]->num]);
@@ -125,8 +126,17 @@ void DR_Print_Tree_Postscript(int page_num, int render_name, FILE *fp, t_tree *t
   PhyML_Fprintf(fp,"stroke\n");
 
 
-  PhyML_Fprintf(fp,"%d %d mt\n",draw->xcoord[n_root->v[0]->num],draw->ycoord[n_root->v[0]->num]);
-  if(n_root->v[0]->tax) { if(render_name) PhyML_Fprintf(fp,"(%s) show\n",n_root->v[0]->name); }
+  PhyML_Fprintf(fp,"%.1f %.1f mt\n",draw->xcoord[n_root->v[0]->num],draw->ycoord[n_root->v[0]->num]);
+  if(n_root->v[0]->tax) 
+    { 
+      if(render_name) 
+	{
+	  if(tree->io->long_tax_names)
+	    PhyML_Fprintf(fp,"(%s) show\n",tree->io->long_tax_names[n_root->v[0]->num]); 
+	  else
+	    PhyML_Fprintf(fp,"(%s) show\n",n_root->v[0]->name); 
+	}
+    }
   else
     {
       For(i,3)
@@ -134,7 +144,7 @@ void DR_Print_Tree_Postscript(int page_num, int render_name, FILE *fp, t_tree *t
 	  DR_Print_Tree_Postscript_Pre(n_root->v[0],n_root->v[0]->v[i],render_name,fp,draw,tree);
     }
 
-  PhyML_Fprintf(fp,"%d %d mt\n",draw->xcoord[n_root->v[1]->num],draw->ycoord[n_root->v[1]->num]);
+  PhyML_Fprintf(fp,"%.1f %.1f mt\n",draw->xcoord[n_root->v[1]->num],draw->ycoord[n_root->v[1]->num]);
 
   if(n_root->v[1]->tax) PhyML_Fprintf(fp,"(%s) show\n",n_root->v[1]->name);
   else
@@ -147,7 +157,7 @@ void DR_Print_Tree_Postscript(int page_num, int render_name, FILE *fp, t_tree *t
   PhyML_Fprintf(fp,"closepath\n");
   PhyML_Fprintf(fp,"-50 -50 translate\n");
   PhyML_Fprintf(fp,"stroke\n");
-/*   PhyML_Fprintf(fp,"showpage\n"); */
+  PhyML_Fprintf(fp,"showpage\n");
 }
 
 /*********************************************************/
@@ -155,6 +165,8 @@ void DR_Print_Tree_Postscript(int page_num, int render_name, FILE *fp, t_tree *t
 void DR_Print_Tree_Postscript_Pre(t_node *a, t_node *d, int render_name, FILE *fp, tdraw *w, t_tree *tree)
 {
   int i;
+  phydbl R, G, B;
+  phydbl z;
 
   PhyML_Fprintf(fp,"gsave\n");
   
@@ -162,8 +174,8 @@ void DR_Print_Tree_Postscript_Pre(t_node *a, t_node *d, int render_name, FILE *f
 /* /\*   PhyML_Fprintf(fp,"%d %d lt\n",w->xcoord[a->num],w->ycoord[d->num]); *\/ */
 /*   PhyML_Fprintf(fp,"%d %d lt\n",w->xcoord[d->num],w->ycoord[d->num]); */
 
-  PhyML_Fprintf(fp,"%d %d moveto\n",w->xcoord[a->num],w->ycoord[a->num]);
-  PhyML_Fprintf(fp,"%d %d %d %d %d %d curveto\n",
+  PhyML_Fprintf(fp,"%.1f %.1f mt\n",w->xcoord[a->num],w->ycoord[a->num]);
+  PhyML_Fprintf(fp,"%.1f %.1f %.1f %.1f %.1f %.1f ct\n",
 		w->xcoord[a->num],
 		w->ycoord[d->num],
 		w->xcoord[d->num],
@@ -173,7 +185,33 @@ void DR_Print_Tree_Postscript_Pre(t_node *a, t_node *d, int render_name, FILE *f
 
   if(d->tax) 
     {
-      if(render_name) PhyML_Fprintf(fp,"(%s) show \n",d->name);
+      R = .0; G = .0; B = .0;
+      if(tree->io->z_scores) z = tree->io->z_scores[d->num];
+      else z = 0.0;
+      if(z < 0.1)            { R = 1.; G = .0; B = .0; }
+      if(z > 0.1 && z < 0.4) { R = .8; G = .2; B = .0; }
+      if(z > 0.4 && z < 0.45) { R = .6; G = .4; B = .0; }
+      if(z > 0.45 && z < 0.5) { R = .4; G = .6; B = .0; }
+      if(z > 0.5 && z < 0.55) { R = .2; G = .8; B = .0; }
+      if(z > 0.55 && z < 0.6) { R = .0; G = 1.; B = .0; }
+      if(z > 0.6 && z < 0.65) { R = .0; G = .8; B = .2; }
+      if(z > 0.65 && z < 0.7) { R = .0; G = .6; B = .4; }
+      if(z > 0.7 && z < 0.75) { R = .0; G = .4; B = .6; }
+      if(z > 0.75 && z < 1.0) { R = .0; G = .2; B = .8; }
+
+      PhyML_Fprintf(fp,"stroke\n");
+      PhyML_Fprintf(fp,"newpath %.1f %.1f 2 0 360 arc closepath\n",w->xcoord[d->num],w->ycoord[d->num]);
+      PhyML_Fprintf(fp,"%.1f %.1f %.1f sc fill\n",R,G,B);
+      PhyML_Fprintf(fp,"0.5 0.5 0.4 sc\n");
+      
+/*       if(render_name)  */
+/* 	{ */
+/* 	  if(tree->io->long_tax_names) */
+/* 	    PhyML_Fprintf(fp,"(%s) show \n",tree->io->long_tax_names[d->num]); */
+/* 	  else */
+/* 	    PhyML_Fprintf(fp,"(%s) show \n",d->name); */
+/* 	} */
+
       PhyML_Fprintf(fp,"stroke\n");
       PhyML_Fprintf(fp,"grestore\n");
       return;
@@ -222,8 +260,8 @@ void DR_Get_X_Coord(int fixed_tips, tdraw *w, t_tree *tree)
 
 void DR_Get_Y_Coord(int fixed_tips, tdraw *w, t_tree *tree)
 {
-  int next_y_slot;
-  next_y_slot = 0;
+  phydbl next_y_slot;
+  next_y_slot = .0;
   DR_Get_Y_Coord_Post(tree->n_root,tree->n_root->v[0],NULL,&next_y_slot,fixed_tips,w,tree);
   DR_Get_Y_Coord_Post(tree->n_root,tree->n_root->v[1],NULL,&next_y_slot,fixed_tips,w,tree);
   w->ycoord[tree->n_root->num] = (int)((w->ycoord[tree->n_root->v[0]->num] + w->ycoord[tree->n_root->v[0]->num]) / 2.);
@@ -231,7 +269,7 @@ void DR_Get_Y_Coord(int fixed_tips, tdraw *w, t_tree *tree)
 
 /*********************************************************/
 
-void DR_Get_Y_Coord_Post(t_node *a, t_node *d, t_edge *b, int *next_y_slot, int fixed_tips, tdraw *w, t_tree *tree)
+void DR_Get_Y_Coord_Post(t_node *a, t_node *d, t_edge *b, phydbl *next_y_slot, int fixed_tips, tdraw *w, t_tree *tree)
 {
   int i;
 
@@ -239,8 +277,9 @@ void DR_Get_Y_Coord_Post(t_node *a, t_node *d, t_edge *b, int *next_y_slot, int 
     {
       if(!fixed_tips)
 	{
-	  w->ycoord[d->num] = *next_y_slot + (int)(w->page_height / (2.*tree->n_otu));
-	  (*next_y_slot) += (int)(w->page_height / (tree->n_otu));
+/* 	  w->ycoord[d->num] = *next_y_slot + (int)(w->page_height / (2.*tree->n_otu)); */
+	  w->ycoord[d->num] = *next_y_slot;
+	  (*next_y_slot) += ((phydbl)w->page_height / (phydbl)tree->n_otu);
 	}
     }
   else
@@ -268,8 +307,8 @@ tdraw *DR_Make_Tdraw_Struct(t_tree *tree)
   tdraw *w;
 
   w = (tdraw *)mCalloc(1,sizeof(tdraw));
-  w->xcoord = (int *)mCalloc(2*tree->n_otu-1,sizeof(int));
-  w->ycoord = (int *)mCalloc(2*tree->n_otu-1,sizeof(int));
+  w->xcoord = (phydbl *)mCalloc(2*tree->n_otu-1,sizeof(phydbl));
+  w->ycoord = (phydbl *)mCalloc(2*tree->n_otu-1,sizeof(phydbl));
   w->xcoord_s = (phydbl *)mCalloc(2*tree->n_otu-1,sizeof(phydbl));
   w->ycoord_s = (phydbl *)mCalloc(2*tree->n_otu-1,sizeof(phydbl));
   w->cdf_mat  = (int *)mCalloc((2*tree->n_otu-2)*(2*tree->n_otu-2),sizeof(int));
@@ -284,7 +323,7 @@ tdraw *DR_Make_Tdraw_Struct(t_tree *tree)
 void DR_Init_Tdraw_Struct(tdraw *w)
 {
   w->page_width  = 510;
-  w->page_height = 770;
+  w->page_height = 760;
 }
 
 /*********************************************************/
@@ -393,13 +432,13 @@ void DR_Get_Cdf_Mat(t_tree *tree)
 	      x_mat = tree->ps_tree->cdf_mat_x[i];
 	      y_mat = tree->ps_tree->cdf_mat_y[j];
 	
-/* 	      printf("\n. x_mat=%f ymat=%f min=%f max=%f y=%f", */
+/* 	      printf("\n. x_mat=%.1f ymat=%.1f min=%.1f max=%.1f y=%.1f", */
 /* 		     x_mat,y_mat,min_x,max_x,y); */
 	      
 	      if((min_x < x_mat + eps) && (max_x > x_mat) && (y > y_mat))
 		{
 		  tree->ps_tree->cdf_mat[j*(2*tree->n_otu-2)+i] += 1;
-/* 		  PhyML_Printf("\n. Add 1 to [%f,%f]", */
+/* 		  PhyML_Printf("\n. Add 1 to [%.1f,%.1f]", */
 /* 			       tree->ps_tree->cdf_mat_x[i], */
 /* 			       tree->ps_tree->cdf_mat_y[j]); */
 		}
