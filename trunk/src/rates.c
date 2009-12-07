@@ -2602,6 +2602,8 @@ void RATES_Update_Cur_Bl(t_tree *tree)
     tree->rates->cur_l[tree->n_root->v[0]->num] +
     tree->rates->cur_l[tree->n_root->v[1]->num] ;
 
+  tree->n_root_pos = tree->rates->cur_l[tree->n_root->v[0]->num] / tree->e_root->l;
+
   tree->rates->u_cur_l[tree->e_root->num] = tree->e_root->l;
   
   if(tree->e_root->l < 0.0)

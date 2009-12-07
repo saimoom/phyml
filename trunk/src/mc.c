@@ -465,7 +465,9 @@ void MC_Least_Square_Node_Times(t_edge *e_root, t_tree *tree)
   b = (phydbl *)mCalloc(n,  sizeof(phydbl));
   x = (phydbl *)mCalloc(n,  sizeof(phydbl));
   
-  (e_root)?(Add_Root(e_root,tree)):(Add_Root(tree->t_edges[0],tree));
+  
+  if(!tree->n_root && e_root) Add_Root(e_root,tree);
+  else if(!e_root)            Add_Root(tree->t_edges[0],tree);
   
   root = tree->n_root;
 

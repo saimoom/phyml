@@ -711,6 +711,10 @@ typedef struct __Option { /* mostly used in 'help.c' */
   char              **long_tax_names;
   char             **short_tax_names;
   int                 size_tax_names;
+
+  phydbl                    *z_scores;
+  phydbl                         *lat;
+  phydbl                         *lon;
 }option;
 
 /*********************************************************/
@@ -865,8 +869,8 @@ typedef struct __M4 {
 /*********************************************************/
 
 typedef struct __Tdraw {
-  int             *xcoord; /* t_node coordinates on the x axis */
-  int             *ycoord; /* t_node coordinates on the y axis */
+  phydbl          *xcoord; /* t_node coordinates on the x axis */
+  phydbl          *ycoord; /* t_node coordinates on the y axis */
   phydbl        *xcoord_s; /* t_node coordinates on the x axis (scaled) */
   phydbl        *ycoord_s; /* t_node coordinates on the y axis (scaled) */
   int          page_width;
@@ -1321,6 +1325,7 @@ void Get_Nexus_Data(FILE *fp, option *io);
 void Translate_Tax_Names(char **tax_names, t_tree *tree);
 void Skip_Comment(FILE *fp);
 void Update_Dir_To_Tips(t_node *a, t_node *d, t_tree *tree);
+void Test_Node_Table_Consistency(t_tree *tree);
 
 #include "free.h"
 #include "spr.h"

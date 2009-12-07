@@ -10,7 +10,7 @@ void DR_Get_X_Coord(int fixed_tips, tdraw *w, t_tree *tree);
 tdraw *DR_Make_Tdraw_Struct(t_tree *tree);
 void DR_Init_Tdraw_Struct(tdraw *d);
 void DR_Get_Tree_Box_Width(tdraw *w, t_tree *tree);
-void DR_Get_Y_Coord_Post(t_node *a, t_node *d, t_edge *b, int *next_y_slot, int fixed_tips, tdraw *w, t_tree *tree);
+void DR_Get_Y_Coord_Post(t_node *a, t_node *d, t_edge *b, phydbl *next_y_slot, int fixed_tips, tdraw *w, t_tree *tree);
 void DR_Get_Y_Coord(int fixed_tips, tdraw *w, t_tree *tree);
 void DR_Get_Tree_Coord(t_tree *tree);
 phydbl DR_Get_Max_Dist_To_Root(t_tree *tree);
