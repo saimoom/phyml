@@ -61,12 +61,14 @@ dnl             LDFLAGS+=" -arch i386 -arch ppc";;
 esac
 # End of cross-compilation macros
 
-CFLAGS="-O3 -fomit-frame-pointer -funroll-loops"
+dnl CFLAGS="-O3 -fomit-frame-pointer -funroll-loops"
 dnl CFLAGS="-O3 -Wfloat-equal -fomit-frame-pointer -funroll-loops"
 dnl CFLAGS="-O3 -Wfloat-equal"
-dnl CFLAGS="-pg"
+CFLAGS="-g"
 
 
+AC_ARG_ENABLE([tiporder],[  --enable-tiporder    Compile tiporder],[tiporder=yes])
+AM_CONDITIONAL([WANT_TIPORDER], [test "$tiporder" = yes]) 
 
 AC_ARG_ENABLE([mc],[  --enable-mc    Compile mc],[mc=yes])
 AM_CONDITIONAL([WANT_MC], [test "$mc" = yes]) 
