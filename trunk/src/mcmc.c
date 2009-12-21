@@ -843,7 +843,7 @@ void MCMC_Print_Param(tmcmc *mcmc, t_tree *tree)
   
   if(!(mcmc->run%(mcmc->n_tot_run/10))) 
     { 
-      PhyML_Fprintf(stderr,"."); 
+      PhyML_Fprintf(stdout,"."); 
       fflush(NULL); 
     }
 
