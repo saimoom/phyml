@@ -870,6 +870,11 @@ void Init_Node_Light(t_node *n, int num)
   n->ext_node               = NULL;
   n->name                   = NULL;
   n->ori_name               = NULL;
+  n->y_rank                 = 0.;
+  n->y_rank_ori             = 0.;
+  n->y_rank_max             = 0.;
+  n->y_rank_min             = 0.;
+  n->anc                    = NULL;
 }
 
 /*********************************************************/
@@ -3000,6 +3005,8 @@ t_tree *Read_Tree_File(option *io)
 
   Detect_Tree_File_Format(io);
 
+  io->treelist->list_size = 0;
+
   switch(io->tree_file_format)
     {
     case PHYLIP: 
@@ -3007,9 +3014,9 @@ t_tree *Read_Tree_File(option *io)
 	do
 	  {
 	    io->treelist->tree = (t_tree **)realloc(io->treelist->tree,(io->treelist->list_size+1)*sizeof(t_tree *));
-	    PhyML_Printf("\n. Reading tree %d",io->treelist->list_size+1);
 	    io->tree = Read_Tree_File_Phylip(io->fp_in_tree);
 	    if(!io->tree) break;
+	    PhyML_Printf("\n. Reading tree %d",io->treelist->list_size+1);
 	    io->treelist->tree[io->treelist->list_size] = io->tree;
 	    io->treelist->list_size++;
 	  }while(io->tree);
@@ -3029,6 +3036,24 @@ t_tree *Read_Tree_File(option *io)
 	Warn_And_Exit("");
 	break;
       }
+    }
+  
+  if(!io->long_tax_names)
+    {
+      int i;
+
+      tree = io->treelist->tree[0];
+
+      io->long_tax_names  = (char **)mCalloc(tree->n_otu,sizeof(char *));
+      io->short_tax_names = (char **)mCalloc(tree->n_otu,sizeof(char *));
+
+      For(i,tree->n_otu)
+	{
+	  io->long_tax_names[i] = (char *)mCalloc(strlen(tree->noeud[i]->name)+1,sizeof(char));
+	  io->short_tax_names[i] = (char *)mCalloc(strlen(tree->noeud[i]->name)+1,sizeof(char));
+	  strcpy(io->long_tax_names[i],tree->noeud[i]->name);
+	  strcpy(io->short_tax_names[i],tree->noeud[i]->name);
+	}
     }
 }
 
@@ -6808,9 +6833,6 @@ void Test_Multiple_Data_Set_Format(option *io)
   io->n_trees = 0;
 
   while(fgets(line,T_MAX_LINE,io->fp_in_tree)) if(strstr(line,";")) io->n_trees++;
-
-  printf("\n. n_trees = %d",
-	 io->n_trees);
 
   Free(line);
 
@@ -10892,6 +10914,9 @@ void Read_Clade_Priors(char *file_name, t_tree *tree)
   phydbl prior_low,prior_up;
   int node_num;
 
+
+  PhyML_Printf("\n. Reading prior ages on clade.");
+
   line = (char *)mCalloc(T_MAX_LINE,sizeof(char));
   s    = (char *)mCalloc(T_MAX_LINE,sizeof(char));
 
@@ -10942,6 +10967,8 @@ void Read_Clade_Priors(char *file_name, t_tree *tree)
 	  if(!strcmp("@root@",clade_list[0])) node_num = tree->n_root->num;
 	  else node_num = Find_Clade(clade_list, clade_size, tree);
 	  
+	  n_clade_priors++;  
+
 	  if(node_num < 0)
 	    {
 	      PhyML_Printf("\n. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
@@ -10955,7 +10982,7 @@ void Read_Clade_Priors(char *file_name, t_tree *tree)
 	      tree->rates->t_has_prior[node_num] = 1;
 	      tree->rates->t_prior_min[node_num] = MIN(prior_low,prior_up);
 	      tree->rates->t_prior_max[node_num] = MAX(prior_low,prior_up);
-	      PhyML_Printf("\n. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+	      PhyML_Printf("\n. %3d>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",n_clade_priors);
 	      PhyML_Printf("\n. Node %4d matches the clade with the following taxa names:",node_num);
 	      For(i,clade_size) PhyML_Printf("\n. - \"%s\"",clade_list[i]);
 	      PhyML_Printf("\n. Lower bound set to: %15f time units.",MIN(prior_low,prior_up)); 

@@ -1742,6 +1742,7 @@ void RATES_Posterior_Rates_Pre(t_node *a, t_node *d, t_tree *tree)
   phydbl r_min,r_max;
   phydbl l_min,l_max;
   int err;
+  phydbl ratio,u;
   
 /*   if(a == tree->n_root) { tree->rates->nd_r[d->num] = 1.0; return; } */
 
@@ -1970,7 +1971,16 @@ void RATES_Posterior_Rates_Pre(t_node *a, t_node *d, t_tree *tree)
       rd = r_max;
     }
 
-  tree->rates->nd_r[d->num] = rd;
+
+  ratio = 
+    ((1-Pnorm(0,U1,sqrt(V2)))*(1-Pnorm(0,U1,sqrt(V3)))) / 
+    ((1-Pnorm(0,rd,sqrt(V2)))*(1-Pnorm(0,rd,sqrt(V3))));
+  
+  u = Uni();
+  if(u > MIN(1.,ratio))
+    tree->rates->nd_r[d->num] = U1; /* reject */
+  else
+    tree->rates->nd_r[d->num] = rd; /* accept */
   
   RATES_Update_Cur_Bl(tree);
 

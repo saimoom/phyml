@@ -176,10 +176,9 @@ int MC_main(int argc, char **argv)
 
 		  buff = tree->n_root;
 		  tree->n_root = NULL;
+		  PhyML_Printf("\n");
 		  Round_Optimize(tree,tree->data,ROUND_MAX);
 		  tree->n_root = buff;
-
-		  PhyML_Printf("\n. lnL_data = %f\n",Lk(tree));
 
 		  Record_Br_Len(NULL,tree);
 		  PhyML_Printf("\n. Computing Hessian...\n");
@@ -211,10 +210,10 @@ int MC_main(int argc, char **argv)
 		  RATES_Get_All_Trip_Reg_Coeff(tree);
 
 		  Lk(tree);
-		  PhyML_Printf("\n. Best LnL_data = %f",tree->c_lnL);
+		  PhyML_Printf("\n. p(data|model) [exact] ~ %f",tree->c_lnL);
 		  For(i,2*tree->n_otu-3) tree->rates->u_cur_l[i] = tree->t_edges[i]->l;
 		  tree->c_lnL = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES);
-		  PhyML_Printf("\n. Best Approx lnL = %f",tree->c_lnL);
+		  PhyML_Printf("\n. p(data|model) [normal approx] ~ %f",tree->c_lnL);
 
 		  tree->rates->bl_from_rt = 1;
 
@@ -227,9 +226,9 @@ int MC_main(int argc, char **argv)
 		  MCMC_Close_MCMC(tree->mcmc);
 		  MCMC_Free_MCMC(tree->mcmc);
 
-		  PhyML_Printf("\n. Gibbs sampling (approx)...\n");
+		  PhyML_Printf("\n. Gibbs sampling...\n");
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
-		  MCMC_Init_MCMC_Struct("gibbs.approx",tree->mcmc,tree);		  
+		  MCMC_Init_MCMC_Struct("gibbs",tree->mcmc,tree);		  
 		  tree->rates->lk_approx = NORMAL;
 		  RATES_Lk_Rates(tree);
 		  MCMC_Print_Param(tree->mcmc,tree);
@@ -258,7 +257,7 @@ int MC_main(int argc, char **argv)
 		  MCMC_Close_MCMC(tree->mcmc);
 		  MCMC_Free_MCMC(tree->mcmc);
 
-		  PhyML_Printf("\n. End of Gibbs sampling (approx)...\n");
+		  PhyML_Printf("\n. End of Gibbs sampling...\n");
 		  system("sleep 1s");
 /* 		  END OF IMPORTANCE SAMPLING STUFF */
 

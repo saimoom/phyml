@@ -187,48 +187,48 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 /* #define USE_OLD_LK */
 
 /* Uncomment the lines below to switch to single precision */
-typedef	float phydbl;
-#define LOG logf
-#define POW powf
-#define EXP expf
-#define FABS fabsf
-#define SQRT sqrtf
-#define CEIL ceilf
-#define FLOOR floorf
-#define RINT rintf
-#define ROUND roundf
-#define TRUNC truncf
-#define COS cosf
-#define SIN sinf
-#define TAN tanf
-#define SMALL FLT_MIN
-#define BIG  FLT_MAX
-#define SMALL_PIJ 1.E-10
-#define BL_MIN 1.E-5
-#define  P_LK_LIM_INF   2.168404e-19 /* 2^-62 */
-#define  P_LK_LIM_SUP   4.611686e+18 /* 2^62 */
+/* typedef	float phydbl; */
+/* #define LOG logf */
+/* #define POW powf */
+/* #define EXP expf */
+/* #define FABS fabsf */
+/* #define SQRT sqrtf */
+/* #define CEIL ceilf */
+/* #define FLOOR floorf */
+/* #define RINT rintf */
+/* #define ROUND roundf */
+/* #define TRUNC truncf */
+/* #define COS cosf */
+/* #define SIN sinf */
+/* #define TAN tanf */
+/* #define SMALL FLT_MIN */
+/* #define BIG  FLT_MAX */
+/* #define SMALL_PIJ 1.E-10 */
+/* #define BL_MIN 1.E-5 */
+/* #define  P_LK_LIM_INF   2.168404e-19 /\* 2^-62 *\/ */
+/* #define  P_LK_LIM_SUP   4.611686e+18 /\* 2^62 *\/ */
 
 /* Uncomment the line below to switch to double precision */
-/* typedef	double phydbl; */
-/* #define LOG log */
-/* #define POW pow */
-/* #define EXP exp */
-/* #define FABS fabs */
-/* #define SQRT sqrt */
-/* #define CEIL ceil */
-/* #define FLOOR floor */
-/* #define RINT rint */
-/* #define ROUND round */
-/* #define TRUNC trunc */
-/* #define COS cos */
-/* #define SIN sin */
-/* #define TAN tan */
-/* #define SMALL DBL_MIN */
-/* #define BIG  DBL_MAX */
-/* #define SMALL_PIJ 1.E-10 */
-/* #define BL_MIN 1.E-10 */
-/* #define  P_LK_LIM_INF   3.054936e-151 /\* 2^-500 *\/ */
-/* #define  P_LK_LIM_SUP   3.273391e+150 /\* 2^500 *\/ */
+typedef	double phydbl;
+#define LOG log
+#define POW pow
+#define EXP exp
+#define FABS fabs
+#define SQRT sqrt
+#define CEIL ceil
+#define FLOOR floor
+#define RINT rint
+#define ROUND round
+#define TRUNC trunc
+#define COS cos
+#define SIN sin
+#define TAN tan
+#define SMALL DBL_MIN
+#define BIG  DBL_MAX
+#define SMALL_PIJ 1.E-10
+#define BL_MIN 1.E-10
+#define  P_LK_LIM_INF   3.054936e-151 /* 2^-500 */
+#define  P_LK_LIM_SUP   3.273391e+150 /* 2^500 */
 
 /*********************************************************/
 
@@ -252,7 +252,9 @@ typedef struct __Node {
 
   short int                        common;
   phydbl                           y_rank;
-  phydbl                          y_width;
+  phydbl                       y_rank_ori;
+  phydbl                       y_rank_min;
+  phydbl                       y_rank_max;
 
 }t_node;
 
@@ -548,7 +550,7 @@ typedef struct __Matrix { /* mostly used in BIONJ */
   phydbl    **P,**Q,**dist; /* observed proportions of transition, transverion and  distances
 			       between pairs of  sequences */
 
-  t_tree              *tree; /* tree... */
+  t_tree             *tree; /* tree... */
   int              *on_off; /* on_off[i]=1 if column/line i corresponds to a t_node that has not
 			       been agglomerated yet */
   int                n_otu; /* number of taxa */
