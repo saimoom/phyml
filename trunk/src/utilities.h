@@ -226,7 +226,11 @@ typedef	double phydbl;
 #define SMALL DBL_MIN
 #define BIG  DBL_MAX
 #define SMALL_PIJ 1.E-10
+#ifndef MC
 #define BL_MIN 1.E-10
+#else
+#define BL_MIN 1.E-4
+#endif
 #define  P_LK_LIM_INF   3.054936e-151 /* 2^-500 */
 #define  P_LK_LIM_SUP   3.273391e+150 /* 2^500 */
 
