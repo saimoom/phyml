@@ -5,12 +5,24 @@ Basic Installation
 Installing PhyML
 ================
 
-In a terminal window, type:
-
-tar -zxvf ./phyml-v3.0_XXX.tar.gz
-cd ./phyml-v3.0_XXX
+In a command-line window, type:
+aclocal;
+autoconf -f;
+automake -f;
 ./configure;
 make;
+
+
+Installing other programs from these sources
+============================================
+
+To install program XX, In a command-line window, type:
+aclocal;
+autoconf -f ./configure_XX.ac > ./configure;
+automake -f ./Makefile_XX;
+./configure;
+make -f Makefile_XX;
+
 
 
 

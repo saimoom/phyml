@@ -42,6 +42,7 @@ void DR_Print_Postscript_Header(int n_pages, FILE *fp)
     }
 
   PhyML_Fprintf(fp,"%%!PS-Adobe-3.0\n");
+  PhyML_Fprintf(fp,"%%%%BoundingBox: 40 40 560 820\n");
   PhyML_Fprintf(fp,"%%%%DocumentFonts: Times-Roman Times-Roman\n");
   PhyML_Fprintf(fp,"%%%%Creator: Stephane Guindon\n");
   PhyML_Fprintf(fp,"%%%%Title: tree\n");
@@ -55,9 +56,13 @@ void DR_Print_Postscript_Header(int n_pages, FILE *fp)
   PhyML_Fprintf(fp,"/mt {moveto} bind def\n");
   PhyML_Fprintf(fp,"/sc {setrgbcolor} bind def\n");
   PhyML_Fprintf(fp,"/ct {curveto} bind def\n");
+  PhyML_Fprintf(fp,"/np {newpath} bind def\n");
+  PhyML_Fprintf(fp,"/cp {closepath} bind def\n");
+  PhyML_Fprintf(fp,"/gs {gsave} bind def\n");
+  PhyML_Fprintf(fp,"/gr {grestore} bind def\n");
   
   PhyML_Fprintf(fp,"/Times-Roman findfont\n");
-  PhyML_Fprintf(fp,"12 scalefont\n");
+  PhyML_Fprintf(fp,"14 scalefont\n");
   PhyML_Fprintf(fp,"setfont\n");
 
   PhyML_Fprintf(fp,"/clipbox\n");
@@ -96,63 +101,18 @@ void DR_Print_Tree_Postscript(int page_num, int render_name, FILE *fp, t_tree *t
 
 /*   PhyML_Fprintf(fp,"%%%%Page: %d %d\n",page_num,page_num); */
   PhyML_Fprintf(fp,"0.001 setlinewidth\n");
-  PhyML_Fprintf(fp,"0.5 0.5 0.4 sc\n");
-  PhyML_Fprintf(fp,"clipbox\n");
-  PhyML_Fprintf(fp,"stroke\n");
+/*   PhyML_Fprintf(fp,"0.5 0.5 0.4 sc\n"); */
+  PhyML_Fprintf(fp,"0 0 0 sc\n");
+/*   PhyML_Fprintf(fp,"clipbox\n"); */
+/*   PhyML_Fprintf(fp,"stroke\n"); */
   PhyML_Fprintf(fp,"50 50 translate\n");
   PhyML_Fprintf(fp,"newpath\n");
 
-/*   PhyML_Fprintf(fp,"%d %d mt\n",draw->xcoord[n_root->v[0]->num],draw->ycoord[n_root->v[0]->num]); */
-/*   PhyML_Fprintf(fp,"%d %d lt\n",0,draw->ycoord[n_root->v[0]->num]); */
-/*   PhyML_Fprintf(fp,"%d %d lt\n",0,draw->ycoord[n_root->v[1]->num]); */
-/*   PhyML_Fprintf(fp,"%d %d lt\n",draw->xcoord[n_root->v[1]->num],draw->ycoord[n_root->v[1]->num]); */
+  draw->ycoord[n_root->num] = (draw->ycoord[n_root->v[0]->num] + draw->ycoord[n_root->v[1]->num])/2.; 
+  draw->xcoord[n_root->num] = 0.0; 
+  DR_Print_Tree_Postscript_Pre(n_root,n_root->v[0],render_name,fp,draw,tree);
+  DR_Print_Tree_Postscript_Pre(n_root,n_root->v[1],render_name,fp,draw,tree);
 
-/*   PhyML_Fprintf(fp,"%d %d mt\n",draw->xcoord[n_root->v[0]->num],draw->ycoord[n_root->v[0]->num]); */
-/*   PhyML_Fprintf(fp,"%d %d lt\n",0,(draw->ycoord[n_root->v[0]->num]+draw->ycoord[n_root->v[1]->num])/2); */
-/*   PhyML_Fprintf(fp,"%d %d lt\n",draw->xcoord[n_root->v[1]->num],draw->ycoord[n_root->v[1]->num]); */
-
-
-  PhyML_Fprintf(fp,"%.1f %.1f mt\n",draw->xcoord[n_root->v[0]->num],draw->ycoord[n_root->v[0]->num]);
-
-  PhyML_Fprintf(fp,"%d %.1f %d %.1f %d %.1f curveto\n",
-		0,draw->ycoord[n_root->v[0]->num],
-		0,(draw->ycoord[n_root->v[0]->num]+draw->ycoord[n_root->v[1]->num])/2,
-		0,(draw->ycoord[n_root->v[0]->num]+draw->ycoord[n_root->v[1]->num])/2);
-  PhyML_Fprintf(fp,"%d %.1f %.1f %.1f %.1f %.1f curveto\n",
-		0,draw->ycoord[n_root->v[1]->num],
-		draw->xcoord[n_root->v[1]->num],draw->ycoord[n_root->v[1]->num],
-		draw->xcoord[n_root->v[1]->num],draw->ycoord[n_root->v[1]->num]);
-
-  PhyML_Fprintf(fp,"stroke\n");
-
-
-  PhyML_Fprintf(fp,"%.1f %.1f mt\n",draw->xcoord[n_root->v[0]->num],draw->ycoord[n_root->v[0]->num]);
-  if(n_root->v[0]->tax) 
-    { 
-      if(render_name) 
-	{
-	  if(tree->io->long_tax_names)
-	    PhyML_Fprintf(fp,"(%s) show\n",tree->io->long_tax_names[n_root->v[0]->num]); 
-	  else
-	    PhyML_Fprintf(fp,"(%s) show\n",n_root->v[0]->name); 
-	}
-    }
-  else
-    {
-      For(i,3)
-	if((n_root->v[0]->v[i]) && (n_root->v[0]->v[i] != n_root->v[1]))
-	  DR_Print_Tree_Postscript_Pre(n_root->v[0],n_root->v[0]->v[i],render_name,fp,draw,tree);
-    }
-
-  PhyML_Fprintf(fp,"%.1f %.1f mt\n",draw->xcoord[n_root->v[1]->num],draw->ycoord[n_root->v[1]->num]);
-
-  if(n_root->v[1]->tax) PhyML_Fprintf(fp,"(%s) show\n",n_root->v[1]->name);
-  else
-    {
-      For(i,3)
-	if((n_root->v[1]->v[i]) && (n_root->v[1]->v[i] != n_root->v[0]))
-	  DR_Print_Tree_Postscript_Pre(n_root->v[1],n_root->v[1]->v[i],render_name,fp,draw,tree);
-    }
 
   PhyML_Fprintf(fp,"closepath\n");
   PhyML_Fprintf(fp,"-50 -50 translate\n");
@@ -167,14 +127,15 @@ void DR_Print_Tree_Postscript_Pre(t_node *a, t_node *d, int render_name, FILE *f
   int i;
   phydbl R, G, B;
   phydbl z;
+  phydbl greylevel;
 
-  PhyML_Fprintf(fp,"gsave\n");
+  PhyML_Fprintf(fp,"gs\n");
   
-/*   PhyML_Fprintf(fp,"%d %d mt\n",w->xcoord[a->num],w->ycoord[a->num]); */
-/* /\*   PhyML_Fprintf(fp,"%d %d lt\n",w->xcoord[a->num],w->ycoord[d->num]); *\/ */
-/*   PhyML_Fprintf(fp,"%d %d lt\n",w->xcoord[d->num],w->ycoord[d->num]); */
-
   PhyML_Fprintf(fp,"%.1f %.1f mt\n",w->xcoord[a->num],w->ycoord[a->num]);
+
+/*   PhyML_Fprintf(fp,"%.1f %.1f lt\n",w->xcoord[a->num],w->ycoord[d->num]); */
+/*   PhyML_Fprintf(fp,"%.1f %.1f lt\n",w->xcoord[d->num],w->ycoord[d->num]); */
+
   PhyML_Fprintf(fp,"%.1f %.1f %.1f %.1f %.1f %.1f ct\n",
 		w->xcoord[a->num],
 		w->ycoord[d->num],
@@ -188,8 +149,9 @@ void DR_Print_Tree_Postscript_Pre(t_node *a, t_node *d, int render_name, FILE *f
       R = .0; G = .0; B = .0;
       if(tree->io->z_scores) z = tree->io->z_scores[d->num];
       else z = 0.0;
-      if(z < 0.1)            { R = 1.; G = .0; B = .0; }
-      if(z > 0.1 && z < 0.4) { R = .8; G = .2; B = .0; }
+
+      if(z < 0.1)             { R = 1.; G = .0; B = .0; }
+      if(z > 0.1 && z < 0.4)  { R = .8; G = .2; B = .0; }
       if(z > 0.4 && z < 0.45) { R = .6; G = .4; B = .0; }
       if(z > 0.45 && z < 0.5) { R = .4; G = .6; B = .0; }
       if(z > 0.5 && z < 0.55) { R = .2; G = .8; B = .0; }
@@ -199,12 +161,31 @@ void DR_Print_Tree_Postscript_Pre(t_node *a, t_node *d, int render_name, FILE *f
       if(z > 0.7 && z < 0.75) { R = .0; G = .4; B = .6; }
       if(z > 0.75 && z < 1.0) { R = .0; G = .2; B = .8; }
 
+/*       if(z < 0.1)             { greylevel = 0.0; } */
+/*       if(z > 0.1 && z < 0.4)  { greylevel = 0.1; } */
+/*       if(z > 0.4 && z < 0.45) { greylevel = 0.2; } */
+/*       if(z > 0.45 && z < 0.5) { greylevel = 0.3; } */
+/*       if(z > 0.5 && z < 0.55) { greylevel = 0.4; } */
+/*       if(z > 0.55 && z < 0.6) { greylevel = 0.5; } */
+/*       if(z > 0.6 && z < 0.65) { greylevel = 0.6; } */
+/*       if(z > 0.65 && z < 0.7) { greylevel = 0.7; } */
+/*       if(z > 0.7 && z < 0.75) { greylevel = 0.8; } */
+/*       if(z > 0.75 && z < 1.0) { greylevel = 0.9; } */
+
       PhyML_Fprintf(fp,"stroke\n");
-      PhyML_Fprintf(fp,"newpath %.1f %.1f 2 0 360 arc closepath\n",w->xcoord[d->num],w->ycoord[d->num]);
+      PhyML_Fprintf(fp,"0 setgray\n");
+      PhyML_Fprintf(fp,"0.1 setlinewidth\n");
+      PhyML_Fprintf(fp,"np %.1f %.1f 3 0 360 arc cp\n",w->xcoord[d->num],w->ycoord[d->num]);
       PhyML_Fprintf(fp,"%.1f %.1f %.1f sc fill\n",R,G,B);
-      PhyML_Fprintf(fp,"0.5 0.5 0.4 sc\n");
+/*       PhyML_Fprintf(fp,"%f setgray fill\n",greylevel); */
+      PhyML_Fprintf(fp,"0 0 0 sc\n");
+
+      PhyML_Fprintf(fp,"%.1f %.1f mt\n",w->xcoord[d->num]+3,w->ycoord[d->num]);
+/*       PhyML_Fprintf(fp,"([%.0f]-) show \n",d->y_rank_ori - d->y_rank); */
+      PhyML_Fprintf(fp,"(%.10s) show \n",tree->io->long_tax_names[d->num]);
+
       
-/*       if(render_name)  */
+/*       if(render_name) */
 /* 	{ */
 /* 	  if(tree->io->long_tax_names) */
 /* 	    PhyML_Fprintf(fp,"(%s) show \n",tree->io->long_tax_names[d->num]); */
@@ -213,15 +194,15 @@ void DR_Print_Tree_Postscript_Pre(t_node *a, t_node *d, int render_name, FILE *f
 /* 	} */
 
       PhyML_Fprintf(fp,"stroke\n");
-      PhyML_Fprintf(fp,"grestore\n");
+      PhyML_Fprintf(fp,"gr\n");
       return;
     }
   else
     {
       PhyML_Fprintf(fp,"stroke\n");
-      PhyML_Fprintf(fp,"grestore\n");
+      PhyML_Fprintf(fp,"gr\n");
       For(i,3)
-	if(d->v[i] != a) DR_Print_Tree_Postscript_Pre(d,d->v[i],render_name,fp,w,tree);
+	if(d->v[i] != a && d->b[i] != tree->e_root) DR_Print_Tree_Postscript_Pre(d,d->v[i],render_name,fp,w,tree);
     }
 
   return;

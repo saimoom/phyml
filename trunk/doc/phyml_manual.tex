@@ -88,13 +88,14 @@ the GNU public licence. See http://www.opensource.org for details.
 % \section{ML in phylogenetics: the basics.}
 \section{Overview}
 
-PhyML \cite{guindon03} is  a software that estimates maximum  likelihood phylogenies from alignments
-of nucleotide or  amino acid sequences.  It provides  a wide range of options that  were designed to
-facilitate standard phylogenetic analyses.  The main strengths  of PhyML lies in the large number of
-substitution models coupled to various options  to search the space of phylogenetic tree topologies,
-going from  very fast and efficient  methods to slower  but generally more accurate  approaches.  It
-also  implements two  methods to  evaluate branch  supports in  a sound  statistical  framework (the
-non-parametric bootstrap and the approximate likelihood ratio test,)
+PhyML  \cite{guindon03} is  a  software  package which  primary  task that  is  to estimate  maximum
+likelihood phylogenies  from alignments of nucleotide or  amino acid sequences.  It  provides a wide
+range  of  options that  were  designed  to facilitate  standard  phylogenetic  analyses.  The  main
+strengths of  PhyML lies in the  large number of substitution  models coupled to  various options to
+search the  space of phylogenetic  tree topologies,  going from very  fast and efficient  methods to
+slower but  generally more accurate approaches.  It  also implements two methods  to evaluate branch
+supports  in  a  sound statistical  framework  (the  non-parametric  bootstrap and  the  approximate
+likelihood ratio test,)
 
 PhyML was designed to  process moderate to large data sets.  In theory,  alignments with up to 4,000
 sequences 2,000,000 character-long can analyzed.  In practice however, the amount of memory required
@@ -939,10 +940,33 @@ pre-analysis with the  simplest model should help the  user to determine the num
 that represents the best trade-off between computing time and fit of the model to the data.
 
 
+\section{Other programs in the PhyML package}
+
+As well as being a computer program that builds maximum likelihood phylogenies, PhyML is software
+package that provides tools to tackle different problems. Installing these programs and processing
+data sets is explained is the following sections.
+
+\subsection{PhyTime (Guindon, {\it Mol. Biol. Evol.} 2010)}\index{PhyTime} PhyTime is a program that
+estimates node  ages and substitution rates  using a fast Bayesian  approach.  It relies  on a Gibbs
+sampler  which  outperforms  the  ``standard''  Metropolis-Hastings algorithm  implemented  in  most
+phylogenetic  softwares that  aim at  estimating node  ages.  The  details and  performance  of this
+approach are described in the following  paper: Guindon S. ``Bayesian estimation of divergence times
+from large data sets'', {\it Mol. Biol. Evol.}, 2010.
+
+\subsubsection{Installing PhyTime}
+
+Compiling PhyTime is  straghtforward on Unix-like machines (i.e., linux  and MacOS systems). PhyTime
+is not readily available for Windows machines but compilation should be easy on this system too. 
+
+
+\subsection{PhyGeo (Guindon, {\it in preparation})}\index{PhyGeo}
+
+
+
 \section{Frequently asked questions}  
 
 \begin{enumerate}
-\item {\it The program crashes before reading the sequences. What's wrong ?}\\
+\item {\it PhyML crashes before reading the sequences. What's wrong ?}\\
 \begin{itemize}
 \item The format of your sequence file is not recognized by PhyML. See Section \ref{sec:input_output}
 \item The carriage return characters in your sequence files are not recognized by PhyML. You must
@@ -978,6 +1002,7 @@ models on  the different data partitions (e.g.,  different genes). PhyML will  a
 algorithms to search the space of tree topologies for this type of data.
 \end{itemize}
 \end{enumerate}
+
 
 
 \section{Acknowledgements}  
