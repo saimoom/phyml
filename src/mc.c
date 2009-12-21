@@ -181,6 +181,7 @@ int MC_main(int argc, char **argv)
 		  tree->n_root = buff;
 
 		  Record_Br_Len(NULL,tree);
+		  PhyML_Printf("\n");
 		  PhyML_Printf("\n. Computing Hessian...\n");
 		  tree->rates->bl_from_rt = 0;
 		  phydbl *cov;

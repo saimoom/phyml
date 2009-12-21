@@ -10914,8 +10914,8 @@ void Read_Clade_Priors(char *file_name, t_tree *tree)
   phydbl prior_low,prior_up;
   int node_num;
 
-
-  PhyML_Printf("\n. Reading prior ages on clade.");
+  PhyML_Printf("\n");
+  PhyML_Printf("\n. Reading prior ages on clade.\n");
 
   line = (char *)mCalloc(T_MAX_LINE,sizeof(char));
   s    = (char *)mCalloc(T_MAX_LINE,sizeof(char));
@@ -10982,7 +10982,7 @@ void Read_Clade_Priors(char *file_name, t_tree *tree)
 	      tree->rates->t_has_prior[node_num] = 1;
 	      tree->rates->t_prior_min[node_num] = MIN(prior_low,prior_up);
 	      tree->rates->t_prior_max[node_num] = MAX(prior_low,prior_up);
-	      PhyML_Printf("\n. %3d>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",n_clade_priors);
+	      PhyML_Printf("\n. [%3d]>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",n_clade_priors);
 	      PhyML_Printf("\n. Node %4d matches the clade with the following taxa names:",node_num);
 	      For(i,clade_size) PhyML_Printf("\n. - \"%s\"",clade_list[i]);
 	      PhyML_Printf("\n. Lower bound set to: %15f time units.",MIN(prior_low,prior_up)); 
