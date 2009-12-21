@@ -1976,12 +1976,18 @@ void RATES_Posterior_Rates_Pre(t_node *a, t_node *d, t_tree *tree)
     ((1-Pnorm(0,U1,sqrt(V2)))*(1-Pnorm(0,U1,sqrt(V3)))) / 
     ((1-Pnorm(0,rd,sqrt(V2)))*(1-Pnorm(0,rd,sqrt(V3))));
   
+  
+  PhyML_Printf("\r. ratio = %f",ratio);
+
   u = Uni();
   if(u > MIN(1.,ratio))
     tree->rates->nd_r[d->num] = U1; /* reject */
   else
     tree->rates->nd_r[d->num] = rd; /* accept */
   
+  
+  
+
   RATES_Update_Cur_Bl(tree);
 
   /* Optional here but useful for monitoring ESS for likelihoods */
