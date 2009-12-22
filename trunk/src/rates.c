@@ -1977,7 +1977,7 @@ void RATES_Posterior_Rates_Pre(t_node *a, t_node *d, t_tree *tree)
     ((1-Pnorm(0,rd,sqrt(V2)))*(1-Pnorm(0,rd,sqrt(V3))));
   
   
-  PhyML_Printf("\r. ratio = %f",ratio);
+/*   PhyML_Printf("\r. ratio = %f",ratio); */
 
   u = Uni();
   if(u > MIN(1.,ratio))
