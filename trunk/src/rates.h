@@ -123,8 +123,8 @@ phydbl RATES_Dmu_Joint(phydbl mu, int n, phydbl dt, phydbl a, phydbl b, phydbl l
 phydbl RATES_Compound_Core_Marginal(phydbl mu1, phydbl mu2, phydbl dt1, phydbl dt2, phydbl alpha, 
 				    phydbl beta, phydbl lexp, phydbl eps, int approx);
 phydbl RATES_Lk_Jumps(t_tree *tree);
-void RATES_Posterior_Rates(t_tree *tree);
-void RATES_Posterior_Rates_Pre(t_node *a, t_node *d, t_tree *tree);
+void RATES_Posterior_Rates(int *acc, int *n_trials, t_tree *tree);
+void RATES_Posterior_Rates_Pre(t_node *a, t_node *d, int *acc, int *n_trials, t_tree *tree);
 void Free_Rates(trate *rates);
 void RATES_Initialize_True_Rates(t_tree *tree);
 void RATES_Posterior_Times(t_tree *tree);
