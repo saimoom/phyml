@@ -237,6 +237,8 @@ int MC_main(int argc, char **argv)
 		  time(&t_beg);
 		  tree->mcmc->n_tot_run = 1E+8;
 		  phydbl u;
+		  int acc,n_trials;
+		  acc = n_trials = 0;
 		  do
 		    {
 		      u = Uni();
@@ -250,7 +252,7 @@ int MC_main(int argc, char **argv)
 								 2*tree->n_otu-3,YES);
 		      RATES_Posterior_Clock_Rate(tree);
 		      RATES_Posterior_Times(tree);
-		      RATES_Posterior_Rates(tree);
+		      RATES_Posterior_Rates(&acc,&n_trials,tree);
 		    }
 		  while(tree->mcmc->run < tree->mcmc->n_tot_run);
 		  time(&t_end);
