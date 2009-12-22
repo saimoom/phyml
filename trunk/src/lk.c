@@ -315,7 +315,8 @@ phydbl Lk(t_tree *tree)
 {
   int br;
   int n_patterns;
-  
+
+
   tree->old_lnL = tree->c_lnL;
 
   if(tree->rates && tree->rates->lk_approx == NORMAL)
@@ -330,7 +331,6 @@ phydbl Lk(t_tree *tree)
 
 
   n_patterns = tree->n_pattern;
-
 
   Set_Model_Parameters(tree->mod);
 
@@ -534,7 +534,6 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
       tree->site_lk_cat[catg] = site_lk_cat;     
     }
     
-
   max_sum_scale =  (phydbl)BIG;
   For(catg,tree->mod->n_catg)
     {
@@ -550,7 +549,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
 
       sum = sum_scale_left_cat[catg] + sum_scale_rght_cat[catg];
 
-      if(sum < 0)
+      if(sum < .0)
 	{
 	  PhyML_Printf("\n. sum = %G",sum);
 	  PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
@@ -563,6 +562,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
 
 /*   fact_sum_scale = (int)((max_sum_scale + min_sum_scale) / 2); */
 
+
   fact_sum_scale = (int)(max_sum_scale / 2);
 
 
@@ -573,6 +573,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
 
       site_lk_cat = tree->site_lk_cat[catg];
       
+
       if(exponent > 0)
 	{
 	  do
@@ -617,7 +618,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
   site_lk = .0;
   For(catg,tree->mod->n_catg) site_lk += tree->site_lk_cat[catg] * tree->mod->gamma_r_proba[catg];
   
-  /* The substitution model does include invariable sites */ 
+  /* The substitution model does include invariable sites */
   if(tree->mod->invar)
     {
       /* The site is invariant */
@@ -1339,7 +1340,7 @@ void Update_PMat_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
       if(b_fcus->has_zero_br_len) len = -1.0;
       else
 	{
-	  len = b_fcus->l*tree->mod->gamma_rr[i];
+	  len = b_fcus->l*tree->mod->gamma_rr[i];	  
 	  if(len < BL_MIN)      len = BL_MIN;
 	  else if(len > BL_MAX) len = BL_MAX;
 	}

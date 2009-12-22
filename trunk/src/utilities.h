@@ -127,7 +127,6 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  ALPHA_MIN           0.04
 #define  ALPHA_MAX            100
 #define  BL_START          1.e-04
-#define  BL_MAX               5.0
 #define  GOLDEN_R      0.61803399
 #define  GOLDEN_C  (1.0-GOLDEN_R)
 #define  N_MAX_INSERT          20
@@ -227,9 +226,11 @@ typedef	double phydbl;
 #define BIG  DBL_MAX
 #define SMALL_PIJ 1.E-10
 #ifndef MC
-#define BL_MIN 1.E-10
+#define BL_MIN 1.E-8
+#define BL_MAX 100.
 #else
 #define BL_MIN 1.E-4
+#define BL_MAX 2.
 #endif
 #define  P_LK_LIM_INF   3.054936e-151 /* 2^-500 */
 #define  P_LK_LIM_SUP   3.273391e+150 /* 2^500 */
