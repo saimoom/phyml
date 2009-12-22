@@ -26,8 +26,10 @@
 #define BASE        2    /* base of floating point arithmetic */
 
 /* no. of digits to the base BASE in the fraction */
-#define DIGITS 24
-/* #define DIGITS 53 */
+#define DIGITS 40
+/* 
+#define DIGITS 53 
+*/
 
 #define MAXITER    30    /* max2. no. of iterations to converge */
 
@@ -46,8 +48,10 @@ int Eigen(int job, phydbl *A, int n, phydbl *rr, phydbl *ri,
    phydbl w[n*2]: work space
 */
     int low,hi,i,j,k, it, istate=0;
-    phydbl tiny=SQRT(POW((phydbl)BASE,(phydbl)(1-(int)DIGITS))), t; 
+    phydbl tiny, t; 
 
+/*     tiny=SQRT(POW((phydbl)BASE,(phydbl)(1-(int)DIGITS))); */
+    tiny=FLT_MIN;
 
     balance(A,n,&low,&hi,work);
     elemhess(job,A,n,low,hi,vr,vi, (int*)(work+n));

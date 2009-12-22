@@ -255,7 +255,7 @@ void PMat_Empirical(phydbl l, model *mod, int pos, phydbl *Pij)
 	  if(Pij[pos+mod->ns*i+j] < SMALL_PIJ) Pij[pos+mod->ns*i+j] = SMALL_PIJ;
 	}
 
-/* #ifdef PHYML */
+#ifndef PHYML
       phydbl sum;
       sum = .0;
       For (j,n) sum += Pij[pos+mod->ns*i+j];
@@ -290,7 +290,7 @@ void PMat_Empirical(phydbl l, model *mod, int pos, phydbl *Pij)
 	  PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
 	  Warn_And_Exit("");
 	}
-/* #endif */
+#endif
     }
 }
 
@@ -1654,6 +1654,7 @@ int Init_Qmat_LG(phydbl *daa, phydbl *pi)
   daa[19*20+13] =   0.654683;  daa[19*20+14] =   0.296501;  daa[19*20+15] =   0.098369;  daa[19*20+16] =   2.188158;  
   daa[19*20+17] =   0.189510;  daa[19*20+18] =   0.249313;  
   
+  
   for (i=0; i<naa; i++)  for (j=0; j<i; j++)  daa[j*naa+i] = daa[i*naa+j];
   
   pi[0] = 0.079066; pi[1] = 0.055941; pi[2] = 0.041977; pi[3] = 0.053052; 
@@ -1747,12 +1748,13 @@ int Init_Qmat_WAG(phydbl *daa, phydbl *pi)
   daa[19*20+18] =  31.47300; 
 
   for (i=0; i<naa; i++)  for (j=0; j<i; j++)  daa[j*naa+i] = daa[i*naa+j];
-
+  
   pi[0] = 0.0866279; pi[1] =  0.043972; pi[2] =  0.0390894; pi[3] =  0.0570451;
   pi[4] =  0.0193078; pi[5] =  0.0367281; pi[6] =  0.0580589; pi[7] =  0.0832518;
   pi[8] =  0.0244313; pi[9] =  0.048466; pi[10] =  0.086209; pi[11] = 0.0620286;
   pi[12] = 0.0195027; pi[13] =  0.0384319; pi[14] =  0.0457631; pi[15] = 0.0695179;
   pi[16] =  0.0610127; pi[17] =  0.0143859; pi[18] =  0.0352742; pi[19] =  0.0708956;
+
 
   return 1;
 }
@@ -2420,8 +2422,9 @@ void Init_Model(calign *data, model *mod, option *io)
 	default : break;
 	}
   
-      /* multiply the nth col of Q by the nth term of pi/100 just as in PAML */
+/*       /\* multiply the nth col of Q by the nth term of pi/100 just as in PAML *\/ */
       For(i,mod->ns) For(j,mod->ns) mod->qmat[i*mod->ns+j] *= mod->pi[j] / 100.0;
+
       
       /* compute diagonal terms of Q and mean rate mr = l/t */
       mod->mr = .0;
