@@ -1728,7 +1728,7 @@ void RATES_Posterior_Rates_Pre(t_node *a, t_node *d, int *acc, int *n_trials, t_
   phydbl prior_mean, prior_var;
   phydbl post_mean, post_var, post_sd;
   phydbl dt,el,vl,ra,rd,min_r,max_r,cr,nu,cel,cvl,cel_tmp,cvl_tmp,cer,cvr;
-  phydbl cur_l,new_l;
+  phydbl cur_l,new_l,new_r;
   int dim;
   short int *is_1;
   phydbl *cond_mu, *cond_cov; 
@@ -1872,9 +1872,13 @@ void RATES_Posterior_Rates_Pre(t_node *a, t_node *d, int *acc, int *n_trials, t_
       return;
     }
 
-  like_mean = cel;
-  like_var  = cvl;
+/*   like_mean = cel; */
+/*   like_var  = cvl; */
+
+  like_mean = cel / (dt*cr);
+  like_var  = cvl / POW(dt*cr,2);
  
+
   /* Prior */
   if(!d->tax)
     {
@@ -1887,12 +1891,17 @@ void RATES_Posterior_Rates_Pre(t_node *a, t_node *d, int *acc, int *n_trials, t_
       cer = U0;
     }
 
-  prior_mean = LOG(cer) + LOG(dt) + LOG(cr);
-  prior_mean = EXP(prior_mean);
-  if(a == tree->n_root) prior_mean += l_opp;
+/*   prior_mean = LOG(cer) + LOG(dt) + LOG(cr); */
+/*   prior_mean = EXP(prior_mean); */
+/*   if(a == tree->n_root) prior_mean += l_opp; */
+  
+  prior_mean = cer;
 
-  prior_var = LOG(cvr) + 2.*LOG(dt) + 2.*LOG(cr) ;
-  prior_var = EXP(prior_var);
+/*   prior_var = LOG(cvr) + 2.*LOG(dt) + 2.*LOG(cr) ; */
+/*   prior_var = EXP(prior_var); */
+
+  prior_var = cvr;
+
   
   /* Posterior */
   post_mean = (prior_mean/prior_var + like_mean/like_var)/(1./prior_var + 1./like_var);
@@ -1900,8 +1909,13 @@ void RATES_Posterior_Rates_Pre(t_node *a, t_node *d, int *acc, int *n_trials, t_
   post_var  = 1./(1./prior_var + 1./like_var);
   post_sd   = SQRT(post_var);
 
-  new_l = Rnorm_Trunc(post_mean,post_sd,l_min,l_max,&err);
+/*   new_l = Rnorm_Trunc(post_mean,post_sd,l_min,l_max,&err); */
+/*   if(a == tree->n_root) rd = (new_l-l_opp)/(dt*cr); */
+/*   else                  rd = new_l / (dt*cr); */
+
+  rd = Rnorm_Trunc(post_mean,post_sd,r_min,r_max,&err);
   
+
   if(err)
     {
       PhyML_Printf("\n");
@@ -1918,8 +1932,6 @@ void RATES_Posterior_Rates_Pre(t_node *a, t_node *d, int *acc, int *n_trials, t_
       new_l = cur_l;
     }
 
-  if(a == tree->n_root) rd = (new_l-l_opp)/(dt*cr);
-  else                  rd = new_l / (dt*cr);
   
   if(isnan(rd))
     {
@@ -1972,10 +1984,24 @@ void RATES_Posterior_Rates_Pre(t_node *a, t_node *d, int *acc, int *n_trials, t_
     }
 
 
-  ratio = 
-    ((1-Pnorm(0,U1,sqrt(V2)))*(1-Pnorm(0,U1,sqrt(V3)))) / 
-    ((1-Pnorm(0,rd,sqrt(V2)))*(1-Pnorm(0,rd,sqrt(V3))));
-  
+  if(!d->tax)
+    {
+      /* The formula should be 
+      ratio = 
+	((1-Pnorm(0,U0,sqrt(V1)))*(1-Pnorm(0,U1,sqrt(V2)))*(1-Pnorm(0,U1,sqrt(V3)))) / 
+	((1-Pnorm(0,ra,sqrt(V1)))*(1-Pnorm(0,rd,sqrt(V2)))*(1-Pnorm(0,rd,sqrt(V3))));
+	but since Pnorm(0,U0,sqrt(V1)) = Pnorm(0,ra,sqrt(V1)), we have instead: */
+      ratio =
+	((1-Pnorm(0,U1,sqrt(V2)))*(1-Pnorm(0,U1,sqrt(V3)))) /
+	((1-Pnorm(0,rd,sqrt(V2)))*(1-Pnorm(0,rd,sqrt(V3))));
+/*       ratio = 1.0; */
+
+    }
+  else
+    {
+      ratio = 1.0;
+    }
+
 
   u = Uni();
   if(u > MIN(1.,ratio))
@@ -1988,7 +2014,7 @@ void RATES_Posterior_Rates_Pre(t_node *a, t_node *d, int *acc, int *n_trials, t_
 
   (*n_trials)++;
 
-/*   PhyML_Printf("\r. acc rate = %f",(phydbl)(*acc)/(*n_trials)); */
+  PhyML_Printf("\r. acc rate = %f",(phydbl)(*acc)/(*n_trials));
   
   RATES_Update_Cur_Bl(tree);
 
