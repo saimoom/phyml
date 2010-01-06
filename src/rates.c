@@ -2015,7 +2015,7 @@ void RATES_Posterior_Rates_Pre(t_node *a, t_node *d, int *acc, int *n_trials, t_
 
   (*n_trials)++;
 
-  PhyML_Printf("\r. acc rate = %f",(phydbl)(*acc)/(*n_trials));
+/*   PhyML_Printf("\r. acc rate = %f",(phydbl)(*acc)/(*n_trials)); */
   
   RATES_Update_Cur_Bl(tree);
 
