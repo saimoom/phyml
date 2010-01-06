@@ -122,16 +122,20 @@ int MC_main(int argc, char **argv)
 
 /* 		  int n_otu; */
 		  int i;
-		  t_edge *root_edge;
+/* 		  t_edge *root_edge; */
 
 /* 		  n_otu = 25; */
 /* 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1); */
 
 		  tree->rates = RATES_Make_Rate_Struct(tree->n_otu);
 		  RATES_Init_Rate_Struct(tree->rates,tree->n_otu);
-		  root_edge = Find_Root_Edge(io->fp_in_tree,tree);
-		  Add_Root(root_edge,tree);
+/* 		  root_edge = Find_Root_Edge(io->fp_in_tree,tree); */
+/* 		  Add_Root(root_edge,tree); */
 
+		  Update_Ancestors(tree->n_root,tree->n_root->v[0],tree);
+		  Update_Ancestors(tree->n_root,tree->n_root->v[1],tree);
+		  tree->n_root->anc = NULL;
+		  
 		  RATES_Fill_Lca_Table(tree);
 
 		  tree->mod         = mod;
@@ -146,6 +150,7 @@ int MC_main(int argc, char **argv)
 		  Update_Dirs(tree);
 		  Make_Tree_4_Pars(tree,cdata,cdata->init_len);
 		  Make_Tree_4_Lk(tree,cdata,cdata->init_len);
+
 
 /* 		  Evolve(tree->data,tree->mod,tree); */
 		  Init_Ui_Tips(tree);
@@ -166,7 +171,6 @@ int MC_main(int argc, char **argv)
 /* 		  Free(s); */
 
 		  Read_Clade_Priors(io->clade_list_file,tree);
-
 
 
 		  /************************************/
@@ -229,13 +233,13 @@ int MC_main(int argc, char **argv)
 
 		  PhyML_Printf("\n. Gibbs sampling...\n");
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
-		  MCMC_Init_MCMC_Struct("gibbs",tree->mcmc,tree);		  
+		  MCMC_Init_MCMC_Struct("gibbs",tree->mcmc,tree);
 		  tree->rates->lk_approx = NORMAL;
 		  RATES_Lk_Rates(tree);
 		  MCMC_Print_Param(tree->mcmc,tree);
 		  
 		  time(&t_beg);
-		  tree->mcmc->n_tot_run = 1E+7;
+		  tree->mcmc->n_tot_run = 1E+8;
 		  phydbl u;
 		  int acc,n_trials;
 		  acc = n_trials = 0;
@@ -290,7 +294,7 @@ int MC_main(int argc, char **argv)
 		  MCMC_Init_MCMC_Struct("thorne.normal",tree->mcmc,tree);
 		  tree->rates->lk_approx = NORMAL;
 		  
-		  tree->mcmc->n_tot_run = 1E+7;
+		  tree->mcmc->n_tot_run = 1E+8;
 		  tree->mcmc->randomize = 0;
 		  time(&t_beg);
 		  PhyML_Printf("\n. Thorne (approx)...\n");

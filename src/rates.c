@@ -775,15 +775,17 @@ void RATES_Init_Rate_Struct(trate *rates, int n_otu)
   rates->alpha         = 2.;
   rates->birth_rate    = 0.001;
 
+/*   rates->max_rate      = 10.; */
+/*   rates->min_rate      = 0.01; */
   rates->max_rate      = 5.;
-  rates->min_rate      = 0.2;
+  rates->min_rate      = 0.02;
 
-  rates->clock_r       = 1.E-3;
+  rates->clock_r       = 2.E-5;
   rates->max_clock     = 1.E-0;
   rates->min_clock     = 1.E-9;
 
-  rates->nu            = 1.E-4;
-  rates->max_nu        = 1.E-1;
+  rates->nu            = 1.E-5;
+  rates->max_nu        = 1.E-0;
   rates->min_nu        = 1.E-10;
   rates->lbda_nu       = 1.E+3;
 
@@ -1994,7 +1996,6 @@ void RATES_Posterior_Rates_Pre(t_node *a, t_node *d, int *acc, int *n_trials, t_
       ratio =
 	((1-Pnorm(0,U1,sqrt(V2)))*(1-Pnorm(0,U1,sqrt(V3)))) /
 	((1-Pnorm(0,rd,sqrt(V2)))*(1-Pnorm(0,rd,sqrt(V3))));
-/*       ratio = 1.0; */
 
     }
   else
