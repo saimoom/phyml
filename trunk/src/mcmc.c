@@ -22,7 +22,7 @@ void MCMC(t_tree *tree)
 
   if(tree->mcmc->randomize)
     {
-      MCMC_Randomize_Node_Times(tree);
+/*       MCMC_Randomize_Node_Times(tree); */
       MCMC_Randomize_Rates(tree);
       MCMC_Randomize_Clock_Rate(tree);
       MCMC_Randomize_Nu(tree);
@@ -36,7 +36,7 @@ void MCMC(t_tree *tree)
     {
       MCMC_Nu(tree);
       MCMC_Clock_Rate(tree);
-      MCMC_Times_Local(tree);
+/*       MCMC_Times_Local(tree); */
       MCMC_Rates_Local(tree);
     }
   while(tree->mcmc->run < tree->mcmc->n_tot_run);
@@ -938,7 +938,7 @@ void MCMC_Print_Param(tmcmc *mcmc, t_tree *tree)
       if(fp != stdout) for(i=tree->n_otu;i<2*tree->n_otu-1;i++) PhyML_Fprintf(fp,"%G\t",tree->rates->nd_t[i] - tree->rates->true_t[i]);
 /*       if(fp != stdout) for(i=tree->n_otu;i<2*tree->n_otu-1;i++) PhyML_Fprintf(fp,"%.1f\t",tree->rates->nd_t[i]); */
 /*       if(fp != stdout) for(i=tree->n_otu;i<2*tree->n_otu-1;i++) PhyML_Fprintf(fp,"%G\t",tree->rates->t_prior[i] - tree->rates->true_t[i]); */
-      if(fp != stdout) for(i=0;i<2*tree->n_otu-2;i++) PhyML_Fprintf(fp,"%.20lf\t",tree->rates->nd_r[i]);
+      if(fp != stdout) for(i=0;i<2*tree->n_otu-2;i++) PhyML_Fprintf(fp,"%.20lf\t",tree->rates->nd_r[i] - tree->rates->true_r[i]);
       if(fp != stdout) for(i=0;i<2*tree->n_otu-3;i++) PhyML_Fprintf(fp,"%G\t",tree->rates->u_cur_l[i]-tree->rates->u_ml_l[i]);
 /*       if(fp != stdout)  */
 /* 	{ */
@@ -1089,10 +1089,10 @@ void MCMC_Init_MCMC_Struct(char *filename, tmcmc *mcmc, t_tree *tree)
   mcmc->n_rate_jumps    = 0;
   mcmc->n_tot_run       = 1.E+6;
   mcmc->randomize       = 1;
-  mcmc->norm_freq       = 1E+3;
+  mcmc->norm_freq       = 1E+8;
 
-  mcmc->h_times         = 0.3;
-  mcmc->h_rates         = 0.3;
+  mcmc->h_times         = 1.0;
+  mcmc->h_rates         = 1.0;
   mcmc->h_nu            = 1.0;
   mcmc->h_clock         = 0.1;
 
@@ -1207,6 +1207,8 @@ void MCMC_Randomize_Rates_Pre(t_node *a, t_node *d, t_tree *tree)
 
   mean_r = tree->rates->nd_r[a->num];
   var_r  = tree->rates->nu * (tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num]);
+/*   mean_r = 1.0; */
+/*   var_r  = 1.0; */
   min_r  = tree->rates->min_rate;
   max_r  = tree->rates->max_rate;
   
