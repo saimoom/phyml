@@ -9418,6 +9418,7 @@ t_tree *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
   t_node *root,*curr_n,**internal_nodes, **external_nodes;
   phydbl *t,*tmp;
 
+
   tree = (t_tree *)Make_Tree(n_otu);
   Init_Tree(tree,tree->n_otu);
   Make_All_Tree_Nodes(tree);
@@ -9482,6 +9483,7 @@ t_tree *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
   For(i,tree->n_otu-1) tmp[i] =  t[tree->n_otu-2-i];
   For(i,tree->n_otu-1) t[i]   = -tmp[i];
   
+
   /* Rescale t_node times such that the time at the root t_node is -100 */
   for(i=1;i<tree->n_otu-1;i++) 
     { 
@@ -9489,6 +9491,7 @@ t_tree *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
       t[i] *= 1.E+02;
     }
   t[0] = -1.E+02;
+
 
   n_available = 1;
   curr_n = root;
@@ -9568,6 +9571,7 @@ t_tree *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
   
   For(i,tree->n_otu) 
     {
+      if(!tree->noeud[i]->name) tree->noeud[i]->name = (char *)mCalloc(T_MAX_NAME,sizeof(char));
       strcpy(tree->noeud[i]->name,"x");
       sprintf(tree->noeud[i]->name+1,"%d",i);
     }
@@ -9577,6 +9581,7 @@ t_tree *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
   Connect_Edges_To_Nodes_Recur(tree->noeud[0],tree->noeud[0]->v[0],tree);
   Fill_Dir_Table(tree);
   Update_Dirs(tree);
+
 
   /* Add root */
   if(rooted)
@@ -9596,7 +9601,6 @@ t_tree *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
     {
       Free_Node(root);
     }
-
   RATES_Random_Branch_Lengths(tree);
   
   Free(available_nodes);
@@ -9606,7 +9610,6 @@ t_tree *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
   Free(internal_nodes);
   Free(t);
   Free(tmp);
-
 
   return tree;
 }
