@@ -239,7 +239,7 @@ int MC_main(int argc, char **argv)
 		  MCMC_Print_Param(tree->mcmc,tree);
 		  
 		  time(&t_beg);
-		  tree->mcmc->n_tot_run = 1E+8;
+		  tree->mcmc->n_tot_run = 1E+7;
 		  phydbl u;
 		  int acc,n_trials;
 		  acc = n_trials = 0;
@@ -294,7 +294,7 @@ int MC_main(int argc, char **argv)
 		  MCMC_Init_MCMC_Struct("thorne.normal",tree->mcmc,tree);
 		  tree->rates->lk_approx = NORMAL;
 		  
-		  tree->mcmc->n_tot_run = 1E+8;
+		  tree->mcmc->n_tot_run = 1E+7;
 		  tree->mcmc->randomize = 0;
 		  time(&t_beg);
 		  PhyML_Printf("\n. Thorne (approx)...\n");
