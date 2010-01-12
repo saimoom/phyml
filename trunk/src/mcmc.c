@@ -832,7 +832,7 @@ void MCMC_Print_Param(tmcmc *mcmc, t_tree *tree)
   MCMC_Print_Means(mcmc,tree);
   MCMC_Print_Last(mcmc,tree);
 
-  if(!(mcmc->run%10)) PhyML_Printf("\r. [%10d/%10d]",tree->mcmc->run,tree->mcmc->n_tot_run);
+/*   if(!(mcmc->run%10)) PhyML_Printf("\r. [%10d/%10d]",tree->mcmc->run,tree->mcmc->n_tot_run); */
 
   if(!(mcmc->run%mcmc->sample_interval)) 
     {      
