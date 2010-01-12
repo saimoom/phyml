@@ -464,6 +464,39 @@ phydbl Log_Dnorm(phydbl x, phydbl mean, phydbl sd, int *err)
 
 /*********************************************************/
 
+phydbl Log_Dnorm_Trunc(phydbl x, phydbl mean, phydbl sd, phydbl lo, phydbl up, int *err)
+{
+  phydbl log_dens;
+  phydbl cdf_up, cdf_lo;
+
+  *err = NO;
+
+  log_dens = Log_Dnorm(x,mean,sd,err);
+
+  if(*err == YES)
+    {
+      PhyML_Printf("\n. mean=%f sd=%f lo=%f up=%f cdf_lo=%G CDF_up=%G",mean,sd,lo,up,cdf_lo,cdf_up);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      *err = YES;
+    }
+
+  cdf_up = Pnorm(up,mean,sd);
+  cdf_lo = Pnorm(lo,mean,sd);
+
+  log_dens -= LOG(cdf_up - cdf_lo);
+
+  if(isnan(log_dens) || isinf(FABS(log_dens)))
+    {
+      PhyML_Printf("\n. mean=%f sd=%f lo=%f up=%f cdf_lo=%G CDF_up=%G",mean,sd,lo,up,cdf_lo,cdf_up);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      *err = YES;
+   }
+
+  return log_dens;
+}
+
+/*********************************************************/
+
 phydbl Dnorm_Trunc(phydbl x, phydbl mean, phydbl sd, phydbl lo, phydbl up)
 {
   phydbl dens;
