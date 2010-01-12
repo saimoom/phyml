@@ -895,7 +895,6 @@ typedef struct __Tdraw {
 /*********************************************************/
 
 typedef struct __Trate {
-  phydbl clock_r; /* Mean substitution rate, i.e., 'molecular clock' rate */
   phydbl  *br_r; /* Relative substitution rate, i.e., multiplier of mean_r on each branch */
   phydbl  lexp; /* Parameter of the exponential distribution that governs the rate at which substitution between rate classes ocur */
   phydbl alpha;
@@ -914,10 +913,11 @@ typedef struct __Trate {
   phydbl birth_rate;
   phydbl min_rate;
   phydbl max_rate;
+
+  phydbl clock_r; /* Mean substitution rate, i.e., 'molecular clock' rate */
   phydbl min_clock;
   phydbl max_clock;
-  phydbl min_nu;
-  phydbl max_nu;
+
   phydbl lbda_nu;
   phydbl min_dt;
   phydbl step_rate;
@@ -930,7 +930,10 @@ typedef struct __Trate {
   int bl_from_rt; /* if =1, branch lengths are obtained as the product of cur_r and t */
   int approx;
   int model; /* Model number */
+
   phydbl nu; /* Parameter of the Exponential distribution for the corresponding model */
+  phydbl min_nu;
+  phydbl max_nu;
 
   int met_within_gibbs;
 
@@ -1006,6 +1009,7 @@ typedef struct __Tmcmc {
   phydbl h_rates;
   phydbl h_nu;
   phydbl h_clock;
+  phydbl h_omega;
  
 
 }tmcmc;

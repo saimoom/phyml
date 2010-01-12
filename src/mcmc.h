@@ -77,6 +77,7 @@ void MCMC_Print_Means(tmcmc *mcmc, t_tree *tree);
 void MCMC_Print_Last(tmcmc *mcmc, t_tree *tree);
 void MCMC_Close_MCMC(tmcmc *mcmc);
 void MCMC_Rates_Global(t_tree *tree);
+void MCMC_Omega(t_tree *tree);
 
 
 

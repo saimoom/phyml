@@ -103,7 +103,15 @@ void RATES_Lk_Rates_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 	case THORNE:
 	  {
 	    int err;
-	    log_dens = Log_Dnorm(mu2,1.0,SQRT(tree->rates->nu*dt2),&err);
+	    phydbl mean,sd;
+	    
+	    sd = SQRT(tree->rates->nu*dt2);
+	    mean = 1.0 - sd*Dnorm((0.0-1.0)/sd,0.0,1.0)/(1.0 - Pnorm((0.0-1.0)/sd,0.0,1.0));
+	    /* mean = 1.0; */
+
+	    log_dens = Log_Dnorm_Trunc(mu2,mean,sd,tree->rates->min_rate,tree->rates->max_rate,&err);
+
+/* 	    if(log_dens < -5000.) printf("\n>> logdens=%f mu2=%f mean=%f sd=%f dt=%G",log_dens,mu2,mean,sd,dt2); */
 
 	    if(err)
 	      {
@@ -245,10 +253,20 @@ void RATES_Update_Triplet(t_node *n, t_tree *tree)
 	case THORNE :
 	  {
 	    int err;
+	    phydbl mean0,sd0;
+	    phydbl mean1,sd1;
+	    
+	    sd0 = SQRT(tree->rates->nu*dt0);
+	    mean0 = 1.0 - sd0*Dnorm((0.0-1.0)/sd0,0.0,1.0)/(1.0 - Pnorm((0.0-1.0)/sd0,0.0,1.0));
+/* 	    mean0 = 1.0; */
+
+	    sd1 = SQRT(tree->rates->nu*dt1);
+	    mean1 = 1.0 - sd1*Dnorm((0.0-1.0)/sd1,0.0,1.0)/(1.0 - Pnorm((0.0-1.0)/sd1,0.0,1.0));
+/* 	    mean1 = 1.0; */
 
 	    log_dens = 
-	      Log_Dnorm(mu0,1.0,SQRT(tree->rates->nu*dt0),&err) + 
-	      Log_Dnorm(mu1,1.0,SQRT(tree->rates->nu*dt1),&err); 
+	      Log_Dnorm_Trunc(mu0,mean0,sd0,tree->rates->min_rate,tree->rates->max_rate,&err) + 
+	      Log_Dnorm_Trunc(mu1,mean1,sd1,tree->rates->min_rate,tree->rates->max_rate,&err); 
 
 	    break;
 	  }
@@ -361,9 +379,16 @@ phydbl RATES_Lk_Rates_Core(phydbl mu1, phydbl mu2, int n1, int n2, phydbl dt1, p
       
     case THORNE :
       {
-	int err;
+	int err;	
+	phydbl mean,sd;
 
-	log_dens = Log_Dnorm(mu2,mu1,SQRT(tree->rates->nu*dt2),&err);
+	sd   = SQRT(tree->rates->nu*dt2);
+	mean = mu1 - sd*Dnorm((0.0-mu1)/sd,0.0,1.0)/(1.0 - Pnorm((0.0-mu1)/sd,0.0,1.0));
+/* 	mean = mu1; */
+	
+	log_dens = Log_Dnorm_Trunc(mu2,mean,sd,tree->rates->min_rate,tree->rates->max_rate,&err);
+
+/* 	if(log_dens < -5000.) printf("\n>> logdens=%f mu2=%f mean=%f sd=%f dt=%G",log_dens,mu2,mean,sd,dt2); */
 
 	if(err)
 	  {
@@ -777,19 +802,17 @@ void RATES_Init_Rate_Struct(trate *rates, int n_otu)
 
   rates->max_rate      = 100.;
   rates->min_rate      = 0.01;
-/*   rates->max_rate      = 5.; */
-/*   rates->min_rate      = 0.02; */
 
   rates->clock_r       = 1.E-3;
   rates->max_clock     = 1.E-0;
   rates->min_clock     = 1.E-9;
 
-  rates->nu            = 1.E-4;
+  rates->nu            = 1.E-3;
   rates->max_nu        = 1.E-0;
   rates->min_nu        = 1.E-10;
   rates->lbda_nu       = 1.E+3;
 
-  rates->min_dt        = 0.0;
+  rates->min_dt        = 0.1;
 
   rates->step_rate     = 1.E-4;
   rates->approx        = 1;
@@ -1072,11 +1095,15 @@ void RATES_Expect_Number_Subst(phydbl t_beg, phydbl t_end, phydbl r_beg,  int *n
       }
     case THORNE:
       {
-	phydbl sd;
+	phydbl sd,mean;
 	int err;
-
+	
 	sd = SQRT(rates->nu*FABS(t_beg-t_end));
-	*mean_r = Rnorm_Trunc(r_beg,sd,rates->min_rate,rates->max_rate,&err);
+	mean = r_beg - sd*Dnorm((0.0-r_beg)/sd,0.0,1.0)/(1.0 - Pnorm((0.0-r_beg)/sd,0.0,1.0));
+/* 	mean = r_beg; */
+
+	*mean_r = Rnorm_Trunc(mean,sd,rates->min_rate,rates->max_rate,&err);
+
 	if(err) PhyML_Printf("\n. %s %d %d",__FILE__,__LINE__,tree->mcmc->run);
 	*r_end  = *mean_r;
 	break;
@@ -1788,30 +1815,6 @@ void RATES_Posterior_Rates_Pre(t_node *a, t_node *d, int *acc, int *n_trials, t_
       U3  = tree->rates->nd_r[v3->num];
     }
   
-  if(T1 - T0 < tree->rates->min_dt)
-    {
-      PhyML_Printf("\n. T1 = %f T0 = %f",T1,T0);
-      PhyML_Printf("\n. %s %d %d",__FILE__,__LINE__,tree->mcmc->run);
-      Exit("\n");
-    }
-
-  if(!d->tax)
-    {
-      if(T2 - T1 < tree->rates->min_dt)
-	{
-	  PhyML_Printf("\n. T2 = %f T1 = %f",T2,T1);
-	  PhyML_Printf("\n. %s %d %d",__FILE__,__LINE__,tree->mcmc->run);
-	  Exit("\n");
-	}
-      
-      if(T3 - T1 < tree->rates->min_dt)
-	{
-	  PhyML_Printf("\n. T3 = %f T1 = %f",T3,T1);
-	  PhyML_Printf("\n. %s %d %d",__FILE__,__LINE__,tree->mcmc->run);
-	  Exit("\n");
-	}
-    }
-
   V1 = tree->rates->nu * (T1 - T0);
   V2 = tree->rates->nu * (T2 - T1);
   V3 = tree->rates->nu * (T3 - T1);
@@ -1862,10 +1865,12 @@ void RATES_Posterior_Rates_Pre(t_node *a, t_node *d, int *acc, int *n_trials, t_
 
   if(a == tree->n_root)
     {
-      if(!Norm_Trunc_Mean_Sd(cel,SQRT(cvl),l_opp,BL_MAX,&cel_tmp,&cvl_tmp)) return;
-      cvl_tmp *= cvl_tmp;
-      cvl = cvl_tmp;
-      cel = cel_tmp;
+/*       if(!Norm_Trunc_Mean_Sd(cel,SQRT(cvl),l_opp,BL_MAX,&cel_tmp,&cvl_tmp)) return; */
+/*       cvl_tmp *= cvl_tmp; */
+/*       cvl = cvl_tmp; */
+/*       cel = cel_tmp; */
+
+      cel -= l_opp;
     }
 
   if(isnan(cvl) || isnan(cel)) 
@@ -1884,13 +1889,31 @@ void RATES_Posterior_Rates_Pre(t_node *a, t_node *d, int *acc, int *n_trials, t_
   /* Prior */
   if(!d->tax)
     {
+      phydbl shift1,shift2,shift3;
+      phydbl sd1,sd2,sd3;
+
+      sd1 = SQRT(V1);
+      sd2 = SQRT(V2);
+      sd3 = SQRT(V3);
+
+      shift1 = - sd1 * Dnorm((0.0-U0)/sd1,0.0,1.0)/(1.0 - Pnorm((0.0-U0)/sd1,0.0,1.0));
+      shift2 = - sd2 * Dnorm((0.0-U1)/sd2,0.0,1.0)/(1.0 - Pnorm((0.0-U1)/sd2,0.0,1.0));
+      shift3 = - sd2 * Dnorm((0.0-U1)/sd3,0.0,1.0)/(1.0 - Pnorm((0.0-U1)/sd3,0.0,1.0));
+
+
       cvr = 1./((1./V1)+(1./V2)+(1./V3));
-      cer = cvr*(U0/V1 + U2/V2 + U3/V3);
+      cer = cvr*((U0+shift1)/V1 + (U2-shift2)/V2 + (U3-shift3)/V3);
     }
   else
     {
+      phydbl shift1;
+      phydbl sd1;
+
+      sd1 = SQRT(V1);
+      shift1 = - sd1 * Dnorm((0.0-U0)/sd1,0.0,1.0)/(1.0 - Pnorm((0.0-U0)/sd1,0.0,1.0));
+
       cvr = V1;
-      cer = U0;
+      cer = U0+shift1;
     }
 
 /*   prior_mean = LOG(cer) + LOG(dt) + LOG(cr); */
@@ -1988,15 +2011,9 @@ void RATES_Posterior_Rates_Pre(t_node *a, t_node *d, int *acc, int *n_trials, t_
 
   if(!d->tax)
     {
-      /* The formula should be 
-      ratio = 
-	((1-Pnorm(0,U0,sqrt(V1)))*(1-Pnorm(0,U1,sqrt(V2)))*(1-Pnorm(0,U1,sqrt(V3)))) / 
-	((1-Pnorm(0,ra,sqrt(V1)))*(1-Pnorm(0,rd,sqrt(V2)))*(1-Pnorm(0,rd,sqrt(V3))));
-	but since Pnorm(0,U0,sqrt(V1)) = Pnorm(0,ra,sqrt(V1)), we have instead: */
       ratio =
 	((1-Pnorm(0,U1,sqrt(V2)))*(1-Pnorm(0,U1,sqrt(V3)))) /
 	((1-Pnorm(0,rd,sqrt(V2)))*(1-Pnorm(0,rd,sqrt(V3))));
-
     }
   else
     {
@@ -2451,26 +2468,6 @@ void RATES_Posterior_Times_Pre(t_node *a, t_node *d, t_tree *tree)
 /*       Exit("\n"); */
     }
   
-
-  if(t1_new - t0 < tree->rates->min_dt)
-    {
-      PhyML_Printf("\n. t1_new = %f t0 = %f t2=%f t3=%f",t1_new,t0,t2,t3);
-      PhyML_Printf("\n. %s %d %d",__FILE__,__LINE__,tree->mcmc->run);
-      Exit("\n");
-    }
-
-  if(t2 - t1_new  < tree->rates->min_dt)
-    {
-      PhyML_Printf("\n. t1_new = %f t0 = %f t2=%f t3=%f",t1_new,t0,t2,t3);
-      PhyML_Printf("\n. %s %d %d",__FILE__,__LINE__,tree->mcmc->run);
-      Exit("\n");
-    }
-  if(t3 - t1_new  < tree->rates->min_dt)
-    {
-      PhyML_Printf("\n. t1_new = %f t0 = %f t2=%f t3=%f",t1_new,t0,t2,t3);
-      PhyML_Printf("\n. %s %d %d",__FILE__,__LINE__,tree->mcmc->run);
-      Exit("\n");
-    }
 
 /*   tree->rates->nd_t[d->num] = tree->rates->t_prior[d->num]; */
   tree->rates->nd_t[d->num] = t1_new;
@@ -3084,23 +3081,6 @@ void RATES_Check_Lk_Rates(t_tree *tree, int *err)
 
 phydbl RATES_Expected_Tree_Length(t_tree *tree)
 {
-/*   int i; */
-/*   phydbl u,u_anc,t,t_anc; */
-/*   phydbl exp_r; */
-
-/*   exp_r = 0.0; */
-/*   For(i,2*tree->n_otu-2) */
-/*     { */
-/*       u     = tree->rates->nd_r[i]; */
-/*       u_anc = tree->rates->nd_r[tree->noeud[i]->anc->num]; */
-/*       t     = tree->rates->nd_t[i]; */
-/*       t_anc = tree->rates->nd_t[tree->noeud[i]->anc->num]; */
-      
-/*       exp_r += Cond_Exp(u_anc,SQRT((t-t_anc)*tree->rates->nu),tree->rates->min_rate,tree->rates->max_rate); */
-/*     } */
-
-/*   return exp_r / (phydbl)(2*tree->n_otu-2); */
-
   int n;
   phydbl mean;
 
@@ -3128,13 +3108,20 @@ void RATES_Expected_Tree_Length_Pre(t_node *a, t_node *d, phydbl eranc, phydbl *
   phydbl u,u_anc,t,t_anc;
   phydbl loc_mean;
   int loc_n;
+  phydbl anc_mean,sd;
 
   u     = tree->rates->nd_r[d->num];
   u_anc = tree->rates->nd_r[a->num];
   t     = tree->rates->nd_t[d->num];
   t_anc = tree->rates->nd_t[a->num];
   
-  erdes = Norm_Trunc_Mean(eranc,SQRT((t-t_anc)*tree->rates->nu),tree->rates->min_rate,tree->rates->max_rate);
+  sd = SQRT((t-t_anc)*tree->rates->nu);
+  
+  erdes = u_anc -
+    sd*(Dnorm((tree->rates->min_rate-u_anc)/sd,.0,1.) - Dnorm((tree->rates->max_rate-u_anc)/sd,.0,1.))/
+       (Pnorm((tree->rates->max_rate-u_anc)/sd,.0,1.) - Pnorm((tree->rates->min_rate-u_anc)/sd,.0,1.));
+
+/*   erdes = Norm_Trunc_Mean(eranc,sd,tree->rates->min_rate,tree->rates->max_rate); */
 
   loc_mean = *mean;
   loc_n = *n;
