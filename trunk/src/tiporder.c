@@ -561,7 +561,7 @@ phydbl Untangle_Tree(t_tree *tree)
   For(i,tree->n_otu) tree->noeud[i]->y_rank_ori = tree->noeud[i]->y_rank;
 
 
-/* bubble sort of conflict nodes according to their y_rank */
+/* bubble sort of nodes according to their y_rank */
   do
     {
       swapped = NO;
@@ -579,6 +579,7 @@ phydbl Untangle_Tree(t_tree *tree)
   while(swapped == YES);
   
 
+  /* Work out the y_rank values for every internal node given the external node ranks */
   Get_All_Y_Rank(tree);
 
   tree->tip_order_score = .0;
@@ -587,10 +588,12 @@ phydbl Untangle_Tree(t_tree *tree)
   do
     {
       conflict= NO;
+      /* Recusrssive untangling of the tree */ 
       Untangle_Node(tree->n_root,tree->n_root->v[0],node_table,&conflict,tree);
       Untangle_Node(tree->n_root,tree->n_root->v[1],node_table,&conflict,tree);
       n_trials++;
-      if(n_trials > 2)
+
+      if(n_trials > 2) /* We should have been able to untangle the tree after just one tree traversal */
 	{
 	  int i;
 	  FILE *ps_tree;
@@ -649,6 +652,7 @@ void Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict, t_t
 
       anc_conflict = NULL;
 
+      /* It is a post order traversal */
       For(i,3)
 	{
 	  if((d->v[i] != d->anc) && (d->b[i] != tree->e_root))
@@ -661,6 +665,7 @@ void Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict, t_t
       lca = NULL;
       eps = 1./(phydbl)(2.*tree->n_otu);
 
+      /* Find direction fron node d ((d)escendant) to a ((a)ncestor) */
       For(i,3)
 	{
 	  if((d->v[i] == d->anc) || (d->b[i] == tree->e_root))
@@ -671,9 +676,13 @@ void Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict, t_t
 	}
 
       
+      /* y_rank_min is the minimum rank among all the rank of the tips that 
+	 can be reached when going from a to d */
       min = d->y_rank_min;
       max = d->y_rank_max;
 
+
+      /* Get the list of tip nodes which ranks are between d->y_rank_min and d->y_rank_max */
       n_conflicts = 0;
       For(i,tree->n_otu)
 	{
@@ -682,7 +691,7 @@ void Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict, t_t
 	      n_conflicts++;	      
 	    }
 	}
-
+      
       For(i,tree->n_otu)
 	{
 	  if(node_table[i]->y_rank > min - eps)
@@ -704,7 +713,9 @@ void Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict, t_t
 	    {
 	      For(j,d->bip_size[d_a]) if(conflict_tips[i] == d->bip_node[d_a][j]) break;
 	      
-	      if(j == d->bip_size[d_a])
+	      if(j == d->bip_size[d_a]) 	      
+		/* conflict_tips[i] does not belong to the list of descendant of node d. It is 
+		   therefore responsible for a conflict */
 		{
 		  *conflict = YES;
 
@@ -712,6 +723,7 @@ void Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict, t_t
 		  
 		  n_moved++;
 		 
+		  /* Move from conflict_tips[i] towards the root as long as the rank of the node lca is between min and max */
 		  lca = conflict_tips[i];
 		  while(lca->y_rank_min > min+eps && lca->y_rank_max < max-eps) lca = lca->anc;
 
@@ -735,9 +747,9 @@ void Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict, t_t
 		      Warn_And_Exit("");
 		    }
 		  
-
+		  /* Have you found lca previously ? */
 		  For(j,n_anc_conflicts) if(anc_conflict[j] == lca) break;
-		  if(j == n_anc_conflicts)
+		  if(j == n_anc_conflicts) /* if no, then update the tree score and the list of ancestral nodes at the origin of conflicts */
 		    {
 		      tree->tip_order_score+=1.;
 		      n_anc_conflicts++;
@@ -750,6 +762,7 @@ void Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict, t_t
 		  /* 			       conflict_tips[i]->y_rank, */
 		  /* 			       min,max,lca->y_rank); */
 		  
+		  /* Solve the conflict by shifting tip nodes to the left or to the right */
 		  if(lca->y_rank > d->y_rank)
 		    {
 		      end--;
