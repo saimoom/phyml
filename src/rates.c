@@ -794,7 +794,7 @@ void RATES_Init_Rate_Struct(trate *rates, int n_otu)
   rates->birth_rate    = 0.001;
 
   rates->max_rate      = 2.;
-  rates->min_rate      = 0.001;
+  rates->min_rate      = 0.01;
 
   rates->clock_r       = 1.E-3;
   rates->max_clock     = 1.E-1;
@@ -2031,7 +2031,7 @@ void RATES_Posterior_Rates_Pre(t_node *a, t_node *d, int *acc, int *n_trials, t_
 
   (*n_trials)++;
 
-/*   PhyML_Printf("\r. acc rate = %f",(phydbl)(*acc)/(*n_trials)); */
+  PhyML_Printf("\r. acc rate = %f",(phydbl)(*acc)/(*n_trials));
   
   RATES_Update_Cur_Bl(tree);
 
@@ -3106,11 +3106,11 @@ void RATES_Expected_Tree_Length_Pre(t_node *a, t_node *d, phydbl eranc, phydbl *
   
   sd = SQRT((t-t_anc)*tree->rates->nu);
   
-  erdes = u_anc -
-    sd*(Dnorm((tree->rates->min_rate-u_anc)/sd,.0,1.) - Dnorm((tree->rates->max_rate-u_anc)/sd,.0,1.))/
-       (Pnorm((tree->rates->max_rate-u_anc)/sd,.0,1.) - Pnorm((tree->rates->min_rate-u_anc)/sd,.0,1.));
+/*  erdes = u_anc - */
+/*     sd*(Dnorm((tree->rates->min_rate-u_anc)/sd,.0,1.) - Dnorm((tree->rates->max_rate-u_anc)/sd,.0,1.))/ */
+/*        (Pnorm((tree->rates->max_rate-u_anc)/sd,.0,1.) - Pnorm((tree->rates->min_rate-u_anc)/sd,.0,1.)); */
 
-/*   erdes = Norm_Trunc_Mean(eranc,sd,tree->rates->min_rate,tree->rates->max_rate); */
+  erdes = Norm_Trunc_Mean(eranc,sd,tree->rates->min_rate,tree->rates->max_rate);
 
   loc_mean = *mean;
   loc_n = *n;
