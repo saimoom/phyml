@@ -70,6 +70,8 @@ int MC_main(int argc, char **argv)
 /*   r_seed = 1263111043; */
 /*   r_seed = 1263158433; */
 /*   r_seed = 1263168633; */
+/*   r_seed = 1263372871; */
+/*   r_seed = 1263375598; */
   srand(r_seed); rand();
   PhyML_Printf("\n. Seed: %d\n",r_seed);
   PhyML_Printf("\n. Pid: %d\n",getpid());
@@ -125,12 +127,11 @@ int MC_main(int argc, char **argv)
 		  time(&t_beg);
 		  time(&(tree->t_beg));
 
-/* 		  int n_otu; */
+		  int n_otu;
 		  int i;
-/* 		  t_edge *root_edge; */
 
 
-/* 		  n_otu = 40; */
+/* 		  n_otu = 20; */
 /* 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1); */
 
 		  tree->rates = RATES_Make_Rate_Struct(tree->n_otu);
@@ -163,9 +164,6 @@ int MC_main(int argc, char **argv)
 
 		  For(i,2*tree->n_otu-1) tree->rates->true_t[i] = tree->rates->nd_t[i];
 		  For(i,2*tree->n_otu-2) tree->rates->true_r[i] = tree->rates->nd_r[i];
-
-/* 		  For(i,2*tree->n_otu-1) tree->rates->true_t[i] = 0.0; */
-/* 		  For(i,2*tree->n_otu-2) tree->rates->true_r[i] = 0.0; */
 
 
 /* 		  tree->data->format = 1; */
@@ -244,7 +242,7 @@ int MC_main(int argc, char **argv)
 		  tree->rates->lk_approx = NORMAL;
 		  RATES_Lk_Rates(tree);
 		  MCMC_Print_Param(tree->mcmc,tree);
-		  
+		  		  
 		  time(&t_beg);
 		  tree->mcmc->n_tot_run = 1E+8;
 		  phydbl u;
@@ -253,12 +251,7 @@ int MC_main(int argc, char **argv)
 		  do
 		    {
 		      tree->rates->c_lnL = RATES_Lk_Rates(tree);
-		      tree->c_lnL = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,
-								 tree->rates->u_ml_l,
-								 tree->rates->invcov,
-								 tree->rates->covdet,
-								 2*tree->n_otu-3,YES);
-
+		      tree->c_lnL        = Lk(tree);
 		      MCMC_Nu(tree);
 		      RATES_Posterior_Clock_Rate(tree);
 		      RATES_Posterior_Times(tree);

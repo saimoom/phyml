@@ -157,6 +157,7 @@ void RATES_Min_Max_Interval(phydbl u0, phydbl u1, phydbl u2, phydbl u3, phydbl t
 			    phydbl *t_min, phydbl *t_max, phydbl nu, phydbl p_thresh, t_tree *tree);
 
 
+phydbl RATES_Get_Correction_Factor(phydbl mode, phydbl sd, int *err, t_tree *tree);
 
 
 #endif

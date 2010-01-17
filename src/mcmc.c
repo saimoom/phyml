@@ -22,11 +22,14 @@ void MCMC(t_tree *tree)
 
   if(tree->mcmc->randomize)
     {
+      MCMC_Randomize_Nu(tree);
       MCMC_Randomize_Node_Times(tree);
       MCMC_Randomize_Rates(tree);
-      MCMC_Randomize_Clock_Rate(tree);
-      MCMC_Randomize_Nu(tree);
+      MCMC_Randomize_Clock_Rate(tree); /* Clock Rate must be the last parameter to be ramdomized */
     }
+
+  int i;
+  	
 
   RATES_Update_Cur_Bl(tree);
   RATES_Lk_Rates(tree);
@@ -73,17 +76,18 @@ void MCMC_Nu(t_tree *tree)
 /*   new_nu = u*(max_nu - min_nu) + min_nu; */
   new_nu = cur_nu * EXP(tree->mcmc->h_nu*(u-0.5));
 
-
-  if(new_nu < min_nu)
-    {
-      new_nu = max_nu - fmod(new_nu,max_nu-min_nu);
-    }
-  if(new_nu > max_nu)
-    {
-      new_nu = min_nu + fmod(new_nu,max_nu-min_nu);
-    }
+/*  "Mirroring" messes up the sampling. Can be seen by checking the prior densities obtained */
+/*   if(new_nu < min_nu) */
+/*     { */
+/*       new_nu = max_nu - fmod(new_nu,max_nu-min_nu); */
+/*     } */
+/*   if(new_nu > max_nu) */
+/*     { */
+/*       new_nu = min_nu + fmod(new_nu,max_nu-min_nu); */
+/*     } */
   if(new_nu > max_nu || new_nu < min_nu)
     {      
+      return;
       PhyML_Printf("\n. max_nu = %G min_nu = %G",max_nu,min_nu);
       PhyML_Printf("\n. Problem with setting autocorrelation parameter.\n");
       PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
@@ -98,7 +102,6 @@ void MCMC_Nu(t_tree *tree)
     (new_lnL_rate - cur_lnL_rate) +
     (LOG(new_nu)  - LOG(cur_nu));
 
-/*   ratio = (new_lnL_rate - cur_lnL_rate); */
 
   ratio = EXP(ratio);
   alpha = MIN(1.,ratio);
@@ -107,7 +110,6 @@ void MCMC_Nu(t_tree *tree)
   if(u > alpha) /* Reject */
     {
       tree->rates->nu = cur_nu;
-/*       Lk(tree); /\* Is it necessary ? *\/ */
       RATES_Lk_Rates(tree);
 
       tree->rates->nu    = cur_nu;
@@ -147,16 +149,18 @@ void MCMC_Clock_Rate(t_tree *tree)
   new_cr = cur_cr * EXP(tree->mcmc->h_clock*(u-0.5));
 /*   new_cr = tree->rates->min_clock + u*(tree->rates->max_clock - tree->rates->min_clock); */
 
-  if(new_cr < tree->rates->min_clock)
-    {
-      new_cr = tree->rates->max_clock - fmod(new_cr,tree->rates->max_clock-tree->rates->min_clock);
-    }
-  if(new_cr > tree->rates->max_clock)
-    {
-      new_cr = tree->rates->min_clock + fmod(new_cr,tree->rates->max_clock-tree->rates->min_clock);
-    }
+/*  "Mirroring" messes up the sampling. Can be seen by checking the prior densities obtained */
+/*   if(new_cr < tree->rates->min_clock) */
+/*     { */
+/*       new_cr = tree->rates->max_clock - fmod(new_cr,tree->rates->max_clock-tree->rates->min_clock); */
+/*     } */
+/*   if(new_cr > tree->rates->max_clock) */
+/*     { */
+/*       new_cr = tree->rates->min_clock + fmod(new_cr,tree->rates->max_clock-tree->rates->min_clock); */
+/*     } */
   if(new_cr > tree->rates->max_clock || new_cr < tree->rates->min_clock)
     {
+      return;
       PhyML_Printf("\n Problem with setting new clock rate.\n");
       PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
@@ -167,8 +171,11 @@ void MCMC_Clock_Rate(t_tree *tree)
 
   new_lnL = Lk(tree);
 
-  ratio = (new_lnL - cur_lnL) + (LOG(new_cr) - LOG(cur_cr));
-/*   ratio = (new_lnL - cur_lnL); */
+  ratio =
+    (new_lnL - cur_lnL) +
+    (LOG(new_cr) - LOG(cur_cr));
+
+
   ratio = EXP(ratio);
   
   alpha = MIN(1.,ratio);
@@ -201,13 +208,15 @@ void MCMC_Times_Local(t_tree *tree)
   
   For(i,2*tree->n_otu-1)
     {
-      node_num = Rand_Int(0,2*tree->n_otu-2);
+      node_num = Rand_Int(tree->n_otu,2*tree->n_otu-2);
 
       if(tree->noeud[node_num] != tree->n_root)
 	MCMC_Times_Pre(tree->noeud[node_num]->anc,tree->noeud[node_num],local,tree);
       else
       	MCMC_Time_Root(tree);
     }
+
+  RATES_Lk_Rates(tree); /* Rates likelihood needs to be updated here */
 
 /*   MCMC_Times_Pre(tree->n_root,tree->n_root->v[0],local,tree); */
 /*   MCMC_Times_Pre(tree->n_root,tree->n_root->v[1],local,tree); */
@@ -263,16 +272,18 @@ void MCMC_One_Rate(t_node *a, t_node *d, t_tree *tree)
   new_mu = cur_mu * EXP(tree->mcmc->h_rates*(u-0.5));
 /*   new_mu = Uni() * (r_max - r_min) + r_min; */
 
-  if(new_mu < r_min)
-    {
-      new_mu = r_max - fmod(new_mu,r_max-r_min);
-    }
-  if(new_mu > r_max)
-    {
-      new_mu = r_min + fmod(new_mu,r_max-r_min);
-    }
+/*  "Mirroring" messes up the sampling. Can be seen by checking the prior densities obtained */
+/*   if(new_mu < r_min) */
+/*     { */
+/*       new_mu = r_max - fmod(new_mu,r_max-r_min); */
+/*     } */
+/*   if(new_mu > r_max) */
+/*     { */
+/*       new_mu = r_min + fmod(new_mu,r_max-r_min); */
+/*     } */
   if(new_mu < r_min || new_mu > r_max)
     {
+      return;
       PhyML_Printf("\n Problem with setting new rate.\n");
       PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
@@ -285,12 +296,10 @@ void MCMC_One_Rate(t_node *a, t_node *d, t_tree *tree)
   new_lnL_rate = RATES_Lk_Rates(tree);
   
   ratio =
-    (new_lnL_data + new_lnL_rate + LOG(new_mu)) -
-    (cur_lnL_data + cur_lnL_rate + LOG(cur_mu));
-  
-/*   ratio = */
-/*     (new_lnL_data + new_lnL_rate) - */
-/*     (cur_lnL_data + cur_lnL_rate); */
+    (new_lnL_data - cur_lnL_data) +
+    (new_lnL_rate - cur_lnL_rate) +
+    (LOG(new_mu) - LOG(cur_mu));
+
   
   ratio = EXP(ratio);
   alpha = MIN(1.,ratio);
@@ -347,9 +356,6 @@ void MCMC_Times_Pre(t_node *a, t_node *d, int local, t_tree *tree)
   cur_lnL_rate  = tree->rates->c_lnL;
   t1_cur        = tree->rates->nd_t[d->num];
   cur_lnL_times = RATES_Yule(tree);
-  new_lnL_data  = cur_lnL_data;
-  new_lnL_times = cur_lnL_times;
-  new_lnL_rate  = cur_lnL_rate;
   
   buff_n = v2 = v3 = NULL;
   For(i,3)
@@ -381,17 +387,6 @@ void MCMC_Times_Pre(t_node *a, t_node *d, int local, t_tree *tree)
   t_min = t0;
   t_max = MIN(t2,t3);
 
-/*   t_min =     t0 + (1./tree->rates->nu)*POW((u1-u0)/tree->rates->z_max,2); */
-/*   t_max = MIN(t2 - (1./tree->rates->nu)*POW((u1-u2)/tree->rates->z_max,2), */
-/* 	      t3 - (1./tree->rates->nu)*POW((u1-u3)/tree->rates->z_max,2)); */
-
-/*   t_min    = RATES_Find_Min_Dt_Bisec(u1,u0,t0,MIN(t2,t3),tree->rates->nu,tree->rates->p_max,(u1 < u0)?YES:NO); */
-/*   t_max_12 = RATES_Find_Max_Dt_Bisec(u2,u1,t0,t2,tree->rates->nu,tree->rates->p_max,(u2 < u1)?YES:NO); */
-/*   t_max_13 = RATES_Find_Max_Dt_Bisec(u3,u1,t0,t3,tree->rates->nu,tree->rates->p_max,(u3 < u1)?YES:NO); */
-/*   t_max = MIN(t_max_12,t_max_13); */
-
-/*   RATES_Min_Max_Interval(u0,u1,u2,u3,t0,t2,t3,&t_min,&t_max,tree->rates->nu,tree->rates->p_max,tree); */
-
   t_min = MAX(t_min,tree->rates->t_prior_min[d->num]);
   t_max = MIN(t_max,tree->rates->t_prior_max[d->num]);
 
@@ -399,24 +394,29 @@ void MCMC_Times_Pre(t_node *a, t_node *d, int local, t_tree *tree)
   if(t_max < t_min) return;
 
   tree->rates->t_prior[d->num] = Uni() * (t_max - t_min) + t_min;
+  
+/*   tree->rates->nd_t[d->num] = tree->rates->t_prior[d->num]; */
+/*   return; */
 
   u = Uni();
-/*   t1_new = u*(t_max-t_min)+t_min; */
 
+/*   t1_new = u*(t_max-t_min)+t_min; */
   t1_new = t1_cur * EXP(tree->mcmc->h_times*(u-0.5));
 
-  if(t1_new < t_min)
-    {
-      t1_new = t_max - fmod(FABS(t1_new),FABS(t_max-t_min));
-    }
+/*  "Mirroring" messes up the sampling. Can be seen by checking the prior densities obtained */
+/*   if(t1_new < t_min) */
+/*     { */
+/*       t1_new = t_max - fmod(FABS(t1_new),FABS(t_max-t_min)); */
+/*     } */
 
-  if(t1_new > t_max)
-    {
-      t1_new = t_min + fmod(FABS(t1_new),FABS(t_max-t_min));
-    }
+/*   if(t1_new > t_max) */
+/*     { */
+/*       t1_new = t_min + fmod(FABS(t1_new),FABS(t_max-t_min)); */
+/*     } */
 
   if(t1_new < t_min || t1_new > t_max)
     {
+      return;
       PhyML_Printf("\n. Problem with setting new time.\n");
       PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
@@ -430,11 +430,9 @@ void MCMC_Times_Pre(t_node *a, t_node *d, int local, t_tree *tree)
       RATES_Update_Cur_Bl(tree);
       new_lnL_data = Lk(tree);
 
-/*       ratio = new_lnL_data - cur_lnL_data; */
-
       ratio =
-	(new_lnL_data + LOG(FABS(t1_new))) -
-	(cur_lnL_data + LOG(FABS(t1_cur)));
+	(new_lnL_data - cur_lnL_data) +
+	(LOG(FABS(t1_new)) - LOG(FABS(t1_cur)));
 
 
       ratio = EXP(ratio);
@@ -450,7 +448,6 @@ void MCMC_Times_Pre(t_node *a, t_node *d, int local, t_tree *tree)
 	}
       else
 	{
-	  new_lnL_rate = RATES_Lk_Rates(tree); /* Rates likelihood needs to be updated here */
 	  tree->mcmc->acc_times++;
 	}
     }
@@ -549,13 +546,6 @@ void MCMC_Time_Root(t_tree *tree)
 
   t_max = MIN(t2,t3);
 
-/*   t_max = MIN(t2 - (1./tree->rates->nu)*POW((u0-u2)/tree->rates->z_max,2), */
-/* 	      t3 - (1./tree->rates->nu)*POW((u0-u3)/tree->rates->z_max,2)); */
-
-/*   t_max_02 = RATES_Find_Max_Dt_Bisec(u2,u0,tree->rates->t_prior_min[root->num],t2,tree->rates->nu,tree->rates->p_max,(u2 < u0)?YES:NO); */
-/*   t_max_03 = RATES_Find_Max_Dt_Bisec(u3,u0,tree->rates->t_prior_min[root->num],t3,tree->rates->nu,tree->rates->p_max,(u3 < u0)?YES:NO); */
-/*   t_max = MIN(t_max_02,t_max_03); */
-
   t_min = MAX(t_min,tree->rates->t_prior_min[root->num]);
   t_max = MIN(t_max,tree->rates->t_prior_max[root->num]);
   
@@ -573,16 +563,18 @@ void MCMC_Time_Root(t_tree *tree)
 /*   new_t = u*(t_max-t_min)+t_min; */
   new_t = cur_t * EXP(tree->mcmc->h_times*(u-0.5));
 
-  if(new_t < t_min)
-    {
-      new_t = t_max - fmod(FABS(new_t),FABS(t_max-t_min));
-    }
-  if(new_t > t_max)
-    {
-      new_t = t_min + fmod(FABS(new_t),FABS(t_max-t_min));
-    }
+/*  "Mirroring" messes up the sampling. Can be seen by checking the prior densities obtained */
+/*   if(new_t < t_min) */
+/*     { */
+/*       new_t = t_max - fmod(FABS(new_t),FABS(t_max-t_min)); */
+/*     } */
+/*   if(new_t > t_max) */
+/*     { */
+/*       new_t = t_min + fmod(FABS(new_t),FABS(t_max-t_min)); */
+/*     } */
   if(new_t < t_min || new_t > t_max)
     {
+      return;
       PhyML_Printf("\n. Problem with setting new time.\n");
       PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
@@ -592,16 +584,11 @@ void MCMC_Time_Root(t_tree *tree)
   
   RATES_Update_Cur_Bl(tree);
   
-  new_lnL_rate = RATES_Lk_Rates(tree); /* Rates likelihood needs to be updated here because variances of rates have changed */
   new_lnL_data = Lk(tree);
 
-  ratio =
-    (new_lnL_data + LOG(FABS(new_t))) -
-    (cur_lnL_data + LOG(FABS(cur_t)));
-
-/*   ratio = */
-/*     (new_lnL_data) - (cur_lnL_data); */
-
+  ratio = 
+    (new_lnL_data - cur_lnL_data) +
+    (LOG(FABS(new_t)) - LOG(FABS(cur_t)));
 
   ratio = EXP(ratio);
   alpha = MIN(1.,ratio);
@@ -855,7 +842,7 @@ void MCMC_Print_Param(tmcmc *mcmc, t_tree *tree)
 	    {
 	      for(i=tree->n_otu;i<2*tree->n_otu-1;i++)
 		{
-		  PhyML_Fprintf(fp,"T%d\t",i);
+		  PhyML_Fprintf(fp,"T%d[%f]\t",i,tree->rates->true_t[i]);
 		}
 	    }
 
@@ -1072,11 +1059,12 @@ void MCMC_Init_MCMC_Struct(char *filename, tmcmc *mcmc, t_tree *tree)
   mcmc->n_tot_run       = 1.E+6;
   mcmc->randomize       = 1;
   mcmc->norm_freq       = 20*tree->n_otu;
+/*   mcmc->norm_freq       = 1E+8; */
 
-  mcmc->h_times         = 0.3;
-  mcmc->h_rates         = 0.3;
+  mcmc->h_times         = 1.0;
+  mcmc->h_rates         = 1.0;
   mcmc->h_nu            = 1.0;
-  mcmc->h_clock         = 0.1;
+  mcmc->h_clock         = 1.0;
 
   if(filename)
     {
@@ -1261,6 +1249,7 @@ void MCMC_Randomize_Clock_Rate(t_tree *tree)
 
   ml_size = 0.0;
   For(i,2*tree->n_otu-3) ml_size += tree->rates->u_ml_l[i];
+
 
   cur_size = 0.0;
   For(i,2*tree->n_otu-2) 
