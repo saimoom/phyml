@@ -80,6 +80,7 @@ phydbl Norm_Trunc_Sd(phydbl mu, phydbl sd, phydbl a, phydbl b);
 phydbl Norm_Trunc_Mean(phydbl mu, phydbl sd, phydbl a, phydbl b);
 int Norm_Trunc_Mean_Sd(phydbl mu, phydbl sd, phydbl a, phydbl b, phydbl *trunc_mu, phydbl *trunc_sd);
 phydbl Log_Dnorm_Trunc(phydbl x, phydbl mean, phydbl sd, phydbl lo, phydbl up, int *err);
+phydbl  Pnorm_Marsaglia(phydbl x);
 
 
 #endif

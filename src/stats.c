@@ -177,10 +177,27 @@ phydbl Rnorm(phydbl mean, phydbl sd)
   /* Box-Muller transformation */
   phydbl u1, u2;
 
-  u1=(phydbl)rand()/(RAND_MAX);
-  u2=(phydbl)rand()/(RAND_MAX);
- 
-  u1 = SQRT(-2*LOG(u1))*COS(2*PI*u2);
+
+/*   u1=Uni(); */
+/*   u2=Uni();  */
+
+/*   u1 = SQRT(-2.*LOG(u1))*COS(6.28318530717959f*u2); */
+
+  /* Polar */
+  phydbl d,x,y;
+
+  do
+    {
+      u1=Uni();
+      u2=Uni(); 
+      x = 2.*u1-1.;
+      y = 2.*u2-1.;
+      d = x*x + y*y;
+      if(d>.0 && d<1.) break;
+    }
+  while(1);
+  u1 = x*SQRT((-2.*LOG(d))/d);
+
 
   return u1*sd+mean;
 }
@@ -429,8 +446,11 @@ phydbl Dnorm_Moments(phydbl x, phydbl mean, phydbl var)
 phydbl Dnorm(phydbl x, phydbl mean, phydbl sd)
 {
   phydbl dens;
-  dens = -(.5*LOG2PI+LOG(sd))  - .5*POW(x-mean,2)/POW(sd,2);
-  return EXP(dens);
+/*   dens = -(.5*LOG2PI+LOG(sd))  - .5*POW(x-mean,2)/POW(sd,2); */
+/*   return EXP(dens); */
+  
+  dens = (M_1_SQRT_2_PI * EXP(-0.5*x*x))/sd; 
+  
 }
 
 /*********************************************************/
@@ -438,26 +458,18 @@ phydbl Dnorm(phydbl x, phydbl mean, phydbl sd)
 phydbl Log_Dnorm(phydbl x, phydbl mean, phydbl sd, int *err)
 {
   phydbl dens;
-  phydbl xmm;
-  phydbl var;
-  phydbl ctrxsq;
 
-  *err = 0;
-  xmm = x-mean;
+  *err = NO;
+
+  x = (x-mean)/sd;
   
-  var = sd*sd;
-  ctrxsq = (x-mean)*(x-mean);
-
-  dens = -(.5*LOG2PI+LOG(sd))  - .5*ctrxsq/var;
+  dens = -(phydbl)LOG_SQRT_2_PI - x*x*0.5 - LOG(sd);
 
   if(dens < -BIG)
     {
       PhyML_Printf("\n. dens=%f -- x=%f mean=%f sd=%f\n",dens,x,mean,sd);
       *err = 1;
     }
-
-/*   dens = - .5*xmm*xmm; */
-/*   dens /= sd*sd; */
 
   return dens;
 }
@@ -768,8 +780,20 @@ phydbl Pnorm(phydbl x, phydbl mean, phydbl sd)
    if(upper) return *ccum := P[X >  x] = 1 - P[X <= x]
 */
 
+/*   return Pnorm_Marsaglia(x);  */
   return Pnorm_Ihaka_Derived_From_Cody(x);
 }
+
+
+/* G. Marsaglia. "Evaluating the Normal distribution". Journal of Statistical Software. 2004. Vol. 11. Issue 4. */
+phydbl  Pnorm_Marsaglia(phydbl x)
+{
+  long double s=x,t=0,b=x,q=x*x,i=1;
+  while(s!=t) s=(t=s)+(b*=q/(i+=2)); 
+  return .5+s*exp(-.5*q-.91893853320467274178L);
+
+}
+
 
 
 /* Stolen from R source code */
@@ -907,7 +931,7 @@ phydbl Pnorm_Ihaka_Derived_From_Cody(phydbl x)
 	    xden = (xden + q[i]) * xsq;
 	}
 	temp = xsq * (xnum + p[4]) / (xden + q[4]);
-	temp = (M_1_SQRT_2PI - temp) / y;
+	temp = (M_1_SQRT_2_PI - temp) / y;
 
 	do_del(x);
 	swap_tail;
