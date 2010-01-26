@@ -25,8 +25,6 @@ the GNU public licence. See http://www.opensource.org for details.
 
 phydbl RATES_Lk_Rates(t_tree *tree)
 {
-/*   RATES_Set_Node_Times(tree); */
-/*   RATES_Init_Triplets(tree); */
 
   tree->rates->c_lnL = .0;
   RATES_Lk_Rates_Pre(tree->n_root,tree->n_root->v[0],NULL,tree);
@@ -101,9 +99,7 @@ void RATES_Lk_Rates_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 	    int err;
 	    phydbl mean,sd;
 	    
-
 	    sd = SQRT(tree->rates->nu*dt2);
-
 	    mean = 1.0;
 
 	    log_dens = Log_Dnorm_Trunc(mu2,mean,sd,tree->rates->min_rate,tree->rates->max_rate,&err);
@@ -222,7 +218,6 @@ void RATES_Update_Triplet(t_node *n, t_tree *tree)
       
       n0  = tree->rates->n_jps[tree->n_root->v[0]->num];
       n1  = tree->rates->n_jps[tree->n_root->v[1]->num];
-
 
       switch(tree->rates->model)
 	{
@@ -784,20 +779,20 @@ void RATES_Init_Rate_Struct(trate *rates, int n_otu)
 
 
   /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
-  rates->max_rate      = 2.00;
-  rates->min_rate      = 0.01;
+  rates->max_rate      = 10.00;
+  rates->min_rate      = 0.001;
 
   rates->clock_r       = 1.E-3;
-  rates->max_clock     = 1.E-1;
-  rates->min_clock     = 1.E-9;
+  rates->max_clock     = 1.E-0;
+  rates->min_clock     = 1.E-8;
 
-  rates->nu            = 1.E-2;
-  rates->max_nu        = 1.E-1;
-  rates->min_nu        = 1.E-8;
+  rates->nu            = 1.E-1;
+  rates->max_nu        = 0.1;
+  rates->min_nu        = 1.E-4;
   rates->lbda_nu       = 1.E+3;
 
   /* !!!!!!!!!!!!!!!!!!!!!!!!!! */
-  rates->min_dt        = 1.0;
+  rates->min_dt        = 0.0;
 
   rates->step_rate     = 1.E-4;
   rates->approx        = 1;
@@ -1712,8 +1707,8 @@ void RATES_Posterior_Rates(int *acc, int *n_trials, t_tree *tree)
       node_num = Rand_Int(0,2*tree->n_otu-3);      
       RATES_Posterior_Rates_Pre(tree->noeud[node_num]->anc,tree->noeud[node_num],acc,n_trials,tree);
 
-      /* Useful for comparison with MCMC */
-      RATES_Lk_Rates(tree);
+/*       /\* Useful for comparison with MCMC *\/ */
+/*       RATES_Lk_Rates(tree); */
     }
 }
 
@@ -1734,8 +1729,8 @@ void RATES_Posterior_Times(t_tree *tree)
       else
 	RATES_Posterior_Time_Root(tree);
 
-      /* Useful for comparison with MCMC */
-      RATES_Lk_Rates(tree);
+/*       /\* Useful for comparison with MCMC *\/ */
+/*       RATES_Lk_Rates(tree); */
     }
 }
 
@@ -1746,7 +1741,7 @@ void RATES_Posterior_Rates_Pre(t_node *a, t_node *d, int *acc, int *n_trials, t_
   phydbl like_mean, like_var;
   phydbl prior_mean, prior_var;
   phydbl post_mean, post_var, post_sd;
-  phydbl dt,el,vl,ra,rd,min_r,max_r,cr,nu,cel,cvl,cel_tmp,cvl_tmp,cer,cvr;
+  phydbl dt,ra,rd,cr,nu,cel,cvl,cel_tmp,cvl_tmp;
   phydbl cur_l,new_l,new_r;
   int dim;
   short int *is_1;
@@ -1759,17 +1754,11 @@ void RATES_Posterior_Rates_Pre(t_node *a, t_node *d, int *acc, int *n_trials, t_
   phydbl U0,U1,U2,U3;
   phydbl V1,V2,V3;
   phydbl r_min,r_max;
-  phydbl l_min,l_max;
   int err;
   phydbl ratio,u;
-  
-/*   if(a == tree->n_root) { tree->rates->nd_r[d->num] = 1.0; return; } */
+  phydbl cvr, cer;
 
   dim = 2*tree->n_otu-3;
-
-/*   is_1     = (short int *)mCalloc(2*tree->n_otu-3,sizeof(short int)); */
-/*   cond_mu  = (phydbl *)mCalloc(2*tree->n_otu-3,sizeof(phydbl)); */
-/*   cond_cov = (phydbl *)mCalloc((2*tree->n_otu-3)*(2*tree->n_otu-3),sizeof(phydbl)); */
 
   is_1     = tree->rates->_2n_vect5;
   cond_mu  = tree->rates->_2n_vect1;
@@ -1810,19 +1799,21 @@ void RATES_Posterior_Rates_Pre(t_node *a, t_node *d, int *acc, int *n_trials, t_
   V3 = tree->rates->nu * (T3 - T1);
 
   dt     = tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num];
-  el     = tree->rates->u_ml_l[b->num];
-  vl     = tree->rates->cov[b->num*dim+b->num];
   ra     = tree->rates->nd_r[a->num];
   rd     = tree->rates->nd_r[d->num];
-  min_r  = tree->rates->min_rate;
-  max_r  = tree->rates->max_rate;
   cr     = tree->rates->clock_r;
   nu     = tree->rates->nu;
-  cel    = el;   /* conditional branch length expectation */
-  cvl    = vl;   /* conditional branch length variance */
-  cer    = -1.0; /* conditional rate expectation */
-  cvr    = -1.0; /* conditional rate variance */
   cur_l  = tree->rates->cur_l[d->num];
+  r_min  = tree->rates->min_rate;
+  r_max  = tree->rates->max_rate;
+
+
+  /* Likelihood */
+  cel=0.0;
+  For(i,dim) if(i != b->num) cel += tree->rates->reg_coeff[b->num*dim+i] * (tree->rates->u_cur_l[i] - tree->rates->u_ml_l[i]);
+  cel += tree->rates->u_ml_l[b->num];
+
+  cvl = tree->rates->cond_var[b->num];
 
   l_opp  = -1.0;
   if(a == tree->n_root)
@@ -1832,36 +1823,9 @@ void RATES_Posterior_Rates_Pre(t_node *a, t_node *d, int *acc, int *n_trials, t_
 	(tree->rates->cur_l[a->v[1]->num]):
 	(tree->rates->cur_l[a->v[0]->num]);
     }
-  
-  r_min = tree->rates->min_rate;
-  r_max = tree->rates->max_rate;
 
-  l_min = r_min * (T1 - T0) * tree->rates->clock_r;
-  l_max = r_max * (T1 - T0) * tree->rates->clock_r;
 
-  if(a == tree->n_root)
-    {
-      l_min += l_opp;
-      l_max += l_opp;
-    }
-
-  /* Likelihood */
-
-  cel=0.0;
-  For(i,dim) if(i != b->num) cel += tree->rates->reg_coeff[b->num*dim+i] * (tree->rates->u_cur_l[i] - tree->rates->u_ml_l[i]);
-  cel += tree->rates->u_ml_l[b->num];
-
-  cvl = tree->rates->cond_var[b->num];
-
-  if(a == tree->n_root)
-    {
-/*       if(!Norm_Trunc_Mean_Sd(cel,SQRT(cvl),l_opp,BL_MAX,&cel_tmp,&cvl_tmp)) return; */
-/*       cvl_tmp *= cvl_tmp; */
-/*       cvl = cvl_tmp; */
-/*       cel = cel_tmp; */
-
-      cel -= l_opp;
-    }
+  if(a == tree->n_root) cel -= l_opp;
 
   if(isnan(cvl) || isnan(cel)) 
     {
@@ -1874,9 +1838,6 @@ void RATES_Posterior_Rates_Pre(t_node *a, t_node *d, int *acc, int *n_trials, t_
       PhyML_Printf("\n. Warning: invalid expected and/or std. dev. values. Skipping this step.\n"); 
       return;
     }
-
-/*   like_mean = cel; */
-/*   like_var  = cvl; */
 
   like_mean = cel / (dt*cr);
   like_var  = cvl / POW(dt*cr,2);
@@ -1893,25 +1854,51 @@ void RATES_Posterior_Rates_Pre(t_node *a, t_node *d, int *acc, int *n_trials, t_
       cvr = V1;
       cer = U0;
     }
-
   
   prior_mean = cer;
   prior_var  = cvr;
   
   /* Posterior */
-  post_mean = (prior_mean/prior_var + like_mean/like_var)/(1./prior_var + 1./like_var);
-  post_var  = 1./(1./prior_var + 1./like_var);
-  post_sd   = SQRT(post_var);
+/*   post_mean = (prior_mean/prior_var + like_mean/like_var)/(1./prior_var + 1./like_var); */
+/*   post_var  = 1./(1./prior_var + 1./like_var); */
 
 
   /* Sample according to priors */
-  post_mean = prior_mean;
-  post_var  = prior_var;
-  post_sd   = SQRT(post_var);
+  if(!d->tax)
+    {
+      post_mean = (1./((1./V1)+(1./V2)+(1./V3)))*(U0/V1 + U2/V2 + U3/V3);
+      post_var  = 1./((1./V1)+(1./V2)+(1./V3));
+    }
+  else
+    {
+      post_mean = U0;
+      post_var  = V1;
+    }
 
-/*   rd = Rnorm(post_mean,post_sd); */
-  rd = Rnorm_Trunc(post_mean,post_sd,min_r,max_r,&err);
-  
+  post_sd = SQRT(post_var);
+
+  phydbl loghr;
+  if(!d->tax) 
+    {
+      rd = Rnorm(post_mean,post_sd);
+/*       loghr =  */
+/* 	Log_Dnorm(U1,post_mean,post_sd) -  */
+/* 	Log_Dnorm(rd,post_mean,post_sd); */
+
+    }
+  else        
+    {
+      rd = Rnorm_Trunc(post_mean,post_sd,r_min,r_max,&err);
+    }
+
+
+/*   if(!d->tax) */
+/*     rd = Uni()*(r_max-r_min)+r_min; */
+/*   else */
+/*     rd = Rnorm_Trunc(post_mean,post_sd,r_min,r_max,&err); */
+/*     rd = Rnorm(post_mean,post_sd); */
+
+
 /*   if(err) */
 /*     { */
 /*       PhyML_Printf("\n"); */
@@ -1979,17 +1966,56 @@ void RATES_Posterior_Rates_Pre(t_node *a, t_node *d, int *acc, int *n_trials, t_
 /*       rd = r_max; */
 /*     } */
 
-  if(rd < tree->rates->min_rate)      tree->rates->nd_r[d->num] = U1;
-  else if(rd > tree->rates->max_rate) tree->rates->nd_r[d->num] = U1;
+  if(rd < r_min)      tree->rates->nd_r[d->num] = U1;
+  else if(rd > r_max) tree->rates->nd_r[d->num] = U1;
   else
     {
       if(!d->tax)
 	{
 	  ratio =
-	    ((Pnorm(tree->rates->max_rate,U1,SQRT(V2))-Pnorm(tree->rates->min_rate,U1,SQRT(V2)))*
-	     (Pnorm(tree->rates->max_rate,U1,SQRT(V3))-Pnorm(tree->rates->min_rate,U1,SQRT(V3)))) /
-	    ((Pnorm(tree->rates->max_rate,rd,SQRT(V2))-Pnorm(tree->rates->min_rate,rd,SQRT(V2)))*
-	     (Pnorm(tree->rates->max_rate,rd,SQRT(V3))-Pnorm(tree->rates->min_rate,rd,SQRT(V3))));
+/*  	    (LOG(Pnorm(r_max,U1,SQRT(V2))-Pnorm(r_min,U1,SQRT(V2))) + */
+/* 	     LOG(Pnorm(r_max,U1,SQRT(V3))-Pnorm(r_min,U1,SQRT(V3)))) - */
+/* 	    (LOG(Pnorm(r_max,rd,SQRT(V2))-Pnorm(r_min,rd,SQRT(V2))) + */
+/* 	     LOG(Pnorm(r_max,rd,SQRT(V3))-Pnorm(r_min,rd,SQRT(V3)))); */
+ 	    ((Pnorm(r_max,U1,SQRT(V2))-Pnorm(r_min,U1,SQRT(V2))) *
+	     (Pnorm(r_max,U1,SQRT(V3))-Pnorm(r_min,U1,SQRT(V3)))) /
+	    ((Pnorm(r_max,rd,SQRT(V2))-Pnorm(r_min,rd,SQRT(V2))) *
+	     (Pnorm(r_max,rd,SQRT(V3))-Pnorm(r_min,rd,SQRT(V3))));
+
+
+/* 	  phydbl sd1,sd2,sd3; */
+
+/* 	  sd1 = SQRT(V1); */
+/* 	  sd2 = SQRT(V2); */
+/* 	  sd3 = SQRT(V3); */
+
+/* 	  ratio = */
+/* 	    (Log_Dnorm(rd,U0,sd1,&err) - Log_Dnorm(U1,U0,sd1,&err)) + */
+/* 	    (Log_Dnorm(U2,rd,sd2,&err) - Log_Dnorm(U2,U1,sd2,&err)) + */
+/* 	    (Log_Dnorm(U3,rd,sd3,&err) - Log_Dnorm(U3,U1,sd3,&err)) + */
+  	    
+/* 	    (LOG(Pnorm(r_max,U1,sd2)-Pnorm(r_min,U1,sd2)) + */
+/* 	     LOG(Pnorm(r_max,U1,sd3)-Pnorm(r_min,U1,sd3))) - */
+/* 	    (LOG(Pnorm(r_max,rd,sd2)-Pnorm(r_min,rd,sd2)) + */
+/* 	     LOG(Pnorm(r_max,rd,sd3)-Pnorm(r_min,rd,sd3))) */
+
+/* 	    + loghr; */
+
+
+
+/* 	  phydbl var, mean; */
+
+/* 	  var  = 1. / ((1./V1) + (1./V2) + (1./V3)); */
+/* 	  mean = var * (U0/V1 + U2/V2 + U3/V3); */
+ 
+/* 	  ratio = */
+/* 	    (Log_Dnorm(rd,mean,SQRT(var),&err) - Log_Dnorm(U1,mean,SQRT(var),&err)) + */
+/*  	    (LOG(Pnorm(r_max,U1,SQRT(V2))-Pnorm(r_min,U1,SQRT(V2))) + */
+/* 	     LOG(Pnorm(r_max,U1,SQRT(V3))-Pnorm(r_min,U1,SQRT(V3)))) - */
+/* 	    (LOG(Pnorm(r_max,rd,SQRT(V2))-Pnorm(r_min,rd,SQRT(V2))) + */
+/* 	     LOG(Pnorm(r_max,rd,SQRT(V3))-Pnorm(r_min,rd,SQRT(V3)))); */
+
+/* 	  ratio = EXP(ratio); */
 	}
       else
 	{
@@ -2011,20 +2037,6 @@ void RATES_Posterior_Rates_Pre(t_node *a, t_node *d, int *acc, int *n_trials, t_
   if(!(tree->mcmc->run%10000)) PhyML_Printf("\r. acc rate = %f",(phydbl)(*acc)/(*n_trials));
   
   RATES_Update_Cur_Bl(tree);
-
-  /* Optional here but useful for monitoring ESS for likelihoods */
-  /*   tree->c_lnL        = Lk(tree); */
-  /*   tree->rates->c_lnL = RATES_Lk_Rates(tree); */
-
-  /*   RATES_Check_Lk_Rates(tree,&err); */
-  
-  /*   if(err) */
-  /*     { */
-  /*       PhyML_Printf("\n. Small lk detected"); */
-  /*       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
-  /*       Exit("\n"); */
-  /*     } */
-
 
   tree->mcmc->run++;
   MCMC_Print_Param(tree->mcmc,tree);  
@@ -2402,6 +2414,8 @@ void RATES_Posterior_Times_Pre(t_node *a, t_node *d, t_tree *tree)
       PhyML_Printf("\n. bl_min = %f bl_max = %f",bl_min,bl_max);
       PhyML_Printf("\n. (t1-t0)=%f (t2-t1)=%f",t1-t0,t2-t1);
       PhyML_Printf("\n. l1 = %f l2 = %f cov11=%f cov22=%f cov33=%f",l1,l2,cov11,cov22,cov33);
+      PhyML_Printf("\n. clock=%G",tree->rates->clock_r);
+      PhyML_Printf("\n. u0=%f u1=%f u2=%f u3=%f",u0,u1,u2,u3);
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
 /*       Exit("\n"); */
     }
@@ -2415,6 +2429,8 @@ void RATES_Posterior_Times_Pre(t_node *a, t_node *d, t_tree *tree)
       PhyML_Printf("\n. bl_min = %f bl_max = %f",bl_min,bl_max);
       PhyML_Printf("\n. (t1-t0)=%f (t2-t1)=%f",t1-t0,t2-t1);
       PhyML_Printf("\n. l1 = %f l2 = %f cov11=%f cov22=%f cov33=%f",l1,l2,cov11,cov22,cov33);
+      PhyML_Printf("\n. clock=%G",tree->rates->clock_r);
+      PhyML_Printf("\n. u0=%f u1=%f u2=%f u3=%f",u0,u1,u2,u3);
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
 /*       Exit("\n"); */
     }
@@ -2436,9 +2452,6 @@ void RATES_Posterior_Times_Pre(t_node *a, t_node *d, t_tree *tree)
 
   RATES_Update_Cur_Bl(tree);
   
-/*   tree->c_lnL        = Lk(tree); */
-/*   tree->rates->c_lnL = RATES_Lk_Rates(tree); */
-
   tree->mcmc->run++;
   MCMC_Print_Param(tree->mcmc,tree);
   if(!(tree->mcmc->run%tree->mcmc->norm_freq)) 
@@ -2507,15 +2520,16 @@ void RATES_Posterior_Time_Root(t_tree *tree)
   t0_min = MAX(t0_min,tree->rates->t_prior_min[root->num]);
   t0_max = MIN(t0_max,tree->rates->t_prior_max[root->num]);
 
+  t0_max -= tree->rates->min_dt;
+
+  if(t0_min > t0_max) return;
 
   tree->rates->t_prior[root->num] = Uni()*(t0_max - t0_min) + t0_min;
-
 
   u0 *= cr;
   u1 *= cr;
   u2 *= cr;
 
-/*   if(FABS(t0_max - t0_min) < 1.E-10) return; */
   if(FABS(tree->rates->t_prior_min[root->num] - tree->rates->t_prior_max[root->num]) < 1.E-10) return;
 
   cel=0.0;
@@ -2523,14 +2537,6 @@ void RATES_Posterior_Time_Root(t_tree *tree)
   cel += tree->rates->u_ml_l[b->num];
 
   cvl = tree->rates->cond_var[b->num];
-
-/*   cel = tree->rates->u_ml_l[b->num]; */
-/*   cvl = tree->rates->cov[b->num*dim+b->num]; */
-
-/*   Et0 = (u1*t1 + u2*t2 - cel)/(u1+u2); */
-/*   Vt0 = cvl/POW(u1+u2,2); */
-
-/*   t0  = Rnorm_Trunc(Et0,SQRT(Vt0),t0_min,t0_max,&err); */
 
   
   bl_min = u1 * (t1 - t0_max) + u2 * (t2 - t0_max); 
@@ -2552,7 +2558,6 @@ void RATES_Posterior_Time_Root(t_tree *tree)
       PhyML_Printf("\n. u0=%f u1=%f u2=%f",u0/cr,u1/cr,u2/cr);
       PhyML_Printf("\n. Nu = %f Clock = %f",tree->rates->nu,tree->rates->clock_r);
       PhyML_Printf("\n. Setting t0 to %f",tree->rates->nd_t[root->num]);
-/*       t0 = tree->rates->nd_t[root->num];       */
       return;
     }
 
@@ -2569,29 +2574,12 @@ void RATES_Posterior_Time_Root(t_tree *tree)
     }
 
   /* Sample according to prior */
-/*   tree->rates->nd_t[root->num] = tree->rates->t_prior[root->num]; */
+  tree->rates->nd_t[root->num] = tree->rates->t_prior[root->num];
 
   /* Sample according to posterior */
-  tree->rates->nd_t[root->num] = t0;
+/*   tree->rates->nd_t[root->num] = t0; */
 
   RATES_Update_Cur_Bl(tree);
-  
-/*   tree->c_lnL        = Lk(tree); */
-/*   tree->rates->c_lnL = RATES_Lk_Rates(tree); */
-
-/*   RATES_Check_Lk_Rates(tree,&err); */
-
-/*   if(err) */
-/*     { */
-/*       PhyML_Printf("\n. Small lk detected"); */
-/*       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
-/*       Exit("\n"); */
-/*     } */
-
-/*   PhyML_Printf("\n. T0=%f T1=%f T2=%f T0_MIN=%f T0_MAX=%f U0=%f U1=%f U2=%f L=%f ML(L)=%f NU=%f", */
-/* 	       t0,t1,t2,t0_min,t0_max,u0/cr,u1/cr,u2/cr, */
-/* 	       tree->e_root->l,tree->rates->u_ml_l[tree->e_root->num],tree->rates->nu); */
-
 
   tree->mcmc->run++;
   MCMC_Print_Param(tree->mcmc,tree);
@@ -3089,9 +3077,7 @@ void RATES_Expected_Tree_Length_Pre(t_node *a, t_node *d, phydbl eranc, phydbl *
 /*     sd*(Dnorm((tree->rates->min_rate-u_anc)/sd,.0,1.) - Dnorm((tree->rates->max_rate-u_anc)/sd,.0,1.))/ */
 /*        (Pnorm((tree->rates->max_rate-u_anc)/sd,.0,1.) - Pnorm((tree->rates->min_rate-u_anc)/sd,.0,1.)); */
 
-/*   erdes = Norm_Trunc_Mean(eranc,sd,tree->rates->min_rate,tree->rates->max_rate); */
-  
-  /* !!!!!!!!!!!!!!!!!!!!!!!!!!! */
+  /* erdes = Norm_Trunc_Mean(eranc,sd,tree->rates->min_rate,tree->rates->max_rate); */
   erdes = 1.0;
 
   loc_mean = *mean;
@@ -3132,6 +3118,19 @@ void RATES_Normalise_Rates(t_tree *tree)
 
   tree->rates->clock_r *= curr/expr;
   /* Branch lengths therefore do not change */
+
+  if(tree->rates->clock_r < tree->rates->min_clock)
+    {
+      PhyML_Printf("\n. Curr mean rates: %G",curr);
+      PhyML_Printf("\n. Set clock rate to: %G",tree->rates->clock_r);
+      tree->rates->clock_r = tree->rates->min_clock;
+    }
+  if(tree->rates->clock_r > tree->rates->max_clock)
+    {
+      PhyML_Printf("\n. Curr mean rates: %G",curr);
+      PhyML_Printf("\n. Set clock rate to: %G",tree->rates->clock_r);
+      tree->rates->clock_r = tree->rates->max_clock;
+    }
 
   RATES_Update_Cur_Bl(tree);
 }
