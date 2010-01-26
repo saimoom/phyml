@@ -177,26 +177,24 @@ phydbl Rnorm(phydbl mean, phydbl sd)
   /* Box-Muller transformation */
   phydbl u1, u2;
 
-
-/*   u1=Uni(); */
-/*   u2=Uni();  */
-
-/*   u1 = SQRT(-2.*LOG(u1))*COS(6.28318530717959f*u2); */
+  u1=Uni();
+  u2=Uni();
+  u1 = SQRT(-2.*LOG(u1))*COS(6.28318530717959f*u2);
 
   /* Polar */
-  phydbl d,x,y;
+/*   phydbl d,x,y; */
 
-  do
-    {
-      u1=Uni();
-      u2=Uni(); 
-      x = 2.*u1-1.;
-      y = 2.*u2-1.;
-      d = x*x + y*y;
-      if(d>.0 && d<1.) break;
-    }
-  while(1);
-  u1 = x*SQRT((-2.*LOG(d))/d);
+/*   do */
+/*     { */
+/*       u1=Uni(); */
+/*       u2=Uni(); */
+/*       x = 2.*u1-1.; */
+/*       y = 2.*u2-1.; */
+/*       d = x*x + y*y; */
+/*       if(d>.0 && d<1.) break; */
+/*     } */
+/*   while(1); */
+/*   u1 = x*SQRT((-2.*LOG(d))/d); */
 
 
   return u1*sd+mean;
@@ -319,6 +317,7 @@ phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max, int *error)
 /*     } */
 /*   else */
 /*     { */
+
       iter = 0;
       do
 	{
@@ -329,13 +328,14 @@ phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max, int *error)
 	  iter++;
 	  if(iter > 1000) break;
 	}
-      while(slice_max < slice_min || iter < 5);
+      while(slice_max < slice_min || iter < 10);
 
       if(iter > 1000)
 	{
 	  PhyML_Printf("\n. Too many iterations in Rnorm_Trunc...");
 	  *error = 1;
 	}
+
 /*     } */
 
   /* Inverson method */
@@ -346,7 +346,7 @@ phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max, int *error)
 /*     } */
 /*   else */
 /*     { */
-/*       Simple inversion method. Seems to work well. Needs more thorough testing though... */
+/* /\*       Simple inversion method. Seems to work well. Needs more thorough testing though... *\/ */
 /*       cdf_min = Pnorm(z_min,0.0,1.0); */
 /*       cdf_max = Pnorm(z_max,0.0,1.0); */
 /*       u = cdf_min + (cdf_max-cdf_min) * Uni(); */
@@ -762,13 +762,13 @@ phydbl Pnorm(phydbl x, phydbl mean, phydbl sd)
   
   x = (x-mean)/sd;
   
-/*   if(x >= 0.0)  */
+/*   if(x >= 0.0) */
 /*     { */
 /*       phydbl t = 1.0 / ( 1.0 + p * x ); */
 /*       return (1.0 - c * EXP( -x * x / 2.0 ) * t * */
 /* 	      ( t *( t * ( t * ( t * b5 + b4 ) + b3 ) + b2 ) + b1 )); */
 /*     } */
-/*   else  */
+/*   else */
 /*     { */
 /*       phydbl t = 1.0 / ( 1.0 - p * x ); */
 /*       return ( c * EXP( -x * x / 2.0 ) * t * */
@@ -780,7 +780,7 @@ phydbl Pnorm(phydbl x, phydbl mean, phydbl sd)
    if(upper) return *ccum := P[X >  x] = 1 - P[X <= x]
 */
 
-/*   return Pnorm_Marsaglia(x);  */
+/*   return Pnorm_Marsaglia(x); */
   return Pnorm_Ihaka_Derived_From_Cody(x);
 }
 

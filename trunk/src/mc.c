@@ -74,7 +74,11 @@ int MC_main(int argc, char **argv)
 /*   r_seed = 1263375598; */
 /*   r_seed = 1263781194; */
 /*   r_seed = 1263894098; */
-  r_seed = 1264014238;
+/*   r_seed = 1264014238; */
+/*   r_seed = 1264121265; */
+/*   r_seed = 1264246773; */
+/*   r_seed = 1264249283; */
+  r_seed = 1264319131;
   /* !!!!!!!!!!!!!!!!!!!!!!!! */
 
   srand(r_seed); rand();
@@ -136,7 +140,7 @@ int MC_main(int argc, char **argv)
 		  int i;
 
 
-		  n_otu = 10;
+		  n_otu = 15;
 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1);
 
 /* 		  tree->rates = RATES_Make_Rate_Struct(tree->n_otu); */
@@ -169,7 +173,6 @@ int MC_main(int argc, char **argv)
 
 		  For(i,2*tree->n_otu-1) tree->rates->true_t[i] = tree->rates->nd_t[i];
 		  For(i,2*tree->n_otu-2) tree->rates->true_r[i] = tree->rates->nd_r[i];
-
 
 /* 		  tree->data->format = 1; */
 /* 		  Print_CSeq(stdout,tree->data); */
@@ -249,7 +252,7 @@ int MC_main(int argc, char **argv)
 		  MCMC_Print_Param(tree->mcmc,tree);
 		  		  
 		  time(&t_beg);
-		  tree->mcmc->n_tot_run = 1E+8;
+		  tree->mcmc->n_tot_run = 1E+7;
 		  phydbl u;
 		  int acc,n_trials;
 		  acc = n_trials = 0;
@@ -257,8 +260,10 @@ int MC_main(int argc, char **argv)
 		    {
 		      tree->rates->c_lnL = RATES_Lk_Rates(tree);
 		      tree->c_lnL        = Lk(tree);
+
 /* 		      MCMC_Nu(tree); */
 /* 		      RATES_Posterior_Clock_Rate(tree); */
+		      
 		      RATES_Posterior_Times(tree);
 		      RATES_Posterior_Rates(&acc,&n_trials,tree);
 		    }
