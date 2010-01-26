@@ -779,14 +779,14 @@ void RATES_Init_Rate_Struct(trate *rates, int n_otu)
 
 
   /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
-  rates->max_rate      = 10.00;
+  rates->max_rate      = 2.00;
   rates->min_rate      = 0.001;
 
   rates->clock_r       = 1.E-3;
   rates->max_clock     = 1.E-0;
   rates->min_clock     = 1.E-8;
 
-  rates->nu            = 1.E-1;
+  rates->nu            = 1.E-2;
   rates->max_nu        = 0.1;
   rates->min_nu        = 1.E-4;
   rates->lbda_nu       = 1.E+3;
@@ -1859,21 +1859,22 @@ void RATES_Posterior_Rates_Pre(t_node *a, t_node *d, int *acc, int *n_trials, t_
   prior_var  = cvr;
   
   /* Posterior */
-/*   post_mean = (prior_mean/prior_var + like_mean/like_var)/(1./prior_var + 1./like_var); */
-/*   post_var  = 1./(1./prior_var + 1./like_var); */
+  post_mean = (prior_mean/prior_var + like_mean/like_var)/(1./prior_var + 1./like_var);
+  post_var  = 1./(1./prior_var + 1./like_var);
 
 
   /* Sample according to priors */
-  if(!d->tax)
-    {
-      post_mean = (1./((1./V1)+(1./V2)+(1./V3)))*(U0/V1 + U2/V2 + U3/V3);
-      post_var  = 1./((1./V1)+(1./V2)+(1./V3));
-    }
-  else
-    {
-      post_mean = U0;
-      post_var  = V1;
-    }
+/*   if(!d->tax) */
+/*     { */
+/*       post_mean = (1./((1./V1)+(1./V2)+(1./V3)))*(U0/V1 + U2/V2 + U3/V3); */
+/*       post_var  = 1./((1./V1)+(1./V2)+(1./V3)); */
+/*     } */
+/*   else */
+/*     { */
+/*       post_mean = U0; */
+/*       post_var  = V1; */
+/*     } */
+
 
   post_sd = SQRT(post_var);
 
@@ -2034,7 +2035,7 @@ void RATES_Posterior_Rates_Pre(t_node *a, t_node *d, int *acc, int *n_trials, t_
 
   (*n_trials)++;
 
-  if(!(tree->mcmc->run%10000)) PhyML_Printf("\r. acc rate = %f",(phydbl)(*acc)/(*n_trials));
+/*   if(!(tree->mcmc->run%10000)) PhyML_Printf("\r. acc rate = %f",(phydbl)(*acc)/(*n_trials)); */
   
   RATES_Update_Cur_Bl(tree);
 
@@ -2445,10 +2446,10 @@ void RATES_Posterior_Times_Pre(t_node *a, t_node *d, t_tree *tree)
     }
   
   /* Sample according to prior */
-  tree->rates->nd_t[d->num] = tree->rates->t_prior[d->num];
+/*   tree->rates->nd_t[d->num] = tree->rates->t_prior[d->num]; */
 
   /* Sample according to posterior */
-/*   tree->rates->nd_t[d->num] = t1_new; */
+  tree->rates->nd_t[d->num] = t1_new;
 
   RATES_Update_Cur_Bl(tree);
   
@@ -2574,10 +2575,10 @@ void RATES_Posterior_Time_Root(t_tree *tree)
     }
 
   /* Sample according to prior */
-  tree->rates->nd_t[root->num] = tree->rates->t_prior[root->num];
+/*   tree->rates->nd_t[root->num] = tree->rates->t_prior[root->num]; */
 
   /* Sample according to posterior */
-/*   tree->rates->nd_t[root->num] = t0; */
+  tree->rates->nd_t[root->num] = t0;
 
   RATES_Update_Cur_Bl(tree);
 

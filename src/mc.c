@@ -78,7 +78,7 @@ int MC_main(int argc, char **argv)
 /*   r_seed = 1264121265; */
 /*   r_seed = 1264246773; */
 /*   r_seed = 1264249283; */
-  r_seed = 1264319131;
+/*   r_seed = 1264319131; */
   /* !!!!!!!!!!!!!!!!!!!!!!!! */
 
   srand(r_seed); rand();
@@ -89,7 +89,7 @@ int MC_main(int argc, char **argv)
   if(io->in_tree == 2) Test_Multiple_Data_Set_Format(io);
   else io->n_trees = 1;
 
-  io->colalias = 0;  /* Do not compress sites if you're using Evolve function */
+  io->colalias = 1;  /* Do not compress sites if you're using Evolve function */
 
   mat = NULL;
   tree_line_number = 0;
@@ -140,11 +140,11 @@ int MC_main(int argc, char **argv)
 		  int i;
 
 
-		  n_otu = 15;
-		  tree = Generate_Random_Tree_From_Scratch(n_otu,1);
+/* 		  n_otu = 15; */
+/* 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1); */
 
-/* 		  tree->rates = RATES_Make_Rate_Struct(tree->n_otu); */
-/* 		  RATES_Init_Rate_Struct(tree->rates,tree->n_otu); */
+		  tree->rates = RATES_Make_Rate_Struct(tree->n_otu);
+		  RATES_Init_Rate_Struct(tree->rates,tree->n_otu);
 
 		  Update_Ancestors(tree->n_root,tree->n_root->v[0],tree);
 		  Update_Ancestors(tree->n_root,tree->n_root->v[1],tree);
@@ -158,14 +158,14 @@ int MC_main(int argc, char **argv)
 		  tree->both_sides  = 1;
 		  tree->n_pattern   = tree->data->crunch_len/tree->mod->state_len;
 
- 		  For(i,tree->n_otu) strcpy(tree->noeud[i]->name,cdata->c_seq[i]->name);
+/*  		  For(i,tree->n_otu) strcpy(tree->noeud[i]->name,cdata->c_seq[i]->name); */
 
 		  Fill_Dir_Table(tree);
 		  Update_Dirs(tree);
 		  Make_Tree_4_Pars(tree,cdata,cdata->init_len);
 		  Make_Tree_4_Lk(tree,cdata,cdata->init_len);
 
-		  Evolve(tree->data,tree->mod,tree); /* do not forget to make sure sequences are not compressed! */
+/* 		  Evolve(tree->data,tree->mod,tree); /\* do not forget to make sure sequences are not compressed! *\/ */
 		  Init_Ui_Tips(tree);
 		  Init_P_Pars_Tips(tree);
 		  if(tree->mod->s_opt->greedy) Init_P_Lk_Tips_Double(tree);
@@ -252,7 +252,7 @@ int MC_main(int argc, char **argv)
 		  MCMC_Print_Param(tree->mcmc,tree);
 		  		  
 		  time(&t_beg);
-		  tree->mcmc->n_tot_run = 1E+7;
+		  tree->mcmc->n_tot_run = 1E+8;
 		  phydbl u;
 		  int acc,n_trials;
 		  acc = n_trials = 0;
@@ -261,8 +261,8 @@ int MC_main(int argc, char **argv)
 		      tree->rates->c_lnL = RATES_Lk_Rates(tree);
 		      tree->c_lnL        = Lk(tree);
 
-/* 		      MCMC_Nu(tree); */
-/* 		      RATES_Posterior_Clock_Rate(tree); */
+		      MCMC_Nu(tree);
+		      RATES_Posterior_Clock_Rate(tree);
 		      
 		      RATES_Posterior_Times(tree);
 		      RATES_Posterior_Rates(&acc,&n_trials,tree);

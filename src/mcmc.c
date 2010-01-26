@@ -22,10 +22,10 @@ void MCMC(t_tree *tree)
 
   if(tree->mcmc->randomize)
     {
-/*       MCMC_Randomize_Nu(tree); */
-/*       MCMC_Randomize_Node_Times(tree); */
-/*       MCMC_Randomize_Rates(tree); */
-/*       MCMC_Randomize_Clock_Rate(tree); /\* Clock Rate must be the last parameter to be randomized *\/ */
+      MCMC_Randomize_Nu(tree);
+      MCMC_Randomize_Node_Times(tree);
+      MCMC_Randomize_Rates(tree);
+      MCMC_Randomize_Clock_Rate(tree); /* Clock Rate must be the last parameter to be randomized */
     }
 
   RATES_Update_Cur_Bl(tree);
@@ -35,8 +35,8 @@ void MCMC(t_tree *tree)
       tree->rates->c_lnL = RATES_Lk_Rates(tree);      
       tree->c_lnL        = Lk(tree);
 
-/*       MCMC_Nu(tree); */
-/*       MCMC_Clock_Rate(tree); */
+      MCMC_Nu(tree);
+      MCMC_Clock_Rate(tree);
       MCMC_Times_Local(tree);
       MCMC_Rates_Local(tree);
     }
@@ -70,8 +70,8 @@ void MCMC_Nu(t_tree *tree)
   max_nu = tree->rates->max_nu;
 
   u = Uni();
-  new_nu = u*(max_nu - min_nu) + min_nu;
-/*   new_nu = cur_nu * EXP(tree->mcmc->h_nu*(u-0.5)); */
+/*   new_nu = u*(max_nu - min_nu) + min_nu; */
+  new_nu = cur_nu * EXP(tree->mcmc->h_nu*(u-0.5));
 
   if(new_nu > max_nu || new_nu < min_nu) return;
 
@@ -80,9 +80,9 @@ void MCMC_Nu(t_tree *tree)
   new_lnL_rate = RATES_Lk_Rates(tree);
 
   ratio =
-    0.0;
-/*     (new_lnL_rate - cur_lnL_rate) ; */
-/*     (LOG(new_nu)  - LOG(cur_nu)); */
+/*     0.0; */
+    (new_lnL_rate - cur_lnL_rate) +
+    (LOG(new_nu/cur_nu));
 
 
   ratio = EXP(ratio);
@@ -125,8 +125,8 @@ void MCMC_Clock_Rate(t_tree *tree)
 
 
   u = Uni();
-/*   new_cr = cur_cr * EXP(tree->mcmc->h_clock*(u-0.5)); */
-  new_cr = tree->rates->min_clock + u*(tree->rates->max_clock - tree->rates->min_clock);
+  new_cr = cur_cr * EXP(tree->mcmc->h_clock*(u-0.5));
+/*   new_cr = tree->rates->min_clock + u*(tree->rates->max_clock - tree->rates->min_clock); */
 
   if(new_cr > tree->rates->max_clock || new_cr < tree->rates->min_clock) return;
 
@@ -136,9 +136,9 @@ void MCMC_Clock_Rate(t_tree *tree)
   new_lnL = Lk(tree);
 
   ratio =
-    0.0;
-/*     (new_lnL - cur_lnL) + */
-/*     (LOG(new_cr) - LOG(cur_cr)); */
+/*     0.0; */
+    (new_lnL - cur_lnL) +
+    (LOG(new_cr/cur_cr));
 
 
   ratio = EXP(ratio);
@@ -179,9 +179,6 @@ void MCMC_Times_Local(t_tree *tree)
 	MCMC_Times_Pre(tree->noeud[node_num]->anc,tree->noeud[node_num],local,tree);
       else
       	MCMC_Time_Root(tree);
-
-/*       /\* !!!!!!!!!!!!!!!!!! *\/ */
-/*       RATES_Lk_Rates(tree); /\* Rates likelihood needs to be updated here *\/ */
     }
 
   RATES_Lk_Rates(tree); /* Rates likelihood needs to be updated here */
@@ -201,10 +198,6 @@ void MCMC_Rates_Local(t_tree *tree)
     {
       node_num = Rand_Int(0,2*tree->n_otu-3);
       MCMC_One_Rate(tree->noeud[node_num]->anc,tree->noeud[node_num],tree);
-
-
-/*       /\* !!!!!!!!!!!!!!!!!! *\/ */
-/*       RATES_Lk_Rates(tree); /\* Rates likelihood needs to be updated here *\/ */
     }
 }
 
@@ -247,8 +240,8 @@ void MCMC_One_Rate(t_node *a, t_node *d, t_tree *tree)
   
   u = Uni();
 
-/*   new_mu = cur_mu * EXP(tree->mcmc->h_rates*(u-0.5)); */
-  new_mu = cur_mu * (u * (tree->mcmc->h_rates - 1./tree->mcmc->h_rates) + 1./tree->mcmc->h_rates);
+  new_mu = cur_mu * EXP(tree->mcmc->h_rates*(u-0.5));
+/*   new_mu = cur_mu * (u * (tree->mcmc->h_rates - 1./tree->mcmc->h_rates) + 1./tree->mcmc->h_rates); */
   if(new_mu < r_min || new_mu > r_max) return;
 
 /*   new_mu = Uni() * (r_max - r_min) + r_min; */
@@ -326,11 +319,10 @@ void MCMC_One_Rate(t_node *a, t_node *d, t_tree *tree)
 
 
   ratio =
-    /*     (new_lnL_rate - tmp); */
-    /*     (new_lnL_data - cur_lnL_data) + */
+    (new_lnL_data - cur_lnL_data) +
     (new_lnL_rate - cur_lnL_rate) +
-/*     (LOG(new_mu/cur_mu)); */
-    (LOG(cur_mu/new_mu));
+    (LOG(new_mu/cur_mu));
+/*     (LOG(cur_mu/new_mu)); */
 
 
   ratio = EXP(ratio);
@@ -441,8 +433,8 @@ void MCMC_Times_Pre(t_node *a, t_node *d, int local, t_tree *tree)
       new_lnL_data = Lk(tree);
 
       ratio =
-	0.0;
-/* 	(new_lnL_data - cur_lnL_data) ; */
+/* 	0.0; */
+	(new_lnL_data - cur_lnL_data) ;
 /* 	(LOG(FABS(t1_new)) - LOG(FABS(t1_cur))); */
 
 
@@ -579,9 +571,9 @@ void MCMC_Time_Root(t_tree *tree)
   new_lnL_data = Lk(tree);
 
   ratio = 
-    0.0;
-/*     (new_lnL_data - cur_lnL_data); */
-/*     (LOG(FABS(new_t)) - LOG(FABS(cur_t))); */
+/*     0.0; */
+    (new_lnL_data - cur_lnL_data);
+  /*     (LOG(FABS(new_t)) - LOG(FABS(cur_t))); */
 
   ratio = EXP(ratio);
   alpha = MIN(1.,ratio);
@@ -1068,8 +1060,9 @@ void MCMC_Init_MCMC_Struct(char *filename, tmcmc *mcmc, t_tree *tree)
 /*   mcmc->norm_freq       = 1E+9; */
 
   mcmc->h_times         = 0.3;
-  mcmc->h_rates         = 4.;
-  mcmc->h_nu            = 0.1;
+/*   mcmc->h_rates         = 1.2; */
+  mcmc->h_rates         = 0.8;
+  mcmc->h_nu            = 2.0;
   mcmc->h_clock         = 0.1;
 
   if(filename)
