@@ -738,6 +738,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
   init_both_sides  = tree->both_sides;
   tree->both_sides = 0;
 
+
   if((tree->mod->whichmodel == GTR) ||
      ((tree->mod->whichmodel == CUSTOM) && 
       (tree->mod->s_opt->opt_rr) && 
