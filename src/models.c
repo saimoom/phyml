@@ -2255,7 +2255,7 @@ void Init_Model(calign *data, model *mod, option *io)
 	{
 	  mod->kappa = 1.;
 	  mod->update_eigen          = YES;
-	  io->mod->s_opt->opt_rr     = YES;
+	  /* 	  io->mod->s_opt->opt_rr     = YES; */ /* What if the user decided not to optimise the rates? */
 	}
       
        

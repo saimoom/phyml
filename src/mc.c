@@ -235,47 +235,47 @@ int MC_main(int argc, char **argv)
 
 		  tree->rates->bl_from_rt = 1;
 
-		  PhyML_Printf("\n. Burnin...\n");
-		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
-		  MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree);
-		  tree->rates->lk_approx = NORMAL;
-		  tree->mcmc->n_tot_run  = 1E+4;
-		  MCMC(tree);
-		  MCMC_Close_MCMC(tree->mcmc);
-		  MCMC_Free_MCMC(tree->mcmc);
+/* 		  PhyML_Printf("\n. Burnin...\n"); */
+/* 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree); */
+/* 		  MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree); */
+/* 		  tree->rates->lk_approx = NORMAL; */
+/* 		  tree->mcmc->n_tot_run  = 1E+4; */
+/* 		  MCMC(tree); */
+/* 		  MCMC_Close_MCMC(tree->mcmc); */
+/* 		  MCMC_Free_MCMC(tree->mcmc); */
 
-		  PhyML_Printf("\n. Gibbs sampling...\n");
-		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
-		  MCMC_Init_MCMC_Struct("gibbs",tree->mcmc,tree);
-		  tree->rates->lk_approx = NORMAL;
-		  RATES_Lk_Rates(tree);
-		  MCMC_Print_Param(tree->mcmc,tree);
+/* 		  PhyML_Printf("\n. Gibbs sampling...\n"); */
+/* 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree); */
+/* 		  MCMC_Init_MCMC_Struct("gibbs",tree->mcmc,tree); */
+/* 		  tree->rates->lk_approx = NORMAL; */
+/* 		  RATES_Lk_Rates(tree); */
+/* 		  MCMC_Print_Param(tree->mcmc,tree); */
 		  		  
-		  time(&t_beg);
-		  tree->mcmc->n_tot_run = 1E+8;
-		  phydbl u;
-		  int acc,n_trials;
-		  acc = n_trials = 0;
-		  do
-		    {
-		      tree->rates->c_lnL = RATES_Lk_Rates(tree);
-		      tree->c_lnL        = Lk(tree);
+/* 		  time(&t_beg); */
+/* 		  tree->mcmc->n_tot_run = 1E+8; */
+/* 		  phydbl u; */
+/* 		  int acc,n_trials; */
+/* 		  acc = n_trials = 0; */
+/* 		  do */
+/* 		    { */
+/* 		      tree->rates->c_lnL = RATES_Lk_Rates(tree); */
+/* 		      tree->c_lnL        = Lk(tree); */
 
-		      MCMC_Nu(tree);
-		      RATES_Posterior_Clock_Rate(tree);
+/* 		      MCMC_Nu(tree); */
+/* 		      RATES_Posterior_Clock_Rate(tree); */
 		      
-		      RATES_Posterior_Times(tree);
-		      RATES_Posterior_Rates(&acc,&n_trials,tree);
-		    }
-		  while(tree->mcmc->run < tree->mcmc->n_tot_run);
-		  time(&t_end);
-		  Print_Time_Info(t_beg,t_end);
-		  MCMC_Close_MCMC(tree->mcmc);
-		  MCMC_Free_MCMC(tree->mcmc);
+/* 		      RATES_Posterior_Times(tree); */
+/* 		      RATES_Posterior_Rates(&acc,&n_trials,tree); */
+/* 		    } */
+/* 		  while(tree->mcmc->run < tree->mcmc->n_tot_run); */
+/* 		  time(&t_end); */
+/* 		  Print_Time_Info(t_beg,t_end); */
+/* 		  MCMC_Close_MCMC(tree->mcmc); */
+/* 		  MCMC_Free_MCMC(tree->mcmc); */
 
-		  PhyML_Printf("\n. End of Gibbs sampling...\n");
-		  system("sleep 1s");
-/* 		  END OF IMPORTANCE SAMPLING STUFF */
+/* 		  PhyML_Printf("\n. End of Gibbs sampling...\n"); */
+/* 		  system("sleep 1s"); */
+/* /\* 		  END OF IMPORTANCE SAMPLING STUFF *\/ */
 
 
 		  /************************************/
@@ -301,7 +301,7 @@ int MC_main(int argc, char **argv)
 		  MCMC_Init_MCMC_Struct("thorne.normal",tree->mcmc,tree);
 		  tree->rates->lk_approx = NORMAL;
 		  
-		  tree->mcmc->n_tot_run = 1E+8;
+		  tree->mcmc->n_tot_run = 1E+6;
 		  tree->mcmc->randomize = 0;
 		  time(&t_beg);
 		  PhyML_Printf("\n. Thorne (approx)...\n");
@@ -316,35 +316,35 @@ int MC_main(int argc, char **argv)
 
 
 		  /* THORNE EXACT */
-/* 		  tree->both_sides        = 1; */
-/* 		  tree->rates->model      = THORNE; */
-/* 		  tree->rates->bl_from_rt = 1; */
+		  tree->both_sides        = 1;
+		  tree->rates->model      = THORNE;
+		  tree->rates->bl_from_rt = 1;
 
-/* 		  PhyML_Printf("\n. Burnin...\n"); */
-/* 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree); */
-/* 		  MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree); */
-/* 		  tree->rates->lk_approx = NORMAL; */
-/* 		  tree->mcmc->n_tot_run  = 1E+5; */
-/* 		  MCMC(tree); */
-/* 		  MCMC_Close_MCMC(tree->mcmc); */
-/* 		  MCMC_Free_MCMC(tree->mcmc); */
+		  PhyML_Printf("\n. Burnin...\n");
+		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
+		  MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree);
+		  tree->rates->lk_approx = NORMAL;
+		  tree->mcmc->n_tot_run  = 1E+4;
+		  MCMC(tree);
+		  MCMC_Close_MCMC(tree->mcmc);
+		  MCMC_Free_MCMC(tree->mcmc);
 
-/* 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree); */
-/* 		  MCMC_Init_MCMC_Struct("thorne.exact",tree->mcmc,tree); */
-/* 		  tree->rates->lk_approx = EXACT; */
+		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
+		  MCMC_Init_MCMC_Struct("thorne.exact",tree->mcmc,tree);
+		  tree->rates->lk_approx = EXACT;
 		  
-/* 		  tree->mcmc->n_tot_run = 1E+6; */
-/* 		  tree->mcmc->randomize = 0; */
-/* 		  time(&t_beg); */
-/* 		  PhyML_Printf("\n. Thorne (exact)...\n"); */
-/* 		  MCMC(tree); */
-/* 		  PhyML_Printf("\n. End of Thorne (exact)...\n"); */
-/* 		  system("sleep 3s"); */
-/* 		  time(&t_end); */
-/* 		  Print_Time_Info(t_beg,t_end); */
-/* 		  MCMC_Close_MCMC(tree->mcmc); */
-/* 		  MCMC_Free_MCMC(tree->mcmc); */
-/* 		  Exit("\n"); */
+		  tree->mcmc->n_tot_run = 1E+6;
+		  tree->mcmc->randomize = 0;
+		  time(&t_beg);
+		  PhyML_Printf("\n. Thorne (exact)...\n");
+		  MCMC(tree);
+		  PhyML_Printf("\n. End of Thorne (exact)...\n");
+		  system("sleep 3s");
+		  time(&t_end);
+		  Print_Time_Info(t_beg,t_end);
+		  MCMC_Close_MCMC(tree->mcmc);
+		  MCMC_Free_MCMC(tree->mcmc);
+		  Exit("\n");
 
 /* 		  /\* END OF COMPOUND POISSON STUFF *\/ */
 		  /************************************/

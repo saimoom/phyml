@@ -72,6 +72,7 @@ int main(int argc, char **argv)
   srand(r_seed);
   io->r_seed = r_seed;
 
+
   if(io->in_tree == 2) Test_Multiple_Data_Set_Format(io);
   else io->n_trees = 1;
 
@@ -95,6 +96,7 @@ int main(int argc, char **argv)
       Print_Settings(io);
       mod = io->mod;
         
+      
       if(io->data)
 	{
 	  if(io->n_data_sets > 1) PhyML_Printf("\n. Data set [#%d]\n",num_data_set+1);
@@ -130,7 +132,7 @@ int main(int argc, char **argv)
 
 		  time(&t_beg);
 		  time(&(tree->t_beg));
-
+      
 
 		  tree->mod         = mod;
 		  tree->io          = io;
@@ -146,6 +148,7 @@ int main(int argc, char **argv)
 
 		  if(io->in_tree == 1) Spr_Pars(tree);
 		  
+		  printf("\n. %s",Write_Tree(tree));
 
 		  if(tree->mod->s_opt->opt_topo)
 		    {

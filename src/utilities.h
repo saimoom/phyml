@@ -230,7 +230,7 @@ typedef	double phydbl;
 #define BL_MIN 1.E-8
 #define BL_MAX 100.
 #else
-#define BL_MIN 1.E-6
+#define BL_MIN 1.E-5
 #define BL_MAX 5.
 #endif
 #define  P_LK_LIM_INF   3.054936e-151 /* 2^-500 */
