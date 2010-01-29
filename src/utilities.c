@@ -10995,7 +10995,7 @@ void Read_Clade_Priors(char *file_name, t_tree *tree)
 	}
     }
   while(1);
-      
+
   For(i,tree->n_otu) Free(clade_list[i]);
   Free(clade_list);
   Free(line);
