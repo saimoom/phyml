@@ -377,6 +377,7 @@ void MCMC_Times_Pre(t_node *a, t_node *d, int local, t_tree *tree)
   phydbl t0,t1,t2,t3;
   t_node *v2,*v3, *buff_n;
   phydbl u0,u1,u2,u3;
+  phydbl K;
 
 
   if(d->tax) return; /* Won't change time at tip */
@@ -386,6 +387,7 @@ void MCMC_Times_Pre(t_node *a, t_node *d, int local, t_tree *tree)
   RATES_Record_Times(tree);
   RATES_Record_Rates(tree);
 
+  K             = tree->mcmc->h_times;
   cur_lnL_data  = tree->c_lnL;
   t1_cur        = tree->rates->nd_t[d->num];
   cur_lnL_times = RATES_Yule(tree);
@@ -432,9 +434,13 @@ void MCMC_Times_Pre(t_node *a, t_node *d, int local, t_tree *tree)
   
   u = Uni();
 
-  t1_new = u*(t_max-t_min)+t_min;
-/*   t1_new = t1_cur * EXP(tree->mcmc->h_times*(u-0.5)); */
-  
+/*   t1_new = u*(t_max-t_min)+t_min; */
+  t1_new = t1_cur * EXP(K*(u-0.5));
+/*   t1_new = (t1_cur/K)*(2*u+K-1.); */
+
+  if(t1_new < t_min || t1_new > t_max) return;
+
+
   if(local)
     {
       tree->rates->nd_t[d->num] = t1_new;
@@ -444,8 +450,8 @@ void MCMC_Times_Pre(t_node *a, t_node *d, int local, t_tree *tree)
 
       ratio =
 /* 	0.0; */
-	(new_lnL_data - cur_lnL_data) ;
-/* 	(LOG(FABS(t1_new)) - LOG(FABS(t1_cur))); */
+	(new_lnL_data - cur_lnL_data) +
+	(LOG(FABS(t1_new)) - LOG(fabs(t1_cur)));
 
 
       ratio = EXP(ratio);
@@ -518,6 +524,8 @@ void MCMC_Time_Root(t_tree *tree)
   t_node *v2,*v3, *buff_n;
   phydbl u0,u2,u3;
   t_node *root;
+  phydbl K;
+
 
   RATES_Record_Times(tree);
   
@@ -530,6 +538,7 @@ void MCMC_Time_Root(t_tree *tree)
   cur_lnL_times = RATES_Yule(tree);
   new_lnL_data  = cur_lnL_data;
   new_lnL_times = cur_lnL_times;
+  K             = tree->mcmc->h_times;
   
   v2 = root->v[0];
   v3 = root->v[1];
@@ -569,8 +578,8 @@ void MCMC_Time_Root(t_tree *tree)
   u3 *= tree->rates->clock_r;
 
   u = Uni();
-  new_t = u*(t_max-t_min)+t_min;
-/*   new_t = cur_t * EXP(tree->mcmc->h_times*(u-0.5)); */
+/*   new_t = u*(t_max-t_min)+t_min; */
+  new_t = cur_t * EXP(K*(u-0.5));
 
   if(new_t < t_min || new_t > t_max) return;
 
@@ -582,8 +591,8 @@ void MCMC_Time_Root(t_tree *tree)
 
   ratio = 
 /*     0.0; */
-    (new_lnL_data - cur_lnL_data);
-  /*     (LOG(FABS(new_t)) - LOG(FABS(cur_t))); */
+    (new_lnL_data - cur_lnL_data) +
+    (LOG(FABS(new_t)) - LOG(FABS(cur_t)));
 
   ratio = EXP(ratio);
   alpha = MIN(1.,ratio);
@@ -1070,7 +1079,7 @@ void MCMC_Init_MCMC_Struct(char *filename, tmcmc *mcmc, t_tree *tree)
 /*   mcmc->norm_freq       = 1E+9; */
 
   mcmc->h_times         = 0.3;
-  mcmc->h_rates         = 0.8;
+  mcmc->h_rates         = 0.3;
   mcmc->h_nu            = 10.0;
   mcmc->h_clock         = 0.1;
 
