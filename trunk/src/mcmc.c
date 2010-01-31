@@ -1071,7 +1071,7 @@ void MCMC_Init_MCMC_Struct(char *filename, tmcmc *mcmc, t_tree *tree)
 
   mcmc->h_times         = 0.3;
   mcmc->h_rates         = 0.8;
-  mcmc->h_nu            = 2.0;
+  mcmc->h_nu            = 10.0;
   mcmc->h_clock         = 0.1;
 
   if(filename)
