@@ -5938,6 +5938,7 @@ void Bootstrap(t_tree *tree)
 
       Br_Len_Involving_Invar(boot_tree);
 
+
       if(tree->io->print_boot_trees)
 	{
 	  s = Write_Tree(boot_tree);
