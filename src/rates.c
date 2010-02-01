@@ -1824,7 +1824,6 @@ void RATES_Posterior_Rates_Pre(t_node *a, t_node *d, int *acc, int *n_trials, t_
 	(tree->rates->cur_l[a->v[0]->num]);
     }
 
-
   if(a == tree->n_root) cel -= l_opp;
 
   if(isnan(cvl) || isnan(cel)) 

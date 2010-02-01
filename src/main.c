@@ -148,8 +148,6 @@ int main(int argc, char **argv)
 
 		  if(io->in_tree == 1) Spr_Pars(tree);
 		  
-		  printf("\n. %s",Write_Tree(tree));
-
 		  if(tree->mod->s_opt->opt_topo)
 		    {
 		      if(tree->mod->s_opt->topo_search      == NNI_MOVE) Simu_Loop(tree);

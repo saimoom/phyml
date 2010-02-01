@@ -349,7 +349,6 @@ void Free_Model_Basic(model *mod)
   Free(mod->modelname);
   Free(mod->custom_mod_string);
   Free(mod->user_b_freq);
-  Free(mod);
 }
 
 /*********************************************************/
@@ -376,6 +375,7 @@ void Free_Model(model *mod)
   #ifdef M4
   M4_Free_M4_Model(mod->m4mod);
   #endif 
+
   Free(mod);
 }
 
