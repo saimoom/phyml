@@ -1,3 +1,3 @@
   * _03 Feb 2010._ Bug found in *bootstrap calculation*. The comparison of bipartition of equal size could fail when the first character of taxon names were identical. I expect the impact of this bug to be minor.
 
-  *_03 Feb 2010._ The calculation of *unconstrained likelihood* values ignore gap and indels. It is not a bug but a more sophisticated treatment of those characters would be more appropriate.
+  * _03 Feb 2010._ The calculation of *unconstrained likelihood* values ignore gap and indels. It is not a bug but a more sophisticated treatment of those characters would be more appropriate.
