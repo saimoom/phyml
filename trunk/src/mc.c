@@ -284,35 +284,35 @@ int MC_main(int argc, char **argv)
 		  /************************************/
 		  /************************************/
 
-/* 		  /\* THORNE NORMAL *\/ */
-/* 		  tree->both_sides        = 1; */
-/* 		  tree->rates->model      = THORNE; */
-/* 		  tree->rates->bl_from_rt = 1; */
+		  /* THORNE NORMAL */
+		  tree->both_sides        = 1;
+		  tree->rates->model      = THORNE;
+		  tree->rates->bl_from_rt = 1;
 
-/* 		  PhyML_Printf("\n. Burnin...\n"); */
-/* 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree); */
-/* 		  MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree); */
-/* 		  tree->rates->lk_approx = NORMAL; */
-/* 		  tree->mcmc->n_tot_run  = 1E+4; */
-/* 		  MCMC(tree); */
-/* 		  MCMC_Close_MCMC(tree->mcmc); */
-/* 		  MCMC_Free_MCMC(tree->mcmc); */
+		  PhyML_Printf("\n. Burnin...\n");
+		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
+		  MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree);
+		  tree->rates->lk_approx = NORMAL;
+		  tree->mcmc->n_tot_run  = 1E+4;
+		  MCMC(tree);
+		  MCMC_Close_MCMC(tree->mcmc);
+		  MCMC_Free_MCMC(tree->mcmc);
 
-/* 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree); */
-/* 		  MCMC_Init_MCMC_Struct("thorne.normal",tree->mcmc,tree); */
-/* 		  tree->rates->lk_approx = NORMAL; */
+		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
+		  MCMC_Init_MCMC_Struct("thorne.normal",tree->mcmc,tree);
+		  tree->rates->lk_approx = NORMAL;
 		  
-/* 		  tree->mcmc->n_tot_run = 1E+8; */
-/* 		  tree->mcmc->randomize = 0; */
-/* 		  time(&t_beg); */
-/* 		  PhyML_Printf("\n. Thorne (approx)...\n"); */
-/* 		  MCMC(tree); */
-/* 		  PhyML_Printf("\n. End of Thorne (approx)...\n"); */
-/* 		  system("sleep 3s"); */
-/* 		  time(&t_end); */
-/* 		  Print_Time_Info(t_beg,t_end); */
-/* 		  MCMC_Close_MCMC(tree->mcmc); */
-/* 		  MCMC_Free_MCMC(tree->mcmc); */
+		  tree->mcmc->n_tot_run = 1E+8;
+		  tree->mcmc->randomize = 0;
+		  time(&t_beg);
+		  PhyML_Printf("\n. Thorne (approx)...\n");
+		  MCMC(tree);
+		  PhyML_Printf("\n. End of Thorne (approx)...\n");
+		  system("sleep 3s");
+		  time(&t_end);
+		  Print_Time_Info(t_beg,t_end);
+		  MCMC_Close_MCMC(tree->mcmc);
+		  MCMC_Free_MCMC(tree->mcmc);
 
 
 
