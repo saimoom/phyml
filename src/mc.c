@@ -293,7 +293,7 @@ int MC_main(int argc, char **argv)
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
 		  MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree);
 		  tree->rates->lk_approx = NORMAL;
-		  tree->mcmc->n_tot_run  = 1E+4;
+		  tree->mcmc->n_tot_run  = 1E+6;
 		  MCMC(tree);
 		  MCMC_Close_MCMC(tree->mcmc);
 		  MCMC_Free_MCMC(tree->mcmc);
@@ -303,7 +303,7 @@ int MC_main(int argc, char **argv)
 		  tree->rates->lk_approx = NORMAL;
 		  
 		  tree->mcmc->n_tot_run = 5E+5;
-		  tree->mcmc->randomize = 0;
+		  tree->mcmc->randomize = NO;
 		  time(&t_beg);
 		  PhyML_Printf("\n. Thorne (approx)...\n");
 		  MCMC(tree);
@@ -325,7 +325,7 @@ int MC_main(int argc, char **argv)
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
 		  MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree);
 		  tree->rates->lk_approx = NORMAL;
-		  tree->mcmc->n_tot_run  = 1E+4;
+		  tree->mcmc->n_tot_run  = 1E+6;
 		  MCMC(tree);
 		  MCMC_Close_MCMC(tree->mcmc);
 		  MCMC_Free_MCMC(tree->mcmc);
