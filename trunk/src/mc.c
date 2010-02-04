@@ -302,7 +302,7 @@ int MC_main(int argc, char **argv)
 		  MCMC_Init_MCMC_Struct("thorne.approx",tree->mcmc,tree);
 		  tree->rates->lk_approx = NORMAL;
 		  
-		  tree->mcmc->n_tot_run = 1E+6;
+		  tree->mcmc->n_tot_run = 5E+5;
 		  tree->mcmc->randomize = 0;
 		  time(&t_beg);
 		  PhyML_Printf("\n. Thorne (approx)...\n");
@@ -334,7 +334,7 @@ int MC_main(int argc, char **argv)
 		  MCMC_Init_MCMC_Struct("thorne.exact",tree->mcmc,tree);
 		  tree->rates->lk_approx = EXACT;
 		  
-		  tree->mcmc->n_tot_run = 1E+6;
+		  tree->mcmc->n_tot_run = 5E+5;
 		  tree->mcmc->randomize = 0;
 		  time(&t_beg);
 		  PhyML_Printf("\n. Thorne (exact)...\n");
