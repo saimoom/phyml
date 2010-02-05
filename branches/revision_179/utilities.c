@@ -5341,8 +5341,9 @@ void Compare_Bip(arbre *tree1, arbre *tree2)
   edge *b1,*b2;
   char **bip1,**bip2;
   int bip_size1, bip_size2, bip_size;
+  int cmp;
 
-
+  bip1 = bip2 = NULL;
 
   For(i,2*tree1->n_otu-3)
     {
@@ -5364,13 +5365,19 @@ void Compare_Bip(arbre *tree1, arbre *tree2)
 
 		      if(b1->left->bip_size[b1->l_r] == b1->rght->bip_size[b1->r_l])
 			{
-			  if(b1->left->bip_name[b1->l_r][0][0] < b1->rght->bip_name[b1->r_l][0][0])
+			  For(k,b1->left->bip_size[b1->l_r])
 			    {
-			      bip1 = b1->left->bip_name[b1->l_r];
-			    }
-			  else
-			    {
-			      bip1 = b1->rght->bip_name[b1->r_l];
+ 			      cmp = strcmp(b1->left->bip_name[b1->l_r][k],b1->rght->bip_name[b1->r_l][k]);
+ 			      if(cmp < 0)
+ 				{
+ 				  bip1 = b1->left->bip_name[b1->l_r];
+ 				  break;
+ 				}
+ 			      else if(cmp > 0)
+ 				{
+ 				  bip1 = b1->rght->bip_name[b1->r_l];
+ 				  break;
+ 				}
 			    }
 			}
 		      else if(b1->left->bip_size[b1->l_r] < b1->rght->bip_size[b1->r_l])
@@ -5385,13 +5392,19 @@ void Compare_Bip(arbre *tree1, arbre *tree2)
 
 		      if(b2->left->bip_size[b2->l_r] == b2->rght->bip_size[b2->r_l])
 			{
-			  if(b2->left->bip_name[b2->l_r][0][0] < b2->rght->bip_name[b2->r_l][0][0])
+			  For(k,b2->left->bip_size[b2->l_r])
 			    {
-			      bip2 = b2->left->bip_name[b2->l_r];
-			    }
-			  else
-			    {
-			      bip2 = b2->rght->bip_name[b2->r_l];
+ 			      cmp = strcmp(b2->left->bip_name[b2->l_r][k],b2->rght->bip_name[b2->r_l][k]);
+ 			      if(cmp < 0)
+ 				{
+ 				  bip2 = b2->left->bip_name[b2->l_r];
+ 				  break;
+ 				}
+ 			      else if(cmp > 0)
+ 				{
+ 				  bip2 = b2->rght->bip_name[b2->r_l];
+ 				  break;
+ 				}
 			    }
 			}
 		      else if(b2->left->bip_size[b2->l_r] < b2->rght->bip_size[b2->r_l])
