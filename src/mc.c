@@ -299,7 +299,7 @@ int MC_main(int argc, char **argv)
 		  MCMC_Free_MCMC(tree->mcmc);
 
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
-		  MCMC_Init_MCMC_Struct("thorne.approx",tree->mcmc,tree);
+		  MCMC_Init_MCMC_Struct("thorne.normal",tree->mcmc,tree);
 		  tree->rates->lk_approx = NORMAL;
 		  
 		  tree->mcmc->n_tot_run = 1E+8;
