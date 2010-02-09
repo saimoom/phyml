@@ -965,6 +965,7 @@ void MCMC_Print_Means(tmcmc *mcmc, t_tree *tree)
 
       mcmc->out_fp_means = fopen(s,"w");
       
+      PhyML_Fprintf(mcmc->out_fp_means,"#");
       for(i=tree->n_otu;i<2*tree->n_otu-1;i++) PhyML_Fprintf(mcmc->out_fp_means,"T%d\t",i);	  
 
       PhyML_Fprintf(mcmc->out_fp_means,"\n");      
@@ -1008,6 +1009,7 @@ void MCMC_Print_Last(tmcmc *mcmc, t_tree *tree)
 
 /*       rewind(mcmc->out_fp_last); */
 
+      PhyML_Fprintf(mcmc->out_fp_last,"#");
       PhyML_Fprintf(tree->mcmc->out_fp_last,"Time\t");
 
       for(i=tree->n_otu;i<2*tree->n_otu-1;i++)

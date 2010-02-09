@@ -299,10 +299,12 @@ int MC_main(int argc, char **argv)
 		  MCMC_Free_MCMC(tree->mcmc);
 
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
-		  MCMC_Init_MCMC_Struct("thorne.normal",tree->mcmc,tree);
+		  MCMC_Init_MCMC_Struct("thorne.approx",tree->mcmc,tree);
 		  tree->rates->lk_approx = NORMAL;
 		  
-		  tree->mcmc->n_tot_run = 1E+8;
+		  tree->mcmc->n_tot_run       = 5E+5;
+		  tree->mcmc->sample_interval = 1E+3;
+
 		  tree->mcmc->randomize = NO;
 		  time(&t_beg);
 		  PhyML_Printf("\n. Thorne (approx)...\n");
