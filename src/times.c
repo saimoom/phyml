@@ -14,12 +14,12 @@ the GNU public licence. See http://www.opensource.org for details.
 /* Routines for molecular clock trees and molecular dating */
 
 
-#include "mc.h"
+#include "times.h"
 
 /*********************************************************/
-#ifdef MC
+#ifdef TIMES
 
-int TIME_main(int argc, char **argv)
+int TIMES_main(int argc, char **argv)
 {
   align **data;
   calign *cdata;
@@ -177,11 +177,11 @@ int TIME_main(int argc, char **argv)
 
 /* 		  tree->data->format = 1; */
 /* 		  Print_CSeq(stdout,tree->data); */
-		  char *s;
+/* 		  char *s; */
 /* 		  Branch_Lengths_To_Time_Lengths(tree); */
-		  s = Write_Tree(tree);
-		  PhyML_Fprintf(stdout,"TREE %8d [%f] = %s\n",0,0.0,s);
-		  Free(s);
+/* 		  s = Write_Tree(tree); */
+/* 		  PhyML_Fprintf(stdout,"TREE %8d [%f] = %s\n",0,0.0,s); */
+/* 		  Free(s); */
 
 		  Read_Clade_Priors(io->clade_list_file,tree);
 
@@ -247,7 +247,7 @@ int TIME_main(int argc, char **argv)
 
 		  PhyML_Printf("\n. Gibbs sampling...\n");
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
-		  MCMC_Init_MCMC_Struct("gibbs",tree->mcmc,tree);
+		  MCMC_Init_MCMC_Struct("phytime",tree->mcmc,tree);
 		  tree->rates->lk_approx = NORMAL;
 		  RATES_Lk_Rates(tree);
 		  MCMC_Print_Param(tree->mcmc,tree);
@@ -276,7 +276,7 @@ int TIME_main(int argc, char **argv)
 		  MCMC_Free_MCMC(tree->mcmc);
 
 		  PhyML_Printf("\n. End of Gibbs sampling...\n");
-		  system("sleep 1s");
+/* 		  system("sleep 1s"); */
 /* 		  END OF IMPORTANCE SAMPLING STUFF */
 
 
@@ -285,37 +285,37 @@ int TIME_main(int argc, char **argv)
 		  /************************************/
 		  /************************************/
 
-		  /* THORNE NORMAL */
-		  tree->both_sides        = 1;
-		  tree->rates->model      = THORNE;
-		  tree->rates->bl_from_rt = 1;
+/* 		  /\* THORNE NORMAL *\/ */
+/* 		  tree->both_sides        = 1; */
+/* 		  tree->rates->model      = THORNE; */
+/* 		  tree->rates->bl_from_rt = 1; */
 
-		  PhyML_Printf("\n. Burnin...\n");
-		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
-		  MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree);
-		  tree->rates->lk_approx = NORMAL;
-		  tree->mcmc->n_tot_run  = 1E+6;
-		  MCMC(tree);
-		  MCMC_Close_MCMC(tree->mcmc);
-		  MCMC_Free_MCMC(tree->mcmc);
+/* 		  PhyML_Printf("\n. Burnin...\n"); */
+/* 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree); */
+/* 		  MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree); */
+/* 		  tree->rates->lk_approx = NORMAL; */
+/* 		  tree->mcmc->n_tot_run  = 1E+6; */
+/* 		  MCMC(tree); */
+/* 		  MCMC_Close_MCMC(tree->mcmc); */
+/* 		  MCMC_Free_MCMC(tree->mcmc); */
 
-		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
-		  MCMC_Init_MCMC_Struct("thorne.normal",tree->mcmc,tree);
-		  tree->rates->lk_approx = NORMAL;
+/* 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree); */
+/* 		  MCMC_Init_MCMC_Struct("thorne.normal",tree->mcmc,tree); */
+/* 		  tree->rates->lk_approx = NORMAL; */
 		  
-		  tree->mcmc->n_tot_run       = 1E+8;
-		  tree->mcmc->sample_interval = 1E+4;
+/* 		  tree->mcmc->n_tot_run       = 1E+8; */
+/* 		  tree->mcmc->sample_interval = 1E+4; */
 
-		  tree->mcmc->randomize = NO;
-		  time(&t_beg);
-		  PhyML_Printf("\n. Thorne (approx)...\n");
-		  MCMC(tree);
-		  PhyML_Printf("\n. End of Thorne (approx)...\n");
-		  system("sleep 3s");
-		  time(&t_end);
-		  Print_Time_Info(t_beg,t_end);
-		  MCMC_Close_MCMC(tree->mcmc);
-		  MCMC_Free_MCMC(tree->mcmc);
+/* 		  tree->mcmc->randomize = NO; */
+/* 		  time(&t_beg); */
+/* 		  PhyML_Printf("\n. Thorne (approx)...\n"); */
+/* 		  MCMC(tree); */
+/* 		  PhyML_Printf("\n. End of Thorne (approx)...\n"); */
+/* 		  system("sleep 3s"); */
+/* 		  time(&t_end); */
+/* 		  Print_Time_Info(t_beg,t_end); */
+/* 		  MCMC_Close_MCMC(tree->mcmc); */
+/* 		  MCMC_Free_MCMC(tree->mcmc); */
 
 
 
@@ -462,7 +462,7 @@ int TIME_main(int argc, char **argv)
 
 /*********************************************************/
 
-void TIME_Least_Square_Node_Times(t_edge *e_root, t_tree *tree)
+void TIMES_Least_Square_Node_Times(t_edge *e_root, t_tree *tree)
 {
 
   /* Solve A.x = b, where x are the t_node time estimated
@@ -493,8 +493,8 @@ void TIME_Least_Square_Node_Times(t_edge *e_root, t_tree *tree)
   
   root = tree->n_root;
 
-  TIME_Least_Square_Node_Times_Pre(root,root->v[0],A,b,n,tree);
-  TIME_Least_Square_Node_Times_Pre(root,root->v[1],A,b,n,tree);
+  TIMES_Least_Square_Node_Times_Pre(root,root->v[0],A,b,n,tree);
+  TIMES_Least_Square_Node_Times_Pre(root,root->v[1],A,b,n,tree);
   
   b[root->num] = tree->e_root->l/2.;
   
@@ -551,7 +551,7 @@ void TIME_Least_Square_Node_Times(t_edge *e_root, t_tree *tree)
 
 /*********************************************************/
 
-void TIME_Least_Square_Node_Times_Pre(t_node *a, t_node *d, phydbl *A, phydbl *b, int n, t_tree *tree)
+void TIMES_Least_Square_Node_Times_Pre(t_node *a, t_node *d, phydbl *A, phydbl *b, int n, t_tree *tree)
 {
   if(d->tax)
     {
@@ -568,7 +568,7 @@ void TIME_Least_Square_Node_Times_Pre(t_node *a, t_node *d, phydbl *A, phydbl *b
       
       For(i,3)
 	if((d->v[i] != a) && (d->b[i] != tree->e_root))
-	  TIME_Least_Square_Node_Times_Pre(d,d->v[i],A,b,n,tree);
+	  TIMES_Least_Square_Node_Times_Pre(d,d->v[i],A,b,n,tree);
       
       A[d->num * n + d->num] = 1.;
       b[d->num] = .0;
@@ -587,10 +587,10 @@ void TIME_Least_Square_Node_Times_Pre(t_node *a, t_node *d, phydbl *A, phydbl *b
 /* Adjust t_node times in order to have correct time stamp ranking with
  respect to the tree topology */
 
-void TIME_Adjust_Node_Times(t_tree *tree)
+void TIMES_Adjust_Node_Times(t_tree *tree)
 {
-  TIME_Adjust_Node_Times_Pre(tree->n_root->v[0],tree->n_root->v[1],tree);
-  TIME_Adjust_Node_Times_Pre(tree->n_root->v[1],tree->n_root->v[0],tree);
+  TIMES_Adjust_Node_Times_Pre(tree->n_root->v[0],tree->n_root->v[1],tree);
+  TIMES_Adjust_Node_Times_Pre(tree->n_root->v[1],tree->n_root->v[0],tree);
 
   if(tree->rates->nd_t[tree->n_root->num] > MIN(tree->rates->nd_t[tree->n_root->v[0]->num],
 						tree->rates->nd_t[tree->n_root->v[1]->num]))
@@ -602,7 +602,7 @@ void TIME_Adjust_Node_Times(t_tree *tree)
 
 /*********************************************************/
 
-void TIME_Adjust_Node_Times_Pre(t_node *a, t_node *d, t_tree *tree)
+void TIMES_Adjust_Node_Times_Pre(t_node *a, t_node *d, t_tree *tree)
 {
   if(d->tax) return;
   else
@@ -613,7 +613,7 @@ void TIME_Adjust_Node_Times_Pre(t_node *a, t_node *d, t_tree *tree)
       For(i,3)
 	if((d->v[i] != a) && (d->b[i] != tree->e_root))
 	  {
-	    TIME_Adjust_Node_Times_Pre(d,d->v[i],tree);
+	    TIMES_Adjust_Node_Times_Pre(d,d->v[i],tree);
 	  }
 
       min_height = 0.0;
@@ -641,7 +641,7 @@ void TIME_Adjust_Node_Times_Pre(t_node *a, t_node *d, t_tree *tree)
      t_node by  'tree->time_stamp_mult'.
    */
 
-void TIME_Mult_Time_Stamps(t_tree *tree)
+void TIMES_Mult_Time_Stamps(t_tree *tree)
 {
   int i;
   For(i,2*tree->n_otu-2) tree->rates->nd_t[tree->noeud[i]->num] *= FABS(tree->mod->s_opt->tree_size_mult);
@@ -653,7 +653,7 @@ void TIME_Mult_Time_Stamps(t_tree *tree)
 /* Divide each time stamp at each internal 
    t_node by  'tree->time_stamp_mult'.
 */
-void TIME_Div_Time_Stamps(t_tree *tree)
+void TIMES_Div_Time_Stamps(t_tree *tree)
 {
   int i;
   For(i,2*tree->n_otu-2) tree->rates->nd_t[tree->noeud[i]->num] /= FABS(tree->mod->s_opt->tree_size_mult);
@@ -662,13 +662,13 @@ void TIME_Div_Time_Stamps(t_tree *tree)
 
 /*********************************************************/
 
-void TIME_Bl_From_T(t_tree *tree)
+void TIMES_Bl_From_T(t_tree *tree)
 {
   phydbl mean_rate, branch_rate;
 
   /* Branch lengths are deduced from time stamps */
-  TIME_Bl_From_T_Post(tree->n_root,tree->n_root->v[0],NULL,tree);
-  TIME_Bl_From_T_Post(tree->n_root,tree->n_root->v[1],NULL,tree);
+  TIMES_Bl_From_T_Post(tree->n_root,tree->n_root->v[0],NULL,tree);
+  TIMES_Bl_From_T_Post(tree->n_root,tree->n_root->v[1],NULL,tree);
 
   mean_rate   = tree->rates->clock_r;
   branch_rate = tree->rates->br_r[tree->e_root->num];
@@ -692,7 +692,7 @@ void TIME_Bl_From_T(t_tree *tree)
 
 /*********************************************************/
 
-void TIME_Bl_From_T_Post(t_node *a, t_node *d, t_edge *b, t_tree *tree)
+void TIMES_Bl_From_T_Post(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 {
 
   if(b)
@@ -724,7 +724,7 @@ void TIME_Bl_From_T_Post(t_node *a, t_node *d, t_edge *b, t_tree *tree)
   else
     {
       int i;
-      For(i,3) if((d->v[i] != a) && (d->b[i] != tree->e_root)) TIME_Bl_From_T_Post(d,d->v[i],d->b[i],tree);
+      For(i,3) if((d->v[i] != a) && (d->b[i] != tree->e_root)) TIMES_Bl_From_T_Post(d,d->v[i],d->b[i],tree);
     }
 }
 
@@ -732,7 +732,7 @@ void TIME_Bl_From_T_Post(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 
 
 
-void TIME_Print_Node_Times(t_node *a, t_node *d, t_tree *tree)
+void TIMES_Print_Node_Times(t_node *a, t_node *d, t_tree *tree)
 {
   t_edge *b;
   int i;
@@ -752,21 +752,21 @@ void TIME_Print_Node_Times(t_node *a, t_node *d, t_tree *tree)
       int i;
       For(i,3)
 	if((d->v[i] != a) && (d->b[i] != tree->e_root))
-	  TIME_Print_Node_Times(d,d->v[i],tree);
+	  TIMES_Print_Node_Times(d,d->v[i],tree);
     }
 }
 
 /*********************************************************/
 
-void TIME_Compute_Rates_And_Times_Least_Square_Adjustments(t_tree *tree)
+void TIMES_Compute_Rates_And_Times_Least_Square_Adjustments(t_tree *tree)
 {
-  TIME_Compute_Rates_And_Times_Least_Square_Adjustments_Post(tree->n_root,tree->n_root->v[0],NULL,tree);
-  TIME_Compute_Rates_And_Times_Least_Square_Adjustments_Post(tree->n_root,tree->n_root->v[1],NULL,tree);
+  TIMES_Compute_Rates_And_Times_Least_Square_Adjustments_Post(tree->n_root,tree->n_root->v[0],NULL,tree);
+  TIMES_Compute_Rates_And_Times_Least_Square_Adjustments_Post(tree->n_root,tree->n_root->v[1],NULL,tree);
 }
 
 /*********************************************************/
 
-void TIME_Compute_Rates_And_Times_Least_Square_Adjustments_Post(t_node *a, t_node *d, t_edge *b, t_tree *tree)
+void TIMES_Compute_Rates_And_Times_Least_Square_Adjustments_Post(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 {
   int i;
 
@@ -835,13 +835,13 @@ void TIME_Compute_Rates_And_Times_Least_Square_Adjustments_Post(t_node *a, t_nod
 
   For(i,3) 
     if(d->v[i] != a)
-      TIME_Compute_Rates_And_Times_Least_Square_Adjustments_Post(d,d->v[i],d->b[i],tree);
+      TIMES_Compute_Rates_And_Times_Least_Square_Adjustments_Post(d,d->v[i],d->b[i],tree);
 
 }
 
 /*********************************************************/
 
-int TIME_Check_MC(t_tree *tree)
+int TIMES_Check_MC(t_tree *tree)
 {
   int i;
   phydbl dist,eps;

@@ -1363,8 +1363,8 @@ void Test_Node_Table_Consistency(t_tree *tree);
 #include "mg.h"
 #endif
 
-#ifdef MC
-#include "mc.h"
+#ifdef TIME
+#include "times.h"
 #include "rates.h"
 #endif
 

@@ -816,8 +816,8 @@ void MCMC_Print_Param(tmcmc *mcmc, t_tree *tree)
       fflush(NULL); 
     }
 
-  MCMC_Print_Means(mcmc,tree);
-  MCMC_Print_Last(mcmc,tree);
+/*   MCMC_Print_Means(mcmc,tree); */
+/*   MCMC_Print_Last(mcmc,tree); */
 
 /*   if(!(mcmc->run%10)) PhyML_Printf("\r. [%10d/%10d]",tree->mcmc->run,tree->mcmc->n_tot_run); */
 
@@ -1104,13 +1104,13 @@ void MCMC_Init_MCMC_Struct(char *filename, tmcmc *mcmc, t_tree *tree)
       strcat(s,".trees");
       tree->mcmc->out_fp_trees = fopen(s,"w");
 
-      strcpy(s,tree->mcmc->out_filename);
-      strcat(s,".means");
-      tree->mcmc->out_fp_means = fopen(s,"w");
+/*       strcpy(s,tree->mcmc->out_filename); */
+/*       strcat(s,".means"); */
+/*       tree->mcmc->out_fp_means = fopen(s,"w"); */
 
-      strcpy(s,tree->mcmc->out_filename);
-      strcat(s,".lasts");
-      tree->mcmc->out_fp_last  = fopen(s,"w");
+/*       strcpy(s,tree->mcmc->out_filename); */
+/*       strcat(s,".lasts"); */
+/*       tree->mcmc->out_fp_last  = fopen(s,"w"); */
 
       Free(s);
     }

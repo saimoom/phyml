@@ -334,9 +334,9 @@ phydbl Lk(t_tree *tree)
 
   Set_Model_Parameters(tree->mod);
 
-#ifdef MC
+#ifdef TIMES
   if((tree->rates) && (tree->rates->bl_from_rt)) RATES_Update_Cur_Bl(tree);
-  if(tree->bl_from_node_stamps) MC_Bl_From_T(tree);
+  if(tree->bl_from_node_stamps) TIMES_Bl_From_T(tree);
 #endif
 
   For(br,2*tree->n_otu-3) Update_PMat_At_Given_Edge(tree->t_edges[br],tree);
@@ -376,9 +376,9 @@ phydbl Lk_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
   
   n_patterns = tree->n_pattern;
 
-#ifdef MC
+#ifdef TIMES
   if((tree->rates) && (tree->rates->bl_from_rt)) RATES_Update_Cur_Bl(tree);
-  if(tree->bl_from_node_stamps) MC_Bl_From_T(tree);
+  if(tree->bl_from_node_stamps) TIMES_Bl_From_T(tree);
 #endif
 
   Update_PMat_At_Given_Edge(b_fcus,tree);
