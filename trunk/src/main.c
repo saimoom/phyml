@@ -281,7 +281,7 @@ int main(int argc, char **argv)
 #include "m4.h"
 int main(int argc, char **argv)
 {
-  MC_main(argc, argv);
+  TIME_main(argc, argv);
   return 1;
 }
 
@@ -293,11 +293,11 @@ int main(int argc, char **argv)
   return 1;
 }
 
-#elif(MC)
-#include "mc.h"
+#elif(TIMES)
+#include "times.h"
 int main(int argc, char **argv)
 {
-  MC_main(argc, argv);
+  TIMES_main(argc, argv);
   return 1;
 }
 

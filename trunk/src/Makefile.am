@@ -9,9 +9,9 @@
 
 DEFS=-DUNIX -D$(PROG) -DDEBUG
 
-if WANT_MC
-bin_PROGRAMS = mc
-PROG = MC
+if WANT_TIMES
+bin_PROGRAMS = phytime
+PROG = TIMES
 else
 if WANT_PART
 bin_PROGRAMS = part
@@ -27,8 +27,8 @@ endif
 endif
 endif
 
-if WANT_MC
-mc_SOURCES = main.c \
+if WANT_TIMES
+phytime_SOURCES = main.c \
 utilities.c utilities.h\
 optimiz.c optimiz.h\
 lk.c lk.h\
@@ -43,14 +43,14 @@ alrt.c alrt.h\
 interface.c interface.h\
 cl.c cl.h\
 spr.c spr.h\
-mc.c mc.h\
+times.c times.h\
 m4.c m4.h\
 draw.c draw.h\
 rates.c rates.h\
 mcmc.c mcmc.h\
 stats.c stats.h\
 mg.c mg.h
-mc_LDADD = -lm
+phytime_LDADD = -lm
 else 
 if WANT_PART
 part_SOURCES = main.c \
@@ -90,7 +90,7 @@ alrt.c alrt.h\
 interface.c interface.h\
 cl.c cl.h\
 mg.c mg.h\
-mc.c mc.h\
+times.c times.h\
 mcmc.c mcmc.h\
 rates.c rates.h\
 spr.c spr.h\

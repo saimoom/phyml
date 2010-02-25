@@ -27,7 +27,7 @@ the GNU public licence. See http://www.opensource.org for details.
 #include "pars.h"
 #include "alrt.h"
 #include "m4.h"
-#include "mc.h"
+#include "time.h"
 #include "draw.h"
 #ifdef PART
 #include "mg.h"
@@ -1577,11 +1577,11 @@ void M4_Posterior_Prediction_Experiment(t_tree *tree)
   Switch_From_M4mod_To_Mod(tree->mod);
 
   tree->bl_from_node_stamps = 1;
-  best_edge = MC_Find_Best_Root_Position(tree);
+  best_edge = TIME_Find_Best_Root_Position(tree);
   PhyML_Printf("\n. Put root on t_edge %3d",i);
-  MC_Least_Square_Node_Times(best_edge,tree);
-  MC_Adjust_Node_Times(tree);
-  MC_Round_Optimize(tree);
+  TIME_Least_Square_Node_Times(best_edge,tree);
+  TIME_Adjust_Node_Times(tree);
+  TIME_Round_Optimize(tree);
 
 /*   Round_Optimize(tree,tree->data); */
 /*   Simu_Loop(tree); */
@@ -1623,7 +1623,7 @@ void M4_Posterior_Prediction_Experiment(t_tree *tree)
 
   PhyML_Printf("\n. Estimate model parameters under switching substitution model.\n");
   Switch_From_Mod_To_M4mod(tree->mod);
-  MC_Round_Optimize(tree);
+  TIME_Round_Optimize(tree);
 /*   Round_Optimize(tree,tree->data); */
   /*   Simu_Loop(tree); */
   Print_Lk(tree,"[LnL under switching substitution model]");
