@@ -13,7 +13,7 @@ the GNU public licence. See http://www.opensource.org for details.
 #ifndef TIPORDER_H
 #define TIPORDER_H
 
-#include "mc.h"
+#include "times.h"
 #include "spr.h"
 #include "utilities.h"
 #include "lk.h"

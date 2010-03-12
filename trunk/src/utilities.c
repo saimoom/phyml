@@ -66,11 +66,7 @@ t_tree *Read_Tree(char *s_tree)
   For(i,(int)strlen(s_tree)) if(s_tree[i] == ',') n_otu++;
   n_otu+=1;
 
-  tree = (t_tree *)Make_Tree(n_otu);
-  Init_Tree(tree,tree->n_otu);
-  Make_All_Tree_Nodes(tree);
-  Make_All_Tree_Edges(tree);
-  Make_Tree_Path(tree);
+  tree = Make_Tree_From_Scratch(n_otu,NULL);
 
   subs = Sub_Trees(s_tree,&degree);
   Clean_Multifurcation(subs,degree,3);
@@ -3751,6 +3747,7 @@ t_tree *Make_Tree_From_Scratch(int n_otu, calign *data)
   t_tree *tree;
 
   tree = Make_Tree(n_otu);
+  Init_Tree(tree,n_otu);
   Make_All_Tree_Nodes(tree);
   Make_All_Tree_Edges(tree);
   Make_Tree_Path(tree);
@@ -3769,7 +3766,6 @@ t_tree *Make_Tree(int n_otu)
   t_tree *tree;
   int i;
   tree = (t_tree *)mCalloc(1,sizeof(t_tree ));
-  Init_Tree(tree,n_otu);
   tree->t_dir = (short int *)mCalloc((2*n_otu-2)*(2*n_otu-2),sizeof(int));
   return tree;
 }
@@ -9419,12 +9415,8 @@ t_tree *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
   t_node *root,*curr_n,**internal_nodes, **external_nodes;
   phydbl *t,*tmp;
 
+  tree = Make_Tree_From_Scratch(n_otu,NULL);
 
-  tree = (t_tree *)Make_Tree(n_otu);
-  Init_Tree(tree,tree->n_otu);
-  Make_All_Tree_Nodes(tree);
-  Make_All_Tree_Edges(tree);
-  Make_Tree_Path(tree);
   tree->rates = RATES_Make_Rate_Struct(tree->n_otu);
   RATES_Init_Rate_Struct(tree->rates,tree->n_otu);
 
@@ -10173,22 +10165,27 @@ void Best_Of_NNI_And_SPR(t_tree *tree)
       model *ori_mod,*best_mod;
       phydbl *ori_bl,*best_bl;
       phydbl best_lnL,ori_lnL,nni_lnL,spr_lnL;
-            
+
       ori_bl = (phydbl *)mCalloc(2*tree->n_otu-3,sizeof(phydbl));
       best_bl = (phydbl *)mCalloc(2*tree->n_otu-3,sizeof(phydbl));
       
       ori_mod   = Copy_Model(tree->mod);
       best_mod  = Copy_Model(tree->mod);
       
-      ori_tree = Make_Tree(tree->n_otu);
-      Init_Tree(ori_tree,ori_tree->n_otu);
-      Make_All_Tree_Nodes(ori_tree);
-      Make_All_Tree_Edges(ori_tree);
+
+      ori_tree = Make_Tree_From_Scratch(tree->n_otu,tree->data);
+
+/*       ori_tree = Make_Tree(tree->n_otu); */
+/*       Init_Tree(ori_tree,ori_tree->n_otu); */
+/*       Make_All_Tree_Nodes(ori_tree); */
+/*       Make_All_Tree_Edges(ori_tree); */
       
-      best_tree = Make_Tree(tree->n_otu);
-      Init_Tree(best_tree,best_tree->n_otu);
-      Make_All_Tree_Nodes(best_tree);
-      Make_All_Tree_Edges(best_tree);
+      best_tree = Make_Tree_From_Scratch(tree->n_otu,tree->data);
+
+/*       best_tree = Make_Tree(tree->n_otu); */
+/*       Init_Tree(best_tree,best_tree->n_otu); */
+/*       Make_All_Tree_Nodes(best_tree); */
+/*       Make_All_Tree_Edges(best_tree); */
 
       Copy_Tree(tree,ori_tree);
       Record_Br_Len(ori_bl,tree);

@@ -477,10 +477,7 @@ void Free_Spr_List(t_tree *tree)
 {
   int i;
 
-  For(i,tree->size_spr_list+1)
-    {
-      Free_One_Spr(tree->spr_list[i]);
-    }
+  For(i,tree->size_spr_list+1) Free_One_Spr(tree->spr_list[i]);
   Free(tree->spr_list);
 
 }

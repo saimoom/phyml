@@ -810,16 +810,26 @@ void MCMC_Print_Param(tmcmc *mcmc, t_tree *tree)
 
   fp = mcmc->out_fp_stats;
   
+  if(tree->mcmc->run == 0)
+    {
+      PhyML_Fprintf(stdout," ["); 
+      fflush(NULL); 
+    }
+
   if(!(mcmc->run%(mcmc->n_tot_run/10))) 
     { 
       PhyML_Fprintf(stdout,"."); 
       fflush(NULL); 
     }
 
+  if(tree->mcmc->run == mcmc->n_tot_run)
+    {
+      PhyML_Fprintf(stdout,"]"); 
+      fflush(NULL); 
+    }
+
 /*   MCMC_Print_Means(mcmc,tree); */
 /*   MCMC_Print_Last(mcmc,tree); */
-
-/*   if(!(mcmc->run%10)) PhyML_Printf("\r. [%10d/%10d]",tree->mcmc->run,tree->mcmc->n_tot_run); */
 
   if(!(mcmc->run%mcmc->sample_interval)) 
     {      
@@ -830,11 +840,9 @@ void MCMC_Print_Param(tmcmc *mcmc, t_tree *tree)
 	  PhyML_Fprintf(fp,"\n");
 	  PhyML_Fprintf(fp,"Run\t");
 	  PhyML_Fprintf(fp,"Time\t");
-	  PhyML_Fprintf(fp,"TreeSize\t");
-	  PhyML_Fprintf(fp,"ExpTreeSize[%f]\t",RATES_Expected_Tree_Length(tree));
+	  PhyML_Fprintf(fp,"MeanRate\t");
 	  PhyML_Fprintf(fp,"LnLSeq\t");
 	  PhyML_Fprintf(fp,"LnLRate\t");
-/* 	  PhyML_Fprintf(fp,"RootPos[%f]\t",tree->n_root_pos); */
 	  PhyML_Fprintf(fp,"Nu\t");
 	  PhyML_Fprintf(fp,"Clock\t");
 
@@ -858,47 +866,24 @@ void MCMC_Print_Param(tmcmc *mcmc, t_tree *tree)
 	    for(i=0;i<2*tree->n_otu-2;i++)
 	      if((tree->noeud[i] == tree->n_root->v[0] && tree->noeud[i]->tax) ||
 		 (tree->noeud[i] == tree->n_root->v[1] && tree->noeud[i]->tax))
-		PhyML_Fprintf(fp,"00R%d[%f]\t",i,tree->rates->true_r[i]);
+		PhyML_Fprintf(fp,"0_R%d[%f]\t",i,tree->rates->true_r[i]);
 	      else if((tree->noeud[i] == tree->n_root->v[0]) || (tree->noeud[i] == tree->n_root->v[1]))
-		PhyML_Fprintf(fp,"11R%d[%f]\t",i,tree->rates->true_r[i]);
+		PhyML_Fprintf(fp,"1_R%d[%f]\t",i,tree->rates->true_r[i]);
 	      else PhyML_Fprintf(fp,"  %sR%d[%.2f,%.2f]\t",
 				 tree->noeud[i]->tax?"e":"i",
 				 i,tree->rates->true_r[i],tree->rates->true_r[tree->noeud[i]->anc->num]);
 
 
-
-	  if(fp != stdout)
-	    {
-	      for(i=tree->n_otu;i<2*tree->n_otu-1;i++)
-		{
-		  PhyML_Fprintf(fp,"pT%d[%f]\t",i,tree->rates->t_prior[i]);
-		}
-	    }
-
 /* 	  if(fp != stdout) */
-/* 	    for(i=0;i<2*tree->n_otu-3;i++) */
-/* 	      { */
-/* 		if(tree->t_edges[i] == tree->e_root) */
-/* 		  PhyML_Fprintf(fp,"**L%d[%f,%d,%d]\t",i, */
-/* 				tree->rates->u_ml_l[i], */
-/* 				tree->t_edges[i]->left->num, */
-/* 				tree->t_edges[i]->rght->num); */
-/* 		else */
-/* 		  PhyML_Fprintf(fp,"  L%d[%f,%d,%d]\t",i, */
-/* 				tree->rates->u_ml_l[i], */
-/* 				tree->t_edges[i]->left->num, */
-/* 				tree->t_edges[i]->rght->num); */
-/* 	      } */
-
-
-
-
-
-/* 	  if(fp != stdout) PhyML_Fprintf(fp,"AccRate\t"); */
+/* 	    { */
+/* 	      for(i=tree->n_otu;i<2*tree->n_otu-1;i++) */
+/* 		{ */
+/* 		  PhyML_Fprintf(fp,"pT%d[%f]\t",i,tree->rates->t_prior[i]); */
+/* 		} */
+/* 	    } */
 
 	  PhyML_Fprintf(mcmc->out_fp_trees,"#NEXUS\n");
 	  PhyML_Fprintf(mcmc->out_fp_trees,"BEGIN TREES;\n");
-
 	}
 
       PhyML_Fprintf(fp,"\n");
@@ -907,32 +892,14 @@ void MCMC_Print_Param(tmcmc *mcmc, t_tree *tree)
       PhyML_Fprintf(fp,"%6d\t",(int)(mcmc->t_cur-mcmc->t_beg));
       
       RATES_Update_Cur_Bl(tree);
-/*       PhyML_Fprintf(fp,"%4.2f\t",Get_Tree_Size(tree)-tree->rates->true_tree_size); */
       PhyML_Fprintf(fp,"%G\t",RATES_Check_Mean_Rates(tree));
-      PhyML_Fprintf(fp,"%G\t",RATES_Expected_Tree_Length(tree));
-
       PhyML_Fprintf(fp,"%G\t",tree->c_lnL);
-
       PhyML_Fprintf(fp,"%G\t",tree->rates->c_lnL);
-
-/*       PhyML_Fprintf(fp,"%15lf\t",tree->rates->cur_l[tree->n_root->v[0]->num] / tree->rates->u_cur_l[tree->e_root->num]-tree->n_root_pos); */
       PhyML_Fprintf(fp,"%G\t",tree->rates->nu);
       PhyML_Fprintf(fp,"%G\t",tree->rates->clock_r);
-/*       if(fp != stdout) for(i=tree->n_otu;i<2*tree->n_otu-1;i++) PhyML_Fprintf(fp,"%8f\t",tree->rates->t_prior[i] - tree->rates->true_t[i]); */
       if(fp != stdout) for(i=tree->n_otu;i<2*tree->n_otu-1;i++) PhyML_Fprintf(fp,"%G\t",tree->rates->nd_t[i] - tree->rates->true_t[i]);
-/*       if(fp != stdout) for(i=tree->n_otu;i<2*tree->n_otu-1;i++) PhyML_Fprintf(fp,"%.1f\t",tree->rates->nd_t[i]); */
-/*       if(fp != stdout) for(i=tree->n_otu;i<2*tree->n_otu-1;i++) PhyML_Fprintf(fp,"%G\t",tree->rates->t_prior[i] - tree->rates->true_t[i]); */
- /*      if(fp != stdout) for(i=0;i<2*tree->n_otu-2;i++) PhyML_Fprintf(fp,"%.20lf\t",tree->rates->nd_r[i] - tree->rates->true_r[i]); */
       if(fp != stdout) for(i=0;i<2*tree->n_otu-2;i++) PhyML_Fprintf(fp,"%.20lf\t",tree->rates->nd_r[i]);
-/*       if(fp != stdout) for(i=0;i<2*tree->n_otu-3;i++) PhyML_Fprintf(fp,"%G\t",tree->rates->u_cur_l[i]-tree->rates->u_ml_l[i]); */
-      if(fp != stdout) for(i=tree->n_otu;i<2*tree->n_otu-1;i++) PhyML_Fprintf(fp,"%G\t",tree->rates->t_prior[i]);
-/*       if(fp != stdout)  */
-/* 	{ */
-/* 	  if(tree->mcmc->run) */
-/* 	    PhyML_Fprintf(fp,"%8f\t",(phydbl)tree->mcmc->acc_rates/tree->mcmc->run); */
-/* 	  else */
-/* 	    PhyML_Fprintf(fp,"%8f\t",0.0); */
-/* 	} */
+/*       if(fp != stdout) for(i=tree->n_otu;i<2*tree->n_otu-1;i++) PhyML_Fprintf(fp,"%G\t",tree->rates->t_prior[i]); */
       fflush(NULL);
 
 

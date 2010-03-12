@@ -17,7 +17,7 @@ the GNU public licence.  See http://www.opensource.org for details.
 #include "optimiz.h"
 #include "models.h"
 #include "free.h"
-
+#include "times.h"
 
 void Init_Tips_At_One_Site_Nucleotides_Float(char state, int pos, phydbl *p_lk);
 void Init_Tips_At_One_Site_AA_Float(char aa, int pos, phydbl *p_lk);

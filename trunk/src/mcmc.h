@@ -25,7 +25,7 @@ the GNU public licence. See http://www.opensource.org for details.
 #include "eigen.h"
 #include "pars.h"
 #include "alrt.h"
-#include "mc.h"
+#include "times.h"
 #include "m4.h"
 #include "draw.h"
 #include "rates.h"
