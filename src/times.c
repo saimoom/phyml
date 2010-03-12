@@ -60,25 +60,6 @@ int TIMES_main(int argc, char **argv)
 
   io = (option *)Get_Input(argc,argv);
   r_seed = (io->r_seed < 0)?(time(NULL)):(io->r_seed);
-/*   r_seed = 1248325214; */
-/*   r_seed = 1254029112; */
-/*   r_seed = 1254094805; */
-/*   r_seed = 1254097617; */
-/*   r_seed = 1254103645; */
-/*   r_seed = 1262843891; */
-/*   r_seed = 1262925254; */
-/*   r_seed = 1263111043; */
-/*   r_seed = 1263158433; */
-/*   r_seed = 1263168633; */
-/*   r_seed = 1263372871; */
-/*   r_seed = 1263375598; */
-/*   r_seed = 1263781194; */
-/*   r_seed = 1263894098; */
-/*   r_seed = 1264014238; */
-/*   r_seed = 1264121265; */
-/*   r_seed = 1264246773; */
-/*   r_seed = 1264249283; */
-/*   r_seed = 1264319131; */
 /*   r_seed = 1264735233; */
   /* !!!!!!!!!!!!!!!!!!!!!!!! */
 
@@ -264,18 +245,19 @@ int TIMES_main(int argc, char **argv)
 		      tree->c_lnL        = Lk(tree);
 
 		      MCMC_Nu(tree);
-		      RATES_Posterior_Clock_Rate(tree);
-		      
+		      RATES_Posterior_Clock_Rate(tree);		      
 		      RATES_Posterior_Times(tree);
 		      RATES_Posterior_Rates(&acc,&n_trials,tree);
 		    }
 		  while(tree->mcmc->run < tree->mcmc->n_tot_run);
-		  time(&t_end);
-		  Print_Time_Info(t_beg,t_end);
+
+		  PhyML_Printf("\n. End of Gibbs sampling...\n");
+
+/* 		  time(&t_end); */
+/* 		  Print_Time_Info(t_beg,t_end); */
 		  MCMC_Close_MCMC(tree->mcmc);
 		  MCMC_Free_MCMC(tree->mcmc);
 
-		  PhyML_Printf("\n. End of Gibbs sampling...\n");
 /* 		  system("sleep 1s"); */
 /* 		  END OF IMPORTANCE SAMPLING STUFF */
 
@@ -358,87 +340,20 @@ int TIMES_main(int argc, char **argv)
 		  /************************************/
 		  /************************************/
 
-		  /* Print the tree estimated using the current random (or BioNJ) starting tree */
-		  if(io->mod->s_opt->n_rand_starts > 1)
-		    {
-		      Br_Len_Involving_Invar(tree);
-		      Print_Tree(io->fp_out_trees,tree);
-		      fflush(NULL);
-		    }
-
-		  /* Record most likely tree in a string of characters */
-		  if(tree->c_lnL > best_lnL)
-		    {
-		      best_lnL = tree->c_lnL;
-		      Br_Len_Involving_Invar(tree);
-		      most_likely_tree = Write_Tree(tree);
-		      most_likely_size = Get_Tree_Size(tree);
-		    }
-
-/* 		  JF(tree); */
-
-		  time(&t_end);
-		  Print_Fp_Out(io->fp_out_stats,t_beg,t_end,tree,
-			       io,num_data_set+1,
-			       (tree->mod->s_opt->n_rand_starts > 1)?
-			       (num_rand_tree):(num_tree));
-		  
-		  if(tree->io->print_site_lnl) Print_Site_Lk(tree,io->fp_out_lk);
-
-		  /* Start from BioNJ tree */
-		  if((num_rand_tree == io->mod->s_opt->n_rand_starts-1) && (tree->mod->s_opt->random_input_tree))
-		    {
-		      /* Do one more iteration in the loop, but don't randomize the tree */
-		      num_rand_tree--;
-		      tree->mod->s_opt->random_input_tree = 0;
-		    }
-		  
-		  Free_Spr_List(tree);
-		  Free_One_Spr(tree->best_spr);
-		  if(tree->mat) Free_Mat(tree->mat);
-		  Free_Triplet(tree->triplet_struct);
 		  Free_Tree_Pars(tree);
 		  Free_Tree_Lk(tree);
 		  Free_Tree(tree);
 		}
 
-	      /* Launch bootstrap analysis */
-	      if(tree->mod->bootstrap) 
-		{
-		  PhyML_Printf("\n. Launch bootstrap analysis on the most likely tree...\n");
-
-                  #ifdef MPI
-		  MPI_Bcast (most_likely_tree, strlen(most_likely_tree)+1, MPI_CHAR, 0, MPI_COMM_WORLD);
-		  PhyML_Printf("\n. The bootstrap analysis will use %d CPUs.",Global_numTask);
-		  #endif
-
-		  Bootstrap_From_String(most_likely_tree,cdata,mod,io);
-		}
-	      else if(tree->io->ratio_test) 
-		{
-		  /* Launch aLRT */
-		  PhyML_Printf("\n. Compute aLRT branch supports on the most likely tree...\n");
-		  aLRT_From_String(most_likely_tree,cdata,mod,io);
-		}
-
-	      /* Print the most likely tree in the output file */
-	      PhyML_Printf("\n. Printing the most likely tree in file '%s'...\n",io->out_tree_file);
-	      if(io->n_data_sets == 1) rewind(io->fp_out_tree);
-
-	      PhyML_Fprintf(io->fp_out_tree,"%s\n",most_likely_tree);
-
-	      if(io->n_trees > 1 && io->n_data_sets > 1) break;
+	      break;
 	    }
 	  Free_Cseq(cdata);
 	}
     }
 
-
-  if(io->mod->s_opt->n_rand_starts > 1) PhyML_Printf("\n\n. Best log likelihood : %f\n",best_lnL);
-
   Free_Model(mod);
 
-  if(io->fp_in_align)     fclose(io->fp_in_align);
+  if(io->fp_in_align)   fclose(io->fp_in_align);
   if(io->fp_in_tree)    fclose(io->fp_in_tree);
   if(io->fp_out_lk)     fclose(io->fp_out_lk);
   if(io->fp_out_tree)   fclose(io->fp_out_tree);
