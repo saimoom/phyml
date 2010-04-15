@@ -13,250 +13,304 @@ the GNU public licence. See http://www.opensource.org for details.
 
 /* Routines for molecular clock trees and molecular dating */
 
-#ifdef TIPORDER
 
 #include "tiporder.h"
 
 /*********************************************************/
 
-int TIPORDER_main(int argc, char **argv)
-{
-  t_tree **list_tree,*ref_tree,*tree;
-  FILE *fp_ref_tree,*fp_list_tree,*fp_coord,*ps_tree;
-  int i,j,k;
-  int n_trees;
-  option *ref_io,*list_io;
-  char **name_table;
-  int r_seed;
+/* int TIPO_main(int argc, char **argv) */
+/* { */
+/*   t_tree **list_tree,*ref_tree,*tree; */
+/*   FILE *fp_ref_tree,*fp_list_tree,*fp_coord,*ps_tree; */
+/*   int i,j,k; */
+/*   int n_trees; */
+/*   option *ref_io,*list_io; */
+/*   char **name_table; */
+/*   int r_seed; */
 
-  r_seed = time(NULL);
-  srand(r_seed);
+/*   r_seed = time(NULL); */
+/*   srand(r_seed); */
 
 
-  ref_io  = (option *)Make_Input();
-  list_io = (option *)Make_Input();
+/*   ref_io  = (option *)Make_Input(); */
+/*   list_io = (option *)Make_Input(); */
 
-  fp_ref_tree  = (FILE *)fopen(argv[1],"r");
-  fp_list_tree = (FILE *)fopen(argv[2],"r");
-  fp_coord     = (FILE *)fopen(argv[3],"r");
+/*   fp_ref_tree  = (FILE *)fopen(argv[1],"r"); */
+/*   fp_list_tree = (FILE *)fopen(argv[2],"r"); */
+/*   fp_coord     = (FILE *)fopen(argv[3],"r"); */
 
-  if(!fp_ref_tree) 
-    {
-      PhyML_Printf("\n. Can't find %s",argv[1]);
-      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
-      Warn_And_Exit("");
-    }
+/*   if(!fp_ref_tree)  */
+/*     { */
+/*       PhyML_Printf("\n. Can't find %s",argv[1]); */
+/*       PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__); */
+/*       Warn_And_Exit(""); */
+/*     } */
 
-  if(!fp_list_tree) 
-    {
-      PhyML_Printf("\n. Can't find %s",argv[2]);
-      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
-      Warn_And_Exit("");
-    }
+/*   if(!fp_list_tree)  */
+/*     { */
+/*       PhyML_Printf("\n. Can't find %s",argv[2]); */
+/*       PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__); */
+/*       Warn_And_Exit(""); */
+/*     } */
 
-  ref_io->fp_in_tree = fp_ref_tree;
-  Read_Tree_File(ref_io);
-  fclose(ref_io->fp_in_tree);
-  ref_tree = ref_io->treelist->tree[0];
-  ref_tree->io = ref_io;
+/*   ref_io->fp_in_tree = fp_ref_tree; */
+/*   Read_Tree_File(ref_io); */
+/*   fclose(ref_io->fp_in_tree); */
+/*   ref_tree = ref_io->treelist->tree[0]; */
+/*   ref_tree->io = ref_io; */
 
   
-  list_io->fp_in_tree = fp_list_tree;
-  Read_Tree_File(list_io);
-  fclose(list_io->fp_in_tree);
-  list_tree = list_io->treelist->tree;
-  n_trees = list_io->treelist->list_size;
-  PhyML_Printf("\n. Read %d trees\n",n_trees);
+/*   list_io->fp_in_tree = fp_list_tree; */
+/*   Read_Tree_File(list_io); */
+/*   fclose(list_io->fp_in_tree); */
+/*   list_tree = list_io->treelist->tree; */
+/*   n_trees = list_io->treelist->list_size; */
+/*   PhyML_Printf("\n. Read %d trees\n",n_trees); */
 
-  For(i,n_trees) list_tree[i]->io = list_io;
+/*   For(i,n_trees) list_tree[i]->io = list_io; */
 
-  name_table = (char **)mCalloc(ref_tree->n_otu,sizeof(char **));
-  For(i,ref_tree->n_otu) name_table[i] = (char *)mCalloc(T_MAX_NAME,sizeof(char));
-
-
-  /* Sort translation table such that tree->noeud[i]->name == tree->io->short_tax_name[i] for all i */
-  Sort_Translation_Table(ref_tree);
-
-  ref_tree->io->z_scores = (phydbl *)mCalloc(ref_tree->n_otu,sizeof(phydbl));
-
-/*   Read_Taxa_Zscores(fp_coord,ref_tree); */
-
-  For(i,ref_tree->n_otu) ref_tree->io->z_scores[i] = Read_One_Taxon_Zscore(fp_coord,ref_tree->noeud[i]->name,ref_tree);
-
-  Normalize_Zscores(ref_tree);
-
-  /* Find matching tips */
-  For(i,n_trees)
-    {
-      Sort_Translation_Table(list_tree[i]);
-
-      For(j,ref_tree->n_otu) 
-	{
-	  For(k,ref_tree->n_otu) 
-	    {
-	      if(!strcmp(ref_io->long_tax_names[j],list_io->long_tax_names[k]))
-		{
-		  list_tree[i]->noeud[k]->ext_node = ref_tree->noeud[j];
-		  break;
-		}
-	    }
-	  if(k == ref_tree->n_otu)
-	    {
-	      PhyML_Printf("\n. Could not find matching tips for \"%s\" (tree %d)",ref_tree->noeud[j]->name,i);
-	      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
-	      Warn_And_Exit("");
-	    }
-	}
-    }
-
-  PhyML_Printf("\n. Getting ancestors"); fflush(NULL);
-  Update_Ancestors(ref_tree->n_root,ref_tree->n_root->v[0],ref_tree);
-  Update_Ancestors(ref_tree->n_root,ref_tree->n_root->v[1],ref_tree);
-
-  For(i,n_trees)   
-    {
-      Update_Ancestors(list_tree[i]->n_root,list_tree[i]->n_root->v[0],list_tree[i]);
-      Update_Ancestors(list_tree[i]->n_root,list_tree[i]->n_root->v[1],list_tree[i]);
-      list_tree[i]->n_root->anc = NULL;
-    }
-
-  PhyML_Printf("\n. Getting bipartitions"); fflush(NULL);
-
-  Free_Bip(ref_tree);
-  Alloc_Bip(ref_tree);
-  Get_Bip(ref_tree->noeud[0],
-	  ref_tree->noeud[0]->v[0],
-	  ref_tree);
-
-  For(i,n_trees) 
-    {
-      if(!(i%10))
-      PhyML_Printf("\n. Getting bipartition for tree %d",i);
-      Free_Bip(list_tree[i]);
-      Alloc_Bip(list_tree[i]);
-      Get_Bip(list_tree[i]->noeud[0],
-	      list_tree[i]->noeud[0]->v[0],
-	      list_tree[i]);
-    }
+/*   name_table = (char **)mCalloc(ref_tree->n_otu,sizeof(char **)); */
+/*   For(i,ref_tree->n_otu) name_table[i] = (char *)mCalloc(T_MAX_NAME,sizeof(char)); */
 
 
-  PhyML_Printf("\n. Getting tip ranks"); fflush(NULL);
-/*   Get_Tips_Y_Rank(ref_tree); */
+/*   /\* Sort translation table such that tree->noeud[i]->name == tree->io->short_tax_name[i] for all i *\/ */
+/*   TIPO_Sort_Translation_Table(ref_tree); */
 
-  Get_Tips_Y_Rank_From_Zscores(ref_tree);
+/*   ref_tree->io->z_scores = (phydbl *)mCalloc(ref_tree->n_otu,sizeof(phydbl)); */
 
-/*   PhyML_Printf("\n. Minimizing"); fflush(NULL); */
-/*   Minimize_Tip_Order_Score(n_trees,list_tree,ref_tree); */
+/* /\*   TIPO_Read_Taxa_Zscores(fp_coord,ref_tree); *\/ */
 
-  PhyML_Printf("\n. N_OTU = %d",ref_tree->n_otu);
-  Untangle_Tree(ref_tree);
-  PhyML_Printf("\n ** ORIGINAL %f",ref_tree->tip_order_score);
+/*   For(i,ref_tree->n_otu) ref_tree->io->z_scores[i] = TIPO_Read_One_Taxon_Zscore(fp_coord,ref_tree->noeud[i]->name,ref_tree); */
 
-  i = 0;
-  do
-    {
-/*       Get_Tips_Y_Rank_From_Zscores(ref_tree); */
-      Randomize_Tip_Y_Ranks(ref_tree);
-      Untangle_Tree(ref_tree);
-      PhyML_Printf("\n ** %f",ref_tree->tip_order_score);
-      i++;
-    }while(i < 5000);
+/*   TIPO_Normalize_Zscores(ref_tree); */
+
+/*   /\* Find matching tips *\/ */
+/*   For(i,n_trees) */
+/*     { */
+/*       TIPO_Sort_Translation_Table(list_tree[i]); */
+
+/*       For(j,ref_tree->n_otu)  */
+/* 	{ */
+/* 	  For(k,ref_tree->n_otu)  */
+/* 	    { */
+/* 	      if(!strcmp(ref_io->long_tax_names[j],list_io->long_tax_names[k])) */
+/* 		{ */
+/* 		  list_tree[i]->noeud[k]->ext_node = ref_tree->noeud[j]; */
+/* 		  break; */
+/* 		} */
+/* 	    } */
+/* 	  if(k == ref_tree->n_otu) */
+/* 	    { */
+/* 	      PhyML_Printf("\n. Could not find matching tips for \"%s\" (tree %d)",ref_tree->noeud[j]->name,i); */
+/* 	      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__); */
+/* 	      Warn_And_Exit(""); */
+/* 	    } */
+/* 	} */
+/*     } */
+
+/*   PhyML_Printf("\n. Getting ancestors"); fflush(NULL); */
+/*   Update_Ancestors(ref_tree->n_root,ref_tree->n_root->v[0],ref_tree); */
+/*   Update_Ancestors(ref_tree->n_root,ref_tree->n_root->v[1],ref_tree); */
+
+/*   For(i,n_trees)    */
+/*     { */
+/*       Update_Ancestors(list_tree[i]->n_root,list_tree[i]->n_root->v[0],list_tree[i]); */
+/*       Update_Ancestors(list_tree[i]->n_root,list_tree[i]->n_root->v[1],list_tree[i]); */
+/*       list_tree[i]->n_root->anc = NULL; */
+/*     } */
+
+/*   PhyML_Printf("\n. Getting bipartitions"); fflush(NULL); */
+
+/*   Free_Bip(ref_tree); */
+/*   Alloc_Bip(ref_tree); */
+/*   Get_Bip(ref_tree->noeud[0], */
+/* 	  ref_tree->noeud[0]->v[0], */
+/* 	  ref_tree); */
+
+/*   For(i,n_trees)  */
+/*     { */
+/*       if(!(i%10)) */
+/*       PhyML_Printf("\n. Getting bipartition for tree %d",i); */
+/*       Free_Bip(list_tree[i]); */
+/*       Alloc_Bip(list_tree[i]); */
+/*       Get_Bip(list_tree[i]->noeud[0], */
+/* 	      list_tree[i]->noeud[0]->v[0], */
+/* 	      list_tree[i]); */
+/*     } */
 
 
+/*   PhyML_Printf("\n. Getting tip ranks"); fflush(NULL); */
+/* /\*   TIPO_Get_Tips_Y_Rank(ref_tree); *\/ */
 
-  Test_Node_Table_Consistency(ref_tree);
+/*   TIPO_Get_Tips_Y_Rank_From_Zscores(ref_tree); */
 
-  ref_tree->ps_tree = DR_Make_Tdraw_Struct(ref_tree);
-  DR_Get_Tree_Coord(ref_tree);
-  For(j,ref_tree->n_otu) 
-    {
-      ref_tree->ps_tree->ycoord[j] = 
-	(ref_tree->noeud[j]->y_rank/ref_tree->n_otu)*
-	ref_tree->ps_tree->page_height;
-    }
+/* /\*   PhyML_Printf("\n. Minimizing"); fflush(NULL); *\/ */
+/* /\*   TIPO_Minimize_Tip_Order_Score(n_trees,list_tree,ref_tree); *\/ */
 
-  ps_tree  = (FILE *)fopen("order_tree.ps","w");
+/*   PhyML_Printf("\n. N_OTU = %d",ref_tree->n_otu); */
+/*   TIPO_Untangle_Tree(ref_tree); */
+/*   PhyML_Printf("\n ** ORIGINAL %f",ref_tree->tip_order_score); */
+
+/* /\*   i = 0; *\/ */
+/* /\*   do *\/ */
+/* /\*     { *\/ */
+/* /\* /\\*       TIPO_Get_Tips_Y_Rank_From_Zscores(ref_tree); *\\/ *\/ */
+/* /\*       TIPO_Randomize_Tip_Y_Ranks(ref_tree); *\/ */
+/* /\*       TIPO_Untangle_Tree(ref_tree); *\/ */
+/* /\*       PhyML_Printf("\n ** %f",ref_tree->tip_order_score); *\/ */
+/* /\*       i++; *\/ */
+/* /\*     }while(i < 5000); *\/ */
+
+/*   Test_Node_Table_Consistency(ref_tree); */
+
+/*   ref_tree->ps_tree = DR_Make_Tdraw_Struct(ref_tree); */
+/*   DR_Get_Tree_Coord(ref_tree); */
+/*   For(j,ref_tree->n_otu)  */
+/*     { */
+/*       ref_tree->ps_tree->ycoord[j] =  */
+/* 	(ref_tree->noeud[j]->y_rank/ref_tree->n_otu)* */
+/* 	ref_tree->ps_tree->page_height; */
+/*     } */
+
+/*   ps_tree  = (FILE *)fopen("order_tree.ps","w"); */
 
 
-  list_io->z_scores = (phydbl *)mCalloc(ref_tree->n_otu,sizeof(phydbl));
+/*   list_io->z_scores = (phydbl *)mCalloc(ref_tree->n_otu,sizeof(phydbl)); */
 
-  DR_Print_Postscript_Header(1,ps_tree);
-  For(i,n_trees)
-    {
-      tree = list_tree[i];
+/*   DR_Print_Postscript_Header(1,ps_tree); */
+/*   For(i,n_trees) */
+/*     { */
+/*       tree = list_tree[i]; */
 
-      Test_Node_Table_Consistency(tree);
-      tree->rates = RATES_Make_Rate_Struct(tree->n_otu);
-      RATES_Init_Rate_Struct(tree->rates,tree->n_otu);
-      MC_Least_Square_Node_Times(tree->e_root,tree);
-      MC_Adjust_Node_Times(tree);
-      RATES_Update_Cur_Bl(tree);
+/*       Test_Node_Table_Consistency(tree); */
+/*       tree->rates = RATES_Make_Rate_Struct(tree->n_otu); */
+/*       RATES_Init_Rate_Struct(tree->rates,tree->n_otu); */
+/*       TIMES_Least_Square_Node_Times(tree->e_root,tree); */
+/*       TIMES_Adjust_Node_Times(tree); */
+/*       RATES_Update_Cur_Bl(tree); */
 
-      tree->ps_tree = DR_Make_Tdraw_Struct(tree);
-      DR_Init_Tdraw_Struct(tree->ps_tree);
-      DR_Get_Tree_Box_Width(tree->ps_tree,tree);
-      Dist_To_Root(tree->n_root,tree);
-      tree->ps_tree->max_dist_to_root = DR_Get_Max_Dist_To_Root(tree);
+/*       tree->ps_tree = DR_Make_Tdraw_Struct(tree); */
+/*       DR_Init_Tdraw_Struct(tree->ps_tree); */
+/*       DR_Get_Tree_Box_Width(tree->ps_tree,tree); */
+/*       Dist_To_Root(tree->n_root,tree); */
+/*       tree->ps_tree->max_dist_to_root = DR_Get_Max_Dist_To_Root(tree); */
  
-      For(j,ref_tree->n_otu) tree->io->z_scores[j] = ref_tree->io->z_scores[tree->noeud[j]->ext_node->num];
-      Get_Tips_Y_Rank_From_Zscores(tree);
-      Untangle_Tree(tree);
-      For(j,ref_tree->n_otu) tree->ps_tree->ycoord[j] =  (tree->noeud[j]->y_rank/tree->n_otu)*tree->ps_tree->page_height;
+/*       For(j,ref_tree->n_otu) tree->io->z_scores[j] = ref_tree->io->z_scores[tree->noeud[j]->ext_node->num]; */
+/*       TIPO_Get_Tips_Y_Rank_From_Zscores(tree); */
+/*       TIPO_Untangle_Tree(tree); */
+/*       For(j,ref_tree->n_otu) tree->ps_tree->ycoord[j] =  (tree->noeud[j]->y_rank/tree->n_otu)*tree->ps_tree->page_height; */
 
-/*       For(j,ref_tree->n_otu) tree->ps_tree->ycoord[j] = ref_tree->ps_tree->ycoord[tree->noeud[j]->ext_node->num]; */
-      For(j,ref_tree->n_otu) list_io->z_scores[j] = ref_io->z_scores[tree->noeud[j]->ext_node->num];
+/* /\*       For(j,ref_tree->n_otu) tree->ps_tree->ycoord[j] = ref_tree->ps_tree->ycoord[tree->noeud[j]->ext_node->num]; *\/ */
+/*       For(j,ref_tree->n_otu) list_io->z_scores[j] = ref_io->z_scores[tree->noeud[j]->ext_node->num]; */
 
-      DR_Get_Y_Coord(YES,tree->ps_tree,tree);
-      DR_Get_X_Coord( NO,tree->ps_tree,tree);
+/*       DR_Get_Y_Coord(YES,tree->ps_tree,tree); */
+/*       DR_Get_X_Coord( NO,tree->ps_tree,tree); */
 
-      if(!i) DR_Print_Tree_Postscript(1,YES,ps_tree,tree);
-      else   DR_Print_Tree_Postscript(1, NO,ps_tree,tree);
-    }
-  DR_Print_Postscript_EOF(ps_tree);
-  fclose(ps_tree);
+/*       if(!i) DR_Print_Tree_Postscript(1,YES,ps_tree,tree); */
+/*       else   DR_Print_Tree_Postscript(1, NO,ps_tree,tree); */
+/*     } */
+/*   DR_Print_Postscript_EOF(ps_tree); */
+/*   fclose(ps_tree); */
 
 
-  ps_tree  = (FILE *)fopen("ref_tree.ps","w");
+/*   ps_tree  = (FILE *)fopen("ref_tree.ps","w"); */
 
-  DR_Print_Postscript_Header(1,ps_tree);
-  tree = ref_tree;
-  tree->rates = RATES_Make_Rate_Struct(tree->n_otu);
-  RATES_Init_Rate_Struct(tree->rates,tree->n_otu);
-  MC_Least_Square_Node_Times(tree->e_root,tree);
-  MC_Adjust_Node_Times(tree);
-  RATES_Update_Cur_Bl(tree);
-  DR_Init_Tdraw_Struct(tree->ps_tree);
-  DR_Get_Tree_Box_Width(tree->ps_tree,tree);
-  Dist_To_Root(tree->n_root,tree);
-  tree->ps_tree->max_dist_to_root = DR_Get_Max_Dist_To_Root(tree);
+/*   DR_Print_Postscript_Header(1,ps_tree); */
+/*   tree = ref_tree; */
+/*   tree->rates = RATES_Make_Rate_Struct(tree->n_otu); */
+/*   RATES_Init_Rate_Struct(tree->rates,tree->n_otu); */
+/*   TIMES_Least_Square_Node_Times(tree->e_root,tree); */
+/*   TIMES_Adjust_Node_Times(tree); */
+/*   RATES_Update_Cur_Bl(tree); */
+/*   DR_Init_Tdraw_Struct(tree->ps_tree); */
+/*   DR_Get_Tree_Box_Width(tree->ps_tree,tree); */
+/*   Dist_To_Root(tree->n_root,tree); */
+/*   tree->ps_tree->max_dist_to_root = DR_Get_Max_Dist_To_Root(tree); */
   
-  Get_Tips_Y_Rank_From_Zscores(tree);
-/*   Untangle_Tree(tree); */
-  For(j,tree->n_otu) tree->ps_tree->ycoord[j] =  (tree->noeud[j]->y_rank/tree->n_otu)*tree->ps_tree->page_height;
+/*   TIPO_Get_Tips_Y_Rank_From_Zscores(tree); */
+/* /\*   TIPO_Untangle_Tree(tree); *\/ */
+/*   For(j,tree->n_otu) tree->ps_tree->ycoord[j] =  (tree->noeud[j]->y_rank/tree->n_otu)*tree->ps_tree->page_height; */
 
-  DR_Get_Y_Coord(YES,tree->ps_tree,tree);
-  DR_Get_X_Coord( NO,tree->ps_tree,tree);
-  DR_Print_Tree_Postscript(1,YES,ps_tree,tree);
-  DR_Print_Postscript_EOF(ps_tree);
-  fclose(ps_tree);
+/*   DR_Get_Y_Coord(YES,tree->ps_tree,tree); */
+/*   DR_Get_X_Coord( NO,tree->ps_tree,tree); */
+/*   DR_Print_Tree_Postscript(1,YES,ps_tree,tree); */
+/*   DR_Print_Postscript_EOF(ps_tree); */
+/*   fclose(ps_tree); */
 
 
-  PhyML_Printf("\n");
+/*   PhyML_Printf("\n"); */
 
-  fclose(fp_ref_tree);
-  fclose(fp_list_tree);
-  fclose(fp_coord);
+/*   fclose(fp_ref_tree); */
+/*   fclose(fp_list_tree); */
+/*   fclose(fp_coord); */
+/* } */ 
+
+int TIPO_main(int argc, char **argv)
+{
+  t_tree *tree;
+  option *io;
+  FILE *fp_tree_file, *fp_coord_file;
+  int i;
+
+/*   Rprintf("%s\n",tree_file_name[0]); */
+/*   Rprintf("%s\n",coord_file_name[0]); */
+
+
+  srand(time(NULL)); rand();
+
+
+  fp_tree_file  = (FILE *)fopen(argv[1],"r");
+  fp_coord_file = (FILE *)fopen(argv[2],"r");
+
+  io = (option *)Make_Input();
+  io->fp_in_tree = fp_tree_file;
+  Read_Tree_File(io);
+  fclose(io->fp_in_tree);
+  tree = io->treelist->tree[0];
+  tree->io = io;
+
+  tree->io->z_scores = (phydbl *)mCalloc(tree->n_otu,sizeof(phydbl));
+
+  For(i,tree->n_otu) tree->io->z_scores[i] = TIPO_Read_One_Taxon_Zscore(fp_coord_file,tree->noeud[i]->name,1,tree);
+  TIPO_Normalize_Zscores(tree);
+  TIPO_Get_Min_Number_Of_Tip_Permut(tree);
+
+  For(i,tree->n_otu) tree->io->z_scores[i] = TIPO_Read_One_Taxon_Zscore(fp_coord_file,tree->noeud[i]->name,2,tree);
+  TIPO_Normalize_Zscores(tree);
+  TIPO_Get_Min_Number_Of_Tip_Permut(tree);
+
+  fclose(fp_tree_file);
+  fclose(fp_coord_file);
+}
+
+/*********************************************************/
+/* Z_scores have already been recorder here */
+void TIPO_Get_Min_Number_Of_Tip_Permut(t_tree *tree)
+{
+  int i;
+  
+  Update_Ancestors(tree->n_root,tree->n_root->v[0],tree);
+  Update_Ancestors(tree->n_root,tree->n_root->v[1],tree);
+
+  Free_Bip(tree);
+  Alloc_Bip(tree);
+  Get_Bip(tree->noeud[0],tree->noeud[0]->v[0],tree);
+
+  TIPO_Get_Tips_Y_Rank_From_Zscores(tree);
+
+  TIPO_Untangle_Tree(tree);
+
 }
 
 /*********************************************************/
 
-void Get_Tips_Y_Rank(t_tree *tree)
+void TIPO_Get_Tips_Y_Rank(t_tree *tree)
 {
   phydbl curr_rank;
 
   curr_rank = .0;
-  Get_Tips_Y_Rank_Pre(tree->n_root,tree->n_root->v[0],&curr_rank,tree);
-  Get_Tips_Y_Rank_Pre(tree->n_root,tree->n_root->v[1],&curr_rank,tree);
+  TIPO_Get_Tips_Y_Rank_Pre(tree->n_root,tree->n_root->v[0],&curr_rank,tree);
+  TIPO_Get_Tips_Y_Rank_Pre(tree->n_root,tree->n_root->v[1],&curr_rank,tree);
   
   if(curr_rank != tree->n_otu)
     {
@@ -268,7 +322,7 @@ void Get_Tips_Y_Rank(t_tree *tree)
 
 /*********************************************************/
 
-void Get_Tips_Y_Rank_Pre(t_node *a, t_node *d, phydbl *curr_rank, t_tree *tree)
+void TIPO_Get_Tips_Y_Rank_Pre(t_node *a, t_node *d, phydbl *curr_rank, t_tree *tree)
 {
   if(d->tax) 
     {
@@ -283,7 +337,7 @@ void Get_Tips_Y_Rank_Pre(t_node *a, t_node *d, phydbl *curr_rank, t_tree *tree)
 	{
 	  if(d->v[i] != a && d->b[i] != tree->e_root)
 	    {
-	      Get_Tips_Y_Rank_Pre(d,d->v[i],curr_rank,tree);
+	      TIPO_Get_Tips_Y_Rank_Pre(d,d->v[i],curr_rank,tree);
 	    }
 	}
     }
@@ -291,12 +345,12 @@ void Get_Tips_Y_Rank_Pre(t_node *a, t_node *d, phydbl *curr_rank, t_tree *tree)
 
 /*********************************************************/
 
-void Get_All_Y_Rank(t_tree *tree)
+void TIPO_Get_All_Y_Rank(t_tree *tree)
 {
   tree->sum_y_dist_sq = .0;
   tree->sum_y_dist    = .0;
-  Get_All_Y_Rank_Pre(tree->n_root,tree->n_root->v[0],tree);
-  Get_All_Y_Rank_Pre(tree->n_root,tree->n_root->v[1],tree);
+  TIPO_Get_All_Y_Rank_Pre(tree->n_root,tree->n_root->v[0],tree);
+  TIPO_Get_All_Y_Rank_Pre(tree->n_root,tree->n_root->v[1],tree);
   tree->n_root->y_rank = (tree->n_root->v[0]->y_rank+tree->n_root->v[1]->y_rank)/2.;
   tree->n_root->y_rank_min = MIN(tree->n_root->v[0]->y_rank_min,tree->n_root->v[1]->y_rank_min);
   tree->n_root->y_rank_max = MAX(tree->n_root->v[0]->y_rank_max,tree->n_root->v[1]->y_rank_max);
@@ -304,7 +358,7 @@ void Get_All_Y_Rank(t_tree *tree)
 
 /*********************************************************/
 
-void Get_All_Y_Rank_Pre(t_node *a, t_node *d, t_tree *tree)
+void TIPO_Get_All_Y_Rank_Pre(t_node *a, t_node *d, t_tree *tree)
 {
   if(d->tax) 
     {
@@ -322,7 +376,7 @@ void Get_All_Y_Rank_Pre(t_node *a, t_node *d, t_tree *tree)
 	{
 	  if(d->v[i] != a && d->b[i] != tree->e_root)
 	    {
-	      Get_All_Y_Rank_Pre(d,d->v[i],tree);
+	      TIPO_Get_All_Y_Rank_Pre(d,d->v[i],tree);
 	    }
 	}
 
@@ -349,7 +403,7 @@ void Get_All_Y_Rank_Pre(t_node *a, t_node *d, t_tree *tree)
 
 /*********************************************************/
 
-void Swap_One_Node(t_node *d, t_tree *tree)
+void TIPO_Swap_One_Node(t_node *d, t_tree *tree)
 {
   if(d->tax) return;
   else
@@ -389,7 +443,7 @@ void Swap_One_Node(t_node *d, t_tree *tree)
 
 /*********************************************************/
 
-void Minimize_Tip_Order_Score(int n_trees, t_tree **list_tree, t_tree *ref_tree)
+void TIPO_Minimize_Tip_Order_Score(int n_trees, t_tree **list_tree, t_tree *ref_tree)
 {
   int i,j;
   phydbl score,min_score,old_min_score;
@@ -400,15 +454,15 @@ void Minimize_Tip_Order_Score(int n_trees, t_tree **list_tree, t_tree *ref_tree)
 
   eps = 1.E-3;
   old_min_score = min_score = score = INT_MAX;
-  /*   Print_Tip_Ordered(ref_tree); */
+  /*   TIPO_Print_Tip_Ordered(ref_tree); */
 
   do
     {
       for(i=ref_tree->n_otu;i<2*ref_tree->n_otu-1;i++)
 	{	  
-	  Swap_One_Node(ref_tree->noeud[i],ref_tree);
-	  Get_Tips_Y_Rank(ref_tree);
-	  score = (phydbl)Untangle_Tree_List(n_trees,list_tree,ref_tree);
+	  TIPO_Swap_One_Node(ref_tree->noeud[i],ref_tree);
+	  TIPO_Get_Tips_Y_Rank(ref_tree);
+	  score = (phydbl)TIPO_Untangle_Tree_List(n_trees,list_tree,ref_tree);
 	  if(score == -1) 
 	    {
 	      return;
@@ -421,8 +475,8 @@ void Minimize_Tip_Order_Score(int n_trees, t_tree **list_tree, t_tree *ref_tree)
 	    }
 	  else 
 	    {
-	      Swap_One_Node(ref_tree->noeud[i],ref_tree);    
-	      Get_Tips_Y_Rank(ref_tree);
+	      TIPO_Swap_One_Node(ref_tree->noeud[i],ref_tree);    
+	      TIPO_Get_Tips_Y_Rank(ref_tree);
 /* 	      PhyML_Printf("\n+ Score = %f",score); */
 	    }
 	}
@@ -480,15 +534,15 @@ void Minimize_Tip_Order_Score(int n_trees, t_tree **list_tree, t_tree *ref_tree)
 
 /*********************************************************/
 
-void Print_Tip_Ordered(t_tree *tree)
+void TIPO_Print_Tip_Ordered(t_tree *tree)
 {
-  Print_Tip_Ordered_Pre(tree->n_root,tree->n_root->v[0],tree);
-  Print_Tip_Ordered_Pre(tree->n_root,tree->n_root->v[1],tree);
+  TIPO_Print_Tip_Ordered_Pre(tree->n_root,tree->n_root->v[0],tree);
+  TIPO_Print_Tip_Ordered_Pre(tree->n_root,tree->n_root->v[1],tree);
 }
 
 /*********************************************************/
 
-void Print_Tip_Ordered_Pre(t_node *a, t_node *d, t_tree *tree)
+void TIPO_Print_Tip_Ordered_Pre(t_node *a, t_node *d, t_tree *tree)
 {
   
   if(d->tax)
@@ -510,20 +564,20 @@ void Print_Tip_Ordered_Pre(t_node *a, t_node *d, t_tree *tree)
 	}
       if(d->v[dir1]->y_rank < d->v[dir2]->y_rank)
 	{
-	  Print_Tip_Ordered_Pre(d,d->v[dir1],tree);
-	  Print_Tip_Ordered_Pre(d,d->v[dir2],tree);
+	  TIPO_Print_Tip_Ordered_Pre(d,d->v[dir1],tree);
+	  TIPO_Print_Tip_Ordered_Pre(d,d->v[dir2],tree);
 	}
       else
 	{
-	  Print_Tip_Ordered_Pre(d,d->v[dir2],tree);
-	  Print_Tip_Ordered_Pre(d,d->v[dir1],tree);
+	  TIPO_Print_Tip_Ordered_Pre(d,d->v[dir2],tree);
+	  TIPO_Print_Tip_Ordered_Pre(d,d->v[dir1],tree);
 	}
     }
 }
 
 /*********************************************************/
 
-int Untangle_Tree_List(int n_trees, t_tree **list_tree, t_tree *ref_tree)
+int TIPO_Untangle_Tree_List(int n_trees, t_tree **list_tree, t_tree *ref_tree)
 {
   int i,j;
   int tree_score,score;
@@ -533,7 +587,7 @@ int Untangle_Tree_List(int n_trees, t_tree **list_tree, t_tree *ref_tree)
     {
 /*       PhyML_Printf("\n. Untangling tree %3d",i); */
       For(j,ref_tree->n_otu) list_tree[i]->noeud[j]->y_rank = list_tree[i]->noeud[j]->ext_node->y_rank;
-      tree_score = Untangle_Tree(list_tree[i]);
+      tree_score = TIPO_Untangle_Tree(list_tree[i]);
 /*       PhyML_Printf(" score = %3d",tree_score); */
       score += tree_score;
       if(tree_score < 0) 
@@ -547,7 +601,7 @@ int Untangle_Tree_List(int n_trees, t_tree **list_tree, t_tree *ref_tree)
 
 /*********************************************************/
 
-phydbl Untangle_Tree(t_tree *tree)
+phydbl TIPO_Untangle_Tree(t_tree *tree)
 {
   int conflict;
   int n_trials;
@@ -580,7 +634,7 @@ phydbl Untangle_Tree(t_tree *tree)
   
 
   /* Work out the y_rank values for every internal node given the external node ranks */
-  Get_All_Y_Rank(tree);
+  TIPO_Get_All_Y_Rank(tree);
 
   tree->tip_order_score = .0;
       
@@ -589,9 +643,10 @@ phydbl Untangle_Tree(t_tree *tree)
     {
       conflict= NO;
       /* Recusrssive untangling of the tree */ 
-      Untangle_Node(tree->n_root,tree->n_root->v[0],node_table,&conflict,tree);
-      Untangle_Node(tree->n_root,tree->n_root->v[1],node_table,&conflict,tree);
+      TIPO_Untangle_Node(tree->n_root,tree->n_root->v[0],node_table,&conflict,tree);
+      TIPO_Untangle_Node(tree->n_root,tree->n_root->v[1],node_table,&conflict,tree);
       n_trials++;
+
 
       if(n_trials > 2) /* We should have been able to untangle the tree after just one tree traversal */
 	{
@@ -604,8 +659,8 @@ phydbl Untangle_Tree(t_tree *tree)
 	  Test_Node_Table_Consistency(tree);
 	  tree->rates = RATES_Make_Rate_Struct(tree->n_otu);
 	  RATES_Init_Rate_Struct(tree->rates,tree->n_otu);
-	  MC_Least_Square_Node_Times(tree->e_root,tree);
-	  MC_Adjust_Node_Times(tree);
+	  TIMES_Least_Square_Node_Times(tree->e_root,tree);
+	  TIMES_Adjust_Node_Times(tree);
 	  RATES_Update_Cur_Bl(tree);
 
 	  DR_Print_Postscript_Header(1,ps_tree);
@@ -630,7 +685,7 @@ phydbl Untangle_Tree(t_tree *tree)
 
 /*********************************************************/
 
-void Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict, t_tree *tree)
+void TIPO_Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict, t_tree *tree)
 {
 
   if(d->tax) return;
@@ -657,13 +712,13 @@ void Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict, t_t
 	{
 	  if((d->v[i] != d->anc) && (d->b[i] != tree->e_root))
 	    {
-	      Untangle_Node(d,d->v[i],node_table,conflict,tree);
+	      TIPO_Untangle_Node(d,d->v[i],node_table,conflict,tree);
 	    }
 	}
       
       
       lca = NULL;
-      eps = 1./(phydbl)(2.*tree->n_otu);
+      eps = 1.E-10;
 
       /* Find direction fron node d ((d)escendant) to a ((a)ncestor) */
       For(i,3)
@@ -676,11 +731,10 @@ void Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict, t_t
 	}
 
       
-      /* y_rank_min is the minimum rank among all the rank of the tips that 
+      /* y_rank_min is the minimum rank among all the ranks of the tips that 
 	 can be reached when going from a to d */
       min = d->y_rank_min;
       max = d->y_rank_max;
-
 
       /* Get the list of tip nodes which ranks are between d->y_rank_min and d->y_rank_max */
       n_conflicts = 0;
@@ -700,7 +754,6 @@ void Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict, t_t
 	      break;
 	    }
 	}     
-
 
 
       beg = 0;
@@ -725,24 +778,32 @@ void Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict, t_t
 		 
 		  /* Move from conflict_tips[i] towards the root as long as the rank of the node lca is between min and max */
 		  lca = conflict_tips[i];
-		  while(lca->y_rank_min > min+eps && lca->y_rank_max < max-eps) lca = lca->anc;
+		  while(lca->y_rank_min > min && lca->y_rank_max < max) lca = lca->anc;
 
 
-		  if(lca->y_rank_min > max+eps && lca->y_rank_max > max+eps)
+		  if(lca->y_rank_min > max && lca->y_rank_max > max)
 		    {
 		      PhyML_Printf("\n. lca = %d (%d)",lca->num,lca==tree->n_root);
 		      PhyML_Printf("\n. Err in file %s at line %d",__FILE__,__LINE__);
 		      Warn_And_Exit("");
 		    }
-		  if(lca->y_rank_min < min-eps && lca->y_rank_max < min-eps)
+
+		  if(lca->y_rank_min < min && lca->y_rank_max < min)
 		    {
-		      PhyML_Printf("\n. lca = %d (%d)",lca->num,lca==tree->n_root);
+		      PhyML_Printf("\n. lca = %d (root ? %d) (tip ? %d)",lca->num,lca==tree->n_root,lca->tax);
+		      PhyML_Printf("\n. lca->y_rank_min = %f lca->y_rank_max = %f",lca->y_rank_min,lca->y_rank_max);
+		      PhyML_Printf("\n. min=%f max=%f",min,max);
 		      PhyML_Printf("\n. Err in file %s at line %d",__FILE__,__LINE__);
 		      Warn_And_Exit("");
 		    }
 		  if(lca->tax)
 		    {
 		      PhyML_Printf("\n. lca  (%d) cannot be a tip.",lca->num);
+		      PhyML_Printf("\n. lca->anc->y_rank=%f",lca->anc->y_rank);
+		      PhyML_Printf("\n. lca->y_rank=%f",lca->y_rank);
+		      PhyML_Printf("\n. lca->y_rank_min=%f lca=>y_rank_max=%f",lca->y_rank_min,lca->y_rank_max);
+		      PhyML_Printf("\n. min=%f max=%f",min,max);
+		      PhyML_Printf("\n. %p %p",lca,conflict_tips[i]);
 		      PhyML_Printf("\n. Err in file %s at line %d",__FILE__,__LINE__);
 		      Warn_And_Exit("");
 		    }
@@ -751,7 +812,8 @@ void Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict, t_t
 		  For(j,n_anc_conflicts) if(anc_conflict[j] == lca) break;
 		  if(j == n_anc_conflicts) /* if no, then update the tree score and the list of ancestral nodes at the origin of conflicts */
 		    {
-		      tree->tip_order_score+=1.;
+/* 		      tree->tip_order_score+=1.; */
+		      tree->tip_order_score+=(lca->y_rank_max-lca->y_rank_min);
 		      n_anc_conflicts++;
 		      anc_conflict = (t_node **)realloc(anc_conflict,n_anc_conflicts*sizeof(t_node *));
 		      anc_conflict[n_anc_conflicts-1] = lca;
@@ -766,7 +828,10 @@ void Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict, t_t
 		  if(lca->y_rank > d->y_rank)
 		    {
 		      end--;
-		      max-=1.;
+/* 		      max-=1.; */
+		      max = conflict_tips[end-1]->y_rank;
+/* 		      printf("\n. max=%f %f",max,conflict_tips[end-1]->y_rank); */
+
 		      for(j=i;j<n_conflicts-1;j++)			
 			{
 /* 			  PhyML_Printf("\n+ Moved (%d,%d) from (%f,%f)", */
@@ -789,7 +854,10 @@ void Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict, t_t
 		  else
 		    {
 		      beg++;
-		      min+=1.;
+/* 		      min+=1.; */
+		      min = conflict_tips[beg]->y_rank;
+/* 		      printf("\n. min=%f %f",min,conflict_tips[beg]->y_rank); */
+
 		      for(j=i;j>0;j--)
 			{
 /* 			  PhyML_Printf("\n- Moved (%d,%d) from (%f,%f)", */
@@ -817,7 +885,7 @@ void Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict, t_t
 
 
 		  /* Update internal nodes y ranks */
-		  Get_All_Y_Rank(tree);
+		  TIPO_Get_All_Y_Rank(tree);
 
 		  break;
 		}
@@ -850,7 +918,7 @@ void Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict, t_t
 
 /*********************************************************/
 
-int Check_Tip_Ranks(t_tree *tree)
+int TIPO_Check_Tip_Ranks(t_tree *tree)
 {
   int i,j;
   phydbl eps;
@@ -872,7 +940,7 @@ int Check_Tip_Ranks(t_tree *tree)
 
 /*********************************************************/
 
-void Read_Taxa_Zscores(FILE *fp_coord, t_tree *tree)
+void TIPO_Read_Taxa_Zscores(FILE *fp_coord, t_tree *tree)
 {
   char *name,*line;
   phydbl z;
@@ -887,7 +955,7 @@ void Read_Taxa_Zscores(FILE *fp_coord, t_tree *tree)
 
   do
     {
-      if(fscanf(fp_coord,"%s\t%f\n",name,&z) == EOF) break;
+      if(fscanf(fp_coord,"%s\t%lf\n",name,&z) == EOF) break;
       PhyML_Printf("\n. Read %s. Z-score: %f",name,z);
 
       For(i,tree->n_otu) if(!strcmp(tree->io->long_tax_names[i],name)) break;
@@ -902,13 +970,13 @@ void Read_Taxa_Zscores(FILE *fp_coord, t_tree *tree)
       tree->io->z_scores[i] = z;
       
     }while(1);
-	
+
   Free(name);
 }
 
 /*********************************************************/
 
-void Read_Taxa_Coordinates(FILE *fp_coord, t_tree *tree)
+void TIPO_Read_Taxa_Coordinates(FILE *fp_coord, t_tree *tree)
 {
   char *name,*line;
   phydbl lon, lat;
@@ -925,7 +993,7 @@ void Read_Taxa_Coordinates(FILE *fp_coord, t_tree *tree)
 
   do
     {
-      if(fscanf(fp_coord,"%s\t%f\t%f\n",name,&lat,&lon) == EOF) break;
+      if(fscanf(fp_coord,"%s\t%lf\t%lf\n",name,&lat,&lon) == EOF) break;
       PhyML_Printf("\n. Read %s %f %f",name,lat,lon);
 
       For(i,tree->n_otu) if(!strcmp(tree->io->long_tax_names[i],name)) break;
@@ -947,31 +1015,49 @@ void Read_Taxa_Coordinates(FILE *fp_coord, t_tree *tree)
 
 /*********************************************************/
 
-void Get_Tips_Y_Rank_From_Zscores(t_tree *tree)
+void TIPO_Get_Tips_Y_Rank_From_Zscores(t_tree *tree)
 {
   int i,j;
 
   For(i,tree->n_otu) tree->noeud[i]->y_rank = .0;
 
-  For(i,tree->n_otu-1)
-    {
-      for(j=i+1;j<tree->n_otu;j++)
-	{
-	  if(tree->io->z_scores[i] > tree->io->z_scores[j])
-	    {
-	      tree->noeud[i]->y_rank += 1.0;
-	    }
-	  else
-	    {
-	      tree->noeud[j]->y_rank += 1.0;
-	    }
-	}
-    }
+  /* Randomization in order to avoid ties */
+  For(i,tree->n_otu) tree->io->z_scores[i] += Rnorm(0.0,0.001);
+
+  For(i,tree->n_otu) tree->noeud[i]->y_rank = tree->io->z_scores[i];
+
+
+/*   For(i,tree->n_otu) tree->noeud[i]->y_rank = .0; */
+
+/*   For(i,tree->n_otu-1) */
+/*     { */
+/*       for(j=i+1;j<tree->n_otu;j++) */
+/* 	{ */
+/* 	  if(tree->io->z_scores[i] > tree->io->z_scores[j]) */
+/* 	    { */
+/* 	      tree->noeud[i]->y_rank += 1.0; */
+/* 	    } */
+/* 	  else */
+/* 	  if(tree->io->z_scores[i] < tree->io->z_scores[j]) */
+/* 	    { */
+/* 	      tree->noeud[j]->y_rank += 1.0; */
+/* 	    } */
+/* 	  else */
+/* 	    { */
+/* 	      PhyML_Printf("\n. Ties not allowed.\n"); */
+/* 	      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__); */
+/* 	      Warn_And_Exit(""); */
+/* 	    } */
+/* 	} */
+/*     } */
+
+/*   For(i,tree->n_otu) printf("- %f\n",tree->noeud[i]->y_rank); */
+
 }
 
 /*********************************************************/
 /* Sort translation table such that tree->noeud[i]->name == tree->io->short_tax_name[i] for all i */
-void  Sort_Translation_Table(t_tree *tree)
+void  TIPO_Sort_Translation_Table(t_tree *tree)
 {
   int i,j;
   char *s;
@@ -1001,7 +1087,7 @@ void  Sort_Translation_Table(t_tree *tree)
 
 /*********************************************************/
 
-void Randomize_Tip_Y_Ranks(t_tree *tree)
+void TIPO_Randomize_Tip_Y_Ranks(t_tree *tree)
 {
 
   int i;
@@ -1022,7 +1108,7 @@ void Randomize_Tip_Y_Ranks(t_tree *tree)
 
 /*********************************************************/
 
-phydbl Read_One_Taxon_Zscore(FILE *fp_coord, char *seqname_qry, t_tree *tree)
+phydbl TIPO_Read_One_Taxon_Zscore(FILE *fp_coord, char *seqname_qry, int col, t_tree *tree)
 {
   char *line;
   phydbl zscore;
@@ -1040,11 +1126,11 @@ phydbl Read_One_Taxon_Zscore(FILE *fp_coord, char *seqname_qry, t_tree *tree)
   fgets(line,T_MAX_LINE,fp_coord);
   Free(line);
 
-
   do
     {
-      if(fscanf(fp_coord,"%s\t%s\t%f\t%f\t%d\n",seqname,place,&lat,&lon,&year) == EOF)
-/*       if(fscanf(fp_coord,"%s\t%s\t%f\t%f\n",seqname,place,&lat,&lon) == EOF) */
+/*       if(fscanf(fp_coord,"%s\t%s\t%lf\t%lf\t%d\n",seqname,place,&lat,&lon,&year) == EOF) */
+/*       if(fscanf(fp_coord,"%s\t%s\t%lf\t%lf\n",seqname,place,&lat,&lon) == EOF) */
+      if(fscanf(fp_coord,"%s\t%lf\t%lf\n",seqname,&lat,&lon) == EOF)
 	{
 	  PhyML_Printf("\n. Could not find sequence '%s' in coordinate file",seqname_qry);
 	  PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
@@ -1056,19 +1142,20 @@ phydbl Read_One_Taxon_Zscore(FILE *fp_coord, char *seqname_qry, t_tree *tree)
       
     }while(1);
 	
-  PhyML_Printf("\n. Found %s %s @ %f %f",seqname,place,lat,lon);
+/*   PhyML_Printf("\n. Found %20s %s @ %10.2f %10.2f. Recording %10.2f",seqname,place,lat,lon,(col==1)?lat:lon); */
 
   Free(seqname);
   Free(place);
-
-  return lat;
-/*   return lon; */
+  
+  if(col == 1)      return lat;
+  else if(col == 2) return lon;
+  else              return -1.;
 
 }
 
 /*********************************************************/
 
-void Normalize_Zscores(t_tree *tree)
+void TIPO_Normalize_Zscores(t_tree *tree)
 {
   int i;
   phydbl min_z,max_z;
@@ -1097,4 +1184,3 @@ void Normalize_Zscores(t_tree *tree)
 
 /*********************************************************/
 
-#endif

@@ -1,38 +1,83 @@
-#include "utilities.h"
-#include "rates.h"
-#include "eigen.h"
-#include "numeric.h"
+
+#include "rwrapper.h"
+/* #include <R.h> */
+/* #include <Rmath.h> */
 
 /*********************************************************/
 /*********************************************************/
 /*********************************************************/
 /*********************************************************/
 /*********************************************************/
-/*********************************************************/
 
-void RWRAPPER_Log_Dnorm(phydbl *x, phydbl *mean, phydbl *sd,  phydbl *res)
+void RWRAPPER_Min_Number_Of_Tip_Permut(char **tree_file_name, char **coord_file_name, phydbl *res)
 {
-  *res = Log_Dnorm(*x,*mean,*sd);
+  t_tree *tree;
+  option *io;
+  FILE *fp_tree_file, *fp_coord_file;
+  int i;
+
+
+  srand(time(NULL)); rand();
+
+/*   Rprintf("%s\n",tree_file_name[0]); */
+/*   Rprintf("%s\n",coord_file_name[0]); */
+
+  fp_tree_file  = (FILE *)fopen(tree_file_name[0],"r");
+  fp_coord_file = (FILE *)fopen(coord_file_name[0],"r");
+
+  io = (option *)Make_Input();
+  io->fp_in_tree = fp_tree_file;
+  Read_Tree_File(io);
+  fclose(io->fp_in_tree);
+  tree = io->treelist->tree[0];
+  tree->io = io;
+
+  tree->io->z_scores = (phydbl *)mCalloc(tree->n_otu,sizeof(phydbl));
+
+  For(i,tree->n_otu) tree->io->z_scores[i] = TIPO_Read_One_Taxon_Zscore(fp_coord_file,tree->noeud[i]->name,1,tree);
+  TIPO_Normalize_Zscores(tree);
+  TIPO_Get_Min_Number_Of_Tip_Permut(tree);
+  res[0] = (phydbl)tree->tip_order_score;
+
+/*   Rprintf("\n>> y score: %f",tree->tip_order_score); */
+
+  For(i,tree->n_otu) tree->io->z_scores[i] = TIPO_Read_One_Taxon_Zscore(fp_coord_file,tree->noeud[i]->name,2,tree);
+  TIPO_Normalize_Zscores(tree);
+  TIPO_Get_Min_Number_Of_Tip_Permut(tree);
+  res[1] = (phydbl)tree->tip_order_score;
+
+/*   Rprintf("\n>> x score: %f",tree->tip_order_score); */
+
+  fclose(fp_tree_file);
+  fclose(fp_coord_file);
+
 }
 
 /*********************************************************/
 
-void RWRAPPER_Rnorm_Trunc(phydbl *mean, phydbl *sd, phydbl *min, phydbl *max, phydbl *res)
-{
-  *res = Rnorm_Trunc(*mean,*sd,*min,*max);
-}
+/* void RWRAPPER_Log_Dnorm(phydbl *x, phydbl *mean, phydbl *sd,  phydbl *res) */
+/* { */
+/*   *res = Log_Dnorm(*x,*mean,*sd); */
+/* } */
 
-void  RWRAPPER_Cholesky_Decomp(double *A, int *dim)
-{
-  Cholesky_Decomp(A,*dim);
-}
+/* /\*********************************************************\/ */
+
+/* void RWRAPPER_Rnorm_Trunc(phydbl *mean, phydbl *sd, phydbl *min, phydbl *max, phydbl *res) */
+/* { */
+/*   *res = Rnorm_Trunc(*mean,*sd,*min,*max); */
+/* } */
+
+/* void  RWRAPPER_Cholesky_Decomp(double *A, int *dim) */
+/* { */
+/*   Cholesky_Decomp(A,*dim); */
+/* } */
 
 /*********************************************************/
 
-void RWRAPPER_Bivariate_Normal_Density(phydbl *x, phydbl *y, phydbl *mux, phydbl *muy, phydbl *sdx, phydbl *sdy, phydbl *rho, phydbl *dens)
-{
-  *dens = Bivariate_Normal_Density(*x,*y,*mux,*muy,*sdx,*sdy,*rho);
-}
+/* void RWRAPPER_Bivariate_Normal_Density(phydbl *x, phydbl *y, phydbl *mux, phydbl *muy, phydbl *sdx, phydbl *sdy, phydbl *rho, phydbl *dens) */
+/* { */
+/*   *dens = Bivariate_Normal_Density(*x,*y,*mux,*muy,*sdx,*sdy,*rho); */
+/* } */
 
 /* /\*********************************************************\/ */
 
@@ -89,4 +134,5 @@ void RWRAPPER_Bivariate_Normal_Density(phydbl *x, phydbl *y, phydbl *mux, phydbl
 /* } */
 
 /* /\*********************************************************\/ */
+
 

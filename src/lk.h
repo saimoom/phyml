@@ -10,8 +10,8 @@ the GNU public licence.  See http://www.opensource.org for details.
 
 */
 
-#ifndef ML_H
-#define ML_H
+#ifndef LK_H
+#define LK_H
 
 #include "utilities.h"
 #include "optimiz.h"

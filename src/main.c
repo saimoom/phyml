@@ -441,7 +441,7 @@ int main(int argc, char **argv)
 #include "tiporder.h"
 int main(int argc, char **argv)
 {
-  TIPORDER_main(argc, argv);
+  TIPO_main(argc, argv);
   return 1;
 }
 
