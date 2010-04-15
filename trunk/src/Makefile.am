@@ -9,6 +9,9 @@
 
 DEFS=-DUNIX -D$(PROG) -DDEBUG
 
+
+
+
 if WANT_TIMES
 bin_PROGRAMS = phytime
 PROG = TIMES
@@ -17,12 +20,16 @@ if WANT_PART
 bin_PROGRAMS = part
 PROG = PART
 else
+if WANT_RWRAP
+PROG = RWRAP
+else
 if WANT_TIPORDER
 bin_PROGRAMS = tiporder
 PROG = TIPORDER
 else
 bin_PROGRAMS = phyml
 PROG = PHYML
+endif
 endif
 endif
 endif
@@ -49,8 +56,38 @@ draw.c draw.h\
 rates.c rates.h\
 mcmc.c mcmc.h\
 stats.c stats.h\
-mg.c mg.h
+mg.c mg.h\
 phytime_LDADD = -lm
+else 
+if WANT_RWRAP
+lib_LTLIBRARIES = librwrap.la
+librwrap_la_SOURCES = main.c \
+utilities.c utilities.h\
+optimiz.c optimiz.h\
+lk.c lk.h\
+bionj.c bionj.h\
+models.c models.h\
+free.c free.h\
+help.c help.h\
+simu.c simu.h\
+eigen.c eigen.h\
+pars.c pars.h\
+alrt.c alrt.h\
+interface.c interface.h\
+cl.c cl.h\
+mg.c mg.h\
+spr.c spr.h\
+m4.c m4.h\
+draw.c draw.h\
+mcmc.c mcmc.h\
+stats.c stats.h\
+times.c times.h\
+tiporder.c tiporder.h\
+rates.c rates.h\
+rwrapper.c rwrapper.h
+librwrap_la_LIBADD = -lm
+librwrap_la_LDFLAGS = -I/Library/Frameworks/R.framework/Resources/include -I/Library/Frameworks/R.framework/Resources/include/i386 -I/usr/local/include -flat_namespace -undefined suppress -shared -module
+librwrap_la_CFLAGS=-arch i386 -std=gnu99 -fPIC
 else 
 if WANT_PART
 part_SOURCES = main.c \
@@ -120,6 +157,7 @@ mpi_boot.c  mpi_boot.h\
 stats.c stats.h\
 mg.c mg.h
 phyml_LDADD = -lm
+endif
 endif
 endif
 endif

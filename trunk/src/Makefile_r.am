@@ -1,5 +1,5 @@
 bin_PROGRAMS = rwrapper
-PROG = RWRAPPER
+PROG = RWRAP
 
 rwrapper_SOURCES = main.c utilities.c optimiz.c lk.c bionj.c models.c free.c\
 help.c simu.c eigen.c pars.c alrt.c interface.c cl.c spr.c draw.c rates.c rwrapper.c numeric.c mcmc.c

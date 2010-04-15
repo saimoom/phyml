@@ -31,30 +31,27 @@ the GNU public licence. See http://www.opensource.org for details.
 #include "rates.h"
 #include "mcmc.h"
 #include "stats.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <stdio.h>
 
-void Get_Tips_Y_Rank(t_tree *tree);
-void Get_Tips_Y_Rank_Pre(t_node *a, t_node *d, phydbl *curr_rank, t_tree *tree);
-void Get_All_Y_Rank(t_tree *tree);
-void Get_All_Y_Rank_Pre(t_node *a, t_node *d, t_tree *tree);
-void Swap_One_Node(t_node *d, t_tree *tree);
-void Minimize_Tip_Order_Score(int n_trees, t_tree **list_tree, t_tree *ref_tree);
-void Print_Tip_Ordered(t_tree *ref_tree);
-void Print_Tip_Ordered_Pre(t_node *a, t_node *d, t_tree *ref_tree);
-phydbl Untangle_Tree(t_tree *tree);
-void Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict, t_tree *tree);
-int Untangle_Tree_List(int n_trees, t_tree **list_tree, t_tree *ref_tree);
-int Check_Tip_Ranks(t_tree *tree);
-void Read_Taxa_Coordinates(FILE *fp_coord, t_tree *tree);
-void Get_Tips_Y_Rank_From_Zscores(t_tree *tree);
-void Init_Tip_Num(t_tree *tree);
-void Read_Taxa_Zscores(FILE *fp_coord, t_tree *tree);
-void  Sort_Translation_Table(t_tree *tree);
-void Randomize_Tip_Y_Ranks(t_tree *tree);
-phydbl Read_One_Taxon_Zscore(FILE *fp, char *seqname_qry, t_tree *tree);
-void Normalize_Zscores(t_tree *tree);
-
+void TIPO_Get_Tips_Y_Rank(t_tree *tree);
+void TIPO_Get_Tips_Y_Rank_Pre(t_node *a, t_node *d, phydbl *curr_rank, t_tree *tree);
+void TIPO_Get_All_Y_Rank(t_tree *tree);
+void TIPO_Get_All_Y_Rank_Pre(t_node *a, t_node *d, t_tree *tree);
+void TIPO_Swap_One_Node(t_node *d, t_tree *tree);
+void TIPO_Minimize_Tip_Order_Score(int n_trees, t_tree **list_tree, t_tree *ref_tree);
+void TIPO_Print_Tip_Ordered(t_tree *ref_tree);
+void TIPO_Print_Tip_Ordered_Pre(t_node *a, t_node *d, t_tree *ref_tree);
+phydbl TIPO_Untangle_Tree(t_tree *tree);
+void TIPO_Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict, t_tree *tree);
+int TIPO_Untangle_Tree_List(int n_trees, t_tree **list_tree, t_tree *ref_tree);
+int TIPO_Check_Tip_Ranks(t_tree *tree);
+void TIPO_Read_Taxa_Coordinates(FILE *fp_coord, t_tree *tree);
+void TIPO_Get_Tips_Y_Rank_From_Zscores(t_tree *tree);
+void TIPO_Init_Tip_Num(t_tree *tree);
+void TIPO_Read_Taxa_Zscores(FILE *fp_coord, t_tree *tree);
+void  TIPO_Sort_Translation_Table(t_tree *tree);
+void TIPO_Randomize_Tip_Y_Ranks(t_tree *tree);
+phydbl TIPO_Read_One_Taxon_Zscore(FILE *fp, char *seqname_qry, int col, t_tree *tree);
+void TIPO_Normalize_Zscores(t_tree *tree);
+void TIPO_Get_Min_Number_Of_Tip_Permut(t_tree *tree);
 
 #endif

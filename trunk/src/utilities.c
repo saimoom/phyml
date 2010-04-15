@@ -1410,7 +1410,7 @@ int Get_Token(FILE *fp, char *token)
       c = fgetc(fp);
       if(c == EOF) return 0;
       *(token+1) = '\0';
-      return;
+      return 1;
     }
 
   if(c == '[')
