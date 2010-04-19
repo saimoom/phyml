@@ -35,7 +35,7 @@ AC_CHECK_FUNCS([floor pow rint sqrt strchr strstr])
 
 
 case "${host}" in
-*apple*)
+*darwin*)
 ARCH_flag=""
     case "${host}" in
       i386*)
@@ -53,6 +53,10 @@ ARCH_flag=""
     esac
 ;;
 esac
+
+echo "\n\n\n"
+echo ${host}
+echo "\n\n\n"
 
 CFLAGS="-O3 -fomit-frame-pointer -funroll-loops ${ARCH_flag}"
 dnl CFLAGS="-O3 -Wfloat-equal -fomit-frame-pointer -funroll-loops"
