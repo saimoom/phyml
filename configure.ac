@@ -34,47 +34,46 @@ AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([floor pow rint sqrt strchr strstr])
 
 
-
-# Added for cross-compilation (thanks to Alban Mancheron)
-MACOS_BASE="/Developer"
-AC_ARG_WITH([macos_base],
-            [AS_HELP_STRING([--with-macos-base@<:@=MACOS_BASE@:>@],
-                            Path to the MACOS base directory @<:@/Developer@:>@)],
-            [MACOS_BASE="$withval"],
-            [])
- 
-MACOS_SDK="$MACOS_BASE/SDKs/MacOSX10.4u.sdk/"
-AC_ARG_WITH([macos_sdk],
-            [AS_HELP_STRING([--with-macos-sdk@<:@=MACOS_SDK@:>@],
-                            Path to the MACOS SDKs directory @<:@$(MACOS_BASE)/SDKs/MacOSX10.4u.sdk/@:>@)],
-            [MACOS_SDK="$withval"],
-            [])
-
-case $host_os in
-  darwin*)  CFLAGS+=" -I$MACOS_SDK/usr/include/gcc/                                    \
-                      -I$MACOS_BASE/include/                                           \
-                      -arch i386 -arch ppc                                             \
-                      -Wno-long-long -Wno-variadic-macros";;
-dnl             LDFLAGS+=" -arch i386 -arch ppc";;
-  mingw32*) CFLAGS+=" -std=gnu99";;
-  linux*|*) :;;
+case "${host}" in
+*apple*)
+ARCH_flag=""
+    case "${host}" in
+      i386*)
+        ARCH_flag="-arch i386"
+      ;;
+      ppc64*)
+        ARCH_flag="-arch ppc64"
+      ;;
+      ppc*)
+        ARCH_flag="-arch ppc"
+      ;;
+      x86_64*)
+        ARCH_flag="-arch x86_64"
+      ;;
+    esac
+;;
 esac
-# End of cross-compilation macros
 
-CFLAGS="-O3 -fomit-frame-pointer -funroll-loops"
+CFLAGS="-O3 -fomit-frame-pointer -funroll-loops ${ARCH_flag}"
 dnl CFLAGS="-O3 -Wfloat-equal -fomit-frame-pointer -funroll-loops"
 dnl CFLAGS="-O3 -Wfloat-equal"
 dnl CFLAGS="-g"
 
+LDFLAGS="${ARGC_flag}"
+
+AC_PROG_LIBTOOL
 
 AC_ARG_ENABLE([tiporder],[  --enable-tiporder    Compile tiporder],[tiporder=yes])
 AM_CONDITIONAL([WANT_TIPORDER], [test "$tiporder" = yes]) 
 
-AC_ARG_ENABLE([mc],[  --enable-mc    Compile mc],[mc=yes])
-AM_CONDITIONAL([WANT_MC], [test "$mc" = yes]) 
+AC_ARG_ENABLE([times],[  --enable-times    Compile PhyTime],[times=yes])
+AM_CONDITIONAL([WANT_TIMES], [test "$times" = yes]) 
 
-AC_ARG_ENABLE([part],[  --enable-part    Compile part],[part=yes])
+AC_ARG_ENABLE([part],[  --enable-part    Compile Part],[part=yes])
 AM_CONDITIONAL([WANT_PART], [test "$part" = yes]) 
+
+AC_ARG_ENABLE([rwrap],[  --enable-rwrap    Compile Rwrap],[rwrap=yes])
+AM_CONDITIONAL([WANT_RWRAP], [test "$rwrap" = yes]) 
 
 AC_CONFIG_FILES([Makefile src/Makefile])
 AC_OUTPUT
