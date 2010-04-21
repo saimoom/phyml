@@ -225,7 +225,7 @@ typedef	double phydbl;
 #define TAN tan
 #define SMALL DBL_MIN
 #define BIG  DBL_MAX
-#define SMALL_PIJ 1.E-10
+#define SMALL_PIJ 1.E-20
 #ifndef MC
 #define BL_MIN 1.E-8
 #define BL_MAX 100.
@@ -681,6 +681,8 @@ typedef struct __Option { /* mostly used in 'help.c' */
   char                  *out_ps_file; /* name of the file in which tree(s) is(are) written */
   FILE                    *fp_out_ps;
 
+  FILE               *fp_aa_rate_mat;
+
   char              *clade_list_file;
   
   int                       datatype; /* 0->DNA, 1->AA */
@@ -723,6 +725,8 @@ typedef struct __Option { /* mostly used in 'help.c' */
   phydbl                    *z_scores;
   phydbl                         *lat;
   phydbl                         *lon;
+  
+  int                 boot_prog_every;
 }option;
 
 /*********************************************************/

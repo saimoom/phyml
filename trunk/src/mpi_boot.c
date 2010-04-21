@@ -158,7 +158,7 @@ fflush(stderr);
       if(tree->io->in_tree == 2)
         {
           rewind(tree->io->fp_in_tree);
-          boot_tree = Read_Tree_File(tree->io->fp_in_tree);
+          boot_tree = Read_Tree_File(tree->io);
         }
       else
         {
@@ -213,7 +213,7 @@ fflush(stderr);
             Lk(boot_tree);
         }
 
-      Free_Bip(boo_tree);
+      Free_Bip(boot_tree);
 
       Alloc_Bip(boot_tree);
 
@@ -221,11 +221,8 @@ fflush(stderr);
               boot_tree->noeud[0]->v[0],
               boot_tree);
 
-      if(!tree->io->collapse_boot) 
-        Compare_Bip(tree,boot_tree);
-      else
-        Compare_Bip_On_Existing_Edges(1,tree,boot_tree);
-
+      Compare_Bip(tree,boot_tree);
+      
       Br_Len_Involving_Invar(boot_tree);
 
       if(tree->io->print_boot_trees)
@@ -270,7 +267,7 @@ fflush(stderr);
 
               bootRecv++;
               PhyML_Printf(".");
-              if(!((bootRecv)%20)) {
+              if(!((bootRecv)%tree->io->boot_prog_every)) {
                 PhyML_Printf("] %4d/%4d\n  ",bootRecv,tree->mod->bootstrap);
                 if(bootRecv != tree->mod->bootstrap) PhyML_Printf("[");
               }
@@ -314,7 +311,7 @@ fflush(stdout);
   Free (score_par);
 
   if (Global_myRank == 0)
-    if(((bootRecv)%20)) PhyML_Printf("] %4d/%4d\n ",bootRecv,tree->mod->bootstrap);
+    if(((bootRecv)%tree->io->boot_prog_every)) PhyML_Printf("] %4d/%4d\n ",bootRecv,tree->mod->bootstrap);
 
   tree->lock_topo = 1; /* TopoLOGy should not be modified afterwards */
 

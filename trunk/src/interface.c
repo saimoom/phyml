@@ -56,7 +56,7 @@ void Launch_Interface(option *io)
 	}
     }while(!io->ready_to_go);
 
-
+  
   if(io->in_tree == 2)
     {
       PhyML_Printf("\n. Enter the name of the input tree file > ");
@@ -64,6 +64,21 @@ void Launch_Interface(option *io)
       io->fp_in_tree = Openfile(io->in_tree_file,0);
     }
 
+  if((io->mod->whichmodel == CUSTOMAA) && (io->datatype == AA))
+    {
+      char *filename;
+
+      filename = (char *)mCalloc(T_MAX_NAME,sizeof(char));	    
+
+      fflush(NULL);
+      PhyML_Printf("\n");
+      PhyML_Printf("\n. Enter the rate matrix file name > "); fflush(NULL);
+      Getstring_Stdin(filename);
+      io->fp_aa_rate_mat = Openfile(filename,0);
+      PhyML_Printf("\n");
+      Free(filename);
+      fflush(NULL);
+    }
 
   if((io->mod->s_opt->n_rand_starts)           && 
      (io->mod->s_opt->topo_search == NNI_MOVE) && 

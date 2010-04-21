@@ -1026,7 +1026,6 @@ void TIPO_Get_Tips_Y_Rank_From_Zscores(t_tree *tree)
 
   For(i,tree->n_otu) tree->noeud[i]->y_rank = tree->io->z_scores[i];
 
-
 /*   For(i,tree->n_otu) tree->noeud[i]->y_rank = .0; */
 
 /*   For(i,tree->n_otu-1) */
@@ -1159,6 +1158,9 @@ void TIPO_Normalize_Zscores(t_tree *tree)
 {
   int i;
   phydbl min_z,max_z;
+  phydbl eps;
+
+  eps = 1.E-10;
 
   min_z = FLT_MAX;
   For(i,tree->n_otu)
@@ -1168,7 +1170,7 @@ void TIPO_Normalize_Zscores(t_tree *tree)
 	  min_z = tree->io->z_scores[i];
 	}
     }
-
+  
   max_z = -FLT_MAX;
   For(i,tree->n_otu)
     {
@@ -1178,7 +1180,7 @@ void TIPO_Normalize_Zscores(t_tree *tree)
 	}
     }
 
-  For(i,tree->n_otu) tree->io->z_scores[i] = (tree->io->z_scores[i] - min_z)/(max_z-min_z); 
+  For(i,tree->n_otu) tree->io->z_scores[i] = (tree->io->z_scores[i] - min_z)/(max_z-min_z+eps); 
 
 }
 
