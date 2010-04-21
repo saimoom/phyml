@@ -76,7 +76,9 @@ void Read_Command_Line(option *io, int argc, char **argv)
       {"pars",              no_argument,NULL,47},
       {"quiet",             no_argument,NULL,48},
       {"version",           no_argument,NULL,49},
-      {"calibration",        required_argument,NULL,50},
+      {"calibration",       required_argument,NULL,50},
+      {"boot_progress_every", required_argument,NULL,51},
+      {"aa_rate_file",        required_argument,NULL,52},
       {0,0,0,0}
     };
 
@@ -87,6 +89,28 @@ void Read_Command_Line(option *io, int argc, char **argv)
       {
 	switch(c)
 	  {
+	  case 52:
+	    {
+	      char *s;
+	      s = (char *)mCalloc(T_MAX_FILE, sizeof(char));
+	      strcpy(s,optarg);
+	      io->fp_aa_rate_mat = Openfile(s,0);
+	      Free(s);
+	      break;
+	    }
+	  case 51:
+	    {
+	      io->boot_prog_every = atoi(optarg);
+	      if(io->boot_prog_every < 1)
+		{
+		  char choix;
+		  PhyML_Printf("\n. boot_progress_every must be an integer greater than 0.\n");
+		  PhyML_Printf("\n. Type any key to exit.\n");
+		  if(!scanf("%c",&choix)) Exit("\n");
+		  Exit("\n");
+		}
+	      break;
+	    }
 	  case 50:
 	    {
 	      strcpy(io->clade_list_file,optarg);

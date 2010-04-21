@@ -1909,7 +1909,7 @@ int Read_Nexus_Tree(char *token, nexparm *curr_parm, option *io)
 {
   io->treelist->tree = (t_tree **)realloc(io->treelist->tree,(io->treelist->list_size+1)*sizeof(t_tree *));
   io->tree = Read_Tree_File_Phylip(io->fp_in_tree);
-  if(!(io->treelist->list_size%10)) 
+  if(!(io->treelist->list_size%10) && io->treelist->list_size > 1) 
     {
       PhyML_Printf("\n. Reading tree %d",io->treelist->list_size);
       if(io->tree->n_root) PhyML_Printf(" (that is a rooted tree)");
@@ -3012,7 +3012,7 @@ t_tree *Read_Tree_File(option *io)
 	    io->treelist->tree = (t_tree **)realloc(io->treelist->tree,(io->treelist->list_size+1)*sizeof(t_tree *));
 	    io->tree = Read_Tree_File_Phylip(io->fp_in_tree);
 	    if(!io->tree) break;
-	    PhyML_Printf("\n. Reading tree %d",io->treelist->list_size+1);
+	    if(io->treelist->list_size > 1) PhyML_Printf("\n. Reading tree %d",io->treelist->list_size+1);
 	    io->treelist->tree[io->treelist->list_size] = io->tree;
 	    io->treelist->list_size++;
 	  }while(io->tree);
@@ -5952,7 +5952,7 @@ void Bootstrap(t_tree *tree)
 #ifndef QUIET
 fflush(stdout);
 #endif
-      if(!((replicate+1)%20))
+      if(!((replicate+1)%tree->io->boot_prog_every))
 	{
 	  PhyML_Printf("] %4d/%4d\n  ",replicate+1,tree->mod->bootstrap);
 	  if(replicate != tree->mod->bootstrap-1) PhyML_Printf("[");
@@ -5963,7 +5963,7 @@ fflush(stdout);
       Free_Model(boot_mod);
     }
 
-  if(((replicate)%20)) PhyML_Printf("] %4d/%4d\n ",replicate,tree->mod->bootstrap);
+  if(((replicate)%tree->io->boot_prog_every)) PhyML_Printf("] %4d/%4d\n ",replicate,tree->mod->bootstrap);
 
   tree->lock_topo = 1; /* Topology should not be modified afterwards */
 
@@ -6412,6 +6412,7 @@ void Set_Defaults_Input(option* io)
   io->colalias                   = YES;
   io->data_file_format           = PHYLIP;
   io->tree_file_format           = PHYLIP;
+  io->boot_prog_every            = 20;
 }
 
 /*********************************************************/

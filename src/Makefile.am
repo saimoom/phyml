@@ -9,9 +9,6 @@
 
 DEFS=-DUNIX -D$(PROG) -DDEBUG
 
-
-
-
 if WANT_TIMES
 bin_PROGRAMS = phytime
 PROG = TIMES

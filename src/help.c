@@ -122,6 +122,12 @@ void Usage()
 
   PhyML_Printf("\n");
 
+  PhyML_Printf("%s\n\t--aa_rate_file %sfilename%s\n",BOLD,LINE,FLAT);
+  PhyML_Printf("\t\t%sfilename%s is the name of the file that provides the amino acid substitution rate matrix in PAML format.\n",LINE,FLAT);
+  PhyML_Printf("\t\tIt is compulsory to use this option when analysing amino acid sequences with the `custom' model.\n");
+
+  PhyML_Printf("\n");
+
   PhyML_Printf("%s\n\t-f %se%s, %sm%s, or %sfA,fC,fG,fT%s\n",BOLD,LINE,BOLD,LINE,BOLD,LINE,FLAT);
   PhyML_Printf("\t\t%se%s : the character frequencies are determined as follows : \n",LINE,FLAT);
   PhyML_Printf("%s\t\t- %sNucleotide%s sequences: (Empirical) the equilibrium base frequencies are estimated by counting\n"
@@ -224,6 +230,12 @@ void Usage()
 
   PhyML_Printf("%s\n\t--quiet%s\n",BOLD,FLAT);
   PhyML_Printf("\t\t%sNo interactive question (for running in batch mode).\n",FLAT);
+
+  PhyML_Printf("\n");
+
+  PhyML_Printf("%s\n\t--boot_progress_display %snum%s (default=20)\n",BOLD,LINE,FLAT);
+  PhyML_Printf("\t\t%snum%s is the frequency at which the bootstrap progress bar will be updated.\n",LINE,FLAT);
+  PhyML_Printf("\t\tMust be an integer.\n");
 
   PhyML_Printf("\n");
 

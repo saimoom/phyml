@@ -655,6 +655,7 @@ void Optimize_Br_Len_Serie(t_node *a, t_node *d, t_edge *b_fcus, t_tree *tree, c
   l_max  = b_fcus->l;
   l_infb = BL_MIN;
   
+
   Br_Len_Brent(l_infa,l_max,l_infb,
 	       tree->mod->s_opt->min_diff_lk_local,
 	       b_fcus,tree,

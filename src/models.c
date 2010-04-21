@@ -2399,24 +2399,10 @@ void Init_Model(calign *data, model *mod, option *io)
 	  }
 	case CUSTOMAA :
 	  {
-	    FILE *fp;
-	    char *filename;
-
-	    filename = (char *)mCalloc(T_MAX_NAME,sizeof(char));
-	    
-	    fflush(NULL);
-	    PhyML_Printf("\n");
-	    PhyML_Printf("\n. Enter the rate matrix file name > "); fflush(NULL);
-	    Getstring_Stdin(filename);
-	    fp = Openfile(filename,0);
-	    PhyML_Printf("\n");
-	    fflush(NULL);
-
-	    Read_Qmat(mod->qmat,mod->pi,fp);
+	    Read_Qmat(mod->qmat,mod->pi,io->fp_aa_rate_mat);
 /* 	    Print_Qmat_AA(mod->qmat,mod->pi); */
 	    if(mod->s_opt->opt_state_freq)
 	      For(i,mod->ns) mod->pi[i] = data->b_frq[i];	    
-	    Free(filename);
 	    break;
 	  }
 	default : break;
