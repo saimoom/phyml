@@ -22,7 +22,7 @@ the GNU public licence. See http://www.opensource.org for details.
 #include <string.h>
 #include <time.h>
 
-#define VERSION "v3.0"
+#define VERSION "v3.0_176:178M"
 
 #define For(i,n)                     for(i=0; i<n; i++)
 #define Fors(i,n,s)                  for(i=0; i<n; i+=s)
@@ -158,6 +158,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define HIVB      23
 #define CUSTOMAA  24
 #define LG        25
+#define FLU       26
 
 #define COMPOUND_COR   0
 #define COMPOUND_NOCOR 1
@@ -609,6 +610,8 @@ typedef struct __Option { /* mostly used in 'options.c' */
   char                  *out_ps_file; /* name of the file in which tree(s) is(are) written */
   FILE                    *fp_out_ps;
 
+  FILE               *fp_aa_rate_mat;
+
   int               print_boot_trees; /* =1 if the bootstrapped trees are printed in output */
   int       out_stats_file_open_mode; /* opening file mode for statistics file */
   int        out_tree_file_open_mode; /* opening file mode for tree file */
@@ -951,6 +954,7 @@ void Num_Derivative_Several_Param(arbre *tree,phydbl *param,int n_param,phydbl s
 int Compare_Two_States(char *state1,char *state2,int state_size);
 void Copy_One_State(char *from,char *to,int state_size);
 model *Make_Model_Basic();
+void Make_Custom_Model(model *mod);
 void Make_Model_Complete(model *mod);
 model *Copy_Model(model *ori);
 void Set_Defaults_Input(option *input);

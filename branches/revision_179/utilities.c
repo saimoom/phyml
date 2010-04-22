@@ -4378,7 +4378,7 @@ void Bootstrap(arbre *tree)
       if(tree->io->random_boot_seq_order) Randomize_Sequence_Order(boot_data);
 
       boot_mod = Copy_Model(tree->mod);
-      Init_Model(boot_data,boot_mod);
+      Init_Model(boot_data,boot_mod,tree->io);
 
       if(tree->io->in_tree == 2)
 	{
@@ -4712,6 +4712,20 @@ void Copy_One_State(char *from, char *to, int state_size)
 {
   int i;
   For(i,state_size) to[i] = from[i];
+
+  return;
+}
+
+/*********************************************************/
+
+void Make_Custom_Model(model *mod)
+{
+  mod->rr            = (phydbl *)mCalloc(mod->ns*(mod->ns-1)/2,sizeof(phydbl));
+  mod->rr_val        = (phydbl *)mCalloc(mod->ns*(mod->ns-1)/2,sizeof(phydbl));
+  mod->rr_num        = (int *)mCalloc(mod->ns*(mod->ns-1)/2,sizeof(int *));
+  mod->n_rr_per_cat  = (int *)mCalloc(mod->ns*(mod->ns-1)/2,sizeof(int));
+
+  return;
 }
 
 /*********************************************************/
@@ -4756,6 +4770,8 @@ void Make_Model_Complete(model *mod)
       mod->rr_branch   = (phydbl *)mCalloc(mod->n_rr_branch,sizeof(phydbl));
       mod->p_rr_branch = (phydbl *)mCalloc(mod->n_rr_branch,sizeof(phydbl));
     }
+
+  return;
 }
 
 /*********************************************************/
@@ -4764,6 +4780,8 @@ void Copy_Dist(phydbl **cpy, phydbl **orig, int n)
 {
   int i,j;
   For(i,n) For(j,n) cpy[i][j] = orig[i][j];
+
+  return;
 }
 
 /*********************************************************/

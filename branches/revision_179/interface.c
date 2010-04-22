@@ -71,6 +71,21 @@ void Launch_Interface(option *io)
       io->fp_in_tree = Openfile(io->in_tree_file,0);
     }
 
+  if((io->mod->whichmodel == CUSTOMAA) && (io->mod->datatype == AA))
+    {
+      char *filename;
+
+      filename = (char *)mCalloc(T_MAX_NAME,sizeof(char));
+
+      fflush(NULL);
+      PhyML_Printf("\n");
+      PhyML_Printf("\n. Enter the rate matrix file name > "); fflush(NULL);
+      Getstring_Stdin(filename);
+      io->fp_aa_rate_mat = Openfile(filename,0);
+      PhyML_Printf("\n");
+      Free(filename);
+      fflush(NULL);
+    }
 
   if((io->mod->s_opt->n_rand_starts)           && 
      (io->mod->s_opt->topo_search == NNI_MOVE) && 
@@ -90,7 +105,7 @@ void Launch_Interface(option *io)
   else if ((io->mod->datatype == AA) && (io->mod->whichmodel < 11))
     {
       char choix;
-      PhyML_Printf("\n. Err: model incompatible with the data type. Please use LG, Dayhoff, JTT, MtREV, WAG, DCMut, RtREV, CpREV, VT, Blosum62, MtMam, MtArt, HIVw or HIVb.\n");
+      PhyML_Printf("\n. Err: model incompatible with the data type. Please use LG, FLU, Dayhoff, JTT, MtREV, WAG, DCMut, RtREV, CpREV, VT, Blosum62, MtMam, MtArt, HIVw or HIVb.\n");
       PhyML_Printf("\n. Type any key to exit.\n");
       if(!scanf("%c",&choix)) Exit("\n");
       Exit("\n");
@@ -1228,6 +1243,11 @@ void Launch_Interface_Model(option *io)
 	else
 	  {
 	    if(io->mod->whichmodel == LG)
+	      {
+		io->mod->whichmodel = FLU;
+		strcpy(io->mod->modelname,"FLU");
+	      }
+	    else if(io->mod->whichmodel == FLU)
 	      {
 		io->mod->whichmodel = WAG;
 		strcpy(io->mod->modelname,"WAG");

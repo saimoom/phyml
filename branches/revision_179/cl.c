@@ -84,6 +84,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
       {"run_id",            required_argument,NULL,46},
       {"pars",              no_argument,NULL,47},
       {"quiet",             no_argument,NULL,48},
+      {"aa_rate_file",        required_argument,NULL,52},
       {0,0,0,0}
     };
 
@@ -94,7 +95,16 @@ void Read_Command_Line(option *io, int argc, char **argv)
       {
 	switch(c)
 	  {
-	  case 48 : 
+	  case 52 :
+	    {
+	      char *s;
+              s = (char *)mCalloc(T_MAX_FILE, sizeof(char));
+              strcpy(s,optarg);
+              io->fp_aa_rate_mat = Openfile(s,0);
+              Free(s);
+	      break;
+	    }
+	  case 48 :
 	    {
 	      io->quiet = 1;
 	      break;
@@ -398,7 +408,8 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		io->mod->ns = 4;
 		
 		if(
-		   (io->mod->whichmodel == LG)       ||
+		   (io->mod->whichmodel == LG)        ||
+		   (io->mod->whichmodel == FLU)       ||
 		   (io->mod->whichmodel == WAG)       ||
 		   (io->mod->whichmodel == DAYHOFF)   ||
 		   (io->mod->whichmodel == JTT)       ||
@@ -454,6 +465,10 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	    
 	  case 'm': case 5 :
 	    {
+              int i;
+
+              For(i,strlen(optarg)) Uppercase(optarg+i);
+
 	      if(!isalpha(optarg[0]))
 		{
 		  strcpy(io->mod->custom_mod_string,optarg);
@@ -464,6 +479,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		    }
 		  else
 		    {
+		      Make_Custom_Model(io->mod);
 		      Translate_Custom_Mod_String(io->mod);
 		    }
 
@@ -525,7 +541,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		  io->mod->s_opt->opt_kappa = 0;
 		  io->mod->s_opt->opt_rr    = 1;
 		}
-	      else if(strcmp(optarg, "Dayhoff") == 0)
+	      else if(strcmp(optarg, "DAYHOFF") == 0)
 		{
 		  io->mod->datatype = AA;
 		  io->mod->whichmodel = DAYHOFF;
@@ -537,7 +553,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		  io->mod->whichmodel = JTT;
 		  strcpy(io->mod->modelname, "JTT");
 		}
-	      else if(strcmp(optarg, "MtREV") == 0)
+	      else if(strcmp(optarg, "MTREV") == 0)
 		{
 		  io->mod->datatype = AA;
 		  io->mod->whichmodel = MTREV;
@@ -549,25 +565,31 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		  io->mod->whichmodel = LG;
 		  strcpy(io->mod->modelname, "LG");
 		}
+	      else if(strcmp (optarg, "FLU") == 0)
+		{
+		  io->mod->datatype = AA;
+		  io->mod->whichmodel = FLU;
+		  strcpy(io->mod->modelname, "FLU");
+		}
 	      else if(strcmp (optarg, "WAG") == 0)
 		{
 		  io->mod->datatype = AA;
 		  io->mod->whichmodel = WAG;
 		  strcpy(io->mod->modelname, "WAG");
 		}
-	      else if(strcmp(optarg, "DCMut") == 0)
+	      else if(strcmp(optarg, "DCMUT") == 0)
 		{
 		  io->mod->datatype = AA;
 		  io->mod->whichmodel = DCMUT;
 		  strcpy(io->mod->modelname, "DCMut");
 		}
-	      else if(strcmp (optarg, "RtREV") == 0)
+	      else if(strcmp (optarg, "RTREV") == 0)
 		{
 		  io->mod->datatype = AA;
 		  io->mod->whichmodel = RTREV;
 		  strcpy(io->mod->modelname, "RtREV");
 		}
-	      else if(strcmp(optarg, "CpREV") == 0)
+	      else if(strcmp(optarg, "CPREV") == 0)
 		{
 		  io->mod->datatype = AA;
 		  io->mod->whichmodel = CPREV;
@@ -579,37 +601,37 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		  io->mod->whichmodel = VT;
 		  strcpy(io->mod->modelname, "VT");
 		}
-	      else if(strcmp(optarg, "Blosum62") == 0)
+	      else if(strcmp(optarg, "BLOSUM2") == 0)
 		{
 		  io->mod->datatype = AA;
 		  io->mod->whichmodel = BLOSUM62;
 		  strcpy(io->mod->modelname,"Blosum62");
 		}
-	      else if(strcmp(optarg, "MtMam") == 0)
+	      else if(strcmp(optarg, "MTMAM") == 0)
 		{
 		  io->mod->datatype = AA;
 		  io->mod->whichmodel = MTMAM;
 		  strcpy(io->mod->modelname, "MtMam");
 		}
-	      else if (strcmp(optarg,"MtArt") == 0)
+	      else if (strcmp(optarg,"MTART") == 0)
 		{
 		  io->mod->datatype = AA;
 		  io->mod->whichmodel = MTART;
 		  strcpy(io->mod->modelname, "MtArt");
 		}
-	      else if (strcmp(optarg,"HIVw") == 0)
+	      else if (strcmp(optarg,"HIVW") == 0)
 		{
 		  io->mod->datatype = AA;
 		  io->mod->whichmodel = HIVW;
 		  strcpy(io->mod->modelname, "HIVw");
 		}
-	      else if(strcmp(optarg, "HIVb") == 0)
+	      else if(strcmp(optarg, "HIVB") == 0)
 		{
 		  io->mod->datatype = AA;
 		  io->mod->whichmodel = HIVB;
 		  strcpy(io->mod->modelname, "HIVb");
 		}
-	      else if (strcmp(optarg, "custom") == 0)
+	      else if (strcmp(optarg, "CUSTOM") == 0)
 		{
 		  io->mod->datatype = AA;
 		  io->mod->whichmodel = CUSTOMAA;
@@ -1019,7 +1041,22 @@ void Read_Command_Line(option *io, int argc, char **argv)
 #endif 
 
 
- 
+    if((io->mod->whichmodel == CUSTOMAA) && (io->mod->datatype == AA))
+      {
+        char *filename;
+
+        filename = (char *)mCalloc(T_MAX_NAME,sizeof(char));
+
+        fflush(NULL);
+        PhyML_Printf("\n");
+        PhyML_Printf("\n. Enter the rate matrix file name > "); fflush(NULL);
+        Getstring_Stdin(filename);
+        io->fp_aa_rate_mat = Openfile(filename,0);
+        PhyML_Printf("\n");
+        Free(filename);
+        fflush(NULL);
+      }
+
     if((io->mod->s_opt->n_rand_starts)           && 
        (io->mod->s_opt->topo_search == NNI_MOVE) && 
        (io->mod->s_opt->random_input_tree))
@@ -1038,7 +1075,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
     else if ((io->mod->datatype == AA) && (io->mod->whichmodel < 11))
       {
 	char choix;
-	PhyML_Printf("\n. Err: model incompatible with the data type. Please use LG, Dayhoff, JTT, MtREV, WAG, DCMut, RtREV, CpREV, VT, Blosum62, MtMam, MtArt, HIVw or HIVb.\n");
+	PhyML_Printf("\n. Err: model incompatible with the data type. Please use LG, FLU, Dayhoff, JTT, MtREV, WAG, DCMut, RtREV, CpREV, VT, Blosum62, MtMam, MtArt, HIVw or HIVb.\n");
 	PhyML_Printf("\n. Type any key to exit.\n");
 	if(!scanf("%c",&choix)) Exit("\n");
 	Exit("\n");
@@ -1127,3 +1164,4 @@ void Read_Command_Line(option *io, int argc, char **argv)
 }
 
 /*********************************************************/
+

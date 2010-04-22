@@ -148,7 +148,7 @@ fflush(stderr);
       if(tree->io->random_boot_seq_order) Randomize_Sequence_Order(boot_data);
 
       boot_mod = Copy_Model(tree->mod);
-      Init_Model(boot_data,boot_mod);
+      Init_Model(boot_data,boot_mod,tree->io);
 
       if(tree->io->in_tree == 2)
 	{
