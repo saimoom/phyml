@@ -561,16 +561,23 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
 
       if(OUTPUT_TREE_FORMAT == 0)
 	{
-	  if(tree->io->long_tax_names) 
+	  if(tree->write_tax_names == YES)
 	    {
-	      strcat(*s_tree,tree->io->long_tax_names[fils->num]);
-	      (*pos) += (int)strlen(tree->io->long_tax_names[fils->num]);
+	      if(tree->io->long_tax_names) 
+		{
+		  strcat(*s_tree,tree->io->long_tax_names[fils->num]);
+		  (*pos) += (int)strlen(tree->io->long_tax_names[fils->num]);
+		}
+	      else
+		{
+		  strcat(*s_tree,fils->name);
+		  (*pos) += (int)strlen(fils->name);
+		}	  
 	    }
-	  else
+	  else if(tree->write_tax_names == NO)
 	    {
-	      strcat(*s_tree,fils->name);
-	      (*pos) += (int)strlen(fils->name);
-	    }		  
+	      (*pos) += sprintf(*s_tree+*pos,"%d",fils->num);
+	    }
 	}
       else
 	{
@@ -595,31 +602,31 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
 	  strcat(*s_tree,":");
 	  (*pos)++;
 
-#ifndef MC
+#ifndef TIMES
 	  if(!tree->n_root)
 	    {
-	      (*pos) += sprintf(*s_tree+*pos,"%.10f",fils->b[0]->l);
+	      (*pos) += sprintf(*s_tree+*pos,"%f",fils->b[0]->l);
 	    }
 	  else
 	    {
 	      if(pere == tree->n_root)
 		{
 		  phydbl root_pos = (fils == tree->n_root->v[0])?(tree->n_root_pos):(1.-tree->n_root_pos);
-		  (*pos) += sprintf(*s_tree+*pos,"%.10f",tree->e_root->l * root_pos);
+		  (*pos) += sprintf(*s_tree+*pos,"%f",tree->e_root->l * root_pos);
 		}
 	      else
 		{
-		  (*pos) += sprintf(*s_tree+*pos,"%.10f",fils->b[0]->l);
+		  (*pos) += sprintf(*s_tree+*pos,"%f",fils->b[0]->l);
 		}
 	    }		
 #else
 	  if(!tree->n_root)
 	    {
-	      (*pos) += sprintf(*s_tree+*pos,"%.10f",fils->b[0]->l);
+	      (*pos) += sprintf(*s_tree+*pos,"%.0f",fils->b[0]->l);
 	    }
 	  else
 	    {
-	      (*pos) += sprintf(*s_tree+*pos,"%.10f",tree->rates->cur_l[fils->num]);
+	      (*pos) += sprintf(*s_tree+*pos,"%.0f",tree->rates->cur_l[fils->num]);
 	    }
 #endif
 	}
@@ -701,7 +708,7 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
 	  strcat(*s_tree,":");
 	  (*pos)++;
 
-#ifndef MC
+#ifndef TIMES
 	  if(!tree->n_root)
 	    {
 	      (*pos) += sprintf(*s_tree+*pos,"%.10f",fils->b[p]->l);
@@ -721,11 +728,11 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
 #else
 	  if(!tree->n_root)
 	    {
-	      (*pos) += sprintf(*s_tree+*pos,"%.10f",fils->b[p]->l);
+	      (*pos) += sprintf(*s_tree+*pos,"%.0f",fils->b[p]->l);
 	    }
 	  else
 	    {
-	      (*pos) += sprintf(*s_tree+*pos,"%.10f",tree->rates->cur_l[fils->num]);
+	      (*pos) += sprintf(*s_tree+*pos,"%.0f",tree->rates->cur_l[fils->num]);
 	    }
 #endif
 	}
@@ -782,6 +789,8 @@ void Init_Tree(t_tree *tree, int n_otu)
   tree->num_curr_branch_available = 0;
 
   tree->tip_order_score           = .0;
+
+  tree->write_tax_names           = YES;
 }
 
 /*********************************************************/
@@ -6413,6 +6422,9 @@ void Set_Defaults_Input(option* io)
   io->data_file_format           = PHYLIP;
   io->tree_file_format           = PHYLIP;
   io->boot_prog_every            = 20;
+  io->gibbs_sample_freq          = 1E+5;
+  io->gibbs_chain_len            = 1E+8;
+  io->gibbs_burnin               = 1E+6;
 }
 
 /*********************************************************/
@@ -9245,6 +9257,8 @@ void Read_Qmat(phydbl *daa, phydbl *pi, FILE *fp)
   phydbl sum;
   double val;
 
+  rewind(fp);
+
   for(i=1;i<20;i++)
     {
       For(j,19)
@@ -9266,6 +9280,7 @@ void Read_Qmat(phydbl *daa, phydbl *pi, FILE *fp)
   For(i,20) sum += pi[i];
   if(FABS(sum - 1.) > 1.E-06)
     {
+      PhyML_Printf("\n. Sum=%f",sum);
       PhyML_Printf("\n. Scaling amino-acid frequencies...\n");
       For(i,20) pi[i] /= sum;
     }
@@ -9407,7 +9422,7 @@ void Update_Ancestors(t_node *a, t_node *d, t_tree *tree)
 
 /*********************************************************/
 /* Generate a random unrooted tree with 'n_otu' OTUs */
-#ifdef MC
+#ifdef TIMES
 t_tree *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
 {
   t_tree *tree;

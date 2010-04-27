@@ -221,7 +221,7 @@ int TIMES_main(int argc, char **argv)
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
 		  MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree);
 		  tree->rates->lk_approx = NORMAL;
-		  tree->mcmc->n_tot_run  = 1E+6;
+		  tree->mcmc->n_tot_run  = tree->io->gibbs_burnin;
 		  MCMC(tree);
 		  MCMC_Close_MCMC(tree->mcmc);
 		  MCMC_Free_MCMC(tree->mcmc);
@@ -234,8 +234,8 @@ int TIMES_main(int argc, char **argv)
 		  MCMC_Print_Param(tree->mcmc,tree);
 		  		  
 		  time(&t_beg);
-		  tree->mcmc->n_tot_run       = 1E+8;
-		  tree->mcmc->sample_interval = 1E+4;
+		  tree->mcmc->n_tot_run       = tree->io->gibbs_chain_len;
+		  tree->mcmc->sample_interval = tree->io->gibbs_sample_freq;
 		  phydbl u;
 		  int acc,n_trials;
 		  acc = n_trials = 0;
