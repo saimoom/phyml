@@ -884,6 +884,10 @@ void MCMC_Print_Param(tmcmc *mcmc, t_tree *tree)
 
 	  PhyML_Fprintf(mcmc->out_fp_trees,"#NEXUS\n");
 	  PhyML_Fprintf(mcmc->out_fp_trees,"BEGIN TREES;\n");
+	  PhyML_Fprintf(mcmc->out_fp_trees,"\tTRANSLATE\n");
+	  For(i,tree->n_otu-1) PhyML_Fprintf(mcmc->out_fp_trees,"\t%3d\t%s,\n",tree->noeud[i]->num,tree->noeud[i]->name);
+	  PhyML_Fprintf(mcmc->out_fp_trees,"\t%3d\t%s;\n",tree->noeud[i]->num,tree->noeud[i]->name);
+	  tree->write_tax_names = NO;
 	}
 
       PhyML_Fprintf(fp,"\n");
@@ -911,6 +915,13 @@ void MCMC_Print_Param(tmcmc *mcmc, t_tree *tree)
       Free(s);
       RATES_Update_Cur_Bl(tree);
     }
+
+  if(tree->mcmc->run == mcmc->n_tot_run)
+    {
+      PhyML_Fprintf(mcmc->out_fp_trees,"END;\n");
+      fflush(NULL); 
+    }
+
 }
 
 /*********************************************************/

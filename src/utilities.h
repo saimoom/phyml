@@ -414,6 +414,8 @@ typedef struct __Arbre {
   phydbl                        sum_y_dist_sq;
   phydbl                           sum_y_dist;
   phydbl                      tip_order_score;
+
+  int                         write_tax_names;
 }t_tree;
 
 /*********************************************************/
@@ -727,6 +729,10 @@ typedef struct __Option { /* mostly used in 'help.c' */
   phydbl                         *lon;
   
   int                 boot_prog_every;
+
+  int                 gibbs_chain_len;
+  int               gibbs_sample_freq;
+  int                    gibbs_burnin;
 }option;
 
 /*********************************************************/
