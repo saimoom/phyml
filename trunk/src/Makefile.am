@@ -9,9 +9,9 @@
 
 DEFS=-DUNIX -D$(PROG) -DDEBUG
 
-if WANT_TIMES
+if WANT_PHYTIME
 bin_PROGRAMS = phytime
-PROG = TIMES
+PROG = PHYTIME
 else
 if WANT_PART
 bin_PROGRAMS = part
@@ -23,15 +23,17 @@ else
 if WANT_TIPORDER
 bin_PROGRAMS = tiporder
 PROG = TIPORDER
-else
+else 
+# if WANT_PHYML
 bin_PROGRAMS = phyml
 PROG = PHYML
+# endif
 endif
 endif
 endif
 endif
 
-if WANT_TIMES
+if WANT_PHYTIME
 phytime_SOURCES = main.c \
 utilities.c utilities.h\
 optimiz.c optimiz.h\
@@ -53,7 +55,7 @@ draw.c draw.h\
 rates.c rates.h\
 mcmc.c mcmc.h\
 stats.c stats.h\
-mg.c mg.h\
+mg.c mg.h
 phytime_LDADD = -lm
 else 
 if WANT_RWRAP
@@ -134,6 +136,7 @@ stats.c stats.h\
 tiporder.c tiporder.h
 tiporder_LDADD = -lm
 else
+# if WANT_PHYML
 phyml_SOURCES = main.c \
 utilities.c  utilities.h\
 optimiz.c  optimiz.h\
@@ -154,10 +157,15 @@ mpi_boot.c  mpi_boot.h\
 stats.c stats.h\
 mg.c mg.h
 phyml_LDADD = -lm
+# endif
 endif
 endif
 endif
 endif
+
+pdf: phyml_manual.pdf
+phyml_manual.pdf: phyml_manual.ps 	
+	$(TEXI2PDF) $(docdir)/phyml_manual.texi
 
 # all-am:	intro bin_PROGRAMS$(EXEEXT)
 # 	@echo ""
