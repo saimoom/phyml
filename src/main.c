@@ -296,7 +296,7 @@ int main(int argc, char **argv)
   return 1;
 }
 
-#elif(TIMES)
+#elif(PHYTIME)
 #include "times.h"
 int main(int argc, char **argv)
 {
