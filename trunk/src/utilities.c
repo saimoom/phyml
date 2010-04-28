@@ -602,7 +602,7 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
 	  strcat(*s_tree,":");
 	  (*pos)++;
 
-#ifndef TIMES
+#ifndef PHYTIME
 	  if(!tree->n_root)
 	    {
 	      (*pos) += sprintf(*s_tree+*pos,"%f",fils->b[0]->l);
@@ -708,7 +708,7 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
 	  strcat(*s_tree,":");
 	  (*pos)++;
 
-#ifndef TIMES
+#ifndef PHYTIME
 	  if(!tree->n_root)
 	    {
 	      (*pos) += sprintf(*s_tree+*pos,"%.10f",fils->b[p]->l);
@@ -9422,7 +9422,7 @@ void Update_Ancestors(t_node *a, t_node *d, t_tree *tree)
 
 /*********************************************************/
 /* Generate a random unrooted tree with 'n_otu' OTUs */
-#ifdef TIMES
+#ifdef PHYTIME
 t_tree *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
 {
   t_tree *tree;

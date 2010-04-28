@@ -334,7 +334,7 @@ phydbl Lk(t_tree *tree)
 
   Set_Model_Parameters(tree->mod);
 
-#ifdef TIMES
+#ifdef PHYTIME
   if((tree->rates) && (tree->rates->bl_from_rt)) RATES_Update_Cur_Bl(tree);
   if(tree->bl_from_node_stamps) TIMES_Bl_From_T(tree);
 #endif
@@ -376,7 +376,7 @@ phydbl Lk_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
   
   n_patterns = tree->n_pattern;
 
-#ifdef TIMES
+#ifdef PHYTIME
   if((tree->rates) && (tree->rates->bl_from_rt)) RATES_Update_Cur_Bl(tree);
   if(tree->bl_from_node_stamps) TIMES_Bl_From_T(tree);
 #endif

@@ -17,7 +17,7 @@ the GNU public licence. See http://www.opensource.org for details.
 #include "times.h"
 
 /*********************************************************/
-#ifdef TIMES
+#ifdef PHYTIME
 
 int TIMES_main(int argc, char **argv)
 {
