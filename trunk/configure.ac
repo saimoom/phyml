@@ -54,14 +54,17 @@ AC_PROG_LIBTOOL
 AC_ARG_ENABLE([tiporder],[  --enable-tiporder    Compile tiporder],[tiporder=yes])
 AM_CONDITIONAL([WANT_TIPORDER], [test "$tiporder" = yes]) 
 
-AC_ARG_ENABLE([times],[  --enable-times    Compile PhyTime],[times=yes])
-AM_CONDITIONAL([WANT_TIMES], [test "$times" = yes]) 
+AC_ARG_ENABLE([phytime],[  --enable-phytime    Compile PhyTime],[phytime=yes])
+AM_CONDITIONAL([WANT_PHYTIME], [test "$phytime" = yes]) 
 
 AC_ARG_ENABLE([part],[  --enable-part    Compile Part],[part=yes])
 AM_CONDITIONAL([WANT_PART], [test "$part" = yes]) 
 
 AC_ARG_ENABLE([rwrap],[  --enable-rwrap    Compile Rwrap],[rwrap=yes])
 AM_CONDITIONAL([WANT_RWRAP], [test "$rwrap" = yes]) 
+
+dnl AC_ARG_ENABLE([phyml],[  --enable-phyml    Compile PhyML],[phyml=yes])
+dnl AM_CONDITIONAL([WANT_PHYML], [test "$phyml" = yes]) 
 
 AC_CONFIG_FILES([Makefile src/Makefile])
 AC_OUTPUT
