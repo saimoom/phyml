@@ -163,19 +163,15 @@ endif
 endif
 endif
 
-pdf: phyml_manual.pdf
-phyml_manual.pdf: phyml_manual.ps 	
-	$(TEXI2PDF) $(docdir)/phyml_manual.texi
 
-# all-am:	intro bin_PROGRAMS$(EXEEXT)
-# 	@echo ""
-# 	@echo "Done."
+all-am:	intro $(bin_PROGRAMS)$(EXEEXT)
+	@echo ""
+	@echo "Done."
 
-# intro:	
-# 	@echo ""
-# 	@echo ""
-# 	@echo ":: Building PhyML version $(VERSION) ::"
-# 	@echo ""
-# 	@echo ""
+intro:	
+	@echo ""
+	@echo ""
+	@echo ":: Building $(PROG). Version $(VERSION) ::"
+	@echo ""
+	@echo ""
 
-	
