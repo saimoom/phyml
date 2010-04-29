@@ -84,7 +84,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
       {"run_id",            required_argument,NULL,46},
       {"pars",              no_argument,NULL,47},
       {"quiet",             no_argument,NULL,48},
-      {"aa_rate_file",        required_argument,NULL,52},
+      {"aa_rate_file",      required_argument,NULL,52},
       {0,0,0,0}
     };
 
@@ -97,11 +97,15 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	  {
 	  case 52 :
 	    {
+/*
 	      char *s;
               s = (char *)mCalloc(T_MAX_FILE, sizeof(char));
               strcpy(s,optarg);
-              io->fp_aa_rate_mat = Openfile(s,0);
-              Free(s);
+*/
+              strcpy(io->aa_rate_mat,optarg);
+//              io->fp_aa_rate_mat = Openfile(s,0);
+              io->fp_aa_rate_mat = Openfile(io->aa_rate_mat,0);
+//              Free(s);
 	      break;
 	    }
 	  case 48 :
@@ -637,6 +641,14 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		  io->mod->whichmodel = CUSTOMAA;
 		  strcpy(io->mod->modelname, "Read from file");
 		}
+/*
+	      else
+		{
+		  io->mod->datatype = AA;
+		  io->mod->whichmodel = CUSTOMAA;
+		  strcpy(io->mod->modelname, "Read from file");
+		}
+*/
 	      break;
 	    }
 
@@ -1041,21 +1053,16 @@ void Read_Command_Line(option *io, int argc, char **argv)
 #endif 
 
 
-    if((io->mod->whichmodel == CUSTOMAA) && (io->mod->datatype == AA))
-      {
-        char *filename;
-
-        filename = (char *)mCalloc(T_MAX_NAME,sizeof(char));
-
-        fflush(NULL);
-        PhyML_Printf("\n");
-        PhyML_Printf("\n. Enter the rate matrix file name > "); fflush(NULL);
-        Getstring_Stdin(filename);
-        io->fp_aa_rate_mat = Openfile(filename,0);
-        PhyML_Printf("\n");
-        Free(filename);
-        fflush(NULL);
-      }
+  if((io->mod->whichmodel == CUSTOMAA) && (io->mod->datatype == AA) && (!io->fp_aa_rate_mat))
+    {
+      fflush(NULL);
+      PhyML_Printf("\n");
+      PhyML_Printf("\n. Enter the rate matrix file name > "); fflush(NULL);
+      Getstring_Stdin(io->aa_rate_mat);
+      io->fp_aa_rate_mat = Openfile(io->aa_rate_mat,0);
+      PhyML_Printf("\n");
+      fflush(NULL);
+    }
 
     if((io->mod->s_opt->n_rand_starts)           && 
        (io->mod->s_opt->topo_search == NNI_MOVE) && 

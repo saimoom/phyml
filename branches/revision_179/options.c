@@ -199,6 +199,12 @@ void Usage()
   
   PhyML_Printf("\n");
 
+  PhyML_Printf("%s\n\t--aa_rate_file %saa_rate_file%s\n",BOLD,LINE,FLAT);
+  PhyML_Printf("\t\tThis option sets the amino-acids rates to use. The matrix must be in PAML format\n");
+  PhyML_Printf("\t\tIt is only valid if the chosen model is custom (-m option).\n");
+
+  PhyML_Printf("\n");
+
   PhyML_Printf("%s\n\t--rand_start%s\n",BOLD,FLAT);
   PhyML_Printf("\t\tThis option sets the initial tree to random.\n");
   PhyML_Printf("\t\tIt is only valid if SPR searches are to be performed.\n");

@@ -4892,6 +4892,7 @@ option *Make_Input()
   io->out_trace_file       = (char *)mCalloc(T_MAX_FILE,sizeof(char));
   io->nt_or_cd             = (char *)mCalloc(T_MAX_FILE,sizeof(char));
   io->run_id_string        = (char *)mCalloc(T_MAX_OPTION,sizeof(char));
+  io->aa_rate_mat          = (char *)mCalloc(T_MAX_FILE,sizeof(char));
 
   return io;
 }
@@ -4907,6 +4908,7 @@ void Set_Defaults_Input(option* io)
   io->fp_out_boot_tree           = NULL;
   io->fp_out_boot_stats          = NULL;
   io->fp_out_stats               = NULL;
+  io->fp_aa_rate_mat             = NULL;
 
   io->tree                       = NULL;
   io->mod->datatype              = 0;

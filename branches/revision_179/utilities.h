@@ -22,7 +22,7 @@ the GNU public licence. See http://www.opensource.org for details.
 #include <string.h>
 #include <time.h>
 
-#define VERSION "v3.0_176:178M"
+#define VERSION "v3.0_360-500M"
 
 #define For(i,n)                     for(i=0; i<n; i++)
 #define Fors(i,n,s)                  for(i=0; i<n; i+=s)
@@ -610,6 +610,7 @@ typedef struct __Option { /* mostly used in 'options.c' */
   char                  *out_ps_file; /* name of the file in which tree(s) is(are) written */
   FILE                    *fp_out_ps;
 
+  char                  *aa_rate_mat; /* name of the file for custom AA rates */
   FILE               *fp_aa_rate_mat;
 
   int               print_boot_trees; /* =1 if the bootstrapped trees are printed in output */

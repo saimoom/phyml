@@ -71,19 +71,14 @@ void Launch_Interface(option *io)
       io->fp_in_tree = Openfile(io->in_tree_file,0);
     }
 
-  if((io->mod->whichmodel == CUSTOMAA) && (io->mod->datatype == AA))
+  if((io->mod->whichmodel == CUSTOMAA) && (io->mod->datatype == AA) && (!io->fp_aa_rate_mat))
     {
-      char *filename;
-
-      filename = (char *)mCalloc(T_MAX_NAME,sizeof(char));
-
       fflush(NULL);
       PhyML_Printf("\n");
       PhyML_Printf("\n. Enter the rate matrix file name > "); fflush(NULL);
-      Getstring_Stdin(filename);
-      io->fp_aa_rate_mat = Openfile(filename,0);
+      Getstring_Stdin(io->aa_rate_mat);
+      io->fp_aa_rate_mat = Openfile(io->aa_rate_mat,0);
       PhyML_Printf("\n");
-      Free(filename);
       fflush(NULL);
     }
 

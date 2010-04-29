@@ -237,12 +237,13 @@ int main(int argc, char **argv)
 
   Free_Model(mod);
 
-  if(io->fp_in_seq)     fclose(io->fp_in_seq);
-  if(io->fp_in_tree)    fclose(io->fp_in_tree);
-  if(io->fp_out_lk)     fclose(io->fp_out_lk);
-  if(io->fp_out_tree)   fclose(io->fp_out_tree);
-  if(io->fp_out_trees)  fclose(io->fp_out_trees);
-  if(io->fp_out_stats)  fclose(io->fp_out_stats);
+  if(io->fp_in_seq)      fclose(io->fp_in_seq);
+  if(io->fp_in_tree)     fclose(io->fp_in_tree);
+  if(io->fp_out_lk)      fclose(io->fp_out_lk);
+  if(io->fp_out_tree)    fclose(io->fp_out_tree);
+  if(io->fp_out_trees)   fclose(io->fp_out_trees);
+  if(io->fp_out_stats)   fclose(io->fp_out_stats);
+  if(io->fp_aa_rate_mat) fclose(io->fp_aa_rate_mat);
 
   Free_Input(io);
 
