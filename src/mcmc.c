@@ -896,13 +896,13 @@ void MCMC_Print_Param(tmcmc *mcmc, t_tree *tree)
       PhyML_Fprintf(fp,"%6d\t",(int)(mcmc->t_cur-mcmc->t_beg));
       
       RATES_Update_Cur_Bl(tree);
-      PhyML_Fprintf(fp,"%G\t",RATES_Check_Mean_Rates(tree));
-      PhyML_Fprintf(fp,"%G\t",tree->c_lnL);
-      PhyML_Fprintf(fp,"%G\t",tree->rates->c_lnL);
+      PhyML_Fprintf(fp,"%f\t",RATES_Check_Mean_Rates(tree));
+      PhyML_Fprintf(fp,"%.1f\t",tree->c_lnL);
+      PhyML_Fprintf(fp,"%.1f\t",tree->rates->c_lnL);
       PhyML_Fprintf(fp,"%G\t",tree->rates->nu);
       PhyML_Fprintf(fp,"%G\t",tree->rates->clock_r);
-      if(fp != stdout) for(i=tree->n_otu;i<2*tree->n_otu-1;i++) PhyML_Fprintf(fp,"%G\t",tree->rates->nd_t[i] - tree->rates->true_t[i]);
-      if(fp != stdout) for(i=0;i<2*tree->n_otu-2;i++) PhyML_Fprintf(fp,"%.20lf\t",tree->rates->nd_r[i]);
+      if(fp != stdout) for(i=tree->n_otu;i<2*tree->n_otu-1;i++) PhyML_Fprintf(fp,"%.1\t",tree->rates->nd_t[i] - tree->rates->true_t[i]);
+      if(fp != stdout) for(i=0;i<2*tree->n_otu-2;i++) PhyML_Fprintf(fp,"%f\t",tree->rates->nd_r[i]);
 /*       if(fp != stdout) for(i=tree->n_otu;i<2*tree->n_otu-1;i++) PhyML_Fprintf(fp,"%G\t",tree->rates->t_prior[i]); */
       fflush(NULL);
 
