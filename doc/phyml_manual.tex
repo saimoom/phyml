@@ -122,8 +122,9 @@ type:
 
 {\setlength{\baselineskip}{0.5\baselineskip}
 \begin{verbatim}
-> ./configure;
-> make;
+./configure;
+make clean;
+make;
 \end{verbatim}
 }
 
@@ -457,6 +458,10 @@ available by  default in PhyML. The  symmetric part of the  rate matrix, as well
 amino-acid frequencies, are  given in a file which name  is asked for by the  program. The format of
 this file is described in section \ref{sec:customaa}.
 \end{itemize}
+
+\item \x{--aa\_rate\_file file\_name} \\
+This option is compulsory when analysing amino-acid sequences under a `custom' model. \x{file\_name}
+should provide a rate matrix and equilibrium amino acid in PAML format (see Section \label{sec:customaa}).
 
 \item \x{-f e}, \x{m}, or ``\x{fA,fC,fG,fT}" \index{frequencies!nucleotide}\index{frequencies!amino-acid}\index{stationary frequencies}\\
 Nucleotide or amino-acid frequencies.
@@ -803,8 +808,8 @@ $n_D$ and $n_T$ must be equal here.
 
 \subsection{Custom amino-acid rate model}\label{sec:customaa}
 
-The custom amino-acid model of substitutions can be  used to implement a model that is not hard-coded
-in  PhyML.  This  model  must  be  time-reversible.  Hence, the  matrix  of  substitution  rates  is
+The custom amino-acid model of substitutions can be used to implement a model that is not hard-coded
+in  PhyML.   This model  must  be  time-reversible.  Hence,  the  matrix  of  substitution rates  is
 symmetrical. The format  of the rate matrix with the associated  stationary frequencies is identical
 to the one used in PAML\index{PAML}. An example is given below:
 
@@ -955,11 +960,81 @@ from large data sets'', {\it Mol. Biol. Evol.}, 2010.
 
 \subsubsection{Installing PhyTime}
 
-Compiling PhyTime is  straghtforward on Unix-like machines (i.e., linux  and MacOS systems). PhyTime
-is not readily available for Windows machines but compilation should be easy on this system too. 
+Compiling PhyTime is straightforward on Unix-like  machines (i.e., linux and MacOS systems). PhyTime
+is not readily available for Windows machines but  compilation should be easy on this system too. In
+the `phyml' directory, where the `src/' and `doc/' directories stand, enter the following commands:
+{\setlength{\baselineskip}{0.5\baselineskip}
+\begin{verbatim}
+./configure --enable-times;
+make clean;
+make;
+\end{verbatim} } This set of commands generates  a binary file called \x{phytime} which can be found
+  in the `src/' directory.
 
+\subsubsection{Running  PhyTime} Passing  options and  running  PhyTime on  your data  set is  quite
+similar to running  PhyML in commmand-line mode.  The main differences between the  two programs are
+explained below:
+\begin{itemize}
+\item PhyTime takes as mandatory input a {\em rooted} phylogenetic tree.  Hence, the `\x{-u}' option
+must be used. Also, unlike PhyML, PhyTime does not modify the tree topology. Hence, the options that
+go with the '\x{-s}' command do not alter the input tree topology.
+\item  PhyTime  needs  an input  file  giving  information  about  calibration nodes.   The  command
+`\x{--calibration=}' followed by the name of  the file containing the calibration node information is
+mandatory. The content of that file should look as follows:
 
-\subsection{PhyGeo (Guindon, {\it in preparation})}\index{PhyGeo}
+\begin{figure}[h]
+\begin{small}
+\begin{Verbatim}[frame=single, label=Calibration node file, samepage=true, baselinestretch=0.5]
+Dugong_dugon Procavia_capensis Elephantidae | -65 -54
+Equus_sp. Ceratomorpha | -58 -54
+Cercopithecus_solatus Macaca_mulatta Hylobates_lar Homo_sapiens | -35 -25
+Lepus_crawshayi Oryctolagus_cuniculus Ochotona_princeps | -90 -37
+Marmota_monax Aplodontia_rufa | -120 -37 
+Dryomys_nitedula Glis_glis | -120 -28.5
+@root@ | -100 -120
+\end{Verbatim}
+\end{small}
+\end{figure}
+
+Every row in this file lists a set of species found in the user tree (i.e., a clade). This list of
+taxa is followed by the character `\x{|}' and two real numbers corresponding to the lower and upper
+bounds of the calibration interval for the node at the root of the clade. In the example given here,
+the clade grouping the three taxa ``Dugong\_dugon'', ``Procavia\_capensis'' and  ``Elephantida'' has
+-65 as lower bound and -54 as upper bound. Note also that the node corresponding to the root of the
+whole tree has a specific label: `\x{@root@}'.
+\end{itemize}
+
+A typical PhyTime command-line should look like the following:
+
+\begin{Verbatim}[fontsize=\small]
+./phytime -i seqname -u treename --calibration=calibration_file -m GTR -c 8
+\end{Verbatim}
+
+Assuming the file `\x{seqname}' contains DNA  sequences in PHYLIP or NEXUS format, `\x{treename}' is
+the rooted  input tree in NEXUS  format and `\x{calibration\_file}'  is a set of  calibration nodes,
+PhyTime will  estimate the  posterior distribution of  node times  and substitution rates  under the
+assumption that the  substitution process follows a GTR  model with 8 classes of rates  in the Gamma
+distribution of  rates across sites. The  model parameter values  are estimated by a  Gibbs sampling
+technique. This algorithm tries  diferent sets of model parameter values and  only conserve the most
+probable ones. By default, $10^8$ sets of  parameters are collected. These values are recorder every
+$10^4$ sample. At the  moment, the total sample size and the frequency  at which these sample values
+are recorded can not be modified by the user.
+
+\subsubsection{PhyTime output}
+
+The program PhyTime generates two output  files. The first file, called `\x{phytime.XXXX} where XXXX
+is a randomly generated  integer, lists the node times and branch  relative rates sampled during the
+estimation  process. It  also gives  the sampled  values  for other  parameter values,  such as  the
+autocorrelation of  rates (parameter `Nu'), the  overall rates of evolution  (parameter `Clock') and
+the  average of the  relative substitution  rates (parameter  `MeanRate'). This  output file  can be
+analysed       with      the       program       Tracer      from       the      BEAST       package
+(\url{http://beast.bio.ed.ac.uk/Main_Page}). The second  file is called `\x{phytime.XXXX.trees}'. It
+is the list  of trees that were  collected during the estimation process,  i.e., phylogenies sampled
+from the posterior density  of trees.  This file can be processed  using the software TreeAnnotator,
+also part of the BEAST  package (see \url{http://beast.bio.ed.ac.uk/Main_Page}) in order to generate
+confidence sets for the node time estimates.
+
+% \subsection{PhyGeo (Guindon, {\it in preparation})}\index{PhyGeo}
 
 
 
