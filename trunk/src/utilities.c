@@ -1805,7 +1805,7 @@ void Find_Nexus_Com(char *token, nexcom **found_com, nexparm **default_parm, nex
 
   if(*found_com && (*found_com)->nparm) *default_parm = (*found_com)->parm[0];
 
-/*   if(*found_com) PhyML_Printf("\n. Found command '%s'.\n",(*found_com)->name); */
+  if(*found_com) PhyML_Printf("\n. Found command '%s'.\n",(*found_com)->name);
 }
 
 /*********************************************************/
@@ -1839,7 +1839,7 @@ void Find_Nexus_Parm(char *token, nexparm **found_parm, nexcom *curr_com)
       if(!ndiff) { *found_parm = curr_com->parm[i]; break; }
     }
 
-/*   if(*found_parm) PhyML_Printf("\n. Found parameter '%s'.\n",(*found_parm)->name); */
+  if(*found_parm) PhyML_Printf("\n. Found parameter '%s'.\n",(*found_parm)->name);
 }
 
 /*********************************************************/
@@ -1857,7 +1857,6 @@ int Read_Nexus_Taxa(char *token, nexparm *curr_parm, option *io)
   
   fseek(io->fp_in_tree,-1*sizeof(char),SEEK_CUR);
 
-  
   return 1;
 }
 
@@ -2343,15 +2342,18 @@ align **Read_Seq_Interleaved(option *io)
 /*   char c; */
   char *format;
 
+
   line   = (char *)mCalloc(T_MAX_LINE,sizeof(char));
   format = (char *)mCalloc(T_MAX_NAME, sizeof(char));
   data   = (align **)mCalloc(io->n_otu,sizeof(align *));
+
 
 /*   while(((c=fgetc(io->fp_in_align))!='\n') && (c != ' ') && (c != '\r') && (c != '\t')); */
 
   end = 0;
   For(i,io->n_otu)
     {
+
       data[i]        = (align *)mCalloc(1,sizeof(align));
       data[i]->name  = (char *)mCalloc(T_MAX_NAME,sizeof(char));
       data[i]->state = (char *)mCalloc(io->init_len*io->mod->state_len+1,sizeof(char));
@@ -2432,7 +2434,7 @@ align **Read_Seq_Interleaved(option *io)
     {
       if(data[i]->len != io->init_len * io->mod->state_len)
 	{
-	  PhyML_Printf("\n. Check sequence '%s' length...\n",data[i]->name);
+	  PhyML_Printf("\n. Check sequence '%s' length (expected length: %d, observed length: %d) [OTU %d].\n",data[i]->name,io->init_len,data[i]->len,i+1);
 	  Warn_And_Exit("");
 	}
     }
