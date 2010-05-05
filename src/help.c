@@ -229,7 +229,12 @@ void Usage()
   PhyML_Printf("\n");
 
   PhyML_Printf("%s\n\t--quiet%s\n",BOLD,FLAT);
-  PhyML_Printf("\t\t%sNo interactive question (for running in batch mode).\n",FLAT);
+  PhyML_Printf("\t\t%sNo interactive question (for running in batch mode) and quiet output.\n",FLAT);
+
+  PhyML_Printf("\n");
+
+  PhyML_Printf("%s\n\t--no_memory_check%s\n",BOLD,FLAT);
+  PhyML_Printf("\t\t%sNo interactive question for memory usage (for running in batch mode). Normal ouput otherwise.\n",FLAT);
 
   PhyML_Printf("\n");
 

@@ -6427,6 +6427,7 @@ void Set_Defaults_Input(option* io)
   io->gibbs_sample_freq          = 1E+5;
   io->gibbs_chain_len            = 1E+8;
   io->gibbs_burnin               = 1E+6;
+  io->mem_question               = YES;
 }
 
 /*********************************************************/
@@ -9117,7 +9118,7 @@ void Check_Memory_Amount(t_tree *tree)
       char answer;
       PhyML_Printf("\n. WARNING: this analysis requires at least %.0f MB of memory space.\n",(phydbl)nbytes/(1.E+06));
 #ifndef BATCH
-      if (! tree->io->quiet) {
+      if ((!tree->io->quiet) || (tree->io->mem_question)) {
         PhyML_Printf("\n. Do you really want to proceed? [Y/n] ");
         if(scanf("%c", &answer))
 	  {
