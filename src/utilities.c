@@ -9114,23 +9114,26 @@ void Check_Memory_Amount(t_tree *tree)
       
     
   if(((phydbl)nbytes/(1.E+06)) > 256.)
+/*   if(((phydbl)nbytes/(1.E+06)) > 0.) */
     {
       char answer;
       PhyML_Printf("\n. WARNING: this analysis requires at least %.0f MB of memory space.\n",(phydbl)nbytes/(1.E+06));
 #ifndef BATCH
-      if ((!tree->io->quiet) || (tree->io->mem_question)) {
-        PhyML_Printf("\n. Do you really want to proceed? [Y/n] ");
-        if(scanf("%c", &answer))
-	  {
-	    if(answer == '\n') answer = 'Y';
-	    else if(answer == 'n' || answer == 'N') Warn_And_Exit("\n");
-	    else getchar();
-	  }
-	else
-	  {
-	    Warn_And_Exit("\n\n");
-	  }
-      }
+
+      if((!tree->io->quiet) && (tree->io->mem_question == YES)) 
+	{
+	  PhyML_Printf("\n. Do you really want to proceed? [Y/n] ");
+	  if(scanf("%c", &answer))
+	    {
+	      if(answer == '\n') answer = 'Y';
+	      else if(answer == 'n' || answer == 'N') Warn_And_Exit("\n");
+	      else getchar();
+	    }
+	  else
+	    {
+	      Warn_And_Exit("\n\n");
+	    }
+	}
 #endif
     }
   else if(((phydbl)nbytes/(1.E+06)) > 100.)
