@@ -3550,6 +3550,7 @@ void Speed_Spr_Loop(t_tree *tree)
   tree->mod->s_opt->spr_lnL        = 0;
   do
     {
+      PhyML_Printf("\n. LOOP 1\n");
       lk_old = tree->c_lnL;
       Speed_Spr(tree,1);
       if(tree->n_improvements) Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
@@ -3566,6 +3567,7 @@ void Speed_Spr_Loop(t_tree *tree)
       tree->mod->s_opt->spr_lnL        = 1;
       do
 	{
+	  PhyML_Printf("\n. LOOP 2\n");
 	  lk_old = tree->c_lnL;
 	  Speed_Spr(tree,1);
 	  if(tree->n_improvements) Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
@@ -3579,6 +3581,7 @@ void Speed_Spr_Loop(t_tree *tree)
   lk_old = UNLIKELY;
   do
     {
+      PhyML_Printf("\n. LOOP 3\n");
       lk_old = tree->c_lnL;
       Simu(tree,10);
       Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
@@ -3589,6 +3592,7 @@ void Speed_Spr_Loop(t_tree *tree)
   /*****************************/
   do
     {
+      PhyML_Printf("\n. LOOP 4\n");
       if(!Check_NNI_Five_Branches(tree)) break;
     }while(1);
   /*****************************/
@@ -4045,7 +4049,7 @@ int Try_One_Spr_Move_Full(spr *move, t_tree *tree)
   if(tree->c_lnL > tree->best_lnL + tree->mod->s_opt->min_diff_lk_move)
     {
       Pars(tree);
-      if((tree->mod->s_opt->print) && (!tree->io->quiet)) Print_Lk(tree,"[TopoLOGy           ]");
+      if((tree->mod->s_opt->print) && (!tree->io->quiet)) Print_Lk(tree,"[Topology           ]");
       tree->n_improvements++;
       tree->best_lnL = tree->c_lnL;
       Record_Br_Len(NULL,tree);

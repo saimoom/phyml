@@ -82,6 +82,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
       {"gibbs_chain_len",     required_argument,NULL,53},
       {"gibbs_sample_freq",   required_argument,NULL,54},
       {"gibbs_burnin",        required_argument,NULL,55},
+      {"no_memory_check",     no_argument,NULL,56},
       
       {0,0,0,0}
     };
@@ -93,6 +94,11 @@ void Read_Command_Line(option *io, int argc, char **argv)
       {
 	switch(c)
 	  {
+	  case 56:
+	    {
+	      io->mem_question = NO;
+	      break;
+	    }
 	  case 55:
 	    {
 	      io->gibbs_burnin = atoi(optarg);

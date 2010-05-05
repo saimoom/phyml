@@ -733,6 +733,8 @@ typedef struct __Option { /* mostly used in 'help.c' */
   int                 gibbs_chain_len;
   int               gibbs_sample_freq;
   int                    gibbs_burnin;
+
+  int                    mem_question;
 }option;
 
 /*********************************************************/
