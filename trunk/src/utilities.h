@@ -787,7 +787,8 @@ typedef struct __Optimiz { /* parameters to be optimised (mostly used in 'optimi
   int        min_depth_path;
   int          deepest_path;
   phydbl  max_delta_lnL_spr;
-  
+  int         br_len_in_spr; 
+ 
   int           wim_n_rgrft;
   int           wim_n_globl;
   int          wim_max_dist;

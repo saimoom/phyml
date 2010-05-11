@@ -28,7 +28,6 @@ void RWRAPPER_Min_Number_Of_Tip_Permut(char **tree_file_name, char **coord_file_
   io = (option *)Make_Input();
   io->fp_in_tree = fp_tree_file;
   Read_Tree_File(io);
-  fclose(io->fp_in_tree);
   tree = io->treelist->tree[0];
   tree->io = io;
 

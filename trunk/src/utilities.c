@@ -6493,7 +6493,9 @@ void Set_Defaults_Optimiz(optimiz *s_opt)
   s_opt->general_pars         = 0;
   s_opt->tree_size_mult       = 1;
   s_opt->opt_five_branch      = 1;
+
   s_opt->pars_thresh          = 5;
+
   s_opt->hybrid_thresh        = 0;
   s_opt->quickdirty           = 0;
   s_opt->spr_pars             = 1;
@@ -6502,6 +6504,7 @@ void Set_Defaults_Optimiz(optimiz *s_opt)
   s_opt->max_depth_path       = 20;
   s_opt->deepest_path         = 20;
   s_opt->max_delta_lnL_spr    = 50.;
+  s_opt->br_len_in_spr        = 10;
 
   s_opt->wim_n_rgrft          = -1;
   s_opt->wim_n_globl          = -1;
@@ -8188,21 +8191,8 @@ void Fast_Br_Len(t_edge *b, t_tree *tree, int approx)
       /* Expected number of each pair of states */
       For(i,tree->mod->ns) For(j,tree->mod->ns) For(k,tree->mod->n_catg)
 	F[dim3*k+dim2*i+j] += tree->data->wght[site] * prob[dim3*k+dim2*i+j];
-    }     
+    }
   
-/*   For(k,tree->mod->n_catg) */
-/*     { */
-/*       For(i,tree->mod->ns)  */
-/* 	{ */
-/* 	  For(j,tree->mod->ns)  */
-/* 	    { */
-/* 	      printf("%f ",F[dim3*k+dim2*i+j]); */
-/* 	    } */
-/* 	  printf("\n"); */
-/* 	} */
-/*       printf("\n"); */
-/*     } */
-
   old_l = b->l;
   Opt_Dist_F(&(b->l),F,tree->mod);
   new_l = b->l;
