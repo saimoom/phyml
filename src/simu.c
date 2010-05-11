@@ -59,7 +59,7 @@ int Simu(t_tree *tree, int n_step_max)
   old_loglk           = UNLIKELY;
   tree->c_lnL         = UNLIKELY;
   n_iter              = 1.0;
-  it_lim_without_swap = (tree->mod->invar)?(8):(5);
+  it_lim_without_swap = (tree->mod->invar)?(5):(2);
   n_tested            = 0;
   n_without_swap      = 0;
   step                = 0;
@@ -108,6 +108,7 @@ int Simu(t_tree *tree, int n_step_max)
 
       if((tree->mod->s_opt->print) && (!tree->io->quiet)) Print_Lk(tree,"[Topology           ]");
       
+
 /*       if(((tree->c_lnL > old_loglk) && (FABS(old_loglk-tree->c_lnL) < tree->mod->s_opt->min_diff_lk_global)) || (n_without_swap > it_lim_without_swap)) break; */
       if((FABS(old_loglk-tree->c_lnL) < tree->mod->s_opt->min_diff_lk_global) || (n_without_swap > it_lim_without_swap)) break;
       
@@ -131,6 +132,8 @@ int Simu(t_tree *tree, int n_step_max)
       
       Make_N_Swap(tree,tested_b,0,n_tested);
             
+      if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("[# nnis=%3d]",n_tested);
+
       n_tot_swap += n_tested;
       
       if(n_tested > 0) n_without_swap = 0;
