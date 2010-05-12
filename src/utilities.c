@@ -8160,7 +8160,7 @@ void Fast_Br_Len(t_edge *b, t_tree *tree, int approx)
   For(i,dim1*dim2) F[i] = .0;
   
   For(site,tree->n_pattern)
-    {	  
+    {
       /* Joint probabilities of the states at the two ends of the t_edge */
       v_rght = -1.;
       For(i,tree->mod->ns)
@@ -8209,6 +8209,7 @@ void Fast_Br_Len(t_edge *b, t_tree *tree, int approx)
 		 tree->mod->s_opt->quickdirty);
   else
     Lk_At_Given_Edge(b,tree);
+
 }
 
 /*********************************************************/

@@ -3464,11 +3464,11 @@ phydbl Test_One_Spr_Target(t_edge *b_target, t_edge *b_arrow, t_node *n_link, t_
 
   if(tree->mod->s_opt->spr_lnL)
     {
-      move_lnL = Triple_Dist(n_link,tree,1);
-/*       Update_PMat_At_Given_Edge(b_target,tree); */
-/*       Update_PMat_At_Given_Edge(b_arrow,tree); */
-/*       Update_P_Lk(tree,b_residual,n_link); */
-/*       move_lnL = Lk_At_Given_Edge(b_residual,tree); */
+/*       move_lnL = Triple_Dist(n_link,tree,1); */
+      Update_PMat_At_Given_Edge(b_target,tree);
+      Update_PMat_At_Given_Edge(b_arrow,tree);
+      Update_P_Lk(tree,b_residual,n_link);
+      move_lnL = Lk_At_Given_Edge(b_residual,tree);
     }
   else
     {
@@ -3552,7 +3552,7 @@ void Speed_Spr_Loop(t_tree *tree)
 
   /*****************************/
   lk_old = UNLIKELY;
-  tree->mod->s_opt->max_delta_lnL_spr = 50.;
+  tree->mod->s_opt->max_delta_lnL_spr = 100.;
   tree->mod->s_opt->br_len_in_spr     = 10;
   tree->mod->s_opt->max_depth_path    = 2*tree->n_otu-3;
   tree->mod->s_opt->spr_lnL           = 0;
@@ -3570,7 +3570,7 @@ void Speed_Spr_Loop(t_tree *tree)
   if(tree->io->datatype == NT)
     {
       lk_old = UNLIKELY;
-      tree->mod->s_opt->max_delta_lnL_spr = 50.;
+      tree->mod->s_opt->max_delta_lnL_spr = 20.;
       tree->mod->s_opt->br_len_in_spr     = 1;
       tree->mod->s_opt->max_depth_path    = 10;
       tree->mod->s_opt->spr_lnL           = 1;
@@ -3809,10 +3809,10 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, t_tree *t
 	  Update_P_Lk(tree,move->b_opp_to_link,move->n_link);
 	  move->lnL = Lk_At_Given_Edge(move->b_opp_to_link,tree);
 	  
-/* 	  if((move->lnL < best_lnL) && (move->lnL > best_lnL - tree->mod->s_opt->max_delta_lnL_spr)) */
-/* 	    { */
-/* 	      move->lnL = Triple_Dist(move->n_link,tree,1); */
-/* 	    } */
+	  if((move->lnL < best_lnL) && (move->lnL > best_lnL - tree->mod->s_opt->max_delta_lnL_spr))
+	    {
+	      move->lnL = Triple_Dist(move->n_link,tree,1);
+	    }
 
 	  if((move->lnL < best_lnL) && (move->lnL > best_lnL - tree->mod->s_opt->max_delta_lnL_spr))
 	    {
