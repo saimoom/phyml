@@ -3464,11 +3464,11 @@ phydbl Test_One_Spr_Target(t_edge *b_target, t_edge *b_arrow, t_node *n_link, t_
 
   if(tree->mod->s_opt->spr_lnL)
     {
-/*       move_lnL = Triple_Dist(n_link,tree,1); */
-      Update_PMat_At_Given_Edge(b_target,tree);
-      Update_PMat_At_Given_Edge(b_arrow,tree);
-      Update_P_Lk(tree,b_residual,n_link);
-      move_lnL = Lk_At_Given_Edge(b_residual,tree);
+      move_lnL = Triple_Dist(n_link,tree,1);
+/*       Update_PMat_At_Given_Edge(b_target,tree); */
+/*       Update_PMat_At_Given_Edge(b_arrow,tree); */
+/*       Update_P_Lk(tree,b_residual,n_link); */
+/*       move_lnL = Lk_At_Given_Edge(b_residual,tree); */
     }
   else
     {
@@ -3566,20 +3566,6 @@ void Speed_Spr_Loop(t_tree *tree)
   while(1);
   /*****************************/
 
-  Optimize_Br_Len_Serie(tree->noeud[0],
-			tree->noeud[0]->v[0],
-			tree->noeud[0]->b[0],
-			tree,
-			tree->data);	  
-  
-  /* Update partial likelihoods */
-  tree->both_sides = 1;
-  Lk(tree);
-  
-  /* Print log-likelihood and parsimony scores */
-  if((tree->mod->s_opt->print) && (!tree->io->quiet)) Print_Lk(tree,"[Branch lengths     ]");
-
-
   /*****************************/
   if(tree->io->datatype == NT)
     {
@@ -3598,19 +3584,6 @@ void Speed_Spr_Loop(t_tree *tree)
       while(1);
     }
   /*****************************/
-
-  Optimize_Br_Len_Serie(tree->noeud[0],
-			tree->noeud[0]->v[0],
-			tree->noeud[0]->b[0],
-			tree,
-			tree->data);	  
-  
-  /* Update partial likelihoods */
-  tree->both_sides = 1;
-  Lk(tree);
-  
-  /* Print log-likelihood and parsimony scores */
-  if((tree->mod->s_opt->print) && (!tree->io->quiet)) Print_Lk(tree,"[Branch lengths     ]");
 
   /*****************************/
   lk_old = UNLIKELY;
@@ -3672,19 +3645,19 @@ void Speed_Spr(t_tree *tree, int max_cycles)
       
       if(!tree->mod->s_opt->spr_pars)
 	{	  
-/* 	  /\* Optimise branch lengths *\/ */
-/* 	  Optimize_Br_Len_Serie(tree->noeud[0], */
-/* 				tree->noeud[0]->v[0], */
-/* 				tree->noeud[0]->b[0], */
-/* 				tree, */
-/* 				tree->data);	   */
+	  /* Optimise branch lengths */
+	  Optimize_Br_Len_Serie(tree->noeud[0],
+				tree->noeud[0]->v[0],
+				tree->noeud[0]->b[0],
+				tree,
+				tree->data);
 	  
-/* 	  /\* Update partial likelihoods *\/ */
-/* 	  tree->both_sides = 1; */
-/* 	  Lk(tree); */
+	  /* Update partial likelihoods */
+	  tree->both_sides = 1;
+	  Lk(tree);
 	  
-/* 	  /\* Print log-likelihood and parsimony scores *\/ */
-/* 	  if((tree->mod->s_opt->print) && (!tree->io->quiet)) Print_Lk(tree,"[Branch lengths     ]"); */
+	  /* Print log-likelihood and parsimony scores */
+	  if((tree->mod->s_opt->print) && (!tree->io->quiet)) Print_Lk(tree,"[Branch lengths     ]");
 	}
       else
 	{
