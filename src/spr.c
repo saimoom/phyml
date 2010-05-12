@@ -3566,6 +3566,20 @@ void Speed_Spr_Loop(t_tree *tree)
   while(1);
   /*****************************/
 
+  Optimize_Br_Len_Serie(tree->noeud[0],
+			tree->noeud[0]->v[0],
+			tree->noeud[0]->b[0],
+			tree,
+			tree->data);	  
+  
+  /* Update partial likelihoods */
+  tree->both_sides = 1;
+  Lk(tree);
+  
+  /* Print log-likelihood and parsimony scores */
+  if((tree->mod->s_opt->print) && (!tree->io->quiet)) Print_Lk(tree,"[Branch lengths     ]");
+
+
   /*****************************/
   if(tree->io->datatype == NT)
     {
@@ -3584,6 +3598,19 @@ void Speed_Spr_Loop(t_tree *tree)
       while(1);
     }
   /*****************************/
+
+  Optimize_Br_Len_Serie(tree->noeud[0],
+			tree->noeud[0]->v[0],
+			tree->noeud[0]->b[0],
+			tree,
+			tree->data);	  
+  
+  /* Update partial likelihoods */
+  tree->both_sides = 1;
+  Lk(tree);
+  
+  /* Print log-likelihood and parsimony scores */
+  if((tree->mod->s_opt->print) && (!tree->io->quiet)) Print_Lk(tree,"[Branch lengths     ]");
 
   /*****************************/
   lk_old = UNLIKELY;
@@ -3645,19 +3672,19 @@ void Speed_Spr(t_tree *tree, int max_cycles)
       
       if(!tree->mod->s_opt->spr_pars)
 	{	  
-	  /* Optimise branch lengths */
-	  Optimize_Br_Len_Serie(tree->noeud[0],
-				tree->noeud[0]->v[0],
-				tree->noeud[0]->b[0],
-				tree,
-				tree->data);	  
+/* 	  /\* Optimise branch lengths *\/ */
+/* 	  Optimize_Br_Len_Serie(tree->noeud[0], */
+/* 				tree->noeud[0]->v[0], */
+/* 				tree->noeud[0]->b[0], */
+/* 				tree, */
+/* 				tree->data);	   */
 	  
-	  /* Update partial likelihoods */
-	  tree->both_sides = 1;
-	  Lk(tree);
+/* 	  /\* Update partial likelihoods *\/ */
+/* 	  tree->both_sides = 1; */
+/* 	  Lk(tree); */
 	  
-	  /* Print log-likelihood and parsimony scores */
-	  if((tree->mod->s_opt->print) && (!tree->io->quiet)) Print_Lk(tree,"[Branch lengths     ]");
+/* 	  /\* Print log-likelihood and parsimony scores *\/ */
+/* 	  if((tree->mod->s_opt->print) && (!tree->io->quiet)) Print_Lk(tree,"[Branch lengths     ]"); */
 	}
       else
 	{
@@ -3981,19 +4008,19 @@ int Try_One_Spr_Move_Triple(spr *move, t_tree *tree)
 	}
 
       //
-      if(!(tree->n_improvements % tree->mod->s_opt->br_len_in_spr))
-	{
-	  tree->mod->s_opt->brent_it_max = 10;
-	  Optimize_Br_Len_Serie(tree->noeud[0],
-				tree->noeud[0]->v[0],
-				tree->noeud[0]->b[0],
-				tree,
-				tree->data);
-	  tree->mod->s_opt->brent_it_max = 500;
+/*       if(!(tree->n_improvements % tree->mod->s_opt->br_len_in_spr)) */
+/* 	{ */
+/* 	  tree->mod->s_opt->brent_it_max = 10; */
+/* 	  Optimize_Br_Len_Serie(tree->noeud[0], */
+/* 				tree->noeud[0]->v[0], */
+/* 				tree->noeud[0]->b[0], */
+/* 				tree, */
+/* 				tree->data); */
+/* 	  tree->mod->s_opt->brent_it_max = 500; */
 	  
-	  tree->both_sides = 1;
-	  Lk(tree);
-	}
+/* 	  tree->both_sides = 1; */
+/* 	  Lk(tree); */
+/* 	} */
       //
 
 
