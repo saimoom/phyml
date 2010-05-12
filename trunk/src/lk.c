@@ -1441,16 +1441,34 @@ phydbl Lk_Dist(phydbl *F, phydbl dist, model *mod)
   dim1 = mod->ns*mod->ns;
   dim2 = mod->ns;
   lnL = .0;
-  For(i,mod->ns)
+
+/*   For(i,mod->ns) */
+/*     { */
+/*       For(j,mod->ns) */
+/* 	{ */
+/* 	  For(k,mod->n_catg) */
+/* 	    { */
+/*  	      lnL += */
+/* 		F[dim1*k+dim2*i+j] * */
+/* 		LOG(mod->pi[i] * mod->Pij_rr[dim1*k+dim2*i+j]); */
+/* 	    } */
+/* 	} */
+/*     } */
+
+  For(i,mod->ns-1)
     {
-      For(j,mod->ns)
+      for(j=i+1;j<mod->ns;j++)
 	{
 	  For(k,mod->n_catg)
 	    {
- 	      lnL += F[dim1*k+dim2*i+j] * LOG(mod->Pij_rr[dim1*k+dim2*i+j]);
+ 	      lnL +=
+		(F[dim1*k+dim2*i+j] + F[dim1*k+dim2*j+i])*
+		LOG(mod->pi[i] * mod->Pij_rr[dim1*k+dim2*i+j]);
 	    }
 	}
     }
+
+  For(i,mod->ns) For(k,mod->n_catg) lnL += F[dim1*k+dim2*i+i]* LOG(mod->pi[i] * mod->Pij_rr[dim1*k+dim2*i+i]);
 
   return lnL;
 }
