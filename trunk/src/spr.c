@@ -3981,19 +3981,19 @@ int Try_One_Spr_Move_Triple(spr *move, t_tree *tree)
 	}
 
       //
-/*       if(!(tree->n_improvements % tree->mod->s_opt->br_len_in_spr)) */
-/* 	{ */
-/* 	  tree->mod->s_opt->brent_it_max = 10; */
-/* 	  Optimize_Br_Len_Serie(tree->noeud[0], */
-/* 				tree->noeud[0]->v[0], */
-/* 				tree->noeud[0]->b[0], */
-/* 				tree, */
-/* 				tree->data); */
-/* 	  tree->mod->s_opt->brent_it_max = 500; */
+      if(!(tree->n_improvements % tree->mod->s_opt->br_len_in_spr))
+	{
+	  tree->mod->s_opt->brent_it_max = 10;
+	  Optimize_Br_Len_Serie(tree->noeud[0],
+				tree->noeud[0]->v[0],
+				tree->noeud[0]->b[0],
+				tree,
+				tree->data);
+	  tree->mod->s_opt->brent_it_max = 500;
 	  
-/* 	  tree->both_sides = 1; */
-/* 	  Lk(tree); */
-/* 	} */
+	  tree->both_sides = 1;
+	  Lk(tree);
+	}
       //
 
 
