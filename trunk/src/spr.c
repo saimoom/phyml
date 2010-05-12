@@ -3567,8 +3567,8 @@ void Speed_Spr_Loop(t_tree *tree)
   /*****************************/
 
   /*****************************/
-  if(tree->io->datatype == NT)
-    {
+/*   if(tree->io->datatype == NT) */
+/*     { */
       lk_old = UNLIKELY;
       tree->mod->s_opt->max_delta_lnL_spr = 20.;
       tree->mod->s_opt->br_len_in_spr     = 1;
@@ -3582,7 +3582,7 @@ void Speed_Spr_Loop(t_tree *tree)
 	  if((!tree->n_improvements) || (FABS(lk_old-tree->c_lnL) < 1.)) break;
 	}
       while(1);
-    }
+/*     } */
   /*****************************/
 
   /*****************************/
