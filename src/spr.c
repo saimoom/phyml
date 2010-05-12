@@ -3549,6 +3549,13 @@ void Speed_Spr_Loop(t_tree *tree)
   Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
   tree->best_lnL = tree->c_lnL;
 
+  if(tree->io->datatype == AA)
+    {
+      tree->mod->s_opt->spr_pars = 1;
+      Speed_Spr(tree,1);
+      tree->mod->s_opt->spr_pars = 0;      
+    }
+
 
   /*****************************/
   lk_old = UNLIKELY;
