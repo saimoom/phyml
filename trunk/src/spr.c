@@ -3233,7 +3233,7 @@ void Spr_Subtree(t_edge *b, t_node *link, t_tree *tree)
 	  
 
 	  For(i,tree->n_moves)
-	    if(tree->spr_list[i]->lnL > tree->best_lnL - 20.) 
+	    if(tree->spr_list[i]->lnL > tree->best_lnL - 50.) 
 	      n_moves++;
 	  n_moves = MAX(n_moves,1);
 
@@ -3552,7 +3552,7 @@ void Speed_Spr_Loop(t_tree *tree)
 
   /*****************************/
   lk_old = UNLIKELY;
-  tree->mod->s_opt->max_delta_lnL_spr = (tree->io->datatype == NT)?(50.):(5.);
+  tree->mod->s_opt->max_delta_lnL_spr = (tree->io->datatype == NT)?(50.):(0.);
   tree->mod->s_opt->br_len_in_spr     = 10;
   tree->mod->s_opt->max_depth_path    = 2*tree->n_otu-3;
   tree->mod->s_opt->spr_lnL           = 0;
