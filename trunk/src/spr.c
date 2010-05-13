@@ -3233,7 +3233,7 @@ void Spr_Subtree(t_edge *b, t_node *link, t_tree *tree)
 	  
 
 	  For(i,tree->n_moves)
-	    if(tree->spr_list[i]->lnL > tree->best_lnL - 50.) 
+	    if(tree->spr_list[i]->lnL > tree->best_lnL - 10.) 
 	      n_moves++;
 	  n_moves = MAX(n_moves,1);
 
@@ -3586,9 +3586,6 @@ void Speed_Spr_Loop(t_tree *tree)
       while(1);
     }
   /*****************************/
-
-
-
 
 
   /*****************************/
