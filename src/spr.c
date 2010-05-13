@@ -3589,6 +3589,28 @@ void Speed_Spr_Loop(t_tree *tree)
 
 
 
+
+
+  /*****************************/
+  lk_old = UNLIKELY;
+  do
+    {
+      lk_old = tree->c_lnL;
+      Simu(tree,10);
+      Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
+    }
+  while(FABS(lk_old - tree->c_lnL) > tree->mod->s_opt->min_diff_lk_global);
+  /*****************************/
+
+  /*****************************/
+  do
+    {
+      if(!Check_NNI_Five_Branches(tree)) break;
+    }while(1);
+  /*****************************/
+
+/*   if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n"); */
+
   /*****************************/
   phydbl overall_best;
   int n_rand_runs;
@@ -3623,28 +3645,6 @@ void Speed_Spr_Loop(t_tree *tree)
   Copy_Tree(best_tree,tree);
   Lk(tree);
   /*****************************/
-
-
-
-  /*****************************/
-  lk_old = UNLIKELY;
-  do
-    {
-      lk_old = tree->c_lnL;
-      Simu(tree,10);
-      Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
-    }
-  while(FABS(lk_old - tree->c_lnL) > tree->mod->s_opt->min_diff_lk_global);
-  /*****************************/
-
-  /*****************************/
-  do
-    {
-      if(!Check_NNI_Five_Branches(tree)) break;
-    }while(1);
-  /*****************************/
-
-/*   if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n"); */
 
 }
 /*********************************************************/
