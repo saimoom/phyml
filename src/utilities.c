@@ -7509,6 +7509,7 @@ void Copy_Tree(t_tree *ori, t_tree *cpy)
 	}
     }
 
+
   For(i,2*ori->n_otu-3) 
     {
       cpy->t_edges[i]->l    = ori->t_edges[i]->l;
@@ -7522,11 +7523,13 @@ void Copy_Tree(t_tree *ori, t_tree *cpy)
       cpy->t_edges[i]->r_l  = ori->t_edges[i]->r_l;
     }
 
+
   For(i,ori->n_otu)
     {
       cpy->noeud[i]->tax = 1;
       strcpy(cpy->noeud[i]->name,ori->noeud[i]->name);
     }
+
 
   cpy->num_curr_branch_available = 0;
 /*   Connect_Edges_To_Nodes_Recur(cpy->noeud[0],cpy->noeud[0]->v[0],cpy); */
@@ -8753,6 +8756,7 @@ void Random_NNI(int n_moves, t_tree *tree)
 
       For(j,3) if(b->left->v[j] != b->rght) {n1 = b->left->v[j]; break;}
       For(j,3) if(b->rght->v[j] != b->left) {n2 = b->rght->v[j]; break;}
+
 
       Swap(n1,b->left,b->rght,n2,tree);
     }
