@@ -3568,29 +3568,6 @@ void Speed_Spr_Loop(t_tree *tree)
   /*****************************/
 
 
-  phydbl overall_best;
-  int n_rand_runs;
-
-  n_rand_runs  = 0;
-  overall_best = tree->c_lnL;  
-  do
-    {
-      n_rand_runs++;
-      Random_NNI((int)rint((2*tree->n_otu-3)/5),tree);
-      Lk(tree);
-      tree->best_lnL = tree->c_lnL;
-      lk_old = tree->c_lnL;
-      Speed_Spr(tree,1);
-      if(tree->n_improvements) Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
-      if((tree->io->datatype == NT) & (tree->n_improvements < 5) || (FABS(lk_old-tree->c_lnL) < 1.)) break;
-      if((tree->io->datatype == AA) & (tree->n_improvements < 1) || (FABS(lk_old-tree->c_lnL) < 1.)) break;
-      if(tree->best_lnL > overall_best) break;
-      if(n_rand_runs > 10) break;
-    }
-  while(1);
-
-
-
   /*****************************/
   if(tree->io->datatype == NT)
     {
@@ -3609,6 +3586,45 @@ void Speed_Spr_Loop(t_tree *tree)
       while(1);
     }
   /*****************************/
+
+
+
+  /*****************************/
+  phydbl overall_best;
+  int n_rand_runs;
+  phydbl tlen,lbda;
+  t_tree *best_tree;
+    
+  best_tree = Make_Tree_From_Scratch(tree->n_otu,tree->data);
+
+  Copy_Tree(tree,best_tree);
+
+  n_rand_runs  = 0;
+  overall_best = tree->c_lnL;
+  do
+    {
+      n_rand_runs++;
+      Random_NNI((int)ceil((tree->n_otu-3)/5),tree);
+      Lk(tree);
+      tree->best_lnL = tree->c_lnL;
+      lk_old = tree->c_lnL;
+      Speed_Spr(tree,1);
+      if(tree->n_improvements) Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
+      if(tree->best_lnL > overall_best)
+	{
+	  Copy_Tree(tree,best_tree);
+	  break;
+	}
+/*       Copy_Tree(best_tree,tree); */
+      if(n_rand_runs > 5) break;
+    }
+  while(1);
+  
+  Copy_Tree(best_tree,tree);
+  Lk(tree);
+  /*****************************/
+
+
 
   /*****************************/
   lk_old = UNLIKELY;
