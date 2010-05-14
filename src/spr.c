@@ -3230,6 +3230,7 @@ void Spr_Subtree(t_edge *b, t_node *link, t_tree *tree)
 	    if(curr_pars - tree->spr_list[i]->pars >= -tree->mod->s_opt->pars_thresh)
 	      n_moves_pars++;	  
 
+
 	  For(i,tree->n_moves)
 	    {
 	      n_moves++;
@@ -3240,14 +3241,9 @@ void Spr_Subtree(t_edge *b, t_node *link, t_tree *tree)
 
 	  if(!tree->mod->s_opt->spr_lnL) n_moves = n_moves_pars;
 
+	  n_moves = MAX(1,n_moves);
 	  n_moves = MIN(n_moves,2*tree->n_otu-3);
-	  
-	  if(!n_moves) 
-	    {
-	      Reset_Spr_List(tree);
-	      return;
-	    }
-	  
+	  	  
 	  if(tree->mod->s_opt->spr_pars)
 	    {
 	      min_pars = 1E+8;
