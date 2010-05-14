@@ -3552,7 +3552,7 @@ void Speed_Spr_Loop(t_tree *tree)
 
   /*****************************/
   lk_old = UNLIKELY;
-  tree->mod->s_opt->max_delta_lnL_spr = (tree->io->datatype == NT)?(20.):(0.);
+  tree->mod->s_opt->max_delta_lnL_spr = (tree->io->datatype == NT)?(50.):(0.);
   tree->mod->s_opt->br_len_in_spr     = 10;
   tree->mod->s_opt->max_depth_path    = 2*tree->n_otu-3;
   tree->mod->s_opt->spr_lnL           = 0;
@@ -3561,7 +3561,7 @@ void Speed_Spr_Loop(t_tree *tree)
       lk_old = tree->c_lnL;
       Speed_Spr(tree,1);
       if(tree->n_improvements) Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
-      if((tree->io->datatype == NT) & (tree->n_improvements < 1) || (FABS(lk_old-tree->c_lnL) < 1.)) break;
+      if((tree->io->datatype == NT) & (tree->n_improvements < 10) || (FABS(lk_old-tree->c_lnL) < 1.)) break;
       if((tree->io->datatype == AA) & (tree->n_improvements < 1) || (FABS(lk_old-tree->c_lnL) < 1.)) break;
     }
   while(1);
