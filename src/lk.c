@@ -562,9 +562,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
 
 /*   fact_sum_scale = (int)((max_sum_scale + min_sum_scale) / 2); */
 
-
   fact_sum_scale = (int)(max_sum_scale / 2);
-
 
   /* Apply scaling factors */
   For(catg,tree->mod->n_catg)
@@ -572,8 +570,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
       exponent = -(sum_scale_left_cat[catg]+sum_scale_rght_cat[catg])+fact_sum_scale;
 
       site_lk_cat = tree->site_lk_cat[catg];
-      
-
+     
       if(exponent > 0)
 	{
 	  do
@@ -599,25 +596,49 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
 
       if(isinf(site_lk_cat))
 	{
-	  PhyML_Printf("\n+ site=%4d site_lk_cat=%G sum_scale=%d max=%G fact=%d expo=%d dbl=%G",
+	  PhyML_Printf("\n+ site=%4d cat=%4d site_lk_cat=%G sum_scale=%d max=%G fact=%d expo=%d dbl=%G",
 		       tree->curr_site,
+		       catg,
 		       tree->site_lk_cat[catg],
 		       sum_scale_left_cat[catg]+sum_scale_rght_cat[catg],
 		       max_sum_scale,
 		       fact_sum_scale,
 		       -(sum_scale_left_cat[catg]+sum_scale_rght_cat[catg])+fact_sum_scale,
 		       (double)tree->site_lk_cat[catg] * pow(2.,-(sum_scale_left_cat[catg]+sum_scale_rght_cat[catg])+fact_sum_scale));
+
 	  site_lk_cat = BIG / 10;
 	}
 
-      if(site_lk_cat < SMALL) site_lk_cat = .0;
+      
+      if(site_lk_cat < SMALL) 
+	{
+	  if(tree->mod->n_catg == 1)
+	    {
+	      PhyML_Printf("\n- site=%4d cat=%4d site_lk_cat=%G sum_scale=%d max=%G fact=%d expo=%d dbl=%G",
+			   tree->curr_site,
+			   catg,
+			   tree->site_lk_cat[catg],
+			   sum_scale_left_cat[catg]+sum_scale_rght_cat[catg],
+			   max_sum_scale,
+			   fact_sum_scale,
+			   -(sum_scale_left_cat[catg]+sum_scale_rght_cat[catg])+fact_sum_scale,
+			   (double)tree->site_lk_cat[catg] * pow(2.,-(sum_scale_left_cat[catg]+sum_scale_rght_cat[catg])+fact_sum_scale));
+
+	      Exit("\n");
+	    }
+
+	  site_lk_cat = .0;
+	}
 
       tree->site_lk_cat[catg] = site_lk_cat;
     }
 
   site_lk = .0;
-  For(catg,tree->mod->n_catg) site_lk += tree->site_lk_cat[catg] * tree->mod->gamma_r_proba[catg];
-  
+  For(catg,tree->mod->n_catg) 
+    {
+      site_lk += tree->site_lk_cat[catg] * tree->mod->gamma_r_proba[catg];
+    }
+
   /* The substitution model does include invariable sites */
   if(tree->mod->invar)
     {
@@ -647,17 +668,18 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
 	  site_lk *= (1. - tree->mod->pinvar);
         }
     }
-  
+
   log_site_lk = LOG(site_lk) - (phydbl)LOG2 * fact_sum_scale;
 
   For(catg,tree->mod->n_catg) tree->log_site_lk_cat[catg][site] = LOG(tree->site_lk_cat[catg]) - (phydbl)LOG2 * fact_sum_scale;
   
   if(isinf(log_site_lk) || isnan(log_site_lk))
     {
-      PhyML_Printf("\n. invar = %f",tree->data->invar[site]);
+      PhyML_Printf("\n. Site = %d",site);
+      PhyML_Printf("\n. invar = %d",tree->data->invar[site]);
       PhyML_Printf("\n. scale_left = %d scale_rght = %d",sum_scale_left,sum_scale_rght);
       PhyML_Printf("\n. Lk = %G LOG(Lk) = %f < %G",site_lk,log_site_lk,-BIG);
-      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. Err in file %s at line %d",__FILE__,__LINE__);
       Warn_And_Exit("\n");
     }
   
@@ -907,7 +929,7 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
 /* 		} */
 
 	      sum_scale[catg*n_patterns+site] += curr_scaler_pow;
-
+	      
 	      do
 		{
 		  piecewise_scaler_pow = MIN(curr_scaler_pow,63);

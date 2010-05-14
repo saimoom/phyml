@@ -233,6 +233,10 @@ typedef	double phydbl;
 #define BL_MIN 1.E-5
 #define BL_MAX 5.
 #endif
+/* #define P_LK_LIM_INF 7.888609052e-31 */
+/* #define P_LK_LIM_MAX 1.267650600e+30 */
+/* #define P_LK_LIM_INF 4.909093465e-91 /\* R: format(2^(-300),digits=10) *\/ */
+/* #define P_LK_LIM_SUP 2.037035976e+90 /\* R: format(2^(+300),digits=10) *\/ */
 #define  P_LK_LIM_INF   3.054936e-151 /* 2^-500 */
 #define  P_LK_LIM_SUP   3.273391e+150 /* 2^500 */
 
