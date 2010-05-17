@@ -1467,26 +1467,26 @@ void Update_P_Lk_AA(t_tree *tree, t_edge *b, t_node *d)
 		  else
 		    {
 		      /* For all the states at node n_v2 */
-		      p0  = Pij2[catg*dim3+i*dim2+ 0] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+ 0];
-		      p1  = Pij2[catg*dim3+i*dim2+ 1] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+ 1];
-		      p2  = Pij2[catg*dim3+i*dim2+ 2] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+ 2];
-		      p3  = Pij2[catg*dim3+i*dim2+ 3] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+ 3];
-		      p4  = Pij2[catg*dim3+i*dim2+ 4] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+ 4];
-		      p5  = Pij2[catg*dim3+i*dim2+ 5] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+ 5];
-		      p6  = Pij2[catg*dim3+i*dim2+ 6] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+ 6];
-		      p7  = Pij2[catg*dim3+i*dim2+ 7] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+ 7];
-		      p8  = Pij2[catg*dim3+i*dim2+ 8] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+ 8];
-		      p9  = Pij2[catg*dim3+i*dim2+ 9] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+ 9];
-		      p10 = Pij2[catg*dim3+i*dim2+10] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+10];
-		      p11 = Pij2[catg*dim3+i*dim2+11] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+11];
-		      p12 = Pij2[catg*dim3+i*dim2+12] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+12];
-		      p13 = Pij2[catg*dim3+i*dim2+13] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+13];
-		      p14 = Pij2[catg*dim3+i*dim2+14] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+14];
-		      p15 = Pij2[catg*dim3+i*dim2+15] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+15];
-		      p16 = Pij2[catg*dim3+i*dim2+16] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+16];
-		      p17 = Pij2[catg*dim3+i*dim2+17] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+17];
-		      p18 = Pij2[catg*dim3+i*dim2+18] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+18];
-		      p19 = Pij2[catg*dim3+i*dim2+19] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+19];
+		      p0  = Pij2[catg*dim3+i*dim2+ 0] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+ 0];
+		      p1  = Pij2[catg*dim3+i*dim2+ 1] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+ 1];
+		      p2  = Pij2[catg*dim3+i*dim2+ 2] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+ 2];
+		      p3  = Pij2[catg*dim3+i*dim2+ 3] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+ 3];
+		      p4  = Pij2[catg*dim3+i*dim2+ 4] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+ 4];
+		      p5  = Pij2[catg*dim3+i*dim2+ 5] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+ 5];
+		      p6  = Pij2[catg*dim3+i*dim2+ 6] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+ 6];
+		      p7  = Pij2[catg*dim3+i*dim2+ 7] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+ 7];
+		      p8  = Pij2[catg*dim3+i*dim2+ 8] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+ 8];
+		      p9  = Pij2[catg*dim3+i*dim2+ 9] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+ 9];
+		      p10 = Pij2[catg*dim3+i*dim2+10] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+10];
+		      p11 = Pij2[catg*dim3+i*dim2+11] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+11];
+		      p12 = Pij2[catg*dim3+i*dim2+12] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+12];
+		      p13 = Pij2[catg*dim3+i*dim2+13] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+13];
+		      p14 = Pij2[catg*dim3+i*dim2+14] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+14];
+		      p15 = Pij2[catg*dim3+i*dim2+15] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+15];
+		      p16 = Pij2[catg*dim3+i*dim2+16] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+16];
+		      p17 = Pij2[catg*dim3+i*dim2+17] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+17];
+		      p18 = Pij2[catg*dim3+i*dim2+18] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+18];
+		      p19 = Pij2[catg*dim3+i*dim2+19] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+19];
 		      p2_lk2 = p0+p1+p2+p3+p4+p5+p6+p7+p8+p9+p10+p11+p12+p13+p14+p15+p16+p17+p18+p19;
 
 		    }
