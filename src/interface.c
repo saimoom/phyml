@@ -733,11 +733,11 @@ void Launch_Interface_Model(option *io)
 	     " %-15s \n",s);
 
 
-      strcpy(s,(io->mod->gamma_median)?("median"):("mean"));
+/*       strcpy(s,(io->mod->gamma_median)?("median"):("mean")); */
       
-      PhyML_Printf("                [G] "
-	     ".........'Middle' of each rate class (mean/median) "
-	     " %-15s \n",s);
+/*       PhyML_Printf("                [G] " */
+/* 	     ".........'Middle' of each rate class (mean/median) " */
+/* 	     " %-15s \n",s); */
 
 
     }
@@ -759,11 +759,11 @@ void Launch_Interface_Model(option *io)
 /* 	break; */
 /*       } */
 
-    case 'G' :
-      {
-	io->mod->gamma_median = (io->mod->gamma_median)?(0):(1);
-	break;
-      }
+/*     case 'G' : */
+/*       { */
+/* 	io->mod->gamma_median = (io->mod->gamma_median)?(0):(1); */
+/* 	break; */
+/*       } */
 
     case 'O' :
       {

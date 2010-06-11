@@ -13,6 +13,10 @@ if WANT_PHYTIME
 bin_PROGRAMS = phytime
 PROG = PHYTIME
 else
+if WANT_PHYCONT
+bin_PROGRAMS = phycont
+PROG = PHYCONT
+else
 if WANT_PART
 bin_PROGRAMS = part
 PROG = PART
@@ -28,6 +32,7 @@ else
 bin_PROGRAMS = phyml
 PROG = PHYML
 # endif
+endif
 endif
 endif
 endif
@@ -57,6 +62,32 @@ mcmc.c mcmc.h\
 stats.c stats.h\
 mg.c mg.h
 phytime_LDADD = -lm
+else 
+if WANT_PHYCONT
+phycont_SOURCES = main.c \
+utilities.c utilities.h\
+optimiz.c optimiz.h\
+lk.c lk.h\
+bionj.c bionj.h\
+models.c models.h\
+free.c free.h\
+help.c help.h\
+simu.c simu.h\
+eigen.c eigen.h\
+pars.c pars.h\
+alrt.c alrt.h\
+interface.c interface.h\
+cl.c cl.h\
+spr.c spr.h\
+times.c times.h\
+m4.c m4.h\
+draw.c draw.h\
+rates.c rates.h\
+mcmc.c mcmc.h\
+stats.c stats.h\
+mg.c mg.h\
+continuous.c continuous.h
+phycont_LDADD = -lm
 else 
 if WANT_RWRAP
 lib_LTLIBRARIES = librwrap.la
@@ -162,7 +193,7 @@ endif
 endif
 endif
 endif
-
+endif
 
 all-am:	intro $(bin_PROGRAMS)$(EXEEXT)
 	@echo ""

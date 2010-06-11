@@ -690,7 +690,7 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
 	    }
 	  else if(tree->print_alrt_val)
 	    {
-	      (*pos) += sprintf(*s_tree+*pos,"%.10f",fils->b[p]->ratio_test);
+	      (*pos) += sprintf(*s_tree+*pos,"%f",fils->b[p]->ratio_test);
 	    }
 	  if(tree->print_labels)
 	    {
@@ -711,18 +711,18 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
 #ifndef PHYTIME
 	  if(!tree->n_root)
 	    {
-	      (*pos) += sprintf(*s_tree+*pos,"%.10f",fils->b[p]->l);
+	      (*pos) += sprintf(*s_tree+*pos,"%f",fils->b[p]->l);
 	    }
 	  else
 	    {
 	      if(pere == tree->n_root)
 		{
 		  phydbl root_pos = (fils == tree->n_root->v[0])?(tree->n_root_pos):(1.-tree->n_root_pos);
-		  (*pos) += sprintf(*s_tree+*pos,"%.10f",tree->e_root->l * root_pos);
+		  (*pos) += sprintf(*s_tree+*pos,"%f",tree->e_root->l * root_pos);
 		}
 	      else
 		{
-		  (*pos) += sprintf(*s_tree+*pos,"%.10f",fils->b[p]->l);
+		  (*pos) += sprintf(*s_tree+*pos,"%f",fils->b[p]->l);
 		}
 	    }
 #else
@@ -6308,17 +6308,30 @@ void Record_Model(model *ori, model *cpy)
   cpy->n_diff_rr    = ori->n_diff_rr;
 
 
-  if(ori->whichmodel == CUSTOM)
-    {
-      For(i,ori->ns*(ori->ns-1)/2) cpy->rr_num[i] = ori->rr_num[i];
+/*   if(ori->whichmodel == CUSTOM) */
+/*     { */
+/*       For(i,ori->ns*(ori->ns-1)/2) cpy->rr_num[i] = ori->rr_num[i]; */
 
+/*       For(i,ori->ns*(ori->ns-1)/2) */
+/* 	{ */
+/* 	  cpy->rr_val[i]  = ori->rr_val[i]; */
+/* 	  cpy->rr[i]      = cpy->rr[i]; */
+/* 	} */
+/*     } */
+  
+  if((ori->whichmodel == CUSTOM) || (ori->whichmodel == GTR))
+    {
       For(i,ori->ns*(ori->ns-1)/2)
 	{
-	  cpy->rr_val[i]  = ori->rr_val[i];
-	  cpy->rr[i] = cpy->rr[i];
+	  cpy->rr_num[i]       = ori->rr_num[i];
+	  cpy->rr_val[i]       = ori->rr_val[i];
+	  cpy->rr[i]           = ori->rr[i];
+	  cpy->n_rr_per_cat[i] = ori->n_rr_per_cat[i];
 	}
     }
   
+
+
   For(i,cpy->ns)
     {
       cpy->pi[i]          = ori->pi[i];
@@ -9244,7 +9257,8 @@ void Warn_And_Exit(char *s)
 //  if (! tree->io->quiet) {
     char c;
     PhyML_Fprintf(stdout,"\n. Type enter to exit.\n");
-    if(!fscanf(stdin,"%c",&c)) Exit("");
+/*     if(!fscanf(stdin,"%c",&c))  */
+      Exit("");
 //  }
 #endif
   Exit("\n");
@@ -10211,6 +10225,7 @@ void Best_Of_NNI_And_SPR(t_tree *tree)
       Lk(tree);
       ori_lnL = tree->c_lnL; /* Record likelihood of the starting tree */
 
+
       Simu_Loop(tree); /* Perform simultaneous NNIs */
       best_lnL = tree->c_lnL; /* Record the likelihood */
       nni_lnL = tree->c_lnL;
@@ -10225,6 +10240,7 @@ void Best_Of_NNI_And_SPR(t_tree *tree)
       
       /* Make sure the tree is in its original form */
       Lk(tree);
+
       if(FABS(tree->c_lnL - ori_lnL) > tree->mod->s_opt->min_diff_lk_global)
 	{
 	  PhyML_Printf("\n. ori_lnL = %f, c_lnL = %f",ori_lnL,tree->c_lnL);
