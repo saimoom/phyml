@@ -304,6 +304,14 @@ int main(int argc, char **argv)
   return 1;
 }
 
+#elif(PHYCONT)
+#include "continuous.h"
+int main(int argc, char **argv)
+{
+  CONT_main(argc, argv);
+  return 1;
+}
+
 #elif(RF)
 int main(int argc, char **argv)
 {

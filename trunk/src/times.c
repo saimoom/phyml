@@ -63,6 +63,8 @@ int TIMES_main(int argc, char **argv)
 /*   r_seed = 1264735233; */
   /* !!!!!!!!!!!!!!!!!!!!!!!! */
 
+  system("sleep 5s");
+
   srand(r_seed); rand();
   PhyML_Printf("\n. Seed: %d\n",r_seed);
   PhyML_Printf("\n. Pid: %d\n",getpid());
@@ -114,6 +116,14 @@ int TIMES_main(int argc, char **argv)
 		  else             tree = Read_User_Tree(cdata,mod,io);
 
 		  if(!tree) continue;
+
+
+		  if(!tree->n_root) 
+		    {
+		      PhyML_Printf("\n. Sorry, PhyTime requires a rooted tree as input.");
+		      Exit("\n");      
+		    }
+
 
 		  time(&t_beg);
 		  time(&(tree->t_beg));
