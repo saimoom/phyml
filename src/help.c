@@ -238,6 +238,12 @@ void Usage()
 
   PhyML_Printf("\n");
 
+  PhyML_Printf("%s\n\t--alias_subpatt%s\n",BOLD,FLAT);
+  PhyML_Printf("\t\t%sSite aliasing is generalized at the subtree level. Sometimes lead to faster calculations.\n",FLAT);
+  PhyML_Printf("\t\t%sSee Kosakovsky Pond SL, Muse SV, Sytematic Biology (2004) for an example.\n",FLAT);
+
+  PhyML_Printf("\n");
+
   PhyML_Printf("%s\n\t--boot_progress_display %snum%s (default=20)\n",BOLD,LINE,FLAT);
   PhyML_Printf("\t\t%snum%s is the frequency at which the bootstrap progress bar will be updated.\n",LINE,FLAT);
   PhyML_Printf("\t\tMust be an integer.\n");

@@ -150,11 +150,12 @@ int main(int argc, char **argv)
 
 		  if(io->in_tree == 1) Spr_Pars(tree);
 		 
-		  io->do_alias_subpatt = NO;
-		  tree->update_alias_subpatt = YES;
-		  Lk(tree);
-		  tree->update_alias_subpatt = NO;
-
+		  if(io->do_alias_subpatt)
+		    {
+		      tree->update_alias_subpatt = YES;
+		      Lk(tree);
+		      tree->update_alias_subpatt = NO;
+		    }
 
 		  if(tree->mod->s_opt->opt_topo)
 		    {
