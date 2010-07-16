@@ -84,6 +84,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
       {"gibbs_burnin",        required_argument,NULL,55},
       {"no_memory_check",     no_argument,NULL,56},
       {"no_colalias",         no_argument,NULL,57},
+      {"alias_subpatt",       no_argument,NULL,58},
       
       {0,0,0,0}
     };
@@ -95,6 +96,11 @@ void Read_Command_Line(option *io, int argc, char **argv)
       {
 	switch(c)
 	  {
+	  case 58:
+	    {
+	      io->do_alias_subpatt = YES;
+	      break;
+	    }
 	  case 57:
 	    {
 	      io->colalias = NO;

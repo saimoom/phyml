@@ -862,6 +862,8 @@ void Init_Edge_Light(t_edge *b, int num)
 
   b->p_lk_left            = NULL;
   b->p_lk_rght            = NULL;
+  b->p_lk_loc_left        = NULL;
+  b->p_lk_loc_rght        = NULL;
   b->Pij_rr               = NULL;
 }
 
@@ -1099,7 +1101,11 @@ void Detect_Align_File_Format(option *io)
       else if(c == '#')
 	{
 	  char s[10],t[6]="NEXUS";
-	  fgets(s,6,io->fp_in_align);
+	  if(!fgets(s,6,io->fp_in_align))
+	    {     
+	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	      Warn_And_Exit("");
+	    }
 	  if(!strcmp(t,s)) 
 	    {
 	      fsetpos(io->fp_in_align,&curr_pos);
@@ -1133,7 +1139,11 @@ void Detect_Tree_File_Format(option *io)
       else if(c == '#')
 	{
 	  char s[10],t[6]="NEXUS";
-	  fgets(s,6,io->fp_in_tree);
+	  if(!fgets(s,6,io->fp_in_tree))
+	    {
+	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	      Warn_And_Exit("");
+	    }
 	  if(!strcmp(t,s))
 	    {
 	      fsetpos(io->fp_in_tree,&curr_pos);
@@ -3920,6 +3930,8 @@ void Share_Lk_Struct(t_tree *t_full, t_tree *t_empt)
 	      if(n_e->b[j]->left == n_e)
 		{
 		  n_e->b[j]->p_lk_left          = n_f->b[j]->p_lk_left;
+		  n_e->b[j]->p_lk_loc_left      = n_f->b[j]->p_lk_loc_left;
+		  n_e->b[j]->patt_id_left       = n_f->b[j]->patt_id_left;
 		  n_e->b[j]->sum_scale_left     = n_f->b[j]->sum_scale_left;
 		  n_e->b[j]->sum_scale_left_cat = n_f->b[j]->sum_scale_left_cat;
 		  n_e->b[j]->p_lk_tip_l         = n_f->b[j]->p_lk_tip_l;
@@ -3927,6 +3939,8 @@ void Share_Lk_Struct(t_tree *t_full, t_tree *t_empt)
 	      else
 		{
 		  n_e->b[j]->p_lk_rght          = n_f->b[j]->p_lk_left;
+		  n_e->b[j]->p_lk_loc_rght      = n_f->b[j]->p_lk_loc_left;
+		  n_e->b[j]->patt_id_rght       = n_f->b[j]->patt_id_left;
 		  n_e->b[j]->sum_scale_rght     = n_f->b[j]->sum_scale_left;
 		  n_e->b[j]->sum_scale_rght_cat = n_f->b[j]->sum_scale_left_cat;
 		  n_e->b[j]->p_lk_tip_r         = n_f->b[j]->p_lk_tip_l;
@@ -3937,6 +3951,8 @@ void Share_Lk_Struct(t_tree *t_full, t_tree *t_empt)
 	      if(n_e->b[j]->rght == n_e)
 		{
 		  n_e->b[j]->p_lk_rght          = n_f->b[j]->p_lk_rght;
+		  n_e->b[j]->p_lk_loc_rght      = n_f->b[j]->p_lk_loc_rght;
+		  n_e->b[j]->patt_id_rght       = n_f->b[j]->patt_id_rght;
 		  n_e->b[j]->sum_scale_rght     = n_f->b[j]->sum_scale_rght;
 		  n_e->b[j]->sum_scale_rght_cat = n_f->b[j]->sum_scale_rght_cat;
 		  n_e->b[j]->p_lk_tip_r         = n_f->b[j]->p_lk_tip_r;
@@ -3944,6 +3960,8 @@ void Share_Lk_Struct(t_tree *t_full, t_tree *t_empt)
 	      else
 		{
 		  n_e->b[j]->p_lk_left          = n_f->b[j]->p_lk_rght;
+		  n_e->b[j]->p_lk_loc_left      = n_f->b[j]->p_lk_loc_rght;
+		  n_e->b[j]->patt_id_left       = n_f->b[j]->patt_id_rght;
 		  n_e->b[j]->sum_scale_left     = n_f->b[j]->sum_scale_rght;
 		  n_e->b[j]->sum_scale_left_cat = n_f->b[j]->sum_scale_rght_cat;
 		  n_e->b[j]->p_lk_tip_l         = n_f->b[j]->p_lk_tip_r;
@@ -3960,6 +3978,8 @@ void Share_Lk_Struct(t_tree *t_full, t_tree *t_empt)
       if(n_f->b[0]->rght == n_f)
 	{
 	  n_e->b[0]->p_lk_rght          = n_f->b[0]->p_lk_rght;
+	  n_e->b[0]->p_lk_loc_rght      = n_f->b[0]->p_lk_loc_rght;
+	  n_e->b[0]->patt_id_rght       = n_f->b[0]->patt_id_rght;
 	  n_e->b[0]->sum_scale_rght     = n_f->b[0]->sum_scale_rght;
 	  n_e->b[0]->sum_scale_rght_cat = n_f->b[0]->sum_scale_rght_cat;
 	  n_e->b[0]->p_lk_tip_r         = n_f->b[0]->p_lk_tip_r;
@@ -5928,6 +5948,13 @@ void Bootstrap(t_tree *tree)
       Init_P_Pars_Tips(boot_tree);
       Br_Len_Not_Involving_Invar(boot_tree);
       
+      if(boot_tree->io->do_alias_subpatt)
+	{
+	  boot_tree->update_alias_subpatt = YES;
+	  Lk(boot_tree);
+	  boot_tree->update_alias_subpatt = NO;
+	}
+
       if(boot_tree->mod->s_opt->opt_topo)
 	{
 	  if(boot_tree->mod->s_opt->topo_search == NNI_MOVE) 
@@ -6459,8 +6486,7 @@ void Set_Defaults_Input(option* io)
   io->gibbs_chain_len            = 1E+8;
   io->gibbs_burnin               = 1E+6;
   io->mem_question               = YES;
-  io->do_alias_subpatt           = YES;
-
+  io->do_alias_subpatt           = NO;
 }
 
 /*********************************************************/
