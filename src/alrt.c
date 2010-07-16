@@ -55,8 +55,10 @@ int Check_NNI_Five_Branches(t_tree *tree)
       best_gain     = 1.E+10;
       best_config   = -1;
 
+      tree->update_alias_subpatt = YES;
       tree->both_sides = 1;
       init_lnL = Lk(tree);
+      tree->update_alias_subpatt = NO;
 
       //For every branch
       For(i,2*tree->n_otu-3)
@@ -140,7 +142,9 @@ int Check_NNI_Five_Branches(t_tree *tree)
       if(better_found)
 	{
 	  Make_Target_Swap(tree,tree->t_edges[best_edge],best_config);
+	  tree->update_alias_subpatt = YES;
 	  Lk(tree);
+	  tree->update_alias_subpatt = NO;
 
 	  if(tree->c_lnL < init_lnL)
 	    {
@@ -170,8 +174,10 @@ void aLRT(t_tree *tree)
   /* The topology will not be modified when assessing the branch support. We make sure that it will
      not be modified afterwards by locking the topology */
   
+  tree->update_alias_subpatt = YES;
   tree->both_sides = 1;
   Lk(tree);
+  tree->update_alias_subpatt = NO;
 
 
   For(i,2*tree->n_otu-3)
@@ -432,6 +438,7 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
   Swap(v2,b_fcus->left,b_fcus->rght,v3,tree);
 
 
+  tree->update_alias_subpatt = YES;
   tree->both_sides = 1;
   lk1 = Update_Lk_At_Given_Edge(b_fcus,tree);
 
@@ -442,6 +449,7 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
   For(i,3)
     if(b_fcus->rght->v[i] != b_fcus->left)
       Update_P_Lk(tree,b_fcus->rght->b[i],b_fcus->rght);
+  tree->update_alias_subpatt = NO;
 
 
   //Optimize branch lengths and update likelihoods
@@ -543,6 +551,7 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
   b_fcus->l = bl_init;
   tree->both_sides = 1;
 
+  tree->update_alias_subpatt = YES;
   lk2 = Update_Lk_At_Given_Edge(b_fcus,tree);
 
   For(i,3)
@@ -553,6 +562,7 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
     if(b_fcus->rght->v[i] != b_fcus->left)
       Update_P_Lk(tree,b_fcus->rght->b[i],b_fcus->rght);
 
+  tree->update_alias_subpatt = NO;
 
   //Optimize branch lengths and update likelihoods
   lk_temp = UNLIKELY;
@@ -645,6 +655,7 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
   Update_PMat_At_Given_Edge(e4,tree);
   Update_PMat_At_Given_Edge(b_fcus,tree);
 
+  tree->update_alias_subpatt = YES;
   Update_P_Lk(tree,b_fcus,b_fcus->rght);
   Update_P_Lk(tree,b_fcus,b_fcus->left);
 
@@ -655,6 +666,7 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
   For(i,3)
     if(b_fcus->rght->v[i] != b_fcus->left)
       Update_P_Lk(tree,b_fcus->rght->b[i],b_fcus->rght);
+  tree->update_alias_subpatt = NO;
 
   lk_temp = Lk_At_Given_Edge(b_fcus,tree);
 
@@ -777,6 +789,7 @@ void Make_Target_Swap(t_tree *tree, t_edge *b_fcus, int swaptodo)
       Swap(v2,b_fcus->left,b_fcus->rght,v4,tree);
     }
 
+  tree->update_alias_subpatt = YES;
   tree->both_sides = 1;
   lktodo = Update_Lk_At_Given_Edge(b_fcus,tree);
 
@@ -788,6 +801,7 @@ void Make_Target_Swap(t_tree *tree, t_edge *b_fcus, int swaptodo)
     if(b_fcus->rght->v[i] != b_fcus->left)
       Update_P_Lk(tree,b_fcus->rght->b[i],b_fcus->rght);
 
+  tree->update_alias_subpatt = NO;
 
   //Optimize branch lengths and update likelihoods
   lk_temp = UNLIKELY;

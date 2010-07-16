@@ -97,8 +97,7 @@ void Pre_Order_Pars(t_node *a, t_node *d, t_tree *tree)
 
 void Get_All_Partial_Pars(t_tree *tree, t_edge *b_fcus, t_node *a, t_node *d)
 {
-  if(d->tax) return;
-  else Update_P_Pars(tree,b_fcus,d);
+  Update_P_Pars(tree,b_fcus,d);
 }
 
 /*********************************************************/
@@ -248,6 +247,12 @@ void Update_P_Pars(t_tree *tree, t_edge *b_fcus, t_node *n)
   int min_v1,min_v2;
   int v;
   int dim1;
+
+  if((tree->io->do_alias_subpatt == YES) && 
+     (tree->update_alias_subpatt == YES))
+    Alias_One_Subpatt((n==b_fcus->left)?(b_fcus->rght):(b_fcus->left),n,tree);
+
+  if(n->tax) return;
 
   dim1 = tree->mod->ns;
   matches = 0;
