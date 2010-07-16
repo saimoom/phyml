@@ -82,9 +82,11 @@ int Simu(t_tree *tree, int n_step_max)
     {
       ++step;
                  
+      if(n_tested || step == 1) tree->update_alias_subpatt = YES;
       old_loglk = tree->c_lnL;	    
       tree->both_sides = 1;
       Lk(tree);
+      tree->update_alias_subpatt = NO;
             
       if(tree->c_lnL < old_loglk)
 	{

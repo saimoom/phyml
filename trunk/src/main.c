@@ -136,11 +136,10 @@ int main(int argc, char **argv)
 		  time(&t_beg);
 		  time(&(tree->t_beg));
       
-
 		  tree->mod         = mod;
 		  tree->io          = io;
 		  tree->data        = cdata;
-		  tree->both_sides  = 1;
+		  tree->both_sides  = YES;
 		  tree->n_pattern   = tree->data->crunch_len;
 
 		  if(mod->s_opt->random_input_tree) Random_Tree(tree);
@@ -150,7 +149,13 @@ int main(int argc, char **argv)
 		  Prepare_Tree_For_Lk(tree);
 
 		  if(io->in_tree == 1) Spr_Pars(tree);
-		  
+		 
+		  io->do_alias_subpatt = NO;
+		  tree->update_alias_subpatt = YES;
+		  Lk(tree);
+		  tree->update_alias_subpatt = NO;
+
+
 		  if(tree->mod->s_opt->opt_topo)
 		    {
 		      if(tree->mod->s_opt->topo_search      == NNI_MOVE) Simu_Loop(tree);

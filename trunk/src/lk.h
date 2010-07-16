@@ -58,7 +58,13 @@ phydbl *Post_Prob_Rates_At_Given_Edge(t_edge *b, phydbl *post_prob, t_tree *tree
 phydbl Lk_With_MAP_Branch_Rates(t_tree *tree);
 void Init_Tips_At_One_Site_Generic_Int(char *state, int ns, int state_len, int pos, short int *p_pars);
 void Init_Tips_At_One_Site_Generic_Float(char *state, int ns, int state_len, int pos, phydbl *p_lk);
-
+void Alias_Subpatt(t_tree *tree);
+void Alias_One_Subpatt(t_node *a, t_node *d, t_tree *tree);
+void Alias_Subpatt_Post(t_node *a, t_node *d, t_tree *tree);
+void Alias_Subpatt_Pre(t_node *a, t_node *d, t_tree *tree);
+void Copy_P_Lk(phydbl *p_lk, int site_from, int site_to, t_tree *tree);
+void Copy_Scale(int *scale, int site_from, int site_to, t_tree *tree);
+void Init_P_Lk_Loc(t_tree *tree);
 
 #endif
 

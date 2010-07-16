@@ -319,6 +319,11 @@ void Free_Edge_Lk(t_tree *tree, t_edge *b)
   Free(b->sum_scale_left_cat);
   Free(b->sum_scale_rght_cat);
 
+  Free(b->patt_id_left);
+  Free(b->patt_id_rght);
+  Free(b->p_lk_loc_left);
+  Free(b->p_lk_loc_rght);
+
   Free(b->Pij_rr);
 }
 

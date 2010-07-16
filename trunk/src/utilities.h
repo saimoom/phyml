@@ -237,6 +237,8 @@ typedef	double phydbl;
 /* #define P_LK_LIM_MAX 1.267650600e+30 */
 /* #define P_LK_LIM_INF 4.909093465e-91 /\* R: format(2^(-300),digits=10) *\/ */
 /* #define P_LK_LIM_SUP 2.037035976e+90 /\* R: format(2^(+300),digits=10) *\/ */
+/* #define  P_LK_LIM_INF   3.054936e-151 /\* 2^-500 *\/ */
+/* #define  P_LK_LIM_SUP   3.273391e+150 /\* 2^500 *\/ */
 #define  P_LK_LIM_INF   3.054936e-151 /* 2^-500 */
 #define  P_LK_LIM_SUP   3.273391e+150 /* 2^500 */
 
@@ -310,6 +312,12 @@ typedef struct __Edge {
   short int      *p_lk_tip_r, *p_lk_tip_l; 
   short int           *div_post_pred_left; /* posterior prediction of nucleotide/aa diversity (left-hand subtree) */
   short int           *div_post_pred_rght; /* posterior prediction of nucleotide/aa diversity (rght-hand subtree) */
+
+  int                       *patt_id_left;
+  int                       *patt_id_rght;
+  int                      *p_lk_loc_left;
+  int                      *p_lk_loc_rght;
+  
 
   phydbl                          *Pij_rr; /* matrix of change probabilities and its first and secnd derivates */
   int                     *pars_l,*pars_r; /* parsimony of the subtree on the left and right sides (for each site) */
@@ -420,6 +428,7 @@ typedef struct __Arbre {
   phydbl                      tip_order_score;
 
   int                         write_tax_names;
+  int                    update_alias_subpatt;
 }t_tree;
 
 /*********************************************************/
@@ -739,6 +748,7 @@ typedef struct __Option { /* mostly used in 'help.c' */
   int                    gibbs_burnin;
 
   int                    mem_question;
+  int                do_alias_subpatt;
 }option;
 
 /*********************************************************/

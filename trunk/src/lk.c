@@ -264,8 +264,7 @@ void Init_Tips_At_One_Site_Generic_Int(char *state, int ns, int state_len, int p
 
 void Get_All_Partial_Lk_Scale(t_tree *tree, t_edge *b_fcus, t_node *a, t_node *d)
 {
-  if(d->tax) return;
-  else Update_P_Lk(tree,b_fcus,d);
+  Update_P_Lk(tree,b_fcus,d);
 }
 
 /*********************************************************/
@@ -276,7 +275,11 @@ void Post_Order_Lk(t_node *a, t_node *d, t_tree *tree)
 
   dir = -1;
 
-  if(d->tax) return;
+  if(d->tax) 
+    {
+      Get_All_Partial_Lk_Scale(tree,d->b[0],a,d);
+      return;
+    }
   else
     {
       For(i,3)
@@ -295,7 +298,11 @@ void Pre_Order_Lk(t_node *a, t_node *d, t_tree *tree)
 {
   int i;
 
-  if(d->tax) return;
+  if(d->tax) 
+    {
+      Get_All_Partial_Lk_Scale(tree,d->b[0],a,d);
+      return;
+    }
   else
     {
       For(i,3)
@@ -703,6 +710,13 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
 
 void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
 {
+
+  if((tree->io->do_alias_subpatt == YES) && 
+     (tree->update_alias_subpatt == YES)) 
+    Alias_One_Subpatt((d==b->left)?(b->rght):(b->left),d,tree);
+
+  if(d->tax) return;
+
   if(tree->io->datatype == NT)
     {
       Update_P_Lk_Nucl(tree,b,d);
@@ -749,6 +763,7 @@ void Update_P_Lk_Generic(t_tree *tree, t_edge *b, t_node *d)
   phydbl p_lk_lim_inf;
   phydbl smallest_p_lk;
   phydbl p0,p1,p2,p3;
+  int *p_lk_loc;
 
   p_lk_lim_inf = (phydbl)P_LK_LIM_INF;
  
@@ -794,11 +809,13 @@ void Update_P_Lk_Generic(t_tree *tree, t_edge *b, t_node *d)
     {
       p_lk = b->p_lk_left;
       sum_scale = b->sum_scale_left;
+      p_lk_loc = b->p_lk_loc_left;
     }
   else
     {
       p_lk = b->p_lk_rght;
       sum_scale = b->sum_scale_rght;
+      p_lk_loc = b->p_lk_loc_rght;
     }
       
   if(d == d->b[dir1]->left)
@@ -857,119 +874,131 @@ void Update_P_Lk_Generic(t_tree *tree, t_edge *b, t_node *d)
 	  ambiguity_check_v2 = YES;
 	}
 
-      /* For all the rate classes */
-      For(catg,tree->mod->n_catg)
+      if(p_lk_loc[site] < site)
 	{
-	  smallest_p_lk  =  BIG;
-
-	  /* For all the state at node d */
-	  For(i,tree->mod->ns)
+	  Copy_P_Lk(p_lk,p_lk_loc[site],site,tree);
+	  Copy_Scale(sum_scale,p_lk_loc[site],site,tree);
+	}
+      else
+	{
+	  /* For all the rate classes */
+	  For(catg,tree->mod->n_catg)
 	    {
-	      p1_lk1 = .0;
+	      smallest_p_lk  =  BIG;
 	      
-	      /* n_v1 is a tip */
-	      if((n_v1->tax) && (!tree->mod->s_opt->greedy))
+	      /* For all the state at node d */
+	      For(i,tree->mod->ns)
 		{
-		  if(ambiguity_check_v1 == NO)
+		  p1_lk1 = .0;
+		  
+		  /* n_v1 is a tip */
+		  if((n_v1->tax) && (!tree->mod->s_opt->greedy))
 		    {
-		      /* For the (non-ambiguous) state at node n_v1 */
-		      p1_lk1 = Pij1[catg*dim3+i*dim2+state_v1];
-		    }
-		  else
-		    {
-/* 		      For all the states at node n_v1 */
-		      For(j,tree->mod->ns)
+		      if(ambiguity_check_v1 == NO)
 			{
-			  p1_lk1 += Pij1[catg*dim3+i*dim2+j] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+j];
+			  /* For the (non-ambiguous) state at node n_v1 */
+			  p1_lk1 = Pij1[catg*dim3+i*dim2+state_v1];
+			}
+		      else
+			{
+			  /* 		      For all the states at node n_v1 */
+			  For(j,tree->mod->ns)
+			    {
+			      p1_lk1 += Pij1[catg*dim3+i*dim2+j] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+j];
+			    }
 			}
 		    }
-		}
-	      /* n_v1 is an internal node */
-	      else
-		{
-		  /* For the states at node n_v1 */
-		  For(j,tree->mod->ns)
+		  /* n_v1 is an internal node */
+		  else
 		    {
-		      p1_lk1 += Pij1[catg*dim3+i*dim2+j] * p_lk_v1[site*dim1+catg*dim2+j];
+		      /* For the states at node n_v1 */
+		      For(j,tree->mod->ns)
+			{
+			  p1_lk1 += Pij1[catg*dim3+i*dim2+j] * p_lk_v1[site*dim1+catg*dim2+j];
+			}
 		    }
-		}
-	      
-	      p2_lk2 = .0;
-	      
-	      /* We do exactly the same as for node n_v1 but for node n_v2 this time.*/
-	      /* n_v2 is a tip */
-	      if((n_v2->tax) && (!tree->mod->s_opt->greedy))
-		{
-		  if(ambiguity_check_v2 == NO)
+		  
+		  p2_lk2 = .0;
+		  
+		  /* We do exactly the same as for node n_v1 but for node n_v2 this time.*/
+		  /* n_v2 is a tip */
+		  if((n_v2->tax) && (!tree->mod->s_opt->greedy))
 		    {
-		      /* For the (non-ambiguous) state at node n_v2 */
-		      p2_lk2 = Pij2[catg*dim3+i*dim2+state_v2];
+		      if(ambiguity_check_v2 == NO)
+			{
+			  /* For the (non-ambiguous) state at node n_v2 */
+			  p2_lk2 = Pij2[catg*dim3+i*dim2+state_v2];
+			}
+		      else
+			{
+			  /* For all the states at node n_v2 */
+			  For(j,tree->mod->ns)
+			    {
+			      p2_lk2 += Pij2[catg*dim3+i*dim2+j] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+j];
+			    }
+			}
 		    }
+		  /* n_v2 is an internal node */
 		  else
 		    {
 		      /* For all the states at node n_v2 */
 		      For(j,tree->mod->ns)
 			{
-			  p2_lk2 += Pij2[catg*dim3+i*dim2+j] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+j];
+			  p2_lk2 += Pij2[catg*dim3+i*dim2+j] * p_lk_v2[site*dim1+catg*dim2+j];
 			}
 		    }
-		}
-	      /* n_v2 is an internal node */
-	      else
-		{
-		  /* For all the states at node n_v2 */
-		  For(j,tree->mod->ns)
-		    {
-		      p2_lk2 += Pij2[catg*dim3+i*dim2+j] * p_lk_v2[site*dim1+catg*dim2+j];
-		    }
+		  
+		  p_lk[site*dim1+catg*dim2+i] = p1_lk1 * p2_lk2;	    
+		  
+		  /* 	      PhyML_Printf("\n+ %G",p_lk[site*dim1+catg*dim2+i]); */
+		  
+		  if(p_lk[site*dim1+catg*dim2+i] < smallest_p_lk) smallest_p_lk = p_lk[site*dim1+catg*dim2+i] ; 
 		}
 	      
-	      p_lk[site*dim1+catg*dim2+i] = p1_lk1 * p2_lk2;	    
-
-	      if(p_lk[site*dim1+catg*dim2+i] < smallest_p_lk) smallest_p_lk = p_lk[site*dim1+catg*dim2+i] ; 
-	    }
+	      /* Current scaling values at that site */
+	      sum_scale_v1_val = (sum_scale_v1)?(sum_scale_v1[catg*n_patterns+site]):(0);
+	      sum_scale_v2_val = (sum_scale_v2)?(sum_scale_v2[catg*n_patterns+site]):(0);
 	      
-	  /* Current scaling values at that site */
- 	  sum_scale_v1_val = (sum_scale_v1)?(sum_scale_v1[catg*n_patterns+site]):(0);
-	  sum_scale_v2_val = (sum_scale_v2)?(sum_scale_v2[catg*n_patterns+site]):(0);
-	  
-	  sum_scale[catg*n_patterns+site] = sum_scale_v1_val + sum_scale_v2_val;
-	  
-	  /* Scaling */
-	  if(smallest_p_lk < p_lk_lim_inf)
-	    {
-	      curr_scaler_pow = (int)(LOG(p_lk_lim_inf)-LOG(smallest_p_lk))/LOG2;
-	      curr_scaler     = (phydbl)((unsigned long long)(1) << curr_scaler_pow);
-
-/* 	      if(fabs(curr_scaler_pow) > 63 || fabs(curr_scaler_pow) > 63) */
-/* 		{ */
-/* 		  PhyML_Printf("\n. p_lk_lim_inf = %G smallest_p_lk = %G",p_lk_lim_inf,smallest_p_lk); */
-/* 		  PhyML_Printf("\n. curr_scaler_pow = %d",curr_scaler_pow); */
-/* 		  PhyML_Printf("\n. Err in file %s at line %d.",__FILE__,__LINE__); */
-/* 		  Warn_And_Exit("\n"); */
-/* 		} */
-
-	      sum_scale[catg*n_patterns+site] += curr_scaler_pow;
+	      sum_scale[catg*n_patterns+site] = sum_scale_v1_val + sum_scale_v2_val;
 	      
-	      do
+	      /* 	  PhyML_Printf("\n@ %d",sum_scale[catg*n_patterns+site]); */
+	      
+	      /* Scaling */
+	      if(smallest_p_lk < p_lk_lim_inf)
 		{
-		  piecewise_scaler_pow = MIN(curr_scaler_pow,63);
-		  curr_scaler = (phydbl)((unsigned long long)(1) << piecewise_scaler_pow);
-		  For(i,tree->mod->ns)
+		  curr_scaler_pow = (int)(LOG(p_lk_lim_inf)-LOG(smallest_p_lk))/LOG2;
+		  curr_scaler     = (phydbl)((unsigned long long)(1) << curr_scaler_pow);
+		  
+		  /* 	      if(fabs(curr_scaler_pow) > 63 || fabs(curr_scaler_pow) > 63) */
+		  /* 		{ */
+		  /* 		  PhyML_Printf("\n. p_lk_lim_inf = %G smallest_p_lk = %G",p_lk_lim_inf,smallest_p_lk); */
+		  /* 		  PhyML_Printf("\n. curr_scaler_pow = %d",curr_scaler_pow); */
+		  /* 		  PhyML_Printf("\n. Err in file %s at line %d.",__FILE__,__LINE__); */
+		  /* 		  Warn_And_Exit("\n"); */
+		  /* 		} */
+		  
+		  sum_scale[catg*n_patterns+site] += curr_scaler_pow;
+		  
+		  do
 		    {
-		      p_lk[site*dim1+catg*dim2+i] *= curr_scaler;
-		      
-		      if(p_lk[site*dim1+catg*dim2+i] > BIG)
+		      piecewise_scaler_pow = MIN(curr_scaler_pow,63);
+		      curr_scaler = (phydbl)((unsigned long long)(1) << piecewise_scaler_pow);
+		      For(i,tree->mod->ns)
 			{
-			  PhyML_Printf("\n. p_lk_lim_inf = %G smallest_p_lk = %G",p_lk_lim_inf,smallest_p_lk);
-			  PhyML_Printf("\n. curr_scaler_pow = %d",curr_scaler_pow);
-			  PhyML_Printf("\n. Err in file %s at line %d.",__FILE__,__LINE__);
-			  Warn_And_Exit("\n");
+			  p_lk[site*dim1+catg*dim2+i] *= curr_scaler;
+			  
+			  if(p_lk[site*dim1+catg*dim2+i] > BIG)
+			    {
+			      PhyML_Printf("\n. p_lk_lim_inf = %G smallest_p_lk = %G",p_lk_lim_inf,smallest_p_lk);
+			      PhyML_Printf("\n. curr_scaler_pow = %d",curr_scaler_pow);
+			      PhyML_Printf("\n. Err in file %s at line %d.",__FILE__,__LINE__);
+			      Warn_And_Exit("\n");
+			    }
 			}
+		      curr_scaler_pow -= piecewise_scaler_pow;
 		    }
-		  curr_scaler_pow -= piecewise_scaler_pow;
+		  while(curr_scaler_pow != 0);
 		}
-	      while(curr_scaler_pow != 0);
 	    }
 	}
     }
@@ -1007,6 +1036,7 @@ void Update_P_Lk_Nucl(t_tree *tree, t_edge *b, t_node *d)
   phydbl p_lk_lim_inf;
   phydbl smallest_p_lk;
   phydbl p0,p1,p2,p3;
+  int *p_lk_loc;
 
   p_lk_lim_inf = (phydbl)P_LK_LIM_INF;
  
@@ -1052,11 +1082,13 @@ void Update_P_Lk_Nucl(t_tree *tree, t_edge *b, t_node *d)
     {
       p_lk = b->p_lk_left;
       sum_scale = b->sum_scale_left;
+      p_lk_loc = b->p_lk_loc_left;
     }
   else
     {
       p_lk = b->p_lk_rght;
       sum_scale = b->sum_scale_rght;
+      p_lk_loc = b->p_lk_loc_rght;
     }
       
   if(d == d->b[dir1]->left)
@@ -1115,128 +1147,136 @@ void Update_P_Lk_Nucl(t_tree *tree, t_edge *b, t_node *d)
 	  ambiguity_check_v2 = YES;
 	}
 
-      /* For all the rate classes */
-      For(catg,tree->mod->n_catg)
+      if(p_lk_loc[site] < site)
 	{
-	  smallest_p_lk  =  BIG;
-
-	  /* For all the state at node d */
-	  For(i,tree->mod->ns)
+	  Copy_P_Lk(p_lk,p_lk_loc[site],site,tree);
+	  Copy_Scale(sum_scale,p_lk_loc[site],site,tree);
+	}
+      else
+	{
+	  /* For all the rate classes */
+	  For(catg,tree->mod->n_catg)
 	    {
-	      p1_lk1 = .0;
+	      smallest_p_lk  =  BIG;
 	      
-	      /* n_v1 is a tip */
-	      if((n_v1->tax) && (!tree->mod->s_opt->greedy))
+	      /* For all the state at node d */
+	      For(i,tree->mod->ns)
 		{
-		  if(ambiguity_check_v1 == NO)
+		  p1_lk1 = .0;
+		  
+		  /* n_v1 is a tip */
+		  if((n_v1->tax) && (!tree->mod->s_opt->greedy))
 		    {
-		      /* For the (non-ambiguous) state at node n_v1 */
-		      p1_lk1 = Pij1[catg*dim3+i*dim2+state_v1];
+		      if(ambiguity_check_v1 == NO)
+			{
+			  /* For the (non-ambiguous) state at node n_v1 */
+			  p1_lk1 = Pij1[catg*dim3+i*dim2+state_v1];
+			}
+		      else
+			{
+			  /* For all the states at node n_v1 */
+			  p0=Pij1[catg*dim3+i*dim2+0] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+0];
+			  p1=Pij1[catg*dim3+i*dim2+1] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+1];
+			  p2=Pij1[catg*dim3+i*dim2+2] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+2];
+			  p3=Pij1[catg*dim3+i*dim2+3] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+3];
+			  p1_lk1 = p0+p1+p2+p3;
+			}
 		    }
+		  /* n_v1 is an internal node */
 		  else
 		    {
-		      /* For all the states at node n_v1 */
-		      p0=Pij1[catg*dim3+i*dim2+0] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+0];
-		      p1=Pij1[catg*dim3+i*dim2+1] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+1];
-		      p2=Pij1[catg*dim3+i*dim2+2] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+2];
-		      p3=Pij1[catg*dim3+i*dim2+3] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+3];
+		      /* For the states at node n_v1 */
+		      /* 		  For(j,tree->mod->ns) */
+		      /* 		    { */
+		      /* 		      p1_lk1 += Pij1[catg*dim3+i*dim2+j] * p_lk_v1[site*dim1+catg*dim2+j]; */
+		      /* 		    } */
+		      
+		      p0=Pij1[catg*dim3+i*dim2+0] * p_lk_v1[site*dim1+catg*dim2+0];
+		      p1=Pij1[catg*dim3+i*dim2+1] * p_lk_v1[site*dim1+catg*dim2+1];
+		      p2=Pij1[catg*dim3+i*dim2+2] * p_lk_v1[site*dim1+catg*dim2+2];
+		      p3=Pij1[catg*dim3+i*dim2+3] * p_lk_v1[site*dim1+catg*dim2+3];
 		      p1_lk1 = p0+p1+p2+p3;
 		    }
-		}
-	      /* n_v1 is an internal node */
-	      else
-		{
-		  /* For the states at node n_v1 */
-/* 		  For(j,tree->mod->ns) */
-/* 		    { */
-/* 		      p1_lk1 += Pij1[catg*dim3+i*dim2+j] * p_lk_v1[site*dim1+catg*dim2+j]; */
-/* 		    } */
-
-		  p0=Pij1[catg*dim3+i*dim2+0] * p_lk_v1[site*dim1+catg*dim2+0];
-		  p1=Pij1[catg*dim3+i*dim2+1] * p_lk_v1[site*dim1+catg*dim2+1];
-		  p2=Pij1[catg*dim3+i*dim2+2] * p_lk_v1[site*dim1+catg*dim2+2];
-		  p3=Pij1[catg*dim3+i*dim2+3] * p_lk_v1[site*dim1+catg*dim2+3];
-		  p1_lk1 = p0+p1+p2+p3;
-		}
-	      
-	      p2_lk2 = .0;
-	      
-	      /* We do exactly the same as for node n_v1 but for node n_v2 this time.*/
-	      /* n_v2 is a tip */
-	      if((n_v2->tax) && (!tree->mod->s_opt->greedy))
-		{
-		  if(ambiguity_check_v2 == NO)
+		  
+		  p2_lk2 = .0;
+		  
+		  /* We do exactly the same as for node n_v1 but for node n_v2 this time.*/
+		  /* n_v2 is a tip */
+		  if((n_v2->tax) && (!tree->mod->s_opt->greedy))
 		    {
-		      /* For the (non-ambiguous) state at node n_v2 */
-		      p2_lk2 = Pij2[catg*dim3+i*dim2+state_v2];
+		      if(ambiguity_check_v2 == NO)
+			{
+			  /* For the (non-ambiguous) state at node n_v2 */
+			  p2_lk2 = Pij2[catg*dim3+i*dim2+state_v2];
+			}
+		      else
+			{
+			  /* For all the states at node n_v2 */
+			  p0=Pij2[catg*dim3+i*dim2+0] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+0];
+			  p1=Pij2[catg*dim3+i*dim2+1] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+1];
+			  p2=Pij2[catg*dim3+i*dim2+2] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+2];
+			  p3=Pij2[catg*dim3+i*dim2+3] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+3];
+			  p2_lk2 = p0+p1+p2+p3;
+			}
 		    }
+		  /* n_v2 is an internal node */
 		  else
 		    {
 		      /* For all the states at node n_v2 */
-		      p0=Pij2[catg*dim3+i*dim2+0] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+0];
-		      p1=Pij2[catg*dim3+i*dim2+1] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+1];
-		      p2=Pij2[catg*dim3+i*dim2+2] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+2];
-		      p3=Pij2[catg*dim3+i*dim2+3] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+3];
+		      p0=Pij2[catg*dim3+i*dim2+0] * p_lk_v2[site*dim1+catg*dim2+0];
+		      p1=Pij2[catg*dim3+i*dim2+1] * p_lk_v2[site*dim1+catg*dim2+1];
+		      p2=Pij2[catg*dim3+i*dim2+2] * p_lk_v2[site*dim1+catg*dim2+2];
+		      p3=Pij2[catg*dim3+i*dim2+3] * p_lk_v2[site*dim1+catg*dim2+3];
 		      p2_lk2 = p0+p1+p2+p3;
 		    }
-		}
-	      /* n_v2 is an internal node */
-	      else
-		{
-		  /* For all the states at node n_v2 */
-		  p0=Pij2[catg*dim3+i*dim2+0] * p_lk_v2[site*dim1+catg*dim2+0];
-		  p1=Pij2[catg*dim3+i*dim2+1] * p_lk_v2[site*dim1+catg*dim2+1];
-		  p2=Pij2[catg*dim3+i*dim2+2] * p_lk_v2[site*dim1+catg*dim2+2];
-		  p3=Pij2[catg*dim3+i*dim2+3] * p_lk_v2[site*dim1+catg*dim2+3];
-		  p2_lk2 = p0+p1+p2+p3;
+		  
+		  p_lk[site*dim1+catg*dim2+i] = p1_lk1 * p2_lk2;	    
+		  
+		  if(p_lk[site*dim1+catg*dim2+i] < smallest_p_lk) smallest_p_lk = p_lk[site*dim1+catg*dim2+i] ; 
 		}
 	      
-	      p_lk[site*dim1+catg*dim2+i] = p1_lk1 * p2_lk2;	    
-
-	      if(p_lk[site*dim1+catg*dim2+i] < smallest_p_lk) smallest_p_lk = p_lk[site*dim1+catg*dim2+i] ; 
-	    }
+	      /* Current scaling values at that site */
+	      sum_scale_v1_val = (sum_scale_v1)?(sum_scale_v1[catg*n_patterns+site]):(0);
+	      sum_scale_v2_val = (sum_scale_v2)?(sum_scale_v2[catg*n_patterns+site]):(0);
 	      
-	  /* Current scaling values at that site */
- 	  sum_scale_v1_val = (sum_scale_v1)?(sum_scale_v1[catg*n_patterns+site]):(0);
-	  sum_scale_v2_val = (sum_scale_v2)?(sum_scale_v2[catg*n_patterns+site]):(0);
-	  
-	  sum_scale[catg*n_patterns+site] = sum_scale_v1_val + sum_scale_v2_val;
-	  
-	  /* Scaling */
-	  if(smallest_p_lk < p_lk_lim_inf)
-	    {
-	      curr_scaler_pow = (int)(LOG(p_lk_lim_inf)-LOG(smallest_p_lk))/LOG2;
-	      curr_scaler     = (phydbl)((unsigned long long)(1) << curr_scaler_pow);
-
-/* 	      if(fabs(curr_scaler_pow) > 63 || fabs(curr_scaler_pow) > 63) */
-/* 		{ */
-/* 		  PhyML_Printf("\n. p_lk_lim_inf = %G smallest_p_lk = %G",p_lk_lim_inf,smallest_p_lk); */
-/* 		  PhyML_Printf("\n. curr_scaler_pow = %d",curr_scaler_pow); */
-/* 		  PhyML_Printf("\n. Err in file %s at line %d.",__FILE__,__LINE__); */
-/* 		  Warn_And_Exit("\n"); */
-/* 		} */
-
-	      sum_scale[catg*n_patterns+site] += curr_scaler_pow;
+	      sum_scale[catg*n_patterns+site] = sum_scale_v1_val + sum_scale_v2_val;
 	      
-	      do
+	      /* Scaling */
+	      if(smallest_p_lk < p_lk_lim_inf)
 		{
-		  piecewise_scaler_pow = MIN(curr_scaler_pow,63);
-		  curr_scaler = (phydbl)((unsigned long long)(1) << piecewise_scaler_pow);
-		  For(i,tree->mod->ns)
+		  curr_scaler_pow = (int)(LOG(p_lk_lim_inf)-LOG(smallest_p_lk))/LOG2;
+		  curr_scaler     = (phydbl)((unsigned long long)(1) << curr_scaler_pow);
+		  
+		  /* 	      if(fabs(curr_scaler_pow) > 63 || fabs(curr_scaler_pow) > 63) */
+		  /* 		{ */
+		  /* 		  PhyML_Printf("\n. p_lk_lim_inf = %G smallest_p_lk = %G",p_lk_lim_inf,smallest_p_lk); */
+		  /* 		  PhyML_Printf("\n. curr_scaler_pow = %d",curr_scaler_pow); */
+		  /* 		  PhyML_Printf("\n. Err in file %s at line %d.",__FILE__,__LINE__); */
+		  /* 		  Warn_And_Exit("\n"); */
+		  /* 		} */
+		  
+		  sum_scale[catg*n_patterns+site] += curr_scaler_pow;
+		  
+		  do
 		    {
-		      p_lk[site*dim1+catg*dim2+i] *= curr_scaler;
-		      
-		      if(p_lk[site*dim1+catg*dim2+i] > BIG)
+		      piecewise_scaler_pow = MIN(curr_scaler_pow,63);
+		      curr_scaler = (phydbl)((unsigned long long)(1) << piecewise_scaler_pow);
+		      For(i,tree->mod->ns)
 			{
-			  PhyML_Printf("\n. p_lk_lim_inf = %G smallest_p_lk = %G",p_lk_lim_inf,smallest_p_lk);
-			  PhyML_Printf("\n. curr_scaler_pow = %d",curr_scaler_pow);
-			  PhyML_Printf("\n. Err in file %s at line %d.",__FILE__,__LINE__);
-			  Warn_And_Exit("\n");
+			  p_lk[site*dim1+catg*dim2+i] *= curr_scaler;
+			  
+			  if(p_lk[site*dim1+catg*dim2+i] > BIG)
+			    {
+			      PhyML_Printf("\n. p_lk_lim_inf = %G smallest_p_lk = %G",p_lk_lim_inf,smallest_p_lk);
+			      PhyML_Printf("\n. curr_scaler_pow = %d",curr_scaler_pow);
+			      PhyML_Printf("\n. Err in file %s at line %d.",__FILE__,__LINE__);
+			      Warn_And_Exit("\n");
+			    }
 			}
+		      curr_scaler_pow -= piecewise_scaler_pow;
 		    }
-		  curr_scaler_pow -= piecewise_scaler_pow;
+		  while(curr_scaler_pow != 0);
 		}
-	      while(curr_scaler_pow != 0);
 	    }
 	}
     }
@@ -1274,6 +1314,7 @@ void Update_P_Lk_AA(t_tree *tree, t_edge *b, t_node *d)
   phydbl p_lk_lim_inf;
   phydbl smallest_p_lk;
   phydbl p0,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16,p17,p18,p19;
+  int *p_lk_loc;
 
   p_lk_lim_inf = (phydbl)P_LK_LIM_INF;
  
@@ -1319,11 +1360,13 @@ void Update_P_Lk_AA(t_tree *tree, t_edge *b, t_node *d)
     {
       p_lk = b->p_lk_left;
       sum_scale = b->sum_scale_left;
+      p_lk_loc = b->p_lk_loc_left;
     }
   else
     {
       p_lk = b->p_lk_rght;
       sum_scale = b->sum_scale_rght;
+      p_lk_loc = b->p_lk_loc_rght;
     }
       
   if(d == d->b[dir1]->left)
@@ -1382,189 +1425,197 @@ void Update_P_Lk_AA(t_tree *tree, t_edge *b, t_node *d)
 	  ambiguity_check_v2 = YES;
 	}
 
-      /* For all the rate classes */
-      For(catg,tree->mod->n_catg)
+      if(p_lk_loc[site] < site)
 	{
-	  smallest_p_lk  =  BIG;
-
-	  /* For all the state at node d */
-	  For(i,tree->mod->ns)
+	  Copy_P_Lk(p_lk,p_lk_loc[site],site,tree);
+	  Copy_Scale(sum_scale,p_lk_loc[site],site,tree);
+	}
+      else
+	{
+	  /* For all the rate classes */
+	  For(catg,tree->mod->n_catg)
 	    {
-	      p1_lk1 = .0;
+	      smallest_p_lk  =  BIG;
 	      
-	      /* n_v1 is a tip */
-	      if((n_v1->tax) && (!tree->mod->s_opt->greedy))
+	      /* For all the state at node d */
+	      For(i,tree->mod->ns)
 		{
-		  if(ambiguity_check_v1 == NO)
+		  p1_lk1 = .0;
+		  
+		  /* n_v1 is a tip */
+		  if((n_v1->tax) && (!tree->mod->s_opt->greedy))
 		    {
-		      /* For the (non-ambiguous) state at node n_v1 */
-		      p1_lk1 = Pij1[catg*dim3+i*dim2+state_v1];
+		      if(ambiguity_check_v1 == NO)
+			{
+			  /* For the (non-ambiguous) state at node n_v1 */
+			  p1_lk1 = Pij1[catg*dim3+i*dim2+state_v1];
+			}
+		      else
+			{
+			  /* For all the states at node n_v1 */
+			  p0  = Pij1[catg*dim3+i*dim2+ 0] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+ 0];
+			  p1  = Pij1[catg*dim3+i*dim2+ 1] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+ 1];
+			  p2  = Pij1[catg*dim3+i*dim2+ 2] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+ 2];
+			  p3  = Pij1[catg*dim3+i*dim2+ 3] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+ 3];
+			  p4  = Pij1[catg*dim3+i*dim2+ 4] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+ 4];
+			  p5  = Pij1[catg*dim3+i*dim2+ 5] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+ 5];
+			  p6  = Pij1[catg*dim3+i*dim2+ 6] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+ 6];
+			  p7  = Pij1[catg*dim3+i*dim2+ 7] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+ 7];
+			  p8  = Pij1[catg*dim3+i*dim2+ 8] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+ 8];
+			  p9  = Pij1[catg*dim3+i*dim2+ 9] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+ 9];
+			  p10 = Pij1[catg*dim3+i*dim2+10] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+10];
+			  p11 = Pij1[catg*dim3+i*dim2+11] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+11];
+			  p12 = Pij1[catg*dim3+i*dim2+12] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+12];
+			  p13 = Pij1[catg*dim3+i*dim2+13] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+13];
+			  p14 = Pij1[catg*dim3+i*dim2+14] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+14];
+			  p15 = Pij1[catg*dim3+i*dim2+15] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+15];
+			  p16 = Pij1[catg*dim3+i*dim2+16] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+16];
+			  p17 = Pij1[catg*dim3+i*dim2+17] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+17];
+			  p18 = Pij1[catg*dim3+i*dim2+18] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+18];
+			  p19 = Pij1[catg*dim3+i*dim2+19] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+19];
+			  p1_lk1 = p0+p1+p2+p3+p4+p5+p6+p7+p8+p9+p10+p11+p12+p13+p14+p15+p16+p17+p18+p19;
+			}
 		    }
+		  /* n_v1 is an internal node */
 		  else
 		    {
-		      /* For all the states at node n_v1 */
-		      p0  = Pij1[catg*dim3+i*dim2+ 0] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+ 0];
-		      p1  = Pij1[catg*dim3+i*dim2+ 1] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+ 1];
-		      p2  = Pij1[catg*dim3+i*dim2+ 2] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+ 2];
-		      p3  = Pij1[catg*dim3+i*dim2+ 3] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+ 3];
-		      p4  = Pij1[catg*dim3+i*dim2+ 4] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+ 4];
-		      p5  = Pij1[catg*dim3+i*dim2+ 5] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+ 5];
-		      p6  = Pij1[catg*dim3+i*dim2+ 6] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+ 6];
-		      p7  = Pij1[catg*dim3+i*dim2+ 7] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+ 7];
-		      p8  = Pij1[catg*dim3+i*dim2+ 8] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+ 8];
-		      p9  = Pij1[catg*dim3+i*dim2+ 9] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+ 9];
-		      p10 = Pij1[catg*dim3+i*dim2+10] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+10];
-		      p11 = Pij1[catg*dim3+i*dim2+11] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+11];
-		      p12 = Pij1[catg*dim3+i*dim2+12] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+12];
-		      p13 = Pij1[catg*dim3+i*dim2+13] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+13];
-		      p14 = Pij1[catg*dim3+i*dim2+14] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+14];
-		      p15 = Pij1[catg*dim3+i*dim2+15] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+15];
-		      p16 = Pij1[catg*dim3+i*dim2+16] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+16];
-		      p17 = Pij1[catg*dim3+i*dim2+17] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+17];
-		      p18 = Pij1[catg*dim3+i*dim2+18] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+18];
-		      p19 = Pij1[catg*dim3+i*dim2+19] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+19];
+		      /* For the states at node n_v1 */
+		      p0  = Pij1[catg*dim3+i*dim2+ 0] * (phydbl)p_lk_v1[site*dim1+catg*dim2+ 0];
+		      p1  = Pij1[catg*dim3+i*dim2+ 1] * (phydbl)p_lk_v1[site*dim1+catg*dim2+ 1];
+		      p2  = Pij1[catg*dim3+i*dim2+ 2] * (phydbl)p_lk_v1[site*dim1+catg*dim2+ 2];
+		      p3  = Pij1[catg*dim3+i*dim2+ 3] * (phydbl)p_lk_v1[site*dim1+catg*dim2+ 3];
+		      p4  = Pij1[catg*dim3+i*dim2+ 4] * (phydbl)p_lk_v1[site*dim1+catg*dim2+ 4];
+		      p5  = Pij1[catg*dim3+i*dim2+ 5] * (phydbl)p_lk_v1[site*dim1+catg*dim2+ 5];
+		      p6  = Pij1[catg*dim3+i*dim2+ 6] * (phydbl)p_lk_v1[site*dim1+catg*dim2+ 6];
+		      p7  = Pij1[catg*dim3+i*dim2+ 7] * (phydbl)p_lk_v1[site*dim1+catg*dim2+ 7];
+		      p8  = Pij1[catg*dim3+i*dim2+ 8] * (phydbl)p_lk_v1[site*dim1+catg*dim2+ 8];
+		      p9  = Pij1[catg*dim3+i*dim2+ 9] * (phydbl)p_lk_v1[site*dim1+catg*dim2+ 9];
+		      p10 = Pij1[catg*dim3+i*dim2+10] * (phydbl)p_lk_v1[site*dim1+catg*dim2+10];
+		      p11 = Pij1[catg*dim3+i*dim2+11] * (phydbl)p_lk_v1[site*dim1+catg*dim2+11];
+		      p12 = Pij1[catg*dim3+i*dim2+12] * (phydbl)p_lk_v1[site*dim1+catg*dim2+12];
+		      p13 = Pij1[catg*dim3+i*dim2+13] * (phydbl)p_lk_v1[site*dim1+catg*dim2+13];
+		      p14 = Pij1[catg*dim3+i*dim2+14] * (phydbl)p_lk_v1[site*dim1+catg*dim2+14];
+		      p15 = Pij1[catg*dim3+i*dim2+15] * (phydbl)p_lk_v1[site*dim1+catg*dim2+15];
+		      p16 = Pij1[catg*dim3+i*dim2+16] * (phydbl)p_lk_v1[site*dim1+catg*dim2+16];
+		      p17 = Pij1[catg*dim3+i*dim2+17] * (phydbl)p_lk_v1[site*dim1+catg*dim2+17];
+		      p18 = Pij1[catg*dim3+i*dim2+18] * (phydbl)p_lk_v1[site*dim1+catg*dim2+18];
+		      p19 = Pij1[catg*dim3+i*dim2+19] * (phydbl)p_lk_v1[site*dim1+catg*dim2+19];
 		      p1_lk1 = p0+p1+p2+p3+p4+p5+p6+p7+p8+p9+p10+p11+p12+p13+p14+p15+p16+p17+p18+p19;
 		    }
-		}
-	      /* n_v1 is an internal node */
-	      else
-		{
-		  /* For the states at node n_v1 */
-		  p0  = Pij1[catg*dim3+i*dim2+ 0] * (phydbl)p_lk_v1[site*dim1+catg*dim2+ 0];
-		  p1  = Pij1[catg*dim3+i*dim2+ 1] * (phydbl)p_lk_v1[site*dim1+catg*dim2+ 1];
-		  p2  = Pij1[catg*dim3+i*dim2+ 2] * (phydbl)p_lk_v1[site*dim1+catg*dim2+ 2];
-		  p3  = Pij1[catg*dim3+i*dim2+ 3] * (phydbl)p_lk_v1[site*dim1+catg*dim2+ 3];
-		  p4  = Pij1[catg*dim3+i*dim2+ 4] * (phydbl)p_lk_v1[site*dim1+catg*dim2+ 4];
-		  p5  = Pij1[catg*dim3+i*dim2+ 5] * (phydbl)p_lk_v1[site*dim1+catg*dim2+ 5];
-		  p6  = Pij1[catg*dim3+i*dim2+ 6] * (phydbl)p_lk_v1[site*dim1+catg*dim2+ 6];
-		  p7  = Pij1[catg*dim3+i*dim2+ 7] * (phydbl)p_lk_v1[site*dim1+catg*dim2+ 7];
-		  p8  = Pij1[catg*dim3+i*dim2+ 8] * (phydbl)p_lk_v1[site*dim1+catg*dim2+ 8];
-		  p9  = Pij1[catg*dim3+i*dim2+ 9] * (phydbl)p_lk_v1[site*dim1+catg*dim2+ 9];
-		  p10 = Pij1[catg*dim3+i*dim2+10] * (phydbl)p_lk_v1[site*dim1+catg*dim2+10];
-		  p11 = Pij1[catg*dim3+i*dim2+11] * (phydbl)p_lk_v1[site*dim1+catg*dim2+11];
-		  p12 = Pij1[catg*dim3+i*dim2+12] * (phydbl)p_lk_v1[site*dim1+catg*dim2+12];
-		  p13 = Pij1[catg*dim3+i*dim2+13] * (phydbl)p_lk_v1[site*dim1+catg*dim2+13];
-		  p14 = Pij1[catg*dim3+i*dim2+14] * (phydbl)p_lk_v1[site*dim1+catg*dim2+14];
-		  p15 = Pij1[catg*dim3+i*dim2+15] * (phydbl)p_lk_v1[site*dim1+catg*dim2+15];
-		  p16 = Pij1[catg*dim3+i*dim2+16] * (phydbl)p_lk_v1[site*dim1+catg*dim2+16];
-		  p17 = Pij1[catg*dim3+i*dim2+17] * (phydbl)p_lk_v1[site*dim1+catg*dim2+17];
-		  p18 = Pij1[catg*dim3+i*dim2+18] * (phydbl)p_lk_v1[site*dim1+catg*dim2+18];
-		  p19 = Pij1[catg*dim3+i*dim2+19] * (phydbl)p_lk_v1[site*dim1+catg*dim2+19];
-		  p1_lk1 = p0+p1+p2+p3+p4+p5+p6+p7+p8+p9+p10+p11+p12+p13+p14+p15+p16+p17+p18+p19;
-		}
-	      
-	      p2_lk2 = .0;
-	      
-	      /* We do exactly the same as for node n_v1 but for node n_v2 this time.*/
-	      /* n_v2 is a tip */
-	      if((n_v2->tax) && (!tree->mod->s_opt->greedy))
-		{
-		  if(ambiguity_check_v2 == NO)
+		  
+		  p2_lk2 = .0;
+		  
+		  /* We do exactly the same as for node n_v1 but for node n_v2 this time.*/
+		  /* n_v2 is a tip */
+		  if((n_v2->tax) && (!tree->mod->s_opt->greedy))
 		    {
-		      /* For the (non-ambiguous) state at node n_v2 */
-		      p2_lk2 = Pij2[catg*dim3+i*dim2+state_v2];
+		      if(ambiguity_check_v2 == NO)
+			{
+			  /* For the (non-ambiguous) state at node n_v2 */
+			  p2_lk2 = Pij2[catg*dim3+i*dim2+state_v2];
+			}
+		      else
+			{
+			  /* For all the states at node n_v2 */
+			  p0  = Pij2[catg*dim3+i*dim2+ 0] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+ 0];
+			  p1  = Pij2[catg*dim3+i*dim2+ 1] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+ 1];
+			  p2  = Pij2[catg*dim3+i*dim2+ 2] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+ 2];
+			  p3  = Pij2[catg*dim3+i*dim2+ 3] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+ 3];
+			  p4  = Pij2[catg*dim3+i*dim2+ 4] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+ 4];
+			  p5  = Pij2[catg*dim3+i*dim2+ 5] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+ 5];
+			  p6  = Pij2[catg*dim3+i*dim2+ 6] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+ 6];
+			  p7  = Pij2[catg*dim3+i*dim2+ 7] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+ 7];
+			  p8  = Pij2[catg*dim3+i*dim2+ 8] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+ 8];
+			  p9  = Pij2[catg*dim3+i*dim2+ 9] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+ 9];
+			  p10 = Pij2[catg*dim3+i*dim2+10] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+10];
+			  p11 = Pij2[catg*dim3+i*dim2+11] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+11];
+			  p12 = Pij2[catg*dim3+i*dim2+12] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+12];
+			  p13 = Pij2[catg*dim3+i*dim2+13] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+13];
+			  p14 = Pij2[catg*dim3+i*dim2+14] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+14];
+			  p15 = Pij2[catg*dim3+i*dim2+15] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+15];
+			  p16 = Pij2[catg*dim3+i*dim2+16] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+16];
+			  p17 = Pij2[catg*dim3+i*dim2+17] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+17];
+			  p18 = Pij2[catg*dim3+i*dim2+18] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+18];
+			  p19 = Pij2[catg*dim3+i*dim2+19] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+19];
+			  p2_lk2 = p0+p1+p2+p3+p4+p5+p6+p7+p8+p9+p10+p11+p12+p13+p14+p15+p16+p17+p18+p19;
+			  
+			}
 		    }
+		  /* n_v2 is an internal node */
 		  else
 		    {
 		      /* For all the states at node n_v2 */
-		      p0  = Pij2[catg*dim3+i*dim2+ 0] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+ 0];
-		      p1  = Pij2[catg*dim3+i*dim2+ 1] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+ 1];
-		      p2  = Pij2[catg*dim3+i*dim2+ 2] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+ 2];
-		      p3  = Pij2[catg*dim3+i*dim2+ 3] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+ 3];
-		      p4  = Pij2[catg*dim3+i*dim2+ 4] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+ 4];
-		      p5  = Pij2[catg*dim3+i*dim2+ 5] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+ 5];
-		      p6  = Pij2[catg*dim3+i*dim2+ 6] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+ 6];
-		      p7  = Pij2[catg*dim3+i*dim2+ 7] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+ 7];
-		      p8  = Pij2[catg*dim3+i*dim2+ 8] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+ 8];
-		      p9  = Pij2[catg*dim3+i*dim2+ 9] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+ 9];
-		      p10 = Pij2[catg*dim3+i*dim2+10] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+10];
-		      p11 = Pij2[catg*dim3+i*dim2+11] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+11];
-		      p12 = Pij2[catg*dim3+i*dim2+12] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+12];
-		      p13 = Pij2[catg*dim3+i*dim2+13] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+13];
-		      p14 = Pij2[catg*dim3+i*dim2+14] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+14];
-		      p15 = Pij2[catg*dim3+i*dim2+15] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+15];
-		      p16 = Pij2[catg*dim3+i*dim2+16] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+16];
-		      p17 = Pij2[catg*dim3+i*dim2+17] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+17];
-		      p18 = Pij2[catg*dim3+i*dim2+18] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+18];
-		      p19 = Pij2[catg*dim3+i*dim2+19] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+19];
+		      p0  = Pij2[catg*dim3+i*dim2+ 0] * (phydbl)p_lk_v2[site*dim1+catg*dim2+ 0];
+		      p1  = Pij2[catg*dim3+i*dim2+ 1] * (phydbl)p_lk_v2[site*dim1+catg*dim2+ 1];
+		      p2  = Pij2[catg*dim3+i*dim2+ 2] * (phydbl)p_lk_v2[site*dim1+catg*dim2+ 2];
+		      p3  = Pij2[catg*dim3+i*dim2+ 3] * (phydbl)p_lk_v2[site*dim1+catg*dim2+ 3];
+		      p4  = Pij2[catg*dim3+i*dim2+ 4] * (phydbl)p_lk_v2[site*dim1+catg*dim2+ 4];
+		      p5  = Pij2[catg*dim3+i*dim2+ 5] * (phydbl)p_lk_v2[site*dim1+catg*dim2+ 5];
+		      p6  = Pij2[catg*dim3+i*dim2+ 6] * (phydbl)p_lk_v2[site*dim1+catg*dim2+ 6];
+		      p7  = Pij2[catg*dim3+i*dim2+ 7] * (phydbl)p_lk_v2[site*dim1+catg*dim2+ 7];
+		      p8  = Pij2[catg*dim3+i*dim2+ 8] * (phydbl)p_lk_v2[site*dim1+catg*dim2+ 8];
+		      p9  = Pij2[catg*dim3+i*dim2+ 9] * (phydbl)p_lk_v2[site*dim1+catg*dim2+ 9];
+		      p10 = Pij2[catg*dim3+i*dim2+10] * (phydbl)p_lk_v2[site*dim1+catg*dim2+10];
+		      p11 = Pij2[catg*dim3+i*dim2+11] * (phydbl)p_lk_v2[site*dim1+catg*dim2+11];
+		      p12 = Pij2[catg*dim3+i*dim2+12] * (phydbl)p_lk_v2[site*dim1+catg*dim2+12];
+		      p13 = Pij2[catg*dim3+i*dim2+13] * (phydbl)p_lk_v2[site*dim1+catg*dim2+13];
+		      p14 = Pij2[catg*dim3+i*dim2+14] * (phydbl)p_lk_v2[site*dim1+catg*dim2+14];
+		      p15 = Pij2[catg*dim3+i*dim2+15] * (phydbl)p_lk_v2[site*dim1+catg*dim2+15];
+		      p16 = Pij2[catg*dim3+i*dim2+16] * (phydbl)p_lk_v2[site*dim1+catg*dim2+16];
+		      p17 = Pij2[catg*dim3+i*dim2+17] * (phydbl)p_lk_v2[site*dim1+catg*dim2+17];
+		      p18 = Pij2[catg*dim3+i*dim2+18] * (phydbl)p_lk_v2[site*dim1+catg*dim2+18];
+		      p19 = Pij2[catg*dim3+i*dim2+19] * (phydbl)p_lk_v2[site*dim1+catg*dim2+19];
 		      p2_lk2 = p0+p1+p2+p3+p4+p5+p6+p7+p8+p9+p10+p11+p12+p13+p14+p15+p16+p17+p18+p19;
-
-		    }
-		}
-	      /* n_v2 is an internal node */
-	      else
-		{
-		  /* For all the states at node n_v2 */
-		  p0  = Pij2[catg*dim3+i*dim2+ 0] * (phydbl)p_lk_v2[site*dim1+catg*dim2+ 0];
-		  p1  = Pij2[catg*dim3+i*dim2+ 1] * (phydbl)p_lk_v2[site*dim1+catg*dim2+ 1];
-		  p2  = Pij2[catg*dim3+i*dim2+ 2] * (phydbl)p_lk_v2[site*dim1+catg*dim2+ 2];
-		  p3  = Pij2[catg*dim3+i*dim2+ 3] * (phydbl)p_lk_v2[site*dim1+catg*dim2+ 3];
-		  p4  = Pij2[catg*dim3+i*dim2+ 4] * (phydbl)p_lk_v2[site*dim1+catg*dim2+ 4];
-		  p5  = Pij2[catg*dim3+i*dim2+ 5] * (phydbl)p_lk_v2[site*dim1+catg*dim2+ 5];
-		  p6  = Pij2[catg*dim3+i*dim2+ 6] * (phydbl)p_lk_v2[site*dim1+catg*dim2+ 6];
-		  p7  = Pij2[catg*dim3+i*dim2+ 7] * (phydbl)p_lk_v2[site*dim1+catg*dim2+ 7];
-		  p8  = Pij2[catg*dim3+i*dim2+ 8] * (phydbl)p_lk_v2[site*dim1+catg*dim2+ 8];
-		  p9  = Pij2[catg*dim3+i*dim2+ 9] * (phydbl)p_lk_v2[site*dim1+catg*dim2+ 9];
-		  p10 = Pij2[catg*dim3+i*dim2+10] * (phydbl)p_lk_v2[site*dim1+catg*dim2+10];
-		  p11 = Pij2[catg*dim3+i*dim2+11] * (phydbl)p_lk_v2[site*dim1+catg*dim2+11];
-		  p12 = Pij2[catg*dim3+i*dim2+12] * (phydbl)p_lk_v2[site*dim1+catg*dim2+12];
-		  p13 = Pij2[catg*dim3+i*dim2+13] * (phydbl)p_lk_v2[site*dim1+catg*dim2+13];
-		  p14 = Pij2[catg*dim3+i*dim2+14] * (phydbl)p_lk_v2[site*dim1+catg*dim2+14];
-		  p15 = Pij2[catg*dim3+i*dim2+15] * (phydbl)p_lk_v2[site*dim1+catg*dim2+15];
-		  p16 = Pij2[catg*dim3+i*dim2+16] * (phydbl)p_lk_v2[site*dim1+catg*dim2+16];
-		  p17 = Pij2[catg*dim3+i*dim2+17] * (phydbl)p_lk_v2[site*dim1+catg*dim2+17];
-		  p18 = Pij2[catg*dim3+i*dim2+18] * (phydbl)p_lk_v2[site*dim1+catg*dim2+18];
-		  p19 = Pij2[catg*dim3+i*dim2+19] * (phydbl)p_lk_v2[site*dim1+catg*dim2+19];
-		  p2_lk2 = p0+p1+p2+p3+p4+p5+p6+p7+p8+p9+p10+p11+p12+p13+p14+p15+p16+p17+p18+p19;
-
-		}
-	      
-	      p_lk[site*dim1+catg*dim2+i] = p1_lk1 * p2_lk2;	    
-
-	      if(p_lk[site*dim1+catg*dim2+i] < smallest_p_lk) smallest_p_lk = p_lk[site*dim1+catg*dim2+i] ; 
-	    }
-	      
-	  /* Current scaling values at that site */
- 	  sum_scale_v1_val = (sum_scale_v1)?(sum_scale_v1[catg*n_patterns+site]):(0);
-	  sum_scale_v2_val = (sum_scale_v2)?(sum_scale_v2[catg*n_patterns+site]):(0);
-	  
-	  sum_scale[catg*n_patterns+site] = sum_scale_v1_val + sum_scale_v2_val;
-	  
-	  /* Scaling */
-	  if(smallest_p_lk < p_lk_lim_inf)
-	    {
-	      curr_scaler_pow = (int)(LOG(p_lk_lim_inf)-LOG(smallest_p_lk))/LOG2;
-	      curr_scaler     = (phydbl)((unsigned long long)(1) << curr_scaler_pow);
-
-/* 	      if(fabs(curr_scaler_pow) > 63 || fabs(curr_scaler_pow) > 63) */
-/* 		{ */
-/* 		  PhyML_Printf("\n. p_lk_lim_inf = %G smallest_p_lk = %G",p_lk_lim_inf,smallest_p_lk); */
-/* 		  PhyML_Printf("\n. curr_scaler_pow = %d",curr_scaler_pow); */
-/* 		  PhyML_Printf("\n. Err in file %s at line %d.",__FILE__,__LINE__); */
-/* 		  Warn_And_Exit("\n"); */
-/* 		} */
-
-	      sum_scale[catg*n_patterns+site] += curr_scaler_pow;
-	      
-	      do
-		{
-		  piecewise_scaler_pow = MIN(curr_scaler_pow,63);
-		  curr_scaler = (phydbl)((unsigned long long)(1) << piecewise_scaler_pow);
-		  For(i,tree->mod->ns)
-		    {
-		      p_lk[site*dim1+catg*dim2+i] *= curr_scaler;
 		      
-		      if(p_lk[site*dim1+catg*dim2+i] > BIG)
-			{
-			  PhyML_Printf("\n. p_lk_lim_inf = %G smallest_p_lk = %G",p_lk_lim_inf,smallest_p_lk);
-			  PhyML_Printf("\n. curr_scaler_pow = %d",curr_scaler_pow);
-			  PhyML_Printf("\n. Err in file %s at line %d.",__FILE__,__LINE__);
-			  Warn_And_Exit("\n");
-			}
 		    }
-		  curr_scaler_pow -= piecewise_scaler_pow;
+		  
+		  p_lk[site*dim1+catg*dim2+i] = p1_lk1 * p2_lk2;	    
+		  
+		  if(p_lk[site*dim1+catg*dim2+i] < smallest_p_lk) smallest_p_lk = p_lk[site*dim1+catg*dim2+i] ; 
 		}
-	      while(curr_scaler_pow != 0);
+	      
+	      /* Current scaling values at that site */
+	      sum_scale_v1_val = (sum_scale_v1)?(sum_scale_v1[catg*n_patterns+site]):(0);
+	      sum_scale_v2_val = (sum_scale_v2)?(sum_scale_v2[catg*n_patterns+site]):(0);
+	      
+	      sum_scale[catg*n_patterns+site] = sum_scale_v1_val + sum_scale_v2_val;
+	      
+	      /* Scaling */
+	      if(smallest_p_lk < p_lk_lim_inf)
+		{
+		  curr_scaler_pow = (int)(LOG(p_lk_lim_inf)-LOG(smallest_p_lk))/LOG2;
+		  curr_scaler     = (phydbl)((unsigned long long)(1) << curr_scaler_pow);
+		  
+		  /* 	      if(fabs(curr_scaler_pow) > 63 || fabs(curr_scaler_pow) > 63) */
+		  /* 		{ */
+		  /* 		  PhyML_Printf("\n. p_lk_lim_inf = %G smallest_p_lk = %G",p_lk_lim_inf,smallest_p_lk); */
+		  /* 		  PhyML_Printf("\n. curr_scaler_pow = %d",curr_scaler_pow); */
+		  /* 		  PhyML_Printf("\n. Err in file %s at line %d.",__FILE__,__LINE__); */
+		  /* 		  Warn_And_Exit("\n"); */
+		  /* 		} */
+		  
+		  sum_scale[catg*n_patterns+site] += curr_scaler_pow;
+		  
+		  do
+		    {
+		      piecewise_scaler_pow = MIN(curr_scaler_pow,63);
+		      curr_scaler = (phydbl)((unsigned long long)(1) << piecewise_scaler_pow);
+		      For(i,tree->mod->ns)
+			{
+			  p_lk[site*dim1+catg*dim2+i] *= curr_scaler;
+			  
+			  if(p_lk[site*dim1+catg*dim2+i] > BIG)
+			    {
+			      PhyML_Printf("\n. p_lk_lim_inf = %G smallest_p_lk = %G",p_lk_lim_inf,smallest_p_lk);
+			      PhyML_Printf("\n. curr_scaler_pow = %d",curr_scaler_pow);
+			      PhyML_Printf("\n. Err in file %s at line %d.",__FILE__,__LINE__);
+			      Warn_And_Exit("\n");
+			    }
+			}
+		      curr_scaler_pow -= piecewise_scaler_pow;
+		    }
+		  while(curr_scaler_pow != 0);
+		}
 	    }
 	}
     }
@@ -1873,6 +1924,9 @@ void Make_Tree_4_Lk(t_tree *tree, calign *cdata, int n_site)
     {
       Init_P_Lk_Tips_Int(tree);
     }
+  
+  Init_P_Lk_Loc(tree);
+
 }
 
 /*********************************************************/
@@ -2038,7 +2092,6 @@ void Update_P_Lk_Along_A_Path(t_node **path, int path_length, t_tree *tree)
 	      {
 		Update_P_Lk(tree,path[i]->b[j],path[i]->b[j]->left);		    
 	      }
-
 	    else if(path[i] == path[i]->b[j]->rght)
 	      {
 		Update_P_Lk(tree,path[i]->b[j],path[i]->b[j]->rght);
@@ -2115,8 +2168,8 @@ phydbl Lk_Dist(phydbl *F, phydbl dist, model *mod)
 
 phydbl Update_Lk_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
 {
-  if(!b_fcus->left->tax) Update_P_Lk(tree,b_fcus,b_fcus->left);
-  if(!b_fcus->rght->tax) Update_P_Lk(tree,b_fcus,b_fcus->rght);
+  Update_P_Lk(tree,b_fcus,b_fcus->left);
+  Update_P_Lk(tree,b_fcus,b_fcus->rght);
   tree->c_lnL = Lk_At_Given_Edge(b_fcus,tree);
   return tree->c_lnL;
 }
@@ -2783,5 +2836,247 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
 }
 
 #endif 
+
+/*********************************************************/
+
+void Alias_Subpatt(t_tree *tree)
+{
+  int i,j;
+  int *patt_id_d;
+  t_node *d;
+
+
+  if(tree->n_root)
+    {
+      Alias_Subpatt_Post(tree->n_root,tree->n_root->v[0],tree);
+      Alias_Subpatt_Post(tree->n_root,tree->n_root->v[1],tree);
+    }
+  else
+    {
+      Alias_Subpatt_Post(tree->noeud[0],tree->noeud[0]->v[0],tree);
+      /* if(tree->both_sides)  */
+	Alias_Subpatt_Pre(tree->noeud[0],tree->noeud[0]->v[0],tree);
+    }
+}
+
+/*********************************************************/
+
+void Alias_One_Subpatt(t_node *a, t_node *d, t_tree *tree)
+{
+  int i,j;
+  int *patt_id_v1, *patt_id_v2, *patt_id_d;
+  int *p_lk_loc_d, *p_lk_loc_v1, *p_lk_loc_v2;
+  t_node *v1, *v2;
+  t_edge *b0, *b1, *b2;
+  int curr_patt_id_v1, curr_patt_id_v2;
+  int curr_p_lk_loc_v1, curr_p_lk_loc_v2;
+  int num_subpatt;
+
+  if(d->tax) 
+    {
+      patt_id_d  = (d == d->b[0]->left)?(d->b[0]->patt_id_left):(d->b[0]->patt_id_rght);
+      p_lk_loc_d = (d == d->b[0]->left)?(d->b[0]->p_lk_loc_left):(d->b[0]->p_lk_loc_rght);
+
+      For(i,tree->n_pattern)
+	{
+	  For(j,tree->n_pattern)
+	    {
+	      if(patt_id_d[i] == patt_id_d[j])
+		{
+		  p_lk_loc_d[i] = j;
+		  break;
+		}
+	      if(j > i)
+		{
+		  PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
+		  Warn_And_Exit("");
+		}
+	    }
+	}
+      return;
+    }
+  else
+    {
+      v1 = v2 = NULL;
+      For(i,3)
+	{
+	  if(d->v[i] != a && d->b[i] != tree->e_root)
+	    {
+	      if(!v1) { v1=d->v[i]; b1=d->b[i];}
+	      else    { v2=d->v[i]; b2=d->b[i];}
+	    }
+	  else
+	    {
+	      b0 = d->b[i];
+	    }
+	}
+      
+
+      patt_id_v1  = (v1 == b1->left)?(b1->patt_id_left):(b1->patt_id_rght);
+      patt_id_v2  = (v2 == b2->left)?(b2->patt_id_left):(b2->patt_id_rght);
+      patt_id_d   = (d  == b0->left)?(b0->patt_id_left):(b0->patt_id_rght);  
+      p_lk_loc_d  = (d  == b0->left)?(b0->p_lk_loc_left):(b0->p_lk_loc_rght);
+      p_lk_loc_v1 = (v1 == b1->left)?(b1->p_lk_loc_left):(b1->p_lk_loc_rght);
+      p_lk_loc_v2 = (v2 == b2->left)?(b2->p_lk_loc_left):(b2->p_lk_loc_rght);
+      
+      num_subpatt = 0;
+      For(i,tree->n_pattern)
+	{
+	  curr_patt_id_v1  = patt_id_v1[i];
+	  curr_patt_id_v2  = patt_id_v2[i];
+	  curr_p_lk_loc_v1 = p_lk_loc_v1[i];
+	  curr_p_lk_loc_v2 = p_lk_loc_v2[i];
+
+	  p_lk_loc_d[i] = i;
+
+	  if((curr_p_lk_loc_v1 == i) || (curr_p_lk_loc_v2 == i))
+	    {
+	      p_lk_loc_d[i] = i;
+	      patt_id_d[i] = num_subpatt;
+	      num_subpatt++;
+	    }
+	  else
+	    if(curr_p_lk_loc_v1 == curr_p_lk_loc_v2)
+	      {
+		p_lk_loc_d[i] = curr_p_lk_loc_v1;
+		patt_id_d[i] = patt_id_d[curr_p_lk_loc_v1];
+	      }
+	    else
+	      {
+		for(j=MAX(curr_p_lk_loc_v1,curr_p_lk_loc_v2);j<tree->n_pattern;j++)
+		  {
+		    if((patt_id_v1[j] == curr_patt_id_v1) && 
+		       (patt_id_v2[j] == curr_patt_id_v2))
+		      {
+			p_lk_loc_d[i] = j;
+			
+			if(j == i)
+			  {
+			    patt_id_d[i] = num_subpatt;
+			    num_subpatt++;
+			  }
+			else patt_id_d[i] = patt_id_d[j]; 
+			break;
+		      }
+		    if(j > i)
+		      {
+			PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
+			Warn_And_Exit("");
+		      }
+		  }
+	      }
+	}
+    }
+}
+
+/*********************************************************/
+
+void Alias_Subpatt_Post(t_node *a, t_node *d, t_tree *tree)
+{
+
+  if(d->tax) return;
+  else
+    {
+      int i;
+      
+      For(i,3)
+	{
+	  if(d->v[i] != a && d->b[i] != tree->e_root)
+	    {
+	      Alias_Subpatt_Post(d,d->v[i],tree);	      
+	    }
+	}
+      Alias_One_Subpatt(a, d, tree);
+    }
+}
+
+/*********************************************************/
+
+void Alias_Subpatt_Pre(t_node *a, t_node *d, t_tree *tree)
+{
+  int i;
+
+  if(d->tax) return;
+  else
+    {
+      int i;
+
+      For(i,3)
+	{
+	  if(d->v[i] != a && d->b[i] != tree->e_root)
+	    {
+	      Alias_One_Subpatt(d->v[i],d,tree);
+	      Alias_Subpatt_Pre(d,d->v[i],tree);	      
+	    }      
+	}
+    }
+}
+
+/*********************************************************/
+
+void Copy_P_Lk(phydbl *p_lk, int site_from, int site_to, t_tree *tree)
+{
+  int i,j;
+  int dim1,dim2;
+
+
+  dim1 = tree->mod->n_catg * tree->mod->ns;
+  dim2 = tree->mod->ns;
+
+/*   PhyML_Printf("\n# %d %d",site_to,site_from); */
+      
+  For(i,tree->mod->ns) For(j,tree->mod->n_catg)
+    {
+      p_lk[site_to*dim1+j*dim2+i] = p_lk[site_from*dim1+j*dim2+i];
+    }
+}
+
+/*********************************************************/
+
+void Copy_Scale(int *scale, int site_from, int site_to, t_tree *tree)
+{
+  int i;
+
+  For(i,tree->mod->n_catg) 
+    {
+      scale[i*tree->n_pattern+site_to] = scale[i*tree->n_pattern+site_from];
+/*       PhyML_Printf("\n. %d",scale[i*tree->n_pattern+site_to]); */
+    }
+}
+
+/*********************************************************/
+
+void Init_P_Lk_Loc(t_tree *tree)
+{
+  int i,j;
+  t_node *d;
+  int *patt_id_d;
+
+  For(i,2*tree->n_otu-3)
+    {
+      For(j,tree->n_pattern)
+	{
+	  tree->t_edges[i]->p_lk_loc_left[j] = j;
+	  tree->t_edges[i]->p_lk_loc_rght[j] = j;
+	}
+    }
+
+  For(i,tree->n_otu)
+    {
+      d = tree->noeud[i];
+      patt_id_d = (d == d->b[0]->left)?(d->b[0]->patt_id_left):(d->b[0]->patt_id_rght);
+      For(j,tree->n_pattern)
+	{
+	  patt_id_d[j] = (int)tree->data->c_seq[d->num]->state[j];
+	}
+    }
+
+
+}
+
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
 /*********************************************************/
 

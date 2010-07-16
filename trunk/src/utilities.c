@@ -791,6 +791,7 @@ void Init_Tree(t_tree *tree, int n_otu)
   tree->tip_order_score           = .0;
 
   tree->write_tax_names           = YES;
+  tree->update_alias_subpatt      = NO;
 }
 
 /*********************************************************/
@@ -1007,7 +1008,13 @@ void Make_Edge_Lk(t_edge *b, t_tree *tree)
       b->p_lk_rght = NULL;      
       b->p_lk_tip_r  = (short int *)mCalloc(tree->data->crunch_len*tree->mod->ns,sizeof(short int));
     }
+
+  b->patt_id_left  = (int *)mCalloc(tree->data->crunch_len,sizeof(int));
+  b->patt_id_rght  = (int *)mCalloc(tree->data->crunch_len,sizeof(int));
+  b->p_lk_loc_left = (int *)mCalloc(tree->data->crunch_len,sizeof(int));
+  b->p_lk_loc_rght = (int *)mCalloc(tree->data->crunch_len,sizeof(int));
 }
+
 
 /*********************************************************/
 
@@ -4140,7 +4147,9 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
   Swap(v2,b_fcus->left,b_fcus->rght,v3,tree);
   tree->both_sides = 1;
 
+  tree->update_alias_subpatt = YES;
   lk1_init = Update_Lk_At_Given_Edge(b_fcus,tree);
+  tree->update_alias_subpatt = NO;
 
   l_infa = 10.*b_fcus->l;
   l_max  = b_fcus->l;
@@ -4177,7 +4186,9 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
   b_fcus->l = bl_init;
   tree->both_sides = 1;
 
+  tree->update_alias_subpatt = YES;
   lk2_init = Update_Lk_At_Given_Edge(b_fcus,tree);
+  tree->update_alias_subpatt = NO;
 
   l_infa = 10.*b_fcus->l;
   l_max  = b_fcus->l;
@@ -4209,138 +4220,140 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
   /***********/
 
 
-
+  
   /***********/
-   b_fcus->l = bl_init;
+  b_fcus->l = bl_init;
   if(b_fcus->l < BL_MIN) b_fcus->l = BL_MIN;
-   tree->both_sides = 1;
+  tree->both_sides = 1;
 
-   lk0_init = Update_Lk_At_Given_Edge(b_fcus,tree);
+  tree->update_alias_subpatt = YES;
+  lk0_init = Update_Lk_At_Given_Edge(b_fcus,tree);
+  tree->update_alias_subpatt = NO;
 
-   if(FABS(lk0_init - lk_init) > tree->mod->s_opt->min_diff_lk_local)
-     {
-       PhyML_Printf("\n. lk_init = %f; lk = %f diff = %f l = %G\n",
-		    lk_init,
-		    lk0_init,
-		    lk_init-lk0_init,
-		    b_fcus->l);
-       PhyML_Printf("\n. Curr_lnL = %f\n",Lk(tree));
-       Warn_And_Exit("\n. Err. in NNI (3)\n");
-     }
-
-   l_infa = 10.*b_fcus->l;
-   l_max  = b_fcus->l;
-   l_infb = BL_MIN;
-
-   if(tree->mod->s_opt->fast_nni)
-     {
-       Fast_Br_Len(b_fcus,tree,1);
-       lk0 = Lk_At_Given_Edge(b_fcus,tree);
-     }
-   else
-     {
-       lk0 = Br_Len_Brent(l_infa,l_max,l_infb,
-			  tree->mod->s_opt->min_diff_lk_local,
-			  b_fcus,tree,
-			  tree->mod->s_opt->brent_it_max,
-			  tree->mod->s_opt->quickdirty);
-     }
-
-   if(lk0 < lk_init - tree->mod->s_opt->min_diff_lk_local)
-     {
-       PhyML_Printf("\n\n%f %f %f %f\n",l_infa,l_max,l_infb,b_fcus->l);
-       PhyML_Printf("%f -- %f \n",lk0_init,lk0);
-       PhyML_Printf("\n. Err. in NNI (3)\n");
-       Warn_And_Exit("\n");
-     }
-
-   l0  = b_fcus->l;
-   /***********/
-
-   b_fcus->nni->lk0 = lk0;
-   b_fcus->nni->lk1 = lk1;
-   b_fcus->nni->lk2 = lk2;
-
-   b_fcus->nni->l0  = l0;
-   b_fcus->nni->l1  = l1;
-   b_fcus->nni->l2  = l2;
-
-   b_fcus->nni->score = lk0 - MAX(lk1,lk2);
-
-   if((b_fcus->nni->score <  tree->mod->s_opt->min_diff_lk_local) &&
-      (b_fcus->nni->score > -tree->mod->s_opt->min_diff_lk_local))
-     {
-       b_fcus->nni->score = .0;
-       b_fcus->nni->lk1 = b_fcus->nni->lk0;
-       b_fcus->nni->lk2 = b_fcus->nni->lk0;
-     }
-
-   if(lk0 > MAX(lk1,lk2))
-     {
-       b_fcus->nni->best_conf    = 0;
-       b_fcus->nni->best_l       = l0;
-       b_fcus->nni->swap_node_v1 = NULL;
-       b_fcus->nni->swap_node_v2 = NULL;
-       b_fcus->nni->swap_node_v3 = NULL;
-       b_fcus->nni->swap_node_v4 = NULL;
-      }
-   else if(lk1 > MAX(lk0,lk2))
-     {
-       b_fcus->nni->best_conf    = 1;
-       b_fcus->nni->best_l       = l1;
-       b_fcus->nni->swap_node_v1 = v2;
-       b_fcus->nni->swap_node_v2 = b_fcus->left;
-       b_fcus->nni->swap_node_v3 = b_fcus->rght;
-       b_fcus->nni->swap_node_v4 = v3;
-     }
-   else if(lk2 > MAX(lk0,lk1))
-     {
-       b_fcus->nni->best_conf    = 2;
-       b_fcus->nni->best_l       = l2;
-       b_fcus->nni->swap_node_v1 = v2;
-       b_fcus->nni->swap_node_v2 = b_fcus->left;
-       b_fcus->nni->swap_node_v3 = b_fcus->rght;
-       b_fcus->nni->swap_node_v4 = v4;
-     }
-   else
-     {
-       b_fcus->nni->score        = +1.0;
-       b_fcus->nni->best_conf    = 0;
-       b_fcus->nni->best_l       = l0;
-       b_fcus->nni->swap_node_v1 = NULL;
-       b_fcus->nni->swap_node_v2 = NULL;
-       b_fcus->nni->swap_node_v3 = NULL;
-       b_fcus->nni->swap_node_v4 = NULL;
-     }
-
-   if((do_swap) && ((lk1 > lk0) || (lk2 > lk0)))
-     {
+  if(FABS(lk0_init - lk_init) > tree->mod->s_opt->min_diff_lk_local)
+    {
+      PhyML_Printf("\n. lk_init = %f; lk = %f diff = %f l = %G\n",
+		   lk_init,
+		   lk0_init,
+		   lk_init-lk0_init,
+		   b_fcus->l);
+      PhyML_Printf("\n. Curr_lnL = %f\n",Lk(tree));
+      Warn_And_Exit("\n. Err. in NNI (3)\n");
+    }
+  
+  l_infa = 10.*b_fcus->l;
+  l_max  = b_fcus->l;
+  l_infb = BL_MIN;
+  
+  if(tree->mod->s_opt->fast_nni)
+    {
+      Fast_Br_Len(b_fcus,tree,1);
+      lk0 = Lk_At_Given_Edge(b_fcus,tree);
+    }
+  else
+    {
+      lk0 = Br_Len_Brent(l_infa,l_max,l_infb,
+			 tree->mod->s_opt->min_diff_lk_local,
+			 b_fcus,tree,
+			 tree->mod->s_opt->brent_it_max,
+			 tree->mod->s_opt->quickdirty);
+    }
+  
+  if(lk0 < lk_init - tree->mod->s_opt->min_diff_lk_local)
+    {
+      PhyML_Printf("\n\n%f %f %f %f\n",l_infa,l_max,l_infb,b_fcus->l);
+      PhyML_Printf("%f -- %f \n",lk0_init,lk0);
+      PhyML_Printf("\n. Err. in NNI (3)\n");
+      Warn_And_Exit("\n");
+    }
+  
+  l0  = b_fcus->l;
+  /***********/
+  
+  b_fcus->nni->lk0 = lk0;
+  b_fcus->nni->lk1 = lk1;
+  b_fcus->nni->lk2 = lk2;
+  
+  b_fcus->nni->l0  = l0;
+  b_fcus->nni->l1  = l1;
+  b_fcus->nni->l2  = l2;
+  
+  b_fcus->nni->score = lk0 - MAX(lk1,lk2);
+  
+  if((b_fcus->nni->score <  tree->mod->s_opt->min_diff_lk_local) &&
+     (b_fcus->nni->score > -tree->mod->s_opt->min_diff_lk_local))
+    {
+      b_fcus->nni->score = .0;
+      b_fcus->nni->lk1 = b_fcus->nni->lk0;
+      b_fcus->nni->lk2 = b_fcus->nni->lk0;
+    }
+  
+  if(lk0 > MAX(lk1,lk2))
+    {
+      b_fcus->nni->best_conf    = 0;
+      b_fcus->nni->best_l       = l0;
+      b_fcus->nni->swap_node_v1 = NULL;
+      b_fcus->nni->swap_node_v2 = NULL;
+      b_fcus->nni->swap_node_v3 = NULL;
+      b_fcus->nni->swap_node_v4 = NULL;
+    }
+  else if(lk1 > MAX(lk0,lk2))
+    {
+      b_fcus->nni->best_conf    = 1;
+      b_fcus->nni->best_l       = l1;
+      b_fcus->nni->swap_node_v1 = v2;
+      b_fcus->nni->swap_node_v2 = b_fcus->left;
+      b_fcus->nni->swap_node_v3 = b_fcus->rght;
+      b_fcus->nni->swap_node_v4 = v3;
+    }
+  else if(lk2 > MAX(lk0,lk1))
+    {
+      b_fcus->nni->best_conf    = 2;
+      b_fcus->nni->best_l       = l2;
+      b_fcus->nni->swap_node_v1 = v2;
+      b_fcus->nni->swap_node_v2 = b_fcus->left;
+      b_fcus->nni->swap_node_v3 = b_fcus->rght;
+      b_fcus->nni->swap_node_v4 = v4;
+    }
+  else
+    {
+      b_fcus->nni->score        = +1.0;
+      b_fcus->nni->best_conf    = 0;
+      b_fcus->nni->best_l       = l0;
+      b_fcus->nni->swap_node_v1 = NULL;
+      b_fcus->nni->swap_node_v2 = NULL;
+      b_fcus->nni->swap_node_v3 = NULL;
+      b_fcus->nni->swap_node_v4 = NULL;
+    }
+  
+  if((do_swap) && ((lk1 > lk0) || (lk2 > lk0)))
+    {
       tree->n_swap++;
       PhyML_Printf("Swap t_edge %d -> %f\n",b_fcus->num,MAX(lk1,lk2));
-
+      
       if(lk1 > lk2)
-	 {
-	   tree->best_lnL = lk1;
-	   Swap(v2,b_fcus->left,b_fcus->rght,v3,tree);
-	   b_fcus->l = l1;
-	   tree->both_sides = 1;
-	   Lk(tree);
-	 }
-       else
-	 {
-	   tree->best_lnL = lk2;
-	   Swap(v2,b_fcus->left,b_fcus->rght,v4,tree);
-	   b_fcus->l = l2;
-	   tree->both_sides = 1;
-	   Lk(tree);
-	 }
-     }
-   else
-     {
-       b_fcus->l = bl_init;
-       Update_PMat_At_Given_Edge(b_fcus,tree);
-       tree->c_lnL = lk_init;
-     }
+	{
+	  tree->best_lnL = lk1;
+	  Swap(v2,b_fcus->left,b_fcus->rght,v3,tree);
+	  b_fcus->l = l1;
+	  tree->both_sides = 1;
+	  Lk(tree);
+	}
+      else
+	{
+	  tree->best_lnL = lk2;
+	  Swap(v2,b_fcus->left,b_fcus->rght,v4,tree);
+	  b_fcus->l = l2;
+	  tree->both_sides = 1;
+	  Lk(tree);
+	}
+    }
+  else
+    {
+      b_fcus->l = bl_init;
+      Update_PMat_At_Given_Edge(b_fcus,tree);
+      tree->c_lnL = lk_init;
+    }
 }
 
 /*********************************************************/
@@ -4800,23 +4813,23 @@ void Print_Fp_Out(FILE *fp_out, time_t t_beg, time_t t_end, t_tree *tree, option
       Print_Banner_Small(fp_out);
     }
 
-  PhyML_Fprintf(fp_out,"\n\n. Sequence filename: \t\t\t%s", Basename(io->in_align_file));
-  PhyML_Fprintf(fp_out,"\n\n. Data set: \t\t\t\t#%d",n_data_set);
+  PhyML_Fprintf(fp_out,"\n. Sequence filename: \t\t\t%s", Basename(io->in_align_file));
+  PhyML_Fprintf(fp_out,"\n. Data set: \t\t\t\t#%d",n_data_set);
 
   if(io->mod->s_opt->random_input_tree)
-    PhyML_Fprintf(fp_out,"\n\n. Random init tree: \t\t\t#%d",num_tree+1);
+    PhyML_Fprintf(fp_out,"\n. Random init tree: \t\t\t#%d",num_tree+1);
   else if(io->n_trees > 1)
-    PhyML_Fprintf(fp_out,"\n\n. Starting tree number: \t\t\t#%d",num_tree+1);
+    PhyML_Fprintf(fp_out,"\n. Starting tree number: \t\t\t#%d",num_tree+1);
   
   if(io->mod->s_opt->opt_topo)
     {
-      if(io->mod->s_opt->topo_search == NNI_MOVE) PhyML_Fprintf(fp_out,"\n\n. Tree topology search : \t\tNNIs");
-      else if(io->mod->s_opt->topo_search == SPR_MOVE) PhyML_Fprintf(fp_out,"\n\n. Tree topology search : \t\tSPRs");
-      else if(io->mod->s_opt->topo_search == BEST_OF_NNI_AND_SPR) PhyML_Fprintf(fp_out,"\n\n. Tree topology search : \t\tBest of NNIs and SPRs");
+      if(io->mod->s_opt->topo_search == NNI_MOVE) PhyML_Fprintf(fp_out,"\n. Tree topology search : \t\tNNIs");
+      else if(io->mod->s_opt->topo_search == SPR_MOVE) PhyML_Fprintf(fp_out,"\n. Tree topology search : \t\tSPRs");
+      else if(io->mod->s_opt->topo_search == BEST_OF_NNI_AND_SPR) PhyML_Fprintf(fp_out,"\n. Tree topology search : \t\tBest of NNIs and SPRs");
     }
   else
     {
-      PhyML_Fprintf(fp_out,"\n\n. Tree topology: \t\t\tfixed");
+      PhyML_Fprintf(fp_out,"\n. Tree topology: \t\t\tfixed");
     }
 
 
@@ -4841,37 +4854,37 @@ void Print_Fp_Out(FILE *fp_out, time_t t_beg, time_t t_end, t_tree *tree, option
 	}
     }
 
-  PhyML_Fprintf(fp_out,"\n\n. Initial tree: \t\t\t%s",s);
+  PhyML_Fprintf(fp_out,"\n. Initial tree: \t\t\t%s",s);
   Free(s);
 
   if(tree->io->datatype == NT)
     {
-      fprintf(fp_out,"\n\n. Model of nucleotides substitution: \t%s",io->mod->modelname);
+      fprintf(fp_out,"\n. Model of nucleotides substitution: \t%s",io->mod->modelname);
       if(io->mod->whichmodel == CUSTOM)
       fprintf(fp_out," (%s)",io->mod->custom_mod_string);
     }
   else if(tree->io->datatype == AA)
     {
-      fprintf(fp_out,"\n\n. Model of amino acids substitution: \t%s",io->mod->modelname);
+      fprintf(fp_out,"\n. Model of amino acids substitution: \t%s",io->mod->modelname);
     }
   else
     {
-      fprintf(fp_out,"\n\n. Substitution model: \t\t\t%s",io->mod->modelname);
+      fprintf(fp_out,"\n. Substitution model: \t\t\t%s",io->mod->modelname);
     }
 
 
-  PhyML_Fprintf(fp_out,"\n\n. Number of taxa: \t\t\t%d",tree->n_otu);/*added FLT*/
+  PhyML_Fprintf(fp_out,"\n. Number of taxa: \t\t\t%d",tree->n_otu);/*added FLT*/
 
-  PhyML_Fprintf(fp_out,"\n\n. Log-likelihood: \t\t\t%.5f",tree->c_lnL);/*was last ; moved here FLT*/
+  PhyML_Fprintf(fp_out,"\n. Log-likelihood: \t\t\t%.5f",tree->c_lnL);/*was last ; moved here FLT*/
 
   Unconstraint_Lk(tree);
-  PhyML_Fprintf(fp_out,"\n\n. Unconstrained likelihood: \t\t%.5f",tree->unconstraint_lk);
+  PhyML_Fprintf(fp_out,"\n. Unconstrained likelihood: \t\t%.5f",tree->unconstraint_lk);
 
-  PhyML_Fprintf(fp_out,"\n\n. Parsimony: \t\t\t\t%d",tree->c_pars);
+  PhyML_Fprintf(fp_out,"\n. Parsimony: \t\t\t\t%d",tree->c_pars);
 
-  PhyML_Fprintf(fp_out,"\n\n. Tree size: \t\t\t\t%.5f",tree->size);
+  PhyML_Fprintf(fp_out,"\n. Tree size: \t\t\t\t%.5f",tree->size);
 
-  PhyML_Fprintf(fp_out,"\n\n. Discrete gamma model: \t\t%s",
+  PhyML_Fprintf(fp_out,"\n. Discrete gamma model: \t\t%s",
 	  (tree->mod->n_catg>1)?("Yes"):("No"));
   if(tree->mod->n_catg > 1)
     {
@@ -4879,24 +4892,24 @@ void Print_Fp_Out(FILE *fp_out, time_t t_beg, time_t t_end, t_tree *tree, option
       PhyML_Fprintf(fp_out,"\n  - Gamma shape parameter: \t\t%.3f",tree->mod->alpha);
     }
 
-  if(tree->mod->invar) PhyML_Fprintf(fp_out,"\n\n. Proportion of invariant: \t\t%.3f",tree->mod->pinvar);
+  if(tree->mod->invar) PhyML_Fprintf(fp_out,"\n. Proportion of invariant: \t\t%.3f",tree->mod->pinvar);
 
   /*was before Discrete gamma model ; moved here FLT*/
   if((tree->mod->whichmodel == K80)   ||
      (tree->mod->whichmodel == HKY85) ||
      (tree->mod->whichmodel == F84))
-    PhyML_Fprintf(fp_out,"\n\n. Transition/transversion ratio: \t%.3f",tree->mod->kappa);
+    PhyML_Fprintf(fp_out,"\n. Transition/transversion ratio: \t%.3f",tree->mod->kappa);
   else if(tree->mod->whichmodel == TN93)
     {
-      PhyML_Fprintf(fp_out,"\n\n. Transition/transversion ratio for purines: \t\t\t%.3f",
+      PhyML_Fprintf(fp_out,"\n. Transition/transversion ratio for purines: \t\t\t%.3f",
 	      tree->mod->kappa*2.*tree->mod->lambda/(1.+tree->mod->lambda));
-      PhyML_Fprintf(fp_out,"\n\n. Transition/transversion ratio for pyrimidines: \t\t\t%.3f",
+      PhyML_Fprintf(fp_out,"\n. Transition/transversion ratio for pyrimidines: \t\t\t%.3f",
 	      tree->mod->kappa*2./(1.+tree->mod->lambda));
     }
 
   if(tree->io->datatype == NT)
     {
-      PhyML_Fprintf(fp_out,"\n\n. Nucleotides frequencies:\n");
+      PhyML_Fprintf(fp_out,"\n. Nucleotides frequencies:");
       PhyML_Fprintf(fp_out,"\n  - f(A)=%8.5f",tree->mod->pi[0]);
       PhyML_Fprintf(fp_out,"\n  - f(C)=%8.5f",tree->mod->pi[1]);
       PhyML_Fprintf(fp_out,"\n  - f(G)=%8.5f",tree->mod->pi[2]);
@@ -4915,8 +4928,8 @@ void Print_Fp_Out(FILE *fp_out, time_t t_beg, time_t t_end, t_tree *tree, option
 		      tree->mod->pi,
 		      tree->mod->qmat);
 
-      PhyML_Fprintf(fp_out,"\n\n");
-      PhyML_Fprintf(fp_out,". GTR relative rate parameters : \n\n");
+      PhyML_Fprintf(fp_out,"\n");
+      PhyML_Fprintf(fp_out,". GTR relative rate parameters : \n");
       PhyML_Fprintf(fp_out,"  A <-> C   %8.5f\n",  tree->mod->rr[0]);
       PhyML_Fprintf(fp_out,"  A <-> G   %8.5f\n",  tree->mod->rr[1]);
       PhyML_Fprintf(fp_out,"  A <-> T   %8.5f\n",  tree->mod->rr[2]);
@@ -4925,7 +4938,7 @@ void Print_Fp_Out(FILE *fp_out, time_t t_beg, time_t t_end, t_tree *tree, option
       PhyML_Fprintf(fp_out,"  G <-> T   %8.5f\n",tree->mod->rr[5]);
 
 
-      PhyML_Fprintf(fp_out,"\n\n. Instantaneous rate matrix : \n");
+      PhyML_Fprintf(fp_out,"\n. Instantaneous rate matrix : ");
       PhyML_Fprintf(fp_out,"\n  [A---------C---------G---------T------]\n");
       For(i,4)
 	{
@@ -4949,15 +4962,20 @@ void Print_Fp_Out(FILE *fp_out, time_t t_beg, time_t t_end, t_tree *tree, option
     }
 
 
+  PhyML_Fprintf(fp_out,"\n");
+  PhyML_Fprintf(fp_out,"\n. Run ID:\t\t\t\t%s", (io->append_run_ID) ? (io->run_id_string): ("none"));
+  PhyML_Fprintf(fp_out,"\n. Random seed:\t\t\t\t%d", io->r_seed);
+  PhyML_Fprintf(fp_out,"\n. Subtree patterns aliasing:\t\t%s",io->do_alias_subpatt?"yes":"no");
+  PhyML_Fprintf(fp_out,"\n. Version:\t\t\t\t%s", VERSION);
+
   hour = div(t_end-t_beg,3600);
   min  = div(t_end-t_beg,60  );
 
   min.quot -= hour.quot*60;
 
-  PhyML_Fprintf(fp_out,"\n\n. Time used %dh%dm%ds\n", hour.quot,min.quot,(int)(t_end-t_beg)%60);
-  PhyML_Fprintf(fp_out,"\n\n. %d seconds\n",(int)(t_end-t_beg));
+  PhyML_Fprintf(fp_out,"\n. Time used:\t\t\t\t%dh%dm%ds (%d seconds)", hour.quot,min.quot,(int)(t_end-t_beg)%60,(int)(t_end-t_beg));
 
-  PhyML_Fprintf(fp_out,"\n");
+  PhyML_Fprintf(fp_out,"\n\n");
   PhyML_Fprintf(fp_out," oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo\n");
   PhyML_Fprintf(fp_out," Suggested citation:\n");
   PhyML_Fprintf(fp_out," S. Guindon & O. Gascuel\n");
@@ -6441,6 +6459,8 @@ void Set_Defaults_Input(option* io)
   io->gibbs_chain_len            = 1E+8;
   io->gibbs_burnin               = 1E+6;
   io->mem_question               = YES;
+  io->do_alias_subpatt           = YES;
+
 }
 
 /*********************************************************/
@@ -7560,7 +7580,7 @@ void Prune_Subtree(t_node *a, t_node *d, t_edge **target, t_edge **residual, t_t
 /*   phydbl ***buff_p_lk; */
   phydbl *buff_p_lk;
   int *buff_scale;
-  int *buff_p_pars, *buff_pars;
+  int *buff_p_pars, *buff_pars, *buff_p_lk_loc, *buff_patt_id;
   unsigned int *buff_ui;
   short int *buff_p_lk_tip;
 
@@ -7635,6 +7655,15 @@ void Prune_Subtree(t_node *a, t_node *d, t_edge **target, t_edge **residual, t_t
 	  buff_p_pars          = b1->p_pars_r;
 	  b1->p_pars_r         = b2->p_pars_l;
 	  b2->p_pars_l         = buff_p_pars;
+
+	  buff_p_lk_loc        = b1->p_lk_loc_rght;
+	  b1->p_lk_loc_rght    = b2->p_lk_loc_left;
+	  b2->p_lk_loc_left    = buff_p_lk_loc;
+
+	  buff_patt_id         = b1->patt_id_rght;
+	  b1->patt_id_rght     = b2->patt_id_left;
+	  b2->patt_id_left     = buff_patt_id;
+
 	}
       else
 	{
@@ -7661,6 +7690,15 @@ void Prune_Subtree(t_node *a, t_node *d, t_edge **target, t_edge **residual, t_t
 	  buff_p_pars          = b1->p_pars_r;
 	  b1->p_pars_r         = b2->p_pars_r;
 	  b2->p_pars_r         = buff_p_pars;
+
+	  buff_p_lk_loc        = b1->p_lk_loc_rght;
+	  b1->p_lk_loc_rght    = b2->p_lk_loc_rght;
+	  b2->p_lk_loc_rght    = buff_p_lk_loc;
+
+	  buff_patt_id         = b1->patt_id_rght;
+	  b1->patt_id_rght     = b2->patt_id_rght;
+	  b2->patt_id_rght     = buff_patt_id;
+
 	}
     }
   else
@@ -7696,6 +7734,15 @@ void Prune_Subtree(t_node *a, t_node *d, t_edge **target, t_edge **residual, t_t
 	  buff_p_pars          = b1->p_pars_l;
 	  b1->p_pars_l         = b2->p_pars_l;
 	  b2->p_pars_l         = buff_p_pars;
+
+	  buff_p_lk_loc        = b1->p_lk_loc_left;
+	  b1->p_lk_loc_left    = b2->p_lk_loc_left;
+	  b2->p_lk_loc_left    = buff_p_lk_loc;
+
+	  buff_patt_id         = b1->patt_id_left;
+	  b1->patt_id_left     = b2->patt_id_left;
+	  b2->patt_id_left     = buff_patt_id;
+
 	}
       else
 	{
@@ -7726,6 +7773,14 @@ void Prune_Subtree(t_node *a, t_node *d, t_edge **target, t_edge **residual, t_t
 	  buff_p_pars          = b1->p_pars_l;
 	  b1->p_pars_l         = b2->p_pars_r;
 	  b2->p_pars_r         = buff_p_pars;
+
+	  buff_p_lk_loc        = b1->p_lk_loc_left;
+	  b1->p_lk_loc_left    = b2->p_lk_loc_rght;
+	  b2->p_lk_loc_rght    = buff_p_lk_loc;
+
+	  buff_patt_id         = b1->patt_id_left;
+	  b1->patt_id_left     = b2->patt_id_rght;
+	  b2->patt_id_rght     = buff_patt_id;
 	}
     }
 
@@ -7790,7 +7845,7 @@ void Graft_Subtree(t_edge *target, t_node *link, t_edge *residual, t_tree *tree)
   int i, dir_v1, dir_v2;
   phydbl *buff_p_lk;
   int *buff_scale;
-  int *buff_p_pars, *buff_pars; 
+  int *buff_p_pars, *buff_pars, *buff_p_lk_loc, *buff_patt_id; 
   short int *buff_p_lk_tip;
   unsigned int *buff_ui;
   t_edge *b_up;
@@ -7821,8 +7876,8 @@ void Graft_Subtree(t_edge *target, t_node *link, t_edge *residual, t_tree *tree)
       target->p_lk_tip_r           = buff_p_lk_tip;
 
       buff_scale                   = residual->sum_scale_rght;
-      residual->sum_scale_rght   = target->sum_scale_rght;
-      target->sum_scale_rght     = buff_scale;
+      residual->sum_scale_rght     = target->sum_scale_rght;
+      target->sum_scale_rght       = buff_scale;
 
       buff_pars                    = residual->pars_r;
       residual->pars_r             = target->pars_r;
@@ -7835,6 +7890,14 @@ void Graft_Subtree(t_edge *target, t_node *link, t_edge *residual, t_tree *tree)
       buff_p_pars                  = residual->p_pars_r;
       residual->p_pars_r           = target->p_pars_r;
       target->p_pars_r             = buff_p_pars;
+
+      buff_p_lk_loc                = residual->p_lk_loc_rght;
+      residual->p_lk_loc_rght      = target->p_lk_loc_rght;
+      target->p_lk_loc_rght        = buff_p_lk_loc;
+
+      buff_patt_id                 = residual->patt_id_rght;
+      residual->patt_id_rght       = target->patt_id_rght;
+      target->patt_id_rght         = buff_patt_id;
     }
   else
     {
@@ -7868,6 +7931,14 @@ void Graft_Subtree(t_edge *target, t_node *link, t_edge *residual, t_tree *tree)
       buff_p_pars                  = residual->p_pars_r;
       residual->p_pars_r           = target->p_pars_l;
       target->p_pars_l             = buff_p_pars;
+
+      buff_p_lk_loc                = residual->p_lk_loc_rght;
+      residual->p_lk_loc_rght      = target->p_lk_loc_left;
+      target->p_lk_loc_left        = buff_p_lk_loc;
+
+      buff_patt_id                 = residual->patt_id_rght;
+      residual->patt_id_rght       = target->patt_id_left;
+      target->patt_id_left         = buff_patt_id;
     }
 
   For(i,3)
@@ -8913,6 +8984,7 @@ void Print_Settings(option *io)
 
   PhyML_Printf("\n                . Run ID:\t\t\t\t\t %s", (io->append_run_ID) ? (io->run_id_string): ("none"));
   PhyML_Printf("\n                . Random seed:\t\t\t\t\t %d", io->r_seed);
+  PhyML_Printf("\n                . Subtree patterns aliasing:\t\t\t %s",io->do_alias_subpatt?"yes":"no");
   PhyML_Printf("\n                . Version:\t\t\t\t\t %s", VERSION);
 
 
