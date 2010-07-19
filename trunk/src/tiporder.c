@@ -265,22 +265,26 @@ int TIPO_main(int argc, char **argv)
   io = (option *)Make_Input();
   io->fp_in_tree = fp_tree_file;
   Read_Tree_File(io);
-  fclose(io->fp_in_tree);
   tree = io->treelist->tree[0];
   tree->io = io;
 
   tree->io->z_scores = (phydbl *)mCalloc(tree->n_otu,sizeof(phydbl));
 
   For(i,tree->n_otu) tree->io->z_scores[i] = TIPO_Read_One_Taxon_Zscore(fp_coord_file,tree->noeud[i]->name,1,tree);
-  TIPO_Normalize_Zscores(tree);
+  /* TIPO_Normalize_Zscores(tree); */
   TIPO_Get_Min_Number_Of_Tip_Permut(tree);
 
+  PhyML_Printf("\n. Score 1 = %f",tree->tip_order_score);
+
   For(i,tree->n_otu) tree->io->z_scores[i] = TIPO_Read_One_Taxon_Zscore(fp_coord_file,tree->noeud[i]->name,2,tree);
-  TIPO_Normalize_Zscores(tree);
+  /* TIPO_Normalize_Zscores(tree); */
   TIPO_Get_Min_Number_Of_Tip_Permut(tree);
+
+  PhyML_Printf("\n. Score 2 = %f",tree->tip_order_score);
 
   fclose(fp_tree_file);
   fclose(fp_coord_file);
+
 }
 
 /*********************************************************/
@@ -812,8 +816,8 @@ void TIPO_Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict
 		  For(j,n_anc_conflicts) if(anc_conflict[j] == lca) break;
 		  if(j == n_anc_conflicts) /* if no, then update the tree score and the list of ancestral nodes at the origin of conflicts */
 		    {
-/* 		      tree->tip_order_score+=1.; */
-		      tree->tip_order_score+=(lca->y_rank_max-lca->y_rank_min);
+		      /* tree->tip_order_score+=1.; */
+		      /* tree->tip_order_score+=(lca->y_rank_max-lca->y_rank_min); */
 		      n_anc_conflicts++;
 		      anc_conflict = (t_node **)realloc(anc_conflict,n_anc_conflicts*sizeof(t_node *));
 		      anc_conflict[n_anc_conflicts-1] = lca;
@@ -846,6 +850,8 @@ void TIPO_Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict
 			  conflict_tips[j]   = conflict_tips[j+1];
 			  conflict_tips[j+1] = tmp_node;
 
+			  tree->tip_order_score += fabs(conflict_tips[j]->y_rank - conflict_tips[j+1]->y_rank);
+
 /* 			  PhyML_Printf(" to (%d,%d) (%f,%f)", */
 /* 				       conflict_tips[j]->num,conflict_tips[j+1]->num, */
 /* 				       conflict_tips[j]->y_rank,conflict_tips[j+1]->y_rank); */
@@ -871,6 +877,8 @@ void TIPO_Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict
 			  tmp_node           = conflict_tips[j];
 			  conflict_tips[j]   = conflict_tips[j-1];
 			  conflict_tips[j-1] = tmp_node;		     
+
+			  tree->tip_order_score += fabs(conflict_tips[j]->y_rank - conflict_tips[j+1]->y_rank);
 
 /* 			  PhyML_Printf(" to (%d,%d) (%f,%f)", */
 /* 				       conflict_tips[j]->num,conflict_tips[j-1]->num, */
