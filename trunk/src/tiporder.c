@@ -870,6 +870,7 @@ void TIPO_Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict
 /* 				       conflict_tips[j]->num,conflict_tips[j-1]->num, */
 /* 				       conflict_tips[j]->y_rank,conflict_tips[j-1]->y_rank); */
 
+		
 			  tmp_rank                   = conflict_tips[j]->y_rank;
 			  conflict_tips[j]->y_rank   = conflict_tips[j-1]->y_rank;
 			  conflict_tips[j-1]->y_rank = tmp_rank;
