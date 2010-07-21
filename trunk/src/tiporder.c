@@ -850,7 +850,7 @@ void TIPO_Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict
 			  conflict_tips[j]   = conflict_tips[j+1];
 			  conflict_tips[j+1] = tmp_node;
 
-			  tree->tip_order_score += fabs(conflict_tips[j]->y_rank - conflict_tips[j+1]->y_rank);
+			  tree->tip_order_score += fabs(conflict_tips[j]->y_rank - conflict_tips[j+1]->y_rank)/n_conflicts;
 
 /* 			  PhyML_Printf(" to (%d,%d) (%f,%f)", */
 /* 				       conflict_tips[j]->num,conflict_tips[j+1]->num, */
@@ -879,7 +879,7 @@ void TIPO_Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict
 			  conflict_tips[j]   = conflict_tips[j-1];
 			  conflict_tips[j-1] = tmp_node;		     
 
-			  tree->tip_order_score += fabs(conflict_tips[j]->y_rank - conflict_tips[j+1]->y_rank);
+			  tree->tip_order_score += fabs(conflict_tips[j]->y_rank - conflict_tips[j+1]->y_rank)/n_conflicts;
 
 /* 			  PhyML_Printf(" to (%d,%d) (%f,%f)", */
 /* 				       conflict_tips[j]->num,conflict_tips[j-1]->num, */
