@@ -2,7 +2,8 @@
 \usepackage{fancyvrb}
 \usepackage{graphicx}
 \usepackage{tabularx}
-\usepackage{color}
+% \usepackage{color}
+\usepackage{xcolor}
 \usepackage{psfrag}
 \usepackage{url}
 \usepackage{vmargin}
@@ -27,7 +28,8 @@
 \newcommand{\x}[1]{\texttt{#1}}
 
 \setpapersize{A4}
-\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=red,linkbordercolor=000}
+% \hypersetup{colorlinks=true,linkcolor=blue,urlcolor=red,linkbordercolor=000}
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=red}
 \renewcommand{\baselinestretch}{1}
 \makeindex
 \begin{document}
@@ -771,6 +773,20 @@ $K$       & Lysine &          & (can be any amino acid) \\
 \caption{{\bf List of valid characters in protein sequences and the corresponding amino acids.}}\label{tab:ambigu_aa}
 \end{table}
 
+\subsubsection{Specifying outgroup sequences}
+
+PhyML can return rooted trees provided outgroup taxa are identified from the sequence file. In
+order to do so, sequence names that display a `*' character will be automatically considered as
+belonging to the outgroup. 
+
+The topology of  the rooted tree is  exactly the same as the  unrooted version of the  same tree. In
+other words,  PhyML first ignores the distinction  between ingroup and outgroup  sequences, builds a
+maximum likelihood unrooted tree  and then tries to add the root. If the  outgroup has more than one
+sequence, the position  of the root might be  ambiguous. In such situation, PhyML  tries to identify
+the  most relevant  position of  the root  by considering  which edge  provides the  best separation
+between ingroup  and outgroup taxa (i.e.,  we are trying to  make the outgroup  ``as monophyletic as
+possible'').
+
 \subsection{Tree format}
 
 PhyML can  read one or  several phylogenetic trees  from an input  file.  This option  is accessible
@@ -1001,7 +1017,9 @@ taxa is followed by the character `\x{|}' and two real numbers corresponding to 
 bounds of the calibration interval for the node at the root of the clade. In the example given here,
 the clade grouping the three taxa ``Dugong\_dugon'', ``Procavia\_capensis'' and  ``Elephantida'' has
 -65 as lower bound and -54 as upper bound. Note also that the node corresponding to the root of the
-whole tree has a specific label: `\x{@root@}'.
+whole tree has a specific label: `\x{@root@}'. {\color{red}{It is important to specify upper and lower bounds for
+the root node in order to ensure convergence of the Gibbs sampler.}} Not defining these bounds is
+likely to produce inaccurate estimates of node ages.
 \end{itemize}
 
 A typical PhyTime command-line should look like the following:
@@ -1016,7 +1034,7 @@ PhyTime will  estimate the  posterior distribution of  node times  and substitut
 assumption that the  substitution process follows a GTR  model with 8 classes of rates  in the Gamma
 distribution of  rates across sites. The  model parameter values  are estimated by a  Gibbs sampling
 technique. This algorithm tries  diferent sets of model parameter values and  only conserve the most
-probable ones. By default, $10^8$ sets of  parameters are collected. These values are recorder every
+probable ones. By default, $10^6$ sets of  parameters are collected. These values are recorder every
 $10^4$ sample. At the  moment, the total sample size and the frequency  at which these sample values
 are recorded can not be modified by the user.
 
