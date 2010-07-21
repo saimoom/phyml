@@ -139,6 +139,8 @@ void Free_Node(t_node *n)
   Free(n->v);
   Free(n->l);
   Free(n->score);
+  Free(n->s_ingrp);
+  Free(n->s_outgrp);
   if(n->ori_name) Free(n->ori_name);
   Free(n);
 }
