@@ -88,12 +88,12 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  YES 1
 #define  NO  0
 
-#define  NT 0 /* nucleotides */
-#define  AA 1 /* amino acids */
-#define  GENERIC 2 /* custom alphabet */
+#define  NT 0 /*! nucleotides */
+#define  AA 1 /*! amino acids */
+#define  GENERIC 2 /*! custom alphabet */
 
-#define  ACGT 0 /* A,G,G,T encoding */
-#define  RY   1 /* R,Y     encoding */
+#define  ACGT 0 /*! A,G,G,T encoding */
+#define  RY   1 /*! R,Y     encoding */
 
 #define INTERFACE_DATA_TYPE      0
 #define INTERFACE_MULTIGENE      1
@@ -143,12 +143,12 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  MDBL_MAX         FLT_MAX
 #define  POWELL_ITMAX         200
 #define  LINMIN_TOL       2.0E-04
-#define  SCALE_POW             10    /* Scaling factor will be 2^SCALE_POW or 2^(-SCALE_POW) [[ WARNING: SCALE_POW < 31 ]]*/
+#define  SCALE_POW             10    /*! Scaling factor will be 2^SCALE_POW or 2^(-SCALE_POW) [[ WARNING: SCALE_POW < 31 ]]*/
 #define  DEFAULT_SIZE_SPR_LIST 20
-#define  OUTPUT_TREE_FORMAT  0 /* 0-->Newick; 1-->Nexus */
+#define  OUTPUT_TREE_FORMAT  0 /*! 0-->Newick; 1-->Nexus */
 #define  MAX_PARS        1000000000
 
-#define  LIM_SCALE_VAL     1.E-50 /* Scaling limit (deprecated) */
+#define  LIM_SCALE_VAL     1.E-50 /*! Scaling limit (deprecated) */
 
 #define  MIN_CLOCK_RATE   1.E-10
 #define  MIN_VAR_BL        1.E-7
@@ -186,27 +186,27 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 
 /* #define USE_OLD_LK */
 
-/* Uncomment the lines below to switch to single precision */
-/* typedef	float phydbl; */
-/* #define LOG logf */
-/* #define POW powf */
-/* #define EXP expf */
-/* #define FABS fabsf */
-/* #define SQRT sqrtf */
-/* #define CEIL ceilf */
-/* #define FLOOR floorf */
-/* #define RINT rintf */
-/* #define ROUND roundf */
-/* #define TRUNC truncf */
-/* #define COS cosf */
-/* #define SIN sinf */
-/* #define TAN tanf */
-/* #define SMALL FLT_MIN */
-/* #define BIG  FLT_MAX */
-/* #define SMALL_PIJ 1.E-10 */
-/* #define BL_MIN 1.E-5 */
-/* #define  P_LK_LIM_INF   2.168404e-19 /\* 2^-62 *\/ */
-/* #define  P_LK_LIM_SUP   4.611686e+18 /\* 2^62 *\/ */
+/*  /\* Uncomment the lines below to switch to single precision *\/ */
+/*  typedef	float phydbl; */
+/*  #define LOG logf */
+/*  #define POW powf */
+/*  #define EXP expf */
+/*  #define FABS fabsf */
+/*  #define SQRT sqrtf */
+/*  #define CEIL ceilf */
+/*  #define FLOOR floorf */
+/*  #define RINT rintf */
+/*  #define ROUND roundf */
+/*  #define TRUNC truncf */
+/*  #define COS cosf */
+/*  #define SIN sinf */
+/*  #define TAN tanf */
+/*  #define SMALL FLT_MIN */
+/*  #define BIG  FLT_MAX */
+/*  #define SMALL_PIJ 1.E-10 */
+/*  #define BL_MIN 1.E-5 */
+/*  #define  P_LK_LIM_INF   2.168404e-19 /\* 2^-62 *\/ */
+/*  #define  P_LK_LIM_SUP   4.611686e+18 /\* 2^62 *\/ */
 
 /* Uncomment the line below to switch to double precision */
 typedef	double phydbl;
@@ -242,25 +242,25 @@ typedef	double phydbl;
 #define  P_LK_LIM_INF   3.054936e-151 /* 2^-500 */
 #define  P_LK_LIM_SUP   3.273391e+150 /* 2^500 */
 
-/*********************************************************/
+/*!********************************************************/
 
 typedef struct __Node {
-  struct __Node                       **v; /* table of pointers to neighbor nodes. Dimension = 3 */
-  struct __Node               ***bip_node; /* three lists of pointer to tip nodes. One list for each direction */
-  struct __Edge                       **b; /* table of pointers to neighbor branches */
-  struct __Node                      *anc; /* direct ancestor t_node (for rooted tree only) */
+  struct __Node                       **v; /*! table of pointers to neighbor nodes. Dimension = 3 */
+  struct __Node               ***bip_node; /*! three lists of pointer to tip nodes. One list for each direction */
+  struct __Edge                       **b; /*! table of pointers to neighbor branches */
+  struct __Node                      *anc; /*! direct ancestor t_node (for rooted tree only) */
   struct __Node                 *ext_node;
 
-  int                           *bip_size; /* Size of each of the three lists from bip_node */
-  int                                 num; /* t_node number */
-  int                                 tax; /* tax = 1 -> external node, else -> internal t_node */
-  int                        check_branch; /* check_branch=1 is the corresponding branch is labelled with '*' */
-  char                              *name; /* taxon name (if exists) */
-  char                          *ori_name; /* taxon name (if exists) */
+  int                           *bip_size; /*! Size of each of the three lists from bip_node */
+  int                                 num; /*! t_node number */
+  int                                 tax; /*! tax = 1 -> external node, else -> internal t_node */
+  int                        check_branch; /*! check_branch=1 is the corresponding branch is labelled with '*' */
+  char                              *name; /*! taxon name (if exists) */
+  char                          *ori_name; /*! taxon name (if exists) */
 
-  phydbl                           *score; /* score used in BioNJ to determine the best pair of nodes to agglomerate */
-  phydbl                               *l; /* lengths of the (three or one) branche(s) connected this t_node */
-  phydbl                     dist_to_root; /* distance to the root t_node */
+  phydbl                           *score; /*! score used in BioNJ to determine the best pair of nodes to agglomerate */
+  phydbl                               *l; /*! lengths of the (three or one) branche(s) connected this t_node */
+  phydbl                     dist_to_root; /*! distance to the root t_node */
 
   short int                        common;
   phydbl                           y_rank;
@@ -268,13 +268,16 @@ typedef struct __Node {
   phydbl                       y_rank_min;
   phydbl                       y_rank_max;
 
+  int                            *s_ingrp; /*! does the subtree beneath belong to the ingroup */
+  int                           *s_outgrp; /*! does the subtree beneath belong to the outgroup */
+
 }t_node;
 
 
-/*********************************************************/
+/*!********************************************************/
 
 typedef struct __Edge {
-  /*
+  /*!
     syntax :  (node) [edge]
 (left_1) .                   .(right_1)
           \ (left)  (right) /
@@ -285,33 +288,33 @@ typedef struct __Edge {
 
   */
 
-  struct __Node               *left,*rght; /* t_node on the left/right side of the t_edge */
+  struct __Node               *left,*rght; /*! t_node on the left/right side of the t_edge */
   short int         l_r,r_l,l_v1,l_v2,r_v1,r_v2;
-  /* these are directions (i.e., 0, 1 or 2): */
-  /* l_r (left to right) -> left[b_fcus->l_r] = right */
-  /* r_l (right to left) -> right[b_fcus->r_l] = left */
-  /* l_v1 (left t_node to first t_node != from right) -> left[b_fcus->l_v1] = left_1 */
-  /* l_v2 (left t_node to secnd t_node != from right) -> left[b_fcus->l_v2] = left_2 */
-  /* r_v1 (right t_node to first t_node != from left) -> right[b_fcus->r_v1] = right_1 */
-  /* r_v2 (right t_node to secnd t_node != from left) -> right[b_fcus->r_v2] = right_2 */
+  /*! these are directions (i.e., 0, 1 or 2): */
+  /*! l_r (left to right) -> left[b_fcus->l_r] = right */
+  /*! r_l (right to left) -> right[b_fcus->r_l] = left */
+  /*! l_v1 (left t_node to first t_node != from right) -> left[b_fcus->l_v1] = left_1 */
+  /*! l_v2 (left t_node to secnd t_node != from right) -> left[b_fcus->l_v2] = left_2 */
+  /*! r_v1 (right t_node to first t_node != from left) -> right[b_fcus->r_v1] = right_1 */
+  /*! r_v2 (right t_node to secnd t_node != from left) -> right[b_fcus->r_v2] = right_2 */
 
   struct __NNI                       *nni;
 
 
-  int                                 num; /* branch number */
-  phydbl                                l; /* branch length */
-  phydbl                           best_l; /* best branch length found so far */
-  phydbl                            l_old; /* old branch length */
+  int                                 num; /*! branch number */
+  phydbl                                l; /*! branch length */
+  phydbl                           best_l; /*! best branch length found so far */
+  phydbl                            l_old; /*! old branch length */
 
-  int                           bip_score; /* score of the bipartition generated by the corresponding edge
+  int                           bip_score; /*! score of the bipartition generated by the corresponding edge
 					      bip_score = 1 iif the branch is found in both trees to be compared,
 					      bip_score = 0 otherwise. */
 
-  phydbl            *p_lk_left,*p_lk_rght; /* likelihoods of the subtree on the left and
+  phydbl            *p_lk_left,*p_lk_rght; /*! likelihoods of the subtree on the left and
 					      right side (for each site and each relative rate category) */
   short int      *p_lk_tip_r, *p_lk_tip_l; 
-  short int           *div_post_pred_left; /* posterior prediction of nucleotide/aa diversity (left-hand subtree) */
-  short int           *div_post_pred_rght; /* posterior prediction of nucleotide/aa diversity (rght-hand subtree) */
+  short int           *div_post_pred_left; /*! posterior prediction of nucleotide/aa diversity (left-hand subtree) */
+  short int           *div_post_pred_rght; /*! posterior prediction of nucleotide/aa diversity (rght-hand subtree) */
 
   int                       *patt_id_left;
   int                       *patt_id_rght;
@@ -319,99 +322,99 @@ typedef struct __Edge {
   int                      *p_lk_loc_rght;
   
 
-  phydbl                          *Pij_rr; /* matrix of change probabilities and its first and secnd derivates */
-  int                     *pars_l,*pars_r; /* parsimony of the subtree on the left and right sides (for each site) */
-  unsigned int               *ui_l, *ui_r; /* union - intersection vectors used in Fitch's parsimony algorithm */
-  int                *p_pars_l, *p_pars_r; /* conditional parsimony vectors */
+  phydbl                          *Pij_rr; /*! matrix of change probabilities and its first and secnd derivates */
+  int                     *pars_l,*pars_r; /*! parsimony of the subtree on the left and right sides (for each site) */
+  unsigned int               *ui_l, *ui_r; /*! union - intersection vectors used in Fitch's parsimony algorithm */
+  int                *p_pars_l, *p_pars_r; /*! conditional parsimony vectors */
 
-  int                         num_st_left; /* number of the subtree on the left side */
-  int                         num_st_rght; /* number of the subtree on the right side */
+  int                         num_st_left; /*! number of the subtree on the left side */
+  int                         num_st_rght; /*! number of the subtree on the right side */
 
 
-  /* Below are the likelihood scaling factors (used in functions
+  /*! Below are the likelihood scaling factors (used in functions
      `Get_All_Partial_Lk_Scale' in lk.c */
   int                 *sum_scale_left_cat;
   int                 *sum_scale_rght_cat;
   int                     *sum_scale_left;
   int                     *sum_scale_rght;
 
-  phydbl                          bootval; /* bootstrap value (if exists) */
+  phydbl                          bootval; /*! bootstrap value (if exists) */
 
-  short int                      is_alive; /* is_alive = 1 if this t_edge is used in a tree */
+  short int                      is_alive; /*! is_alive = 1 if this t_edge is used in a tree */
 
   phydbl                   dist_btw_edges;
   int                 topo_dist_btw_edges;
 
   int                     has_zero_br_len;
 
-  phydbl                       ratio_test; /* approximate likelihood ratio test */
-  phydbl                   alrt_statistic; /* aLRT statistic */
+  phydbl                       ratio_test; /*! approximate likelihood ratio test */
+  phydbl                   alrt_statistic; /*! aLRT statistic */
 
-  char                           **labels; /* string of characters that labels the corresponding t_edge */
-  int                            n_labels; /* number of labels */
-  int                             n_jumps; /* number of jumps of substitution rates */
+  char                           **labels; /*! string of characters that labels the corresponding t_edge */
+  int                            n_labels; /*! number of labels */
+  int                             n_jumps; /*! number of jumps of substitution rates */
 }t_edge;
 
-/*********************************************************/
+/*!********************************************************/
 
 typedef struct __Arbre {
 
-  struct __Node                       *n_root; /* root t_node */
-  struct __Edge                       *e_root; /* t_edge on which lies the root */
-  struct __Node                       **noeud; /* array of nodes that defines the tree topology */
-  struct __Edge                     **t_edges; /* array of edges */
-  struct __Model                         *mod; /* substitution model */
-  struct __Calign                       *data; /* sequences */
-  struct __Option                         *io; /* input/output */
-  struct __Matrix                        *mat; /* pairwise distance matrix */
-  struct __Node                   **curr_path; /* list of nodes that form a path in the tree */
+  struct __Node                       *n_root; /*! root t_node */
+  struct __Edge                       *e_root; /*! t_edge on which lies the root */
+  struct __Node                       **noeud; /*! array of nodes that defines the tree topology */
+  struct __Edge                     **t_edges; /*! array of edges */
+  struct __Model                         *mod; /*! substitution model */
+  struct __Calign                       *data; /*! sequences */
+  struct __Option                         *io; /*! input/output */
+  struct __Matrix                        *mat; /*! pairwise distance matrix */
+  struct __Node                   **curr_path; /*! list of nodes that form a path in the tree */
   struct __SPR                     **spr_list;
   struct __SPR                      *best_spr;
-  struct __Tdraw                     *ps_tree; /* structure for drawing trees in postscript format */
-  struct __Trate                       *rates; /* structure for handling rates of evolution */
+  struct __Tdraw                     *ps_tree; /*! structure for drawing trees in postscript format */
+  struct __Trate                       *rates; /*! structure for handling rates of evolution */
   struct __Tmcmc                        *mcmc;
   struct __Triplet            *triplet_struct;
 
-  int                          ps_page_number; /* when multiple trees are printed, this variable give the current page number */
-  int                         depth_curr_path; /* depth of the t_node path defined by curr_path */
-  int                                 has_bip; /*if has_bip=1, then the structure to compare
+  int                          ps_page_number; /*! when multiple trees are printed, this variable give the current page number */
+  int                         depth_curr_path; /*! depth of the t_node path defined by curr_path */
+  int                                 has_bip; /*!if has_bip=1, then the structure to compare
 						 tree topologies is allocated, has_bip=0 otherwise */
-  int                                   n_otu; /* number of taxa */
-  int                               curr_site; /* current site of the alignment to be processed */
-  int                               curr_catg; /* current class of the discrete gamma rate distribution */
-  int                                  n_swap; /* number of NNIs performed */
-  int                               n_pattern; /* number of distinct site patterns */
-  int                      has_branch_lengths; /* =1 iff input tree displays branch lengths */
-  int                          print_boot_val; /* if print_boot_val=1, the bootstrap values are printed */
-  int                          print_alrt_val; /* if print_boot_val=1, the bootstrap values are printed */
-  int                              both_sides; /* both_sides=1 -> a pre-order and a post-order tree
+  int                                   n_otu; /*! number of taxa */
+  int                               curr_site; /*! current site of the alignment to be processed */
+  int                               curr_catg; /*! current class of the discrete gamma rate distribution */
+  int                                  n_swap; /*! number of NNIs performed */
+  int                               n_pattern; /*! number of distinct site patterns */
+  int                      has_branch_lengths; /*! =1 iff input tree displays branch lengths */
+  int                          print_boot_val; /*! if print_boot_val=1, the bootstrap values are printed */
+  int                          print_alrt_val; /*! if print_boot_val=1, the bootstrap values are printed */
+  int                              both_sides; /*! both_sides=1 -> a pre-order and a post-order tree
 						  traversals are required to compute the likelihood
 						  of every subtree in the phylogeny*/
-  int               num_curr_branch_available; /*gives the number of the next cell in t_edges that is free to receive a pointer to a branch */
+  int               num_curr_branch_available; /*!gives the number of the next cell in t_edges that is free to receive a pointer to a branch */
   short int                            *t_dir;
   int                          n_improvements;
   int                                 n_moves;
 
-  int                                      dp; /* Data partition */
-  int                               s_mod_num; /* Substitution model number */
-  int                               lock_topo; /* = 1 any subsequent topological modification will be banished */
+  int                                      dp; /*! Data partition */
+  int                               s_mod_num; /*! Substitution model number */
+  int                               lock_topo; /*! = 1 any subsequent topological modification will be banished */
   int                            print_labels;
 
   phydbl                              init_lnL;
-  phydbl                              best_lnL; /* highest value of the loglikelihood found so far */
-  int                                best_pars; /* highest value of the parsimony found so far */
-  phydbl                                 c_lnL; /* loglikelihood */
-  phydbl                               old_lnL; /* old loglikelihood */
-  phydbl                     sum_min_sum_scale; /* common factor of scaling factors */
-  phydbl                         *c_lnL_sorted; /* used to compute c_lnL by adding sorted terms to minimize CPU errors */
-  phydbl                          *cur_site_lk; /* vector of likelihoods at individual sites */
-  phydbl                          *old_site_lk; /* vector of likelihoods at individual sites */
-  phydbl                     **log_site_lk_cat; /* loglikelihood at individual sites and for each class of rate*/
-  phydbl                          *site_lk_cat; /* loglikelihood at a single site and for each class of rate*/
-  phydbl                       unconstraint_lk; /* unconstrained (or multinomial) likelihood  */
-  phydbl                        **log_lks_aLRT; /* used to compute several branch supports */
-  phydbl                            n_root_pos; /* position of the root on its t_edge */
-  phydbl                                  size; /* tree size */
+  phydbl                              best_lnL; /*! highest value of the loglikelihood found so far */
+  int                                best_pars; /*! highest value of the parsimony found so far */
+  phydbl                                 c_lnL; /*! loglikelihood */
+  phydbl                               old_lnL; /*! old loglikelihood */
+  phydbl                     sum_min_sum_scale; /*! common factor of scaling factors */
+  phydbl                         *c_lnL_sorted; /*! used to compute c_lnL by adding sorted terms to minimize CPU errors */
+  phydbl                          *cur_site_lk; /*! vector of likelihoods at individual sites */
+  phydbl                          *old_site_lk; /*! vector of likelihoods at individual sites */
+  phydbl                     **log_site_lk_cat; /*! loglikelihood at individual sites and for each class of rate*/
+  phydbl                          *site_lk_cat; /*! loglikelihood at a single site and for each class of rate*/
+  phydbl                       unconstraint_lk; /*! unconstrained (or multinomial) likelihood  */
+  phydbl                        **log_lks_aLRT; /*! used to compute several branch supports */
+  phydbl                            n_root_pos; /*! position of the root on its t_edge */
+  phydbl                                  size; /*! tree size */
   int                              *site_pars;
   int                                  c_pars;
   int                               *step_mat;
@@ -422,7 +425,7 @@ typedef struct __Arbre {
   time_t                                t_beg;
   time_t                            t_current;
   
-  int                     bl_from_node_stamps; /* == 1 -> Branch lengths are determined by t_node times */
+  int                     bl_from_node_stamps; /*! == 1 -> Branch lengths are determined by t_node times */
   phydbl                        sum_y_dist_sq;
   phydbl                           sum_y_dist;
   phydbl                      tip_order_score;
@@ -431,306 +434,306 @@ typedef struct __Arbre {
   int                    update_alias_subpatt;
 }t_tree;
 
-/*********************************************************/
+/*!********************************************************/
 
 typedef struct __Super_Arbre {
   struct __Arbre                           *tree;
-  struct __List_Arbre                  *treelist; /* list of trees. One tree for each data set to be processed */
+  struct __List_Arbre                  *treelist; /*! list of trees. One tree for each data set to be processed */
   struct __Calign                    *curr_cdata;
-  struct __Option                   **optionlist; /* list of pointers to input structures (used in supertrees) */
+  struct __Option                   **optionlist; /*! list of pointers to input structures (used in supertrees) */
 
   struct __Node           ***match_st_node_in_gt;
-  /*  match_st_in_gt_node[subdataset number][supertree t_node number]
+  /*!  match_st_in_gt_node[subdataset number][supertree t_node number]
    *  gives the t_node in tree estimated from 'subdataset number' that corresponds
    *  to 'supertree t_node number' in the supertree
    */
 
   struct __Node           *****map_st_node_in_gt;
-  /*  mat_st_gt_node[gt_num][st_node_num][direction] gives the
+  /*!  mat_st_gt_node[gt_num][st_node_num][direction] gives the
    *  t_node in gt gt_num that maps t_node st_node_num in st.
    */
 
   struct __Edge             ***map_st_edge_in_gt;
-  /*  map_st_gt_br[gt_num][st_branch_num] gives the
+  /*!  map_st_gt_br[gt_num][st_branch_num] gives the
    *  branch in gt gt_num that maps branch st_branch_num
    *  in st.
    */
 
   struct __Edge            ****map_gt_edge_in_st;
-  /*  mat_gt_st_br[gt_num][gt_branch_num][] is the list of
+  /*!  mat_gt_st_br[gt_num][gt_branch_num][] is the list of
    *  branches in st that map branch gt_branch_num
    *  in gt gt_num.
    */
 
   int                   **size_map_gt_edge_in_st;
-  /*  size_map_gt_st_br[gt_num][gt_branch_num] gives the
+  /*!  size_map_gt_st_br[gt_num][gt_branch_num] gives the
    *  size of the list map_gt_st_br[gt_num][gt_branch_num][]
    */
 
 
   struct __Edge             ***match_st_edge_in_gt;
-  /* match_st_edge_in_gt[gt_num][st_branch_num] gives the
+  /*! match_st_edge_in_gt[gt_num][st_branch_num] gives the
    * branch in gt gt_num that matches branch st_branch_num
    */
 
   struct __Edge             ***match_gt_edge_in_st;
-  /* match_gt_edge_in_st[gt_num][gt_branch_num] gives the
+  /*! match_gt_edge_in_st[gt_num][gt_branch_num] gives the
    * branch in st that matches branch gt_branch_num
    */
 
   struct __Node                  ****closest_match;
-  /* closest_match[gt_num][st_node_num][dir] gives the 
+  /*! closest_match[gt_num][st_node_num][dir] gives the 
    * closest t_node in st that matches a t_node in gt gt_num
    */
 
   int                              ***closest_dist;
-  /* closest_dist[gt_num][st_node_num][dir] gives the
+  /*! closest_dist[gt_num][st_node_num][dir] gives the
    * number of edges to traverse to get to node
    * closest_match[gt_num][st_node_num][dir]
    */
 
   int                                         n_part;
-  /* number of trees */
+  /*! number of trees */
 
   phydbl                                      **bl;
-  /* bl[gt_num][gt_branch_num] gives the length of
+  /*! bl[gt_num][gt_branch_num] gives the length of
    * branch gt_branch_num
    */
 
   phydbl                                  **bl_cpy;
-  /* copy of bl */
+  /*! copy of bl */
 
   phydbl                                     **bl0;
-  /* bl estimated during NNI (original topo) 
+  /*! bl estimated during NNI (original topo) 
    * See Mg_NNI.
    */
 
   phydbl                                     **bl1;
-  /* bl estimated during NNI (topo conf 1) 
+  /*! bl estimated during NNI (topo conf 1) 
    * See Mg_NNI.
    */
 
   phydbl                                     **bl2;
-  /* bl estimated during NNI (topo conf 2) 
+  /*! bl estimated during NNI (topo conf 2) 
    * See Mg_NNI.
    */
 
   int                                *bl_partition;
-  /* partition[gt_num] gives the t_edge partition number 
+  /*! partition[gt_num] gives the t_edge partition number 
    * gt_num belongs to.
    */
   int                                   n_bl_part;
 
-  struct __Model                          **s_mod; /* substitution model */
+  struct __Model                          **s_mod; /*! substitution model */
 
   int                                     n_s_mod;
   int                                 lock_br_len;
 
 }supert_tree;
 
-/*********************************************************/
+/*!********************************************************/
 
-typedef struct __List_Arbre { /* a list of trees */
+typedef struct __List_Arbre { /*! a list of trees */
   struct __Arbre   **tree;
-  int           list_size;                /* number of trees in the list */
+  int           list_size;                /*! number of trees in the list */
 }t_treelist;
 
-/*********************************************************/
+/*!********************************************************/
 
 typedef struct __Align {
-  char           *name; /* sequence name */
-  int              len; /* sequence length */
-  char          *state; /* sequence itself */
-  short int *is_ambigu; /* is_ambigu[site] = 1 if state[site] is an ambiguous character. 0 otherwise */
+  char           *name; /*! sequence name */
+  int              len; /*! sequence length */
+  char          *state; /*! sequence itself */
+  short int *is_ambigu; /*! is_ambigu[site] = 1 if state[site] is an ambiguous character. 0 otherwise */
 }align;
 
-/*********************************************************/
+/*!********************************************************/
 
 
 typedef struct __Calign {
-  struct __Align **c_seq;             /* compressed sequences      */
-  phydbl          *b_frq;             /* observed state frequencies */
-  short int       *invar;             /* 1 -> states are identical, 0 states vary */
-  int              *wght;             /* # of each site in c_align */
-  short int      *ambigu;             /* ambigu[i]=1 is one or more of the sequences at site
+  struct __Align **c_seq;             /*! compressed sequences      */
+  phydbl          *b_frq;             /*! observed state frequencies */
+  short int       *invar;             /*! 1 -> states are identical, 0 states vary */
+  int              *wght;             /*! # of each site in c_align */
+  short int      *ambigu;             /*! ambigu[i]=1 is one or more of the sequences at site
 				       i display an ambiguous character */
   phydbl      obs_pinvar;
-  int              n_otu;             /* number of taxa */
-  int          clean_len;             /* uncrunched sequences lenghts without gaps */
-  int         crunch_len;             /* crunched sequences lengths */
-  int           init_len;             /* length of the uncompressed sequences */
-  int          *sitepatt;             /* this array maps the position of the patterns in the
+  int              n_otu;             /*! number of taxa */
+  int          clean_len;             /*! uncrunched sequences lenghts without gaps */
+  int         crunch_len;             /*! crunched sequences lengths */
+  int           init_len;             /*! length of the uncompressed sequences */
+  int          *sitepatt;             /*! this array maps the position of the patterns in the
 				       compressed alignment to the positions in the uncompressed
 				       one */
-  int             format;             /* 0 (default): PHYLIP. 1: NEXUS. */
+  int             format;             /*! 0 (default): PHYLIP. 1: NEXUS. */
 }calign;
 
-/*********************************************************/
+/*!********************************************************/
 
-typedef struct __Matrix { /* mostly used in BIONJ */
-  phydbl    **P,**Q,**dist; /* observed proportions of transition, transverion and  distances
+typedef struct __Matrix { /*! mostly used in BIONJ */
+  phydbl    **P,**Q,**dist; /*! observed proportions of transition, transverion and  distances
 			       between pairs of  sequences */
 
-  t_tree             *tree; /* tree... */
-  int              *on_off; /* on_off[i]=1 if column/line i corresponds to a t_node that has not
+  t_tree             *tree; /*! tree... */
+  int              *on_off; /*! on_off[i]=1 if column/line i corresponds to a t_node that has not
 			       been agglomerated yet */
-  int                n_otu; /* number of taxa */
-  char              **name; /* sequence names */
-  int                    r; /* number of nodes that have not been agglomerated yet */
-  struct __Node **tip_node; /* array of pointer to the leaves of the tree */
-  int             curr_int; /* used in the NJ/BIONJ algorithms */
-  int               method; /* if method=1->NJ method is used, BIONJ otherwise */
+  int                n_otu; /*! number of taxa */
+  char              **name; /*! sequence names */
+  int                    r; /*! number of nodes that have not been agglomerated yet */
+  struct __Node **tip_node; /*! array of pointer to the leaves of the tree */
+  int             curr_int; /*! used in the NJ/BIONJ algorithms */
+  int               method; /*! if method=1->NJ method is used, BIONJ otherwise */
 }matrix;
 
-/*********************************************************/
+/*!********************************************************/
 
 typedef struct __Model {
-  struct __Optimiz  *s_opt; /* pointer to parameters to optimize */
+  struct __Optimiz  *s_opt; /*! pointer to parameters to optimize */
   struct __Eigen    *eigen;
   struct __M4       *m4mod;
   struct __Option      *io;
 
   char          *modelname;
-  char  *custom_mod_string; /* string of characters used to define custom models of substitution */
+  char  *custom_mod_string; /*! string of characters used to define custom models of substitution */
 
   int              *rr_num; 
-  int        *n_rr_per_cat; /* number of rate parameters in each category */
-  int            n_diff_rr; /* number of different relative substitution rates in the custom model */
-  int         update_eigen; /* update_eigen=1-> eigen values/vectors need to be updated */
+  int        *n_rr_per_cat; /*! number of rate parameters in each category */
+  int            n_diff_rr; /*! number of different relative substitution rates in the custom model */
+  int         update_eigen; /*! update_eigen=1-> eigen values/vectors need to be updated */
   int           whichmodel;
-  int               n_catg; /* number of categories in the discrete gamma distribution */
-  int                invar; /* =1 iff the substitution model takes into account invariable sites */
-  int                   ns; /* number of states (4 for ADN, 20 for AA) */
-  int            bootstrap; /* Number of bootstrap replicates (0 : no bootstrap analysis is launched) */
-  int            use_m4mod; /* Use a Makrkov modulated Markov model ? */
-  int         gamma_median; /* 1: use the median of each bin in the discrete gamma distribution. 0: the mean is used */
+  int               n_catg; /*! number of categories in the discrete gamma distribution */
+  int                invar; /*! =1 iff the substitution model takes into account invariable sites */
+  int                   ns; /*! number of states (4 for ADN, 20 for AA) */
+  int            bootstrap; /*! Number of bootstrap replicates (0 : no bootstrap analysis is launched) */
+  int            use_m4mod; /*! Use a Makrkov modulated Markov model ? */
+  int         gamma_median; /*! 1: use the median of each bin in the discrete gamma distribution. 0: the mean is used */
 
 
-  phydbl               *pi; /* states frequencies */
-  phydbl      *pi_unscaled; /* states frequencies (unscaled) */
+  phydbl               *pi; /*! states frequencies */
+  phydbl      *pi_unscaled; /*! states frequencies (unscaled) */
 
-  phydbl    *gamma_r_proba; /* probabilities of the substitution rates defined by the discrete gamma distribution */
-  phydbl         *gamma_rr; /* substitution rates defined by the discrete gamma distribution */
-  phydbl             kappa; /* transition/transversion rate */
-  phydbl            lambda; /* parameter used to define the ts/tv ratios in the F84 and TN93 models */
-  phydbl             alpha; /* gamma shapa parameter */
-  phydbl            pinvar; /* proportion of invariable sites */
+  phydbl    *gamma_r_proba; /*! probabilities of the substitution rates defined by the discrete gamma distribution */
+  phydbl         *gamma_rr; /*! substitution rates defined by the discrete gamma distribution */
+  phydbl             kappa; /*! transition/transversion rate */
+  phydbl            lambda; /*! parameter used to define the ts/tv ratios in the F84 and TN93 models */
+  phydbl             alpha; /*! gamma shapa parameter */
+  phydbl            pinvar; /*! proportion of invariable sites */
   phydbl         alpha_old;
   phydbl         kappa_old;
   phydbl        lambda_old;
   phydbl        pinvar_old;
 
-  phydbl               *rr; /* relative rate parameters of the GTR or custom model (given by rr_val[rr_num[i]]) */
-  phydbl           *rr_val; /* relative rate parameters of the GTR or custom model */
-  phydbl           *Pij_rr; /* matrix of change probabilities */
-  phydbl                mr; /* mean rate = branch length/time interval  mr = -sum(i)(vct_pi[i].mat_Q[ii]) */
-  phydbl      *user_b_freq; /* user-defined nucleotide frequencies */
+  phydbl               *rr; /*! relative rate parameters of the GTR or custom model (given by rr_val[rr_num[i]]) */
+  phydbl           *rr_val; /*! relative rate parameters of the GTR or custom model */
+  phydbl           *Pij_rr; /*! matrix of change probabilities */
+  phydbl                mr; /*! mean rate = branch length/time interval  mr = -sum(i)(vct_pi[i].mat_Q[ii]) */
+  phydbl      *user_b_freq; /*! user-defined nucleotide frequencies */
   phydbl             *qmat;
   phydbl        *qmat_buff;
 
-  phydbl        *rr_branch; /* relative substitution rates on each branch, for the whole set of sites */
-  phydbl      *p_rr_branch; /* corresponding frequencies */
-  int          n_rr_branch; /* number of classes */
-  phydbl   rr_branch_alpha; /* Shape of the gamma distribution that defines the rr_branch and p_rr_branch values */
+  phydbl        *rr_branch; /*! relative substitution rates on each branch, for the whole set of sites */
+  phydbl      *p_rr_branch; /*! corresponding frequencies */
+  int          n_rr_branch; /*! number of classes */
+  phydbl   rr_branch_alpha; /*! Shape of the gamma distribution that defines the rr_branch and p_rr_branch values */
 
   int            state_len;
 
 }model;
 
-/*********************************************************/
+/*!********************************************************/
 
 typedef struct __Eigen{
   int              size;
-  phydbl             *q; /* matrix which eigen values and vectors are computed */
+  phydbl             *q; /*! matrix which eigen values and vectors are computed */
   phydbl         *space;
   int        *space_int;
-  phydbl         *e_val; /* eigen values (vector), real part. */
-  phydbl      *e_val_im; /* eigen values (vector), imaginary part */
-  phydbl      *r_e_vect; /* right eigen vector (matrix), real part */
-  phydbl   *r_e_vect_im; /* right eigen vector (matrix), imaginary part */
-  phydbl      *l_e_vect; /* left eigen vector (matrix), real part */
+  phydbl         *e_val; /*! eigen values (vector), real part. */
+  phydbl      *e_val_im; /*! eigen values (vector), imaginary part */
+  phydbl      *r_e_vect; /*! right eigen vector (matrix), real part */
+  phydbl   *r_e_vect_im; /*! right eigen vector (matrix), imaginary part */
+  phydbl      *l_e_vect; /*! left eigen vector (matrix), real part */
 }eigen;
 
-/*********************************************************/
+/*!********************************************************/
 
-typedef struct __Option { /* mostly used in 'help.c' */
-  struct __Model                *mod; /* pointer to a substitution model */
-  struct __Arbre               *tree; /* pointer to the current tree */
-  struct __Align              **data; /* pointer to the uncompressed sequences */
-  struct __Calign             *cdata; /* pointer to the compressed sequences */
-  struct __Super_Arbre           *st; /* pointer to supertree */
+typedef struct __Option { /*! mostly used in 'help.c' */
+  struct __Model                *mod; /*! pointer to a substitution model */
+  struct __Arbre               *tree; /*! pointer to the current tree */
+  struct __Align              **data; /*! pointer to the uncompressed sequences */
+  struct __Calign             *cdata; /*! pointer to the compressed sequences */
+  struct __Super_Arbre           *st; /*! pointer to supertree */
   struct __Tnexcom    **nex_com_list;
-  struct __List_Arbre      *treelist; /* list of trees. */
+  struct __List_Arbre      *treelist; /*! list of trees. */
 
 
-  int                    interleaved; /* interleaved or sequential sequence file format ? */
-  int                        in_tree; /* =1 iff a user input tree is used as input */
+  int                    interleaved; /*! interleaved or sequential sequence file format ? */
+  int                        in_tree; /*! =1 iff a user input tree is used as input */
 
-  char                *in_align_file; /* alignment file name */
-  FILE                  *fp_in_align; /* pointer to the alignment file */
+  char                *in_align_file; /*! alignment file name */
+  FILE                  *fp_in_align; /*! pointer to the alignment file */
 
-  char                 *in_tree_file; /* input tree file name */
-  FILE                   *fp_in_tree; /* pointer to the input tree file */
+  char                 *in_tree_file; /*! input tree file name */
+  FILE                   *fp_in_tree; /*! pointer to the input tree file */
 
-  char                *out_tree_file; /* name of the tree file */
+  char                *out_tree_file; /*! name of the tree file */
   FILE                  *fp_out_tree;
 
-  char               *out_trees_file; /* name of the tree file */
-  FILE                 *fp_out_trees; /* pointer to the tree file containing all the trees estimated using random starting trees */
+  char               *out_trees_file; /*! name of the tree file */
+  FILE                 *fp_out_trees; /*! pointer to the tree file containing all the trees estimated using random starting trees */
 
-  char           *out_boot_tree_file; /* name of the tree file */
-  FILE             *fp_out_boot_tree; /* pointer to the bootstrap tree file */
+  char           *out_boot_tree_file; /*! name of the tree file */
+  FILE             *fp_out_boot_tree; /*! pointer to the bootstrap tree file */
 
-  char          *out_boot_stats_file; /* name of the tree file */
-  FILE            *fp_out_boot_stats; /* pointer to the statistics file */
+  char          *out_boot_stats_file; /*! name of the tree file */
+  FILE            *fp_out_boot_stats; /*! pointer to the statistics file */
 
-  char               *out_stats_file; /* name of the statistics file */
+  char               *out_stats_file; /*! name of the statistics file */
   FILE                 *fp_out_stats;
 
-  char               *out_trace_file; /* name of the file in which the likelihood of the model is written */
+  char               *out_trace_file; /*! name of the file in which the likelihood of the model is written */
   FILE                 *fp_out_trace;
 
-  char                  *out_lk_file; /* name of the file in which the likelihood of the model is written */
+  char                  *out_lk_file; /*! name of the file in which the likelihood of the model is written */
   FILE                    *fp_out_lk;
 
-  char                  *out_ps_file; /* name of the file in which tree(s) is(are) written */
+  char                  *out_ps_file; /*! name of the file in which tree(s) is(are) written */
   FILE                    *fp_out_ps;
 
   FILE               *fp_aa_rate_mat;
 
   char              *clade_list_file;
   
-  int                       datatype; /* 0->DNA, 1->AA */
-  int               print_boot_trees; /* =1 if the bootstrapped trees are printed in output */
-  int       out_stats_file_open_mode; /* opening file mode for statistics file */
-  int        out_tree_file_open_mode; /* opening file mode for tree file */
-  int                    n_data_sets; /* number of data sets to be analysed */
-  int                        n_trees; /* number of trees */
-  int                       init_len; /* sequence length */
-  int                          n_otu; /* number of taxa */
-  int               n_data_set_asked; /* number of bootstrap replicates */
-  char                     *nt_or_cd; /* nucleotide or codon data ? (not used) */
-  int                      multigene; /* if=1 -> analyse several partitions. */
+  int                       datatype; /*! 0->DNA, 1->AA */
+  int               print_boot_trees; /*! =1 if the bootstrapped trees are printed in output */
+  int       out_stats_file_open_mode; /*! opening file mode for statistics file */
+  int        out_tree_file_open_mode; /*! opening file mode for tree file */
+  int                    n_data_sets; /*! number of data sets to be analysed */
+  int                        n_trees; /*! number of trees */
+  int                       init_len; /*! sequence length */
+  int                          n_otu; /*! number of taxa */
+  int               n_data_set_asked; /*! number of bootstrap replicates */
+  char                     *nt_or_cd; /*! nucleotide or codon data ? (not used) */
+  int                      multigene; /*! if=1 -> analyse several partitions. */
   int               config_multigene;
-  int                         n_part; /* number of data partitions */
+  int                         n_part; /*! number of data partitions */
   int                        curr_gt;
-  int                     ratio_test; /* from 1 to 4 for specific branch supports, 0 of not */
+  int                     ratio_test; /*! from 1 to 4 for specific branch supports, 0 of not */
   int                    ready_to_go;
-  int                data_file_format; /* Data format: Phylip or Nexus */
-  int                tree_file_format; /* Tree format: Phylip or Nexus */
+  int                data_file_format; /*! Data format: Phylip or Nexus */
+  int                tree_file_format; /*! Tree format: Phylip or Nexus */
 
   int                 curr_interface;
-  int                         r_seed; /* random seed */
-  int                  collapse_boot; /* 0 -> branch length on bootstrap trees are not collapsed if too small */
-  int          random_boot_seq_order; /* !0 -> sequence order in bootstrapped data set is random */
+  int                         r_seed; /*! random seed */
+  int                  collapse_boot; /*! 0 -> branch length on bootstrap trees are not collapsed if too small */
+  int          random_boot_seq_order; /*! !0 -> sequence order in bootstrapped data set is random */
   int                    print_trace;
   int                 print_site_lnl;
   int                       m4_model;
-  int                      rm_ambigu; /* 0 is the default. 1: columns with ambiguous characters are discarded prior further analysis */
+  int                      rm_ambigu; /*! 0 is the default. 1: columns with ambiguous characters are discarded prior further analysis */
   int                       colalias;
   int                  append_run_ID;
   char                *run_id_string;
-  int                          quiet; /* 0 is the default. 1: no interactive question (for batch mode) */
+  int                          quiet; /*! 0 is the default. 1: no interactive question (for batch mode) */
   char                    **alphabet;
 
   char              **long_tax_names;
@@ -751,18 +754,18 @@ typedef struct __Option { /* mostly used in 'help.c' */
   int                do_alias_subpatt;
 }option;
 
-/*********************************************************/
+/*!********************************************************/
 
-typedef struct __Optimiz { /* parameters to be optimised (mostly used in 'optimiz.c') */
-  int                 print; /* =1 -> verbose mode  */
+typedef struct __Optimiz { /*! parameters to be optimised (mostly used in 'optimiz.c') */
+  int                 print; /*! =1 -> verbose mode  */
 
-  int             opt_alpha; /* =1 -> the gamma shape parameter is optimised */
-  int             opt_kappa; /* =1 -> the ts/tv ratio parameter is optimised */
-  int            opt_lambda; /* =1 -> the F84|TN93 model specific parameter is optimised */
-  int            opt_pinvar; /* =1 -> the proportion of invariants is optimised */
-  int        opt_state_freq; /* =1 -> the nucleotide frequencies are optimised */
-  int                opt_rr; /* =1 -> the relative rate parameters of the GTR or the customn model are optimised */
-  int       opt_subst_param; /* if opt_topo=0 and opt_subst_param=1 -> the numerical parameters of the
+  int             opt_alpha; /*! =1 -> the gamma shape parameter is optimised */
+  int             opt_kappa; /*! =1 -> the ts/tv ratio parameter is optimised */
+  int            opt_lambda; /*! =1 -> the F84|TN93 model specific parameter is optimised */
+  int            opt_pinvar; /*! =1 -> the proportion of invariants is optimised */
+  int        opt_state_freq; /*! =1 -> the nucleotide frequencies are optimised */
+  int                opt_rr; /*! =1 -> the relative rate parameters of the GTR or the customn model are optimised */
+  int       opt_subst_param; /*! if opt_topo=0 and opt_subst_param=1 -> the numerical parameters of the
 				model are optimised. if opt_topo=0 and opt_free_param=0 -> no parameter is
 				optimised */
   int         opt_cov_delta;
@@ -770,15 +773,15 @@ typedef struct __Optimiz { /* parameters to be optimised (mostly used in 'optimi
   int    opt_cov_free_rates;
 
 
-  int                opt_bl; /* =1 -> the branch lengths are optimised */
-  int              opt_topo; /* =1 -> the tree topology is optimised */
+  int                opt_bl; /*! =1 -> the branch lengths are optimised */
+  int              opt_topo; /*! =1 -> the tree topology is optimised */
   int           topo_search;
-  phydbl            init_lk; /* initial loglikelihood value */
-  int              n_it_max; /* maximum bnumber of iteration during an optimisation step */
-  int              last_opt; /* =1 -> the numerical parameters are optimised further while the
+  phydbl            init_lk; /*! initial loglikelihood value */
+  int              n_it_max; /*! maximum bnumber of iteration during an optimisation step */
+  int              last_opt; /*! =1 -> the numerical parameters are optimised further while the
 			       tree topology remains fixed */
-  int     random_input_tree; /* boolean */
-  int         n_rand_starts; /* number of random starting points */
+  int     random_input_tree; /*! boolean */
+  int         n_rand_starts; /*! number of random starting points */
   int          brent_it_max;
   int             steph_spr;
   int       user_state_freq;
@@ -786,7 +789,7 @@ typedef struct __Optimiz { /* parameters to be optimised (mostly used in 'optimi
   int           pars_thresh;
   int         hybrid_thresh;
 
-  phydbl     tree_size_mult; /* tree size multiplier */
+  phydbl     tree_size_mult; /*! tree size multiplier */
   phydbl  min_diff_lk_local;
   phydbl min_diff_lk_global;
   phydbl   min_diff_lk_move;
@@ -811,7 +814,7 @@ typedef struct __Optimiz { /* parameters to be optimised (mostly used in 'optimi
   int        wim_inside_opt;
 }optimiz;
 
-/*********************************************************/
+/*!********************************************************/
 
 typedef struct __NNI{
 
@@ -831,13 +834,13 @@ typedef struct __NNI{
   struct __Node *swap_node_v3;
   struct __Node *swap_node_v4;
 
-  int       best_conf;   /* best topological configuration :
+  int       best_conf;   /*! best topological configuration :
 			    ((left_1,left_2),right_1,right_2) or
 			    ((left_1,right_2),right_1,left_2) or
 			    ((left_1,right_1),right_1,left_2)  */
 }nni;
 
-/*********************************************************/
+/*!********************************************************/
 
 typedef struct __SPR{
   struct __Node         *n_link;
@@ -854,7 +857,7 @@ typedef struct __SPR{
   int                      dist;
 }spr;
 
-/*********************************************************/
+/*!********************************************************/
 
 typedef struct __Triplet{
   int    size;
@@ -871,7 +874,7 @@ typedef struct __Triplet{
   struct __Model *mod;
 }triplet;
 
-/*********************************************************/
+/*!********************************************************/
 
 typedef struct __Pnode{
   struct __Pnode **next;
@@ -879,35 +882,35 @@ typedef struct __Pnode{
   int num;
 }pnode;
 
-/*********************************************************/
+/*!********************************************************/
 
 typedef struct __M4 {
-  int                  n_h; /* number of hidden states */
-  int                  n_o; /* number of observable states  */
+  int                  n_h; /*! number of hidden states */
+  int                  n_o; /*! number of observable states  */
   int        use_cov_alpha;
   int         use_cov_free;
 
-  phydbl          **o_mats; /* set of matrices of substitution rates across observable states */
-  phydbl          *multipl; /* vector of values that multiply each o_mats matrix */
-  phydbl             *o_rr; /* relative rates (symmetric) of substitution between observable states */
-  phydbl             *h_rr; /* relative rates (symmetric) of substitution between hidden states */
-  phydbl            *h_mat; /* matrix that describes the substitutions between hidden states (aka switches) */
-  phydbl             *o_fq; /* equilibrium frequencies for the observable states */
-  phydbl             *h_fq; /* equilibrium frequencies for the hidden states */
-  phydbl    *h_fq_unscaled; /* unscaled equilibrium frequencies for the hidden states */
-  phydbl *multipl_unscaled; /* unscaled  vector of values that multiply each o_mats matrix */
+  phydbl          **o_mats; /*! set of matrices of substitution rates across observable states */
+  phydbl          *multipl; /*! vector of values that multiply each o_mats matrix */
+  phydbl             *o_rr; /*! relative rates (symmetric) of substitution between observable states */
+  phydbl             *h_rr; /*! relative rates (symmetric) of substitution between hidden states */
+  phydbl            *h_mat; /*! matrix that describes the substitutions between hidden states (aka switches) */
+  phydbl             *o_fq; /*! equilibrium frequencies for the observable states */
+  phydbl             *h_fq; /*! equilibrium frequencies for the hidden states */
+  phydbl    *h_fq_unscaled; /*! unscaled equilibrium frequencies for the hidden states */
+  phydbl *multipl_unscaled; /*! unscaled  vector of values that multiply each o_mats matrix */
 
-  phydbl             delta; /* switching rate */
-  phydbl             alpha; /* gamma shape parameter */
+  phydbl             delta; /*! switching rate */
+  phydbl             alpha; /*! gamma shape parameter */
 }m4;
 
-/*********************************************************/
+/*!********************************************************/
 
 typedef struct __Tdraw {
-  phydbl          *xcoord; /* t_node coordinates on the x axis */
-  phydbl          *ycoord; /* t_node coordinates on the y axis */
-  phydbl        *xcoord_s; /* t_node coordinates on the x axis (scaled) */
-  phydbl        *ycoord_s; /* t_node coordinates on the y axis (scaled) */
+  phydbl          *xcoord; /*! t_node coordinates on the x axis */
+  phydbl          *ycoord; /*! t_node coordinates on the y axis */
+  phydbl        *xcoord_s; /*! t_node coordinates on the x axis (scaled) */
+  phydbl        *ycoord_s; /*! t_node coordinates on the y axis (scaled) */
   int          page_width;
   int         page_height;
   int      tree_box_width;
@@ -920,64 +923,64 @@ typedef struct __Tdraw {
   phydbl max_dist_to_root;
 }tdraw;
 
-/*********************************************************/
+/*!********************************************************/
 
 typedef struct __Trate {
-  phydbl  *br_r; /* Relative substitution rate, i.e., multiplier of mean_r on each branch */
-  phydbl  lexp; /* Parameter of the exponential distribution that governs the rate at which substitution between rate classes ocur */
+  phydbl  *br_r; /*! Relative substitution rate, i.e., multiplier of mean_r on each branch */
+  phydbl  lexp; /*! Parameter of the exponential distribution that governs the rate at which substitution between rate classes ocur */
   phydbl alpha;
-  phydbl *true_t; /* true t_node times (including root node) */
-  phydbl *true_r; /* true t_edge rates (on rooted tree) */
+  phydbl *true_t; /*! true t_node times (including root node) */
+  phydbl *true_r; /*! true t_edge rates (on rooted tree) */
   int *n_jps;
   int *t_jps;
-  phydbl *dens; /* Probability densities of mean substitution rates at the nodes */
-  phydbl c_lnL; /* Prob(Br len | time stamps, model of rate evolution) */
-  phydbl c_lnL_jps; /* Prob(# Jumps | time stamps, rates, model of rate evolution) */
-  int adjust_rates; /* if = 1, branch rates are adjusted such that a modification of a given t_node time
+  phydbl *dens; /*! Probability densities of mean substitution rates at the nodes */
+  phydbl c_lnL; /*! Prob(Br len | time stamps, model of rate evolution) */
+  phydbl c_lnL_jps; /*! Prob(# Jumps | time stamps, rates, model of rate evolution) */
+  int adjust_rates; /*! if = 1, branch rates are adjusted such that a modification of a given t_node time
 		       does not modify any branch lengths */
-  int use_rates; /* if = 0, branch lengths are expressed as differences between t_node times */
+  int use_rates; /*! if = 0, branch lengths are expressed as differences between t_node times */
   phydbl *triplet;
   phydbl less_likely;
   phydbl birth_rate;
   phydbl min_rate;
   phydbl max_rate;
 
-  phydbl clock_r; /* Mean substitution rate, i.e., 'molecular clock' rate */
+  phydbl clock_r; /*! Mean substitution rate, i.e., 'molecular clock' rate */
   phydbl min_clock;
   phydbl max_clock;
 
   phydbl lbda_nu;
   phydbl min_dt;
   phydbl step_rate;
-  phydbl  *nd_r;  /* Current rates at nodes and the corresponding incoming edges */
-  phydbl  *old_r; /* Old t_node rates */
-  phydbl  *nd_t; /* Current t_node times */
-  phydbl  *old_t; /* Old t_node times */
+  phydbl  *nd_r;  /*! Current rates at nodes and the corresponding incoming edges */
+  phydbl  *old_r; /*! Old t_node rates */
+  phydbl  *nd_t; /*! Current t_node times */
+  phydbl  *old_t; /*! Old t_node times */
   
 
-  int bl_from_rt; /* if =1, branch lengths are obtained as the product of cur_r and t */
+  int bl_from_rt; /*! if =1, branch lengths are obtained as the product of cur_r and t */
   int approx;
-  int model; /* Model number */
+  int model; /*! Model number */
 
-  phydbl nu; /* Parameter of the Exponential distribution for the corresponding model */
+  phydbl nu; /*! Parameter of the Exponential distribution for the corresponding model */
   phydbl min_nu;
   phydbl max_nu;
 
   int met_within_gibbs;
 
-  phydbl        *ml_l; /* ML t_edge lengths (rooted) */
-  phydbl       *cur_l; /* Current t_edge lengths (rooted) */
-  phydbl      *u_ml_l; /* ML t_edge lengths (unrooted) */
-  phydbl     *u_cur_l; /* Current t_edge lengths (unrooted) */
+  phydbl        *ml_l; /*! ML t_edge lengths (rooted) */
+  phydbl       *cur_l; /*! Current t_edge lengths (rooted) */
+  phydbl      *u_ml_l; /*! ML t_edge lengths (unrooted) */
+  phydbl     *u_cur_l; /*! Current t_edge lengths (unrooted) */
   phydbl         *cov;
   phydbl      *invcov;
   phydbl       covdet;
   phydbl       *cov_r;
   phydbl      *mean_r;
-  struct __Node **lca; /* 2-way table of common ancestral nodes for each pari of nodes */
+  struct __Node **lca; /*! 2-way table of common ancestral nodes for each pari of nodes */
   int       lk_approx;
 
-  /* spare vectors */
+  /*! spare vectors */
   phydbl     *_2n_vect1;
   phydbl     *_2n_vect2;
   phydbl     *_2n_vect3;
@@ -1005,7 +1008,7 @@ typedef struct __Trate {
 
 }trate;
 
-/*********************************************************/
+/*!********************************************************/
 
 typedef struct __Tmcmc {
   int run;
@@ -1042,18 +1045,18 @@ typedef struct __Tmcmc {
 
 }tmcmc;
 
-/*********************************************************/
+/*!********************************************************/
 
 typedef struct __Tpart {
-  int *ns;         /* number of states for each partition (e.g., 2, 4, 3) */
-  int *cum_ns;     /* cumulative number of states (e.g., 0, 2, 6) */
-  int ns_max;      /* maximum number of states */
-  int ns_min;      /* minimum number of states */
-  int n_partitions; /* number of partitions */
+  int *ns;         /*! number of states for each partition (e.g., 2, 4, 3) */
+  int *cum_ns;     /*! cumulative number of states (e.g., 0, 2, 6) */
+  int ns_max;      /*! maximum number of states */
+  int ns_min;      /*! minimum number of states */
+  int n_partitions; /*! number of partitions */
   struct __Eigen    *eigen;
 }part;
 
-/*********************************************************/
+/*!********************************************************/
 
 typedef struct __Tnexcom {
   char *name;
@@ -1063,7 +1066,7 @@ typedef struct __Tnexcom {
   struct __Tnexparm **parm;
 }nexcom;
 
-/*********************************************************/
+/*!********************************************************/
 
 typedef struct __Tnexparm {
   char *name;
@@ -1075,12 +1078,12 @@ typedef struct __Tnexparm {
 }nexparm;
 
 
-/*********************************************************/
-/*********************************************************/
-/*********************************************************/
-/*********************************************************/
-/*********************************************************/
-/*********************************************************/
+/*!********************************************************/
+/*!********************************************************/
+/*!********************************************************/
+/*!********************************************************/
+/*!********************************************************/
+/*!********************************************************/
 
 void Plim_Binom(phydbl pH0,int N,phydbl *pinf,phydbl *psup);
 t_tree *Read_Tree(char *s_tree);
@@ -1116,7 +1119,6 @@ void Connect_Edges_To_Nodes(t_node *a,t_node *d,t_tree *tree,int *cur);
 void Exit(char *message);
 void *mCalloc(int nb,size_t size);
 void *mRealloc(void *p,int nb,size_t size);
-/* t_tree *Make_Light_Tree_Struct(int n_otu); */
 int Sort_Phydbl_Decrease(const void *a, const void *b);
 void Qksort(phydbl *A, phydbl *B, int ilo,int ihi);
 void Qksort_Int(int *A, int *B, int ilo,int ihi);
@@ -1365,6 +1367,10 @@ void Translate_Tax_Names(char **tax_names, t_tree *tree);
 void Skip_Comment(FILE *fp);
 void Update_Dir_To_Tips(t_node *a, t_node *d, t_tree *tree);
 void Test_Node_Table_Consistency(t_tree *tree);
+void Get_Best_Root_Position(t_tree *tree);
+void Get_Best_Root_Position_Post(t_node *a, t_node *d, t_tree *tree);
+void Get_Best_Root_Position_Pre(t_node *a, t_node *d, t_tree *tree);
+void Get_OutIn_Scores(t_node *a, t_node *d);
 
 #include "free.h"
 #include "spr.h"
@@ -1378,9 +1384,6 @@ void Test_Node_Table_Consistency(t_tree *tree);
 #include "alrt.h"
 #include "stats.h"
 #include "help.h"
-
-#include <config.h>
-
 
 #ifdef MPI
 #include "mpi_boot.h"
@@ -1398,5 +1401,7 @@ void Test_Node_Table_Consistency(t_tree *tree);
 #ifdef _NOT_NEEDED_A_PRIORI
 #include "m4.h"
 #endif
+
+#include <config.h>
 
 #endif

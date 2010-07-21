@@ -117,7 +117,7 @@ else
 # rwrapper.c rwrapper.h
 # librwrap_la_LIBADD = -lm
 # librwrap_la_LDFLAGS = -I/Library/Frameworks/R.framework/Resources/include -I/Library/Frameworks/R.framework/Resources/include/i386 -I/usr/local/include -flat_namespace -undefined suppress -shared -module
-# librwrap_la_CFLAGS=-arch i386 -std=gnu99 -fPIC
+# librwrap_la_CFLAGS=-std=gnu99 -fPIC
 # else 
 if WANT_PART
 part_SOURCES = main.c \

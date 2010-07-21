@@ -518,10 +518,10 @@ char *Write_Tree(t_tree *tree)
   s[0]='(';
   pos = 1;
   
-  #ifdef PHYML 
-  tree->n_root = NULL;
-  tree->e_root = NULL;
-  #endif
+  /* #ifdef PHYML  */
+  /* tree->n_root = NULL; */
+  /* tree->e_root = NULL; */
+  /* #endif */
   
   if(!tree->n_root)
     {
@@ -1066,12 +1066,16 @@ void Init_NNI(nni *a_nni)
 t_node *Make_Node_Light(int num)
 {
   t_node *n;
-  n        = (t_node *)mCalloc(1,sizeof(t_node));
-  n->v     = (t_node **)mCalloc(3,sizeof(t_node *));
-  n->l     = (phydbl *)mCalloc(3,sizeof(phydbl));
-  n->b     = (t_edge **)mCalloc(3,sizeof(t_edge *));
-  n->score = (phydbl *)mCalloc(3,sizeof(phydbl));
+  n           = (t_node *)mCalloc(1,sizeof(t_node));
+  n->v        = (t_node **)mCalloc(3,sizeof(t_node *));
+  n->l        = (phydbl *)mCalloc(3,sizeof(phydbl));
+  n->b        = (t_edge **)mCalloc(3,sizeof(t_edge *));
+  n->score    = (phydbl *)mCalloc(3,sizeof(phydbl));
+  n->s_ingrp  = (int *)mCalloc(3,sizeof(int));
+  n->s_outgrp = (int *)mCalloc(3,sizeof(int));
+
   Init_Node_Light(n,num);
+
   return n;
 }
 
@@ -9475,7 +9479,10 @@ void Update_Root_Pos(t_tree *tree)
 
 void Add_Root(t_edge *target, t_tree *tree)
 {
-  PhyML_Printf("\n. Add root on t_edge %d left = %d right = %d",target->num,target->left->num,target->rght->num); fflush(NULL);
+  #ifndef PHYML
+  PhyML_Printf("\n. Adding root on t_edge %d left = %d right = %d\n.",target->num,target->left->num,target->rght->num); fflush(NULL);
+  #endif
+
   tree->e_root = target;
 
   /* Create the root t_node if it does not exist yet */
@@ -11472,12 +11479,16 @@ void Adjust_Min_Diff_Lk(t_tree *tree)
       tree->mod->s_opt->min_diff_lk_local  = tree->mod->s_opt->min_diff_lk_global;
       tree->mod->s_opt->min_diff_lk_move   = tree->mod->s_opt->min_diff_lk_global;
     }
-
 /*   PhyML_Printf("\n. Exponent = %d Precision = %E DIG = %d",exponent,tree->mod->s_opt->min_diff_lk_global,FLT_DIG); */
 }
 
 /*********************************************************/
 
+/*!
+  tree->noeud[i]->name is initially a number. It is translated into
+  a string of characters using the names provided in the tax_name
+  array.
+ */
 void Translate_Tax_Names(char **tax_names, t_tree *tree)
 {
   int i;
@@ -11492,6 +11503,9 @@ void Translate_Tax_Names(char **tax_names, t_tree *tree)
 
 /*********************************************************/
 
+/*!
+  Skip coment in NEXUS file.
+ */
 void Skip_Comment(FILE *fp)
 {
   int in_comment;
@@ -11509,8 +11523,152 @@ void Skip_Comment(FILE *fp)
 }
 
 /*********************************************************/
+/*!
+  Determine the most appropriate position of the root if outgroup taxa are specified. 
+ */
+
+void Get_Best_Root_Position(t_tree *tree)
+{
+  int i,j;
+  phydbl eps;
+  phydbl s, s_max;
+  t_edge *best_edge;
+
+  if(tree->e_root)
+    {
+      PhyML_Printf("\n. Tree already has a root.");
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+
+  if(strstr(tree->noeud[0]->name,"*"))
+    {
+      /* PhyML_Printf("\n. Found outgroup taxon: %s",tree->noeud[0]->name); */
+      tree->noeud[0]->s_ingrp[0]  = 0;
+      tree->noeud[0]->s_outgrp[0] = 1;
+    }
+  else
+    {
+      tree->noeud[0]->s_ingrp[0]  = 1;
+      tree->noeud[0]->s_outgrp[0] = 0;
+    }
+
+  Get_Best_Root_Position_Post(tree->noeud[0],tree->noeud[0]->v[0],tree);  
+  Get_Best_Root_Position_Pre(tree->noeud[0],tree->noeud[0]->v[0],tree);  
+
+  eps = 1.E-10;
+  s = s_max = 0.0;
+  For(i,2*tree->n_otu-2)
+    {
+      For(j,3)
+	{
+	  s = (tree->noeud[i]->s_outgrp[j]+eps) / (tree->noeud[i]->s_ingrp[j] + eps) ;
+	  /* printf("\n. [%d %d] %d %d",i,j,tree->noeud[i]->s_outgrp[j],tree->noeud[i]->s_ingrp[j]); */
+	  if(s > s_max) 
+	    {
+	      s_max = s;
+	      best_edge = tree->noeud[i]->b[j];
+	    }
+	}
+    }
+
+  Add_Root(best_edge,tree);
+}
+
 /*********************************************************/
+
+/*!
+  Determine the most appropriate position of the root if outgroup taxa are specified. 
+  Post-traversal.
+ */
+void Get_Best_Root_Position_Post(t_node *a, t_node *d, t_tree *tree)
+{
+  if(d->tax) 
+    {
+      if(strstr(d->name,"*"))
+	{
+	  /* PhyML_Printf("\n. Found outgroup taxon: %s",d->name); */
+	  d->s_ingrp[0]  = 0;
+	  d->s_outgrp[0] = 1;
+	}
+      else
+	{
+	  d->s_ingrp[0]  = 1;
+	  d->s_outgrp[0] = 0;
+	}
+      return;
+    }
+  else
+    {
+      int i;
+
+      For(i,3)
+	if(d->v[i] != a)
+	  Get_Best_Root_Position_Post(d,d->v[i],tree);
+
+      Get_OutIn_Scores(a,d);
+
+    }
+}
+
 /*********************************************************/
+
+/*!
+  Determine the most appropriate position of the root if outgroup taxa are specified. 
+  Pre-traversal.
+ */
+void Get_Best_Root_Position_Pre(t_node *a, t_node *d, t_tree *tree)
+{
+  if(d->tax) 
+    {
+      return;
+    }
+  else
+    {
+      int i;
+
+      For(i,3)
+	if(d->v[i] != a)
+	  {
+	    Get_OutIn_Scores(d->v[i],d);
+	    Get_Best_Root_Position_Pre(d,d->v[i],tree);
+	  }
+    }
+}
+
+/*********************************************************/
+
+/*!
+  Determine the most appropriate position of the root if outgroup taxa are specified. 
+  Core.
+ */
+void Get_OutIn_Scores(t_node *a, t_node *d)
+{
+  int i,d_v1,d_v2,v1_d,v2_d,d_a;
+  
+  d_v1 = d_v2 = -1;
+  For(i,3)
+    {
+      if(d->v[i] != a)
+	{
+	  if(d_v1 < 0) d_v1 = i;
+	  else         d_v2 = i;
+	}
+    }
+  
+  For(i,3) if(d->v[i] == a) { d_a = i; break; }
+  For(i,3) if(d->v[d_v1]->v[i] == d) { v1_d = i; break; }
+  For(i,3) if(d->v[d_v2]->v[i] == d) { v2_d = i; break; }
+  
+  d->s_ingrp[d_a] = 
+    d->v[d_v1]->s_ingrp[v1_d] +
+    d->v[d_v2]->s_ingrp[v2_d] ;
+  
+  d->s_outgrp[d_a] = 
+    d->v[d_v1]->s_outgrp[v1_d] +
+    d->v[d_v2]->s_outgrp[v2_d] ;
+}
+
 /*********************************************************/
 /*********************************************************/
 /*********************************************************/
