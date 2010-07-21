@@ -35,12 +35,12 @@ AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([floor pow rint sqrt strchr strstr])
 
 # Thanks to Shane Sturrock from Biomatters
-case "${host}" in
-*darwin*)
-AM_INIT_AUTOMAKE([no-dependencies])
-ARCH_flag="-arch i386 -arch ppc -arch x86_64 -mmacosx-version-min=10.4"
-;;
-esac
+#case "${host}" in
+#*darwin*)
+#AM_INIT_AUTOMAKE([no-dependencies])
+#ARCH_flag="-arch i386 -arch ppc -arch x86_64 -mmacosx-version-min=10.4"
+#;;
+#esac
 
 
 CFLAGS="-O3 -fomit-frame-pointer -funroll-loops ${ARCH_flag}"
@@ -48,11 +48,11 @@ dnl CFLAGS="-O3 -Wfloat-equal -fomit-frame-pointer -funroll-loops"
 dnl CFLAGS="-O3 -Wfloat-equal"
 dnl CFLAGS="-g"
 
-LT_INIT
 
 LDFLAGS="${ARGC_flag}"
 
-AC_PROG_LIBTOOL
+dnl LT_INIT
+dnl AC_PROG_LIBTOOL
 
 AC_ARG_ENABLE([tiporder],[  --enable-tiporder    Compile tiporder],[tiporder=yes])
 AM_CONDITIONAL([WANT_TIPORDER], [test "$tiporder" = yes]) 
