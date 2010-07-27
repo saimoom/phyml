@@ -51,8 +51,8 @@ dnl CFLAGS="-g"
 
 LDFLAGS="${ARGC_flag}"
 
-dnl LT_INIT
-dnl AC_PROG_LIBTOOL
+LT_INIT
+AC_PROG_LIBTOOL
 
 AC_ARG_ENABLE([tiporder],[  --enable-tiporder    Compile tiporder],[tiporder=yes])
 AM_CONDITIONAL([WANT_TIPORDER], [test "$tiporder" = yes]) 
