@@ -146,6 +146,7 @@ int main(int argc, char **argv)
 
 		  if((!num_data_set) && (!num_tree) && (!num_rand_tree)) Check_Memory_Amount(tree);		  
 
+
 		  Prepare_Tree_For_Lk(tree);
 
 		  if(io->in_tree == 1) Spr_Pars(tree);
@@ -177,9 +178,7 @@ int main(int argc, char **argv)
 		  Get_Tree_Size(tree);
 		  PhyML_Printf("\n. Log likelihood of the current tree: %f.\n",tree->c_lnL);
 
-
 		  Get_Best_Root_Position(tree);
-
 
 		  /* Print the tree estimated using the current random (or BioNJ) starting tree */
 		  if(io->mod->s_opt->n_rand_starts > 1)

@@ -7,7 +7,10 @@
 # Comment the line below if you want to use MPI.
 # Uncomment the line below if you don't want to use MPI.
 
-DEFS=-DUNIX -D$(PROG) -DDEBUG
+
+# REVISION = $(shell if test -e .svn; then echo -DREV=\"`LC_ALL=C svn info | sed -n '/^Rev/p'| sed -e 's/^Revision:\ //'`\"; fi;)
+
+DEFS = -DUNIX -D$(PROG) -DDEBUG $(REVISION)
 
 if WANT_PHYTIME
 bin_PROGRAMS = phytime
@@ -21,9 +24,9 @@ if WANT_PART
 bin_PROGRAMS = part
 PROG = PART
 else
-# if WANT_RWRAP
-# PROG = RWRAP
-# else
+if WANT_RWRAP
+PROG = RWRAP
+else
 if WANT_TIPORDER
 bin_PROGRAMS = tiporder
 PROG = TIPORDER
@@ -32,7 +35,7 @@ else
 bin_PROGRAMS = phyml
 PROG = PHYML
 # endif
-# endif
+endif
 endif
 endif
 endif
@@ -60,7 +63,8 @@ draw.c draw.h\
 rates.c rates.h\
 mcmc.c mcmc.h\
 stats.c stats.h\
-mg.c mg.h
+mg.c mg.h\
+tiporder.c tiporder.h
 phytime_LDADD = -lm
 else 
 if WANT_PHYCONT
@@ -86,39 +90,40 @@ rates.c rates.h\
 mcmc.c mcmc.h\
 stats.c stats.h\
 mg.c mg.h\
+tiporder.c tiporder.h\
 continuous.c continuous.h
 phycont_LDADD = -lm
 else 
-# if WANT_RWRAP
-# lib_LTLIBRARIES = librwrap.la
-# librwrap_la_SOURCES = main.c \
-# utilities.c utilities.h\
-# optimiz.c optimiz.h\
-# lk.c lk.h\
-# bionj.c bionj.h\
-# models.c models.h\
-# free.c free.h\
-# help.c help.h\
-# simu.c simu.h\
-# eigen.c eigen.h\
-# pars.c pars.h\
-# alrt.c alrt.h\
-# interface.c interface.h\
-# cl.c cl.h\
-# mg.c mg.h\
-# spr.c spr.h\
-# m4.c m4.h\
-# draw.c draw.h\
-# mcmc.c mcmc.h\
-# stats.c stats.h\
-# times.c times.h\
-# tiporder.c tiporder.h\
-# rates.c rates.h\
-# rwrapper.c rwrapper.h
-# librwrap_la_LIBADD = -lm
-# librwrap_la_LDFLAGS = -I/Library/Frameworks/R.framework/Resources/include -I/Library/Frameworks/R.framework/Resources/include/i386 -I/usr/local/include -flat_namespace -undefined suppress -shared -module
-# librwrap_la_CFLAGS=-std=gnu99 -fPIC
-# else 
+if WANT_RWRAP
+lib_LTLIBRARIES = librwrap.la
+librwrap_la_SOURCES = main.c \
+utilities.c utilities.h\
+optimiz.c optimiz.h\
+lk.c lk.h\
+bionj.c bionj.h\
+models.c models.h\
+free.c free.h\
+help.c help.h\
+simu.c simu.h\
+eigen.c eigen.h\
+pars.c pars.h\
+alrt.c alrt.h\
+interface.c interface.h\
+cl.c cl.h\
+mg.c mg.h\
+spr.c spr.h\
+m4.c m4.h\
+draw.c draw.h\
+mcmc.c mcmc.h\
+stats.c stats.h\
+times.c times.h\
+tiporder.c tiporder.h\
+rates.c rates.h\
+rwrapper.c rwrapper.h
+librwrap_la_LIBADD = -lm
+librwrap_la_LDFLAGS = -I/Library/Frameworks/R.framework/Resources/include -I/Library/Frameworks/R.framework/Resources/include/i386 -I/usr/local/include -flat_namespace -undefined suppress -shared -module
+librwrap_la_CFLAGS=-std=gnu99 -fPIC
+else 
 if WANT_PART
 part_SOURCES = main.c \
 utilities.c utilities.h\
@@ -138,7 +143,8 @@ mg.c mg.h\
 spr.c spr.h\
 m4.c m4.h\
 draw.c draw.h\
-stats.c stats.h
+stats.c stats.h\
+tiporder.c tiporder.h
 part_LDADD = -lm
 else
 if WANT_TIPORDER
@@ -186,10 +192,14 @@ spr.c spr.h\
 draw.c  draw.h\
 mpi_boot.c  mpi_boot.h\
 stats.c stats.h\
+rates.c rates.h\
+mcmc.c mcmc.h\
+times.c times.h\
+tiporder.c tiporder.h\
 mg.c mg.h
 phyml_LDADD = -lm
 # endif
-# endif
+endif
 endif
 endif
 endif

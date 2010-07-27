@@ -432,6 +432,9 @@ typedef struct __Arbre {
 
   int                         write_tax_names;
   int                    update_alias_subpatt;
+
+  phydbl                           geo_mig_sd; /*! standard deviation of the migration step random variable */
+  phydbl                              geo_lnL; /*! log likelihood of the phylo-geography model */
 }t_tree;
 
 /*!********************************************************/
@@ -1368,7 +1371,7 @@ void Skip_Comment(FILE *fp);
 void Update_Dir_To_Tips(t_node *a, t_node *d, t_tree *tree);
 void Test_Node_Table_Consistency(t_tree *tree);
 void Get_Best_Root_Position(t_tree *tree);
-void Get_Best_Root_Position_Post(t_node *a, t_node *d, t_tree *tree);
+void Get_Best_Root_Position_Post(t_node *a, t_node *d, int *has_outgrp, t_tree *tree);
 void Get_Best_Root_Position_Pre(t_node *a, t_node *d, t_tree *tree);
 void Get_OutIn_Scores(t_node *a, t_node *d);
 

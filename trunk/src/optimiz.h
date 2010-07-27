@@ -18,6 +18,7 @@ the GNU public licence.  See http://www.opensource.org for details.
 #include "free.h"
 #include "models.h"
 #include "mg.h"
+#include "tiporder.h"
 
 
 void      Optimiz_Ext_Br(t_tree *tree);
@@ -146,6 +147,7 @@ phydbl Optwrap_Lk(t_edge *b, t_tree *tree, supert_tree *stree);
 phydbl Optwrap_Lk_At_Given_Edge(t_edge *b, t_tree *tree, supert_tree *stree);
 phydbl Optwrap_Part_Lk_At_Given_Edge(t_edge *b, t_tree *tree, supert_tree *stree);
 phydbl Optwrap_Part_Lk(t_edge *b, t_tree *tree, supert_tree *stree);
+phydbl Optwrap_Geo_Lk(t_edge *b, t_tree *tree, supert_tree *stree);
 
 #endif
 

@@ -135,6 +135,7 @@ void MCMC_Clock_Rate(t_tree *tree)
 /*   new_cr = tree->rates->min_clock + u*(tree->rates->max_clock - tree->rates->min_clock); */
 /*   new_cr = (cur_cr/K)*(2*u+K-1.); */
 
+
   if(new_cr > tree->rates->max_clock || new_cr < tree->rates->min_clock) return;
 
   tree->rates->clock_r = new_cr;
@@ -1096,8 +1097,8 @@ void MCMC_Init_MCMC_Struct(char *filename, tmcmc *mcmc, t_tree *tree)
     {
       tree->mcmc->out_fp_stats = stderr;
       tree->mcmc->out_fp_trees = stderr;
-      tree->mcmc->out_fp_means = stderr;
-      tree->mcmc->out_fp_last  = stderr;
+      /* tree->mcmc->out_fp_means = stderr; */
+      /* tree->mcmc->out_fp_last  = stderr; */
     }
 }
 
@@ -1107,8 +1108,8 @@ void MCMC_Close_MCMC(tmcmc *mcmc)
 {
   fclose(mcmc->out_fp_trees);
   fclose(mcmc->out_fp_stats);
-  fclose(mcmc->out_fp_means);
-  fclose(mcmc->out_fp_last);
+  /* fclose(mcmc->out_fp_means); */
+  /* fclose(mcmc->out_fp_last); */
 }
 
 /*********************************************************/

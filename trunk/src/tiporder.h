@@ -53,5 +53,9 @@ void TIPO_Randomize_Tip_Y_Ranks(t_tree *tree);
 phydbl TIPO_Read_One_Taxon_Zscore(FILE *fp, char *seqname_qry, int col, t_tree *tree);
 void TIPO_Normalize_Zscores(t_tree *tree);
 void TIPO_Get_Min_Number_Of_Tip_Permut(t_tree *tree);
+phydbl TIPO_Lk(t_tree *tree);
+phydbl TIPO_Lk_Post(t_node *a, t_node *d, t_tree *tree);
+phydbl TIPO_Lk_Core(t_node *a, t_node *d, t_tree *tree);
+
 
 #endif

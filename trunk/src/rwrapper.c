@@ -33,19 +33,29 @@ void RWRAPPER_Min_Number_Of_Tip_Permut(char **tree_file_name, char **coord_file_
 
   tree->io->z_scores = (phydbl *)mCalloc(tree->n_otu,sizeof(phydbl));
 
+  /* For(i,tree->n_otu) tree->io->z_scores[i] = TIPO_Read_One_Taxon_Zscore(fp_coord_file,tree->noeud[i]->name,1,tree); */
+  /* TIPO_Normalize_Zscores(tree); */
+  /* TIPO_Get_Min_Number_Of_Tip_Permut(tree); */
+  /* res[0] = (phydbl)tree->tip_order_score; */
+
+
   For(i,tree->n_otu) tree->io->z_scores[i] = TIPO_Read_One_Taxon_Zscore(fp_coord_file,tree->noeud[i]->name,1,tree);
-  TIPO_Normalize_Zscores(tree);
-  TIPO_Get_Min_Number_Of_Tip_Permut(tree);
-  res[0] = (phydbl)tree->tip_order_score;
+  Free_Bip(tree);
+  Alloc_Bip(tree);
+  Get_Bip(tree->noeud[0],tree->noeud[0]->v[0],tree);
+  TIPO_Get_Tips_Y_Rank_From_Zscores(tree);
+  /* TIPO_Get_Tips_Y_Rank(tree); */
 
-/*   Rprintf("\n>> y score: %f",tree->tip_order_score); */
+  tree->geo_mig_sd = 1.;
+  Generic_Brent_Lk(&(tree->geo_mig_sd), 
+		   1.E-5,1.E+2,1.E-6, 
+		   100,NO,
+		   &Optwrap_Geo_Lk,
+		   NULL,tree,NULL);
 
-  For(i,tree->n_otu) tree->io->z_scores[i] = TIPO_Read_One_Taxon_Zscore(fp_coord_file,tree->noeud[i]->name,2,tree);
-  TIPO_Normalize_Zscores(tree);
-  TIPO_Get_Min_Number_Of_Tip_Permut(tree);
-  res[1] = (phydbl)tree->tip_order_score;
-
-/*   Rprintf("\n>> x score: %f",tree->tip_order_score); */
+  res[0] = (phydbl)tree->geo_mig_sd;
+  /* For(i,tree->n_otu) Rprintf("\n.. %f",tree->io->z_scores[i]); */
+  /* Rprintf("\n>> sd: %f",tree->geo_mig_sd); */
 
   fclose(fp_tree_file);
   fclose(fp_coord_file);
