@@ -33,6 +33,7 @@ int TIMES_main(int argc, char **argv)
   phydbl best_lnL,most_likely_size,tree_size;
   int r_seed;
   char *most_likely_tree;
+  int sys;
 
   
 #ifdef MPI
@@ -63,7 +64,7 @@ int TIMES_main(int argc, char **argv)
 /*   r_seed = 1264735233; */
   /* !!!!!!!!!!!!!!!!!!!!!!!! */
 
-  system("sleep 5s");
+  sys = system("sleep 5s");
 
   srand(r_seed); rand();
   PhyML_Printf("\n. Seed: %d\n",r_seed);

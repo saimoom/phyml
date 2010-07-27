@@ -446,11 +446,15 @@ phydbl Dnorm_Moments(phydbl x, phydbl mean, phydbl var)
 phydbl Dnorm(phydbl x, phydbl mean, phydbl sd)
 {
   phydbl dens;
-/*   dens = -(.5*LOG2PI+LOG(sd))  - .5*POW(x-mean,2)/POW(sd,2); */
-/*   return EXP(dens); */
+
+  /* dens = -(.5*LOG2PI+LOG(sd))  - .5*POW(x-mean,2)/POW(sd,2); */
+  /* return EXP(dens); */
   
-  dens = (M_1_SQRT_2_PI * EXP(-0.5*x*x))/sd; 
+  x = (x-mean)/sd;
+
+  dens = M_1_SQRT_2_PI * EXP(-0.5*x*x);
   
+  return dens / sd;
 }
 
 /*********************************************************/
@@ -1507,7 +1511,6 @@ phydbl *Hessian(t_tree *tree)
 
   For(i,dim) ori_bl[i] = tree->t_edges[i]->l;
 
-
   n_ok_edges = 0;
   For(i,dim) 
     {
@@ -1672,10 +1675,11 @@ phydbl *Hessian(t_tree *tree)
     if(inc[i] < 0.0)
       {
 	lnL  = tree->c_lnL;
-	tree->t_edges[i]->l += eps;
+	tree->t_edges[i]->l += eps * ori_bl[i];
 	lnL1 = Lk_At_Given_Edge(tree->t_edges[i],tree);
-	tree->t_edges[i]->l += eps;
+	tree->t_edges[i]->l += eps * ori_bl[i];
 	lnL2 = Lk_At_Given_Edge(tree->t_edges[i],tree);
+	tree->t_edges[i]->l -= 2.*eps * ori_bl[i];
 
 	hessian[i*dim+i] = (lnL2 - 2*lnL1 + lnL) / POW(eps,2);
 	hessian[i*dim+i] = -1.0 / hessian[i*dim+i];
@@ -1685,10 +1689,11 @@ phydbl *Hessian(t_tree *tree)
     if(hessian[i*dim+i] < MIN_VAR_BL)
       {
 	lnL  = tree->c_lnL;
-	tree->t_edges[i]->l += eps;
+	tree->t_edges[i]->l += eps * ori_bl[i];
 	lnL1 = Lk_At_Given_Edge(tree->t_edges[i],tree);
-	tree->t_edges[i]->l += eps;
+	tree->t_edges[i]->l += eps * ori_bl[i];
 	lnL2 = Lk_At_Given_Edge(tree->t_edges[i],tree);
+	tree->t_edges[i]->l -= 2.*eps * ori_bl[i];
 
 	hessian[i*dim+i] = (lnL2 - 2*lnL1 + lnL) / POW(eps,2);
 	hessian[i*dim+i] = -1.0 / hessian[i*dim+i];

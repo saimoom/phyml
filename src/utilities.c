@@ -11132,6 +11132,18 @@ void Read_Clade_Priors(char *file_name, t_tree *tree)
     }
   while(1);
 
+  if(!n_clade_priors)
+    {
+      PhyML_Printf("\n. PhyTime could not find any prior on node age.");
+      PhyML_Printf("\n. This is likely due to a problem in the calibration ");
+      PhyML_Printf("\n. file format. Make sure, for instance, that there is ");
+      PhyML_Printf("\n. a blank character between the end of the last name");
+      PhyML_Printf("\n. of each clade and the character `|'. Otherwise, ");
+      PhyML_Printf("\n. please refer to the example file.\n");
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+
   For(i,tree->n_otu) Free(clade_list[i]);
   Free(clade_list);
   Free(line);
@@ -11533,7 +11545,7 @@ void Get_Best_Root_Position(t_tree *tree)
   phydbl eps;
   phydbl s, s_max;
   t_edge *best_edge;
-
+  int has_outgrp;
   if(tree->e_root)
     {
       PhyML_Printf("\n. Tree already has a root.");
@@ -11553,26 +11565,30 @@ void Get_Best_Root_Position(t_tree *tree)
       tree->noeud[0]->s_outgrp[0] = 0;
     }
 
-  Get_Best_Root_Position_Post(tree->noeud[0],tree->noeud[0]->v[0],tree);  
+  has_outgrp = NO;
+  Get_Best_Root_Position_Post(tree->noeud[0],tree->noeud[0]->v[0],&has_outgrp,tree);  
   Get_Best_Root_Position_Pre(tree->noeud[0],tree->noeud[0]->v[0],tree);  
 
-  eps = 1.E-10;
-  s = s_max = 0.0;
-  For(i,2*tree->n_otu-2)
+  if(has_outgrp == YES)
     {
-      For(j,3)
+      eps = 1.E-10;
+      s = s_max = 0.0;
+      For(i,2*tree->n_otu-2)
 	{
-	  s = (tree->noeud[i]->s_outgrp[j]+eps) / (tree->noeud[i]->s_ingrp[j] + eps) ;
-	  /* printf("\n. [%d %d] %d %d",i,j,tree->noeud[i]->s_outgrp[j],tree->noeud[i]->s_ingrp[j]); */
-	  if(s > s_max) 
+	  For(j,3)
 	    {
-	      s_max = s;
-	      best_edge = tree->noeud[i]->b[j];
+	      s = (tree->noeud[i]->s_outgrp[j]+eps) / (tree->noeud[i]->s_ingrp[j] + eps) ;
+	      /* printf("\n. [%d %d] %d %d",i,j,tree->noeud[i]->s_outgrp[j],tree->noeud[i]->s_ingrp[j]); */
+	      if(s > s_max) 
+		{
+		  s_max = s;
+		  best_edge = tree->noeud[i]->b[j];
+		}
 	    }
 	}
+      
+      Add_Root(best_edge,tree);
     }
-
-  Add_Root(best_edge,tree);
 }
 
 /*********************************************************/
@@ -11581,12 +11597,13 @@ void Get_Best_Root_Position(t_tree *tree)
   Determine the most appropriate position of the root if outgroup taxa are specified. 
   Post-traversal.
  */
-void Get_Best_Root_Position_Post(t_node *a, t_node *d, t_tree *tree)
+void Get_Best_Root_Position_Post(t_node *a, t_node *d, int *has_outgrp, t_tree *tree)
 {
   if(d->tax) 
     {
       if(strstr(d->name,"*"))
 	{
+	  *has_outgrp = YES;
 	  /* PhyML_Printf("\n. Found outgroup taxon: %s",d->name); */
 	  d->s_ingrp[0]  = 0;
 	  d->s_outgrp[0] = 1;
@@ -11604,7 +11621,7 @@ void Get_Best_Root_Position_Post(t_node *a, t_node *d, t_tree *tree)
 
       For(i,3)
 	if(d->v[i] != a)
-	  Get_Best_Root_Position_Post(d,d->v[i],tree);
+	  Get_Best_Root_Position_Post(d,d->v[i],has_outgrp,tree);
 
       Get_OutIn_Scores(a,d);
 

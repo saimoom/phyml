@@ -272,15 +272,22 @@ int TIPO_main(int argc, char **argv)
 
   For(i,tree->n_otu) tree->io->z_scores[i] = TIPO_Read_One_Taxon_Zscore(fp_coord_file,tree->noeud[i]->name,1,tree);
   /* TIPO_Normalize_Zscores(tree); */
-  TIPO_Get_Min_Number_Of_Tip_Permut(tree);
+  Free_Bip(tree);
+  Alloc_Bip(tree);
+  Get_Bip(tree->noeud[0],tree->noeud[0]->v[0],tree);
+  /* TIPO_Get_Tips_Y_Rank_From_Zscores(tree); */
+  TIPO_Get_Tips_Y_Rank(tree);
+  
 
-  PhyML_Printf("\n. Score 1 = %f",tree->tip_order_score);
+  tree->geo_mig_sd = 1.;
+  Generic_Brent_Lk(&(tree->geo_mig_sd),
+  		   1.E-3,1.E+2,1.E-6,
+  		   100,NO,
+  		   &Optwrap_Geo_Lk,
+  		   NULL,tree,NULL);
 
-  For(i,tree->n_otu) tree->io->z_scores[i] = TIPO_Read_One_Taxon_Zscore(fp_coord_file,tree->noeud[i]->name,2,tree);
-  /* TIPO_Normalize_Zscores(tree); */
-  TIPO_Get_Min_Number_Of_Tip_Permut(tree);
+  /* PhyML_Printf("\n. sd=%f",tree->geo_mig_sd); */
 
-  PhyML_Printf("\n. Score 2 = %f",tree->tip_order_score);
 
   fclose(fp_tree_file);
   fclose(fp_coord_file);
@@ -958,7 +965,11 @@ void TIPO_Read_Taxa_Zscores(FILE *fp_coord, t_tree *tree)
   name = (char *)mCalloc(T_MAX_NAME,sizeof(char));
   line = (char *)mCalloc(T_MAX_LINE,sizeof(char));
 
-  fgets(line,T_MAX_LINE,fp_coord);
+  if(!fgets(line,T_MAX_LINE,fp_coord))
+    {
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
   Free(line);
 
 
@@ -994,7 +1005,11 @@ void TIPO_Read_Taxa_Coordinates(FILE *fp_coord, t_tree *tree)
   name = (char *)mCalloc(T_MAX_NAME,sizeof(char));
   line = (char *)mCalloc(T_MAX_LINE,sizeof(char));
 
-  fgets(line,T_MAX_LINE,fp_coord);
+  if(!fgets(line,T_MAX_LINE,fp_coord))
+    {
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
   Free(line);
 
   tree->io->lat = (phydbl *)mCalloc(tree->n_otu,sizeof(phydbl));
@@ -1131,7 +1146,11 @@ phydbl TIPO_Read_One_Taxon_Zscore(FILE *fp_coord, char *seqname_qry, int col, t_
   rewind(fp_coord);
 
   /* skip first line */
-  fgets(line,T_MAX_LINE,fp_coord);
+  if(!fgets(line,T_MAX_LINE,fp_coord))
+    {
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
   Free(line);
 
   do
@@ -1195,3 +1214,96 @@ void TIPO_Normalize_Zscores(t_tree *tree)
 
 /*********************************************************/
 
+phydbl TIPO_Lk(t_tree *tree)
+{
+  tree->geo_lnL = 0.0;
+  TIPO_Lk_Post(tree->n_root,tree->n_root->v[0],tree);
+  TIPO_Lk_Post(tree->n_root,tree->n_root->v[1],tree);
+  return(tree->geo_lnL);
+}
+
+/*********************************************************/
+
+phydbl TIPO_Lk_Post(t_node *a, t_node *d, t_tree *tree)
+{
+  if(!d->tax)
+    {
+      int i;
+
+      For(i,3)
+	{
+	  if(d->v[i] != a && d->b[i] != tree->e_root)
+	    {
+	      TIPO_Lk_Post(d,d->v[i],tree);
+	    }
+	}
+      TIPO_Lk_Core(a,d,tree);
+    }
+}
+
+/*********************************************************/
+
+phydbl TIPO_Lk_Core(t_node *a, t_node *d, t_tree *tree)
+{
+
+  int i,j;
+  int d_v1,d_v2,v1_d,v2_d;
+  t_node *v1, *v2;
+  phydbl dist,dens,min_dist;
+  
+  if(d->tax)
+    {
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+
+  d_v1 = d_v2 = -1;
+  For(i,3)
+    {
+      if(d->v[i] != a && d->b[i] != tree->e_root)
+	{
+	  if(d_v1 < 0) d_v1 = i;
+	  else         d_v2 = i;
+	}
+    }
+  
+  v1 = d->v[d_v1];
+  v2 = d->v[d_v2];
+  
+  For(i,3)
+    {
+      if(v1->v[i] == d) v1_d = i;
+      if(v2->v[i] == d) v2_d = i;
+    }
+  
+
+  dens = 0.0;
+  min_dist = FLT_MAX;
+  For(i,v1->bip_size[v1_d])
+    {
+      For(j,v2->bip_size[v2_d])
+	{
+	  dist = fabs(v1->bip_node[v1_d][i]->y_rank - 
+		      v2->bip_node[v2_d][j]->y_rank);
+
+	  if(dist < min_dist) min_dist = dist;
+
+	  /* dens += Dnorm(dist,0.0,tree->geo_mig_sd); */
+	  /* printf("\n. dist=%f dens=%f %f %f", */
+	  /* 	 dist,Dnorm(dist,0.0,tree->geo_mig_sd), */
+	  /* 	 v1->bip_node[v1_d][i]->y_rank, */
+	  /* 	 v2->bip_node[v2_d][j]->y_rank); */
+	}
+    }
+
+  /* printf("\n. min_dist=%f dens=%f", */
+  /* 	 min_dist,Dnorm(dist,0.0,tree->geo_mig_sd)); */
+
+  dens = Dnorm(min_dist,0.0,tree->geo_mig_sd);
+  tree->geo_lnL += LOG(dens);
+}
+
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/

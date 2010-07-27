@@ -2270,6 +2270,14 @@ phydbl Optwrap_Lk(t_edge *b, t_tree *tree, supert_tree *stree)
 
 /*********************************************************/
 
+phydbl Optwrap_Geo_Lk(t_edge *b, t_tree *tree, supert_tree *stree)
+{
+  TIPO_Lk(tree);
+  return tree->geo_lnL;
+}
+
+/*********************************************************/
+
 phydbl Optwrap_Lk_At_Given_Edge(t_edge *b, t_tree *tree, supert_tree *stree)
 {
   Lk_At_Given_Edge(b,tree);
@@ -2298,30 +2306,28 @@ phydbl Generic_Brent_Lk(phydbl *param, phydbl ax, phydbl cx, phydbl tol,
   fw=fv=fx=fu=-(*obj_func)(branch,tree,stree);
   init_lnL = -fw;
 
-/*   PhyML_Printf("\n. init_lnL = %f a=%f b=%f c=%f\n",init_lnL,ax,bx,cx); */
+  /* PhyML_Printf("\n. init_lnL = %f a=%f b=%f c=%f\n",init_lnL,ax,bx,cx); */
 
   for(iter=1;iter<=BRENT_ITMAX;iter++) 
     {
       xm=0.5*(a+b);
       tol2=2.0*(tol1=tol*FABS(x)+BRENT_ZEPS);
 
-      cur_lnL = (stree)?(stree->tree->c_lnL):(tree->c_lnL);
-
-      if((cur_lnL > init_lnL + tol) && (quickdirty))
+      if((fu > init_lnL + tol) && (quickdirty))
 	{
 	  (*param) = x;
-	  (*obj_func)(branch,tree,stree);
+	  fu = (*obj_func)(branch,tree,stree);
 /* 	  Exit("\n"); */
-	  return (stree)?(stree->tree->c_lnL):(tree->c_lnL);	  
+	  return fu;	  
 	}
 
 /*       if(((FABS(cur_lnL-old_lnL) < tol) && (cur_lnL > init_lnL - tol)) || (iter > n_iter_max - 1)) */
-      if((FABS(cur_lnL-old_lnL) < tol) || (iter > n_iter_max - 1))
+      if((FABS(fu-old_lnL) < tol) || (iter > n_iter_max - 1))
 	{
 	  (*param) = x;
-	  (*obj_func)(branch,tree,stree);
+	  fu = (*obj_func)(branch,tree,stree);
 /* 	  Exit("\n"); */
-	  return (stree)?(stree->tree->c_lnL):(tree->c_lnL);	  
+	  return fu;	  
 	}
       
       if(FABS(e) > tol1) 
@@ -2337,28 +2343,28 @@ phydbl Generic_Brent_Lk(phydbl *param, phydbl ax, phydbl cx, phydbl tol,
 	  if(FABS(p) >= FABS(0.5*q*etemp) || p <= q*(a-x) || p >= q*(b-x))
 	    {
 	      d=BRENT_CGOLD*(e=(x >= xm ? a-x : b-x));
-/* 	      PhyML_Printf("Golden section step\n"); */
+	      /* PhyML_Printf(" Golden section step\n"); */
 	    }
 	  else
 	    {
 	      d=p/q;
 	      u=x+d;
 	      if (u-a < tol2 || b-u < tol2) d=SIGN(tol1,xm-x);
-/* 	      PhyML_Printf("Parabolic step [e=%f]\n",e); */
+	      /* PhyML_Printf(" Parabolic step [e=%f]\n",e); */
 	    }
         }
       else
 	{
 	  d=BRENT_CGOLD*(e=(x >= xm ? a-x : b-x));
-/* 	  PhyML_Printf("Golden section step (default) [e=%f tol1=%f a=%f b=%f d=%f]\n",e,tol1,a,b,d); */
+	  /* PhyML_Printf(" Golden section step (default) [e=%f tol1=%f a=%f b=%f d=%f]\n",e,tol1,a,b,d); */
 	}
       
       u=(FABS(d) >= tol1 ? x+d : x+SIGN(tol1,d));
       (*param) = FABS(u);
-      old_lnL = (stree)?(stree->tree->c_lnL):(tree->c_lnL);
+      old_lnL = fu;
       fu = -(*obj_func)(branch,tree,stree);
       
-/*       PhyML_Printf("\n. iter=%d/%d param=%f LOGlk=%f",iter,BRENT_ITMAX,*param,tree->c_lnL); */
+      /* PhyML_Printf("\n. iter=%d/%d param=%f lnL=%f",iter,BRENT_ITMAX,*param,fu); */
 
       if(fu <= fx)
 	{
