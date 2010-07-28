@@ -91,7 +91,6 @@ void DR_Print_Postscript_EOF(FILE *fp)
 
 void DR_Print_Tree_Postscript(int page_num, int render_name, FILE *fp, t_tree *tree)
 {
-  int i;
   tdraw *draw;
   t_node *n_root;
   
@@ -127,8 +126,7 @@ void DR_Print_Tree_Postscript_Pre(t_node *a, t_node *d, int render_name, FILE *f
   int i;
   phydbl R, G, B;
   phydbl z;
-  phydbl greylevel;
-
+  
   PhyML_Fprintf(fp,"gs\n");
   
   PhyML_Fprintf(fp,"%.1f %.1f mt\n",w->xcoord[a->num],w->ycoord[a->num]);

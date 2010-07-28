@@ -230,11 +230,10 @@ void MCMC_One_Rate(t_node *a, t_node *d, t_tree *tree)
   phydbl new_mu, cur_mu;
   phydbl r_min, r_max;
   phydbl nu;
-  t_node *v2,*v3;
-  phydbl T0,T1,T2,T3;
-  phydbl U0,U1,U2,U3;
-  phydbl V1,V2,V3;
-  int i,err;
+  /* t_node *v2,*v3; */
+  /* phydbl T0,T1,T2,T3; */
+  /* phydbl U0,U1,U2,U3; */
+  /* phydbl V1,V2,V3; */
   phydbl tmp;
   phydbl K;
 
@@ -371,7 +370,7 @@ void MCMC_Times_Pre(t_node *a, t_node *d, int local, t_tree *tree)
   phydbl t_min,t_max;
 /*   phydbl t_max_12, t_max_13; */
   phydbl t1_cur, t1_new;
-  phydbl cur_lnL_times, new_lnL_times;
+  phydbl cur_lnL_times;
   phydbl cur_lnL_data, new_lnL_data;
   phydbl ratio,alpha;
   int    i;

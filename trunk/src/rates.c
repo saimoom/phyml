@@ -1741,8 +1741,8 @@ void RATES_Posterior_Rates_Pre(t_node *a, t_node *d, int *acc, int *n_trials, t_
   phydbl like_mean, like_var;
   phydbl prior_mean, prior_var;
   phydbl post_mean, post_var, post_sd;
-  phydbl dt,ra,rd,cr,nu,cel,cvl,cel_tmp,cvl_tmp;
-  phydbl cur_l,new_l,new_r;
+  phydbl dt,ra,rd,cr,nu,cel,cvl;
+  phydbl cur_l;
   int dim;
   short int *is_1;
   phydbl *cond_mu, *cond_cov; 
@@ -1877,7 +1877,7 @@ void RATES_Posterior_Rates_Pre(t_node *a, t_node *d, int *acc, int *n_trials, t_
 
   post_sd = SQRT(post_var);
 
-  phydbl loghr;
+  /* phydbl loghr; */
   if(!d->tax) 
     {
       rd = Rnorm(post_mean,post_sd);
@@ -3064,7 +3064,7 @@ void RATES_Expected_Tree_Length_Pre(t_node *a, t_node *d, phydbl eranc, phydbl *
   phydbl u,u_anc,t,t_anc;
   phydbl loc_mean;
   int loc_n;
-  phydbl anc_mean,sd;
+  phydbl sd;
 
   u     = tree->rates->nd_r[d->num];
   u_anc = tree->rates->nd_r[a->num];

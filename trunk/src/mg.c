@@ -694,7 +694,7 @@ void PART_Match_St_Edges_In_Gt(t_tree *gt, supert_tree *st)
 void PART_Match_St_Edges_In_Gt_Recurr(t_node *a_gt, t_node *d_gt, t_node *a_st, t_node *d_st, t_tree *gt, supert_tree *st)
 {
   t_edge *b_gt, *b_st;
-  int i,j,k;
+  int i,j;
 
   b_gt = b_st = NULL;
 

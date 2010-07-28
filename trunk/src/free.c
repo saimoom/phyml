@@ -79,7 +79,6 @@ void Free_Partial_Lk(phydbl *p_lk, int len, int n_catg)
 
 void Free_Tree(t_tree *tree)
 {
-  int i,j,k;
 
   Free(tree->t_dir);
 
@@ -133,8 +132,6 @@ void Free_Edge(t_edge *b)
 
 void Free_Node(t_node *n)
 {
-  int i;
-
   Free(n->b);
   Free(n->v);
   Free(n->l);
