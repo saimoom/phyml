@@ -486,6 +486,7 @@ phydbl Log_Dnorm_Trunc(phydbl x, phydbl mean, phydbl sd, phydbl lo, phydbl up, i
   phydbl cdf_up, cdf_lo;
 
   *err = NO;
+  cdf_lo = cdf_up = 0.0;
 
   log_dens = Log_Dnorm(x,mean,sd,err);
 

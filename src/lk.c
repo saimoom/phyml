@@ -436,7 +436,6 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
   int catg,ns,k,l,site;
   int dim1,dim2,dim3;
   int *sum_scale_left_cat,*sum_scale_rght_cat;
-  int n_iter;
   phydbl multiplier;
   int exponent, piecewise_exponent;
   phydbl tmp;
@@ -762,7 +761,6 @@ void Update_P_Lk_Generic(t_tree *tree, t_edge *b, t_node *d)
   int curr_scaler_pow, piecewise_scaler_pow;
   phydbl p_lk_lim_inf;
   phydbl smallest_p_lk;
-  phydbl p0,p1,p2,p3;
   int *p_lk_loc;
 
   p_lk_lim_inf = (phydbl)P_LK_LIM_INF;
@@ -1024,7 +1022,7 @@ void Update_P_Lk_Nucl(t_tree *tree, t_edge *b, t_node *d)
   phydbl *Pij1,*Pij2;
   int *sum_scale, *sum_scale_v1, *sum_scale_v2;
   int sum_scale_v1_val, sum_scale_v2_val;
-  int i,j;
+  int i;
   int catg,site;
   int dir1,dir2;
   int n_patterns;
@@ -1302,7 +1300,7 @@ void Update_P_Lk_AA(t_tree *tree, t_edge *b, t_node *d)
   phydbl *Pij1,*Pij2;
   int *sum_scale, *sum_scale_v1, *sum_scale_v2;
   int sum_scale_v1_val, sum_scale_v2_val;
-  int i,j;
+  int i;
   int catg,site;
   int dir1,dir2;
   int n_patterns;
@@ -2841,11 +2839,7 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
 
 void Alias_Subpatt(t_tree *tree)
 {
-  int i,j;
-  int *patt_id_d;
-  t_node *d;
-
-
+  
   if(tree->n_root)
     {
       Alias_Subpatt_Post(tree->n_root,tree->n_root->v[0],tree);
@@ -2871,6 +2865,8 @@ void Alias_One_Subpatt(t_node *a, t_node *d, t_tree *tree)
   int curr_patt_id_v1, curr_patt_id_v2;
   int curr_p_lk_loc_v1, curr_p_lk_loc_v2;
   int num_subpatt;
+
+  b0 = b1 = b2 = NULL;
 
   if(d->tax) 
     {
@@ -2994,8 +2990,6 @@ void Alias_Subpatt_Post(t_node *a, t_node *d, t_tree *tree)
 
 void Alias_Subpatt_Pre(t_node *a, t_node *d, t_tree *tree)
 {
-  int i;
-
   if(d->tax) return;
   else
     {

@@ -292,14 +292,13 @@ int TIPO_main(int argc, char **argv)
   fclose(fp_tree_file);
   fclose(fp_coord_file);
 
+  return 0;
 }
 
 /*********************************************************/
 /* Z_scores have already been recorder here */
 void TIPO_Get_Min_Number_Of_Tip_Permut(t_tree *tree)
 {
-  int i;
-  
   Update_Ancestors(tree->n_root,tree->n_root->v[0],tree);
   Update_Ancestors(tree->n_root,tree->n_root->v[1],tree);
 
@@ -706,17 +705,16 @@ void TIPO_Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict
       int    d_a;
       int    beg,end;
       phydbl min,max;
-      int    n_down, n_up;
-      t_node *lca,*prev_lca;
+      t_node *lca;
       t_node **conflict_tips, **anc_conflict;
       int    n_conflicts;
-      int    swapped;
       phydbl eps,tmp_rank;
       t_node *tmp_node;
       int    n_moved;
       int    n_anc_conflicts;
 
       anc_conflict = NULL;
+      d_a = -1;
 
       /* It is a post order traversal */
       For(i,3)
@@ -757,6 +755,7 @@ void TIPO_Untangle_Node(t_node *a, t_node *d, t_node **node_table, int *conflict
 	    }
 	}
       
+      conflict_tips = NULL;
       For(i,tree->n_otu)
 	{
 	  if(node_table[i]->y_rank > min - eps)
@@ -1041,7 +1040,7 @@ void TIPO_Read_Taxa_Coordinates(FILE *fp_coord, t_tree *tree)
 
 void TIPO_Get_Tips_Y_Rank_From_Zscores(t_tree *tree)
 {
-  int i,j;
+  int i;
 
   For(i,tree->n_otu) tree->noeud[i]->y_rank = .0;
 
@@ -1134,10 +1133,8 @@ void TIPO_Randomize_Tip_Y_Ranks(t_tree *tree)
 phydbl TIPO_Read_One_Taxon_Zscore(FILE *fp_coord, char *seqname_qry, int col, t_tree *tree)
 {
   char *line;
-  phydbl zscore;
   char *seqname, *place;
   phydbl lat, lon;
-  int year;
 
   line    = (char *)mCalloc(T_MAX_LINE,sizeof(char));
   seqname = (char *)mCalloc(T_MAX_NAME,sizeof(char));
@@ -1239,6 +1236,8 @@ phydbl TIPO_Lk_Post(t_node *a, t_node *d, t_tree *tree)
 	}
       TIPO_Lk_Core(a,d,tree);
     }
+
+  return .0;
 }
 
 /*********************************************************/
@@ -1250,13 +1249,15 @@ phydbl TIPO_Lk_Core(t_node *a, t_node *d, t_tree *tree)
   int d_v1,d_v2,v1_d,v2_d;
   t_node *v1, *v2;
   phydbl dist,dens,min_dist;
-  
+    
+
   if(d->tax)
     {
       PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
+  v1_d = v2_d = -1;
   d_v1 = d_v2 = -1;
   For(i,3)
     {
@@ -1301,6 +1302,8 @@ phydbl TIPO_Lk_Core(t_node *a, t_node *d, t_tree *tree)
 
   dens = Dnorm(min_dist,0.0,tree->geo_mig_sd);
   tree->geo_lnL += LOG(dens);
+
+  return tree->geo_lnL;
 }
 
 /*********************************************************/

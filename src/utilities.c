@@ -3083,6 +3083,7 @@ t_tree *Read_Tree_File(option *io)
 	  strcpy(io->short_tax_names[i],tree->noeud[i]->name);
 	}
     }
+  return NULL;
 }
 
 /*********************************************************/
@@ -3796,7 +3797,6 @@ t_tree *Make_Tree_From_Scratch(int n_otu, calign *data)
 t_tree *Make_Tree(int n_otu)
 {
   t_tree *tree;
-  int i;
   tree = (t_tree *)mCalloc(1,sizeof(t_tree ));
   tree->t_dir = (short int *)mCalloc((2*n_otu-2)*(2*n_otu-2),sizeof(int));
   return tree;
@@ -6745,7 +6745,7 @@ void Get_Bip(t_node *a, t_node *d, t_tree *tree)
 
 void Alloc_Bip(t_tree *tree)
 {
-  int i,j,k;
+  int i;
 
   if(tree->has_bip) return;
 
@@ -8087,9 +8087,7 @@ void Reassign_Edge_Nums(t_node *a, t_node *d, int *curr_br, t_tree *tree)
 void Find_Mutual_Direction(t_node *n1, t_node *n2, short int *dir_n1_to_n2, short int *dir_n2_to_n1)
 {
   int scores[3][3];
-  int n_zero_line, n_zero_col;
   int i,j,k,l;
-  int n_otu;
 
   if(n1 == n2) return;
 
@@ -9226,10 +9224,10 @@ void Check_Memory_Amount(t_tree *tree)
   if(((phydbl)nbytes/(1.E+06)) > 256.)
 /*   if(((phydbl)nbytes/(1.E+06)) > 0.) */
     {
-      char answer;
       PhyML_Printf("\n. WARNING: this analysis requires at least %.0f MB of memory space.\n",(phydbl)nbytes/(1.E+06));
 #ifndef BATCH
 
+      char answer;
       if((!tree->io->quiet) && (tree->io->mem_question == YES)) 
 	{
 	  PhyML_Printf("\n. Do you really want to proceed? [Y/n] ");
@@ -9356,12 +9354,12 @@ void Warn_And_Exit(char *s)
   PhyML_Fprintf(stdout,"%s",s);
   fflush(NULL);
 #ifndef BATCH
-//  if (! tree->io->quiet) {
-    char c;
-    PhyML_Fprintf(stdout,"\n. Type enter to exit.\n");
-/*     if(!fscanf(stdin,"%c",&c))  */
-      Exit("");
-//  }
+  /* if (! tree->io->quiet) { */
+  /* char c; */
+  PhyML_Fprintf(stdout,"\n. Type enter to exit.\n");
+  /*     if(!fscanf(stdin,"%c",&c))  */
+  Exit("");
+  /* } */
 #endif
   Exit("\n");
 }
@@ -11546,6 +11544,9 @@ void Get_Best_Root_Position(t_tree *tree)
   phydbl s, s_max;
   t_edge *best_edge;
   int has_outgrp;
+  
+  best_edge = NULL;
+
   if(tree->e_root)
     {
       PhyML_Printf("\n. Tree already has a root.");
@@ -11663,6 +11664,7 @@ void Get_OutIn_Scores(t_node *a, t_node *d)
 {
   int i,d_v1,d_v2,v1_d,v2_d,d_a;
   
+  d_a = v1_d = v2_d = -1;
   d_v1 = d_v2 = -1;
   For(i,3)
     {

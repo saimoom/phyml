@@ -2294,7 +2294,7 @@ phydbl Generic_Brent_Lk(phydbl *param, phydbl ax, phydbl cx, phydbl tol,
   int iter;
   phydbl a,b,d,etemp,fu,fv,fw,fx,p,q,r,tol1,tol2,u,v,w,x,xm;
   phydbl e=0.0;
-  phydbl old_lnL,init_lnL,cur_lnL;
+  phydbl old_lnL,init_lnL;
   phydbl bx = *param;
 
   d=0.0;
