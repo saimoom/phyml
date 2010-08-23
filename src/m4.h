@@ -13,9 +13,27 @@ the GNU public licence. See http://www.opensource.org for details.
 #ifndef M4_H
 #define M4_H
 
+#include "spr.h"
+#include "utilities.h"
+#include "lk.h"
+#include "optimiz.h"
+#include "bionj.h"
+#include "models.h"
+#include "free.h"
+#include "help.h"
+#include "simu.h"
+#include "eigen.h"
+#include "pars.h"
+#include "alrt.h"
+#include "time.h"
+#include "draw.h"
+#ifdef PART
+#include "mg.h"
+#endif
+
 int M4_main(int argc, char **argv);
 void M4_Make_Complete(int n_h, int n_o, m4 *m4mod);
-m4 *M4_Make_Light(int n_o);
+m4 *M4_Make_Light();
 void M4_Free_M4_Model(m4 *m4mod);
 void M4_Init_Qmat(m4 *m4mod, calign *data, model *mod);
 void M4_Update_Qmat(m4 *m4mod, model *mod);

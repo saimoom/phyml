@@ -371,15 +371,10 @@ void Free_Custom_Model(model *mod)
 /*********************************************************/
 void Free_Model(model *mod)
 {
-
   Free_Model_Complete(mod);
   Free_Model_Basic(mod);
   Free_Custom_Model(mod);
-
-  #ifdef M4
   M4_Free_M4_Model(mod->m4mod);
-  #endif 
-
   Free(mod);
 }
 
