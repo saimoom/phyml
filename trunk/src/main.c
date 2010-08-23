@@ -270,6 +270,9 @@ int main(int argc, char **argv)
 
   Free_Optimiz(mod->s_opt);
   Free_Model_Basic(mod);
+  Free_Custom_Model(mod);
+  M4_Free_M4_Model(mod->m4mod);
+  Free(mod);
 
   if(io->fp_in_align)  fclose(io->fp_in_align);
   if(io->fp_in_tree)   fclose(io->fp_in_tree);
@@ -295,7 +298,7 @@ int main(int argc, char **argv)
 #include "m4.h"
 int main(int argc, char **argv)
 {
-  TIME_main(argc, argv);
+  M4_main(argc, argv);
   return 1;
 }
 

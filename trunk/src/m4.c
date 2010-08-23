@@ -1,6 +1,6 @@
 /*
 
-PhyML:  a program that  computes maximum likelihood phyLOGenies from
+PhyML:  a program that  computes maximum likelihood phylogenies from
 DNA or AA homoLOGous sequences.
 
 Copyright (C) Stephane Guindon. Oct 2003 onward.
@@ -12,31 +12,12 @@ the GNU public licence. See http://www.opensource.org for details.
 
 
 /* Routines for Markov-Modulated Markov Models (M4) */
-#ifdef M4
 
-#include "spr.h"
-#include "utilities.h"
-#include "lk.h"
-#include "optimiz.h"
-#include "bionj.h"
-#include "models.h"
-#include "free.h"
-#include "help.h"
-#include "simu.h"
-#include "eigen.h"
-#include "pars.h"
-#include "alrt.h"
 #include "m4.h"
-#include "time.h"
-#include "draw.h"
-#ifdef PART
-#include "mg.h"
-#endif
-
 
 int M4_main(int argc, char **argv)
 {
-  align **data;
+  
   calign *cdata;
   option *io;
   t_tree *tree;
@@ -44,35 +25,44 @@ int M4_main(int argc, char **argv)
   int num_tree,tree_line_number,num_rand_tree;
   matrix *mat;
   model *mod;
-  m4 *m4mod;
   time_t t_beg,t_end;
-  div_t hour,min;
-  phydbl best_lnL;
-  int bootstrap_this_tree;
+  phydbl best_lnL,most_likely_size,tree_size;
   int r_seed;
+  char *most_likely_tree=NULL;
 
+  
+#ifdef MPI
+  int rc;
+  rc = MPI_Init(&argc,&argv);
+  if (rc != MPI_SUCCESS) {
+    PhyML_Printf("\n. Error starting MPI program. Terminating.\n");
+    MPI_Abort(MPI_COMM_WORLD, rc);
+  }
+  MPI_Comm_size(MPI_COMM_WORLD,&Global_numTask);
+  MPI_Comm_rank(MPI_COMM_WORLD,&Global_myRank);
+#endif
 
 #ifdef QUIET
   setvbuf(stdout,NULL,_IOFBF,2048);
 #endif
 
-  tree = NULL;
-  mod  = NULL;
-  data = NULL;
-  bootstrap_this_tree = 1;
-  best_lnL = UNLIKELY;
 
+  tree             = NULL;
+  mod              = NULL;
+  best_lnL         = UNLIKELY;
+  most_likely_size = -1.0;
+  tree_size        = -1.0;
+
+  
+      
   io = (option *)Get_Input(argc,argv);
   r_seed = (io->r_seed < 0)?(time(NULL)):(io->r_seed);
   srand(r_seed);
-  Make_Model_Complete(io->mod);
-  mod = io->mod;
-  m4mod = mod->m4mod;
+  io->r_seed = r_seed;
+
+
   if(io->in_tree == 2) Test_Multiple_Data_Set_Format(io);
   else io->n_trees = 1;
-
-
-  if(io->mod->s_opt->random_input_tree) bootstrap_this_tree = 0;
 
   mat = NULL;
   tree_line_number = 0;
@@ -84,280 +74,224 @@ int M4_main(int argc, char **argv)
       io->n_trees     = MIN(io->n_trees,io->n_data_sets);
     }
 
-
   For(num_data_set,io->n_data_sets)
     {
       n_otu = 0;
       best_lnL = UNLIKELY;
-      data = Get_Seq(io);
-
-      if(data)
+      Get_Seq(io);
+      Make_Model_Complete(io->mod);
+      Set_Model_Name(io->mod);
+      Print_Settings(io);
+      mod = io->mod;
+      
+      if(io->data)
 	{
 	  if(io->n_data_sets > 1) PhyML_Printf("\n. Data set [#%d]\n",num_data_set+1);
-	  PhyML_Printf("\n. Compressing sequences...\n");
-	  cdata = Compact_Data(data,io);
-	  Free_Seq(data,cdata->n_otu);
-	  Check_Ambiguities(cdata,io->datatype,io->mod->state_len);
+	  cdata = Compact_Data(io->data,io);
+
+	  Free_Seq(io->data,cdata->n_otu);
+	  
+	  if(cdata) Check_Ambiguities(cdata,io->datatype,io->mod->state_len);
+	  else
+	    {
+	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	      Warn_And_Exit("");
+	    }
 
 	  for(num_tree=(io->n_trees == 1)?(0):(num_data_set);num_tree < io->n_trees;num_tree++)
 	    {
-
 	      if(!io->mod->s_opt->random_input_tree) io->mod->s_opt->n_rand_starts = 1;
 
 	      For(num_rand_tree,io->mod->s_opt->n_rand_starts)
 		{
-		  if((io->mod->s_opt->random_input_tree) && (io->mod->s_opt->topo_search == SPR_MOVE))
-		    PhyML_Printf("\n. [Random start %3d/%3d]\n",num_rand_tree+1,io->mod->s_opt->n_rand_starts);
+		  if((io->mod->s_opt->random_input_tree) && (io->mod->s_opt->topo_search != NNI_MOVE))
+		    if(!io->quiet) PhyML_Printf("\n. [Random start %3d/%3d]\n",num_rand_tree+1,io->mod->s_opt->n_rand_starts);
 
-		  Init_Model(cdata,mod);
-		  if(io->m4_model) M4_Init_Model(m4mod,cdata,mod);		    
+		  Init_Model(cdata,mod,io);
 
-		  if(!io->in_tree)
+		  if(io->mod->use_m4mod) M4_Init_Model(mod->m4mod,cdata,mod);
+
+		  switch(io->in_tree)
 		    {
-		      PhyML_Printf("\n. Computing pairwise distances...\n");
-		      mat = ML_Dist(cdata,mod);
-		      Fill_Missing_Dist(mat);
-		      PhyML_Printf("\n. Building BIONJ tree...\n");
-		      mat->tree = Make_Tree_From_Scratch(cdata->n_otu,cdata);
-		      Bionj(mat);
-		      tree      = mat->tree;
-		      tree->mat = mat;
-
+		    case 0 : case 1 : { tree = Dist_And_BioNJ(cdata,mod,io); break; }
+		    case 2 :          { tree = Read_User_Tree(cdata,mod,io); break; }
 		    }
-		  else if(io->in_tree == 2)
-		    {
-		      if((io->n_trees == 1) || (!num_tree))
-			{
-			  rewind(io->fp_in_tree);
-			  tree_line_number = 0;
-			}
 
-		      if(io->n_trees > 1) PhyML_Printf("\n. Reading tree [#%d]\n",tree_line_number+1);
-		      else PhyML_Printf("\n. Reading tree...\n");
-		      fflush(NULL);
-
-		      tree = Read_Tree_File(io->fp_in_tree);
-		      tree_line_number++;
-
-		      if(!tree)
-			{
-			  PhyML_Printf("\n. Input tree not found...\n");
-			  Exit("\n\n");
-			}
-
-		      if(!tree->has_branch_lengths)
-			{
-			  PhyML_Printf("\n. Computing branch length estimates...\n");
-			  Order_Tree_CSeq(tree,cdata);
-			  mat = ML_Dist(cdata,mod);
-			  mat->tree = tree;
-			  mat->method = 0;
-			  Bionj_Br_Length(mat);
-			  tree->mat = mat;
-			}
-
-		      tree->mod        = mod;
-		      tree->io         = io;
-		      tree->data       = cdata;
-		      tree->both_sides = 1;
-		      tree->n_pattern  = tree->data->crunch_len;
-		    }
 
 		  if(!tree) continue;
 
 		  time(&t_beg);
 		  time(&(tree->t_beg));
-
+      
 
 		  tree->mod         = mod;
 		  tree->io          = io;
 		  tree->data        = cdata;
-		  tree->both_sides  = 1;
+		  tree->both_sides  = YES;
 		  tree->n_pattern   = tree->data->crunch_len;
 
-		  if((!num_data_set) && (!num_tree) && (!num_rand_tree)) 
+		  if(mod->s_opt->random_input_tree) Random_Tree(tree);
+
+		  if((!num_data_set) && (!num_tree) && (!num_rand_tree)) Check_Memory_Amount(tree);		  
+
+
+		  Prepare_Tree_For_Lk(tree);
+
+		  if(io->in_tree == 1) Spr_Pars(tree);
+		 
+		  if(io->do_alias_subpatt)
 		    {
-//#ifndef BATCH
-		      Check_Memory_Amount(tree);
-//#endif
+		      tree->update_alias_subpatt = YES;
+		      Lk(tree);
+		      tree->update_alias_subpatt = NO;
 		    }
 
-		  Order_Tree_CSeq(tree,cdata);
-
-		  if((tree->mod->s_opt->random_input_tree) && (tree->mod->s_opt->topo_search == SPR_MOVE))
-		    {
-		      PhyML_Printf("\n. Randomising the tree...\n");
-		      Random_Tree(tree);
-		    }
-
-		  Fill_Dir_Table(tree);
-		  Update_Dirs(tree);
-		  Make_Tree_4_Pars(tree,cdata,cdata->init_len);
-		  Make_Tree_4_Lk(tree,cdata,cdata->init_len);
-		  tree->triplet_struct = Make_Triplet_Struct(mod);
-		  Br_Len_Not_Involving_Invar(tree);
-
- 		  if((tree->mod->s_opt->topo_search == SPR_MOVE) ||
-		     (tree->mod->s_opt->topo_search == NNI_MOVE))
-		    {
-		      Make_Spr_List(tree);
-		      Make_Best_Spr(tree);
-		    }
-
-		  
 		  if(tree->mod->s_opt->opt_topo)
 		    {
-		      if(tree->mod->s_opt->topo_search == NNI_MOVE)
-			{
-			  Simu(tree,1000);
-			}
-		      else
-			{
-			  if(tree->mod->s_opt->steph_spr)
-			    {
-			      Speed_Spr(tree);
-			      Simu(tree,1000);
-			    }
-			  else
-			    {
-			      Init_SPR(tree);
-			      Optim_SPR(tree,0,ALL);
-			      Clean_SPR(tree);
-			    }
-			}
+		      if(tree->mod->s_opt->topo_search      == NNI_MOVE) Simu_Loop(tree);
+		      else if(tree->mod->s_opt->topo_search == SPR_MOVE) Speed_Spr_Loop(tree);
+		      else                                               Best_Of_NNI_And_SPR(tree);
 		    }
 		  else
 		    {
-		      if(tree->mod->s_opt->opt_subst_param || tree->mod->s_opt->opt_bl) 
-			{
-			  Round_Optimize(tree,tree->data);
-			}
-		      else
-			{
-			  Lk(tree);
-			  Print_Lk(tree,"");
-			}
+		      if(tree->mod->s_opt->opt_subst_param || 
+			 tree->mod->s_opt->opt_bl)                       Round_Optimize(tree,tree->data,ROUND_MAX);
+		      else                                               Lk(tree);
 		    }
-
-		  if(tree->io->ratio_test) aLRT(tree);
-
-		  Lk(tree);
-		  PhyML_Printf("\n\n. Final LOG likelihood : %f",tree->c_lnL);
 		  
+		  tree->both_sides = 1;
+		  Lk(tree);
+		  Pars(tree);
+		  Get_Tree_Size(tree);
+		  PhyML_Printf("\n. Log likelihood of the current tree: %f.\n",tree->c_lnL);
+
+		  Exit("\n");
 
 		  /* */
 		  M4_Compute_Proba_Hidden_States_On_Edges(tree);
 		  /* */
 
 
+		  Get_Best_Root_Position(tree);
 
-		  if((tree->c_lnL > best_lnL) && (io->mod->s_opt->n_rand_starts > 1))
+		  /* Print the tree estimated using the current random (or BioNJ) starting tree */
+		  if(io->mod->s_opt->n_rand_starts > 1)
 		    {
-		      best_lnL = tree->c_lnL;
-		      io->fp_out_trees = (FILE *)fopen(io->out_trees_file,"w");
+		      Br_Len_Involving_Invar(tree);
 		      Print_Tree(io->fp_out_trees,tree);
 		      fflush(NULL);
-		      fclose(io->fp_out_trees);
 		    }
 
-		  if((tree->mod->bootstrap) && (bootstrap_this_tree))
+		  /* Record the most likely tree in a string of characters */
+		  if(tree->c_lnL > best_lnL)
 		    {
-		      if(num_rand_tree > 0) io->in_tree = 0;
-		      Bootstrap(tree);
-		      tree->mod->bootstrap = 0;
+		      best_lnL = tree->c_lnL;
+		      Br_Len_Involving_Invar(tree);
+		      if(most_likely_tree) Free(most_likely_tree);
+		      most_likely_tree = Write_Tree(tree);
+		      most_likely_size = Get_Tree_Size(tree);
 		    }
 
-		  Br_Len_Involving_Invar(tree);
-		  Print_Tree(io->fp_out_tree,tree);
+/* 		  JF(tree); */
 
-		  Unconstraint_Lk(tree);
 		  time(&t_end);
-		  hour = div(t_end-t_beg,3600);
-		  min  = div(t_end-t_beg,60  );
-		  min.quot -= hour.quot*60;
-		  PhyML_Printf("\n\n. Time used %dh%dm%ds\n", hour.quot,min.quot,(int)(t_end-t_beg)%60);
-		  PhyML_Printf("\noooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo\n");
 		  Print_Fp_Out(io->fp_out_stats,t_beg,t_end,tree,
 			       io,num_data_set+1,
-			       (tree->mod->s_opt->n_rand_starts > 1)?(num_rand_tree):(num_tree));
+			       (tree->mod->s_opt->n_rand_starts > 1)?
+			       (num_rand_tree):(num_tree));
 		  
 		  if(tree->io->print_site_lnl) Print_Site_Lk(tree,io->fp_out_lk);
 
 		  /* Start from BioNJ tree */
-		  if((num_rand_tree == io->mod->s_opt->n_rand_starts-1)
-		     && (io->mod->s_opt->n_rand_starts > 1)
-		     && (tree->mod->s_opt->random_input_tree))
+		  if((num_rand_tree == io->mod->s_opt->n_rand_starts-1) && (tree->mod->s_opt->random_input_tree))
 		    {
+		      /* Do one more iteration in the loop, but don't randomize the tree */
 		      num_rand_tree--;
 		      tree->mod->s_opt->random_input_tree = 0;
 		    }
-
-		  if((num_rand_tree == io->mod->s_opt->n_rand_starts - 1) &&
-		     (!tree->mod->s_opt->random_input_tree) &&
-		     (io->mod->s_opt->n_rand_starts > 1))
-		    {
-		      if(tree->mod->bootstrap)
-			{
-			  num_rand_tree--;
-			  io->in_tree = 2;
-			  io->fp_in_tree = io->fp_out_trees;
-			  bootstrap_this_tree  = 1;
-			  io->fp_in_tree = (FILE *)fopen(io->out_trees_file,"r");
-			}
-		      else
-			{
-			  io->fp_out_trees = (FILE *)fopen(io->out_trees_file,"w");
-			  Print_Tree(io->fp_out_trees,tree);
-			  fflush(NULL);
-			  fclose(io->fp_out_trees);
-			}
-		    }
-
- 		  if((tree->mod->s_opt->topo_search == SPR_MOVE) ||
-		     (tree->mod->s_opt->topo_search == NNI_MOVE))
-		    {
-		      Free_Spr_List(tree);
-		      Free_One_Spr(tree->best_spr);
-		    }
-
+		  
+		  Free_Spr_List(tree);
+		  Free_One_Spr(tree->best_spr);
 		  if(tree->mat) Free_Mat(tree->mat);
 		  Free_Triplet(tree->triplet_struct);
 		  Free_Tree_Pars(tree);
 		  Free_Tree_Lk(tree);
 		  Free_Tree(tree);
 		}
+
+
+	      /* Launch bootstrap analysis */
+	      if(mod->bootstrap) 
+		{
+		  if(!io->quiet) PhyML_Printf("\n. Launch bootstrap analysis on the most likely tree...\n");
+
+                  #ifdef MPI
+		  MPI_Bcast (most_likely_tree, strlen(most_likely_tree)+1, MPI_CHAR, 0, MPI_COMM_WORLD);
+		  if(!io->quiet)  PhyML_Printf("\n. The bootstrap analysis will use %d CPUs.\n",Global_numTask);
+		  #endif
+
+		  most_likely_tree = Bootstrap_From_String(most_likely_tree,cdata,mod,io);
+		}
+	      else if(io->ratio_test) 
+		{
+		  /* Launch aLRT */
+		  if(!io->quiet) PhyML_Printf("\n. Compute aLRT branch supports on the most likely tree...\n");
+		  most_likely_tree = aLRT_From_String(most_likely_tree,cdata,mod,io);
+		}
+
+	      /* Print the most likely tree in the output file */
+	      if(!io->quiet) PhyML_Printf("\n. Printing the most likely tree in file '%s'...\n", Basename(io->out_tree_file));
+	      if(io->n_data_sets == 1) rewind(io->fp_out_tree);
+	      PhyML_Fprintf(io->fp_out_tree,"%s\n",most_likely_tree);
+	      
+
 	      if(io->n_trees > 1 && io->n_data_sets > 1) break;
 	    }
 	  Free_Cseq(cdata);
 	}
+      else
+	{
+	  PhyML_Printf("\n. No data was found.\n");
+	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  Warn_And_Exit("");
+	}
+      Free_Model_Complete(mod);
     }
+  
+  if(most_likely_tree) Free(most_likely_tree);
 
-  if(io->mod->s_opt->n_rand_starts > 1) PhyML_Printf("\n\n. Best LOG likelihood : %f\n",best_lnL);
+  if(mod->s_opt->n_rand_starts > 1) PhyML_Printf("\n. Best log likelihood: %f\n",best_lnL);
 
-  Free_Model(mod);
+  Free_Optimiz(mod->s_opt);
+  Free_Model_Basic(mod);
 
-  if(io->fp_in_align)    fclose(io->fp_in_align);
+  if(io->fp_in_align)  fclose(io->fp_in_align);
   if(io->fp_in_tree)   fclose(io->fp_in_tree);
   if(io->fp_out_lk)    fclose(io->fp_out_lk);
   if(io->fp_out_tree)  fclose(io->fp_out_tree);
+  if(io->fp_out_trees) fclose(io->fp_out_trees);
   if(io->fp_out_stats) fclose(io->fp_out_stats);
 
   Free_Input(io);
-  return 0;
 
+  time(&t_end);
+  Print_Time_Info(t_beg,t_end);
+
+#ifdef MPI
+  MPI_Finalize();
+#endif
+
+  return 0;
 }
 
 /*********************************************************/
 
 /* Allocate memory */
-m4 *M4_Make_Light(int n_o)
+m4 *M4_Make_Light()
 {
   m4 *m4mod;
 
   m4mod = (m4 *)mCalloc(1,sizeof(m4));
-  m4mod->n_o = n_o;
-  m4mod->o_rr = (phydbl *)mCalloc(n_o*n_o,sizeof(phydbl));
-  m4mod->o_fq = (phydbl *)mCalloc(n_o,sizeof(phydbl));
   M4_Set_M4mod_Default(m4mod);
   return m4mod;
 }
@@ -368,6 +302,8 @@ void M4_Set_M4mod_Default(m4 *m4mod)
 {
   m4mod->use_cov_alpha = 1;
   m4mod->use_cov_alpha = 0;
+  m4mod->n_h           = 3;
+  m4mod->n_o           = 4;
 }
 
 /*********************************************************/
@@ -378,6 +314,9 @@ void M4_Make_Complete(int n_h, int n_o, m4 *m4mod)
 
   m4mod->n_h = n_h;
   m4mod->n_o = n_o;
+  m4mod->n_o = n_o;
+  m4mod->o_rr = (phydbl *)mCalloc(n_o*n_o,sizeof(phydbl));
+  m4mod->o_fq = (phydbl *)mCalloc(n_o,sizeof(phydbl));
   m4mod->o_mats = (phydbl **)mCalloc(n_h,sizeof(phydbl *));
   For(i,n_h) m4mod->o_mats[i] = (phydbl *)mCalloc(n_o*n_o,sizeof(phydbl));
   m4mod->h_mat = (phydbl *)mCalloc(n_h*n_h,sizeof(phydbl));
@@ -395,28 +334,32 @@ void M4_Free_M4_Model(m4 *m4mod)
 {
   int i;
   
-  For(i,m4mod->n_h) Free(m4mod->o_mats[i]);
-  Free(m4mod->o_mats);
-  Free(m4mod->h_mat);
-  Free(m4mod->o_rr);
-  Free(m4mod->h_rr);
-  Free(m4mod->o_fq);
-  Free(m4mod->h_fq);
-  Free(m4mod->multipl);
-  Free(m4mod->multipl_unscaled);
-  Free(m4mod->h_fq_unscaled);
+  if(m4mod->o_mats)
+    {
+      For(i,m4mod->n_h) Free(m4mod->o_mats[i]);
+      Free(m4mod->o_mats);      
+      Free(m4mod->h_mat);
+      Free(m4mod->o_rr);
+      Free(m4mod->h_rr);
+      Free(m4mod->o_fq);
+      Free(m4mod->h_fq);
+      Free(m4mod->multipl);
+      Free(m4mod->multipl_unscaled);
+      Free(m4mod->h_fq_unscaled);
+    }
+
   Free(m4mod);
 }
 
 /*********************************************************/
 
-void M4_Init_Model(m4 *m4mod, calign *data, model *mod int datatype)
+void M4_Init_Model(m4 *m4mod, calign *data, model *mod)
 {
   int i;
   phydbl fq;
 
-  if(datatype == NT)      m4mod->n_o = 4;
-  else if(datatype == AA) m4mod->n_o = 20;
+  if(mod->io->datatype == NT)      m4mod->n_o = 4;
+  else if(mod->io->datatype == AA) m4mod->n_o = 20;
   else 
     {
       PhyML_Printf("\n. Not implemented yet.");
@@ -425,7 +368,11 @@ void M4_Init_Model(m4 *m4mod, calign *data, model *mod int datatype)
     }
 
   mod->ns = m4mod->n_o * m4mod->n_h;
-  For(i,m4mod->n_o) m4mod->o_fq[i] = data->b_frq[i];
+
+  For(i,m4mod->n_o) m4mod->o_fq[i] = mod->pi[i]; /*! At that stage, the mod->pi vector as been initialized
+						     under a standard non covarion type of model. Use these
+						     frequencies as they have been set according to the 
+						     nucleotide substitution model chosen (e.g., 1/4 for JC69). !*/
   For(i,(int)(m4mod->n_h)) m4mod->multipl[i] = 1.;
   For(i,(int)(m4mod->n_o*(m4mod->n_o-1)/2)) m4mod->o_rr[i] = 1.;
   For(i,(int)(m4mod->n_h*(m4mod->n_h-1)/2)) m4mod->h_rr[i] = 1.;
@@ -450,6 +397,7 @@ void M4_Update_Qmat(m4 *m4mod, model *mod)
   int i,j;
   int n_s, n_o, n_h;
   phydbl mr, sum;
+  phydbl scale;
 
   /* The number of states in M4 models is the product 
      of the number of hidden states (or classes) by the
@@ -462,7 +410,7 @@ void M4_Update_Qmat(m4 *m4mod, model *mod)
   /* Set the relative substitution rates */
   if(mod->m4mod->use_cov_alpha)
     {
-      DiscreteGamma(m4mod->h_fq,m4mod->multipl,m4mod->alpha,m4mod->alpha,m4mod->n_h,m4mod->gamma_median);
+      DiscreteGamma(m4mod->h_fq,m4mod->multipl,m4mod->alpha,m4mod->alpha,m4mod->n_h,mod->gamma_median);
     }
   else if(mod->m4mod->use_cov_free)
     {
@@ -479,25 +427,25 @@ void M4_Update_Qmat(m4 *m4mod, model *mod)
 	      if(mod->m4mod->h_fq[i] > 0.99) mod->m4mod->h_fq[i]=0.99;
 	      sum += mod->m4mod->h_fq[i];
 	    }
+
 	  For(i,mod->m4mod->n_h) mod->m4mod->h_fq[i]/=sum;
 	}
       while((sum > 1.01) || (sum < 0.99));
 
 
-      /* Make sure the multipliers are centered around 1.0 */
+      /* Make sure the multipliers are centered on 1.0 */
       sum = .0;
       For(i,mod->m4mod->n_h) sum += FABS(mod->m4mod->multipl_unscaled[i]) * mod->m4mod->h_fq[i];
       For(i,mod->m4mod->n_h) mod->m4mod->multipl[i] = mod->m4mod->multipl_unscaled[i] / sum;
       
+      /* printf("\n. WARNING\n"); */
+      /* mod->m4mod->h_fq[0] = 1./3; */
+      /* mod->m4mod->h_fq[1] = 1./3; */
+      /* mod->m4mod->h_fq[2] = 1./3; */
 
-/*       mod->m4mod->h_fq[0] = 0.33; */
-/*       mod->m4mod->h_fq[1] = 0.33; */
-/*       mod->m4mod->h_fq[2] = 0.33; */
-
-/*       mod->m4mod->multipl[0] =  0.1; */
-/*       mod->m4mod->multipl[1] =  1.0; */
-/*       mod->m4mod->multipl[2] = 10.0; */
-
+      /* mod->m4mod->multipl[0] = 1.0; */
+      /* mod->m4mod->multipl[1] = 1.0; */
+      /* mod->m4mod->multipl[2] = 1.0; */
 
       sum = 0;
       For(i,mod->m4mod->n_h) sum += mod->m4mod->multipl[i] * mod->m4mod->h_fq[i];
@@ -508,26 +456,53 @@ void M4_Update_Qmat(m4 *m4mod, model *mod)
 	  Warn_And_Exit("\n");
 	}
 
-/*       PhyML_Printf("\n__ "); */
-/*       For(i,mod->m4mod->n_h) PhyML_Printf("\n.%f %f %f", */
-/* 				    mod->m4mod->h_fq[i], */
-/* 				    mod->m4mod->h_fq_unscaled[i], */
-/* 				    mod->m4mod->multipl[i]); */
+      /* PhyML_Printf("\n__ "); */
+      /* For(i,mod->m4mod->n_h) PhyML_Printf("\n.%f %f %f", */
+      /* 				    mod->m4mod->h_fq[i], */
+      /* 				    mod->m4mod->h_fq_unscaled[i], */
+      /* 				    mod->m4mod->multipl[i]); */
     }
 
 
-/*   PhyML_Printf("\n."); */
-/*   PhyML_Printf("\n. M4 model parameters"); */
-/*   PhyML_Printf("\n. Delta = %f",m4mod->delta); */
-/*   For(i,mod->m4mod->n_h) PhyML_Printf("\n. multipl %d = %f",i,m4mod->multipl[i]); */
-/*   For(i,mod->m4mod->n_h) PhyML_Printf("\n. fq %d = %f",i,m4mod->h_fq[i]); */
+  /* PhyML_Printf("\n."); */
+  /* PhyML_Printf("\n. M4 model parameters"); */
+  /* m4mod->delta=.0; */
+  /* PhyML_Printf("\n. Delta = %f",m4mod->delta); */
+  /* For(i,mod->m4mod->n_h) PhyML_Printf("\n. multipl %d = %f",i,m4mod->multipl[i]); */
+  /* For(i,mod->m4mod->n_h) PhyML_Printf("\n. fq %d = %f",i,m4mod->h_fq[i]); */
 
 
   /* Set up the stationary frequency vector */
   For(i,n_s) mod->pi[i] = m4mod->o_fq[i%n_o] * m4mod->h_fq[i/n_o];
 
+
+  if(mod->whichmodel != CUSTOM &&
+     mod->whichmodel != GTR)
+    {
+      phydbl kappa1,kappa2;
+
+      if((mod->whichmodel != F84) && (mod->whichmodel != TN93)) mod->lambda = 1.; 
+      else if(mod->whichmodel == F84)
+	{
+	  mod->lambda = Get_Lambda_F84(mod->pi,&mod->kappa);
+	}
+
+      kappa2 = mod->kappa*2./(1.+mod->lambda);
+      kappa1 = kappa2 * mod->lambda;
+
+      /* A <-> C */ m4mod->o_rr[0] = 1.0;
+      /* A <-> G */ m4mod->o_rr[1] = kappa2;
+      /* A <-> T */ m4mod->o_rr[2] = 1.0;
+      /* C <-> G */ m4mod->o_rr[3] = 1.0;
+      /* C <-> T */ m4mod->o_rr[4] = kappa1;
+    }
+
+
   /* Fill the matrices of nucleotide substitution rates here */
   Update_Qmat_Generic(m4mod->o_rr, m4mod->o_fq, m4mod->n_o, m4mod->o_mats[0]);
+
+  /* Print_Square_Matrix_Generic(4,m4mod->o_mats[0]); */
+
 
   /* Multiply each of these matrix by a relative substitution rate */
   for(i=1;i<m4mod->n_h;i++) For(j,n_o*n_o) m4mod->o_mats[i][j] = m4mod->o_mats[0][j]*m4mod->multipl[i];
@@ -547,9 +522,6 @@ void M4_Update_Qmat(m4 *m4mod, model *mod)
 	    }
 	}
     }
-
-  /* Note: nucleotide equilibrium frequencies are already built in the o_mats matrices.
-     No need to 'add' these frequencies later on. */
 
   /* Work out scaling factor */
   mr = .0;
@@ -594,6 +566,26 @@ void M4_Update_Qmat(m4 *m4mod, model *mod)
 
   /* We are done with the non diagonal blocks */
 
+
+  /* Scaling matrix */
+  scale = 0.0;
+  For(i,n_s)
+    {
+      For(j,n_s)
+	{
+	  if((int)(i/n_o) == (j/n_o))
+	    {
+	      scale += 
+		m4mod->h_fq[(int)(j/n_o)] *
+		m4mod->o_fq[i%n_o] *
+		mod->qmat[i*n_s+j];
+	    }
+	}
+    }
+  
+  For(i,n_s*n_s) mod->qmat[i] /= scale;
+
+
   /* Diagonal cells */
   For(i,n_s)
     {
@@ -606,7 +598,6 @@ void M4_Update_Qmat(m4 *m4mod, model *mod)
       mod->qmat[i*n_s+i] = -sum;
     }
 
-  /* Print_Square_Matrix_Generic(n_s,mod->qmat); */
   For(i,n_s*n_s) mod->eigen->q[i] = mod->qmat[i];
 }
 
@@ -614,8 +605,13 @@ void M4_Update_Qmat(m4 *m4mod, model *mod)
 
 void M4_Init_P_Lk_Tips_Double(t_tree *tree)
 {
-  int curr_site,i,j,k,l;
+  int curr_site,i,j,k,l,dim1,dim2,dim3;
   
+  dim1 = tree->mod->n_catg * tree->mod->m4mod->n_h * tree->mod->m4mod->n_o;
+  dim2 = tree->mod->m4mod->n_h * tree->mod->m4mod->n_o;
+  dim3 = tree->mod->m4mod->n_o;
+
+
   Fors(curr_site,tree->data->crunch_len,tree->mod->state_len)
     {
       For(i,tree->n_otu)
@@ -623,13 +619,25 @@ void M4_Init_P_Lk_Tips_Double(t_tree *tree)
 	  for(j=1;j<tree->mod->m4mod->n_h;j++)
 	    {
 	      For(k,tree->mod->m4mod->n_o)
-		tree->noeud[i]->b[0]->p_lk_rght[curr_site][0][j*tree->mod->m4mod->n_o+k] = 
-		tree->noeud[i]->b[0]->p_lk_rght[curr_site][0][k];
-	      
+		{
+		  tree->noeud[i]->b[0]->p_lk_rght[curr_site*dim1 + 0*dim2 + j*dim3+k] = 
+		    tree->noeud[i]->b[0]->p_lk_rght[curr_site*dim1 + 0*dim2 + 0*dim3+k];
+		  
+		  printf("\n() i=%d plk=%f",
+			 curr_site*dim1 + 0*dim2 + j*dim3+k,
+			 tree->noeud[i]->b[0]->p_lk_rght[curr_site*dim1 + 0*dim2 + j*dim3+k]);
+
+		  /* tree->noeud[i]->b[0]->p_lk_rght[curr_site][0][j*tree->mod->m4mod->n_o+k] =  */
+		  /* tree->noeud[i]->b[0]->p_lk_rght[curr_site][0][k]; */
+		}
+
+
 	      For(k,tree->mod->m4mod->n_o)
 		for(l=1;l<tree->mod->n_catg;l++)
-		  tree->noeud[i]->b[0]->p_lk_rght[curr_site][l][j*tree->mod->m4mod->n_o+k] = 
-		  tree->noeud[i]->b[0]->p_lk_rght[curr_site][0][j*tree->mod->m4mod->n_o+k];
+		  tree->noeud[i]->b[0]->p_lk_rght[curr_site*dim1 + l*dim2 + j*dim3+k] = 
+		  tree->noeud[i]->b[0]->p_lk_rght[curr_site*dim1 + 0*dim2 + j*dim3+k];
+		  /* tree->noeud[i]->b[0]->p_lk_rght[curr_site][l][j*tree->mod->m4mod->n_o+k] =  */
+		  /* tree->noeud[i]->b[0]->p_lk_rght[curr_site][0][j*tree->mod->m4mod->n_o+k]; */
 	    }
 	}
     }
@@ -639,7 +647,10 @@ void M4_Init_P_Lk_Tips_Double(t_tree *tree)
 
 void M4_Init_P_Lk_Tips_Int(t_tree *tree)
 {
-  int curr_site,i,j,k;
+  int curr_site,i,j,k,dim2,dim3;
+
+  dim2 = tree->mod->m4mod->n_h * tree->mod->m4mod->n_o;
+  dim3 = tree->mod->m4mod->n_o;
 
   Fors(curr_site,tree->data->crunch_len,tree->mod->state_len)
     {
@@ -648,8 +659,12 @@ void M4_Init_P_Lk_Tips_Int(t_tree *tree)
 	  for(j=1;j<tree->mod->m4mod->n_h;j++)
 	    {
 	      For(k,tree->mod->m4mod->n_o)
-		tree->noeud[i]->b[0]->p_lk_tip_r[curr_site][j*tree->mod->m4mod->n_o+k] = 
-		tree->noeud[i]->b[0]->p_lk_tip_r[curr_site][k];
+		{
+		  tree->noeud[i]->b[0]->p_lk_tip_r[curr_site*dim2 + j*dim3+k] = 
+		    tree->noeud[i]->b[0]->p_lk_tip_r[curr_site*dim2 + 0*dim3+k];
+		  /* tree->noeud[i]->b[0]->p_lk_tip_r[curr_site][j*tree->mod->m4mod->n_o+k] =  */
+		  /* tree->noeud[i]->b[0]->p_lk_tip_r[curr_site][k]; */
+		}
 	    }
 	}
     }
@@ -659,26 +674,17 @@ void M4_Init_P_Lk_Tips_Int(t_tree *tree)
 
 phydbl ****M4_Integral_Term_On_One_Edge(t_edge *b, t_tree *tree)
 {
-  phydbl ****integral,***P1,***P2;  
+  phydbl ****integral,*P1,*P2;  
   int ns;
   int g,i,j,k,l;
   int step;
+  
 
   ns = tree->mod->ns;
 
-  P1 = (phydbl ***)mCalloc(tree->mod->n_catg,sizeof(phydbl **));
-  For(g,tree->mod->n_catg) 
-    {
-      P1[g] = (phydbl **)mCalloc(ns,sizeof(phydbl *));
-      For(j,ns) P1[g][j] = (phydbl *)mCalloc(ns,sizeof(phydbl));
-    }
 
-  P2 = (phydbl ***)mCalloc(tree->mod->n_catg,sizeof(phydbl **));
-  For(g,tree->mod->n_catg) 
-    {
-      P2[g] = (phydbl **)mCalloc(ns,sizeof(phydbl *));
-      For(j,ns) P2[g][j] = (phydbl *)mCalloc(ns,sizeof(phydbl));
-    }
+  P1 = (phydbl *)mCalloc(tree->mod->n_catg*ns*ns,sizeof(phydbl));
+  P2 = (phydbl *)mCalloc(tree->mod->n_catg*ns*ns,sizeof(phydbl));
 
 
   integral = (phydbl ****)mCalloc(tree->mod->n_catg,sizeof(phydbl ***));
@@ -700,8 +706,8 @@ phydbl ****M4_Integral_Term_On_One_Edge(t_edge *b, t_tree *tree)
     {
       For(g,tree->mod->n_catg)
 	{
-	  PMat(((phydbl)(i+0.5)/step)*b->l*tree->mod->gamma_rr[g],tree->mod,P1+g);
-	  PMat(((phydbl)(step-i-0.5)/step)*b->l*tree->mod->gamma_rr[g],tree->mod,P2+g);
+	  PMat(((phydbl)(i+0.5)/step)*b->l*tree->mod->gamma_rr[g],tree->mod,g*ns*ns,P1);
+	  PMat(((phydbl)(step-i-0.5)/step)*b->l*tree->mod->gamma_rr[g],tree->mod,g*ns*ns,P2);
 
 	  For(j,ns)
 	    {
@@ -709,7 +715,8 @@ phydbl ****M4_Integral_Term_On_One_Edge(t_edge *b, t_tree *tree)
 		{
 		  For(l,ns)
 		    {
-		      integral[g][j][k][l] += P1[g][j][k] * P2[g][j][l]  / ((phydbl)(step));
+		      /* integral[g][j][k][l] += P1[g][j][k] * P2[g][j][l]  / ((phydbl)(step)); */
+		      integral[g][j][k][l] += P1[g*ns*ns + j*ns+k] * P2[g*ns*ns + j*ns+l] / ((phydbl)(step));
 		    }
 		}
 	    }      
@@ -718,18 +725,7 @@ phydbl ****M4_Integral_Term_On_One_Edge(t_edge *b, t_tree *tree)
     }
   PhyML_Printf("]\n");
 
-  For(g,tree->mod->n_catg)
-    {
-      For(i,ns) Free(P1[g][i]); 
-      Free(P1[g]);
-    }
   Free(P1);
-
-  For(g,tree->mod->n_catg)
-    {
-      For(i,ns) Free(P2[g][i]);
-      Free(P2[g]);
-    }
   Free(P2);
 
   return integral;
@@ -746,11 +742,15 @@ void M4_Post_Prob_H_Class_Edge_Site(t_edge *b, phydbl ****integral, phydbl *post
   int g,i,j,k,l;
   int ns,n_h;
   phydbl sum;
+  int dim1,dim2;
+
+  dim1 = tree->mod->n_catg * tree->mod->ns;
+  dim2 = tree->mod->ns;
 
   ns = tree->mod->ns;
   n_h = tree->mod->m4mod->n_h; /* number of classes, i.e., number of hidden states */
 
-  site_lk = (phydbl)EXP(tree->site_lk[tree->curr_site]);
+  site_lk = (phydbl)EXP(tree->cur_site_lk[tree->curr_site]);
 
   if(b->rght->tax)
     {
@@ -767,21 +767,33 @@ void M4_Post_Prob_H_Class_Edge_Site(t_edge *b, phydbl ****integral, phydbl *post
 		      For(l,tree->mod->ns)
 			{
 			  postprob[i] +=
+
 			    (1./site_lk) *
 			    tree->mod->gamma_r_proba[g] *
 			    tree->mod->m4mod->h_fq[i] *
 			    tree->mod->m4mod->o_fq[j] *
-			    b->p_lk_left[tree->curr_site][g][k] *
-			    b->p_lk_tip_r[tree->curr_site][l] *
-			    /* 			b->p_lk_rght[tree->curr_site][0][l] * */
+			    b->p_lk_left[tree->curr_site*dim1 + g*dim2 + k] *
+			    b->p_lk_tip_r[tree->curr_site*dim2 + l] *
 			    integral[g][i*tree->mod->m4mod->n_o+j][k][l];
+
+			    /* (1./site_lk) * */
+			    /* tree->mod->gamma_r_proba[g] * */
+			    /* tree->mod->m4mod->h_fq[i] * */
+			    /* tree->mod->m4mod->o_fq[j] * */
+			    /* b->p_lk_left[tree->curr_site][g][k] * */
+			    /* b->p_lk_tip_r[tree->curr_site][l] * */
+			    /* /\* 			b->p_lk_rght[tree->curr_site][0][l] * *\/ */
+			    /* integral[g][i*tree->mod->m4mod->n_o+j][k][l]; */
 			}
 		    }
 		}
 	    }
 	  sum += postprob[i];
 	}
+
+      /* TO DO */
       For(i,n_h) postprob[i] *= EXP(b->sum_scale_left[tree->curr_site]); 
+
     }
   else
     {
@@ -798,20 +810,32 @@ void M4_Post_Prob_H_Class_Edge_Site(t_edge *b, phydbl ****integral, phydbl *post
 		      For(l,tree->mod->ns)
 			{
 			  postprob[i] +=
+
 			    (1./site_lk) *
 			    tree->mod->gamma_r_proba[g] *
 			    tree->mod->m4mod->h_fq[i] *
 			    tree->mod->m4mod->o_fq[j] *
-			    b->p_lk_left[tree->curr_site][g][k] *
-			    b->p_lk_rght[tree->curr_site][g][l] *
+			    b->p_lk_left[tree->curr_site*dim1 + g*dim2 + k] *
+			    b->p_lk_rght[tree->curr_site*dim1 + g*dim2 + l] *
 			    integral[g][i*tree->mod->m4mod->n_o+j][k][l];
+
+			    /* (1./site_lk) * */
+			    /* tree->mod->gamma_r_proba[g] * */
+			    /* tree->mod->m4mod->h_fq[i] * */
+			    /* tree->mod->m4mod->o_fq[j] * */
+			    /* b->p_lk_left[tree->curr_site][g][k] * */
+			    /* b->p_lk_rght[tree->curr_site][g][l] * */
+			    /* integral[g][i*tree->mod->m4mod->n_o+j][k][l]; */
 			}
 		    }
 		}
 	    }
 	  sum += postprob[i];
 	}
+
+      /* TO DO */
       For(i,n_h) postprob[i] *= EXP(b->sum_scale_left[tree->curr_site] + b->sum_scale_rght[tree->curr_site]); 
+
     }
 
   For(i,n_h) 
@@ -984,7 +1008,7 @@ void M4_Compute_Posterior_Mean_Rates(phydbl ***post_probs, t_tree *tree)
   tree->ps_tree = DR_Make_Tdraw_Struct(tree);
   DR_Print_Postscript_Header(tree->n_pattern,tree->io->fp_out_ps);
   tree->ps_page_number = 0;
-  DR_Print_Tree_Postscript(tree->ps_page_number++,tree->io->fp_out_ps,tree);
+  DR_Print_Tree_Postscript(tree->ps_page_number++,YES,tree->io->fp_out_ps,tree);
 
   /* Go back to the initial scaled branch lengths */
   For(br,2*tree->n_otu-3) tree->t_edges[br]->l /= mrr[br];
@@ -1055,7 +1079,7 @@ void M4_Compute_Posterior_Mean_Rates(phydbl ***post_probs, t_tree *tree)
       s = Write_Tree(tree);
       PhyML_Fprintf(tree->io->fp_out_tree,"%s\n",s);
       Free(s);
-      DR_Print_Tree_Postscript(tree->ps_page_number++,tree->io->fp_out_ps,tree);
+      DR_Print_Tree_Postscript(tree->ps_page_number++,YES,tree->io->fp_out_ps,tree);
 
       /* Go back to the initial scaled branch lengths */
       For(br,2*tree->n_otu-3) tree->t_edges[br]->l /= mrr[br];
@@ -1188,7 +1212,7 @@ void M4_Site_Branch_Classification_Experiment(t_tree *tree)
       Warn_And_Exit("");
     }
   
-  cpy_data = Copy_Cseq(tree->data,tree->data->init_len,ns);
+  cpy_data = Copy_Cseq(tree->data,tree->io);
 
   /* Generate a simulated data set under H0, with the right sequence length. */
   PhyML_Printf("\n. Evolving sequences (delta=%f, alpha=%f) ...\n",tree->mod->m4mod->delta,tree->mod->m4mod->alpha);
@@ -1239,7 +1263,7 @@ void M4_Site_Branch_Classification_Experiment(t_tree *tree)
   PhyML_Printf("\n. Estimating model parameters...\n");
   tree->mod->s_opt->opt_cov_alpha = 1;
   tree->mod->s_opt->opt_cov_delta = 1;
-  Round_Optimize(tree,tree->data);
+  Round_Optimize(tree,tree->data,ROUND_MAX);
 
   tree->both_sides = 1;
   Lk(tree);
@@ -1398,14 +1422,14 @@ void M4_Detect_Site_Switches_Experiment(t_tree *tree)
       Warn_And_Exit("");
     }
 
-  cpy_data = Copy_Cseq(tree->data,tree->data->init_len,ns);
+  cpy_data = Copy_Cseq(tree->data,tree->io);
 
   PhyML_Printf("\n. Estimate model parameters under non-switching substitution model.\n");
   Switch_From_M4mod_To_Mod(tree->mod);
   Simu_Loop(tree);
   nocov_mod = (model *)Copy_Model(tree->mod); /* Record model parameters */
   For(i,2*tree->n_otu-3) nocov_bl[i] = tree->t_edges[i]->l; /* Record branch lengths */
-  For(i,tree->data->crunch_len) site_lnl_nocov[i] = tree->site_lk[i];
+  For(i,tree->data->crunch_len) site_lnl_nocov[i] = tree->cur_site_lk[i];
   Print_Lk(tree,"[LnL under non-switching substitution model]");
   
   PhyML_Printf("\n. Estimate model parameters under switching substitution model.\n");
@@ -1413,7 +1437,7 @@ void M4_Detect_Site_Switches_Experiment(t_tree *tree)
   Simu_Loop(tree);
   cov_mod = (model *)Copy_Model(tree->mod); /* Record model parameters */
   For(i,2*tree->n_otu-3) cov_bl[i] = tree->t_edges[i]->l; /* Record branch lengths */
-  For(i,tree->data->crunch_len) site_lnl_cov[i] = tree->site_lk[i];
+  For(i,tree->data->crunch_len) site_lnl_cov[i] = tree->cur_site_lk[i];
   Print_Lk(tree,"[LnL under switching substitution model]");
   
 
@@ -1460,13 +1484,13 @@ void M4_Detect_Site_Switches_Experiment(t_tree *tree)
       tree->mod = nocov_mod;
       For(i,2*tree->n_otu-3) tree->t_edges[i]->l = nocov_bl[i];
       Lk(tree);
-      For(i,tree->data->crunch_len) site_lnl_nocov[i] = tree->site_lk[i];
+      For(i,tree->data->crunch_len) site_lnl_nocov[i] = tree->cur_site_lk[i];
       Print_Lk(tree,"[CPY LnL under non-switching substitution model]");
 
       tree->mod = cov_mod;
       For(i,2*tree->n_otu-3) tree->t_edges[i]->l = cov_bl[i];
       Lk(tree);
-      For(i,tree->data->crunch_len) site_lnl_cov[i] = tree->site_lk[i];
+      For(i,tree->data->crunch_len) site_lnl_cov[i] = tree->cur_site_lk[i];
       Print_Lk(tree,"[CPY LnL under switching substitution model]");
 
       PhyML_Printf("\n");
@@ -1544,7 +1568,7 @@ void M4_Posterior_Prediction_Experiment(t_tree *tree)
       Warn_And_Exit("");
     }
 
-  cpy_data = Copy_Cseq(tree->data,tree->data->init_len,ns);
+  cpy_data = Copy_Cseq(tree->data,tree->io);
 
   /* Generate a simulated data set under H0, with the right sequence length. */
   Set_Model_Parameters(tree->mod);
@@ -1577,11 +1601,11 @@ void M4_Posterior_Prediction_Experiment(t_tree *tree)
   Switch_From_M4mod_To_Mod(tree->mod);
 
   tree->bl_from_node_stamps = 1;
-  best_edge = TIME_Find_Best_Root_Position(tree);
+  /* best_edge = TIMES_Find_Best_Root_Position(tree); */
   PhyML_Printf("\n. Put root on t_edge %3d",i);
-  TIME_Least_Square_Node_Times(best_edge,tree);
-  TIME_Adjust_Node_Times(tree);
-  TIME_Round_Optimize(tree);
+  TIMES_Least_Square_Node_Times(best_edge,tree);
+  TIMES_Adjust_Node_Times(tree);
+  /* TIMES_Round_Optimize(tree); */
 
 /*   Round_Optimize(tree,tree->data); */
 /*   Simu_Loop(tree); */
@@ -1623,7 +1647,7 @@ void M4_Posterior_Prediction_Experiment(t_tree *tree)
 
   PhyML_Printf("\n. Estimate model parameters under switching substitution model.\n");
   Switch_From_Mod_To_M4mod(tree->mod);
-  TIME_Round_Optimize(tree);
+  /* TIME_Round_Optimize(tree); */
 /*   Round_Optimize(tree,tree->data); */
   /*   Simu_Loop(tree); */
   Print_Lk(tree,"[LnL under switching substitution model]");
@@ -1670,32 +1694,35 @@ m4 *M4_Copy_M4_Model(model *ori_mod, m4 *ori_m4mod)
     }
 
 
-  cpy_m4mod = (m4 *)M4_Make_Light(ns);
-  cpy_m4mod->n_h = ori_m4mod->n_h;
-
-  M4_Make_Complete(cpy_m4mod->n_h,
-		   cpy_m4mod->n_o,
-		   cpy_m4mod);
-
-  n_h = cpy_m4mod->n_h;
-  n_o = cpy_m4mod->n_o;
-  
-  cpy_m4mod->n_h = ori_m4mod->n_h;
+  cpy_m4mod = (m4 *)M4_Make_Light();
   cpy_m4mod->n_o = ori_m4mod->n_o;
-  For(i,n_h) For(j,n_o*n_o) cpy_m4mod->o_mats[i][j] = ori_m4mod->o_mats[i][j];
-  For(i,n_h) cpy_m4mod->multipl[i] = ori_m4mod->multipl[i];
-  For(i,n_h) cpy_m4mod->multipl_unscaled[i] = ori_m4mod->multipl_unscaled[i];  
-  For(i,n_o*n_o) cpy_m4mod->o_rr[i] = ori_m4mod->o_rr[i];
-  For(i,n_h*n_h) cpy_m4mod->h_rr[i] = ori_m4mod->h_rr[i];
-  For(i,n_h*n_h) cpy_m4mod->h_mat[i] = ori_m4mod->h_mat[i];
-  For(i,n_o) cpy_m4mod->o_fq[i] = ori_m4mod->o_fq[i];
-  For(i,n_h) cpy_m4mod->h_fq[i] = ori_m4mod->h_fq[i];
-  For(i,n_h) cpy_m4mod->h_fq_unscaled[i] = ori_m4mod->h_fq_unscaled[i];
-  cpy_m4mod->delta = ori_m4mod->delta;
-  cpy_m4mod->alpha = ori_m4mod->alpha;
+  cpy_m4mod->n_h = ori_m4mod->n_h;
+
+  if(ori_mod->use_m4mod)
+    {
+      M4_Make_Complete(cpy_m4mod->n_h,
+		       cpy_m4mod->n_o,
+		       cpy_m4mod);
+      
+      n_h = cpy_m4mod->n_h;
+      n_o = cpy_m4mod->n_o;
+      
+      cpy_m4mod->n_h = ori_m4mod->n_h;
+      cpy_m4mod->n_o = ori_m4mod->n_o;
+      For(i,n_h) For(j,n_o*n_o) cpy_m4mod->o_mats[i][j] = ori_m4mod->o_mats[i][j];
+      For(i,n_h) cpy_m4mod->multipl[i] = ori_m4mod->multipl[i];
+      For(i,n_h) cpy_m4mod->multipl_unscaled[i] = ori_m4mod->multipl_unscaled[i];  
+      For(i,n_o*n_o) cpy_m4mod->o_rr[i] = ori_m4mod->o_rr[i];
+      For(i,n_h*n_h) cpy_m4mod->h_rr[i] = ori_m4mod->h_rr[i];
+      For(i,n_h*n_h) cpy_m4mod->h_mat[i] = ori_m4mod->h_mat[i];
+      For(i,n_o) cpy_m4mod->o_fq[i] = ori_m4mod->o_fq[i];
+      For(i,n_h) cpy_m4mod->h_fq[i] = ori_m4mod->h_fq[i];
+      For(i,n_h) cpy_m4mod->h_fq_unscaled[i] = ori_m4mod->h_fq_unscaled[i];
+      cpy_m4mod->delta = ori_m4mod->delta;
+      cpy_m4mod->alpha = ori_m4mod->alpha;
+    }
 
   return cpy_m4mod;
 }
 
 /*********************************************************/
-#endif

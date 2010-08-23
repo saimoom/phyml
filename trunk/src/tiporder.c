@@ -275,18 +275,18 @@ int TIPO_main(int argc, char **argv)
   Free_Bip(tree);
   Alloc_Bip(tree);
   Get_Bip(tree->noeud[0],tree->noeud[0]->v[0],tree);
-  /* TIPO_Get_Tips_Y_Rank_From_Zscores(tree); */
-  TIPO_Get_Tips_Y_Rank(tree);
+  TIPO_Get_Tips_Y_Rank_From_Zscores(tree);
+  /* TIPO_Get_Tips_Y_Rank(tree); */
   
 
-  tree->geo_mig_sd = 1.;
+  tree->geo_mig_sd = 0.1;
   Generic_Brent_Lk(&(tree->geo_mig_sd),
   		   1.E-3,1.E+2,1.E-6,
   		   100,NO,
   		   &Optwrap_Geo_Lk,
   		   NULL,tree,NULL);
 
-  /* PhyML_Printf("\n. sd=%f",tree->geo_mig_sd); */
+  PhyML_Printf("\n. sd=%f",tree->geo_mig_sd);
 
 
   fclose(fp_tree_file);
@@ -1216,6 +1216,7 @@ phydbl TIPO_Lk(t_tree *tree)
   tree->geo_lnL = 0.0;
   TIPO_Lk_Post(tree->n_root,tree->n_root->v[0],tree);
   TIPO_Lk_Post(tree->n_root,tree->n_root->v[1],tree);
+  TIPO_Lk_Core(NULL,tree->n_root,tree);
   return(tree->geo_lnL);
 }
 
@@ -1257,24 +1258,43 @@ phydbl TIPO_Lk_Core(t_node *a, t_node *d, t_tree *tree)
       Warn_And_Exit("");
     }
 
-  v1_d = v2_d = -1;
-  d_v1 = d_v2 = -1;
-  For(i,3)
+  if(d == tree->n_root)
     {
-      if(d->v[i] != a && d->b[i] != tree->e_root)
+      d_v1 = 0;
+      d_v2 = 1;
+    }
+  else
+    {
+      d_v1 = d_v2 = -1;
+      For(i,3)
 	{
-	  if(d_v1 < 0) d_v1 = i;
-	  else         d_v2 = i;
+	  if(d->v[i] != a && d->b[i] != tree->e_root)
+	    {
+	      if(d_v1 < 0) d_v1 = i;
+	      else         d_v2 = i;
+	    }
 	}
     }
-  
+
   v1 = d->v[d_v1];
   v2 = d->v[d_v2];
-  
-  For(i,3)
+
+  v1_d = v2_d = -1;
+  if(d == tree->n_root)
     {
-      if(v1->v[i] == d) v1_d = i;
-      if(v2->v[i] == d) v2_d = i;
+      For(i,3)
+	{
+	  if(v1->b[i] == tree->e_root) v1_d = i;
+	  if(v2->b[i] == tree->e_root) v2_d = i;
+	}
+    }
+  else
+    {
+      For(i,3)
+	{
+	  if(v1->v[i] == d) v1_d = i;
+	  if(v2->v[i] == d) v2_d = i;
+	}
     }
   
 
@@ -1289,7 +1309,7 @@ phydbl TIPO_Lk_Core(t_node *a, t_node *d, t_tree *tree)
 
 	  if(dist < min_dist) min_dist = dist;
 
-	  /* dens += Dnorm(dist,0.0,tree->geo_mig_sd); */
+	  dens += Dnorm(dist,0.0,tree->geo_mig_sd);
 	  /* printf("\n. dist=%f dens=%f %f %f", */
 	  /* 	 dist,Dnorm(dist,0.0,tree->geo_mig_sd), */
 	  /* 	 v1->bip_node[v1_d][i]->y_rank, */
@@ -1300,7 +1320,7 @@ phydbl TIPO_Lk_Core(t_node *a, t_node *d, t_tree *tree)
   /* printf("\n. min_dist=%f dens=%f", */
   /* 	 min_dist,Dnorm(dist,0.0,tree->geo_mig_sd)); */
 
-  dens = Dnorm(min_dist,0.0,tree->geo_mig_sd);
+  /* dens = Dnorm(min_dist,0.0,tree->geo_mig_sd); */
   tree->geo_lnL += LOG(dens);
 
   return tree->geo_lnL;

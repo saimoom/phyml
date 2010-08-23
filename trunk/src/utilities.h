@@ -1374,6 +1374,7 @@ void Get_Best_Root_Position(t_tree *tree);
 void Get_Best_Root_Position_Post(t_node *a, t_node *d, int *has_outgrp, t_tree *tree);
 void Get_Best_Root_Position_Pre(t_node *a, t_node *d, t_tree *tree);
 void Get_OutIn_Scores(t_node *a, t_node *d);
+int Check_Sequence_Name(char *s);
 
 #include "free.h"
 #include "spr.h"

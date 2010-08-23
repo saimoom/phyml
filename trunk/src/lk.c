@@ -466,6 +466,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
   sum_scale_rght = .0;
   
   if(tree->mod->use_m4mod) ambiguity_check = 1;
+
   
   sum_scale_left_cat = b->sum_scale_left_cat;
   sum_scale_rght_cat = b->sum_scale_rght_cat;
@@ -492,7 +493,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
                 }
 
               site_lk_cat += sum * tree->mod->pi[state];
-            }
+	    }
           /* If the character observed at the tip is ambiguous: ns x ns terms to consider */
           else
             {
@@ -512,7 +513,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
                         sum *
                         tree->mod->pi[k] *
                         b->p_lk_tip_r[site*dim2+k];
-                    }
+		    }
                 }
             }
         }
@@ -535,7 +536,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
                     sum *
                     tree->mod->pi[k] *
                     b->p_lk_rght[site*dim1+catg*dim2+k];
-                }
+		}
             }
 	}
       tree->site_lk_cat[catg] = site_lk_cat;
@@ -715,14 +716,17 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
     Alias_One_Subpatt((d==b->left)?(b->rght):(b->left),d,tree);
 
   if(d->tax) return;
-
-  if(tree->io->datatype == NT)
+  
+  if(tree->mod->use_m4mod == NO)
     {
-      Update_P_Lk_Nucl(tree,b,d);
-    }
-  else if(tree->io->datatype == AA)
-    {
-      Update_P_Lk_AA(tree,b,d);
+      if(tree->io->datatype == NT)
+	{
+	  Update_P_Lk_Nucl(tree,b,d);
+	}
+      else if(tree->io->datatype == AA)
+	{
+	  Update_P_Lk_AA(tree,b,d);
+	}
     }
   else
     {
@@ -899,7 +903,7 @@ void Update_P_Lk_Generic(t_tree *tree, t_edge *b, t_node *d)
 			}
 		      else
 			{
-			  /* 		      For all the states at node n_v1 */
+			  /* For all the states at node n_v1 */
 			  For(j,tree->mod->ns)
 			    {
 			      p1_lk1 += Pij1[catg*dim3+i*dim2+j] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+j];
@@ -1230,9 +1234,12 @@ void Update_P_Lk_Nucl(t_tree *tree, t_edge *b, t_node *d)
 		  
 		  p_lk[site*dim1+catg*dim2+i] = p1_lk1 * p2_lk2;	    
 		  
+
 		  if(p_lk[site*dim1+catg*dim2+i] < smallest_p_lk) smallest_p_lk = p_lk[site*dim1+catg*dim2+i] ; 
 		}
 	      
+	      
+
 	      /* Current scaling values at that site */
 	      sum_scale_v1_val = (sum_scale_v1)?(sum_scale_v1[catg*n_patterns+site]):(0);
 	      sum_scale_v2_val = (sum_scale_v2)?(sum_scale_v2[catg*n_patterns+site]):(0);
@@ -1968,9 +1975,8 @@ void Init_P_Lk_Tips_Double(t_tree *tree)
 	}
     }
 
-  #ifdef M4
-  if(tree->mod->m4mod) M4_Init_P_Lk_Tips_Double(tree);
-  #endif
+  
+  if(tree->mod->use_m4mod) M4_Init_P_Lk_Tips_Double(tree);
 }
 
 /*********************************************************/
@@ -2007,9 +2013,7 @@ void Init_P_Lk_Tips_Int(t_tree *tree)
 	}
     }
  
- #ifdef M4
-  if(tree->mod->m4mod) M4_Init_P_Lk_Tips_Int(tree);
-  #endif
+  if(tree->mod->use_m4mod) M4_Init_P_Lk_Tips_Int(tree);
 
 }
 

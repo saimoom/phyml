@@ -80,35 +80,16 @@ void PMat_TN93(phydbl l, model *mod, int pos, phydbl *Pij)
   phydbl a1t,a2t,bt;
   phydbl A,C,G,T,R,Y;
   phydbl kappa1,kappa2;
-  int kappa_has_changed;
 
   A = mod->pi[0]; C = mod->pi[1]; G = mod->pi[2]; T = mod->pi[3];
   R = A+G;  Y = T+C;
 
-  kappa_has_changed = 0;
   if(mod->kappa < .0) mod->kappa = 1.0e-5;
 
   if((mod->whichmodel != F84) && (mod->whichmodel != TN93)) mod->lambda = 1.; 
   else if(mod->whichmodel == F84)
     {
-      do
-	{
-	  mod->lambda = (Y+(R-Y)/(2.*mod->kappa))/(R-(R-Y)/(2.*mod->kappa));
-	  
-	  if(mod->lambda < .0)
-	    {
-	      mod->kappa += mod->kappa/10.;
-	      kappa_has_changed = 1;
-	    }
-	}while(mod->lambda < .0);
-    }
-
-
-  if((!mod->s_opt->opt_kappa) && (kappa_has_changed))
-    {
-      PhyML_Printf("\n. WARNING: This transition/transversion ratio\n");
-      PhyML_Printf("  is impossible with these base frequencies!\n");
-      PhyML_Printf("  The ratio is now set to %.3f\n",mod->kappa);
+      mod->lambda = Get_Lambda_F84(mod->pi,&mod->kappa);
     }
 
   kappa2 = mod->kappa*2./(1.+mod->lambda);
@@ -173,6 +154,42 @@ void PMat_TN93(phydbl l, model *mod, int pos, phydbl *Pij)
 /*     if((*Pij)[i][j] < SMALL) (*Pij)[i][j] = SMALL; */
 
 }
+
+/*********************************************************/
+
+phydbl Get_Lambda_F84(phydbl *pi, phydbl *kappa)
+{
+  phydbl A,C,G,T,R,Y,lambda;
+  int kappa_has_changed;
+
+  A = pi[0]; C = pi[1]; G = pi[2]; T = pi[3];
+  R = A+G;  Y = T+C;
+
+  if(*kappa < .0) *kappa = 1.0e-5;
+
+  kappa_has_changed = NO;
+
+  do
+    {
+      lambda = (Y+(R-Y)/(2.*(*kappa)))/(R-(R-Y)/(2.*(*kappa)));
+      
+      if(lambda < .0)
+	{
+	  *kappa += *kappa/10.;
+	  kappa_has_changed = YES;
+	}
+    }while(lambda < .0);
+
+  if(kappa_has_changed)
+    {
+      PhyML_Printf("\n. WARNING: This transition/transversion ratio\n");
+      PhyML_Printf("  is impossible with these base frequencies!\n");
+      PhyML_Printf("  The ratio is now set to %.3f\n",*kappa);
+    }
+
+  return lambda;
+}
+
 
 /*********************************************************/
 
@@ -2164,7 +2181,6 @@ void Init_Model(calign *data, model *mod, option *io)
 
   if(!mod->invar) For(i,data->crunch_len) data->invar[i] = 0;
 
-
   dr      = (phydbl *)mCalloc(  mod->ns,sizeof(phydbl));
   di      = (phydbl *)mCalloc(  mod->ns,sizeof(phydbl));
   space   = (phydbl *)mCalloc(2*mod->ns,sizeof(phydbl));
@@ -2534,7 +2550,7 @@ void Update_Qmat_Generic(phydbl *rr, phydbl *pi, int ns, phydbl *qmat)
       mr += sum * pi[i];
     }
  
-/*   For(i,ns) For(j,ns) qmat[i*ns+j] /= mr; */
+  /* For(i,ns) For(j,ns) qmat[i*ns+j] /= mr; */
 }
 
 /*********************************************************/

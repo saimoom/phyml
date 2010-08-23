@@ -55,7 +55,7 @@ void RWRAPPER_Min_Number_Of_Tip_Permut(char **tree_file_name, char **coord_file_
 
   res[0] = (phydbl)tree->geo_mig_sd;
   /* For(i,tree->n_otu) Rprintf("\n.. %f",tree->io->z_scores[i]); */
-  /* Rprintf("\n>> sd: %f",tree->geo_mig_sd); */
+  /* printf("\n>> sd: %f",tree->geo_mig_sd); */
 
   fclose(fp_tree_file);
   fclose(fp_coord_file);

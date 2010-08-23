@@ -319,6 +319,7 @@ void Read_Node_Name(t_node *d, char *s_tree_d, t_tree *tree)
 {
   int i;
   
+
   if(!tree->t_edges[tree->num_curr_branch_available]->n_labels)
     {
       d->name = (char *)mCalloc(strlen(s_tree_d)+1,sizeof(char ));
@@ -2333,7 +2334,10 @@ align **Read_Seq_Sequential(option *io)
       data[i]->len = 0;
 
       sprintf(format, "%%%ds", T_MAX_NAME);
+
       if(!fscanf(io->fp_in_align,format,data[i]->name)) Exit("\n");
+
+      Check_Sequence_Name(data[i]->name);
 
       while(data[i]->len < io->init_len * io->mod->state_len) Read_One_Line_Seq(&data,i,io->fp_in_align);
 
@@ -2386,6 +2390,8 @@ align **Read_Seq_Interleaved(option *io)
 /*       sprintf(format, "%%%ds", 10); */
       
       if(!fscanf(io->fp_in_align,format,data[i]->name)) Exit("\n");
+
+      Check_Sequence_Name(data[i]->name);
 
       if(!Read_One_Line_Seq(&data,i,io->fp_in_align))
 	{
@@ -6286,16 +6292,22 @@ model *Make_Model_Basic()
 
 void Make_Model_Complete(model *mod)
 {
+
+  if(mod->use_m4mod == YES)
+    {
+      M4_Make_Complete(mod->m4mod->n_h,mod->m4mod->n_o,mod->m4mod);
+      mod->ns = mod->m4mod->n_o * mod->m4mod->n_h;
+    }
+  
   mod->pi            = (phydbl *)mCalloc(mod->ns,sizeof(phydbl));
-  mod->gamma_r_proba = (phydbl *)mCalloc(mod->n_catg,sizeof(phydbl));
-  mod->gamma_rr      = (phydbl *)mCalloc(mod->n_catg,sizeof(phydbl));
   mod->pi_unscaled   = (phydbl *)mCalloc(mod->ns,sizeof(phydbl));
   mod->Pij_rr        = (phydbl *)mCalloc(mod->n_catg*mod->ns*mod->ns,sizeof(phydbl));
+  mod->gamma_r_proba = (phydbl *)mCalloc(mod->n_catg,sizeof(phydbl));
+  mod->gamma_rr      = (phydbl *)mCalloc(mod->n_catg,sizeof(phydbl));
   mod->qmat          = (phydbl *)mCalloc(mod->ns*mod->ns,sizeof(phydbl));
   mod->qmat_buff     = (phydbl *)mCalloc(mod->ns*mod->ns,sizeof(phydbl));
-  mod->eigen         = (eigen *)Make_Eigen_Struct(mod->ns);
+  mod->eigen = (eigen *)Make_Eigen_Struct(mod->ns);
 
-  
   if(mod->n_rr_branch)
     {
       mod->rr_branch   = (phydbl *)mCalloc(mod->n_rr_branch,sizeof(phydbl));
@@ -6322,14 +6334,9 @@ model *Copy_Model(model *ori)
   cpy->n_catg = ori->n_catg;
 
   Make_Model_Complete(cpy);
-
   if(ori->whichmodel == GTR) Make_Custom_Model(cpy);
-
   Record_Model(ori,cpy);
-
-#ifdef M4
-  if(ori->m4mod) cpy->m4mod = M4_Copy_M4_Model(ori, ori->m4mod);
-#endif
+  cpy->m4mod = M4_Copy_M4_Model(ori, ori->m4mod);
 
   return cpy;
 }
@@ -6355,7 +6362,6 @@ void Record_Model(model *ori, model *cpy)
   cpy->invar        = ori->invar;
   cpy->pinvar       = ori->pinvar;
   cpy->n_diff_rr    = ori->n_diff_rr;
-
 
 /*   if(ori->whichmodel == CUSTOM) */
 /*     { */
@@ -6396,9 +6402,7 @@ void Record_Model(model *ori, model *cpy)
       cpy->gamma_rr[i]      = ori->gamma_rr[i];
     }
   
-#ifndef PHYML
   cpy->use_m4mod = ori->use_m4mod;
-#endif 
 
   cpy->eigen->size = ori->eigen->size;
   For(i,2*ori->ns)       cpy->eigen->space[i]       = ori->eigen->space[i];
@@ -6509,7 +6513,7 @@ void Set_Defaults_Model(model *mod)
   mod->pinvar                  = 0.0;
   mod->ns                      = 4;
   mod->n_diff_rr               = 0;
-  mod->use_m4mod               = 0;
+  mod->use_m4mod               = NO;
   mod->n_rr_branch             = 0;
   mod->rr_branch_alpha         = 0.1;
   mod->gamma_median            = 0;
@@ -10629,6 +10633,7 @@ char *aLRT_From_String(char *s_tree, calign *cdata, model *mod, option *io)
 
   tree = Read_Tree(s_tree);
 
+
   if(!tree)
     {
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
@@ -11284,18 +11289,22 @@ option *Get_Input(int argc, char **argv)
   option *io;
   model *mod;
   optimiz *s_opt;
+  m4 *m4mod;
 
   io    = (option *)Make_Input();
   mod   = (model *)Make_Model_Basic();
   s_opt = (optimiz *)Make_Optimiz();
+  m4mod = (m4 *)M4_Make_Light();
 
   Set_Defaults_Input(io);
   Set_Defaults_Model(mod);
   Set_Defaults_Optimiz(s_opt);
 
-  io->mod    = mod;
-  mod->io    = io;
-  mod->s_opt = s_opt;
+  io->mod        = mod;
+  io->mod->m4mod = m4mod;
+
+  mod->io        = io;
+  mod->s_opt     = s_opt;
 
 
 #ifdef MPI
@@ -11689,6 +11698,31 @@ void Get_OutIn_Scores(t_node *a, t_node *d)
 }
 
 /*********************************************************/
+
+int Check_Sequence_Name(char *s)
+{
+  if(rindex(s,':'))
+    {
+      PhyML_Printf("\n. Character ':' is not permitted in sequence name (%s).",s);
+      PhyML_Printf("\n. Err in file %s at line %d",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+  if(rindex(s,','))
+    {
+      PhyML_Printf("\n. Character ',' is not permitted in sequence name (%s).",s);
+      PhyML_Printf("\n. Err in file %s at line %d",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+  if(rindex(s,' '))
+    {
+      PhyML_Printf("\n. Character ' ' is not permitted in sequence name (%s).",s);
+      PhyML_Printf("\n. Err in file %s at line %d",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+
+  return 1;
+}
+
 /*********************************************************/
 /*********************************************************/
 /*********************************************************/
