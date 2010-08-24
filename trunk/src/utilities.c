@@ -6334,7 +6334,8 @@ model *Copy_Model(model *ori)
   cpy->n_catg = ori->n_catg;
 
   Make_Model_Complete(cpy);
-  if(ori->whichmodel == GTR) Make_Custom_Model(cpy);
+  if((ori->whichmodel == GTR) || (ori->whichmodel == CUSTOM)) 
+    Make_Custom_Model(cpy);
   Record_Model(ori,cpy);
   cpy->m4mod = M4_Copy_M4_Model(ori, ori->m4mod);
 
