@@ -51,8 +51,8 @@ dnl CFLAGS="-g"
 
 LDFLAGS="${ARGC_flag}"
 
-dnl LT_INIT
-dnl AC_PROG_LIBTOOL
+LT_INIT
+AC_PROG_LIBTOOL
 
 AC_ARG_ENABLE([tiporder],[  --enable-tiporder    Compile tiporder],[tiporder=yes])
 AM_CONDITIONAL([WANT_TIPORDER], [test "$tiporder" = yes]) 
@@ -68,6 +68,9 @@ AM_CONDITIONAL([WANT_RWRAP], [test "$rwrap" = yes])
 
 AC_ARG_ENABLE([phycont],[  --enable-phycont    Compile PhyCont],[phycont=yes])
 AM_CONDITIONAL([WANT_PHYCONT], [test "$phycont" = yes]) 
+
+AC_ARG_ENABLE([m4],[  --enable-m4    Compile M4],[m4=yes])
+AM_CONDITIONAL([WANT_M4], [test "$m4" = yes]) 
 
 dnl AC_ARG_ENABLE([phyml],[  --enable-phyml    Compile PhyML],[phyml=yes])
 dnl AM_CONDITIONAL([WANT_PHYML], [test "$phyml" = yes]) 
