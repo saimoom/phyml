@@ -346,7 +346,10 @@ phydbl Lk(t_tree *tree)
   if(tree->bl_from_node_stamps) TIMES_Bl_From_T(tree);
 #endif
 
-  For(br,2*tree->n_otu-3) Update_PMat_At_Given_Edge(tree->t_edges[br],tree);
+  For(br,2*tree->n_otu-3) 
+    {
+      Update_PMat_At_Given_Edge(tree->t_edges[br],tree);
+    }
 
   Post_Order_Lk(tree->noeud[0],tree->noeud[0]->v[0],tree);
   if(tree->both_sides)
@@ -1910,6 +1913,7 @@ void Make_Tree_4_Lk(t_tree *tree, calign *cdata, int n_site)
   For(i,tree->mod->n_catg)
     tree->log_site_lk_cat[i] = (phydbl *)mCalloc(cdata->crunch_len,sizeof(phydbl));
 
+
   tree->log_lks_aLRT = (phydbl **)mCalloc(3,sizeof(phydbl *));
   For(i,3) tree->log_lks_aLRT[i] = (phydbl *)mCalloc(tree->data->init_len,sizeof(phydbl));
 
@@ -1923,7 +1927,7 @@ void Make_Tree_4_Lk(t_tree *tree, calign *cdata, int n_site)
 
   if(tree->mod->s_opt->greedy) 
     {
-     Init_P_Lk_Tips_Double(tree);
+      Init_P_Lk_Tips_Double(tree);
     }
   else 
     {
@@ -1942,6 +1946,7 @@ void Init_P_Lk_Tips_Double(t_tree *tree)
   
   dim1 = tree->mod->n_catg * tree->mod->ns;
   dim2 = tree->mod->ns;
+
 
   For(curr_site,tree->data->crunch_len)
     {
@@ -1974,7 +1979,6 @@ void Init_P_Lk_Tips_Double(t_tree *tree)
 	    }
 	}
     }
-
   
   if(tree->mod->use_m4mod) M4_Init_P_Lk_Tips_Double(tree);
 }
@@ -1986,7 +1990,6 @@ void Init_P_Lk_Tips_Int(t_tree *tree)
   int curr_site,i,dim1;
 
   dim1 = tree->mod->ns;
-
 
   For(curr_site,tree->data->crunch_len)
     {
@@ -2012,8 +2015,7 @@ void Init_P_Lk_Tips_Int(t_tree *tree)
 	    }
 	}
     }
- 
-  if(tree->mod->use_m4mod) M4_Init_P_Lk_Tips_Int(tree);
+   if(tree->mod->use_m4mod) M4_Init_P_Lk_Tips_Int(tree);
 
 }
 
@@ -3068,8 +3070,6 @@ void Init_P_Lk_Loc(t_tree *tree)
 	  patt_id_d[j] = (int)tree->data->c_seq[d->num]->state[j];
 	}
     }
-
-
 }
 
 /*********************************************************/

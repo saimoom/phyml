@@ -118,7 +118,6 @@ int TIMES_main(int argc, char **argv)
 
 		  if(!tree) continue;
 
-
 		  if(!tree->n_root) 
 		    {
 		      PhyML_Printf("\n. Sorry, PhyTime requires a rooted tree as input.");
@@ -132,17 +131,18 @@ int TIMES_main(int argc, char **argv)
 		  int n_otu;
 		  int i;
 
-
 /* 		  n_otu = 15; */
 /* 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1); */
 
 		  tree->rates = RATES_Make_Rate_Struct(tree->n_otu);
 		  RATES_Init_Rate_Struct(tree->rates,tree->n_otu);
 
+
 		  Update_Ancestors(tree->n_root,tree->n_root->v[0],tree);
 		  Update_Ancestors(tree->n_root,tree->n_root->v[1],tree);
 		  tree->n_root->anc = NULL;
 		  
+
 		  RATES_Fill_Lca_Table(tree);
 
 		  tree->mod         = mod;
@@ -151,29 +151,27 @@ int TIMES_main(int argc, char **argv)
 		  tree->both_sides  = 1;
 		  tree->n_pattern   = tree->data->crunch_len/tree->mod->state_len;
 
+
 /*  		  For(i,tree->n_otu) strcpy(tree->noeud[i]->name,cdata->c_seq[i]->name); */
 
-		  Fill_Dir_Table(tree);
-		  Update_Dirs(tree);
-		  Make_Tree_4_Pars(tree,cdata,cdata->init_len);
-		  Make_Tree_4_Lk(tree,cdata,cdata->init_len);
+		  Prepare_Tree_For_Lk(tree);
 
-/* 		  Evolve(tree->data,tree->mod,tree); /\* do not forget to make sure sequences are not compressed! *\/ */
-		  Init_Ui_Tips(tree);
-		  Init_P_Pars_Tips(tree);
-		  if(tree->mod->s_opt->greedy) Init_P_Lk_Tips_Double(tree);
-		  else Init_P_Lk_Tips_Int(tree);
+		  /* Evolve(tree->data,tree->mod,tree); /\* do not forget to make sure sequences are not compressed! *\/ */
+		  /* Init_Ui_Tips(tree); */
+		  /* Init_P_Pars_Tips(tree); */
+		  /* if(tree->mod->s_opt->greedy) Init_P_Lk_Tips_Double(tree); */
+		  /* else Init_P_Lk_Tips_Int(tree); */
 
 		  For(i,2*tree->n_otu-1) tree->rates->true_t[i] = tree->rates->nd_t[i];
 		  For(i,2*tree->n_otu-2) tree->rates->true_r[i] = tree->rates->nd_r[i];
 
 /* 		  tree->data->format = 1; */
 /* 		  Print_CSeq(stdout,tree->data); */
-/* 		  char *s; */
-/* 		  Branch_Lengths_To_Time_Lengths(tree); */
-/* 		  s = Write_Tree(tree); */
-/* 		  PhyML_Fprintf(stdout,"TREE %8d [%f] = %s\n",0,0.0,s); */
-/* 		  Free(s); */
+		  /* char *s; */
+		  /* /\* Branch_Lengths_To_Time_Lengths(tree); *\/ */
+		  /* s = Write_Tree(tree); */
+		  /* PhyML_Fprintf(stdout,"TREE %8d [%f] = %s\n",0,0.0,s); */
+		  /* Free(s); */
 
 		  Read_Clade_Priors(io->clade_list_file,tree);
 
@@ -184,7 +182,6 @@ int TIMES_main(int argc, char **argv)
 
 		  buff = tree->n_root;
 		  tree->n_root = NULL;
-		  PhyML_Printf("\n");
 		  Round_Optimize(tree,tree->data,ROUND_MAX);
 		  tree->n_root = buff;
 
