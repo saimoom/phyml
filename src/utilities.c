@@ -623,7 +623,7 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
 #else
 	  if(!tree->n_root)
 	    {
-	      (*pos) += sprintf(*s_tree+*pos,"%.0f",fils->b[0]->l);
+	      (*pos) += sprintf(*s_tree+*pos,"%f",fils->b[0]->l);
 	    }
 	  else
 	    {
@@ -729,7 +729,7 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
 #else
 	  if(!tree->n_root)
 	    {
-	      (*pos) += sprintf(*s_tree+*pos,"%.0f",fils->b[p]->l);
+	      (*pos) += sprintf(*s_tree+*pos,"%f",fils->b[p]->l);
 	    }
 	  else
 	    {
@@ -11078,6 +11078,9 @@ void Read_Clade_Priors(char *file_name, t_tree *tree)
       do
 	{
 	  i = 0;
+
+	  while(line[pos] == ' ') pos++;
+
 	  while((line[pos] != ' ') && (line[pos] != '\n') && line[pos] != '#')
 	    {
 	      s[i] = line[pos];
