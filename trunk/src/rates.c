@@ -780,7 +780,7 @@ void RATES_Init_Rate_Struct(trate *rates, int n_otu)
 
   /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
   rates->max_rate      = 2.00;
-  rates->min_rate      = 0.001;
+  rates->min_rate      = 0.1;
 
   rates->clock_r       = 1.E-3;
   rates->max_clock     = 1.E-0;
@@ -2089,6 +2089,7 @@ void RATES_Posterior_Times_Pre(t_node *a, t_node *d, t_tree *tree)
   t_node *buff_n;
   int err;
   int num_1, num_2, num_3;
+  phydbl K;
 
   dim = 2*tree->n_otu-3;
 
@@ -2283,15 +2284,31 @@ void RATES_Posterior_Times_Pre(t_node *a, t_node *d, t_tree *tree)
       mu[2] = El1/u1 + t0 + El3/u3 - t3;
     }
 
+
+  
+  /*****/
+  K = MAX(mu[1],mu[2]);
+  mu[1] /= K;
+  mu[2] /= K;
+  /*****/
+
+
   sig11 = cov11;
   sig22 = cov22;
-  sig1X = (1./u1) * cov11 + (1./u2) * cov12;
-  sig1Y = (1./u1) * cov11 + (1./u3) * cov13;
-  sig2X = (1./u1) * cov12 + (1./u2) * cov22;
-  sig2Y = (1./u1) * cov12 + (1./u3) * cov23;
-  sigXX = 1./(u1*u1) * cov11 + 1./(u2*u2) * cov22 + 2./(u1*u2) * cov12;
-  sigYY = 1./(u1*u1) * cov11 + 1./(u3*u3) * cov33 + 2./(u1*u3) * cov13;
-  sigXY = 1./(u1*u1) * cov11 + 1./(u1*u2) * cov12 + 1./(u1*u3) * cov13 + 1./(u2*u3) * cov23;
+  sig1X = (1./K) * ((1./u1) * cov11 + (1./u2) * cov12);
+  /* sig1X = ((1./u1) * cov11 + (1./u2) * cov12); */
+  sig1Y = (1./K) * ((1./u1) * cov11 + (1./u3) * cov13);
+  /* sig1Y = (1./u1) * cov11 + (1./u3) * cov13; */
+  sig2X = (1./K)*((1./u1) * cov12 + (1./u2) * cov22);
+  /* sig2X = (1./u1) * cov12 + (1./u2) * cov22; */
+  sig2Y = (1./K)*((1./u1) * cov12 + (1./u3) * cov23);
+  /* sig2Y = (1./u1) * cov12 + (1./u3) * cov23; */
+  sigXX = (1./(K*K))*(1./(u1*u1) * cov11 + 1./(u2*u2) * cov22 + 2./(u1*u2) * cov12);
+  /* sigXX = 1./(u1*u1) * cov11 + 1./(u2*u2) * cov22 + 2./(u1*u2) * cov12; */
+  sigYY = (1./(K*K))*(1./(u1*u1) * cov11 + 1./(u3*u3) * cov33 + 2./(u1*u3) * cov13);
+  /* sigYY = 1./(u1*u1) * cov11 + 1./(u3*u3) * cov33 + 2./(u1*u3) * cov13; */
+  sigXY = (1./(K*K))*(1./(u1*u1) * cov11 + 1./(u1*u2) * cov12 + 1./(u1*u3) * cov13 + 1./(u2*u3) * cov23);
+  /* sigXY = 1./(u1*u1) * cov11 + 1./(u1*u2) * cov12 + 1./(u1*u3) * cov13 + 1./(u2*u3) * cov23; */
 
 /*   if(cov11 > cov22) */
 /*     { */
@@ -2324,19 +2341,21 @@ void RATES_Posterior_Times_Pre(t_node *a, t_node *d, t_tree *tree)
 
   if(cond_cov[0*3+0] < 0.0)
     {
+      PhyML_Printf("\n. a: %d d: %d",a->num,d->num);
       PhyML_Printf("\n. Conditional mean=%G var=%G",cond_mu[0],cond_cov[0*3+0]);
-      PhyML_Printf("\n. t0=%G t1=%f t2=%f l1=%G l2=%G El1=%G El2=%G Nu=%G",t0,t1,t2,l1,l2,El1,El2,tree->rates->nu);
+      PhyML_Printf("\n. t0=%G t1=%f t2=%f l1=%G l2=%G",t0,t1,t2,l1,l2);
+      PhyML_Printf("\n. El1=%G El2=%G Nu=%G u1=%G u2=%G u3=%G cr=%G",El1,El2,tree->rates->nu,u1/cr,u2/cr,u3/cr,cr);
       PhyML_Printf("\n. COV11=%f COV12=%f COV13=%f COV22=%f COV23=%f COV33=%f",cov11,cov12,cov13,cov22,cov23,cov33);
       PhyML_Printf("\n");
       For(i,3)
-	{
-	  PhyML_Printf(". mu%d=%12lf\t",i,mu[i]);
-	  For(j,3)
-	    {
-	      PhyML_Printf("%12lf ",cov[i*3+j]);
-	    }
-	  PhyML_Printf("\n");
-	}
+      	{
+      	  PhyML_Printf(". mu%d=%12lf\t",i,mu[i]);
+      	  For(j,3)
+      	    {
+      	      PhyML_Printf("%12lf ",cov[i*3+j]);
+      	    }
+      	  PhyML_Printf("\n");
+      	}
       
       cond_cov[0*3+0] = 1.E-10;
     }
