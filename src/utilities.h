@@ -226,13 +226,15 @@ typedef	double phydbl;
 #define SMALL DBL_MIN
 #define BIG  DBL_MAX
 #define SMALL_PIJ 1.E-20
-#ifndef MC
+
+#ifndef PHYTIME
 #define BL_MIN 1.E-8
 #define BL_MAX 100.
 #else
 #define BL_MIN 1.E-5
 #define BL_MAX 5.
 #endif
+
 /* #define P_LK_LIM_INF 7.888609052e-31 */
 /* #define P_LK_LIM_MAX 1.267650600e+30 */
 /* #define P_LK_LIM_INF 4.909093465e-91 /\* R: format(2^(-300),digits=10) *\/ */
