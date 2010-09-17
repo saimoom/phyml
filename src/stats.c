@@ -285,13 +285,13 @@ phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max, int *error)
   z      = 0.0;
   rz     = 0.0;
   u      = -1.0;
-  *error = 0;
+  *error = NO;
   
   if(sd < 1.E-100)
     {
       PhyML_Printf("\n. Small variance detected in Rnorm_Trunc.");
       PhyML_Printf("\n. mean=%f sd=%f min=%f max=%f",mean,sd,min,max);
-      *error = 1;
+      *error = YES;
       return -1.0;
     }
 
@@ -299,7 +299,7 @@ phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max, int *error)
     {
       PhyML_Printf("\n. Max < Min");
       PhyML_Printf("\n. mean=%f sd=%f min=%f max=%f",mean,sd,min,max);
-      *error = 1;
+      *error = YES;
       return -1.0;
     }
 
@@ -356,7 +356,7 @@ phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max, int *error)
 
    if((z < z_min-eps) || (z > z_max+eps))
     {
-      *error = 1;
+      *error = YES;
       PhyML_Printf("\n. Numerical precision issue detected in Rnorm_Trunc.");
       PhyML_Printf("\n. z = %f",z);
       PhyML_Printf("\n. mean=%f sd=%f z_min=%f z_max=%f min=%f max=%f",mean,sd,z_min,z_max,min,max);
@@ -550,7 +550,7 @@ phydbl Dnorm_Multi(phydbl *x, phydbl *mu, phydbl *cov, int size, int _log)
   For(i,size) xmmu[i] = x[i] - mu[i];
   For(i,size*size) invcov[i] = cov[i];
   
-  if(!Matinv(invcov,size,size))
+  if(!Matinv(invcov,size,size,NO))
     {
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Exit("\n");      
@@ -1489,6 +1489,8 @@ phydbl *Hessian(t_tree *tree)
   phydbl eps;
   phydbl lk;
   phydbl lnL,lnL1,lnL2;
+  int iter;
+  phydbl scaler;
 
   dim = 2*tree->n_otu-3;
   eps = 0.01;
@@ -1515,7 +1517,7 @@ phydbl *Hessian(t_tree *tree)
   n_ok_edges = 0;
   For(i,dim) 
     {
-      if(tree->t_edges[i]->l*(1.-eps) > BL_MIN)
+      if(tree->t_edges[i]->l*(1.-eps) > MAX(BL_MIN,1./(phydbl)tree->data->init_len))
 	{	  
 	  inc[i] = eps * tree->t_edges[i]->l;
 	  ok_edges[n_ok_edges] = i;
@@ -1608,11 +1610,11 @@ phydbl *Hessian(t_tree *tree)
 	{
 	  tree->t_edges[i]->l -= inc[i];
 
-	  if(tree->t_edges[i]->l < BL_MIN)
-	    {
-	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-	      Exit("\n");
-	    }
+	  /* if(tree->t_edges[i]->l < BL_MIN) */
+	  /*   { */
+	  /*     PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
+	  /*     Exit("\n"); */
+	  /*   } */
 	  
 	  Update_PMat_At_Given_Edge(tree->t_edges[i],tree);
 	  
@@ -1657,7 +1659,7 @@ phydbl *Hessian(t_tree *tree)
 	}
     }
 
-  if(!Matinv(buff,n_ok_edges,n_ok_edges))
+  if(!Matinv(buff,n_ok_edges,n_ok_edges,NO))
     {
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Exit("\n");      
@@ -1671,30 +1673,32 @@ phydbl *Hessian(t_tree *tree)
 	}
     }
 
+  eps = 1./(phydbl)tree->data->init_len;
   /* Approximate variance for very short branches */
   For(i,dim)
     if(inc[i] < 0.0)
       {
 	lnL  = tree->c_lnL;
-	tree->t_edges[i]->l += eps * ori_bl[i];
+	tree->t_edges[i]->l += eps;
 	lnL1 = Lk_At_Given_Edge(tree->t_edges[i],tree);
-	tree->t_edges[i]->l += eps * ori_bl[i];
+	tree->t_edges[i]->l += eps;
 	lnL2 = Lk_At_Given_Edge(tree->t_edges[i],tree);
-	tree->t_edges[i]->l -= 2.*eps * ori_bl[i];
+	tree->t_edges[i]->l -= 2.*eps;
 
-	hessian[i*dim+i] = (lnL2 - 2*lnL1 + lnL) / POW(eps,2);
+	hessian[i*dim+i] = (lnL2 - 2.*lnL1 + lnL) / POW(eps,2);
 	hessian[i*dim+i] = -1.0 / hessian[i*dim+i];
       }
 
+  eps = 1./(phydbl)tree->data->init_len;
   For(i,dim)
     if(hessian[i*dim+i] < MIN_VAR_BL)
       {
 	lnL  = tree->c_lnL;
-	tree->t_edges[i]->l += eps * ori_bl[i];
+	tree->t_edges[i]->l += eps;
 	lnL1 = Lk_At_Given_Edge(tree->t_edges[i],tree);
-	tree->t_edges[i]->l += eps * ori_bl[i];
+	tree->t_edges[i]->l += eps;
 	lnL2 = Lk_At_Given_Edge(tree->t_edges[i],tree);
-	tree->t_edges[i]->l -= 2.*eps * ori_bl[i];
+	tree->t_edges[i]->l -= 2.*eps;
 
 	hessian[i*dim+i] = (lnL2 - 2*lnL1 + lnL) / POW(eps,2);
 	hessian[i*dim+i] = -1.0 / hessian[i*dim+i];
@@ -1711,17 +1715,13 @@ phydbl *Hessian(t_tree *tree)
   For(i,dim)
     if(hessian[i*dim+i] < MIN_VAR_BL)
       {
-	PhyML_Printf("\n. l=%G var=%G",tree->t_edges[i]->l,hessian[i*dim+i]);
-	hessian[i*dim+i] = MIN_VAR_BL;
-	PhyML_Printf("\n. Numerical precision issues may alter this analysis...");
+  	PhyML_Printf("\n. l=%10G var(l)=%12G. WARNING: numerical precision issues may affect this analysis.",
+		     tree->t_edges[i]->l,hessian[i*dim+i]);
+  	hessian[i*dim+i] = MIN_VAR_BL;
       }
 
-
-  if(!Matinv(hessian,dim,dim))
-    {
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-      Exit("\n");
-    }
+  
+  Iter_Matinv(hessian,dim,dim,NO);
 
   For(i,dim*dim) hessian[i] = -1.0*hessian[i];
 
@@ -1751,20 +1751,20 @@ phydbl *Hessian(t_tree *tree)
 /*       PhyML_Printf("\n"); */
 /*     } */
 
-/*   Matinv(hessian,dim,dim); */
+  /* Matinv(hessian,dim,dim,NO); */
 
-/*   PhyML_Printf("\n"); */
+  /* PhyML_Printf("\n"); */
 
-/*   For(i,dim) */
-/*     { */
-/*       PhyML_Printf("[%f] ",tree->t_edges[i]->l); */
-/*       For(j,dim) */
-/* 	{ */
-/* 	  PhyML_Printf("%12lf ",-hessian[i*dim+j]); */
-/* 	} */
-/*       PhyML_Printf("\n"); */
-/*     } */
-/*   Exit("\n"); */
+  /* For(i,dim) */
+  /*   { */
+  /*     PhyML_Printf("[%f] ",tree->t_edges[i]->l); */
+  /*     For(j,dim) */
+  /* 	{ */
+  /* 	  PhyML_Printf("%12G ",-hessian[i*dim+j]); */
+  /* 	} */
+  /*     PhyML_Printf("\n"); */
+  /*   } */
+  /* Exit("\n"); */
 
   Free(ori_bl);
   Free(plus_plus);
@@ -2027,7 +2027,7 @@ phydbl *Hessian_Log(t_tree *tree)
 	}
     }
 
-  if(!Matinv(buff,n_ok_edges,n_ok_edges))
+  if(!Matinv(buff,n_ok_edges,n_ok_edges,NO))
     {
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Exit("\n");      
@@ -2048,7 +2048,7 @@ phydbl *Hessian_Log(t_tree *tree)
 	hessian[i*dim+i] = 1./POW(tree->data->init_len,2);
       }
 
-  if(!Matinv(hessian,dim,dim))
+  if(!Matinv(hessian,dim,dim,NO))
     {
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Exit("\n");      
@@ -2196,7 +2196,7 @@ phydbl Constraint_Normal_Trunc_Mean(phydbl wanted_mu, phydbl sd, phydbl min, phy
 
 /*********************************************************/
 
-int Matinv(phydbl *x, int n, int m)
+int Matinv(phydbl *x, int n, int m, int verbose)
 {
 
 /* x[n*m]  ... m>=n
@@ -2226,8 +2226,11 @@ int Matinv(phydbl *x, int n, int m)
       if (xmax < ee)
 	{
 	  Free(irow);
-	  PhyML_Printf("\n. Determinant becomes zero at %3d!\t\n", i+1);
-	  PhyML_Printf("\n. Failed to invert the matrix.\n");
+	  if(verbose)
+	    {
+	      PhyML_Printf("\n. Determinant becomes zero at %3d!\t", i+1);
+	      PhyML_Printf("\n. Failed to invert the matrix.");
+	    }
 	  return(0);
 	}
       if (irow[i] != i)
@@ -2304,6 +2307,38 @@ int Matinv(phydbl *x, int n, int m)
 }
 
 /*********************************************************/
+
+int Iter_Matinv(phydbl *x, int n, int m, int verbose)
+{
+  phydbl *buff;
+  int i,iter;
+  phydbl scaler;
+
+  buff = (phydbl *)mCalloc(n*m,sizeof(phydbl));
+
+  iter   = 0;
+  scaler = 1.;
+  For(i,n*m) buff[i] = x[i];
+  while(!Matinv(buff,n,m,verbose))
+    {
+      For(i,n*m) buff[i] = x[i];
+      scaler *= 10.;
+      For(i,n*m) buff[i] *= scaler;
+      iter++;
+
+      if(iter > 100)
+	{
+	  PhyML_Printf("\n. Err in file %s at line %d.",__FILE__,__LINE__);
+	  return 0;
+	}      
+    }
+
+  For(i,n*m) x[i] = buff[i]*scaler;
+  Free(buff);
+  return 1;
+}
+
+
 /*********************************************************/
 
 phydbl *Matrix_Mult(phydbl *A, phydbl *B, int nra, int nca, int nrb, int ncb)
@@ -2383,7 +2418,9 @@ void Normal_Conditional(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is
   phydbl *ctrd_a;
   phydbl *cond_cov_norder,*cond_mu_norder;
   int    n2;
-  int i,j,nr,nc;
+  int i,j,nr,nc,iter;
+  phydbl *buff_mat;
+  phydbl scaler;
 
   n2 = n-n1;
 
@@ -2396,6 +2433,7 @@ void Normal_Conditional(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is
   ctrd_a          = (phydbl *)mCalloc(n2,   sizeof(phydbl)); 
   cond_cov_norder = (phydbl *)mCalloc(n1*n1,sizeof(phydbl));
   cond_mu_norder  = (phydbl *)mCalloc(n1*n1,sizeof(phydbl));
+  buff_mat        = (phydbl *)mCalloc(n2*n2,sizeof(phydbl));
 
   nr=0;
   For(i,n) { if(!is_1[i]) { ctrd_a[nr] = a[i]-mu[i]; nr++; } }
@@ -2492,11 +2530,8 @@ void Normal_Conditional(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is
 	}
     }
 
-  if(!Matinv(sig22,n2,n2))
-    {
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-      Exit("\n");      
-    }
+  Iter_Matinv(sig22,n2,n2,NO);
+
   sig12_invsig22 = Matrix_Mult(sig12,sig22,n1,n2,n2,n2);
 
   buff = Matrix_Mult(sig12_invsig22,ctrd_a,n1,n2,n2,1);
@@ -2559,6 +2594,7 @@ void Normal_Conditional(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is
   Free(cond_cov_norder);
   Free(cond_mu_norder);
   Free(sig12_invsig22);
+  Free(buff_mat);
 }
 
 
@@ -2678,7 +2714,7 @@ void Normal_Conditional_Unsorted(phydbl *mu, phydbl *cov, phydbl *a, int n, shor
 	}
     }
 
-  if(!Matinv(sig22,n2,n2))
+  if(!Matinv(sig22,n2,n2,NO))
     {
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Exit("\n");      
@@ -2757,7 +2793,7 @@ void Get_Reg_Coeff(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is_1, i
     }
 
 
-  if(!Matinv(sig22,n2,n2))
+  if(!Matinv(sig22,n2,n2,NO))
     {
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Exit("\n");      
@@ -2904,6 +2940,60 @@ int Norm_Trunc_Mean_Sd(phydbl mu, phydbl sd, phydbl a, phydbl b, phydbl *trunc_m
 }
 
 /*********************************************************/
+
+void VarCov_Approx_Likelihood(t_tree *tree)
+{
+  int i,j;
+  phydbl *cov;
+  phydbl *mean;
+  int dim;
+  int iter;
+
+  cov = tree->rates->cov;
+  mean = tree->rates->invcov;
+  dim = 2*tree->n_otu-3;
+  
+  For(i,dim)     mean[i] = .0;
+  For(i,dim*dim) cov[i]  = .0;
+
+  
+  iter = 0;
+  do
+    {
+      tree->both_sides = YES;
+      Lk(tree);
+      MCMC_Br_Lens(tree);
+
+      For(i,dim)
+	{
+	  mean[i] *= (phydbl)iter;
+	  mean[i] += tree->t_edges[i]->l;
+	  mean[i] /= (phydbl)(iter+1);
+	}
+
+      For(i,dim)
+	{
+	  For(j,dim)
+	    {
+	      cov[i*dim+j] *= (phydbl)iter;
+	      cov[i*dim+j] += tree->t_edges[i]->l * tree->t_edges[j]->l;
+	      cov[i*dim+j] /= (phydbl)(iter+1);
+	    }
+	}
+      iter++;
+    }while(iter < 5000);
+
+
+  For(i,dim)
+    {
+      For(j,dim)
+	{
+	  cov[i*dim+j] = cov[i*dim+j] - mean[i]*mean[j];
+	  if(i == j && cov[i*dim+j] < MIN_VAR_BL) cov[i*dim+j] = MIN_VAR_BL;
+	}
+    }
+}
+
 /*********************************************************/
 /*********************************************************/
 /*********************************************************/

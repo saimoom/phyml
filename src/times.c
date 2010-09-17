@@ -63,8 +63,7 @@ int TIMES_main(int argc, char **argv)
   r_seed = (io->r_seed < 0)?(time(NULL)):(io->r_seed);
 /*   r_seed = 1264735233; */
   /* !!!!!!!!!!!!!!!!!!!!!!!! */
-
-  sys = system("sleep 5s");
+  /* sys = system("sleep 5s"); */
 
   srand(r_seed); rand();
   PhyML_Printf("\n. Seed: %d\n",r_seed);
@@ -174,6 +173,7 @@ int TIMES_main(int argc, char **argv)
 		  /* Free(s); */
 
 		  Read_Clade_Priors(io->clade_list_file,tree);
+		  TIMES_Set_All_Node_Priors(tree);
 
 
 		  /************************************/
@@ -189,22 +189,24 @@ int TIMES_main(int argc, char **argv)
 		  PhyML_Printf("\n");
 		  PhyML_Printf("\n. Computing Hessian...\n");
 		  tree->rates->bl_from_rt = 0;
-		  phydbl *cov;
-		  cov = Hessian(tree);
-		  For(i,(2*tree->n_otu-3)*(2*tree->n_otu-3)) cov[i] *= -1.0;
-		  if(!Matinv(cov,2*tree->n_otu-3,2*tree->n_otu-3))
-		    {
-		      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-		      Exit("\n");      
-		    }
-		  Free(tree->rates->cov); 
-		  tree->rates->cov = cov;
+
+		  /* phydbl *cov; */
+		  /* cov = Hessian(tree); */
+		  /* For(i,(2*tree->n_otu-3)*(2*tree->n_otu-3)) cov[i] *= -1.0; */
+		  /* if(!Iter_Matinv(cov,2*tree->n_otu-3,2*tree->n_otu-3,YES)) Exit("\n"); */
+		  /* Free(tree->rates->cov); */
+		  /* tree->rates->cov = cov; */
+
+
+
+		  VarCov_Approx_Likelihood(tree);
+		  
+
+
+
+
 		  For(i,(2*tree->n_otu-3)*(2*tree->n_otu-3)) tree->rates->invcov[i] = tree->rates->cov[i];
-		  if(!Matinv(tree->rates->invcov,2*tree->n_otu-3,2*tree->n_otu-3))
-		    {
-		      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-		      Exit("\n");      
-		    }
+		  if(!Iter_Matinv(tree->rates->invcov,2*tree->n_otu-3,2*tree->n_otu-3,YES)) Exit("\n");
 		  tree->rates->covdet = Matrix_Det(tree->rates->cov,2*tree->n_otu-3,YES);
 		  Restore_Br_Len(NULL,tree);
 
@@ -215,56 +217,67 @@ int TIMES_main(int argc, char **argv)
 		  RATES_Get_Trip_Conditional_Variances(tree);
 		  RATES_Get_All_Trip_Reg_Coeff(tree);
 
-
 		  Lk(tree);
 		  PhyML_Printf("\n. p(data|model) [exact] ~ %f",tree->c_lnL);
 		  For(i,2*tree->n_otu-3) tree->rates->u_cur_l[i] = tree->t_edges[i]->l;
-		  tree->c_lnL = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,tree->rates->u_ml_l,tree->rates->invcov,tree->rates->covdet,2*tree->n_otu-3,YES);
+		  tree->c_lnL = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,
+							     tree->rates->u_ml_l,
+							     tree->rates->invcov,
+							     tree->rates->covdet,
+							     2*tree->n_otu-3,YES);
 		  PhyML_Printf("\n. p(data|model) [normal approx] ~ %f",tree->c_lnL);
 /* 		  PhyML_Printf("\n. p(model) [normal approx] ~ %f",RATES_Lk_Rates(tree)); */
 
 		  tree->rates->bl_from_rt = 1;
 
-		  PhyML_Printf("\n. Burnin...\n");
-		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
-		  MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree);
-		  tree->rates->lk_approx = NORMAL;
-		  tree->mcmc->n_tot_run  = tree->io->gibbs_burnin;
-		  MCMC(tree);
-		  MCMC_Close_MCMC(tree->mcmc);
-		  MCMC_Free_MCMC(tree->mcmc);
 
-		  PhyML_Printf("\n. Gibbs sampling...\n");
-		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
-		  MCMC_Init_MCMC_Struct("phytime",tree->mcmc,tree);
-		  tree->rates->lk_approx = NORMAL;
-		  RATES_Lk_Rates(tree);
-		  MCMC_Print_Param(tree->mcmc,tree);
+ 		  /* PhyML_Printf("\n. Burnin...\n"); */
+		  /* tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree); */
+		  /* MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree); */
+		  /* tree->rates->lk_approx = NORMAL; */
+		  /* tree->mcmc->adjust_tuning   = YES; */
+		  /* tree->mcmc->n_tot_run       = tree->io->gibbs_burnin; */
+		  /* tree->mcmc->sample_interval = tree->io->gibbs_burnin/100; */
+		  /* MCMC(tree); */
+		  /* MCMC_Close_MCMC(tree->mcmc); */
+		  /* MCMC_Free_MCMC(tree->mcmc); */
+
+		  /* PhyML_Printf("\n. Gibbs sampling...\n"); */
+		  /* tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree); */
+		  /* MCMC_Init_MCMC_Struct("phytime",tree->mcmc,tree); */
+		  /* tree->rates->lk_approx = NORMAL; */
+		  /* RATES_Lk_Rates(tree); */
+		  /* MCMC_Print_Param(tree->mcmc,tree); */
 		  		  
-		  time(&t_beg);
-		  tree->mcmc->n_tot_run       = tree->io->gibbs_chain_len;
-		  tree->mcmc->sample_interval = tree->io->gibbs_sample_freq;
-		  phydbl u;
-		  int acc,n_trials;
-		  acc = n_trials = 0;
-		  do
-		    {
-		      tree->rates->c_lnL = RATES_Lk_Rates(tree);
-		      tree->c_lnL        = Lk(tree);
+		  /* time(&t_beg); */
+		  /* tree->mcmc->adjust_tuning   = NO; */
+		  /* tree->mcmc->n_tot_run       = tree->io->gibbs_chain_len; */
+		  /* tree->mcmc->sample_interval = tree->io->gibbs_sample_freq; */
+		  /* phydbl u; */
+		  /* int acc,n_trials; */
+		  /* acc = n_trials = 0; */
 
-		      MCMC_Nu(tree);
-		      RATES_Posterior_Clock_Rate(tree);		      
-		      RATES_Posterior_Times(tree);
-		      RATES_Posterior_Rates(&acc,&n_trials,tree);
-		    }
-		  while(tree->mcmc->run < tree->mcmc->n_tot_run);
+		  /* do */
+		  /*   { */
+		  /*     tree->rates->c_lnL = RATES_Lk_Rates(tree); */
+		  /*     tree->c_lnL        = Lk(tree); */
+		      
+		  /*     MCMC_Swing(tree); */
+		  /*     MCMC_Nu(tree); */
+		  /*     MCMC_Clock_Rate(tree); */
+		  /*     RATES_Posterior_Times(tree); */
+		  /*     RATES_Posterior_Rates(&acc,&n_trials,tree); */
+		  /*     RATES_Check_Node_Times(tree); */
+		  /*   } */
+		  /* while(tree->mcmc->run < tree->mcmc->n_tot_run); */
 
-		  PhyML_Printf("\n. End of Gibbs sampling...\n");
+		  /* PhyML_Printf("\n. End of Gibbs sampling...\n"); */
+		  /* Exit("\n"); */
 
-/* 		  time(&t_end); */
-/* 		  Print_Time_Info(t_beg,t_end); */
-		  MCMC_Close_MCMC(tree->mcmc);
-		  MCMC_Free_MCMC(tree->mcmc);
+/* /\* 		  time(&t_end); *\/ */
+/* /\* 		  Print_Time_Info(t_beg,t_end); *\/ */
+/* 		  MCMC_Close_MCMC(tree->mcmc); */
+/* 		  MCMC_Free_MCMC(tree->mcmc); */
 
 /* 		  system("sleep 1s"); */
 /* 		  END OF IMPORTANCE SAMPLING STUFF */
@@ -275,73 +288,105 @@ int TIMES_main(int argc, char **argv)
 		  /************************************/
 		  /************************************/
 
-/* 		  /\* THORNE NORMAL *\/ */
-/* 		  tree->both_sides        = 1; */
-/* 		  tree->rates->model      = THORNE; */
-/* 		  tree->rates->bl_from_rt = 1; */
+		  /* THORNE NORMAL */
+		  /* tree->both_sides        = 1; */
+		  /* tree->rates->model      = THORNE; */
+		  /* tree->rates->bl_from_rt = 1; */
 
-/* 		  PhyML_Printf("\n. Burnin...\n"); */
-/* 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree); */
-/* 		  MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree); */
-/* 		  tree->rates->lk_approx = NORMAL; */
-/* 		  tree->mcmc->n_tot_run  = 1E+6; */
-/* 		  MCMC(tree); */
-/* 		  MCMC_Close_MCMC(tree->mcmc); */
-/* 		  MCMC_Free_MCMC(tree->mcmc); */
+		  /* PhyML_Printf("\n. Burnin...\n"); */
+		  /* tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree); */
+		  /* MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree); */
+		  /* tree->rates->lk_approx = NORMAL; */
+		  /* tree->mcmc->adjust_tuning   = YES; */
+		  /* tree->mcmc->n_tot_run  = tree->io->gibbs_burnin; */
+		  /* tree->mcmc->sample_interval = tree->io->gibbs_burnin/100; */
+		  /* MCMC(tree); */
+		  /* MCMC_Close_MCMC(tree->mcmc); */
+		  /* MCMC_Free_MCMC(tree->mcmc); */
 
-/* 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree); */
-/* 		  MCMC_Init_MCMC_Struct("thorne.normal",tree->mcmc,tree); */
-/* 		  tree->rates->lk_approx = NORMAL; */
+		  /* tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree); */
+		  /* MCMC_Init_MCMC_Struct("thorne.normal",tree->mcmc,tree); */
+		  /* tree->rates->lk_approx = NORMAL; */
+		  /* tree->mcmc->adjust_tuning   = NO; */
+		  /* tree->mcmc->n_tot_run       = tree->io->gibbs_chain_len; */
+		  /* tree->mcmc->sample_interval = tree->io->gibbs_sample_freq; */
+		  /* tree->mcmc->randomize = NO; */
+		  /* time(&t_beg); */
+		  /* PhyML_Printf("\n. Thorne (approx)...\n"); */
+		  /* MCMC(tree); */
+		  /* PhyML_Printf("\n. End of Thorne (approx)...\n"); */
+		  /* system("sleep 3s"); */
+		  /* time(&t_end); */
+		  /* Print_Time_Info(t_beg,t_end); */
+		  /* MCMC_Close_MCMC(tree->mcmc); */
+		  /* MCMC_Free_MCMC(tree->mcmc); */
+
+		  /* Exit("\n"); */
+
+
+		  /* THORNE EXACT */
+		  tmcmc *new_mcmc;
+		  tree->both_sides        = 1;
+		  tree->rates->model      = THORNE;
+		  tree->rates->bl_from_rt = 1;
+
+		  PhyML_Printf("\n. Burnin...\n");
+		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
+		  MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree);
+		  tree->rates->lk_approx    = NORMAL;
+		  tree->mcmc->adjust_tuning = YES;
+		  tree->mcmc->n_tot_run  = tree->io->gibbs_burnin;
+		  tree->mcmc->sample_interval = tree->io->gibbs_burnin/100;
+		  MCMC(tree);
+		  MCMC_Close_MCMC(tree->mcmc);
 		  
-/* 		  tree->mcmc->n_tot_run       = 1E+8; */
-/* 		  tree->mcmc->sample_interval = 1E+4; */
+		  new_mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
+		  MCMC_Copy_MCMC_Struct(tree->mcmc,new_mcmc,"thorne.exact",tree);
+		  MCMC_Free_MCMC(tree->mcmc);
+		  tree->rates->lk_approx      = NORMAL;
 
-/* 		  tree->mcmc->randomize = NO; */
-/* 		  time(&t_beg); */
-/* 		  PhyML_Printf("\n. Thorne (approx)...\n"); */
-/* 		  MCMC(tree); */
-/* 		  PhyML_Printf("\n. End of Thorne (approx)...\n"); */
-/* 		  system("sleep 3s"); */
-/* 		  time(&t_end); */
-/* 		  Print_Time_Info(t_beg,t_end); */
-/* 		  MCMC_Close_MCMC(tree->mcmc); */
-/* 		  MCMC_Free_MCMC(tree->mcmc); */
+		  tree->mcmc                     = new_mcmc;
+		  tree->mcmc->adjust_tuning      = NO;
+		  tree->mcmc->n_tot_run          = tree->io->gibbs_chain_len;
+		  tree->mcmc->sample_interval    = tree->io->gibbs_sample_freq;
+		  tree->mcmc->randomize          = NO;
+		  tree->mcmc->run_nu             = 0;
+		  tree->mcmc->run_tree_height    = 0;
+		  tree->mcmc->run_subtree_height = 0;
+		  tree->mcmc->run_clock          = 0;
+		  tree->mcmc->run_rates          = 0;
+		  tree->mcmc->run_times          = 0;
+		  tree->mcmc->run                = 0;
+		  tree->mcmc->acc_tree_height    = 0;
+		  tree->mcmc->acc_subtree_height = 0;
+		  tree->mcmc->acc_clock          = 0;
+		  tree->mcmc->acc_rates          = 0;
+		  tree->mcmc->acc_times          = 0;
 
-
-
-/* 		  /\* THORNE EXACT *\/ */
-/* 		  tree->both_sides        = 0; */
-/* 		  tree->rates->model      = THORNE; */
-/* 		  tree->rates->bl_from_rt = 1; */
-
-/* 		  PhyML_Printf("\n. Burnin...\n"); */
-/* 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree); */
-/* 		  MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree); */
-/* 		  tree->rates->lk_approx = NORMAL; */
-/* 		  tree->mcmc->n_tot_run  = 1E+6; */
-/* 		  MCMC(tree); */
-/* 		  MCMC_Close_MCMC(tree->mcmc); */
-/* 		  MCMC_Free_MCMC(tree->mcmc); */
-
-/* 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree); */
-/* 		  MCMC_Init_MCMC_Struct("thorne.exact",tree->mcmc,tree); */
-/* 		  tree->rates->lk_approx = EXACT; */
 		  
-/* 		  tree->mcmc->n_tot_run       = 5E+5; */
-/* 		  tree->mcmc->sample_interval = 1E+3; */
+		  tree->mcmc->move_weight[0] = (phydbl)tree->n_otu; /* Clock */
+		  tree->mcmc->move_weight[1] = (phydbl)tree->n_otu; /* Tree height */
+		  tree->mcmc->move_weight[2] = (phydbl)tree->n_otu; /* SubTree height */
+		  tree->mcmc->move_weight[3] = (phydbl)tree->n_otu; /* Nu */
+		  tree->mcmc->move_weight[4] = 5.*(phydbl)tree->n_otu; /* Node heights */
+		  tree->mcmc->move_weight[5] = 5.*(phydbl)tree->n_otu; /* Edge rates */
+		  
+		  phydbl sum = 0.0;
+		  For(i,N_MAX_MOVES) sum += tree->mcmc->move_weight[i];
+		  For(i,N_MAX_MOVES) tree->mcmc->move_weight[i] /= sum;
+		  for(i=1;i<N_MAX_MOVES;i++) tree->mcmc->move_weight[i] += tree->mcmc->move_weight[i-1];
 
-/* 		  tree->mcmc->randomize = 0; */
-/* 		  time(&t_beg); */
-/* 		  PhyML_Printf("\n. Thorne (exact)...\n"); */
-/* 		  MCMC(tree); */
-/* 		  PhyML_Printf("\n. End of Thorne (exact)...\n"); */
-/* 		  system("sleep 3s"); */
-/* 		  time(&t_end); */
-/* 		  Print_Time_Info(t_beg,t_end); */
-/* 		  MCMC_Close_MCMC(tree->mcmc); */
-/* 		  MCMC_Free_MCMC(tree->mcmc); */
-/* 		  Exit("\n"); */
 
+
+		  time(&t_beg);
+		  PhyML_Printf("\n. Thorne (exact)...\n");
+		  MCMC(tree);
+		  PhyML_Printf("\n. End of Thorne (exact)...\n");
+		  system("sleep 3s");
+		  time(&t_end);
+		  Print_Time_Info(t_beg,t_end);
+		  MCMC_Close_MCMC(tree->mcmc);
+		  MCMC_Free_MCMC(tree->mcmc);
 		  /* END OF COMPOUND POISSON STUFF */
 		  /************************************/
 		  /************************************/
@@ -401,9 +446,7 @@ void TIMES_Least_Square_Node_Times(t_edge *e_root, t_tree *tree)
   int i,j;
   t_node *root;
   
-  
-  PhyML_Printf("\n. Making the tree molecular clock like.");
-  
+    
   n = 2*tree->n_otu-1;
   
   A = (phydbl *)mCalloc(n*n,sizeof(phydbl));
@@ -425,7 +468,7 @@ void TIMES_Least_Square_Node_Times(t_edge *e_root, t_tree *tree)
   A[root->num * n + root->v[0]->num] = -.5;
   A[root->num * n + root->v[1]->num] = -.5;
     
-  if(!Matinv(A, n, n))
+  if(!Matinv(A, n, n,YES))
     {
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Exit("\n");      
@@ -654,7 +697,6 @@ void TIMES_Bl_From_T_Post(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 /*********************************************************/
 
 
-
 void TIMES_Print_Node_Times(t_node *a, t_node *d, t_tree *tree)
 {
   t_edge *b;
@@ -663,12 +705,14 @@ void TIMES_Print_Node_Times(t_node *a, t_node *d, t_tree *tree)
   b = NULL;
   For(i,3) if((d->v[i]) && (d->v[i] == a)) {b = d->b[i]; break;}
 
-  PhyML_Printf("\n. (%3d %3d) a->t = %f d->t = %f (#=%f) b->l = %f",
-	 a->num,d->num,
-	 tree->rates->nd_t[a->num],
-	 tree->rates->nd_t[d->num],
-	 tree->rates->nd_t[a->num]-tree->rates->nd_t[d->num],
-	 (b)?(b->l):(-1.0));
+  PhyML_Printf("\n. (%3d %3d) a->t = %12f d->t = %12f (#=%12f) b->l = %12f [%12f;%12f]",
+	       a->num,d->num,
+	       tree->rates->nd_t[a->num],
+	       tree->rates->nd_t[d->num],
+	       tree->rates->nd_t[a->num]-tree->rates->nd_t[d->num],
+	       (b)?(b->l):(-1.0),
+	       tree->rates->t_prior_min[d->num],
+	       tree->rates->t_prior_max[d->num]);
   if(d->tax) return;
   else
     {
@@ -785,6 +829,129 @@ int TIMES_Check_MC(t_tree *tree)
 }
 
 /*********************************************************/
+
+void TIMES_Set_All_Node_Priors(t_tree *tree)
+{
+  int i;
+  phydbl min_prior;
+
+  /* Set all t_prior_max values */
+  TIMES_Set_All_Node_Priors_Bottom_Up(tree->n_root,tree->n_root->v[0],tree);
+  TIMES_Set_All_Node_Priors_Bottom_Up(tree->n_root,tree->n_root->v[1],tree);
+
+  tree->rates->t_prior_max[tree->n_root->num] = 
+    MIN(tree->rates->t_prior_max[tree->n_root->num],
+	MIN(tree->rates->t_prior_max[tree->n_root->v[0]->num],
+	    tree->rates->t_prior_max[tree->n_root->v[1]->num]));
+
+
+  /* Set all t_prior_min values */
+  if(!tree->rates->t_has_prior[tree->n_root->num])
+    {
+      For(i,2*tree->n_otu-2)
+	{
+	  if(tree->rates->t_has_prior[i] && tree->rates->t_prior_min[i] < min_prior)
+	    {
+	      min_prior = tree->rates->t_prior_min[i];
+	    }
+	}
+      /* tree->rates->t_prior_min[tree->n_root->num] = 3. * min_prior; */
+      /* !!!!!!!!!!!!!!!!! */
+      tree->rates->t_prior_min[tree->n_root->num] = 10. * min_prior;
+    }
+
+  TIMES_Set_All_Node_Priors_Top_Down(tree->n_root,tree->n_root->v[0],tree);
+  TIMES_Set_All_Node_Priors_Top_Down(tree->n_root,tree->n_root->v[1],tree);
+}
+
+/*********************************************************/
+
+void TIMES_Set_All_Node_Priors_Bottom_Up(t_node *a, t_node *d, t_tree *tree)
+{
+  int i;
+  phydbl t_inf,t_sup;
+  phydbl u;
+
+  if(d->tax) return;
+  else 
+    {
+      t_node *v1, *v2; /* the two sons of d */
+
+      For(i,3)
+	{
+	  if((d->v[i] != a) && (d->b[i] != tree->e_root))
+	    {
+	      TIMES_Set_All_Node_Priors_Bottom_Up(d,d->v[i],tree);	      
+	    }
+	}
+      
+      v1 = v2 = NULL;
+      For(i,3) if((d->v[i] != a) && (d->b[i] != tree->e_root)) 
+	{
+	  if(!v1) v1 = d->v[i]; 
+	  else    v2 = d->v[i];
+	}
+      
+      if(tree->rates->t_has_prior[d->num])
+	{
+	  t_sup = MIN(tree->rates->t_prior_max[d->num],
+		      MIN(tree->rates->t_prior_max[v1->num],
+			  tree->rates->t_prior_max[v2->num]));
+
+	  tree->rates->t_prior_max[d->num] = t_sup;
+
+	  if(tree->rates->t_prior_max[d->num] < tree->rates->t_prior_min[d->num])
+	    {
+	      PhyML_Printf("\n. prior_min=%f prior_max=%f",tree->rates->t_prior_min[d->num],tree->rates->t_prior_max[d->num]);
+	      PhyML_Printf("\n. Inconsistency in the prior settings detected at t_node %d",d->num);
+	      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
+	      Warn_And_Exit("\n");
+	    }
+	}
+      else
+	{
+	  tree->rates->t_prior_max[d->num] = 
+	    MIN(tree->rates->t_prior_max[v1->num],
+		tree->rates->t_prior_max[v2->num]);
+	}
+    }
+}
+
+/*********************************************************/
+
+void TIMES_Set_All_Node_Priors_Top_Down(t_node *a, t_node *d, t_tree *tree)
+{
+  if(d->tax) return;
+  else
+    {
+      int i;      
+      
+      if(tree->rates->t_has_prior[d->num])
+	{
+	  tree->rates->t_prior_min[d->num] = MIN(tree->rates->t_prior_min[d->num],tree->rates->t_prior_min[a->num]);
+	  
+	  if(tree->rates->t_prior_max[d->num] < tree->rates->t_prior_min[d->num])
+	    {
+	      PhyML_Printf("\n. prior_min=%f prior_max=%f",tree->rates->t_prior_min[d->num],tree->rates->t_prior_max[d->num]);
+	      PhyML_Printf("\n. Inconsistency in the prior settings detected at t_node %d",d->num);
+	      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
+	      Warn_And_Exit("\n");
+	    }
+	}
+      else
+	{
+	  tree->rates->t_prior_min[d->num] = tree->rates->t_prior_min[a->num];
+	}
+            
+      For(i,3)
+	{
+	  if((d->v[i] != a) && (d->b[i] != tree->e_root))
+	    {
+	      TIMES_Set_All_Node_Priors_Top_Down(d,d->v[i],tree);
+	    }
+	}
+    }
+}
 
 /*********************************************************/
 /*********************************************************/

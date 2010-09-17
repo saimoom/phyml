@@ -323,8 +323,12 @@ phydbl Lk(t_tree *tree)
   int br;
   int n_patterns;
 
-
   tree->old_lnL = tree->c_lnL;
+
+#ifdef PHYTIME
+  if((tree->rates) && (tree->rates->bl_from_rt)) RATES_Update_Cur_Bl(tree);
+  if(tree->bl_from_node_stamps) TIMES_Bl_From_T(tree);
+#endif
 
   if(tree->rates && tree->rates->lk_approx == NORMAL)
     {
@@ -340,16 +344,8 @@ phydbl Lk(t_tree *tree)
   n_patterns = tree->n_pattern;
 
   Set_Model_Parameters(tree->mod);
-
-#ifdef PHYTIME
-  if((tree->rates) && (tree->rates->bl_from_rt)) RATES_Update_Cur_Bl(tree);
-  if(tree->bl_from_node_stamps) TIMES_Bl_From_T(tree);
-#endif
-
-  For(br,2*tree->n_otu-3) 
-    {
-      Update_PMat_At_Given_Edge(tree->t_edges[br],tree);
-    }
+  
+  For(br,2*tree->n_otu-3) Update_PMat_At_Given_Edge(tree->t_edges[br],tree);
 
   Post_Order_Lk(tree->noeud[0],tree->noeud[0]->v[0],tree);
   if(tree->both_sides)

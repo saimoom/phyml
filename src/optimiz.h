@@ -148,6 +148,9 @@ phydbl Optwrap_Lk_At_Given_Edge(t_edge *b, t_tree *tree, supert_tree *stree);
 phydbl Optwrap_Part_Lk_At_Given_Edge(t_edge *b, t_tree *tree, supert_tree *stree);
 phydbl Optwrap_Part_Lk(t_edge *b, t_tree *tree, supert_tree *stree);
 phydbl Optwrap_Geo_Lk(t_edge *b, t_tree *tree, supert_tree *stree);
+void Round_Optimize_Node_Heights(t_tree *tree);
+void Opt_Node_Heights_Recurr_Pre(t_node *a, t_node *d, t_tree *tree);
+void Opt_Node_Heights_Recurr(t_tree *tree);
 
 #endif
 

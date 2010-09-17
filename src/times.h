@@ -58,5 +58,8 @@ void TIMES_Compute_Rates_And_Times_Least_Square_Adjustments(t_tree *tree);
 void TIMES_Compute_Rates_And_Times_Least_Square_Adjustments_Post(t_node *a, t_node *d, t_edge *b, t_tree *tree);
 void TIMES_Classify_Branch_Rates(t_tree *tree);
 int TIMES_Check_MC(t_tree *tree);
+void TIMES_Set_All_Node_Priors(t_tree *tree);
+void TIMES_Set_All_Node_Priors_Bottom_Up(t_node *a, t_node *d, t_tree *tree);
+void TIMES_Set_All_Node_Priors_Top_Down(t_node *a, t_node *d, t_tree *tree);
 
 #endif
