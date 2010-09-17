@@ -7,10 +7,10 @@
 # Comment the line below if you want to use MPI.
 # Uncomment the line below if you don't want to use MPI.
 
+DEFS = -DUNIX -D$(PROG) -DDEBUG $(REVISION)
 
 # REVISION = $(shell if test -e .svn; then echo -DREV=\"`LC_ALL=C svn info | sed -n '/^Rev/p'| sed -e 's/^Revision:\ //'`\"; fi;)
 
-DEFS = -DUNIX -D$(PROG) -DDEBUG $(REVISION)
 
 if WANT_PHYTIME
 bin_PROGRAMS = phytime

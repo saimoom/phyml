@@ -519,11 +519,6 @@ char *Write_Tree(t_tree *tree)
   s[0]='(';
   pos = 1;
   
-  /* #ifdef PHYML  */
-  /* tree->n_root = NULL; */
-  /* tree->e_root = NULL; */
-  /* #endif */
-  
   if(!tree->n_root)
     {
       i = 0;
@@ -553,6 +548,11 @@ char *Write_Tree(t_tree *tree)
 void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos, t_tree *tree)
 {
   int i,p,ori_len;
+  char *format;
+
+  format = (char *)mCalloc(100,sizeof(char));
+
+  sprintf(format,"%%.%df",tree->bl_ndigits);
 
   p = -1;
   if(fils->tax)
@@ -606,28 +606,28 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
 #ifndef PHYTIME
 	  if(!tree->n_root)
 	    {
-	      (*pos) += sprintf(*s_tree+*pos,"%f",fils->b[0]->l);
+	      (*pos) += sprintf(*s_tree+*pos,format,fils->b[0]->l);
 	    }
 	  else
 	    {
 	      if(pere == tree->n_root)
 		{
 		  phydbl root_pos = (fils == tree->n_root->v[0])?(tree->n_root_pos):(1.-tree->n_root_pos);
-		  (*pos) += sprintf(*s_tree+*pos,"%f",tree->e_root->l * root_pos);
+		  (*pos) += sprintf(*s_tree+*pos,format,tree->e_root->l * root_pos);
 		}
 	      else
 		{
-		  (*pos) += sprintf(*s_tree+*pos,"%f",fils->b[0]->l);
+		  (*pos) += sprintf(*s_tree+*pos,format,fils->b[0]->l);
 		}
 	    }		
 #else
 	  if(!tree->n_root)
 	    {
-	      (*pos) += sprintf(*s_tree+*pos,"%f",fils->b[0]->l);
+	      (*pos) += sprintf(*s_tree+*pos,format,fils->b[0]->l);
 	    }
 	  else
 	    {
-	      (*pos) += sprintf(*s_tree+*pos,"%.0f",tree->rates->cur_l[fils->num]);
+	      (*pos) += sprintf(*s_tree+*pos,format,tree->rates->cur_l[fils->num]);
 	    }
 #endif
 	}
@@ -712,28 +712,28 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
 #ifndef PHYTIME
 	  if(!tree->n_root)
 	    {
-	      (*pos) += sprintf(*s_tree+*pos,"%f",fils->b[p]->l);
+	      (*pos) += sprintf(*s_tree+*pos,format,fils->b[p]->l);
 	    }
 	  else
 	    {
 	      if(pere == tree->n_root)
 		{
 		  phydbl root_pos = (fils == tree->n_root->v[0])?(tree->n_root_pos):(1.-tree->n_root_pos);
-		  (*pos) += sprintf(*s_tree+*pos,"%f",tree->e_root->l * root_pos);
+		  (*pos) += sprintf(*s_tree+*pos,format,tree->e_root->l * root_pos);
 		}
 	      else
 		{
-		  (*pos) += sprintf(*s_tree+*pos,"%f",fils->b[p]->l);
+		  (*pos) += sprintf(*s_tree+*pos,format,fils->b[p]->l);
 		}
 	    }
 #else
 	  if(!tree->n_root)
 	    {
-	      (*pos) += sprintf(*s_tree+*pos,"%f",fils->b[p]->l);
+	      (*pos) += sprintf(*s_tree+*pos,format,fils->b[p]->l);
 	    }
 	  else
 	    {
-	      (*pos) += sprintf(*s_tree+*pos,"%.0f",tree->rates->cur_l[fils->num]);
+	      (*pos) += sprintf(*s_tree+*pos,format,tree->rates->cur_l[fils->num]);
 	    }
 #endif
 	}
@@ -754,6 +754,8 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
 	}
 /*       printf(" %s [%d,%d]",*s_tree,(int)strlen(*s_tree),*available); */
     }
+
+  Free(format);
 }
 
 /*********************************************************/
@@ -793,6 +795,8 @@ void Init_Tree(t_tree *tree, int n_otu)
 
   tree->write_tax_names           = YES;
   tree->update_alias_subpatt      = NO;
+  
+  tree->bl_ndigits                = 7;
 }
 
 /*********************************************************/
@@ -6496,6 +6500,7 @@ void Set_Defaults_Input(option* io)
   io->gibbs_burnin               = 1E+6;
   io->mem_question               = YES;
   io->do_alias_subpatt           = NO;
+  io->use_data                   = YES;
 }
 
 /*********************************************************/
@@ -9829,7 +9834,7 @@ void Print_Square_Matrix_Generic(int n, phydbl *mat)
     {
       For(j,n)
 	{
-	  PhyML_Printf("%.3f ",mat[i*n+j]);
+	  PhyML_Printf("%7.1G ",mat[i*n+j]);
 	}
       PhyML_Printf("\n");
     }
@@ -10940,14 +10945,14 @@ void Branch_Lengths_To_Time_Lengths_Pre(t_node *a, t_node *d, t_tree *tree)
 {
   int i;
 
-  tree->rates->cur_l[d->num] = tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num];
+  tree->rates->cur_l[d->num] = fabs(tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num]);
 
   if(d->tax) return;
   else
     {
       For(i,3)
 	if((d->v[i] != a) && (d->b[i] != tree->e_root))
-	  Branch_Lengths_To_Time_Lengths_Pre(d,d->v[i],tree);
+	  Branch_Lengths_To_Time_Lengths_Pre(d,d->v[i],tree);     
     }
 }
 
@@ -10957,9 +10962,11 @@ int Find_Clade(char **tax_name_list, int list_size, t_tree *tree)
 {
   int *tax_num_list;
   int i,j;
+  int n_matches;
 
   tax_num_list = (int *)mCalloc(list_size,sizeof(int));
   
+  n_matches = 0;
   For(i,list_size)
     {
       For(j,tree->n_otu)
@@ -10967,10 +10974,17 @@ int Find_Clade(char **tax_name_list, int list_size, t_tree *tree)
 	  if(!strcmp(tax_name_list[i],tree->noeud[j]->name))
 	    {
 	      tax_num_list[i] = tree->noeud[j]->num;
+	      n_matches++;
 	    }
 	}
     }
-  
+
+  if(n_matches != list_size)
+    {
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+
   if(list_size == tree->n_otu)
     {
       int i,j;
@@ -11015,7 +11029,7 @@ void Find_Clade_Pre(t_node *a, t_node *d, int *tax_num_list, int list_size, int 
   int score;
   
   
-  For(i,3) 
+  For(i,3)
     if((d->v[i] == a) || (d->b[i] == tree->e_root))
       {
 	if(list_size == d->bip_size[i])
@@ -11117,6 +11131,8 @@ void Read_Clade_Priors(char *file_name, t_tree *tree)
 
 	  if(node_num < 0)
 	    {
+	      PhyML_Printf("\n");
+	      PhyML_Printf("\n");
 	      PhyML_Printf("\n. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 	      PhyML_Printf("\n. Could not find any clade in the tree with the following taxa names:");
 	      For(i,clade_size) PhyML_Printf("\n. \"%s\"",clade_list[i]);
@@ -11128,6 +11144,11 @@ void Read_Clade_Priors(char *file_name, t_tree *tree)
 	      tree->rates->t_has_prior[node_num] = 1;
 	      tree->rates->t_prior_min[node_num] = MIN(prior_low,prior_up);
 	      tree->rates->t_prior_max[node_num] = MAX(prior_low,prior_up);
+
+	      if(FABS(prior_low - prior_up) < 1.E-6 && tree->noeud[node_num]->tax == YES)
+		tree->rates->nd_t[node_num] = prior_low;
+
+	      PhyML_Printf("\n");
 	      PhyML_Printf("\n. [%3d]>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",n_clade_priors);
 	      PhyML_Printf("\n. Node %4d matches the clade with the following taxa names:",node_num);
 	      For(i,clade_size) PhyML_Printf("\n. - \"%s\"",clade_list[i]);
@@ -11138,6 +11159,8 @@ void Read_Clade_Priors(char *file_name, t_tree *tree)
 	}
     }
   while(1);
+  
+  PhyML_Printf("\n. Read prior information on %d clades.",n_clade_priors);
 
   if(!n_clade_priors)
     {
@@ -11728,7 +11751,54 @@ int Check_Sequence_Name(char *s)
 }
 
 /*********************************************************/
+
+void Scale_Subtree_Height(t_node *a, phydbl K, phydbl floor, t_tree *tree)
+{
+  phydbl new_height;
+  
+  new_height = .0;
+
+  if(tree->rates->nd_t[a->num] < floor)
+    new_height = K*(tree->rates->nd_t[a->num]-floor)+floor;
+
+  if(a == tree->n_root)
+    {
+      tree->rates->nd_t[tree->n_root->num] = new_height;
+      Scale_Node_Heights_Post(tree->n_root,tree->n_root->v[0],K,floor,tree);
+      Scale_Node_Heights_Post(tree->n_root,tree->n_root->v[1],K,floor,tree);
+    }
+  else
+    {
+      int i;
+      
+      if(new_height < tree->rates->nd_t[a->anc->num]) return;
+      else tree->rates->nd_t[a->num] = new_height;
+
+      For(i,3)
+	if(a->v[i] != a->anc)
+	  Scale_Node_Heights_Post(a,a->v[i],K,floor,tree);
+    }
+}
+
 /*********************************************************/
+
+void Scale_Node_Heights_Post(t_node *a, t_node *d, phydbl K, phydbl floor, t_tree *tree)
+{
+  if(d->tax) return;
+  else
+    {
+      int i;
+
+      if(tree->rates->nd_t[d->num] < floor)
+	tree->rates->nd_t[d->num] = K*(tree->rates->nd_t[d->num]-floor)+floor;
+      
+      For(i,3)
+	if(d->v[i] != a && d->b[i] != tree->e_root)
+	  Scale_Node_Heights_Post(d,d->v[i],K,floor,tree);
+
+    }
+}
+
 /*********************************************************/
 /*********************************************************/
 /*********************************************************/

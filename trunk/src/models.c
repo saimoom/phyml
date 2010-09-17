@@ -2452,9 +2452,9 @@ void Init_Model(calign *data, model *mod, option *io)
 	{
 	  /* compute inverse(Vr) into Vi */
 	  For (i,mod->ns*mod->ns) mod->eigen->l_e_vect[i] = mod->eigen->r_e_vect[i];
-	  if(!Matinv(mod->eigen->l_e_vect,mod->eigen->size,mod->eigen->size))
+	  if(!Matinv(mod->eigen->l_e_vect,mod->eigen->size,mod->eigen->size,YES))
 	    {
-	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	      PhyML_Printf("\n. Err in file %s at line %d.",__FILE__,__LINE__);
 	      Exit("\n");      
 	    }
 	  
@@ -2740,7 +2740,7 @@ void Set_Model_Parameters(model *mod)
 	{
 	  /* compute inverse(Vr) into Vi */
 	  For (i,mod->ns*mod->ns) mod->eigen->l_e_vect[i] = mod->eigen->r_e_vect[i];
-	  while(!Matinv(mod->eigen->l_e_vect, mod->eigen->size, mod->eigen->size))
+	  while(!Matinv(mod->eigen->l_e_vect, mod->eigen->size, mod->eigen->size,YES))
 	    {
 	      PhyML_Printf("\n. Trying Q<-Q*scalar and then Root<-Root/scalar to fix this...\n");
 	      scalar += scalar / 3.;
@@ -2875,7 +2875,7 @@ phydbl General_Dist(phydbl *F, model *mod, eigen *eigen_struct)
 
   /* Get the left eigen vector of pi^{-1} x F */
   For(i,eigen_struct->size*eigen_struct->size) eigen_struct->l_e_vect[i] = eigen_struct->r_e_vect[i];
-  if(!Matinv(eigen_struct->l_e_vect,eigen_struct->size,eigen_struct->size)<0) 
+  if(!Matinv(eigen_struct->l_e_vect,eigen_struct->size,eigen_struct->size,YES)<0) 
     {
       For(i,mod->ns) mod->pi[i] = mod_pi[i];
       Update_Qmat_GTR(mod->rr, mod->rr_val, mod->rr_num, mod->pi, mod->qmat);
@@ -2976,7 +2976,7 @@ phydbl GTR_Dist(phydbl *F, phydbl alpha, eigen *eigen_struct)
 
   /* Get the left eigen vector of pi^{-1} x F */
   For(i,eigen_struct->size*eigen_struct->size) eigen_struct->l_e_vect[i] = eigen_struct->r_e_vect[i];
-  if(!Matinv(eigen_struct->l_e_vect,eigen_struct->size,eigen_struct->size)<0) {Free(pi); return -1.;}
+  if(!Matinv(eigen_struct->l_e_vect,eigen_struct->size,eigen_struct->size,YES)<0) {Free(pi); return -1.;}
 
   /* Equation (3) + inverse of the moment generating function for the gamma distribution (see Waddell & Steel, 1997) */
   For(i,eigen_struct->size) 

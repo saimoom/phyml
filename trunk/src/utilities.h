@@ -56,6 +56,8 @@ static inline int isinf_d  (double      x) { return isnan (x - x); }
 static inline int isinf_ld (long double x) { return isnan (x - x); }
 #endif
      
+#define N_MAX_MOVES     50
+
 #define N_MAX_NEX_COM   20
 #define T_MAX_NEX_COM   100
 #define N_MAX_NEX_PARM  50
@@ -151,7 +153,8 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  LIM_SCALE_VAL     1.E-50 /*! Scaling limit (deprecated) */
 
 #define  MIN_CLOCK_RATE   1.E-10
-#define  MIN_VAR_BL        1.E-7
+
+#define  MIN_VAR_BL       1.E-6
 
 #define JC69       1
 #define K80        2
@@ -231,16 +234,14 @@ typedef	double phydbl;
 #define BL_MIN 1.E-8
 #define BL_MAX 100.
 #else
-#define BL_MIN 1.E-5
-#define BL_MAX 5.
+#define BL_MIN 1.E-6
+#define BL_MAX 100.
 #endif
 
 /* #define P_LK_LIM_INF 7.888609052e-31 */
 /* #define P_LK_LIM_MAX 1.267650600e+30 */
 /* #define P_LK_LIM_INF 4.909093465e-91 /\* R: format(2^(-300),digits=10) *\/ */
 /* #define P_LK_LIM_SUP 2.037035976e+90 /\* R: format(2^(+300),digits=10) *\/ */
-/* #define  P_LK_LIM_INF   3.054936e-151 /\* 2^-500 *\/ */
-/* #define  P_LK_LIM_SUP   3.273391e+150 /\* 2^500 *\/ */
 #define  P_LK_LIM_INF   3.054936e-151 /* 2^-500 */
 #define  P_LK_LIM_SUP   3.273391e+150 /* 2^500 */
 
@@ -437,6 +438,8 @@ typedef struct __Arbre {
 
   phydbl                           geo_mig_sd; /*! standard deviation of the migration step random variable */
   phydbl                              geo_lnL; /*! log likelihood of the phylo-geography model */
+
+  int                              bl_ndigits;
 }t_tree;
 
 /*!********************************************************/
@@ -757,6 +760,8 @@ typedef struct __Option { /*! mostly used in 'help.c' */
 
   int                    mem_question;
   int                do_alias_subpatt;
+  int                        use_data;
+
 }option;
 
 /*!********************************************************/
@@ -1019,10 +1024,21 @@ typedef struct __Tmcmc {
   int run;
   int n_tot_run;
   int sample_interval;
-  int acc_lexp;
+
+  int acc_nu;
   int acc_rates;
   int acc_times;
-  int acc_nu;
+  int acc_clock;
+  int acc_tree_height;
+  int acc_subtree_height;
+
+  int run_nu;
+  int run_rates;
+  int run_times;
+  int run_clock;
+  int run_tree_height;
+  int run_subtree_height;
+
   int n_rate_jumps;
   int randomize;
   int norm_freq;
@@ -1045,8 +1061,15 @@ typedef struct __Tmcmc {
   phydbl h_rates;
   phydbl h_nu;
   phydbl h_clock;
-  phydbl h_omega;
+  phydbl h_tree_height;
+  phydbl h_subtree_height;
  
+  int adjust_tuning;
+  
+  int n_moves;
+  phydbl *move_weight;
+
+  int use_data;
 
 }tmcmc;
 
@@ -1377,6 +1400,8 @@ void Get_Best_Root_Position_Post(t_node *a, t_node *d, int *has_outgrp, t_tree *
 void Get_Best_Root_Position_Pre(t_node *a, t_node *d, t_tree *tree);
 void Get_OutIn_Scores(t_node *a, t_node *d);
 int Check_Sequence_Name(char *s);
+void Scale_Node_Heights(phydbl K, phydbl floor, t_tree *tree);
+void Scale_Node_Heights_Post(t_node *a, t_node *d, phydbl K, phydbl floor, t_tree *tree);
 
 #include "free.h"
 #include "spr.h"

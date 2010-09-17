@@ -2302,7 +2302,7 @@ phydbl Generic_Brent_Lk(phydbl *param, phydbl ax, phydbl cx, phydbl tol,
   b=((ax > cx) ? ax : cx);
   x=w=v=bx;
   old_lnL = UNLIKELY;
-  (*param) = FABS(bx);
+  (*param) = bx;
   fw=fv=fx=fu=-(*obj_func)(branch,tree,stree);
   init_lnL = -fw;
 
@@ -2311,7 +2311,7 @@ phydbl Generic_Brent_Lk(phydbl *param, phydbl ax, phydbl cx, phydbl tol,
   for(iter=1;iter<=BRENT_ITMAX;iter++) 
     {
       xm=0.5*(a+b);
-      tol2=2.0*(tol1=tol*FABS(x)+BRENT_ZEPS);
+      tol2=2.0*(tol1=tol*x+BRENT_ZEPS);
 
       if((fu > init_lnL + tol) && (quickdirty))
 	{
@@ -2360,7 +2360,7 @@ phydbl Generic_Brent_Lk(phydbl *param, phydbl ax, phydbl cx, phydbl tol,
 	}
       
       u=(FABS(d) >= tol1 ? x+d : x+SIGN(tol1,d));
-      (*param) = FABS(u);
+      (*param) = u;
       old_lnL = fu;
       fu = -(*obj_func)(branch,tree,stree);
       
@@ -2399,7 +2399,122 @@ phydbl Generic_Brent_Lk(phydbl *param, phydbl ax, phydbl cx, phydbl tol,
 }
 
 /*********************************************************/
+
+/* find ML erstimates of node heights given fixed substitution
+   rates on branches. Also optimizes the overall substitution
+   rate */
+void Round_Optimize_Node_Heights(t_tree *tree)
+{
+  phydbl cur_lnL, new_lnL;
+  int i;
+  int n_iter;
+
+
+  cur_lnL = UNLIKELY;
+  new_lnL = Lk(tree);
+
+  
+  printf("\n. cur_lnL = %f new_lnL=%f",cur_lnL,new_lnL);
+
+  
+  n_iter = 0;
+  while(fabs(new_lnL - cur_lnL) > tree->mod->s_opt->min_diff_lk_global)
+    {
+      cur_lnL = tree->c_lnL;
+
+      Opt_Node_Heights_Recurr(tree);
+            
+      Generic_Brent_Lk(&(tree->rates->clock_r),
+      		       tree->rates->min_clock,
+      		       tree->rates->max_clock,
+      		       tree->mod->s_opt->min_diff_lk_global,
+      		       tree->mod->s_opt->brent_it_max,
+      		       tree->mod->s_opt->quickdirty,
+      		       Optwrap_Lk,NULL,tree,NULL);
+
+      printf("\n. cur_lnL=%f new_lnL=%f clock_r=%G root height=%f",
+	     cur_lnL,new_lnL,tree->rates->clock_r,tree->rates->nd_t[tree->n_root->num]);
+      new_lnL = tree->c_lnL;
+      n_iter++;
+      if(n_iter > 100) break;
+    }
+}
+
 /*********************************************************/
+
+void Opt_Node_Heights_Recurr(t_tree *tree)
+{
+  Opt_Node_Heights_Recurr_Pre(tree->n_root,tree->n_root->v[0],tree);
+  Opt_Node_Heights_Recurr_Pre(tree->n_root,tree->n_root->v[1],tree);
+
+  Generic_Brent_Lk(&(tree->rates->nd_t[tree->n_root->num]),
+		   MIN(tree->rates->t_prior_max[tree->n_root->num],
+		       MIN(tree->rates->nd_t[tree->n_root->v[0]->num],
+			   tree->rates->nd_t[tree->n_root->v[1]->num])),
+		   tree->rates->t_prior_min[tree->n_root->num],
+		   tree->mod->s_opt->min_diff_lk_global,
+		   tree->mod->s_opt->brent_it_max,
+		   tree->mod->s_opt->quickdirty,
+		   Optwrap_Lk,NULL,tree,NULL);
+}
+
+/*********************************************************/
+
+void Opt_Node_Heights_Recurr_Pre(t_node *a, t_node *d, t_tree *tree)
+{
+  if(d->tax) return;
+  else
+    {
+      int i;
+      phydbl t0,t1,t2,t3;
+      phydbl t_min,t_max;
+      t_node *v2,*v3;
+
+      
+      For(i,3)
+	if((d->v[i] != a) && (d->b[i] != tree->e_root))
+	  {
+	    if(!v2) { v2 = d->v[i]; }
+	    else    { v3 = d->v[i]; }
+	  }
+      
+      Opt_Node_Heights_Recurr_Pre(d,v2,tree);
+      Opt_Node_Heights_Recurr_Pre(d,v3,tree);
+
+      t0 = tree->rates->nd_t[a->num];
+      t1 = tree->rates->nd_t[d->num];
+      t2 = tree->rates->nd_t[v2->num];
+      t3 = tree->rates->nd_t[v3->num];
+      
+      t_min = t0;
+      t_max = MIN(t2,t3);
+      
+      t_min = MAX(t_min,tree->rates->t_prior_min[d->num]);
+      t_max = MIN(t_max,tree->rates->t_prior_max[d->num]);
+      
+      t_min += tree->rates->min_dt;
+      t_max -= tree->rates->min_dt;
+      
+      if(t_min > t_max)
+	{
+	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  Warn_And_Exit("");
+	}
+      
+      Generic_Brent_Lk(&(tree->rates->nd_t[d->num]),
+		       t_min,t_max,
+		       tree->mod->s_opt->min_diff_lk_global,
+		       tree->mod->s_opt->brent_it_max,
+		       tree->mod->s_opt->quickdirty,
+		       Optwrap_Lk,NULL,tree,NULL);
+      
+
+      /* printf("\n. t%d = %f [%f;%f] lnL = %f",d->num,tree->rates->nd_t[d->num],t_min,t_max,tree->c_lnL); */
+
+    }
+}
+
+
 /*********************************************************/
 /*********************************************************/
 /*********************************************************/

@@ -217,6 +217,8 @@ fflush(stderr);
 
       Alloc_Bip(boot_tree);
 
+      Match_Tip_Numbers(tree,boot_tree);
+
       Get_Bip(boot_tree->noeud[0],
               boot_tree->noeud[0]->v[0],
               boot_tree);

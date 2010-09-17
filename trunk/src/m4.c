@@ -132,8 +132,7 @@ int M4_main(int argc, char **argv)
 
 		  if(mod->s_opt->random_input_tree) Random_Tree(tree);
 
-		  if((!num_data_set) && (!num_tree) && (!num_rand_tree)) Check_Memory_Amount(tree);		  
-
+		  if((!num_data_set) && (!num_tree) && (!num_rand_tree)) Check_Memory_Amount(tree);
 
 		  Prepare_Tree_For_Lk(tree);
 
