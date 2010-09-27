@@ -87,6 +87,15 @@ void MCMC_Br_Lens_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree);
 void MCMC_Tree_Height(t_tree *tree);
 void MCMC_SubTree_Height(t_tree *tree);
 void MCMC_Swing(t_tree *tree);
+void MCMC_Single_Param_Generic(phydbl *val, 
+			       phydbl lim_inf, 
+			       phydbl lim_sup, 
+			       int param_num,
+			       phydbl *lnPrior,
+			       phydbl *lnLike,
+			       phydbl (*prior_func)(t_tree *), 
+			       phydbl (*like_func)(t_tree *), 
+			       t_tree *tree);
 
 
 

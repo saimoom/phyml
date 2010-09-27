@@ -2716,12 +2716,10 @@ void Set_Model_Parameters(model *mod)
 		Update_Qmat_HKY(mod->kappa, mod->pi, mod->qmat);
 	    }
 	}
-#ifdef M4
       else 
 	{
 	  M4_Update_Qmat(mod->m4mod,mod);
 	}
-#endif
 
       scalar   = 1.0;
       n_iter   = 0;

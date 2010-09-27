@@ -950,6 +950,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 	{
 	  int rcat;
 	  
+
 	  tree->mod->update_eigen = 1;
 	  For(rcat,tree->mod->m4mod->n_h)
 	    {
@@ -965,7 +966,6 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 			       tree->mod->s_opt->brent_it_max,
 			       tree->mod->s_opt->quickdirty,
 			       Optwrap_Lk,NULL,tree,NULL);
-
 	      
 	      if(verbose) 
 		{
@@ -2306,7 +2306,7 @@ phydbl Generic_Brent_Lk(phydbl *param, phydbl ax, phydbl cx, phydbl tol,
   fw=fv=fx=fu=-(*obj_func)(branch,tree,stree);
   init_lnL = -fw;
 
-  /* PhyML_Printf("\n. init_lnL = %f a=%f b=%f c=%f\n",init_lnL,ax,bx,cx); */
+  /* PhyML_Printf("\n. init_lnL = %f a=%f b=%f c=%f",init_lnL,ax,bx,cx); */
 
   for(iter=1;iter<=BRENT_ITMAX;iter++) 
     {

@@ -672,13 +672,13 @@ phydbl Dgamma(phydbl x, phydbl shape, phydbl scale)
       x = 1.E+10;
     }
 
-  if(x < 1.E-10)
+  if(x < 1.E-20)
     {
       if(x < 0.0) return 0.0;
       else
 	{
 	  PhyML_Printf("\n. WARNING: small value of x -> x = %G",x);
-	  x = 1.E-10;
+	  x = 1.E-20;
 	}
     }
 
@@ -2981,7 +2981,8 @@ void VarCov_Approx_Likelihood(t_tree *tree)
 	    }
 	}
       iter++;
-    }while(iter < 5000);
+
+    }while(iter < 1000);
 
 
   For(i,dim)
@@ -2995,6 +2996,34 @@ void VarCov_Approx_Likelihood(t_tree *tree)
 }
 
 /*********************************************************/
+
+/* Order statistic. x_is are uniformily distributed in [min,max] */
+phydbl Dorder_Unif(phydbl x, int r, int n, phydbl min, phydbl max)
+{
+  phydbl cons;
+  phydbl Fx;
+  phydbl dens;
+
+  if(x < min || x > max || min > max)
+    {
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");
+    }
+
+  cons = LnGamma(n+1) - LnGamma(r) - LnGamma(n-r+1);
+  cons = EXP(cons);
+  cons = ROUND(cons);
+
+  Fx = (x-min)/(max-min);
+  
+  dens = cons * pow(Fx,r-1) * pow(1.-Fx,n-r) * (1./(max-min));
+
+  /* printf("\n. x=%f r=%d n=%d min=%f max=%f dens=%f",x,r,n,min,max,dens); */
+  /* Exit("\n"); */
+
+  return(dens);
+}
+
 /*********************************************************/
 /*********************************************************/
 /*********************************************************/
