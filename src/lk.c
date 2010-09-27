@@ -1976,7 +1976,10 @@ void Init_P_Lk_Tips_Double(t_tree *tree)
 	}
     }
   
-  if(tree->mod->use_m4mod) M4_Init_P_Lk_Tips_Double(tree);
+  if(tree->mod->use_m4mod) 
+    {
+      M4_Init_P_Lk_Tips_Double(tree);
+    }
 }
 
 /*********************************************************/
@@ -2011,8 +2014,10 @@ void Init_P_Lk_Tips_Int(t_tree *tree)
 	    }
 	}
     }
-   if(tree->mod->use_m4mod) M4_Init_P_Lk_Tips_Int(tree);
-
+   if(tree->mod->use_m4mod) 
+     {
+       M4_Init_P_Lk_Tips_Int(tree);
+     }
 }
 
 /*********************************************************/

@@ -56,6 +56,14 @@ static inline int isinf_d  (double      x) { return isnan (x - x); }
 static inline int isinf_ld (long double x) { return isnan (x - x); }
 #endif
      
+#define MCMC_NUM_CLOCK          0
+#define MCMC_NUM_TREE_HEIGHT    1
+#define MCMC_NUM_SUBTREE_HEIGHT 2
+#define MCMC_NUM_NU             3
+#define MCMC_NUM_TIMES          4
+#define MCMC_NUM_RATES          5
+#define MCMC_NUM_TSTV           6
+
 #define N_MAX_MOVES     50
 
 #define N_MAX_NEX_COM   20
@@ -273,6 +281,9 @@ typedef struct __Node {
 
   int                            *s_ingrp; /*! does the subtree beneath belong to the ingroup */
   int                           *s_outgrp; /*! does the subtree beneath belong to the outgroup */
+
+  int                                rank;
+  int                            rank_max;
 
 }t_node;
 
@@ -1008,6 +1019,7 @@ typedef struct __Trate {
   phydbl        *t_prior;
   phydbl    *t_prior_min;
   phydbl    *t_prior_max;
+  phydbl        *t_floor;
   short int *t_has_prior;
   phydbl         *t_mean;
 
@@ -1025,19 +1037,10 @@ typedef struct __Tmcmc {
   int n_tot_run;
   int sample_interval;
 
-  int acc_nu;
-  int acc_rates;
-  int acc_times;
-  int acc_clock;
-  int acc_tree_height;
-  int acc_subtree_height;
-
-  int run_nu;
-  int run_rates;
-  int run_times;
-  int run_clock;
-  int run_tree_height;
-  int run_subtree_height;
+  int *acc_param;
+  int *run_param;
+  phydbl *tune_param;
+  char **name_param;
 
   int n_rate_jumps;
   int randomize;
@@ -1056,13 +1059,6 @@ typedef struct __Tmcmc {
   FILE *out_fp_trees;
   FILE *out_fp_means;
   FILE *out_fp_last;
-
-  phydbl h_times;
-  phydbl h_rates;
-  phydbl h_nu;
-  phydbl h_clock;
-  phydbl h_tree_height;
-  phydbl h_subtree_height;
  
   int adjust_tuning;
   
@@ -1402,6 +1398,9 @@ void Get_OutIn_Scores(t_node *a, t_node *d);
 int Check_Sequence_Name(char *s);
 void Scale_Node_Heights(phydbl K, phydbl floor, t_tree *tree);
 void Scale_Node_Heights_Post(t_node *a, t_node *d, phydbl K, phydbl floor, t_tree *tree);
+void Get_Node_Ranks(t_tree *tree);
+void Get_Node_Ranks_Pre(t_node *a, t_node *d,t_tree *tree);
+void Get_Node_Rank_Max_Post(t_node *a, t_node *d,t_tree *tree);
 
 #include "free.h"
 #include "spr.h"

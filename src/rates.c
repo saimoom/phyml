@@ -78,7 +78,7 @@ void RATES_Lk_Rates_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 	{
 	case COMPOUND_COR: case COMPOUND_NOCOR:
 	  {       
-	    log_dens = RATES_Dmu(mu2,n2,dt2,tree->rates->alpha,1./tree->rates->alpha,tree->rates->lexp,0,1);
+	    log_dens = RATES_Dmu(mu2,n2,dt2,tree->rates->nu,1./tree->rates->nu,tree->rates->lexp,0,1);
 	    log_dens = LOG(log_dens);
 	    break;
 	  }
@@ -90,7 +90,7 @@ void RATES_Lk_Rates_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 	  }
 	case GAMMA:
 	  {
-	    log_dens = Dgamma(mu2,tree->rates->alpha,1./tree->rates->alpha);
+	    log_dens = Dgamma(mu2,tree->rates->nu,1./tree->rates->nu);
 	    log_dens = LOG(log_dens);
 	    break;
 	  }
@@ -223,8 +223,8 @@ void RATES_Update_Triplet(t_node *n, t_tree *tree)
 	{
 	case COMPOUND_COR : case COMPOUND_NOCOR : 
 	  {
-	    log_dens  = RATES_Dmu(mu0,n0,dt0,tree->rates->alpha,1./tree->rates->alpha,tree->rates->lexp,0,1);
-	    log_dens *= RATES_Dmu(mu1,n1,dt1,tree->rates->alpha,1./tree->rates->alpha,tree->rates->lexp,0,1);
+	    log_dens  = RATES_Dmu(mu0,n0,dt0,tree->rates->nu,1./tree->rates->nu,tree->rates->lexp,0,1);
+	    log_dens *= RATES_Dmu(mu1,n1,dt1,tree->rates->nu,1./tree->rates->nu,tree->rates->lexp,0,1);
 	    log_dens  = LOG(log_dens);
 	    break;
 	  }
@@ -236,7 +236,7 @@ void RATES_Update_Triplet(t_node *n, t_tree *tree)
 	  }
 	case GAMMA :
 	  {
-	    log_dens = Dgamma(mu0,tree->rates->alpha,1./tree->rates->alpha) * Dgamma(mu1,tree->rates->alpha,1./tree->rates->alpha);
+	    log_dens = Dgamma(mu0,tree->rates->nu,1./tree->rates->nu) * Dgamma(mu1,tree->rates->nu,1./tree->rates->nu);
 	    log_dens = LOG(log_dens);
 	    break;
 	  }
@@ -323,7 +323,7 @@ phydbl RATES_Lk_Rates_Core(phydbl mu1, phydbl mu2, int n1, int n2, phydbl dt1, p
   phydbl alpha, beta, lexp;
 
   lexp = tree->rates->lexp;
-  alpha = tree->rates->alpha;
+  alpha = tree->rates->nu;
   beta = 1./alpha;
   log_dens = UNLIKELY;
   
@@ -352,7 +352,7 @@ phydbl RATES_Lk_Rates_Core(phydbl mu1, phydbl mu2, int n1, int n2, phydbl dt1, p
       
     case GAMMA :
       {
-	log_dens = Dgamma(mu2,tree->rates->alpha,1./tree->rates->alpha);
+	log_dens = Dgamma(mu2,tree->rates->nu,1./tree->rates->nu);
 	log_dens = LOG(log_dens);
 	break;
       }
@@ -630,8 +630,35 @@ phydbl RATES_Check_Mean_Rates(t_tree *tree)
       t     = tree->rates->nd_t[i];
       t_anc = tree->rates->nd_t[tree->noeud[i]->anc->num];
 
+      /* sum_r += u * FABS(t-t_anc); */
+      /* sum_dt += FABS(t-t_anc); */
+      
+      sum_r += u;
+    }
+
+  /* return(sum_r / sum_dt); */
+  return(sum_r / (phydbl)(2*tree->n_otu-2));
+}
+
+/*********************************************************/
+
+phydbl RATES_Average_Substitution_Rate(t_tree *tree)
+{
+  phydbl sum_r,sum_dt;
+  phydbl u,t,t_anc;
+  int i;
+  
+ 
+  sum_r  = 0.0;
+  sum_dt = 0.0;
+  For(i,2*tree->n_otu-2) 
+    {
+      u     = tree->rates->nd_r[i] * tree->rates->clock_r;
+      t     = tree->rates->nd_t[i];
+      t_anc = tree->rates->nd_t[tree->noeud[i]->anc->num];
+      
       sum_r += u * FABS(t-t_anc);
-      sum_dt += FABS(t-t_anc);      
+      sum_dt += FABS(t-t_anc);
     }
 
   return(sum_r / sum_dt);
@@ -651,23 +678,25 @@ phydbl RATES_Check_Mean_Rates_True(t_tree *tree)
 
 /*********************************************************/
 
-void RATES_Check_Node_Times(t_tree *tree)
+int RATES_Check_Node_Times(t_tree *tree)
 {
-  RATES_Check_Node_Times_Pre(tree->n_root,tree->n_root->v[0],tree);
-  RATES_Check_Node_Times_Pre(tree->n_root,tree->n_root->v[1],tree);
+  int err;
+  err = NO;
+  RATES_Check_Node_Times_Pre(tree->n_root,tree->n_root->v[0],&err,tree);
+  RATES_Check_Node_Times_Pre(tree->n_root,tree->n_root->v[1],&err,tree);
+  return err;
 }
 
 /*********************************************************/
 
-void RATES_Check_Node_Times_Pre(t_node *a, t_node *d, t_tree *tree)
+void RATES_Check_Node_Times_Pre(t_node *a, t_node *d, int *err, t_tree *tree)
 {
   if(tree->rates->nd_t[d->num] < tree->rates->nd_t[a->num])
     {
       PhyML_Printf("\n. a->t=%f d->t=%f",tree->rates->nd_t[a->num],tree->rates->nd_t[d->num]);
       PhyML_Printf("\n. a->t_prior_min=%f a->t_prior_max=%f",tree->rates->t_prior_min[a->num],tree->rates->t_prior_max[a->num]);
       PhyML_Printf("\n. d->t_prior_min=%f d->t_prior_max=%f",tree->rates->t_prior_min[d->num],tree->rates->t_prior_max[d->num]);
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-      Warn_And_Exit("");
+      *err = YES;
     }
   if(d->tax) return;
   else
@@ -676,7 +705,7 @@ void RATES_Check_Node_Times_Pre(t_node *a, t_node *d, t_tree *tree)
 
       For(i,3)
 	if((d->v[i] != a) && (d->b[i] != tree->e_root))	  
-	  RATES_Check_Node_Times_Pre(d,d->v[i],tree);
+	  RATES_Check_Node_Times_Pre(d,d->v[i],err,tree);
     }
 }
 /*********************************************************/
@@ -697,6 +726,7 @@ trate *RATES_Make_Rate_Struct(int n_otu)
   rates->t_prior        = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
   rates->t_prior_min    = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
   rates->t_prior_max    = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
+  rates->t_floor        = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
   rates->t_has_prior    = (short int *)mCalloc(2*n_otu-1,sizeof(short int));
   rates->dens           = (phydbl *)mCalloc(2*n_otu-2,sizeof(phydbl));
   rates->triplet        = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
@@ -740,6 +770,7 @@ void Free_Rates(trate *rates)
   Free(rates->t_mean);
   Free(rates->t_prior_min);
   Free(rates->t_prior_max);
+  Free(rates->t_floor);
   Free(rates->t_has_prior);
   Free(rates->dens);   
   Free(rates->triplet);    
@@ -778,20 +809,22 @@ void RATES_Init_Rate_Struct(trate *rates, int n_otu)
   rates->adjust_rates  = 0;
   rates->use_rates     = 1;
   rates->lexp          = 1.E-3;
-  rates->alpha         = 2.;
+  rates->nu            = 2.;
   rates->birth_rate    = 0.001;
 
-
-  rates->max_rate      = 100. ;
-  rates->min_rate      = 0.0001;
+  /* Relative rate max has to be 2.0 for proper prior density
+     See Guindon (2010, MBE) 
+  */
+  rates->max_rate      = 100.0000;
+  rates->min_rate      = 1.E-8;
 
   rates->clock_r       = 1.E-5;
   rates->max_clock     = 1.E-1;
   rates->min_clock     = 1.E-7;
 
-  rates->nu            = 5.E-1;
+  rates->nu            = 1.E-3;
   rates->max_nu        = 1.E+1;
-  rates->min_nu        = 1.E-5;
+  rates->min_nu        = 1.E-10;
   rates->lbda_nu       = 1.E+3;
 
   rates->min_dt        = 0.0;
@@ -821,12 +854,13 @@ void RATES_Init_Rate_Struct(trate *rates, int n_otu)
       rates->true_t[i] = 0.0;
       if(i < n_otu)
 	{
-	  rates->t_has_prior[i] = 1;
+	  rates->t_has_prior[i] = YES;
 	  rates->t_prior_max[i] = 0.0;
 	  rates->t_prior_min[i] = 0.0;
 	}
       else
 	{
+	  rates->t_has_prior[i] = NO;
 	  rates->t_prior_max[i] =  BIG;
 	  rates->t_prior_min[i] = -BIG;
 	}
@@ -1018,7 +1052,7 @@ void RATES_Expect_Number_Subst(phydbl t_beg, phydbl t_end, phydbl r_beg,  int *n
 	  }
 	else
 	  {
-	    curr_r  = Rgamma(rates->alpha,1./rates->alpha);;
+	    curr_r  = Rgamma(rates->nu,1./rates->nu);;
 	    *mean_r = curr_r;
 	  }
 
@@ -1028,7 +1062,7 @@ void RATES_Expect_Number_Subst(phydbl t_beg, phydbl t_end, phydbl r_beg,  int *n
 	*n_jumps = 0;
 	while(curr_t < t_end)
 	  {
-	    curr_r = Rgamma(rates->alpha,1./rates->alpha); /* Gamma distributed random instantaneous rate */
+	    curr_r = Rgamma(rates->nu,1./rates->nu); /* Gamma distributed random instantaneous rate */
 	    
 	    (*n_jumps)++;
 	    
@@ -1067,7 +1101,7 @@ void RATES_Expect_Number_Subst(phydbl t_beg, phydbl t_end, phydbl r_beg,  int *n
       }
     case GAMMA:
       {
-	*mean_r = Rgamma(rates->alpha,1./rates->alpha);
+	*mean_r = Rgamma(rates->nu,1./rates->nu);
 
 	if(*mean_r < rates->min_rate) *mean_r = rates->min_rate;
 	if(*mean_r > rates->max_rate) *mean_r = rates->max_rate;
@@ -1417,35 +1451,6 @@ phydbl RATES_Dmu2_And_Mu1_Given_N(phydbl mu1, phydbl mu2, phydbl dt1, phydbl dt2
 
     return(density);
   }
-
-/*********************************************************/
-
-/* Logarithm of Formula (9) in Rannala and Yang (1996) */
-phydbl RATES_Yule(t_tree *tree)
-{
-  phydbl sumti,density,lambda;
-  int n,i;
-
-  sumti = 0.0;
-  for(i=tree->n_otu;i<2*tree->n_otu-1;i++) sumti += tree->rates->nd_t[i];
-  sumti -= tree->rates->nd_t[i-1];
-
-  lambda = tree->rates->birth_rate;
-  n = tree->n_otu;
-  
-  density = 
-    (n-1.)*LOG(2.) + 
-    (n-2.)*LOG(lambda) - 
-    lambda*sumti - 
-    Factln(n) - 
-    LOG(n-1.) - 
-    (n-2.)*LOG(1.-EXP(-lambda));
-  
-  /* Ad-hoc */
-  if(tree->rates->nd_t[tree->n_root->num] > -100.) density = -INFINITY;
-
-  return density;
-}
 
 /*********************************************************/
 
@@ -3168,8 +3173,9 @@ void RATES_Normalise_Rates(t_tree *tree)
   phydbl expr,curr;
   int i;
   
-
-
+  /* !!!!!!!!!!!!!!!!!!! */
+  return;
+ 
   curr = RATES_Check_Mean_Rates(tree);
 
   /* Set expected mean rate to one such that clock_r is
@@ -3178,8 +3184,8 @@ void RATES_Normalise_Rates(t_tree *tree)
   
   For(i,2*tree->n_otu-2) tree->rates->nd_r[i] *= expr/curr;
 
-  /* tree->rates->clock_r *= curr/expr; */
-  /* /\* Branch lengths therefore do not change *\/ */
+  tree->rates->clock_r *= curr/expr;
+  /* Branch lengths therefore do not change */
 
   if(tree->rates->clock_r < tree->rates->min_clock)
     {

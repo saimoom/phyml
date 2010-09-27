@@ -888,6 +888,7 @@ void Init_Node_Light(t_node *n, int num)
   n->y_rank_max             = 0.;
   n->y_rank_min             = 0.;
   n->anc                    = NULL;
+  n->rank                   = 0;
 }
 
 /*********************************************************/
@@ -11141,7 +11142,7 @@ void Read_Clade_Priors(char *file_name, t_tree *tree)
 	    }
 	  else
 	    {	      
-	      tree->rates->t_has_prior[node_num] = 1;
+	      tree->rates->t_has_prior[node_num] = YES;
 	      tree->rates->t_prior_min[node_num] = MIN(prior_low,prior_up);
 	      tree->rates->t_prior_max[node_num] = MAX(prior_low,prior_up);
 
@@ -11775,9 +11776,17 @@ void Scale_Subtree_Height(t_node *a, phydbl K, phydbl floor, t_tree *tree)
       else tree->rates->nd_t[a->num] = new_height;
 
       For(i,3)
-	if(a->v[i] != a->anc)
+	if(a->v[i] != a->anc && a->b[i] != tree->e_root)
 	  Scale_Node_Heights_Post(a,a->v[i],K,floor,tree);
     }
+  
+  if(RATES_Check_Node_Times(tree))
+    {
+      PhyML_Printf("\n. floor=%f a->root=%d",floor,a==tree->n_root);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+
 }
 
 /*********************************************************/
@@ -11800,5 +11809,35 @@ void Scale_Node_Heights_Post(t_node *a, t_node *d, phydbl K, phydbl floor, t_tre
 }
 
 /*********************************************************/
+
+void Get_Node_Ranks(t_tree *tree)
+{
+  tree->n_root->rank = 1;
+  Get_Node_Ranks_Pre(tree->n_root,tree->n_root->v[0],tree);
+  Get_Node_Ranks_Pre(tree->n_root,tree->n_root->v[1],tree);
+}
+
 /*********************************************************/
+
+void Get_Node_Ranks_Pre(t_node *a, t_node *d,t_tree *tree)
+{
+  d->rank = a->rank+1;
+
+  if(d->tax) return;
+  else
+    {
+      int i;
+
+      
+      For(i,3)
+	{
+	  if(d->v[i] != a && d->b[i] != tree->e_root)
+	    {
+	      Get_Node_Ranks_Pre(d,d->v[i],tree);
+	    }
+	}
+    }
+}
+
 /*********************************************************/
+

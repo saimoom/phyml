@@ -110,6 +110,8 @@ int TIMES_main(int argc, char **argv)
 
 		  Init_Model(cdata,mod,io);
 
+		  if(io->mod->use_m4mod) M4_Init_Model(mod->m4mod,cdata,mod);
+
 		  /* A BioNJ tree is built here */
 		  if(!io->in_tree) tree = Dist_And_BioNJ(cdata,mod,io);
 		  /* A user-given tree is used here instead of BioNJ */
@@ -333,49 +335,42 @@ int TIMES_main(int argc, char **argv)
 		  PhyML_Printf("\n. Burnin...\n");
 		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
 		  MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree);
-		  tree->rates->lk_approx    = NORMAL;
+		  tree->rates->lk_approx    = EXACT;
 		  tree->mcmc->adjust_tuning = YES;
 		  tree->mcmc->n_tot_run  = tree->io->gibbs_burnin;
-		  tree->mcmc->sample_interval = tree->io->gibbs_burnin/100;
+		  tree->mcmc->sample_interval = tree->io->gibbs_sample_freq;
 		  MCMC(tree);
 		  MCMC_Close_MCMC(tree->mcmc);
 		  
 		  new_mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
 		  MCMC_Copy_MCMC_Struct(tree->mcmc,new_mcmc,"thorne.exact",tree);
 		  MCMC_Free_MCMC(tree->mcmc);
-		  tree->rates->lk_approx      = NORMAL;
+		  tree->rates->lk_approx         = EXACT;
 
 		  tree->mcmc                     = new_mcmc;
 		  tree->mcmc->adjust_tuning      = NO;
 		  tree->mcmc->n_tot_run          = tree->io->gibbs_chain_len;
 		  tree->mcmc->sample_interval    = tree->io->gibbs_sample_freq;
 		  tree->mcmc->randomize          = NO;
-		  tree->mcmc->run_nu             = 0;
-		  tree->mcmc->run_tree_height    = 0;
-		  tree->mcmc->run_subtree_height = 0;
-		  tree->mcmc->run_clock          = 0;
-		  tree->mcmc->run_rates          = 0;
-		  tree->mcmc->run_times          = 0;
-		  tree->mcmc->run                = 0;
-		  tree->mcmc->acc_tree_height    = 0;
-		  tree->mcmc->acc_subtree_height = 0;
-		  tree->mcmc->acc_clock          = 0;
-		  tree->mcmc->acc_rates          = 0;
-		  tree->mcmc->acc_times          = 0;
-
 		  
-		  tree->mcmc->move_weight[0] = (phydbl)tree->n_otu; /* Clock */
-		  tree->mcmc->move_weight[1] = (phydbl)tree->n_otu; /* Tree height */
-		  tree->mcmc->move_weight[2] = (phydbl)tree->n_otu; /* SubTree height */
-		  tree->mcmc->move_weight[3] = (phydbl)tree->n_otu; /* Nu */
-		  tree->mcmc->move_weight[4] = 5.*(phydbl)tree->n_otu; /* Node heights */
-		  tree->mcmc->move_weight[5] = 5.*(phydbl)tree->n_otu; /* Edge rates */
+		  tree->mcmc->move_weight[MCMC_NUM_CLOCK]          = 6.;
+		  tree->mcmc->move_weight[MCMC_NUM_TREE_HEIGHT]    = 10.;
+		  tree->mcmc->move_weight[MCMC_NUM_SUBTREE_HEIGHT] = 10.;
+		  tree->mcmc->move_weight[MCMC_NUM_NU]             = 3.;
+		  tree->mcmc->move_weight[MCMC_NUM_TIMES]          = 30.;
+		  tree->mcmc->move_weight[MCMC_NUM_RATES]          = 30.;
+		  tree->mcmc->move_weight[MCMC_NUM_TSTV]           = 1.;
 		  
 		  phydbl sum = 0.0;
-		  For(i,N_MAX_MOVES) sum += tree->mcmc->move_weight[i];
-		  For(i,N_MAX_MOVES) tree->mcmc->move_weight[i] /= sum;
-		  for(i=1;i<N_MAX_MOVES;i++) tree->mcmc->move_weight[i] += tree->mcmc->move_weight[i-1];
+		  For(i,tree->mcmc->n_moves) sum += tree->mcmc->move_weight[i];
+		  For(i,tree->mcmc->n_moves) tree->mcmc->move_weight[i] /= sum;
+		  for(i=1;i<tree->mcmc->n_moves;i++) tree->mcmc->move_weight[i] += tree->mcmc->move_weight[i-1];
 
+		  For(i,tree->mcmc->n_moves) 
+		    {
+		      tree->mcmc->run_param[i] = 0;
+		      tree->mcmc->acc_param[i] = 0;
+		    }
 
 
 		  time(&t_beg);
@@ -848,20 +843,25 @@ void TIMES_Set_All_Node_Priors(t_tree *tree)
   /* Set all t_prior_min values */
   if(!tree->rates->t_has_prior[tree->n_root->num])
     {
+      min_prior = 1E+10;
       For(i,2*tree->n_otu-2)
 	{
-	  if(tree->rates->t_has_prior[i] && tree->rates->t_prior_min[i] < min_prior)
+	  if(tree->rates->t_has_prior[i])
 	    {
-	      min_prior = tree->rates->t_prior_min[i];
+	      if(tree->rates->t_prior_min[i] < min_prior)
+		min_prior = tree->rates->t_prior_min[i];
 	    }
 	}
-      /* tree->rates->t_prior_min[tree->n_root->num] = 3. * min_prior; */
-      /* !!!!!!!!!!!!!!!!! */
-      tree->rates->t_prior_min[tree->n_root->num] = 10. * min_prior;
+      tree->rates->t_prior_min[tree->n_root->num] = 3. * min_prior;
+      /* tree->rates->t_prior_min[tree->n_root->num] = 10. * min_prior; */
     }
 
   TIMES_Set_All_Node_Priors_Top_Down(tree->n_root,tree->n_root->v[0],tree);
   TIMES_Set_All_Node_Priors_Top_Down(tree->n_root,tree->n_root->v[1],tree);
+
+  Get_Node_Ranks(tree);
+  TIMES_Set_Floor(tree);
+
 }
 
 /*********************************************************/
@@ -954,6 +954,109 @@ void TIMES_Set_All_Node_Priors_Top_Down(t_node *a, t_node *d, t_tree *tree)
 }
 
 /*********************************************************/
+
+void TIMES_Set_Floor(t_tree *tree)
+{
+  TIMES_Set_Floor_Post(tree->n_root,tree->n_root->v[0],tree);
+  TIMES_Set_Floor_Post(tree->n_root,tree->n_root->v[1],tree);
+  tree->rates->t_floor[tree->n_root->num] = MIN(tree->rates->t_floor[tree->n_root->v[0]->num],
+						tree->rates->t_floor[tree->n_root->v[1]->num]);
+}
+
 /*********************************************************/
+
+void TIMES_Set_Floor_Post(t_node *a, t_node *d, t_tree *tree)
+{
+  if(d->tax)
+    {
+      tree->rates->t_floor[d->num] = tree->rates->nd_t[d->num];
+      d->rank_max = d->rank;
+      return;
+    }
+  else
+    {
+      int i;
+      t_node *v1,*v2;
+
+      v1 = v2 = NULL;
+      For(i,3)
+	{
+	  if(d->v[i] != a && d->b[i] != tree->e_root)
+	    {
+	      TIMES_Set_Floor_Post(d,d->v[i],tree);
+	      if(!v1) v1 = d->v[i];
+	      else    v2 = d->v[i];
+	    }
+	}
+      tree->rates->t_floor[d->num] = MIN(tree->rates->t_floor[v1->num],
+					 tree->rates->t_floor[v2->num]);
+
+      if(tree->rates->t_floor[v1->num] < tree->rates->t_floor[v2->num])
+	{
+	  d->rank_max = v1->rank_max;
+	}
+      else if(tree->rates->t_floor[v2->num] < tree->rates->t_floor[v1->num])
+	{
+	  d->rank_max = v2->rank_max;
+	}
+      else
+	{
+	  d->rank_max = MAX(v1->rank_max,v2->rank_max);
+	}
+    }
+}
+
+/*********************************************************/
+
+phydbl TIMES_Log_Conditional_Uniform_Density(t_tree *tree)
+{
+  phydbl min,max;
+  phydbl dens;
+  int i,j;
+
+  min = tree->rates->nd_t[tree->n_root->num];
+
+  dens = 0.0;
+  For(i,2*tree->n_otu-1)
+    {
+      if((tree->noeud[i]->tax == NO) && (tree->noeud[i] != tree->n_root))
+	{
+	  max = tree->rates->t_floor[i];
+
+	  dens += LOG(Dorder_Unif(tree->rates->nd_t[i],
+				  tree->noeud[i]->rank,
+				  tree->noeud[i]->rank_max,
+				  min,max));
+	}
+    }
+  return dens;
+}
+
+/*********************************************************/
+
+/* Logarithm of Formula (9) in Rannala and Yang (1996) */
+phydbl TIMES_Log_Yule(t_tree *tree)
+{
+  phydbl sumti,density,lambda;
+  int n,i;
+
+  sumti = 0.0;
+  for(i=tree->n_otu;i<2*tree->n_otu-1;i++) sumti += tree->rates->nd_t[i];
+  sumti -= tree->rates->nd_t[i-1];
+
+  lambda = tree->rates->birth_rate;
+  n = tree->n_otu;
+  
+  density = 
+    (n-1.)*LOG(2.) + 
+    (n-2.)*LOG(lambda) - 
+    lambda*sumti - 
+    Factln(n) - 
+    LOG(n-1.) - 
+    (n-2.)*LOG(1.-EXP(-lambda));
+  
+  return density;
+}
+
 /*********************************************************/
 /*********************************************************/

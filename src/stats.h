@@ -82,6 +82,7 @@ int Norm_Trunc_Mean_Sd(phydbl mu, phydbl sd, phydbl a, phydbl b, phydbl *trunc_m
 phydbl Log_Dnorm_Trunc(phydbl x, phydbl mean, phydbl sd, phydbl lo, phydbl up, int *err);
 phydbl  Pnorm_Marsaglia(phydbl x);
 int Iter_Matinv(phydbl *x, int n, int m, int verbose);
+phydbl Dorder_Unif(phydbl x, int r, int n, phydbl min, phydbl max);
 
 
 #endif

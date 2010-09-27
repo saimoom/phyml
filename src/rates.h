@@ -135,8 +135,8 @@ void RATES_Get_Cov_Matrix_Rooted(phydbl *unroot_cov, t_tree *tree);
 void RATES_Get_Cov_Matrix_Rooted_Pre(t_node *a, t_node *d, t_edge *b, phydbl *cov, t_tree *tree);
 void RATES_Bl_To_Ml(t_tree *tree);
 void RATES_Bl_To_Ml_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree);
-void RATES_Check_Node_Times(t_tree *tree);
-void RATES_Check_Node_Times_Pre(t_node *a, t_node *d, t_tree *tree);
+int RATES_Check_Node_Times(t_tree *tree);
+void RATES_Check_Node_Times_Pre(t_node *a, t_node *d, int *err, t_tree *tree);
 void RATES_Covariance_Mu(t_tree *tree);
 void RATES_Variance_Mu_Pre(t_node *a, t_node *d, t_tree *tree);
 void RATES_Fill_Lca_Table(t_tree *tree);
@@ -158,6 +158,7 @@ void RATES_Min_Max_Interval(phydbl u0, phydbl u1, phydbl u2, phydbl u3, phydbl t
 
 
 phydbl RATES_Get_Correction_Factor(phydbl mode, phydbl sd, int *err, t_tree *tree);
+phydbl RATES_Average_Substitution_Rate(t_tree *tree);
 
 
 #endif
