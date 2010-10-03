@@ -60,7 +60,7 @@ void MCMC_Stick_Rates(t_tree *tree);
 void MCMC_Stick_Rates_Pre(t_node *a, t_node *d, t_tree *tree);
 void MCMC_Times_Global(t_tree *tree);
 void MCMC_Times_Local(t_tree *tree);
-void MCMC_Times_Pre(t_node *a, t_node *d, t_tree *tree);
+void MCMC_One_Time(t_node *a, t_node *d, t_tree *tree);
 void MCMC_Rates_Global(t_tree *tree);
 void MCMC_Rates_Local(t_tree *tree);
 void MCMC_Rates_Pre(t_node *a, t_node *d, t_tree *tree);
@@ -81,9 +81,9 @@ void MCMC_Omega(t_tree *tree);
 void MCMC_Adjust_Tuning_Parameter(tmcmc *mcmc);
 void MCMC_Copy_MCMC_Struct(tmcmc *ori, tmcmc *cpy, char *filename, t_tree *tree);
 void MCMC_Randomize_Node_Times_Bottom_Up(t_node *a, t_node *d, t_tree *tree);
-void MCMC_One_Length(t_edge *b, t_tree *tree);
-void MCMC_Br_Lens(t_tree *tree);
-void MCMC_Br_Lens_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree);
+void MCMC_One_Length(t_edge *b, phydbl *acc, int *run, t_tree *tree);
+void MCMC_Br_Lens(phydbl *acc, int *run, t_tree *tree);
+void MCMC_Br_Lens_Pre(t_node *a, t_node *d, t_edge *b, phydbl *acc, int *run, t_tree *tree);
 void MCMC_Tree_Height(t_tree *tree);
 void MCMC_SubTree_Height(t_tree *tree);
 void MCMC_Swing(t_tree *tree);
@@ -96,6 +96,7 @@ void MCMC_Single_Param_Generic(phydbl *val,
 			       phydbl (*prior_func)(t_tree *), 
 			       phydbl (*like_func)(t_tree *), 
 			       t_tree *tree);
+void MCMC_Scale_Br_Lens(t_tree *tree);
 
 
 
