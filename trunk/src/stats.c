@@ -1419,7 +1419,7 @@ phydbl *Covariance_Matrix(t_tree *tree)
       n_site++;
     }
 
-  		  
+  
   tree->mod->s_opt->print = 0;
   For(replicate,sample_size)
     {
@@ -2948,41 +2948,93 @@ void VarCov_Approx_Likelihood(t_tree *tree)
   phydbl *mean;
   int dim;
   int iter;
+  phydbl cur_mean,new_mean,diff_mean,max_diff_mean;
+  phydbl cur_cov,new_cov,diff_cov,max_diff_cov;
+  FILE *fp;
+  int run;
+  phydbl acc;
+
+  acc = 0.0;
+  run = 0;
 
   cov = tree->rates->cov;
   mean = tree->rates->invcov;
   dim = 2*tree->n_otu-3;
+
+  fp = fopen("covariance","w");
+  fprintf(fp,"\n");
+  fprintf(fp,"Run\t");
+  fprintf(fp,"lnL\t");
+  For(i,dim) fprintf(fp,"Edge%d[%f]\t",i,tree->rates->u_ml_l[i]);
+
   
   For(i,dim)     mean[i] = .0;
   For(i,dim*dim) cov[i]  = .0;
 
+  MCMC_Randomize_Branch_Lengths(tree);
   
+  /* For(i,2*tree->n_otu-3) tree->t_edges[i]->l *= Rgamma(5.,1./5.); */
+  
+  tree->both_sides = YES;
+  Lk(tree);
+
   iter = 0;
   do
     {
-      tree->both_sides = YES;
-      Lk(tree);
-      MCMC_Br_Lens(tree);
+      /* tree->both_sides = YES; */
+      /* Lk(tree); */
+      MCMC_Br_Lens(&acc,&run,tree);
+      /* MCMC_Scale_Br_Lens(tree); */
 
+
+      max_diff_mean = 0.0;
       For(i,dim)
 	{
+	  cur_mean = mean[i];
+
 	  mean[i] *= (phydbl)iter;
 	  mean[i] += tree->t_edges[i]->l;
 	  mean[i] /= (phydbl)(iter+1);
+
+	  new_mean = mean[i];	  
+	  diff_mean = MAX(cur_mean,new_mean)/MIN(cur_mean,new_mean);
+	  if(diff_mean > max_diff_mean) max_diff_mean = diff_mean;
+	  /* printf("\n. %d diff_mean = %f %f %f %f",i,diff_mean,cur_mean,new_mean,tree->t_edges[i]->l); */
 	}
 
+      max_diff_cov = 0.0;
       For(i,dim)
 	{
 	  For(j,dim)
 	    {
+	      cur_cov = cov[i*dim+j];
+
 	      cov[i*dim+j] *= (phydbl)iter;
 	      cov[i*dim+j] += tree->t_edges[i]->l * tree->t_edges[j]->l;
 	      cov[i*dim+j] /= (phydbl)(iter+1);
+
+	      new_cov = cov[i*dim+j];
+	      diff_cov = MAX(cur_cov,new_cov)/MIN(cur_cov,new_cov);
+	      if(diff_cov > max_diff_cov) max_diff_cov = diff_cov;
 	    }
 	}
       iter++;
+      
+      /* if(!(iter%10)) */
+      /* printf("\n. iter=%d max_diff_mean=%f max_diff_cov=%f",iter,max_diff_mean,max_diff_cov); */
 
-    }while(iter < 1000);
+      /* if(iter && max_diff_mean < 1.01 && max_diff_cov < 1.01) break; */
+      
+      if(!(iter%20))
+	{
+	  fprintf(fp,"\n");
+	  fprintf(fp,"%d\t",iter);
+	  fprintf(fp,"%f\t",tree->c_lnL);
+ 	  For(i,dim) fprintf(fp,"%f\t",tree->t_edges[i]->l);
+	  fflush(NULL);
+	}
+
+    }while(iter < 5000);
 
 
   For(i,dim)
@@ -2993,6 +3045,8 @@ void VarCov_Approx_Likelihood(t_tree *tree)
 	  if(i == j && cov[i*dim+j] < MIN_VAR_BL) cov[i*dim+j] = MIN_VAR_BL;
 	}
     }
+
+  fclose(fp);
 }
 
 /*********************************************************/

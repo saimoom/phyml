@@ -243,7 +243,7 @@ typedef	double phydbl;
 #define BL_MAX 100.
 #else
 #define BL_MIN 1.E-6
-#define BL_MAX 100.
+#define BL_MAX 1.
 #endif
 
 /* #define P_LK_LIM_INF 7.888609052e-31 */
@@ -978,6 +978,7 @@ typedef struct __Trate {
   phydbl  *nd_t; /*! Current t_node times */
   phydbl  *old_t; /*! Old t_node times */
   
+  phydbl norm_fact;
 
   int bl_from_rt; /*! if =1, branch lengths are obtained as the product of cur_r and t */
   int approx;
@@ -1396,7 +1397,7 @@ void Get_Best_Root_Position_Post(t_node *a, t_node *d, int *has_outgrp, t_tree *
 void Get_Best_Root_Position_Pre(t_node *a, t_node *d, t_tree *tree);
 void Get_OutIn_Scores(t_node *a, t_node *d);
 int Check_Sequence_Name(char *s);
-void Scale_Node_Heights(phydbl K, phydbl floor, t_tree *tree);
+int Scale_Node_Heights(phydbl K, phydbl floor, t_tree *tree);
 void Scale_Node_Heights_Post(t_node *a, t_node *d, phydbl K, phydbl floor, t_tree *tree);
 void Get_Node_Ranks(t_tree *tree);
 void Get_Node_Ranks_Pre(t_node *a, t_node *d,t_tree *tree);

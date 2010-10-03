@@ -640,6 +640,7 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
       if(*available < 0)
 	{
 	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  PhyML_Printf("\n. s=%s\n",*s_tree);
 	  Warn_And_Exit("");
 	}
 
@@ -6496,9 +6497,9 @@ void Set_Defaults_Input(option* io)
   io->data_file_format           = PHYLIP;
   io->tree_file_format           = PHYLIP;
   io->boot_prog_every            = 20;
-  io->gibbs_sample_freq          = 1E+5;
+  io->gibbs_sample_freq          = 1E+2;
   io->gibbs_chain_len            = 1E+8;
-  io->gibbs_burnin               = 1E+6;
+  io->gibbs_burnin               = 1E+5;
   io->mem_question               = YES;
   io->do_alias_subpatt           = NO;
   io->use_data                   = YES;
@@ -11753,7 +11754,7 @@ int Check_Sequence_Name(char *s)
 
 /*********************************************************/
 
-void Scale_Subtree_Height(t_node *a, phydbl K, phydbl floor, t_tree *tree)
+int Scale_Subtree_Height(t_node *a, phydbl K, phydbl floor, t_tree *tree)
 {
   phydbl new_height;
   
@@ -11772,7 +11773,7 @@ void Scale_Subtree_Height(t_node *a, phydbl K, phydbl floor, t_tree *tree)
     {
       int i;
       
-      if(new_height < tree->rates->nd_t[a->anc->num]) return;
+      if(new_height < tree->rates->nd_t[a->anc->num]) return 0;
       else tree->rates->nd_t[a->num] = new_height;
 
       For(i,3)
@@ -11786,7 +11787,7 @@ void Scale_Subtree_Height(t_node *a, phydbl K, phydbl floor, t_tree *tree)
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
-
+  return 1;
 }
 
 /*********************************************************/

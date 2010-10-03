@@ -123,12 +123,12 @@ phydbl RATES_Dmu_Joint(phydbl mu, int n, phydbl dt, phydbl a, phydbl b, phydbl l
 phydbl RATES_Compound_Core_Marginal(phydbl mu1, phydbl mu2, phydbl dt1, phydbl dt2, phydbl alpha, 
 				    phydbl beta, phydbl lexp, phydbl eps, int approx);
 phydbl RATES_Lk_Jumps(t_tree *tree);
-void RATES_Posterior_Rates(int *acc, int *n_trials, t_tree *tree);
-void RATES_Posterior_Rates_Pre(t_node *a, t_node *d, int *acc, int *n_trials, t_tree *tree);
+void RATES_Posterior_Rates(t_tree *tree);
+void RATES_Posterior_One_Rate(t_node *a, t_node *d, t_tree *tree);
 void Free_Rates(trate *rates);
 void RATES_Initialize_True_Rates(t_tree *tree);
 void RATES_Posterior_Times(t_tree *tree);
-void RATES_Posterior_Times_Pre(t_node *a, t_node *d, t_tree *tree);
+void RATES_Posterior_One_Time(t_node *a, t_node *d, t_tree *tree);
 void RATES_Update_Cur_Bl(t_tree *tree);
 void RATES_Update_Cur_Bl_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree);
 void RATES_Get_Cov_Matrix_Rooted(phydbl *unroot_cov, t_tree *tree);
@@ -159,6 +159,7 @@ void RATES_Min_Max_Interval(phydbl u0, phydbl u1, phydbl u2, phydbl u3, phydbl t
 
 phydbl RATES_Get_Correction_Factor(phydbl mode, phydbl sd, int *err, t_tree *tree);
 phydbl RATES_Average_Substitution_Rate(t_tree *tree);
+void RATES_Update_Norm_Fact(t_tree *tree);
 
 
 #endif
