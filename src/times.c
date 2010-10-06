@@ -62,7 +62,7 @@ int TIMES_main(int argc, char **argv)
   io = (option *)Get_Input(argc,argv);
   r_seed = (io->r_seed < 0)?(time(NULL)):(io->r_seed);
   /* !!!!!!!!!!!!!!!!!!!!!!!! */
-  r_seed = 1264735233;
+/*   r_seed = 1264735233; */
   /* sys = system("sleep 5s"); */
 
   srand(r_seed); rand();
@@ -227,105 +227,9 @@ int TIMES_main(int argc, char **argv)
 							     tree->rates->covdet,
 							     2*tree->n_otu-3,YES);
 		  PhyML_Printf("\n. p(data|model) [normal approx] ~ %f",tree->c_lnL);
-/* 		  PhyML_Printf("\n. p(model) [normal approx] ~ %f",RATES_Lk_Rates(tree)); */
 
 		  tree->rates->bl_from_rt = 1;
 
-
- 		  /* PhyML_Printf("\n. Burnin...\n"); */
-		  /* tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree); */
-		  /* MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree); */
-		  /* tree->rates->lk_approx = NORMAL; */
-		  /* tree->mcmc->adjust_tuning   = YES; */
-		  /* tree->mcmc->n_tot_run       = tree->io->gibbs_burnin; */
-		  /* tree->mcmc->sample_interval = tree->io->gibbs_burnin/100; */
-		  /* MCMC(tree); */
-		  /* MCMC_Close_MCMC(tree->mcmc); */
-		  /* MCMC_Free_MCMC(tree->mcmc); */
-
-		  /* PhyML_Printf("\n. Gibbs sampling...\n"); */
-		  /* tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree); */
-		  /* MCMC_Init_MCMC_Struct("phytime",tree->mcmc,tree); */
-		  /* tree->rates->lk_approx = NORMAL; */
-		  /* RATES_Lk_Rates(tree); */
-		  /* MCMC_Print_Param(tree->mcmc,tree); */
-		  		  
-		  /* time(&t_beg); */
-		  /* tree->mcmc->adjust_tuning   = NO; */
-		  /* tree->mcmc->n_tot_run       = tree->io->gibbs_chain_len; */
-		  /* tree->mcmc->sample_interval = tree->io->gibbs_sample_freq; */
-		  /* phydbl u; */
-		  /* int acc,n_trials; */
-		  /* acc = n_trials = 0; */
-
-		  /* do */
-		  /*   { */
-		  /*     tree->rates->c_lnL = RATES_Lk_Rates(tree); */
-		  /*     tree->c_lnL        = Lk(tree); */
-		      
-		  /*     MCMC_Swing(tree); */
-		  /*     MCMC_Nu(tree); */
-		  /*     MCMC_Clock_Rate(tree); */
-		  /*     RATES_Posterior_Times(tree); */
-		  /*     RATES_Posterior_Rates(&acc,&n_trials,tree); */
-		  /*     RATES_Check_Node_Times(tree); */
-		  /*   } */
-		  /* while(tree->mcmc->run < tree->mcmc->n_tot_run); */
-
-		  /* PhyML_Printf("\n. End of Gibbs sampling...\n"); */
-		  /* Exit("\n"); */
-
-/* /\* 		  time(&t_end); *\/ */
-/* /\* 		  Print_Time_Info(t_beg,t_end); *\/ */
-/* 		  MCMC_Close_MCMC(tree->mcmc); */
-/* 		  MCMC_Free_MCMC(tree->mcmc); */
-
-/* 		  system("sleep 1s"); */
-/* 		  END OF IMPORTANCE SAMPLING STUFF */
-
-
-		  /************************************/
-		  /************************************/
-		  /************************************/
-		  /************************************/
-
-		  /* THORNE NORMAL */
-		  /* tree->both_sides        = 1; */
-		  /* tree->rates->model      = THORNE; */
-		  /* tree->rates->bl_from_rt = 1; */
-
-		  /* PhyML_Printf("\n. Burnin...\n"); */
-		  /* tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree); */
-		  /* MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree); */
-		  /* tree->rates->lk_approx = NORMAL; */
-		  /* tree->mcmc->adjust_tuning   = YES; */
-		  /* tree->mcmc->n_tot_run  = tree->io->gibbs_burnin; */
-		  /* tree->mcmc->sample_interval = tree->io->gibbs_burnin/100; */
-		  /* MCMC(tree); */
-		  /* MCMC_Close_MCMC(tree->mcmc); */
-		  /* MCMC_Free_MCMC(tree->mcmc); */
-
-		  /* tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree); */
-		  /* MCMC_Init_MCMC_Struct("thorne.normal",tree->mcmc,tree); */
-		  /* tree->rates->lk_approx = NORMAL; */
-		  /* tree->mcmc->adjust_tuning   = NO; */
-		  /* tree->mcmc->n_tot_run       = tree->io->gibbs_chain_len; */
-		  /* tree->mcmc->sample_interval = tree->io->gibbs_sample_freq; */
-		  /* tree->mcmc->randomize = NO; */
-		  /* time(&t_beg); */
-		  /* PhyML_Printf("\n. Thorne (approx)...\n"); */
-		  /* MCMC(tree); */
-		  /* PhyML_Printf("\n. End of Thorne (approx)...\n"); */
-		  /* system("sleep 3s"); */
-		  /* time(&t_end); */
-		  /* Print_Time_Info(t_beg,t_end); */
-		  /* MCMC_Close_MCMC(tree->mcmc); */
-		  /* MCMC_Free_MCMC(tree->mcmc); */
-
-		  /* Exit("\n"); */
-
-
-		  /* THORNE EXACT */
 		  tmcmc *new_mcmc;
 		  tree->both_sides        = 1;
 		  tree->rates->model      = THORNE;
@@ -350,65 +254,36 @@ int TIMES_main(int argc, char **argv)
 		  tree->mcmc->sample_interval    = tree->io->gibbs_sample_freq;
 		  tree->mcmc->randomize          = NO;
 		  
-		  /* tree->mcmc->move_weight[MCMC_NUM_CLOCK]          = tree->n_otu; */
-		  /* tree->mcmc->move_weight[MCMC_NUM_TREE_HEIGHT]    = tree->n_otu; */
-		  /* tree->mcmc->move_weight[MCMC_NUM_SUBTREE_HEIGHT] = 1.; */
-		  /* tree->mcmc->move_weight[MCMC_NUM_NU]             = tree->n_otu/2.; */
-		  /* tree->mcmc->move_weight[MCMC_NUM_TIMES]          = 1.; */
-		  /* tree->mcmc->move_weight[MCMC_NUM_RATES]          = 1.; */
-		  /* tree->mcmc->move_weight[MCMC_NUM_TSTV]           = 1.; */
-
-		  /* tree->mcmc->tune_param[MCMC_NUM_CLOCK]          = 0.1; */
-		  /* tree->mcmc->tune_param[MCMC_NUM_TREE_HEIGHT]    = 0.1; */
-		  /* tree->mcmc->tune_param[MCMC_NUM_SUBTREE_HEIGHT] = 0.5; */
-		  /* tree->mcmc->tune_param[MCMC_NUM_NU]             = 1.0; */
-		  /* tree->mcmc->tune_param[MCMC_NUM_TIMES]          = 1.0;  */
-		  /* tree->mcmc->tune_param[MCMC_NUM_RATES]          = 2.0;  */
-		  /* tree->mcmc->tune_param[MCMC_NUM_TSTV]           = 0.5;  */
-
-		  tree->mcmc->move_weight[MCMC_NUM_CLOCK]          = 2.;
-                  tree->mcmc->move_weight[MCMC_NUM_TREE_HEIGHT]    = 2.;
-                  tree->mcmc->move_weight[MCMC_NUM_SUBTREE_HEIGHT] = 1.;
-                  tree->mcmc->move_weight[MCMC_NUM_NU]             = 1.;
-                  tree->mcmc->move_weight[MCMC_NUM_TIMES]          = tree->n_otu;
-                  tree->mcmc->move_weight[MCMC_NUM_RATES]          = tree->n_otu;
-                  tree->mcmc->move_weight[MCMC_NUM_TSTV]           = 1.;
-
-		  /* tree->mcmc->move_weight[MCMC_NUM_CLOCK]          = 1.; */
-                  /* tree->mcmc->move_weight[MCMC_NUM_TREE_HEIGHT]    = 1.; */
-                  /* tree->mcmc->move_weight[MCMC_NUM_SUBTREE_HEIGHT] = 1.; */
-                  /* tree->mcmc->move_weight[MCMC_NUM_NU]             = 1.; */
-                  /* tree->mcmc->move_weight[MCMC_NUM_TIMES]          = 1.; */
-                  /* tree->mcmc->move_weight[MCMC_NUM_RATES]          = 1.; */
-                  /* tree->mcmc->move_weight[MCMC_NUM_TSTV]           = 1.; */
-  
-
-		  phydbl sum = 0.0;
-		  For(i,tree->mcmc->n_moves) sum += tree->mcmc->move_weight[i];
-		  For(i,tree->mcmc->n_moves) tree->mcmc->move_weight[i] /= sum;
-		  for(i=1;i<tree->mcmc->n_moves;i++) tree->mcmc->move_weight[i] += tree->mcmc->move_weight[i-1];
-
 		  For(i,tree->mcmc->n_moves) 
 		    {
 		      tree->mcmc->run_param[i] = 0;
 		      tree->mcmc->acc_param[i] = 0;
 		    }
 
+/* 		  tree->mcmc->move_weight[MCMC_NUM_CLOCK]          = 1.; */
+/* 		  tree->mcmc->move_weight[MCMC_NUM_TREE_HEIGHT]    = 1.; */
+/* 		  tree->mcmc->move_weight[MCMC_NUM_SUBTREE_HEIGHT] = 1.; */
+/* 		  tree->mcmc->move_weight[MCMC_NUM_NU]             = 1.; */
+/* 		  tree->mcmc->move_weight[MCMC_NUM_TIMES]          = tree->n_otu; */
+/* 		  tree->mcmc->move_weight[MCMC_NUM_RATES]          = tree->n_otu; */
+/* 		  tree->mcmc->move_weight[MCMC_NUM_TSTV]           = 1.; */
+
+/* 		  phydbl sum = 0.0; */
+/* 		  For(i,tree->mcmc->n_moves) sum += tree->mcmc->move_weight[i]; */
+/* 		  For(i,tree->mcmc->n_moves) tree->mcmc->move_weight[i] /= sum; */
+/* 		  for(i=1;i<tree->mcmc->n_moves;i++) tree->mcmc->move_weight[i] += tree->mcmc->move_weight[i-1]; */
+
 
 		  time(&t_beg);
-		  PhyML_Printf("\n. Thorne (exact)...\n");
+		  PhyML_Printf("\n. Starting sampling the posterior density...\n");
 		  MCMC(tree);
-		  PhyML_Printf("\n. End of Thorne (exact)...\n");
+		  PhyML_Printf("\n. End of sampling...\n");
 		  system("sleep 3s");
 		  time(&t_end);
 		  Print_Time_Info(t_beg,t_end);
 		  MCMC_Close_MCMC(tree->mcmc);
 		  MCMC_Free_MCMC(tree->mcmc);
-		  /* END OF COMPOUND POISSON STUFF */
-		  /************************************/
-		  /************************************/
-		  /************************************/
-		  /************************************/
+
 
 		  Free_Tree_Pars(tree);
 		  Free_Tree_Lk(tree);
@@ -1046,8 +921,8 @@ phydbl TIMES_Log_Conditional_Uniform_Density(t_tree *tree)
 	  max = tree->rates->t_floor[i];
 
 	  dens += LOG(Dorder_Unif(tree->rates->nd_t[i],
-				  tree->noeud[i]->rank,
-				  tree->noeud[i]->rank_max,
+				  tree->noeud[i]->rank-1,
+				  tree->noeud[i]->rank_max-2,
 				  min,max));
 	}
     }
