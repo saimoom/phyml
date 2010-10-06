@@ -633,11 +633,11 @@ phydbl RATES_Check_Mean_Rates(t_tree *tree)
       sum_r += u * FABS(t-t_anc);
       sum_dt += FABS(t-t_anc);
       
-      /* sum_r += u; */
+/*       sum_r += u; */
     }
 
   return(sum_r / sum_dt);
-  /* return(sum_r / (phydbl)(2*tree->n_otu-2)); */
+/*   return(sum_r / (phydbl)(2*tree->n_otu-2)); */
 }
 
 /*********************************************************/
@@ -802,27 +802,24 @@ void RATES_Init_Rate_Struct(trate *rates, int n_otu)
   int i;
 
   rates->met_within_gibbs = NO;
-  rates->model         = THORNE;
-  rates->c_lnL         = UNLIKELY;
-  rates->c_lnL_jps     = UNLIKELY;
-  rates->adjust_rates  = 0;
-  rates->use_rates     = 1;
-  rates->lexp          = 1.E-3;
-  rates->nu            = 2.;
-  rates->birth_rate    = 0.001;
+  rates->model            = THORNE;
+  rates->c_lnL            = UNLIKELY;
+  rates->c_lnL_jps        = UNLIKELY;
+  rates->adjust_rates     = 0;
+  rates->use_rates        = 1;
+  rates->lexp             = 1.E-3;
+  rates->nu               = 2.;
+  rates->birth_rate       = 0.001;
 
-  /* Relative rate max has to be 2.0 for proper prior density
-     See Guindon (2010, MBE) 
-  */
   rates->max_rate      = 10.0000;
   rates->min_rate      = 1.E-8;
 
   rates->clock_r       = 1.E-5;
-  rates->max_clock     = 1.E+2;
+  rates->max_clock     = 1.E+3;
   rates->min_clock     = 1.E-10;
 
   rates->nu            = 1.E-3;
-  rates->max_nu        = 1.E+3;
+  rates->max_nu        = 1.E+2;
   rates->min_nu        = 1.E-10;
   rates->lbda_nu       = 1.E+3;
 

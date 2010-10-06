@@ -6497,8 +6497,8 @@ void Set_Defaults_Input(option* io)
   io->data_file_format           = PHYLIP;
   io->tree_file_format           = PHYLIP;
   io->boot_prog_every            = 20;
-  io->gibbs_sample_freq          = 1E+2;
-  io->gibbs_chain_len            = 1E+8;
+  io->gibbs_sample_freq          = 1E+3;
+  io->gibbs_chain_len            = 1E+7;
   io->gibbs_burnin               = 1E+5;
   io->mem_question               = YES;
   io->do_alias_subpatt           = NO;
@@ -11754,10 +11754,13 @@ int Check_Sequence_Name(char *s)
 
 /*********************************************************/
 
-int Scale_Subtree_Height(t_node *a, phydbl K, phydbl floor, t_tree *tree)
+int Scale_Subtree_Height(t_node *a, phydbl K, phydbl floor, int *n_nodes, t_tree *tree)
 {
   phydbl new_height;
-  
+  phydbl eps;
+
+  *n_nodes = 0;
+
   new_height = .0;
 
   if(tree->rates->nd_t[a->num] < floor)
@@ -11766,19 +11769,25 @@ int Scale_Subtree_Height(t_node *a, phydbl K, phydbl floor, t_tree *tree)
   if(a == tree->n_root)
     {
       tree->rates->nd_t[tree->n_root->num] = new_height;
-      Scale_Node_Heights_Post(tree->n_root,tree->n_root->v[0],K,floor,tree);
-      Scale_Node_Heights_Post(tree->n_root,tree->n_root->v[1],K,floor,tree);
+      Scale_Node_Heights_Post(tree->n_root,tree->n_root->v[0],K,floor,n_nodes,tree);
+      Scale_Node_Heights_Post(tree->n_root,tree->n_root->v[1],K,floor,n_nodes,tree);
     }
   else
     {
       int i;
       
       if(new_height < tree->rates->nd_t[a->anc->num]) return 0;
-      else tree->rates->nd_t[a->num] = new_height;
+      else 
+	{
+	  tree->rates->nd_t[a->num] = new_height;
+	  *n_nodes = 1;
+	}
 
       For(i,3)
 	if(a->v[i] != a->anc && a->b[i] != tree->e_root)
-	  Scale_Node_Heights_Post(a,a->v[i],K,floor,tree);
+	  {
+	    Scale_Node_Heights_Post(a,a->v[i],K,floor,n_nodes,tree);
+	  }
     }
   
   if(RATES_Check_Node_Times(tree))
@@ -11792,19 +11801,29 @@ int Scale_Subtree_Height(t_node *a, phydbl K, phydbl floor, t_tree *tree)
 
 /*********************************************************/
 
-void Scale_Node_Heights_Post(t_node *a, t_node *d, phydbl K, phydbl floor, t_tree *tree)
+void Scale_Node_Heights_Post(t_node *a, t_node *d, phydbl K, phydbl floor, int *n_nodes, t_tree *tree)
 {
+  if(d == tree->n_root)
+    {
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+
   if(d->tax) return;
   else
     {
       int i;
 
+
       if(tree->rates->nd_t[d->num] < floor)
-	tree->rates->nd_t[d->num] = K*(tree->rates->nd_t[d->num]-floor)+floor;
-      
+	{
+	  tree->rates->nd_t[d->num] = K*(tree->rates->nd_t[d->num]-floor)+floor;
+	  *n_nodes = *n_nodes+1;
+	}
+
       For(i,3)
 	if(d->v[i] != a && d->b[i] != tree->e_root)
-	  Scale_Node_Heights_Post(d,d->v[i],K,floor,tree);
+	  Scale_Node_Heights_Post(d,d->v[i],K,floor,n_nodes,tree);
 
     }
 }

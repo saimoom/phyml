@@ -1397,8 +1397,8 @@ void Get_Best_Root_Position_Post(t_node *a, t_node *d, int *has_outgrp, t_tree *
 void Get_Best_Root_Position_Pre(t_node *a, t_node *d, t_tree *tree);
 void Get_OutIn_Scores(t_node *a, t_node *d);
 int Check_Sequence_Name(char *s);
-int Scale_Node_Heights(phydbl K, phydbl floor, t_tree *tree);
-void Scale_Node_Heights_Post(t_node *a, t_node *d, phydbl K, phydbl floor, t_tree *tree);
+int Scale_Node_Heights(phydbl K, phydbl floor, int *n_nodes, t_tree *tree);
+void Scale_Node_Heights_Post(t_node *a, t_node *d, phydbl K, phydbl floor, int *n_nodes, t_tree *tree);
 void Get_Node_Ranks(t_tree *tree);
 void Get_Node_Ranks_Pre(t_node *a, t_node *d,t_tree *tree);
 void Get_Node_Rank_Max_Post(t_node *a, t_node *d,t_tree *tree);
