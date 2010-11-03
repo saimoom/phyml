@@ -35,8 +35,8 @@ void RATES_Monte_Carlo_Mean_Rates(t_tree *tree);
 void RATES_Monte_Carlo_Mean_Rates_Pre(t_node *a, t_node *d, t_edge *b, phydbl curr_rate, t_tree *tree);
 void RATES_Print_Rates(t_tree *tree);
 void RATES_Print_Rates_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree);
-trate *RATES_Make_Rate_Struct(int n_otu);
-void RATES_Init_Rate_Struct(trate *rates, int n_otu);
+t_rate *RATES_Make_Rate_Struct(int n_otu);
+void RATES_Init_Rate_Struct(t_rate *rates, int n_otu);
 void RATES_Classify_Branches(t_tree *tree);
 void RATES_Adjust_Rates(t_tree *tree);
 void RATES_Adjust_Rates_Local_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree);
@@ -79,7 +79,7 @@ void RATES_Replace_Br_Lengths_By_Rates(t_tree *tree);
 
 void RATES_Get_Mean_Rates(t_tree *tree);
 void RATES_Get_Mean_Rates_Pre(t_node *a, t_node *d, t_edge *b, phydbl r_a, t_tree *tree);
-void RATES_Expect_Number_Subst(phydbl t_beg, phydbl t_end, phydbl r_beg,  int *n_jumps, phydbl *mean_r, phydbl *r_end, trate *rates, t_tree *tree);
+void RATES_Expect_Number_Subst(phydbl t_beg, phydbl t_end, phydbl r_beg,  int *n_jumps, phydbl *mean_r, phydbl *r_end, t_rate *rates, t_tree *tree);
 void RATES_Optimize_Clock_Rate(t_tree *tree);
 phydbl RATES_Dmu1_Given_Lbda_And_Mu2(phydbl lbda, phydbl mu1, phydbl mu2, phydbl alpha, phydbl beta);
 phydbl RATES_Dmu1_And_Mu2_One_Jump_Trpz(phydbl mu1, phydbl mu2, phydbl a, phydbl b,
@@ -124,8 +124,8 @@ phydbl RATES_Compound_Core_Marginal(phydbl mu1, phydbl mu2, phydbl dt1, phydbl d
 				    phydbl beta, phydbl lexp, phydbl eps, int approx);
 phydbl RATES_Lk_Jumps(t_tree *tree);
 void RATES_Posterior_Rates(t_tree *tree);
-void RATES_Posterior_One_Rate(t_node *a, t_node *d, t_tree *tree);
-void Free_Rates(trate *rates);
+void RATES_Posterior_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree);
+void Free_Rates(t_rate *rates);
 void RATES_Initialize_True_Rates(t_tree *tree);
 void RATES_Posterior_Times(t_tree *tree);
 void RATES_Posterior_One_Time(t_node *a, t_node *d, t_tree *tree);
@@ -160,6 +160,10 @@ void RATES_Min_Max_Interval(phydbl u0, phydbl u1, phydbl u2, phydbl u3, phydbl t
 phydbl RATES_Get_Correction_Factor(phydbl mode, phydbl sd, int *err, t_tree *tree);
 phydbl RATES_Average_Substitution_Rate(t_tree *tree);
 void RATES_Update_Norm_Fact(t_tree *tree);
+void RATES_Update_Mean_Br_Len(int iter, t_tree *tree);
+void RATES_Update_Cov_Br_Len(int iter, t_tree *tree);
+void RATES_Set_Mean_L(t_tree *tree);
+void RATES_Fill_All_Param(t_rate *rate, t_tree *tree);
 
 
 #endif

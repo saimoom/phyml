@@ -56,13 +56,10 @@ static inline int isinf_d  (double      x) { return isnan (x - x); }
 static inline int isinf_ld (long double x) { return isnan (x - x); }
 #endif
      
-#define MCMC_NUM_CLOCK          0
-#define MCMC_NUM_TREE_HEIGHT    1
-#define MCMC_NUM_SUBTREE_HEIGHT 2
-#define MCMC_NUM_NU             3
-#define MCMC_NUM_TIMES          4
-#define MCMC_NUM_RATES          5
-#define MCMC_NUM_TSTV           6
+
+#define MCMC_MOVE_RANDWALK       0
+#define MCMC_MOVE_SCALE          1         
+#define MCMC_MOVE_LOG_RANDWALK   2
 
 #define N_MAX_MOVES     50
 
@@ -162,7 +159,8 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 
 #define  MIN_CLOCK_RATE   1.E-10
 
-#define  MIN_VAR_BL       1.E-6
+#define  MIN_VAR_BL       1.E-8
+#define  MAX_VAR_BL       1.E+3
 
 #define JC69       1
 #define K80        2
@@ -371,7 +369,7 @@ typedef struct __Edge {
 
 /*!********************************************************/
 
-typedef struct __Arbre {
+typedef struct __Tree{
 
   struct __Node                       *n_root; /*! root t_node */
   struct __Edge                       *e_root; /*! t_edge on which lies the root */
@@ -385,7 +383,7 @@ typedef struct __Arbre {
   struct __SPR                     **spr_list;
   struct __SPR                      *best_spr;
   struct __Tdraw                     *ps_tree; /*! structure for drawing trees in postscript format */
-  struct __Trate                       *rates; /*! structure for handling rates of evolution */
+  struct __T_Rate                       *rates; /*! structure for handling rates of evolution */
   struct __Tmcmc                        *mcmc;
   struct __Triplet            *triplet_struct;
 
@@ -451,13 +449,17 @@ typedef struct __Arbre {
   phydbl                              geo_lnL; /*! log likelihood of the phylo-geography model */
 
   int                              bl_ndigits;
+
+  phydbl                             *short_l; /* Vector of short branch length values */
+  int                               n_short_l; /* Length of short_l */
+  phydbl                           norm_scale;
 }t_tree;
 
 /*!********************************************************/
 
-typedef struct __Super_Arbre {
-  struct __Arbre                           *tree;
-  struct __List_Arbre                  *treelist; /*! list of trees. One tree for each data set to be processed */
+typedef struct __Super_Tree {
+  struct __Tree                           *tree;
+  struct __List_Tree                  *treelist; /*! list of trees. One tree for each data set to be processed */
   struct __Calign                    *curr_cdata;
   struct __Option                   **optionlist; /*! list of pointers to input structures (used in supertrees) */
 
@@ -552,8 +554,8 @@ typedef struct __Super_Arbre {
 
 /*!********************************************************/
 
-typedef struct __List_Arbre { /*! a list of trees */
-  struct __Arbre   **tree;
+typedef struct __List_Tree { /*! a list of trees */
+  struct __Tree   **tree;
   int           list_size;                /*! number of trees in the list */
 }t_treelist;
 
@@ -656,7 +658,9 @@ typedef struct __Model {
   phydbl   rr_branch_alpha; /*! Shape of the gamma distribution that defines the rr_branch and p_rr_branch values */
 
   int            state_len;
-
+  short int          log_l; /* Edge lengths are actually log(Edge lengths) if log_l == YES */
+  phydbl             l_min; /* Minimum branch length */
+  phydbl             l_max; /* Maximum branch length */
 }model;
 
 /*!********************************************************/
@@ -677,12 +681,12 @@ typedef struct __Eigen{
 
 typedef struct __Option { /*! mostly used in 'help.c' */
   struct __Model                *mod; /*! pointer to a substitution model */
-  struct __Arbre               *tree; /*! pointer to the current tree */
+  struct __Tree               *tree; /*! pointer to the current tree */
   struct __Align              **data; /*! pointer to the uncompressed sequences */
   struct __Calign             *cdata; /*! pointer to the compressed sequences */
-  struct __Super_Arbre           *st; /*! pointer to supertree */
+  struct __Super_Tree           *st; /*! pointer to supertree */
   struct __Tnexcom    **nex_com_list;
-  struct __List_Arbre      *treelist; /*! list of trees. */
+  struct __List_Tree      *treelist; /*! list of trees. */
 
 
   int                    interleaved; /*! interleaved or sequential sequence file format ? */
@@ -765,13 +769,9 @@ typedef struct __Option { /*! mostly used in 'help.c' */
   
   int                 boot_prog_every;
 
-  int                 gibbs_chain_len;
-  int               gibbs_sample_freq;
-  int                    gibbs_burnin;
-
   int                    mem_question;
   int                do_alias_subpatt;
-  int                        use_data;
+  struct __Tmcmc                *mcmc;
 
 }option;
 
@@ -946,129 +946,123 @@ typedef struct __Tdraw {
 
 /*!********************************************************/
 
-typedef struct __Trate {
-  phydbl  *br_r; /*! Relative substitution rate, i.e., multiplier of mean_r on each branch */
-  phydbl  lexp; /*! Parameter of the exponential distribution that governs the rate at which substitution between rate classes ocur */
+typedef struct __T_Rate {
+  phydbl lexp; /*! Parameter of the exponential distribution that governs the rate at which substitution between rate classes ocur */
   phydbl alpha;
-  phydbl *true_t; /*! true t_node times (including root node) */
-  phydbl *true_r; /*! true t_edge rates (on rooted tree) */
-  int *n_jps;
-  int *t_jps;
-  phydbl *dens; /*! Probability densities of mean substitution rates at the nodes */
-  phydbl c_lnL; /*! Prob(Br len | time stamps, model of rate evolution) */
-  phydbl c_lnL_jps; /*! Prob(# Jumps | time stamps, rates, model of rate evolution) */
-  int adjust_rates; /*! if = 1, branch rates are adjusted such that a modification of a given t_node time
-		       does not modify any branch lengths */
-  int use_rates; /*! if = 0, branch lengths are expressed as differences between t_node times */
-  phydbl *triplet;
   phydbl less_likely;
   phydbl birth_rate;
   phydbl min_rate;
   phydbl max_rate;
-
+  phydbl c_lnL; /*! Prob(Br len | time stamps, model of rate evolution) */
+  phydbl c_lnL_jps; /*! Prob(# Jumps | time stamps, rates, model of rate evolution) */
   phydbl clock_r; /*! Mean substitution rate, i.e., 'molecular clock' rate */
   phydbl min_clock;
   phydbl max_clock;
-
   phydbl lbda_nu;
   phydbl min_dt;
   phydbl step_rate;
-  phydbl  *nd_r;  /*! Current rates at nodes and the corresponding incoming edges */
-  phydbl  *old_r; /*! Old t_node rates */
-  phydbl  *nd_t; /*! Current t_node times */
-  phydbl  *old_t; /*! Old t_node times */
-  
+  phydbl true_tree_size;
+  phydbl p_max;
   phydbl norm_fact;
-
-  int bl_from_rt; /*! if =1, branch lengths are obtained as the product of cur_r and t */
-  int approx;
-  int model; /*! Model number */
-
   phydbl nu; /*! Parameter of the Exponential distribution for the corresponding model */
   phydbl min_nu;
   phydbl max_nu;
+  phydbl covdet;
 
-  int met_within_gibbs;
-
-  phydbl        *ml_l; /*! ML t_edge lengths (rooted) */
-  phydbl       *cur_l; /*! Current t_edge lengths (rooted) */
-  phydbl      *u_ml_l; /*! ML t_edge lengths (unrooted) */
+  phydbl     *nd_r;  /*! Current rates at nodes and the corresponding incoming edges */
+  phydbl     *nd_t; /*! Current t_node times */
+  phydbl     *triplet;
+  phydbl     *true_t; /*! true t_node times (including root node) */
+  phydbl     *true_r; /*! true t_edge rates (on rooted tree) */
+  phydbl     *old_t;
+  phydbl     *dens; /*! Probability densities of mean substitution rates at the nodes */
+  phydbl     *ml_l; /*! ML t_edge lengths (rooted) */
+  phydbl     *cur_l; /*! Current t_edge lengths (rooted) */
+  phydbl     *u_ml_l; /*! ML t_edge lengths (unrooted) */
   phydbl     *u_cur_l; /*! Current t_edge lengths (unrooted) */
-  phydbl         *cov;
-  phydbl      *invcov;
-  phydbl       covdet;
-  phydbl       *cov_r;
-  phydbl      *mean_r;
-  struct __Node **lca; /*! 2-way table of common ancestral nodes for each pari of nodes */
-  int       lk_approx;
-
-  /*! spare vectors */
+  phydbl     *invcov;
+  phydbl     *cov_r;
+  phydbl     *mean_r;
   phydbl     *_2n_vect1;
   phydbl     *_2n_vect2;
   phydbl     *_2n_vect3;
   phydbl     *_2n_vect4;
   short int  *_2n_vect5;
-  phydbl   *_2n2n_vect1;
-  phydbl   *_2n2n_vect2;
+  phydbl     *_2n2n_vect1;
+  phydbl     *_2n2n_vect2;
+  phydbl     *trip_cond_cov;
+  phydbl     *trip_reg_coeff;
+  phydbl     *cond_var;
+  phydbl     *reg_coeff;
+  phydbl     *t_prior;
+  phydbl     *t_prior_min;
+  phydbl     *t_prior_max;
+  phydbl     *t_floor;
+  phydbl     *t_mean;
+  phydbl     *mean_l;
+  phydbl     *cov_l;
 
-  phydbl  *cond_var;
-  phydbl *reg_coeff;
+  int adjust_rates; /*! if = 1, branch rates are adjusted such that a modification of a given t_node time
+		       does not modify any branch lengths */
+  int use_rates; /*! if = 0, branch lengths are expressed as differences between t_node times */
+  int bl_from_rt; /*! if =1, branch lengths are obtained as the product of cur_r and t */
+  int approx;
+  int model; /*! Model number */
 
-  phydbl  *trip_cond_cov;
-  phydbl *trip_reg_coeff;
+  int met_within_gibbs;
 
-  phydbl        *t_prior;
-  phydbl    *t_prior_min;
-  phydbl    *t_prior_max;
-  phydbl        *t_floor;
+  int       lk_approx;
+  int      update_mean_l;
+  int       update_cov_l;
+
+  int *n_jps;
+  int *t_jps;
+
   short int *t_has_prior;
-  phydbl         *t_mean;
+  struct __Node **lca; /*! 2-way table of common ancestral nodes for each pari of nodes */
 
-
-  phydbl  true_tree_size;
-
-  phydbl           p_max;
-
-}trate;
+}t_rate;
 
 /*!********************************************************/
 
 typedef struct __Tmcmc {
-  int run;
-  int n_tot_run;
-  int sample_interval;
+  phydbl *tune_move;
+  phydbl *move_weight;
+  
+  int *acc_move;
+  int *run_move;
+  int *num_move;
+  char **move_name;
 
-  int *acc_param;
-  int *run_param;
-  phydbl *tune_param;
-  char **name_param;
+  int num_move_nd_r;
+  int num_move_nd_t;
+  int num_move_nu;
+  int num_move_clock_r;
+  int num_move_tree_height;
+  int num_move_subtree_height;
+  int num_move_kappa;
 
-  int n_rate_jumps;
-  int randomize;
-  int norm_freq;
+  char *out_filename;
 
-  phydbl *dt_prop;
-  phydbl *p_no_jump;
-  phydbl *t_rate_jumps;
-  int    *t_rank;
-  phydbl *r_path;
   time_t t_beg;
   time_t t_cur;
 
-  char *out_filename;
   FILE *out_fp_stats;
   FILE *out_fp_trees;
   FILE *out_fp_means;
   FILE *out_fp_last;
  
   int adjust_tuning;
-  
   int n_moves;
-  phydbl *move_weight;
-
   int use_data;
+  int randomize;
+  int norm_freq;
+  int run;
+  int chain_len;
+  int sample_interval;
+  int chain_len_burnin;
 
-}tmcmc;
+}t_mcmc;
 
 /*!********************************************************/
 
@@ -1316,8 +1310,8 @@ void Print_Diversity_Header(FILE *fp, t_tree *tree);
 void Print_Diversity_Pre(t_node *a, t_node *d, t_edge *b, FILE *fp, t_tree *tree);
 void Make_New_Edge_Label(t_edge *b);
 void Print_Qmat_AA(phydbl *daa, phydbl *pi);
-trate *Make_Rate_Struct(t_tree *tree);
-void Init_Rate_Struct(trate *rates, t_tree *tree);
+t_rate *Make_Rate_Struct(t_tree *tree);
+void Init_Rate_Struct(t_rate *rates, t_tree *tree);
 phydbl Var(phydbl *x, int n);
 phydbl Mean(phydbl *x, int n);
 phydbl Multivariate_Kernel_Density_Estimate(phydbl *where, phydbl **x, int sample_size, int vect_size);
@@ -1353,6 +1347,8 @@ t_node *Find_Lca(t_node *n1, t_node *n2, t_tree *tree);
 int Edge_Num_To_Node_Num(int edge_num, t_tree *tree);
 void Branch_Lengths_To_Time_Lengths(t_tree *tree);
 void Branch_Lengths_To_Time_Lengths_Pre(t_node *a, t_node *d, t_tree *tree);
+void Branch_Lengths_To_Rate_Lengths(t_tree *tree);
+void Branch_Lengths_To_Rate_Lengths_Pre(t_node *a, t_node *d, t_tree *tree);
 int Find_Clade(char **tax_name_list, int list_size, t_tree *tree);
 void Find_Clade_Pre(t_node *a, t_node *d, int *tax_num_list, int list_size, int *num, t_tree *tree);
 void Read_Clade_Priors(char *file_name, t_tree *tree);
@@ -1402,6 +1398,10 @@ void Scale_Node_Heights_Post(t_node *a, t_node *d, phydbl K, phydbl floor, int *
 void Get_Node_Ranks(t_tree *tree);
 void Get_Node_Ranks_Pre(t_node *a, t_node *d,t_tree *tree);
 void Get_Node_Rank_Max_Post(t_node *a, t_node *d,t_tree *tree);
+void Log_Br_Len(t_tree *tree);
+void Make_Short_L(t_tree *tree);
+phydbl Diff_Lk_Norm_At_Given_Edge(t_edge *b, t_tree *tree);
+void Adjust_Variances(t_tree *tree);
 
 #include "free.h"
 #include "spr.h"

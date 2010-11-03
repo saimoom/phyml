@@ -2570,14 +2570,14 @@ phydbl PART_Br_Len_Brent(t_edge *st_b, int quickdirty, supert_tree *st)
       
       ax = 10.*cur_l;
       bx = cur_l;
-      cx = BL_MIN;
+      cx = st->tree->mod->l_min;
 
       Generic_Brent_Lk(&(st->bl[part][st_b->num]),
 		       ax,cx,
 		       st->tree->mod->s_opt->min_diff_lk_local,
 		       st->tree->mod->s_opt->brent_it_max,
 		       st->tree->mod->s_opt->quickdirty,
-		       Optwrap_Part_Lk_At_Given_Edge,st_b,NULL,st);
+		       Wrap_Part_Lk_At_Given_Edge,st_b,NULL,st);
       
     }
   return st->tree->c_lnL;

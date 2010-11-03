@@ -318,6 +318,7 @@ phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max, int *error)
 /*   else */
 /*     { */
 
+
       iter = 0;
       do
 	{
@@ -507,7 +508,7 @@ phydbl Log_Dnorm_Trunc(phydbl x, phydbl mean, phydbl sd, phydbl lo, phydbl up, i
       PhyML_Printf("\n. x=%f mean=%f sd=%f lo=%f up=%f cdf_lo=%G CDF_up=%G",x,mean,sd,lo,up,cdf_lo,cdf_up);
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       *err = YES;
-   }
+    }
 
   return log_dens;
 }
@@ -1040,7 +1041,23 @@ l4:
 
 /*********************************************************/
 
-phydbl PointNormal (phydbl p)
+
+/*
+  The following function was extracted from the source code of R.
+  It implements the methods referenced below.
+ *  REFERENCE
+ *
+ *	Beasley, J. D. and S. G. Springer (1977).
+ *	Algorithm AS 111: The percentage points of the normal distribution,
+ *	Applied Statistics, 26, 118-121.
+ *
+ *      Wichura, M.J. (1988).
+ *      Algorithm AS 241: The Percentage Points of the Normal Distribution.
+ *      Applied Statistics, 37, 477-484.
+ */
+
+
+phydbl PointNormal (phydbl prob)
 {
 /* returns z so that Prob{x<z}=prob where x ~ N(0,1) and (1e-12)<prob<1-(1e-12)
    returns (-9999) if in error
@@ -1050,139 +1067,105 @@ phydbl PointNormal (phydbl p)
    Newer methods:
      Wichura MJ (1988) Algorithm AS 241: the percentage points of the
        normal distribution.  37: 477-484.
-     Beasley JD & Springer SG  (1977).  Algorithm AS 111: the percentage
+     Beasley JD & Springer SG  (1977).  Algorithm AS 111: the percentage 
        points of the normal distribution.  26: 118-121.
-
 */
-/*    phydbl a0=-.322232431088, a1=-1, a2=-.342242088547, a3=-.0204231210245; */
-/*    phydbl a4=-.453642210148e-4, b0=.0993484626060, b1=.588581570495; */
-/*    phydbl b2=.531103462366, b3=.103537752850, b4=.0038560700634; */
-/*    phydbl y, z=0, p=prob, p1; */
+   phydbl a0=-.322232431088, a1=-1, a2=-.342242088547, a3=-.0204231210245;
+   phydbl a4=-.453642210148e-4, b0=.0993484626060, b1=.588581570495;
+   phydbl b2=.531103462366, b3=.103537752850, b4=.0038560700634;
+   phydbl y, z=0, p=prob, p1;
 
-/*    p1 = (p<0.5 ? p : 1-p); */
-/*    if (p1<1e-20) return (-INFINITY); */
-/* /\*    if (p1<1e-20) return (-999.); *\/ */
-
-/*    y = sqrt ((phydbl)LOG(1/(p1*p1))); */
-/*    z = y + ((((y*a4+a3)*y+a2)*y+a1)*y+a0) / ((((y*b4+b3)*y+b2)*y+b1)*y+b0); */
-/*    return (p<0.5 ? -z : z); */
-
-  static double zero = 0.0, one = 1.0, half = 0.5;
-  static double split1 = 0.425, split2 = 5.0;
-  static double const1 = 0.180625, const2 = 1.6;
-  
-  /* coefficients for p close to 0.5 */
-  static double a[8] = {
-    3.3871328727963666080e0,
-    1.3314166789178437745e+2,
-    1.9715909503065514427e+3,
-    1.3731693765509461125e+4,
-    4.5921953931549871457e+4,
-    6.7265770927008700853e+4,
-    3.3430575583588128105e+4,
-    2.5090809287301226727e+3
-  };
-  static double b[8] = { 
-    0.0,
-    4.2313330701600911252e+1,
-    6.8718700749205790830e+2,
-    5.3941960214247511077e+3,
-    2.1213794301586595867e+4,
-    3.9307895800092710610e+4,
-    2.8729085735721942674e+4,
-    5.2264952788528545610e+3
-  };
-  
-  /* hash sum ab    55.8831928806149014439 */
-  /* coefficients for p not close to 0, 0.5 or 1. */
-  static double c[8] = {
-    1.42343711074968357734e0,
-    4.63033784615654529590e0,
-    5.76949722146069140550e0,
-    3.64784832476320460504e0,
-    1.27045825245236838258e0,
-    2.41780725177450611770e-1,
-    2.27238449892691845833e-2,
-    7.74545014278341407640e-4
-  };
-  static double d[8] = { 
-    0.0,
-    2.05319162663775882187e0,
-    1.67638483018380384940e0,
-    6.89767334985100004550e-1,
-    1.48103976427480074590e-1,
-    1.51986665636164571966e-2,
-    5.47593808499534494600e-4,
-    1.05075007164441684324e-9
-  };
-  
-  /* hash sum cd    49.33206503301610289036 */
-  /* coefficients for p near 0 or 1. */
-  static double e[8] = {
-    6.65790464350110377720e0,
-    5.46378491116411436990e0,
-    1.78482653991729133580e0,
-    2.96560571828504891230e-1,
-    2.65321895265761230930e-2,
-    1.24266094738807843860e-3,
-    2.71155556874348757815e-5,
-    2.01033439929228813265e-7
-  };
-  static double f[8] = { 
-    0.0,
-    5.99832206555887937690e-1,
-    1.36929880922735805310e-1,
-    1.48753612908506148525e-2,
-    7.86869131145613259100e-4,
-    1.84631831751005468180e-5,
-    1.42151175831644588870e-7,
-    2.04426310338993978564e-15
-  };
-  
-  /* hash sum ef    47.52583317549289671629 */
-  double q, r, ret;
-  
-  q = p - half;
-  if (fabs(q) <= split1) {
-    r = const1 - q * q;
-    ret = q * (((((((a[7] * r + a[6]) * r + a[5]) * r + a[4]) * r + a[3])
-		 * r + a[2]) * r + a[1]) * r + a[0]) /
-      (((((((b[7] * r + b[6]) * r + b[5]) * r + b[4]) * r + b[3])
-	 * r + b[2]) * r + b[1]) * r + one);
-    
-    return (phydbl)ret;
-  }
-  /* else */
-  
-  if (q < zero)
-    r = p;
-  else
-    r = one - p;
-  
-  if (r <= zero)
-    return (phydbl)zero;
-  
-  r = sqrt(-log(r));
-  if (r <= split2) {
-    r -= const2;
-    ret = (((((((c[7] * r + c[6]) * r + c[5]) * r + c[4]) * r + c[3])
-	     * r + c[2]) * r + c[1]) * r + c[0]) /
-      (((((((d[7] * r + d[6]) * r + d[5]) * r + d[4]) * r + d[3])
-	 * r + d[2]) * r + d[1]) * r + one);
-  }
-  else {
-    r -= split2;
-    ret = (((((((e[7] * r + e[6]) * r + e[5]) * r + e[4]) * r + e[3])
-	     * r + e[2]) * r + e[1]) * r + e[0]) /
-      (((((((f[7] * r + f[6]) * r + f[5]) * r + f[4]) * r + f[3])
-	 * r + f[2]) * r + f[1]) * r + one);
-  }
-  
-  if (q < zero)
-    ret = -ret;
-  
-  return (phydbl)ret;
+   p1 = (p<0.5 ? p : 1-p);
+   if (p1<1e-20) z=999;
+   else {
+      y = SQRT (LOG(1/(p1*p1)));   
+      z = y + ((((y*a4+a3)*y+a2)*y+a1)*y+a0) / ((((y*b4+b3)*y+b2)*y+b1)*y+b0);
+   }
+   return (p<0.5 ? -z : z);
 }
+
+
+/* phydbl PointNormal(phydbl p) */
+/* { */
+/*     double p_, q, r, val; */
+
+/*     p_ = p; */
+/*     q = p_ - 0.5; */
+
+/*     /\*-- use AS 241 --- *\/ */
+/*     /\* double ppnd16_(double *p, long *ifault)*\/ */
+/*     /\*      ALGORITHM AS241  APPL. STATIST. (1988) VOL. 37, NO. 3 */
+
+/* 	    Produces the normal deviate Z corresponding to a given lower */
+/* 	    tail area of P; Z is accurate to about 1 part in 10**16. */
+
+/* 	    (original fortran code used PARAMETER(..) for the coefficients */
+/* 	    and provided hash codes for checking them...) */
+/* *\/ */
+/*     if (fabs(q) <= .425)  */
+/*       {/\* 0.075 <= p <= 0.925 *\/ */
+/* 	r = .180625 - q * q; */
+/* 	val = */
+/* 	  q * (((((((r * 2509.0809287301226727 + */
+/* 		     33430.575583588128105) * r + 67265.770927008700853) * r + */
+/* 		   45921.953931549871457) * r + 13731.693765509461125) * r + */
+/* 		 1971.5909503065514427) * r + 133.14166789178437745) * r + */
+/* 	       3.387132872796366608) */
+/* 	  / (((((((r * 5226.495278852854561 + */
+/* 		   28729.085735721942674) * r + 39307.89580009271061) * r + */
+/* 		 21213.794301586595867) * r + 5394.1960214247511077) * r + */
+/* 	       687.1870074920579083) * r + 42.313330701600911252) * r + 1.); */
+/*       } */
+/*     else  */
+/*       { /\* closer than 0.075 from {0,1} boundary *\/ */
+
+/* 	/\* r = min(p, 1-p) < 0.075 *\/ */
+/* 	if (q > 0) */
+/* 	  r = 1-p;/\* 1-p *\/ */
+/* 	else */
+/* 	  r = p_;/\* = R_DT_Iv(p) ^=  p *\/ */
+	
+/* 	r = sqrt(-log(r)); */
+/*         /\* r = sqrt(-log(r))  <==>  min(p, 1-p) = exp( - r^2 ) *\/ */
+	
+/*         if (r <= 5.) { /\* <==> min(p,1-p) >= exp(-25) ~= 1.3888e-11 *\/ */
+/* 	  r += -1.6; */
+/* 	  val = (((((((r * 7.7454501427834140764e-4 + */
+/*                        .0227238449892691845833) * r + .24178072517745061177) * */
+/*                      r + 1.27045825245236838258) * r + */
+/*                     3.64784832476320460504) * r + 5.7694972214606914055) * */
+/*                   r + 4.6303378461565452959) * r + */
+/*                  1.42343711074968357734) */
+/* 	    / (((((((r * */
+/* 		     1.05075007164441684324e-9 + 5.475938084995344946e-4) * */
+/* 		    r + .0151986665636164571966) * r + */
+/* 		   .14810397642748007459) * r + .68976733498510000455) * */
+/* 		 r + 1.6763848301838038494) * r + */
+/* 		2.05319162663775882187) * r + 1.); */
+/*         } */
+/*         else  */
+/* 	  { /\* very close to  0 or 1 *\/ */
+/* 	    r += -5.; */
+/* 	    val = (((((((r * 2.01033439929228813265e-7 + */
+/* 			 2.71155556874348757815e-5) * r + */
+/* 			.0012426609473880784386) * r + .026532189526576123093) * */
+/* 		      r + .29656057182850489123) * r + */
+/* 		     1.7848265399172913358) * r + 5.4637849111641143699) * */
+/* 		   r + 6.6579046435011037772) */
+/* 	      / (((((((r * */
+/* 		       2.04426310338993978564e-15 + 1.4215117583164458887e-7)* */
+/* 		      r + 1.8463183175100546818e-5) * r + */
+/* 		     7.868691311456132591e-4) * r + .0148753612908506148525) */
+/* 		   * r + .13692988092273580531) * r + */
+/* 		  .59983220655588793769) * r + 1.); */
+/* 	  } */
+	
+/* 	if(q < 0.0) */
+/* 	  val = -val; */
+/*         /\* return (q >= 0.)? r : -r ;*\/ */
+/*       } */
+/*     return (phydbl)val; */
+/* } */
 
 /*********************************************************/
 /* MISCs */
@@ -1491,9 +1474,10 @@ phydbl *Hessian(t_tree *tree)
   phydbl lnL,lnL1,lnL2;
   int iter;
   phydbl scaler;
+  phydbl l_inf;
 
   dim = 2*tree->n_otu-3;
-  eps = 0.01;
+  eps = (tree->mod->log_l == YES)?(0.2):(0.01);
 
   hessian     = (phydbl *)mCalloc((int)dim*dim,sizeof(phydbl));
   ori_bl      = (phydbl *)mCalloc((int)dim,sizeof(phydbl));
@@ -1512,13 +1496,19 @@ phydbl *Hessian(t_tree *tree)
   tree->both_sides = 1;
   Lk(tree);
 
+
   For(i,dim) ori_bl[i] = tree->t_edges[i]->l;
+
+  if(tree->mod->log_l == NO)
+    l_inf = MAX(tree->mod->l_min,1./(phydbl)tree->data->init_len);
+  else
+    l_inf = MAX(tree->mod->l_min,-LOG((phydbl)tree->data->init_len));
 
   n_ok_edges = 0;
   For(i,dim) 
     {
-      if(tree->t_edges[i]->l*(1.-eps) > MAX(BL_MIN,1./(phydbl)tree->data->init_len))
-	{	  
+      if(tree->t_edges[i]->l*(1.-eps) > l_inf)
+	{
 	  inc[i] = eps * tree->t_edges[i]->l;
 	  ok_edges[n_ok_edges] = i;
 	  n_ok_edges++;
@@ -1559,6 +1549,7 @@ phydbl *Hessian(t_tree *tree)
 	}
     }
 
+
   For(i,dim) Update_PMat_At_Given_Edge(tree->t_edges[i],tree);
 
   /* plus plus  */  
@@ -1582,6 +1573,7 @@ phydbl *Hessian(t_tree *tree)
 	}
     }
 
+
   /* plus minus */  
   For(i,dim)
     {
@@ -1603,18 +1595,13 @@ phydbl *Hessian(t_tree *tree)
 	}
     }
 
+
   /* minus minus */  
   For(i,dim)
     {
       if(is_ok[i])
 	{
 	  tree->t_edges[i]->l -= inc[i];
-
-	  /* if(tree->t_edges[i]->l < BL_MIN) */
-	  /*   { */
-	  /*     PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
-	  /*     Exit("\n"); */
-	  /*   } */
 	  
 	  Update_PMat_At_Given_Edge(tree->t_edges[i],tree);
 	  
@@ -1630,6 +1617,7 @@ phydbl *Hessian(t_tree *tree)
 	  Lk(tree);
 	}
     }
+
 
   
   For(i,dim)
@@ -1659,6 +1647,7 @@ phydbl *Hessian(t_tree *tree)
 	}
     }
 
+
   if(!Matinv(buff,n_ok_edges,n_ok_edges,NO))
     {
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
@@ -1673,52 +1662,84 @@ phydbl *Hessian(t_tree *tree)
 	}
     }
 
-  eps = 1./(phydbl)tree->data->init_len;
+/*   eps = 1./(phydbl)tree->data->init_len; */
   /* Approximate variance for very short branches */
   For(i,dim)
-    if(inc[i] < 0.0)
-      {
-	lnL  = tree->c_lnL;
+    if(inc[i] < 0.0 || hessian[i*dim+i] < MIN_VAR_BL)
+      {	
+	eps = 0.2 * tree->t_edges[i]->l;
+	lnL  = Lk_At_Given_Edge(tree->t_edges[i],tree);	
 	tree->t_edges[i]->l += eps;
 	lnL1 = Lk_At_Given_Edge(tree->t_edges[i],tree);
 	tree->t_edges[i]->l += eps;
 	lnL2 = Lk_At_Given_Edge(tree->t_edges[i],tree);
 	tree->t_edges[i]->l -= 2.*eps;
-
+	
 	hessian[i*dim+i] = (lnL2 - 2.*lnL1 + lnL) / POW(eps,2);
 	hessian[i*dim+i] = -1.0 / hessian[i*dim+i];
-      }
 
-  eps = 1./(phydbl)tree->data->init_len;
-  For(i,dim)
-    if(hessian[i*dim+i] < MIN_VAR_BL)
-      {
-	lnL  = tree->c_lnL;
-	tree->t_edges[i]->l += eps;
-	lnL1 = Lk_At_Given_Edge(tree->t_edges[i],tree);
-	tree->t_edges[i]->l += eps;
-	lnL2 = Lk_At_Given_Edge(tree->t_edges[i],tree);
-	tree->t_edges[i]->l -= 2.*eps;
-
-	hessian[i*dim+i] = (lnL2 - 2*lnL1 + lnL) / POW(eps,2);
-	hessian[i*dim+i] = -1.0 / hessian[i*dim+i];
+/* 	printf("\n. l=%G eps=%f lnL=%f lnL1=%f lnL2=%f var=%f",tree->t_edges[i]->l,eps,lnL,lnL1,lnL2,hessian[i*dim+i]); */
       }
+  
+
+  /* Fit a straight line to the log-likelihood (i.e., an exponential to the likelihood) */
+  /* It is only a straight line when considering branch length (rather than log(branch lengths)) */
+/*   For(i,dim) */
+/*     if((tree->t_edges[i]->l / tree->mod->l_min < 1.1) && */
+/*        (tree->t_edges[i]->l / tree->mod->l_min > 0.9)) */
+/*       { */
+/* 	phydbl *x,*y,l; */
+/* 	phydbl cov,var; */
+	
+/* 	x=plus_plus; */
+/* 	y=minus_minus; */
+/* 	l=(tree->mod->log_l == YES)?(EXP(tree->t_edges[i]->l)):(tree->t_edges[i]->l); /\* Get actual branch length *\/ */
+	
+/* 	For(j,dim) */
+/* 	  { */
+/* 	    x[j] = l + (100.*l-l)*((phydbl)j/dim); */
+/* 	    tree->t_edges[i]->l = (tree->mod->log_l)?(LOG(x[j])):(x[j]); /\* Transform to log if necessary *\/ */
+/* 	    y[j] = Lk_At_Given_Edge(tree->t_edges[i],tree); */
+/* 	    tree->t_edges[i]->l = (tree->mod->log_l)?(LOG(l)):(l); /\* Go back to initial edge length *\/ */
+/* 	  } */
+	
+/* 	cov = Covariance(x,y,dim); */
+/* 	var = Covariance(x,x,dim); */
+	
+/* 	/\* cov/var is minus the parameter of the exponential distribution. */
+/* 	   The variance is therefore : *\/ */
+/* 	hessian[i*dim+i] = 1.0 / pow(cov/var,2); */
+	
+/* 	/\* 	    printf("\n. Hessian = %G cov=%G var=%G",hessian[i*dim+i],cov,var); *\/ */
+/*       } */
+/*   /\*     } *\/ */
+
 
   For(i,dim)
     if(hessian[i*dim+i] < 0.0)
       {
 	PhyML_Printf("\n. l=%G var=%G",tree->t_edges[i]->l,hessian[i*dim+i]);
-	PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-	Exit("\n");
+/* 	PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
+/* 	Exit("\n"); */
+	hessian[i*dim+i] = MIN_VAR_BL;
       }
 
   For(i,dim)
-    if(hessian[i*dim+i] < MIN_VAR_BL)
-      {
-  	PhyML_Printf("\n. l=%10G var(l)=%12G. WARNING: numerical precision issues may affect this analysis.",
-		     tree->t_edges[i]->l,hessian[i*dim+i]);
-  	hessian[i*dim+i] = MIN_VAR_BL;
-      }
+    {
+      if(hessian[i*dim+i] < MIN_VAR_BL)
+	{
+	  PhyML_Printf("\n. l=%10G var(l)=%12G. WARNING: numerical precision issues may affect this analysis.",
+		       tree->t_edges[i]->l,hessian[i*dim+i]);
+	  hessian[i*dim+i] = MIN_VAR_BL;
+	}
+      if(hessian[i*dim+i] > MAX_VAR_BL)
+	{
+	  PhyML_Printf("\n. l=%10G var(l)=%12G. WARNING: numerical precision issues may affect this analysis.",
+		       tree->t_edges[i]->l,hessian[i*dim+i]);
+	  hessian[i*dim+i] = MAX_VAR_BL;
+	}
+    }
+      
 
   
   Iter_Matinv(hessian,dim,dim,NO);
@@ -1740,7 +1761,6 @@ phydbl *Hessian(t_tree *tree)
 	}
     }
   
-
 /*   For(i,dim) */
 /*     { */
 /*       PhyML_Printf("[%f] ",tree->t_edges[i]->l); */
@@ -1765,6 +1785,11 @@ phydbl *Hessian(t_tree *tree)
   /*     PhyML_Printf("\n"); */
   /*   } */
   /* Exit("\n"); */
+
+
+  /* Make sure to update likelihood before bailing out */
+  tree->both_sides = YES;
+  Lk(tree);
 
   Free(ori_bl);
   Free(plus_plus);
@@ -2951,14 +2976,10 @@ void VarCov_Approx_Likelihood(t_tree *tree)
   phydbl cur_mean,new_mean,diff_mean,max_diff_mean;
   phydbl cur_cov,new_cov,diff_cov,max_diff_cov;
   FILE *fp;
-  int run;
-  phydbl acc;
 
-  acc = 0.0;
-  run = 0;
-
-  cov = tree->rates->cov;
-  mean = tree->rates->invcov;
+  
+  cov = tree->rates->cov_l;
+  mean = tree->rates->mean_l;
   dim = 2*tree->n_otu-3;
 
   fp = fopen("covariance","w");
@@ -2983,7 +3004,7 @@ void VarCov_Approx_Likelihood(t_tree *tree)
     {
       /* tree->both_sides = YES; */
       /* Lk(tree); */
-      MCMC_Br_Lens(&acc,&run,tree);
+      MCMC_Br_Lens(tree);
       /* MCMC_Scale_Br_Lens(tree); */
 
 
@@ -3079,6 +3100,27 @@ phydbl Dorder_Unif(phydbl x, int r, int n, phydbl min, phydbl max)
 }
 
 /*********************************************************/
+
+phydbl Covariance(phydbl *x, phydbl *y, int n)
+{
+  int i;
+  phydbl mean_x,mean_y,mean_xy;
+
+  mean_x = .0;
+  For(i,n) mean_x += x[i];
+  mean_x /= (phydbl)n;
+
+  mean_y = .0;
+  For(i,n) mean_y += y[i];
+  mean_y /= (phydbl)n;
+
+  mean_xy = .0;
+  For(i,n) mean_xy += x[i]*y[i];
+  mean_xy /= (phydbl)n;
+  
+  return (mean_xy - mean_x*mean_y);
+}
+
 /*********************************************************/
 /*********************************************************/
 /*********************************************************/

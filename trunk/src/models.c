@@ -414,7 +414,8 @@ void PMat_Zero_Br_Len(model  *mod, int pos, phydbl *Pij)
 
 void PMat(phydbl l, model *mod, int pos, phydbl *Pij)
 {
-  if(l < BL_MIN-POW(2,-27))
+  /* Warning: l is never the og of branch length here */
+  if(l < 0.0)
     {
       PMat_Zero_Br_Len(mod,pos,Pij);
     }
@@ -2174,6 +2175,7 @@ void Init_Model(calign *data, model *mod, option *io)
   phydbl sum,aux;
   int result;
   phydbl *dr, *di, *space;
+
 
   mod->ns = io->mod->ns;
 

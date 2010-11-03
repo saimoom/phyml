@@ -1362,10 +1362,6 @@ int Est_Lk_Change (t_edge *e_prune, t_node *v_prune, t_tree *tree)
   }
   l_connect += (v_prune->b[d1]->l + v_prune->b[d2]->l);
   l_connect /= 2.0;
-  if (l_connect < BL_MIN)
-  {
-    l_connect = BL_MIN;
-  }
 
   /*
   ** Temporarily swap the relevant partial likelihoods at the prune site.
@@ -1628,26 +1624,12 @@ int Est_Lk_Change (t_edge *e_prune, t_node *v_prune, t_tree *tree)
     l_simple[0] = l_02 - (0.5*e_regraft->l);
     l_simple[1] = 0.5 * e_regraft->l;
     l_simple[2] = 0.5 * e_regraft->l;
-    for (i = 0; i < 3; i++)
-    {
-      if (l_simple[i] < BL_MIN)
-      {
-	l_simple[i] = BL_MIN;
-      }
-    }
     /*
     ** Average subtree distance based estimates.
     */
     l_dist[0] = 0.5 * ( l_01 + l_02 - l_12);
     l_dist[1] = 0.5 * ( l_01 - l_02 + l_12);
     l_dist[2] = 0.5 * (-l_01 + l_02 + l_12);
-    for (i = 0; i < 3; i++)
-    {
-      if (l_dist[i] < BL_MIN)
-      {
-	l_dist[i] = BL_MIN;
-      }
-    }
     /*
     ** Take the average of the two estimates.
     */
@@ -1663,10 +1645,6 @@ int Est_Lk_Change (t_edge *e_prune, t_node *v_prune, t_tree *tree)
     for (i = 0; i < 3; i++)
     {
       v_tmp->b[i]->l = l_est[i]; /* TO DO */
-      if (v_tmp->b[i]->l < BL_MIN)
-      {
-	v_tmp->b[i]->l = BL_MIN;
-      }
       Update_PMat_At_Given_Edge (v_tmp->b[i], tree);
     }
 
@@ -1925,10 +1903,6 @@ int Best_Lk_Change (t_edge *e_prune, t_node *v_prune, t_tree *tree)
   }
   l_connect += (v_prune->b[d1]->l + v_prune->b[d2]->l);
   l_connect /= 2.0;
-  if (l_connect < BL_MIN)
-  {
-    l_connect = BL_MIN;
-  }
 
   /*
   ** Temporarily swap the relevant partial likelihoods at the prune site.
@@ -2190,26 +2164,12 @@ int Best_Lk_Change (t_edge *e_prune, t_node *v_prune, t_tree *tree)
     l_simple[0] = l_02 - (0.5*e_regraft->l);
     l_simple[1] = 0.5 * e_regraft->l;
     l_simple[2] = 0.5 * e_regraft->l;
-    for (i = 0; i < 3; i++)
-    {
-      if (l_simple[i] < BL_MIN)
-      {
-	l_simple[i] = BL_MIN;
-      }
-    }
     /*
     ** Average subtree distance based estimates.
     */
     l_dist[0] = 0.5 * ( l_01 + l_02 - l_12);
     l_dist[1] = 0.5 * ( l_01 - l_02 + l_12);
     l_dist[2] = 0.5 * (-l_01 + l_02 + l_12);
-    for (i = 0; i < 3; i++)
-    {
-      if (l_dist[i] < BL_MIN)
-      {
-	l_dist[i] = BL_MIN;
-      }
-    }
     /*
     ** Take the average of the two estimates.
     */
@@ -2224,10 +2184,6 @@ int Best_Lk_Change (t_edge *e_prune, t_node *v_prune, t_tree *tree)
     for (i = 0; i < 3; i++)
     {
       v_tmp->b[i]->l = l_est[i];
-      if (v_tmp->b[i]->l < BL_MIN)
-      {
-	v_tmp->b[i]->l = BL_MIN;
-      }
       Update_PMat_At_Given_Edge (v_tmp->b[i], tree);
     }
     Update_P_Lk (tree, v_tmp->b[0], v_tmp);
@@ -2504,11 +2460,11 @@ int Find_Optim_Local (t_tree *tree)
 	  ** Use Brent optimization on the relevant edges at the regraft position
 	  ** and calculate the new likelihood value.
 	  */
-	  Br_Len_Brent (10.*(v_prune->b[0]->l), v_prune->b[0]->l, BL_MIN, 1.e-10,
+	  Br_Len_Brent (10.*(v_prune->b[0]->l), v_prune->b[0]->l, tree->mod->l_min, 1.e-10,
 			v_prune->b[0], tree, 250, 0);
-	  Br_Len_Brent (10.*(v_prune->b[1]->l), v_prune->b[1]->l, BL_MIN, 1.e-10,
+	  Br_Len_Brent (10.*(v_prune->b[1]->l), v_prune->b[1]->l, tree->mod->l_min, 1.e-10,
 			v_prune->b[1], tree, 250, 0);
-	  Br_Len_Brent (10.*(v_prune->b[2]->l), v_prune->b[2]->l, BL_MIN, 1.e-10,
+	  Br_Len_Brent (10.*(v_prune->b[2]->l), v_prune->b[2]->l, tree->mod->l_min, 1.e-10,
 			v_prune->b[2], tree, 250, 0);
 
 /* 	  Update_PMat_At_Given_Edge (v_prune->b[0], tree); */

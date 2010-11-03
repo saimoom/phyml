@@ -65,6 +65,14 @@ void Alias_Subpatt_Pre(t_node *a, t_node *d, t_tree *tree);
 void Copy_P_Lk(phydbl *p_lk, int site_from, int site_to, t_tree *tree);
 void Copy_Scale(int *scale, int site_from, int site_to, t_tree *tree);
 void Init_P_Lk_Loc(t_tree *tree);
+phydbl Lk_Normal_Approx(t_tree *tree);
+phydbl Wrap_Lk(t_edge *b, t_tree *tree, supert_tree *stree);
+phydbl Wrap_Lk_At_Given_Edge(t_edge *b, t_tree *tree, supert_tree *stree);
+phydbl Wrap_Part_Lk_At_Given_Edge(t_edge *b, t_tree *tree, supert_tree *stree);
+phydbl Wrap_Part_Lk(t_edge *b, t_tree *tree, supert_tree *stree);
+phydbl Wrap_Geo_Lk(t_edge *b, t_tree *tree, supert_tree *stree);
+phydbl Wrap_Diff_Lk_Norm_At_Given_Edge(t_edge *b, t_tree *tree, supert_tree *stree);
+phydbl Wrap_Lk_Rates(t_edge *b, t_tree *tree, supert_tree *stree);
 
 #endif
 

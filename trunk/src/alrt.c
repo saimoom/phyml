@@ -365,7 +365,7 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
 
 	    l_infa  = 10.*b_fcus->left->b[i]->l;
 	    l_max   = b_fcus->left->b[i]->l;
-	    l_infb  = BL_MIN;
+	    l_infb  = tree->mod->l_min;
 	    lk_temp = Br_Len_Brent(l_infa,l_max,l_infb,
 				   tree->mod->s_opt->min_diff_lk_local,
 				   b_fcus->left->b[i],tree,
@@ -376,7 +376,7 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
 
       l_infa  = 10.*b_fcus->l;
       l_max   = b_fcus->l;
-      l_infb  = BL_MIN;
+      l_infb  = tree->mod->l_min;
       lk_temp = Br_Len_Brent(l_infa,l_max,l_infb,
 			     tree->mod->s_opt->min_diff_lk_local,
 			     b_fcus,tree,
@@ -390,7 +390,7 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
 
 	    l_infa  = 10.*b_fcus->rght->b[i]->l;
 	    l_max   = b_fcus->rght->b[i]->l;
-	    l_infb  = BL_MIN;
+	    l_infb  = tree->mod->l_min;
 	    lk_temp = Br_Len_Brent(l_infa,l_max,l_infb,
 				   tree->mod->s_opt->min_diff_lk_local,
 				   b_fcus->rght->b[i],tree,
@@ -465,7 +465,7 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
 
 	    l_infa  = 10.*b_fcus->left->b[i]->l;
 	    l_max   = b_fcus->left->b[i]->l;
-	    l_infb  = BL_MIN;
+	    l_infb  = tree->mod->l_min;
 	    lk_temp = Br_Len_Brent(l_infa,l_max,l_infb,
 				   tree->mod->s_opt->min_diff_lk_local,
 				   b_fcus->left->b[i],tree,
@@ -477,7 +477,7 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
 
       l_infa  = 10.*b_fcus->l;
       l_max   = b_fcus->l;
-      l_infb  = BL_MIN;
+      l_infb  = tree->mod->l_min;
       lk_temp = Br_Len_Brent(l_infa,l_max,l_infb,
 			     tree->mod->s_opt->min_diff_lk_local,
 			     b_fcus,tree,
@@ -492,7 +492,7 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
 
 	    l_infa  = 10.*b_fcus->rght->b[i]->l;
 	    l_max   = b_fcus->rght->b[i]->l;
-	    l_infb  = BL_MIN;
+	    l_infb  = tree->mod->l_min;
 	    lk_temp = Br_Len_Brent(l_infa,l_max,l_infb,
 				   tree->mod->s_opt->min_diff_lk_local,
 				   b_fcus->rght->b[i],tree,
@@ -577,7 +577,7 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
 
 	    l_infa  = 10.*b_fcus->left->b[i]->l;
 	    l_max   = b_fcus->left->b[i]->l;
-	    l_infb  = BL_MIN;
+	    l_infb  = tree->mod->l_min;
 	    lk_temp = Br_Len_Brent(l_infa,l_max,l_infb,
 				   tree->mod->s_opt->min_diff_lk_local,
 				   b_fcus->left->b[i],tree,
@@ -589,7 +589,7 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
 
       l_infa  = 10.*b_fcus->l;
       l_max   = b_fcus->l;
-      l_infb  = BL_MIN;
+      l_infb  = tree->mod->l_min;
       lk_temp = Br_Len_Brent(l_infa,l_max,l_infb,
 			     tree->mod->s_opt->min_diff_lk_local,
 			     b_fcus,tree,
@@ -602,7 +602,7 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
 
 	    l_infa  = 10.*b_fcus->rght->b[i]->l;
 	    l_max   = b_fcus->rght->b[i]->l;
-	    l_infb  = BL_MIN;
+	    l_infb  = tree->mod->l_min;
 	    lk_temp = Br_Len_Brent(l_infa,l_max,l_infb,
 				   tree->mod->s_opt->min_diff_lk_local,
 				   b_fcus->rght->b[i],tree,
@@ -816,7 +816,7 @@ void Make_Target_Swap(t_tree *tree, t_edge *b_fcus, int swaptodo)
 
 	    l_infa  = 10.*b_fcus->left->b[i]->l;
 	    l_max   = b_fcus->left->b[i]->l;
-	    l_infb  = BL_MIN;
+	    l_infb  = tree->mod->l_min;
 	    lk_temp = Br_Len_Brent(l_infa,l_max,l_infb,
 				   tree->mod->s_opt->min_diff_lk_local,
 				   b_fcus->left->b[i],tree,
@@ -828,7 +828,7 @@ void Make_Target_Swap(t_tree *tree, t_edge *b_fcus, int swaptodo)
 
       l_infa  = 10.*b_fcus->l;
       l_max   = b_fcus->l;
-      l_infb  = BL_MIN;
+      l_infb  = tree->mod->l_min;
       lk_temp = Br_Len_Brent(l_infa,l_max,l_infb,
 			     tree->mod->s_opt->min_diff_lk_local,
 			     b_fcus,tree,
@@ -843,7 +843,7 @@ void Make_Target_Swap(t_tree *tree, t_edge *b_fcus, int swaptodo)
 
 	    l_infa  = 10.*b_fcus->rght->b[i]->l;
 	    l_max   = b_fcus->rght->b[i]->l;
-	    l_infb  = BL_MIN;
+	    l_infb  = tree->mod->l_min;
 	    lk_temp = Br_Len_Brent(l_infa,l_max,l_infb,
 				   tree->mod->s_opt->min_diff_lk_local,
 				   b_fcus->rght->b[i],tree,

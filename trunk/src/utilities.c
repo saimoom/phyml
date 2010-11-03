@@ -768,6 +768,7 @@ void Init_Tree(t_tree *tree, int n_otu)
   tree->n_root                    = NULL;
   tree->e_root                    = NULL;
   tree->ps_tree                   = NULL;
+  tree->short_l                   = NULL;
 
   tree->depth_curr_path           = 0;
   tree->has_bip                   = NO;
@@ -783,21 +784,18 @@ void Init_Tree(t_tree *tree, int n_otu)
   tree->sum_min_sum_scale         = .0;
   tree->n_swap                    = 0;
   tree->best_pars                 = 1E+5;
-
   tree->n_pattern                 = -1;
   tree->n_root_pos                = -1.;
   tree->print_labels              = 1;
-
   tree->print_boot_val            = 0;
   tree->print_alrt_val            = 0;
   tree->num_curr_branch_available = 0;
-
   tree->tip_order_score           = .0;
-
   tree->write_tax_names           = YES;
   tree->update_alias_subpatt      = NO;
-  
   tree->bl_ndigits                = 7;
+  tree->n_short_l                 = 100;
+  tree->norm_scale                = 0.0;
 }
 
 /*********************************************************/
@@ -839,11 +837,9 @@ t_edge *Make_Edge_Light(t_node *a, t_node *d, int num)
 	(Make_Edge_Dirs(b,a,d)):
 	(Make_Edge_Dirs(b,d,a));
 
-      b->l                    = a->l[b->l_r];
-      if(a->tax) b->l         = a->l[b->r_l];
-      if(b->l < BL_MIN)  b->l = BL_MIN;
-      else if(b->l > BL_MAX) b->l = BL_MAX;
-      b->l_old                = b->l;
+      b->l             = a->l[b->l_r];
+      if(a->tax) b->l  = a->l[b->r_l];
+      b->l_old         = b->l;
     }
   else
     {
@@ -863,7 +859,7 @@ void Init_Edge_Light(t_edge *b, int num)
   b->bip_score            = 0;
   b->dist_btw_edges       = .0;
   b->topo_dist_btw_edges  = 0;
-  b->has_zero_br_len      = 0;
+  b->has_zero_br_len      = NO;
   b->n_jumps              = 0;
 
   b->p_lk_left            = NULL;
@@ -2072,7 +2068,6 @@ int Read_Nexus_Format(char *token, nexparm *curr_parm, option *io)
 
   else if(!strcmp(curr_parm->name,"missing"))
     {
-      /* !!!!!!!!!!!! */
       PhyML_Printf("\n. The 'missing' subcommand is not supported by PhyML. Sorry.\n");
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
@@ -2080,7 +2075,6 @@ int Read_Nexus_Format(char *token, nexparm *curr_parm, option *io)
 
   else if(!strcmp(curr_parm->name,"gap"))
     {
-      /* !!!!!!!!!!!! */
       PhyML_Printf("\n. The 'gap' subcommand is not supported by PhyML. Sorry.\n");
       PhyML_Printf("\n. But the characters 'X', '?' and '-' will be considered as indels by default.\n"); 
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
@@ -2165,8 +2159,6 @@ int Read_Nexus_Format(char *token, nexparm *curr_parm, option *io)
 
   else if(!strcmp(curr_parm->name,"equate"))
     {
-      /* !!!!!!!!!!!! */
-/*       PhyML_Printf("\n. Equate: %s",curr_parm->value); */
       PhyML_Printf("\n. PhyML does not recognize the command '%s' yet. Sorry.",curr_parm->name);
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
@@ -2174,8 +2166,6 @@ int Read_Nexus_Format(char *token, nexparm *curr_parm, option *io)
   
   else if(!strcmp(curr_parm->name,"matchchar"))
     {
-      /* !!!!!!!!!!!! */
-/*       PhyML_Printf("\n. Matchchar: %s",curr_parm->value); */
       PhyML_Printf("\n. PhyML does not recognize the command '%s' yet. Sorry.",curr_parm->name);
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
@@ -2183,8 +2173,6 @@ int Read_Nexus_Format(char *token, nexparm *curr_parm, option *io)
 
   else if(!strcmp(curr_parm->name,"items"))
     {
-      /* !!!!!!!!!!!! */
-/*       PhyML_Printf("\n. Items: %s",curr_parm->value); */
       PhyML_Printf("\n. PhyML does not recognize the command '%s' yet. Sorry.",curr_parm->name);
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
@@ -3190,8 +3178,6 @@ void Connect_One_Edge_To_Two_Nodes(t_node *a, t_node *d, t_edge *b, t_tree *tree
 
   b->l                    = a->l[b->l_r];
   if(a->tax) b->l         = a->l[b->r_l];
-  if(b->l < BL_MIN)  b->l = BL_MIN;
-  else if(b->l > BL_MAX) b->l = BL_MAX;
   b->l_old                = b->l;
 }
 
@@ -4189,7 +4175,7 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
 
   l_infa = 10.*b_fcus->l;
   l_max  = b_fcus->l;
-  l_infb = BL_MIN;
+  l_infb = tree->mod->l_min;
 
   if(tree->mod->s_opt->fast_nni)
     {
@@ -4228,7 +4214,7 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
 
   l_infa = 10.*b_fcus->l;
   l_max  = b_fcus->l;
-  l_infb = BL_MIN;
+  l_infb = tree->mod->l_min;
 
   if(tree->mod->s_opt->fast_nni)
     {
@@ -4259,7 +4245,6 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
   
   /***********/
   b_fcus->l = bl_init;
-  if(b_fcus->l < BL_MIN) b_fcus->l = BL_MIN;
   tree->both_sides = 1;
 
   tree->update_alias_subpatt = YES;
@@ -4279,7 +4264,7 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
   
   l_infa = 10.*b_fcus->l;
   l_max  = b_fcus->l;
-  l_infb = BL_MIN;
+  l_infb = tree->mod->l_min;
   
   if(tree->mod->s_opt->fast_nni)
     {
@@ -6446,6 +6431,7 @@ option *Make_Input()
   io->alphabet             = (char **)mCalloc(T_MAX_ALPHABET,sizeof(char *));
   For(i,T_MAX_ALPHABET) io->alphabet[i] = (char *)mCalloc(T_MAX_STATE,sizeof(char ));
   io->treelist             = (t_treelist *)mCalloc(1,sizeof(t_treelist));
+  io->mcmc                 = (t_mcmc *)MCMC_Make_MCMC_Struct();
   return io;
 }
 
@@ -6497,12 +6483,10 @@ void Set_Defaults_Input(option* io)
   io->data_file_format           = PHYLIP;
   io->tree_file_format           = PHYLIP;
   io->boot_prog_every            = 20;
-  io->gibbs_sample_freq          = 1E+3;
-  io->gibbs_chain_len            = 1E+7;
-  io->gibbs_burnin               = 1E+5;
   io->mem_question               = YES;
   io->do_alias_subpatt           = NO;
-  io->use_data                   = YES;
+  
+  MCMC_Init_MCMC_Struct(NULL,io->mcmc);
 }
 
 /*********************************************************/
@@ -6531,7 +6515,16 @@ void Set_Defaults_Model(model *mod)
   mod->rr_val                  = NULL;
   mod->n_rr_per_cat            = NULL;
   mod->io                      = NULL;
-  
+  mod->log_l                   = NO;
+
+#ifndef PHYTIME
+  mod->l_min = 1.E-8;
+  mod->l_max = 100.0;
+#else
+  mod->l_min = 1.E-8;
+  mod->l_max = 100.00;
+#endif
+
 }
 
 /*********************************************************/
@@ -8277,7 +8270,7 @@ void Fast_Br_Len(t_edge *b, t_tree *tree, int approx)
   dim1   = tree->mod->ns * tree->mod->n_catg;
   dim2   = tree->mod->ns ;
   dim3   = tree->mod->ns * tree->mod->ns;
-  eps_bl = BL_MIN;
+  eps_bl = tree->mod->l_min;
 
   F    = tree->triplet_struct->F_bc;
   prob = tree->triplet_struct->F_cd;
@@ -8325,9 +8318,6 @@ void Fast_Br_Len(t_edge *b, t_tree *tree, int approx)
   new_l = b->l;
   n_iter++;
   
-  if(b->l < BL_MIN)      b->l = BL_MIN;
-  else if(b->l > BL_MAX) b->l = BL_MAX;
-
   if(!approx)
     Br_Len_Brent(0.02*b->l,b->l,50.*b->l,
 		 tree->mod->s_opt->min_diff_lk_local,
@@ -8420,17 +8410,14 @@ phydbl Triple_Dist(t_node *a, t_tree *tree, int approx)
 
       Update_P_Lk(tree,a->b[0],a);
       Fast_Br_Len(a->b[0],tree,approx);
-/*       Br_Len_Brent (BL_MAX, a->b[0]->l,BL_MIN, 1.e-10,a->b[0],tree,50,0); */
 
 
       Update_P_Lk(tree,a->b[1],a);
       Fast_Br_Len(a->b[1],tree,approx);
-/*       Br_Len_Brent (BL_MAX, a->b[1]->l,BL_MIN, 1.e-10,a->b[1],tree,50,0); */
 
 
       Update_P_Lk(tree,a->b[2],a);
       Fast_Br_Len(a->b[2],tree,approx);
-/*       Br_Len_Brent (BL_MAX, a->b[2]->l,BL_MIN, 1.e-10,a->b[2],tree,50,0); */
 
       Update_P_Lk(tree,a->b[1],a);
       Update_P_Lk(tree,a->b[0],a);
@@ -8644,9 +8631,9 @@ void Detect_Polytomies(t_edge *b, phydbl l_thresh, t_tree *tree)
   if((b->l < l_thresh) && (!b->left->tax) && (!b->rght->tax))
     {
       b->l               = 0.0;
-      b->has_zero_br_len = 1;
+      b->has_zero_br_len = YES;
     }
-  else b->has_zero_br_len = 0;
+  else b->has_zero_br_len = NO;
 }
 
 /*********************************************************/
@@ -9289,7 +9276,9 @@ int Get_State_From_P_Pars(short int *p_pars, int pos, t_tree *tree)
 void Print_Lk(t_tree *tree, char *string)
 {
   time(&(tree->t_current));
-  PhyML_Printf("\n. (%5d sec) [%15.4f] %s",(int)(tree->t_current-tree->t_beg),tree->c_lnL,string);
+  PhyML_Printf("\n. (%5d sec) [%15.4f] %s",
+	       (int)(tree->t_current-tree->t_beg),tree->c_lnL,
+	       string);
 #ifndef QUIET 
   fflush(NULL);
 #endif
@@ -9539,6 +9528,7 @@ void Add_Root(t_edge *target, t_tree *tree)
 
 void Update_Ancestors(t_node *a, t_node *d, t_tree *tree)
 {
+  if(a == tree->n_root) a->anc = NULL;
   d->anc = a;
   if(d->tax) return;
   else
@@ -9834,6 +9824,7 @@ void Print_Square_Matrix_Generic(int n, phydbl *mat)
   PhyML_Printf("\n");
   For(i,n)
     {
+      PhyML_Printf("[%3d]",i);
       For(j,n)
 	{
 	  PhyML_Printf("%7.1G ",mat[i*n+j]);
@@ -10960,6 +10951,34 @@ void Branch_Lengths_To_Time_Lengths_Pre(t_node *a, t_node *d, t_tree *tree)
 
 /*********************************************************/
 
+void Branch_Lengths_To_Rate_Lengths(t_tree *tree)
+{
+  Branch_Lengths_To_Rate_Lengths_Pre(tree->n_root,tree->n_root->v[0],tree);
+  Branch_Lengths_To_Rate_Lengths_Pre(tree->n_root,tree->n_root->v[1],tree);
+}
+
+/*********************************************************/
+
+void Branch_Lengths_To_Rate_Lengths_Pre(t_node *a, t_node *d, t_tree *tree)
+{
+  int i;
+
+  tree->rates->cur_l[d->num] = 
+    tree->rates->nd_r[d->num] * 
+    tree->rates->clock_r *
+    tree->rates->norm_fact;
+
+  if(d->tax) return;
+  else
+    {
+      For(i,3)
+	if((d->v[i] != a) && (d->b[i] != tree->e_root))
+	  Branch_Lengths_To_Rate_Lengths_Pre(d,d->v[i],tree);     
+    }
+}
+
+/*********************************************************/
+
 int Find_Clade(char **tax_name_list, int list_size, t_tree *tree)
 {
   int *tax_num_list;
@@ -11162,7 +11181,8 @@ void Read_Clade_Priors(char *file_name, t_tree *tree)
     }
   while(1);
   
-  PhyML_Printf("\n. Read prior information on %d clades.",n_clade_priors);
+  
+  PhyML_Printf("\n. Read prior information on %d %s.",n_clade_priors,n_clade_priors > 1 ? "clades":"clade");
 
   if(!n_clade_priors)
     {
@@ -11861,3 +11881,119 @@ void Get_Node_Ranks_Pre(t_node *a, t_node *d,t_tree *tree)
 
 /*********************************************************/
 
+void Log_Br_Len(t_tree *tree)
+{
+  int i;
+  For(i,2*tree->n_otu-3) tree->t_edges[i]->l = LOG(tree->t_edges[i]->l);
+  tree->mod->l_min = LOG(tree->mod->l_min);
+  tree->mod->l_max = LOG(tree->mod->l_max);
+}
+
+/*********************************************************/
+
+void Make_Short_L(t_tree *tree)
+{
+  if(!tree->short_l)
+    tree->short_l = (phydbl *)mCalloc(tree->n_short_l,sizeof(phydbl));
+}
+
+/*********************************************************/
+
+phydbl Diff_Lk_Norm_At_Given_Edge(t_edge *b, t_tree *tree)
+{
+  int i,dim,err;
+  phydbl lk_exact,lk_norm,sum;
+
+  Record_Br_Len(NULL,tree);
+
+  dim = 2*tree->n_otu-3;
+  sum = 0.0;
+
+  For(i,tree->n_short_l)
+    {
+      b->l = tree->short_l[i];
+
+      lk_exact = Lk_At_Given_Edge(b,tree);
+      lk_norm = tree->norm_scale + Log_Dnorm(b->l,tree->rates->mean_l[b->num],
+					     tree->rates->cov_l[b->num*dim+b->num],&err);
+
+      if(err)
+	{
+	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  Warn_And_Exit("");
+	}
+
+      sum += pow(lk_exact - lk_norm,2);      
+    }
+
+  Restore_Br_Len(NULL,tree);
+  Lk_At_Given_Edge(b,tree);
+
+  return(sum);
+}
+
+
+/*********************************************************/
+
+void Adjust_Variances(t_tree *tree)
+{
+  int i;
+  phydbl new_diff,curr_diff;
+
+  Make_Short_L(tree);
+  For(i,tree->n_short_l)
+    {
+      tree->short_l[i] = tree->mod->l_min + i*(0.1 - tree->mod->l_min)/tree->n_short_l;
+    }
+  
+
+  For(i,2*tree->n_otu-3)
+    {
+      if(tree->t_edges[i]->l < 1.1*tree->mod->l_min)
+	{
+	  tree->rates->mean_l[i]                     = -1.00;
+	  tree->rates->cov_l[i*(2*tree->n_otu-3)+i]  =  0.1;
+	  tree->norm_scale                           = -100;
+	  
+	  
+	  new_diff = curr_diff = 10.0;
+	  do
+	    {
+	      curr_diff = new_diff;
+	      
+	      Generic_Brent_Lk(&(tree->norm_scale),
+			       -1E+6,
+			       0.0,
+			       1.E-10,
+			       10000,
+			       NO,
+			       Wrap_Diff_Lk_Norm_At_Given_Edge,tree->t_edges[i],tree,NULL);
+	      
+	      /* 		      Generic_Brent_Lk(&(tree->rates->mean_l[0]), */
+	      /* 				       -100., */
+	      /* 				       10*tree->mod->l_min, */
+	      /* 				       1.E-3, */
+	      /* 				       10000, */
+	      /* 				       NO, */
+	      /* 				       Wrap_Diff_Lk_Norm_At_Given_Edge,tree->t_edges[0],tree,NULL); */
+	      
+	      Generic_Brent_Lk(&(tree->rates->cov_l[i*(2*tree->n_otu-3)+i]),
+			       0.0,
+			       10.0,
+			       1.E-10,
+			       10000,
+			       NO,
+			       Wrap_Diff_Lk_Norm_At_Given_Edge,tree->t_edges[i],tree,NULL);
+	      	  
+	      new_diff = Diff_Lk_Norm_At_Given_Edge(tree->t_edges[i],tree);
+	    }while(FABS(new_diff-curr_diff) > 1.E-3);
+	}
+    }
+}
+
+/*********************************************************/
+
+
+
+/*********************************************************/
+/*********************************************************/

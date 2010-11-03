@@ -83,6 +83,7 @@ phydbl Log_Dnorm_Trunc(phydbl x, phydbl mean, phydbl sd, phydbl lo, phydbl up, i
 phydbl  Pnorm_Marsaglia(phydbl x);
 int Iter_Matinv(phydbl *x, int n, int m, int verbose);
 phydbl Dorder_Unif(phydbl x, int r, int n, phydbl min, phydbl max);
+phydbl Covariance(phydbl *x, phydbl *y, int n);
 
 
 #endif
