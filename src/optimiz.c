@@ -494,7 +494,7 @@ phydbl Br_Len_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
   b=((ax > cx) ? ax : cx);
   x=w=v=bx;
   old_lnL = UNLIKELY;
-  b_fcus->l = FABS(bx);
+  b_fcus->l = bx;
   fw=fv=fx=fu=-Lk_At_Given_Edge(b_fcus,tree);
   init_lnL = -fw;
 
@@ -503,7 +503,7 @@ phydbl Br_Len_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
   for(iter=1;iter<=BRENT_ITMAX;iter++)
     {
       xm=0.5*(a+b);
-      tol2=2.0*(tol1=tol*FABS(x)+BRENT_ZEPS);
+      tol2=2.0*(tol1=tol*x+BRENT_ZEPS);
 
       if((tree->c_lnL > init_lnL + tol) && (quickdirty))
 	{
@@ -548,8 +548,8 @@ phydbl Br_Len_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 	  d=BRENT_CGOLD*(e=(x >= xm ? a-x : b-x));
 	}
       u=(FABS(d) >= tol1 ? x+d : x+SIGN(tol1,d));
-/*       if(u<BL_MIN) u = BL_MIN; */
-      b_fcus->l=FABS(u);
+/*       if(u<tree->l_min) u = tree->l_min; */
+      b_fcus->l=u;
       old_lnL = tree->c_lnL;
       fu=-Lk_At_Given_Edge(b_fcus,tree);
 
@@ -648,13 +648,11 @@ void Optimize_Br_Len_Serie(t_node *a, t_node *d, t_edge *b_fcus, t_tree *tree, c
   
   lk_init = tree->c_lnL;
   
-  l_infa = l_max  = l_infb = BL_MIN;
  
 /*   l_infa = 10.*b_fcus->l; */
-  l_infa = BL_MAX;
   l_max  = b_fcus->l;
-  l_infb = BL_MIN;
-  
+  l_infa = tree->mod->l_max;
+  l_infb = tree->mod->l_min;
 
   Br_Len_Brent(l_infa,l_max,l_infb,
 	       tree->mod->s_opt->min_diff_lk_local,
@@ -668,7 +666,7 @@ void Optimize_Br_Len_Serie(t_node *a, t_node *d, t_edge *b_fcus, t_tree *tree, c
 /* 		   tree->mod->s_opt->min_diff_lk_local, */
 /* 		   tree->mod->s_opt->brent_it_max, */
 /* 		   tree->mod->s_opt->quickdirty, */
-/* 		   Optwrap_Lk_At_Given_Edge,b_fcus,tree,NULL); */
+/* 		   Wrap_Lk_At_Given_Edge,b_fcus,tree,NULL); */
   
 
   if(tree->c_lnL < lk_init - tree->mod->s_opt->min_diff_lk_local)
@@ -712,7 +710,7 @@ void Optimiz_Ext_Br(t_tree *tree)
 
 	  l_infa = 10.*b->l;
 	  l_max  = b->l;
-	  l_infb = BL_MIN;
+	  l_infb = tree->mod->l_min;
 
 	  lk = Br_Len_Brent(l_infa,l_max,l_infb,
 			    tree->mod->s_opt->min_diff_lk_local,
@@ -774,7 +772,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 				 tree->mod->s_opt->min_diff_lk_global,
 				 tree->mod->s_opt->brent_it_max,
 				 tree->mod->s_opt->quickdirty,
-				 Optwrap_Lk,NULL,tree,NULL);
+				 Wrap_Lk,NULL,tree,NULL);
 		
 	      }
 
@@ -797,7 +795,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 		       tree->mod->s_opt->min_diff_lk_global,
 		       tree->mod->s_opt->brent_it_max,
 		       tree->mod->s_opt->quickdirty,
-		       Optwrap_Lk,NULL,tree,NULL);
+		       Wrap_Lk,NULL,tree,NULL);
       
       if(verbose) 
 	{
@@ -818,7 +816,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 		       tree->mod->s_opt->min_diff_lk_global,
 		       tree->mod->s_opt->brent_it_max,
 		       tree->mod->s_opt->quickdirty,
-		       Optwrap_Lk,NULL,tree,NULL);
+		       Wrap_Lk,NULL,tree,NULL);
 
       if(verbose) 
 	{
@@ -853,7 +851,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 			   tree->mod->s_opt->min_diff_lk_global,
 			   tree->mod->s_opt->brent_it_max,
 			   tree->mod->s_opt->quickdirty,
-			   Optwrap_Lk,NULL,tree,NULL);
+			   Wrap_Lk,NULL,tree,NULL);
 
 	  if(verbose) 
 	    {
@@ -877,7 +875,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 			     tree->mod->s_opt->min_diff_lk_global,
 			     tree->mod->s_opt->brent_it_max,
 			     tree->mod->s_opt->quickdirty,
-			     Optwrap_Lk,NULL,tree,NULL);
+			     Wrap_Lk,NULL,tree,NULL);
 	  if(verbose) 
 	    {
 	      Print_Lk(tree,"[Alpha              ]");
@@ -911,7 +909,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 				 tree->mod->s_opt->min_diff_lk_global,
 				 tree->mod->s_opt->brent_it_max,
 				 tree->mod->s_opt->quickdirty,
-				 Optwrap_Lk,NULL,tree,NULL);
+				 Wrap_Lk,NULL,tree,NULL);
 	      }
 	  }
 	if(verbose) Print_Lk(tree,"[Nucleotide freqs.  ]");
@@ -936,7 +934,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 			   tree->mod->s_opt->min_diff_lk_global,
 			   tree->mod->s_opt->brent_it_max,
 			   tree->mod->s_opt->quickdirty,
-			   Optwrap_Lk,NULL,tree,NULL);
+			   Wrap_Lk,NULL,tree,NULL);
 
 	  if(verbose) 
 	    {
@@ -965,7 +963,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 			       tree->mod->s_opt->min_diff_lk_global,
 			       tree->mod->s_opt->brent_it_max,
 			       tree->mod->s_opt->quickdirty,
-			       Optwrap_Lk,NULL,tree,NULL);
+			       Wrap_Lk,NULL,tree,NULL);
 	      
 	      if(verbose) 
 		{
@@ -987,7 +985,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 			       tree->mod->s_opt->min_diff_lk_global,
 			       tree->mod->s_opt->brent_it_max,
 			       tree->mod->s_opt->quickdirty,
-			       Optwrap_Lk,NULL,tree,NULL);
+			       Wrap_Lk,NULL,tree,NULL);
 
 	      
 	      if(verbose)
@@ -1013,7 +1011,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 			   tree->mod->s_opt->min_diff_lk_global,
 			   tree->mod->s_opt->brent_it_max,
 			   tree->mod->s_opt->quickdirty,
-			   Optwrap_Lk,NULL,tree,NULL);
+			   Wrap_Lk,NULL,tree,NULL);
 
 
 	  if(verbose) 
@@ -1050,7 +1048,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 			       tree->mod->s_opt->min_diff_lk_global,
 			       tree->mod->s_opt->brent_it_max,
 			       tree->mod->s_opt->quickdirty,
-			       Optwrap_Lk,NULL,tree,NULL);
+			       Wrap_Lk,NULL,tree,NULL);
 	      
 	    }
 	}
@@ -1562,7 +1560,7 @@ int Lnsrch_Nucleotide_Frequencies(t_tree *tree, int n, phydbl *xold, phydbl fold
 /* void Optimize_Global_Rate(t_tree *tree) */
 /* { */
 /*     PhyML_Printf("\n. Global rate (%f->)",tree->c_lnL); */
-/*     Optimize_Single_Param_Generic(tree,&(tree->tbl),tree->tbl,BL_MIN,1.E+4,100); */
+/*     Optimize_Single_Param_Generic(tree,&(tree->tbl),tree->tbl,tree->l_min,1.E+4,100); */
 /*     PhyML_Printf("%f)\n",tree->c_lnL); */
 /* } */
 
@@ -1710,7 +1708,6 @@ phydbl Dist_F_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, int n_iter_max,
 	}
       
       u=(FABS(d) >= tol1 ? x+d : x+SIGN(tol1,d));
-      if(u<BL_MIN) u = BL_MIN;
       (*param) = FABS(u);
       old_lnL = curr_lnL;
       fu = -Lk_Dist(F,FABS(u),mod);
@@ -1755,11 +1752,11 @@ void Opt_Dist_F(phydbl *dist, phydbl *F, model *mod)
 {
   phydbl ax,bx,cx;
 
-  if(*dist < BL_MIN) *dist = BL_MIN;
+  if(*dist < mod->l_min) *dist = mod->l_min;
 
-  ax = BL_MIN;
+  ax = mod->l_min;
   bx =  (*dist);
-  cx = BL_MAX;
+  cx = mod->l_max;
 
 /*   Dist_F_Brak(&ax,&bx,&cx,F,dist,mod); */
   Dist_F_Brent(ax,bx,cx,1.E-10,1000,dist,F,mod);
@@ -2248,44 +2245,6 @@ int Optimiz_Alpha_And_Pinv(t_tree *tree)
 
 /*********************************************************/
 
-phydbl Optwrap_Part_Lk_At_Given_Edge(t_edge *b, t_tree *tree, supert_tree *stree)
-{
-  return PART_Lk_At_Given_Edge(b,stree);;
-}
-
-/*********************************************************/
-
-phydbl Optwrap_Part_Lk(t_edge *b, t_tree *tree, supert_tree *stree)
-{
-  return PART_Lk(stree);
-}
-
-/*********************************************************/
-
-phydbl Optwrap_Lk(t_edge *b, t_tree *tree, supert_tree *stree)
-{
-  Lk(tree);
-  return tree->c_lnL;
-}
-
-/*********************************************************/
-
-phydbl Optwrap_Geo_Lk(t_edge *b, t_tree *tree, supert_tree *stree)
-{
-  TIPO_Lk(tree);
-  return tree->geo_lnL;
-}
-
-/*********************************************************/
-
-phydbl Optwrap_Lk_At_Given_Edge(t_edge *b, t_tree *tree, supert_tree *stree)
-{
-  Lk_At_Given_Edge(b,tree);
-  return tree->c_lnL;
-}
-
-/*********************************************************/
-
 phydbl Generic_Brent_Lk(phydbl *param, phydbl ax, phydbl cx, phydbl tol, 
 			int n_iter_max, int quickdirty,
 			phydbl (*obj_func)(t_edge *,t_tree *,supert_tree *), 
@@ -2430,7 +2389,7 @@ void Round_Optimize_Node_Heights(t_tree *tree)
       		       tree->mod->s_opt->min_diff_lk_global,
       		       tree->mod->s_opt->brent_it_max,
       		       tree->mod->s_opt->quickdirty,
-      		       Optwrap_Lk,NULL,tree,NULL);
+      		       Wrap_Lk,NULL,tree,NULL);
 
       printf("\n. cur_lnL=%f new_lnL=%f clock_r=%G root height=%f",
 	     cur_lnL,new_lnL,tree->rates->clock_r,tree->rates->nd_t[tree->n_root->num]);
@@ -2455,7 +2414,7 @@ void Opt_Node_Heights_Recurr(t_tree *tree)
 		   tree->mod->s_opt->min_diff_lk_global,
 		   tree->mod->s_opt->brent_it_max,
 		   tree->mod->s_opt->quickdirty,
-		   Optwrap_Lk,NULL,tree,NULL);
+		   Wrap_Lk,NULL,tree,NULL);
 }
 
 /*********************************************************/
@@ -2506,7 +2465,7 @@ void Opt_Node_Heights_Recurr_Pre(t_node *a, t_node *d, t_tree *tree)
 		       tree->mod->s_opt->min_diff_lk_global,
 		       tree->mod->s_opt->brent_it_max,
 		       tree->mod->s_opt->quickdirty,
-		       Optwrap_Lk,NULL,tree,NULL);
+		       Wrap_Lk,NULL,tree,NULL);
       
 
       /* printf("\n. t%d = %f [%f;%f] lnL = %f",d->num,tree->rates->nd_t[d->num],t_min,t_max,tree->c_lnL); */

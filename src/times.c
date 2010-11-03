@@ -34,6 +34,8 @@ int TIMES_main(int argc, char **argv)
   int r_seed;
   char *most_likely_tree;
   int sys;
+  t_mcmc *new_mcmc;
+  int i;
 
   
 #ifdef MPI
@@ -62,7 +64,7 @@ int TIMES_main(int argc, char **argv)
   io = (option *)Get_Input(argc,argv);
   r_seed = (io->r_seed < 0)?(time(NULL)):(io->r_seed);
   /* !!!!!!!!!!!!!!!!!!!!!!!! */
-/*   r_seed = 1264735233; */
+  r_seed = 1264735233;
   /* sys = system("sleep 5s"); */
 
   srand(r_seed); rand();
@@ -117,6 +119,7 @@ int TIMES_main(int argc, char **argv)
 		  /* A user-given tree is used here instead of BioNJ */
 		  else             tree = Read_User_Tree(cdata,mod,io);
 
+
 		  if(!tree) continue;
 
 		  if(!tree->n_root) 
@@ -129,20 +132,11 @@ int TIMES_main(int argc, char **argv)
 		  time(&t_beg);
 		  time(&(tree->t_beg));
 
-		  int n_otu;
-		  int i;
-
-/* 		  n_otu = 15; */
-/* 		  tree = Generate_Random_Tree_From_Scratch(n_otu,1); */
-
 		  tree->rates = RATES_Make_Rate_Struct(tree->n_otu);
 		  RATES_Init_Rate_Struct(tree->rates,tree->n_otu);
 
-
 		  Update_Ancestors(tree->n_root,tree->n_root->v[0],tree);
-		  Update_Ancestors(tree->n_root,tree->n_root->v[1],tree);
-		  tree->n_root->anc = NULL;
-		  
+		  Update_Ancestors(tree->n_root,tree->n_root->v[1],tree);		  
 
 		  RATES_Fill_Lca_Table(tree);
 
@@ -152,138 +146,91 @@ int TIMES_main(int argc, char **argv)
 		  tree->both_sides  = 1;
 		  tree->n_pattern   = tree->data->crunch_len/tree->mod->state_len;
 
-
-/*  		  For(i,tree->n_otu) strcpy(tree->noeud[i]->name,cdata->c_seq[i]->name); */
-
 		  Prepare_Tree_For_Lk(tree);
 
-		  /* Evolve(tree->data,tree->mod,tree); /\* do not forget to make sure sequences are not compressed! *\/ */
-		  /* Init_Ui_Tips(tree); */
-		  /* Init_P_Pars_Tips(tree); */
-		  /* if(tree->mod->s_opt->greedy) Init_P_Lk_Tips_Double(tree); */
-		  /* else Init_P_Lk_Tips_Int(tree); */
-
-		  For(i,2*tree->n_otu-1) tree->rates->true_t[i] = tree->rates->nd_t[i];
-		  For(i,2*tree->n_otu-2) tree->rates->true_r[i] = tree->rates->nd_r[i];
-
-/* 		  tree->data->format = 1; */
-/* 		  Print_CSeq(stdout,tree->data); */
-		  /* char *s; */
-		  /* /\* Branch_Lengths_To_Time_Lengths(tree); *\/ */
-		  /* s = Write_Tree(tree); */
-		  /* PhyML_Fprintf(stdout,"TREE %8d [%f] = %s\n",0,0.0,s); */
-		  /* Free(s); */
-
+		  /* Read node age priors */
 		  Read_Clade_Priors(io->clade_list_file,tree);
+
+		  /* Set upper and lower bounds for all node ages */
 		  TIMES_Set_All_Node_Priors(tree);
 
-
+		  /* Work with log of branch lengths? */
+		  tree->mod->log_l = NO;
+		  if(tree->mod->log_l == YES) Log_Br_Len(tree);
 		  
-		  /************************************/
-/* 		  IMPORTANCE SAMPLING STUFF */
-
-		  Round_Optimize(tree,tree->data,ROUND_MAX);
-
-		  Record_Br_Len(NULL,tree);
+		  /* MLE for branch lengths */
 		  PhyML_Printf("\n");
-		  PhyML_Printf("\n. Computing Hessian...\n");
+		  Round_Optimize(tree,tree->data,ROUND_MAX);
+		  
+		  /* Set vector of mean branch lengths for the Normal approximation
+		     of the likelihood */
+		  RATES_Set_Mean_L(tree);
+
+
+		  /* Estimate the matrix of covariance for the Normal approximation of
+		     the likelihood */
+		  PhyML_Printf("\n");
+		  PhyML_Printf("\n. Computing Hessian...");
 		  tree->rates->bl_from_rt = 0;
-
-		  phydbl *cov;
-		  cov = Hessian(tree);
-		  For(i,(2*tree->n_otu-3)*(2*tree->n_otu-3)) cov[i] *= -1.0;
-		  if(!Iter_Matinv(cov,2*tree->n_otu-3,2*tree->n_otu-3,YES)) Exit("\n");
-		  Free(tree->rates->cov);
-		  tree->rates->cov = cov;
-
-
-
-		  /* RATES_Bl_To_Ml(tree); */
-		  /* VarCov_Approx_Likelihood(tree); */
-
-
-
-
-
-
-		  For(i,(2*tree->n_otu-3)*(2*tree->n_otu-3)) tree->rates->invcov[i] = tree->rates->cov[i];
+		  Free(tree->rates->cov_l);
+		  tree->rates->cov_l = Hessian(tree);
+		  For(i,(2*tree->n_otu-3)*(2*tree->n_otu-3)) tree->rates->cov_l[i] *= -1.0;
+		  if(!Iter_Matinv(tree->rates->cov_l,2*tree->n_otu-3,2*tree->n_otu-3,YES)) Exit("\n");
+/* 		  Print_Square_Matrix_Generic(2*tree->n_otu-3,tree->rates->cov_l); */
+		  tree->rates->covdet = Matrix_Det(tree->rates->cov_l,2*tree->n_otu-3,YES);
+		  For(i,(2*tree->n_otu-3)*(2*tree->n_otu-3)) tree->rates->invcov[i] = tree->rates->cov_l[i];
 		  if(!Iter_Matinv(tree->rates->invcov,2*tree->n_otu-3,2*tree->n_otu-3,YES)) Exit("\n");
-		  tree->rates->covdet = Matrix_Det(tree->rates->cov,2*tree->n_otu-3,YES);
-		  Restore_Br_Len(NULL,tree);
 
-		  tree->rates->true_tree_size = Get_Tree_Size(tree);
+
+		  /* Pre-calculation of conditional variances to speed up calculations */
 		  RATES_Bl_To_Ml(tree);
 		  RATES_Get_Conditional_Variances(tree);
 		  RATES_Get_All_Reg_Coeff(tree);
 		  RATES_Get_Trip_Conditional_Variances(tree);
 		  RATES_Get_All_Trip_Reg_Coeff(tree);
 
+
 		  Lk(tree);
-		  PhyML_Printf("\n. p(data|model) [exact] ~ %f",tree->c_lnL);
+		  PhyML_Printf("\n");
+		  PhyML_Printf("\n. p(data|model) [exact ] ~ %.2f",tree->c_lnL);
 		  For(i,2*tree->n_otu-3) tree->rates->u_cur_l[i] = tree->t_edges[i]->l;
 		  tree->c_lnL = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,
-							     tree->rates->u_ml_l,
+							     tree->rates->mean_l,
 							     tree->rates->invcov,
 							     tree->rates->covdet,
 							     2*tree->n_otu-3,YES);
-		  PhyML_Printf("\n. p(data|model) [normal approx] ~ %f",tree->c_lnL);
+		  PhyML_Printf("\n. p(data|model) [approx] ~ %.2f",tree->c_lnL);
 
-		  tree->rates->bl_from_rt = 1;
 
-		  tmcmc *new_mcmc;
-		  tree->both_sides        = 1;
 		  tree->rates->model      = THORNE;
-		  tree->rates->bl_from_rt = 1;
+		  tree->rates->bl_from_rt = YES;
 
+		  PhyML_Printf("\n");
 		  PhyML_Printf("\n. Burnin...\n");
-		  tree->mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
-		  MCMC_Init_MCMC_Struct("burnin",tree->mcmc,tree);
+		  tree->mcmc = MCMC_Make_MCMC_Struct();
+		  MCMC_Copy_MCMC_Struct(tree->io->mcmc,tree->mcmc,"burnin");
+		  MCMC_Complete_MCMC(tree->mcmc,tree);
 		  tree->mcmc->adjust_tuning = YES;
-		  tree->mcmc->n_tot_run  = tree->io->gibbs_burnin;
-		  tree->mcmc->sample_interval = tree->io->gibbs_sample_freq;
+		  tree->mcmc->chain_len = tree->io->mcmc->chain_len_burnin;
 		  MCMC(tree);
 		  MCMC_Close_MCMC(tree->mcmc);
-		  
-		  new_mcmc = (tmcmc *)MCMC_Make_MCMC_Struct(tree);
-		  MCMC_Copy_MCMC_Struct(tree->mcmc,new_mcmc,"phytime",tree);
+
+		  new_mcmc = MCMC_Make_MCMC_Struct(tree);
+		  MCMC_Complete_MCMC(new_mcmc,tree);
+		  MCMC_Copy_MCMC_Struct(tree->mcmc,new_mcmc,"phytime");
 		  MCMC_Free_MCMC(tree->mcmc);
 
-		  tree->mcmc                     = new_mcmc;
-		  tree->mcmc->adjust_tuning      = NO;
-		  tree->mcmc->n_tot_run          = tree->io->gibbs_chain_len;
-		  tree->mcmc->sample_interval    = tree->io->gibbs_sample_freq;
-		  tree->mcmc->randomize          = NO;
+		  tree->mcmc                  = new_mcmc;
+		  tree->mcmc->chain_len       = tree->io->mcmc->chain_len;
+		  tree->mcmc->randomize       = NO;
+		  tree->mcmc->adjust_tuning   = NO;
 		  
-		  For(i,tree->mcmc->n_moves) 
-		    {
-		      tree->mcmc->run_param[i] = 0;
-		      tree->mcmc->acc_param[i] = 0;
-		    }
-
-/* 		  tree->mcmc->move_weight[MCMC_NUM_CLOCK]          = 1.; */
-/* 		  tree->mcmc->move_weight[MCMC_NUM_TREE_HEIGHT]    = 1.; */
-/* 		  tree->mcmc->move_weight[MCMC_NUM_SUBTREE_HEIGHT] = 1.; */
-/* 		  tree->mcmc->move_weight[MCMC_NUM_NU]             = 1.; */
-/* 		  tree->mcmc->move_weight[MCMC_NUM_TIMES]          = tree->n_otu; */
-/* 		  tree->mcmc->move_weight[MCMC_NUM_RATES]          = tree->n_otu; */
-/* 		  tree->mcmc->move_weight[MCMC_NUM_TSTV]           = 1.; */
-
-/* 		  phydbl sum = 0.0; */
-/* 		  For(i,tree->mcmc->n_moves) sum += tree->mcmc->move_weight[i]; */
-/* 		  For(i,tree->mcmc->n_moves) tree->mcmc->move_weight[i] /= sum; */
-/* 		  for(i=1;i<tree->mcmc->n_moves;i++) tree->mcmc->move_weight[i] += tree->mcmc->move_weight[i-1]; */
-
-
 		  time(&t_beg);
-		  PhyML_Printf("\n. Starting sampling the posterior density...\n");
+		  PhyML_Printf("\n. Sampling the %s density...\n",(tree->mcmc->use_data)?"posterior":"prior");
 		  MCMC(tree);
-		  PhyML_Printf("\n. End of sampling...\n");
-		  system("sleep 3s");
-		  time(&t_end);
-		  Print_Time_Info(t_beg,t_end);
 		  MCMC_Close_MCMC(tree->mcmc);
 		  MCMC_Free_MCMC(tree->mcmc);
-
+		  PhyML_Printf("\n");
 
 		  Free_Tree_Pars(tree);
 		  Free_Tree_Lk(tree);
@@ -508,87 +455,6 @@ void TIMES_Mult_Time_Stamps(t_tree *tree)
 
 /*********************************************************/
 
-/* Divide each time stamp at each internal 
-   t_node by  'tree->time_stamp_mult'.
-*/
-void TIMES_Div_Time_Stamps(t_tree *tree)
-{
-  int i;
-  For(i,2*tree->n_otu-2) tree->rates->nd_t[tree->noeud[i]->num] /= FABS(tree->mod->s_opt->tree_size_mult);
-  tree->rates->nd_t[tree->n_root->num] /= FABS(tree->mod->s_opt->tree_size_mult);
-}
-
-/*********************************************************/
-
-void TIMES_Bl_From_T(t_tree *tree)
-{
-  phydbl mean_rate, branch_rate;
-
-  /* Branch lengths are deduced from time stamps */
-  TIMES_Bl_From_T_Post(tree->n_root,tree->n_root->v[0],NULL,tree);
-  TIMES_Bl_From_T_Post(tree->n_root,tree->n_root->v[1],NULL,tree);
-
-  mean_rate   = tree->rates->clock_r;
-  branch_rate = tree->rates->br_r[tree->e_root->num];
-
-  if(tree->rates->use_rates)
-    tree->e_root->l = 
-      mean_rate * branch_rate * (tree->rates->nd_t[tree->n_root->num] - tree->rates->nd_t[tree->e_root->left->num]) + 
-      mean_rate * branch_rate * (tree->rates->nd_t[tree->n_root->num] - tree->rates->nd_t[tree->e_root->rght->num]);
-  else
-    tree->e_root->l = 
-      (tree->rates->nd_t[tree->n_root->num] - tree->rates->nd_t[tree->e_root->left->num]) + 
-      (tree->rates->nd_t[tree->n_root->num] - tree->rates->nd_t[tree->e_root->rght->num]);
-
-  /* Actual formula =>  tree->e_root->l = 
-     (tree->n_root->t - tree->e_root->left->t) + 
-     (tree->n_root->t - tree->e_root->rght->t); */
-  
-  tree->n_root_pos = (tree->rates->nd_t[tree->n_root->num] - tree->rates->nd_t[tree->e_root->left->num])/tree->e_root->l;
-
-}
-
-/*********************************************************/
-
-void TIMES_Bl_From_T_Post(t_node *a, t_node *d, t_edge *b, t_tree *tree)
-{
-
-  if(b)
-    {
-      phydbl mean_rate, branch_rate;
-
-      mean_rate   = tree->rates->clock_r;
-      branch_rate = tree->rates->br_r[b->num];
-
-      if(tree->rates->use_rates)
-	{
-	  b->l = (tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num]) * mean_rate * branch_rate;
-	}
-      else
-	{
-	  b->l = (tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num]);
-	}
-
-      if(b->l < 0.0)
-	{
-	  PhyML_Printf("\n. Correction failed.");
-	  PhyML_Printf("\n. d->t = %f a->t = %f",tree->rates->nd_t[d->num],tree->rates->nd_t[a->num]);
-	  PhyML_Printf("\n. a->num=%d d->num=%d",a->num,d->num);
-	  Warn_And_Exit("\n");
-	}
-    }
-
-  if(d->tax) return;
-  else
-    {
-      int i;
-      For(i,3) if((d->v[i] != a) && (d->b[i] != tree->e_root)) TIMES_Bl_From_T_Post(d,d->v[i],d->b[i],tree);
-    }
-}
-
-/*********************************************************/
-
-
 void TIMES_Print_Node_Times(t_node *a, t_node *d, t_tree *tree)
 {
   t_edge *b;
@@ -613,111 +479,6 @@ void TIMES_Print_Node_Times(t_node *a, t_node *d, t_tree *tree)
 	if((d->v[i] != a) && (d->b[i] != tree->e_root))
 	  TIMES_Print_Node_Times(d,d->v[i],tree);
     }
-}
-
-/*********************************************************/
-
-void TIMES_Compute_Rates_And_Times_Least_Square_Adjustments(t_tree *tree)
-{
-  TIMES_Compute_Rates_And_Times_Least_Square_Adjustments_Post(tree->n_root,tree->n_root->v[0],NULL,tree);
-  TIMES_Compute_Rates_And_Times_Least_Square_Adjustments_Post(tree->n_root,tree->n_root->v[1],NULL,tree);
-}
-
-/*********************************************************/
-
-void TIMES_Compute_Rates_And_Times_Least_Square_Adjustments_Post(t_node *a, t_node *d, t_edge *b, t_tree *tree)
-{
-  int i;
-
-  if(d->tax) return;
-
-  if(b)
-    {
-      phydbl t0, t1, t2, t3;
-      phydbl mu1, mu2, mu3;
-      phydbl K;
-
-      t0 = tree->rates->nd_t[a->num];
-      t1 = tree->rates->nd_t[d->num];
-
-      mu1 = tree->rates->br_r[b->num];
-      mu2 = -1.;
-      mu3 = -1.;
-
-      t2 = t3 = -1.;
-      For(i,3)
-	if(d->v[i] != a)
-	  {
-	    if(t2 < 0) 
-	      {
-		t2  = tree->rates->nd_t[d->v[i]->num];
-		mu2 = tree->rates->br_r[d->b[i]->num];
-	      }
-	    if(t3 < 0) 
-	      {
-		t3  = tree->rates->nd_t[d->v[i]->num];
-		mu3 = tree->rates->br_r[d->b[i]->num];
-	      }
-	  }
-
-      PhyML_Printf("\n. t0=%f, t1=%f, t2=%f, t3=%f, mu1=%f, mu2=%f, mu3=%f",
-	     t0,t1,t2,t3,
-	     mu1,mu2,mu3);
-
-      if(t2 < 1.E-10 && t3 < 1.E-10)
-	{
-	  K = t0 / t1;
-	}
-      else
-	{
-	  K = 
-	    (POW(mu2,2)*t2)/(POW(t1-t2,2)) +
-	    (POW(mu1,2)*t0)/(POW(t0-t1,2)) +
-	    (POW(mu3,2)*t3)/(POW(t1-t3,2)) +
-	    (POW(mu1,2)*t0)/(POW(t0-t1,2)) +
-	    mu2 * mu1 * (t0 + t2) / ((t1-t2)*(t0-t1)) +
-	    mu3 * mu1 * (t0 + t3) / ((t1-t3)*(t0-t1)) ;
-
-	  K /= 
-	    t1 *
-	    (
-	    (POW(mu2,2))/(POW(t1-t2,2))  +
-	    (POW(mu1,2))/(POW(t0-t1,2))  +
-	    (POW(mu3,2))/(POW(t1-t3,2))  +
-	    (POW(mu1,2))/(POW(t0-t1,2))  +
-	    2.*mu2*mu1/((t1-t2)*(t0-t1)) +
-	    2.*mu3*mu1/((t1-t3)*(t0-t1)) 
-	    );
-	}
-      PhyML_Printf("\n. K = %f",K); 
-    }
-
-  For(i,3) 
-    if(d->v[i] != a)
-      TIMES_Compute_Rates_And_Times_Least_Square_Adjustments_Post(d,d->v[i],d->b[i],tree);
-
-}
-
-/*********************************************************/
-
-int TIMES_Check_MC(t_tree *tree)
-{
-  int i;
-  phydbl dist,eps;
-
-  eps = 1.E-06;
-
-  Dist_To_Root(tree->n_root,tree);
-  dist = tree->noeud[0]->dist_to_root;
-  
-  For(i,tree->n_otu)
-    {
-      if(FABS(tree->noeud[i]->dist_to_root - dist) > eps)
-	{
-	  return 0;
-	}
-    }
-  return 1;
 }
 
 /*********************************************************/

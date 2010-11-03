@@ -79,9 +79,9 @@ void Read_Command_Line(option *io, int argc, char **argv)
       {"calibration",       required_argument,NULL,50},
       {"boot_progress_every", required_argument,NULL,51},
       {"aa_rate_file",        required_argument,NULL,52},
-      {"gibbs_chain_len",     required_argument,NULL,53},
-      {"gibbs_sample_freq",   required_argument,NULL,54},
-      {"gibbs_burnin",        required_argument,NULL,55},
+      {"chain_len",           required_argument,NULL,53},
+      {"sample_freq",         required_argument,NULL,54},
+      {"burnin",              required_argument,NULL,55},
       {"no_memory_check",     no_argument,NULL,56},
       {"no_colalias",         no_argument,NULL,57},
       {"alias_subpatt",       no_argument,NULL,58},      
@@ -98,7 +98,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	{
 	case 59:
 	  {
-	    io->use_data = NO;
+	    io->mcmc->use_data = NO;
 	    break;
 	  }
 	case 58:
@@ -118,11 +118,13 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	  }
 	case 55:
 	  {
-	    io->gibbs_burnin = atoi(optarg);
-	    if(io->gibbs_burnin < 1)
+	    phydbl len;
+	    len = atof(optarg);
+	    io->mcmc->chain_len_burnin = (int)len;
+	    if(io->mcmc->chain_len_burnin < 1)
 	      {
 		char choix;
-		PhyML_Printf("\n. gibbs_burnin must be an integer greater than 0.\n");
+		PhyML_Printf("\n. chain_len_burnin must be an integer greater than 0.\n");
 		PhyML_Printf("\n. Type any key to exit.\n");
 		if(!scanf("%c",&choix)) Exit("\n");
 		Exit("\n");
@@ -131,11 +133,13 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	  }	  
 	case 54:
 	  {
-	    io->gibbs_sample_freq = atoi(optarg);
-	    if(io->gibbs_sample_freq < 1)
+	    phydbl len;
+	    len = atof(optarg);
+	    io->mcmc->sample_interval = (int)len;
+	    if(io->mcmc->sample_interval < 1)
 	      {
 		char choix;
-		PhyML_Printf("\n. gibbs_sample_freq must be an integer greater than 0.\n");
+		PhyML_Printf("\n. sample_interval must be an integer greater than 0.\n");
 		PhyML_Printf("\n. Type any key to exit.\n");
 		if(!scanf("%c",&choix)) Exit("\n");
 		Exit("\n");
@@ -144,11 +148,13 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	  }	  
 	case 53:
 	  {
-	    io->gibbs_chain_len = atoi(optarg);
-	    if(io->gibbs_chain_len < 1)
+	    phydbl len;
+	    len = atof(optarg);
+	    io->mcmc->chain_len = (int)len;
+	    if(io->mcmc->chain_len < 1)
 	      {
 		char choix;
-		PhyML_Printf("\n. gibbs_chain_len must be an integer greater than 0.\n");
+		PhyML_Printf("\n. chain_len must be an integer greater than 0.\n");
 		PhyML_Printf("\n. Type any key to exit.\n");
 		if(!scanf("%c",&choix)) Exit("\n");
 		Exit("\n");

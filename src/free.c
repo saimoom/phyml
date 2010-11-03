@@ -79,16 +79,12 @@ void Free_Partial_Lk(phydbl *p_lk, int len, int n_catg)
 
 void Free_Tree(t_tree *tree)
 {
-
   Free(tree->t_dir);
-
+  if(tree->short_l) Free(tree->short_l);
   Free_Bip(tree);
-
   Free(tree->curr_path);
-
   Free_All_Edges_Light(tree);
   Free_All_Nodes_Light(tree);
-
   Free(tree);
 }
 
@@ -390,6 +386,7 @@ void Free(void *p)
 void Free_Input(option *io)
 {
   int i;
+  MCMC_Free_MCMC(io->mcmc);
   Free(io->in_align_file);
   Free(io->in_tree_file);
   Free(io->out_tree_file);

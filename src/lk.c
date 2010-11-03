@@ -327,19 +327,13 @@ phydbl Lk(t_tree *tree)
 
 #ifdef PHYTIME
   if((tree->rates) && (tree->rates->bl_from_rt)) RATES_Update_Cur_Bl(tree);
-  if(tree->bl_from_node_stamps) TIMES_Bl_From_T(tree);
 #endif
 
   if(tree->rates && tree->rates->lk_approx == NORMAL)
     {
-      tree->c_lnL = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,
-						 tree->rates->u_ml_l,
-						 tree->rates->invcov,
-						 tree->rates->covdet,
-						 2*tree->n_otu-3,YES);
+      tree->c_lnL = Lk_Normal_Approx(tree);
       return tree->c_lnL;
     }
-
 
   n_patterns = tree->n_pattern;
 
@@ -384,8 +378,13 @@ phydbl Lk_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
 
 #ifdef PHYTIME
   if((tree->rates) && (tree->rates->bl_from_rt)) RATES_Update_Cur_Bl(tree);
-  if(tree->bl_from_node_stamps) TIMES_Bl_From_T(tree);
 #endif
+
+  if(tree->rates && tree->rates->lk_approx == NORMAL)
+    {
+      tree->c_lnL = Lk_Normal_Approx(tree);
+      return tree->c_lnL;
+    }
 
   Update_PMat_At_Given_Edge(b_fcus,tree);
 
@@ -1780,14 +1779,12 @@ phydbl Lk_Given_Two_Seq(calign *data, int numseq1, int numseq2, phydbl dist, mod
   p_lk_l = (phydbl *)mCalloc(data->c_seq[0]->len * mod->ns,sizeof(phydbl));
   p_lk_r = (phydbl *)mCalloc(data->c_seq[0]->len * mod->ns,sizeof(phydbl));
 
-  if(dist < BL_MIN) dist = BL_START;
-  else if(dist > BL_MAX) dist = BL_START;
 
   For(i,mod->n_catg)
     {
       len = dist*mod->gamma_rr[i];
-      if(len < BL_MIN) len = BL_MIN;
-      else if(len > BL_MAX) len = BL_MAX;
+      if(len < mod->l_min) len = mod->l_min;
+      else if(len > mod->l_max) len = mod->l_max;
       PMat(len,mod,dim2*i,mod->Pij_rr);
     }
 
@@ -2026,23 +2023,44 @@ void Update_PMat_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
 {
   int i;
   phydbl len;
+  phydbl l_min, l_max;
 
   len = -1.0;
 
-  if(b_fcus->l < BL_MIN)      b_fcus->l = BL_MIN;
-  else if(b_fcus->l > BL_MAX) b_fcus->l = BL_MAX;
+  if(b_fcus->l > tree->mod->l_max) b_fcus->l = tree->mod->l_max;
+  if(b_fcus->l < tree->mod->l_min) b_fcus->l = tree->mod->l_min;
+
+  if(tree->mod->log_l == YES)
+    {
+      l_min = EXP(tree->mod->l_min);
+      l_max = EXP(tree->mod->l_max);
+    }
+  else
+    {
+      l_min = tree->mod->l_min;
+      l_max = tree->mod->l_max;
+    }
+  
+
+  if(tree->mod->log_l == YES) b_fcus->l = EXP(b_fcus->l);
 
   For(i,tree->mod->n_catg)
     {
-      if(b_fcus->has_zero_br_len) len = -1.0;
+      if(b_fcus->has_zero_br_len == YES) 
+	{
+	  len = -1.0;
+	}
       else
 	{
 	  len = b_fcus->l*tree->mod->gamma_rr[i];	  
-	  if(len < BL_MIN)      len = BL_MIN;
-	  else if(len > BL_MAX) len = BL_MAX;
+	  if(len < l_min)      len = l_min;
+	  else if(len > l_max) len = l_max;
 	}
       PMat(len,tree->mod,tree->mod->ns*tree->mod->ns*i,b_fcus->Pij_rr);
     }
+
+  if(tree->mod->log_l == YES) b_fcus->l = LOG(b_fcus->l);
+
 }
 
 /*********************************************************/
@@ -2126,11 +2144,13 @@ phydbl Lk_Dist(phydbl *F, phydbl dist, model *mod)
   phydbl lnL,len;
   int dim1,dim2;
 
+  if(mod->log_l == YES) dist = EXP(dist);
+
   For(k,mod->n_catg)
     {
       len = dist*mod->gamma_rr[k];
-      if(len < BL_MIN)      len = BL_MIN;
-      else if(len > BL_MAX) len = BL_MAX;
+      if(len < mod->l_min)      len = mod->l_min;
+      else if(len > mod->l_max) len = mod->l_max;
       PMat(len,mod,mod->ns*mod->ns*k,mod->Pij_rr);
     }
   
@@ -2181,108 +2201,6 @@ phydbl Update_Lk_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
 
 /*********************************************************/
 
-/*       root
-           \
-           /
-          a
-	  |
-	  |
-	  d
-	 / \
-        /   \
-       w     x    	
-
-       d->t has changed and we need to compute
-       the likelihood.
-       (1) update the three branch lengths l(ad), l(dw) and l(dx)
-       (2) update the change proba matrices along these branches
-       (3) update the likelihood of subtree (w,x) (WARNING: (a,x) and (a,w) are not updated)
-*/
-phydbl Lk_Triplet(t_node *a, t_node *d, t_tree *tree)
-{
-  int i;
-  phydbl max_height;
-  phydbl up_bound, low_bound;
-
-  if(d->tax)
-    {
-      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
-      Warn_And_Exit("");
-    }
-
-  up_bound = low_bound = -1.0;
-  max_height = -1.0;
-  For(i,3)
-    {
-      if((d->v[i] != a) && (d->b[i] != tree->e_root))
-	{
-	  if(tree->rates->nd_t[d->v[i]->num] > max_height)
-	    {
-	      max_height = tree->rates->nd_t[d->v[i]->num];
-	    }
-	}
-      else
-	{
-	  up_bound = 
-	    (a == tree->n_root)?
-	    (tree->rates->nd_t[a->num]):
-	    (tree->rates->nd_t[d->v[i]->num]);
-	}
-    }
-
-  low_bound = max_height;
-
-  if(up_bound < low_bound - 1.E-10)
-    {
-      PhyML_Printf("\n. a->num=%d d->num=%d",a->num,d->num);
-      PhyML_Printf("\n. up_bound = %f, low_bound = %f",up_bound,low_bound);
-      Warn_And_Exit("\n");
-    }
-
-  if(tree->rates->nd_t[d->num] < low_bound) tree->rates->nd_t[d->num] = low_bound;
-  else if(tree->rates->nd_t[d->num] > up_bound) tree->rates->nd_t[d->num] = up_bound;
-
-  /* Step (1) */
-  For(i,3)
-    {
-      if((d->v[i] != a) && (d->b[i] != tree->e_root)) 
-	{
-	  d->b[i]->l = 
-	    (tree->rates->nd_t[d->num] - tree->rates->nd_t[d->v[i]->num]) * 
-	    tree->rates->clock_r * 
-	    tree->rates->br_r[d->b[i]->num];
-	}
-      else
-	{
-	  if(a == tree->n_root)
-	    {
-	      d->b[i]->l = 
-		(tree->rates->nd_t[tree->n_root->num] - tree->rates->nd_t[tree->n_root->v[0]->num] + 
-		 tree->rates->nd_t[tree->n_root->num] - tree->rates->nd_t[tree->n_root->v[1]->num]) * tree->rates->clock_r;
-	    }
-	  else
-	    {
-	      d->b[i]->l = (tree->rates->nd_t[a->num] - tree->rates->nd_t[d->num]) * tree->rates->clock_r * tree->rates->br_r[d->b[i]->num];	    
-	    }
-	}
-    }
-  
-  /* Step (2) */
-  For(i,3) Update_PMat_At_Given_Edge(d->b[i],tree);
-  
-  For(i,3) 
-    if((d->v[i] == a) || (d->b[i] == tree->e_root))
-      {
-	Update_P_Lk(tree,d->b[i],d); 
-	Lk_At_Given_Edge(d->b[i],tree);
-	break;
-      }
-
-  return tree->c_lnL;
-}
-
-/*********************************************************/
-
 void Print_Lk_Given_Edge_Recurr(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 {
   PhyML_Printf("\n___ Edge %3d (left=%3d rght=%3d) lnL=%f",
@@ -2302,126 +2220,6 @@ void Print_Lk_Given_Edge_Recurr(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 }
 
 /*********************************************************/
-
-/* Returns a vector containing the posterior probabilities of 
-   the different branch rate classes 
-*/
-phydbl *Post_Prob_Rates_At_Given_Edge(t_edge *b, phydbl *post_prob, t_tree *tree)
-{
-  phydbl norm_factor;
-  int rcat, scale_int;
-  phydbl sum,log2,lnL,worst_lnL,best_lnL,mid_lnL;
-
-
-  For(rcat,tree->mod->n_rr_branch) post_prob[rcat] = .0;
-
-  log2 = 0.6931472;
-  
-  best_lnL  = UNLIKELY;
-  worst_lnL = .0;
-  For(rcat,tree->mod->n_rr_branch)
-    {
-      tree->rates->br_r[b->num] = tree->mod->rr_branch[rcat];
-      lnL = Lk_At_Given_Edge(b,tree);
-
-      if(lnL < worst_lnL) worst_lnL = lnL;
-      if(lnL > best_lnL)  best_lnL  = lnL;
-      post_prob[rcat] = lnL;
-
-      tree->rates->br_r[b->num] = 1.0;
-    }
-
-  mid_lnL = worst_lnL + FABS(worst_lnL - best_lnL)/2.;
-
-  /* EXP(LOG(P(D|r))) is hard to compute. Try EXP(LOG(K*P(D|r)))
-     instead. The value of K is chosen such that the most accurate
-     estimates of the posterior probabilities are obtained for the
-     most likely rate classes.
-  */
-  scale_int = 0;
-  do scale_int++;
-  while(best_lnL + scale_int * log2 < 20.0);
-
-  norm_factor = .0;
-  For(rcat,tree->mod->n_rr_branch)
-    {
-/*       PhyML_Printf("\n. best_lnL=%f curr_lnL=%f %f %E", */
-/*  	     best_lnL, */
-/* 	     post_prob[rcat] , */
-/* 	     post_prob[rcat] + scale_int * log2, */
-/* 	     EXP(post_prob[rcat] + scale_int * log2)); */
-
-      post_prob[rcat] = EXP(post_prob[rcat] + scale_int * log2);
-
-
-      post_prob[rcat] *= tree->mod->p_rr_branch[rcat];
-      norm_factor += post_prob[rcat];
-    }
-
-  sum = .0;
-  For(rcat,tree->mod->n_rr_branch)
-    {
-      post_prob[rcat] /= norm_factor;
-/*       PhyML_Printf("%f ",post_prob[rcat]); */
-      sum += post_prob[rcat];
-    }
-  
-  if(sum < 0.999 || sum > 1.001)
-    {
-      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
-      Warn_And_Exit("");
-    }
-
-  return post_prob;  
-}
-
-/*********************************************************/
-
-phydbl Lk_With_MAP_Branch_Rates(t_tree *tree)
-{
-  int br,rcat,best_post_prob_cat;
-  phydbl *post_prob;
-  phydbl best_post_prob;
-  t_edge *b;
-
-
-  post_prob = (phydbl *)mCalloc(tree->mod->n_rr_branch,sizeof(phydbl));
- 
-  Lk(tree);
-  Record_Br_Len(NULL,tree);
-
-  For(br,2*tree->n_otu-3)
-    {
-      b = tree->t_edges[br];
-
-      /* Compute the posterior probability of each rate class on t_edge b */
-      post_prob = (phydbl *)Post_Prob_Rates_At_Given_Edge(b,post_prob,tree);
-
-      /* Find the most probable class */
-      best_post_prob = UNLIKELY;
-      best_post_prob_cat = -1;
-      For(rcat,tree->mod->n_rr_branch)
-	{
-	  if(post_prob[rcat] > best_post_prob)
-	    {
-	      best_post_prob = post_prob[rcat];
-	      best_post_prob_cat = rcat;
-	    }
-	}
-
-      /* The relative rate on this branch corresponds to the most probable rate class */
-      tree->rates->br_r[br] = tree->mod->rr_branch[best_post_prob_cat];
-    }
-
-  Lk(tree);
-  
-  For(br,2*tree->n_otu-3) tree->rates->br_r[br] = 1.0;
-
-  Free(post_prob);
-
-  return tree->c_lnL;
-}
-
 /*********************************************************/
 /*********************************************************/
 /*********************************************************/
@@ -3074,6 +2872,97 @@ void Init_P_Lk_Loc(t_tree *tree)
 }
 
 /*********************************************************/
+
+phydbl Lk_Normal_Approx(t_tree *tree)
+{
+  phydbl lnL,lambda,l;
+  int i,dim,err;
+
+  lnL = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,
+				     tree->rates->mean_l,
+				     tree->rates->invcov,
+				     tree->rates->covdet,
+				     2*tree->n_otu-3,YES);
+
+/*   err = NO; */
+/*   dim = 2*tree->n_otu-3; */
+/*   For(i,dim) */
+/*     { */
+/*       if((tree->rates->mean_l[i] / tree->mod->l_min < 1.1) &&  */
+/* 	 (tree->rates->mean_l[i] / tree->mod->l_min > 0.9)) */
+/* 	{	   */
+/* 	  lnL -= Log_Dnorm(tree->t_edges[i]->l,tree->rates->mean_l[i],SQRT(tree->rates->cov_l[i*dim+i]),&err); */
+/* 	  if(err) */
+/* 	    { */
+/* 	      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__); */
+/* 	      Warn_And_Exit(""); */
+/* 	    } */
+/* 	  lambda = 1./SQRT(tree->rates->cov_l[i*dim+i]); */
+/* 	  l = (tree->mod->log_l == YES)?(EXP(tree->t_edges[i]->l)):(tree->t_edges[i]->l); */
+/* 	  lnL += LOG(Dexp(l,lambda)); */
+/* /\* 	  printf("\n. lambda = %f",lambda); *\/ */
+/* 	} */
+/*     } */
+
+  return(lnL);
+
+}
+
+/*********************************************************/
+
+phydbl Wrap_Part_Lk_At_Given_Edge(t_edge *b, t_tree *tree, supert_tree *stree)
+{
+  return PART_Lk_At_Given_Edge(b,stree);;
+}
+
+/*********************************************************/
+
+phydbl Wrap_Part_Lk(t_edge *b, t_tree *tree, supert_tree *stree)
+{
+  return PART_Lk(stree);
+}
+
+/*********************************************************/
+
+phydbl Wrap_Lk(t_edge *b, t_tree *tree, supert_tree *stree)
+{
+  Lk(tree);
+  return tree->c_lnL;
+}
+
+/*********************************************************/
+
+phydbl Wrap_Geo_Lk(t_edge *b, t_tree *tree, supert_tree *stree)
+{
+  TIPO_Lk(tree);
+  return tree->geo_lnL;
+}
+
+/*********************************************************/
+
+phydbl Wrap_Lk_At_Given_Edge(t_edge *b, t_tree *tree, supert_tree *stree)
+{
+  Lk_At_Given_Edge(b,tree);
+  return tree->c_lnL;
+}
+
+/*********************************************************/
+
+phydbl Wrap_Lk_Rates(t_edge *b, t_tree *tree, supert_tree *stree)
+{
+  RATES_Lk_Rates(tree);
+  return tree->rates->c_lnL;
+}
+/*********************************************************/
+
+phydbl Wrap_Diff_Lk_Norm_At_Given_Edge(t_edge *b, t_tree *tree, supert_tree *stree)
+{
+  phydbl diff;
+  diff = Diff_Lk_Norm_At_Given_Edge(b,tree);
+  return(-diff);
+
+}
+
 /*********************************************************/
 /*********************************************************/
 /*********************************************************/

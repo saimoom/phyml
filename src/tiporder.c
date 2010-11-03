@@ -283,7 +283,7 @@ int TIPO_main(int argc, char **argv)
   Generic_Brent_Lk(&(tree->geo_mig_sd),
   		   1.E-3,1.E+2,1.E-6,
   		   100,NO,
-  		   &Optwrap_Geo_Lk,
+  		   &Wrap_Geo_Lk,
   		   NULL,tree,NULL);
 
   PhyML_Printf("\n. sd=%f",tree->geo_mig_sd);

@@ -35,10 +35,10 @@ the GNU public licence. See http://www.opensource.org for details.
 #include <stdio.h>
 
 void MCMC_Lexp(t_tree *tree);
-void MCMC_Print_Param(tmcmc *mcmc, t_tree *tree);
-tmcmc *MCMC_Make_MCMC_Struct();
-void MCMC_Free_MCMC(tmcmc *mcmc);
-void MCMC_Init_MCMC_Struct(char *filename, tmcmc *mcmc, t_tree *tree);
+void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree);
+t_mcmc *MCMC_Make_MCMC_Struct();
+void MCMC_Free_MCMC(t_mcmc *mcmc);
+void MCMC_Init_MCMC_Struct(char *filename, t_mcmc *mcmc);
 void MCMC(t_tree *tree);
 void MCMC_Alpha(t_tree *tree);
 void MCMC_Randomize_Branch_Lengths(t_tree *tree);
@@ -47,8 +47,7 @@ void MCMC_Randomize_Node_Times_Pre(t_node *a, t_node *d, t_tree *tree);
 void MCMC_Randomize_Lexp(t_tree *tree);
 void MCMC_Randomize_Jumps(t_tree *tree);
 void MCMC_Randomize_Alpha(t_tree *tree);
-void MCMC_One_Node_Time(t_node *d, t_tree *tree);
-void MCMC_One_Rate(t_node *a, t_node *d, t_tree *tree);
+void MCMC_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree);
 void MCMC_No_Change(t_tree *tree);
 void MCMC_Nu(t_tree *tree);
 void MCMC_Randomize_Nu(t_tree *tree);
@@ -60,7 +59,7 @@ void MCMC_Stick_Rates(t_tree *tree);
 void MCMC_Stick_Rates_Pre(t_node *a, t_node *d, t_tree *tree);
 void MCMC_Times_Global(t_tree *tree);
 void MCMC_Times_Local(t_tree *tree);
-void MCMC_One_Time(t_node *a, t_node *d, t_tree *tree);
+void MCMC_One_Time(t_node *a, t_node *d, int traversal, t_tree *tree);
 void MCMC_Rates_Global(t_tree *tree);
 void MCMC_Rates_Local(t_tree *tree);
 void MCMC_Rates_Pre(t_node *a, t_node *d, t_tree *tree);
@@ -73,30 +72,38 @@ void MCMC_Time_Root(t_tree *tree);
 void MCMC_Randomize_Node_Times_Bottom_Up(t_node *a, t_node *d, t_tree *tree);
 void MCMC_Randomize_Node_Times_Top_Down(t_node *a, t_node *d, t_tree *tree);
 void MCMC_Randomize_Rates_Pre(t_node *a, t_node *d, t_tree *tree);
-void MCMC_Print_Means(tmcmc *mcmc, t_tree *tree);
-void MCMC_Print_Last(tmcmc *mcmc, t_tree *tree);
-void MCMC_Close_MCMC(tmcmc *mcmc);
+void MCMC_Print_Means(t_mcmc *mcmc, t_tree *tree);
+void MCMC_Print_Last(t_mcmc *mcmc, t_tree *tree);
+void MCMC_Close_MCMC(t_mcmc *mcmc);
 void MCMC_Rates_Global(t_tree *tree);
 void MCMC_Omega(t_tree *tree);
-void MCMC_Adjust_Tuning_Parameter(tmcmc *mcmc);
-void MCMC_Copy_MCMC_Struct(tmcmc *ori, tmcmc *cpy, char *filename, t_tree *tree);
+void MCMC_Adjust_Tuning_Parameter(t_mcmc *mcmc);
+void MCMC_Copy_MCMC_Struct(t_mcmc *ori, t_mcmc *cpy, char *filename);
 void MCMC_Randomize_Node_Times_Bottom_Up(t_node *a, t_node *d, t_tree *tree);
-void MCMC_One_Length(t_edge *b, phydbl *acc, int *run, t_tree *tree);
-void MCMC_Br_Lens(phydbl *acc, int *run, t_tree *tree);
-void MCMC_Br_Lens_Pre(t_node *a, t_node *d, t_edge *b, phydbl *acc, int *run, t_tree *tree);
+void MCMC_One_Length(t_edge *b,  t_tree *tree);
+void MCMC_Br_Lens(t_tree *tree);
+void MCMC_Br_Lens_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree);
 void MCMC_Tree_Height(t_tree *tree);
 void MCMC_SubTree_Height(t_tree *tree);
 void MCMC_Swing(t_tree *tree);
 void MCMC_Single_Param_Generic(phydbl *val, 
 			       phydbl lim_inf, 
 			       phydbl lim_sup, 
-			       int param_num,
+			       int move_num,
 			       phydbl *lnPrior,
 			       phydbl *lnLike,
 			       phydbl (*prior_func)(t_tree *), 
-			       phydbl (*like_func)(t_tree *), 
-			       t_tree *tree);
+			       phydbl (*like_func)(t_edge *,t_tree *,supert_tree *),
+			       int move_type,
+			       t_edge *branch, t_tree *tree, supert_tree *stree);
 void MCMC_Scale_Br_Lens(t_tree *tree);
+void MCMC_Update_Mean_Br_Len(t_tree *tree);
+void MCMC_Update_Cov_Br_Len(t_tree *tree);
+void MCMC_Sim_Rate(t_node *a, t_node *d, t_tree *tree);
+void Fill_All_Param(t_mcmc *mcmc, t_rate *rate, t_tree *tree);
+int Get_Param_Num(t_mcmc *mcmc, phydbl *param);
+void MCMC_Complete_MCMC(t_mcmc *mcmc, t_tree *tree);
+
 
 
 
