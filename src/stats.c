@@ -379,8 +379,8 @@ phydbl *Rnorm_Multid_Trunc(phydbl *mean, phydbl *cov, phydbl *min, phydbl *max, 
   phydbl up, low, rec;
   int err;
   
-  u = (phydbl *)mCalloc(dim,sizeof(dim)); 
-  x = (phydbl *)mCalloc(dim,sizeof(dim));
+  u = (phydbl *)mCalloc(dim,sizeof(phydbl)); 
+  x = (phydbl *)mCalloc(dim,sizeof(phydbl));
  
   L = Cholesky_Decomp(cov,dim);
   
