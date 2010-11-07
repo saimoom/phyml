@@ -1684,35 +1684,35 @@ phydbl *Hessian(t_tree *tree)
 
   /* Fit a straight line to the log-likelihood (i.e., an exponential to the likelihood) */
   /* It is only a straight line when considering branch length (rather than log(branch lengths)) */
-/*   For(i,dim) */
-/*     if((tree->t_edges[i]->l / tree->mod->l_min < 1.1) && */
-/*        (tree->t_edges[i]->l / tree->mod->l_min > 0.9)) */
-/*       { */
-/* 	phydbl *x,*y,l; */
-/* 	phydbl cov,var; */
+  For(i,dim)
+    if((tree->t_edges[i]->l / tree->mod->l_min < 1.1) &&
+       (tree->t_edges[i]->l / tree->mod->l_min > 0.9))
+      {
+	phydbl *x,*y,l;
+	phydbl cov,var;
 	
-/* 	x=plus_plus; */
-/* 	y=minus_minus; */
-/* 	l=(tree->mod->log_l == YES)?(EXP(tree->t_edges[i]->l)):(tree->t_edges[i]->l); /\* Get actual branch length *\/ */
+	x=plus_plus;
+	y=minus_minus;
+	l=(tree->mod->log_l == YES)?(EXP(tree->t_edges[i]->l)):(tree->t_edges[i]->l); /* Get actual branch length */
 	
-/* 	For(j,dim) */
-/* 	  { */
-/* 	    x[j] = l + (100.*l-l)*((phydbl)j/dim); */
-/* 	    tree->t_edges[i]->l = (tree->mod->log_l)?(LOG(x[j])):(x[j]); /\* Transform to log if necessary *\/ */
-/* 	    y[j] = Lk_At_Given_Edge(tree->t_edges[i],tree); */
-/* 	    tree->t_edges[i]->l = (tree->mod->log_l)?(LOG(l)):(l); /\* Go back to initial edge length *\/ */
-/* 	  } */
+	For(j,dim)
+	  {
+	    x[j] = l + (100.*l-l)*((phydbl)j/dim);
+	    tree->t_edges[i]->l = (tree->mod->log_l)?(LOG(x[j])):(x[j]); /* Transform to log if necessary */
+	    y[j] = Lk_At_Given_Edge(tree->t_edges[i],tree);
+	    tree->t_edges[i]->l = (tree->mod->log_l)?(LOG(l)):(l); /* Go back to initial edge length */
+	  }
 	
-/* 	cov = Covariance(x,y,dim); */
-/* 	var = Covariance(x,x,dim); */
+	cov = Covariance(x,y,dim);
+	var = Covariance(x,x,dim);
 	
-/* 	/\* cov/var is minus the parameter of the exponential distribution. */
-/* 	   The variance is therefore : *\/ */
-/* 	hessian[i*dim+i] = 1.0 / pow(cov/var,2); */
+	/* cov/var is minus the parameter of the exponential distribution.
+	   The variance is therefore : */
+	hessian[i*dim+i] = 1.0 / pow(cov/var,2);
 	
-/* 	/\* 	    printf("\n. Hessian = %G cov=%G var=%G",hessian[i*dim+i],cov,var); *\/ */
-/*       } */
-/*   /\*     } *\/ */
+	/* 	    printf("\n. Hessian = %G cov=%G var=%G",hessian[i*dim+i],cov,var); */
+      }
+  /*     } */
 
 
   For(i,dim)
