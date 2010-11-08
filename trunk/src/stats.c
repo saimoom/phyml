@@ -955,7 +955,6 @@ phydbl Pnorm_Ihaka_Derived_From_Cody(phydbl x)
 
 /*********************************************************/
 
-
 phydbl Pgamma(phydbl x, phydbl shape, phydbl scale)
 {
   return IncompleteGamma(x/scale,shape,LnGamma(shape));

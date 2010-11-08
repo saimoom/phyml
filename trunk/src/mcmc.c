@@ -53,25 +53,25 @@ void MCMC(t_tree *tree)
       /* Clock rate */
       if(move == tree->mcmc->num_move_clock_r)
 	{
-	  MCMC_Single_Param_Generic(&(tree->rates->clock_r),tree->rates->min_clock,tree->rates->max_clock,move,
-				    NULL,&(tree->c_lnL),
-				    NULL,Wrap_Lk,MCMC_MOVE_SCALE,NULL,tree,NULL);
+/* 	  MCMC_Single_Param_Generic(&(tree->rates->clock_r),tree->rates->min_clock,tree->rates->max_clock,move, */
+/* 				    NULL,&(tree->c_lnL), */
+/* 				    NULL,Wrap_Lk,MCMC_MOVE_SCALE,NULL,tree,NULL); */
 	}
 
 
       /* Nu */
       else if(move == tree->mcmc->num_move_nu)
 	{
-	  MCMC_Single_Param_Generic(&(tree->rates->nu),tree->rates->min_nu,tree->rates->max_nu,move,
-				    NULL,&(tree->rates->c_lnL),
-				    NULL,Wrap_Lk_Rates,MCMC_MOVE_SCALE,NULL,tree,NULL);
+/* 	  MCMC_Single_Param_Generic(&(tree->rates->nu),tree->rates->min_nu,tree->rates->max_nu,move, */
+/* 				    NULL,&(tree->rates->c_lnL), */
+/* 				    NULL,Wrap_Lk_Rates,MCMC_MOVE_SCALE,NULL,tree,NULL); */
 	}
 
 
       /* Tree height */
       else if(move == tree->mcmc->num_move_tree_height)
 	{
-	  MCMC_Tree_Height(tree);
+/* 	  MCMC_Tree_Height(tree); */
 	  /* 	    MCMC_Swing(tree); */
 	}
 
@@ -79,38 +79,38 @@ void MCMC(t_tree *tree)
       /* Subtree height */
       else if(move == tree->mcmc->num_move_subtree_height)
 	{
-	  MCMC_SubTree_Height(tree);
+/* 	  MCMC_SubTree_Height(tree); */
 	}
 
 
       /* Ts/tv ratio */
       else if(move == tree->mcmc->num_move_kappa)
 	{
-	  change = NO;
+/* 	  change = NO; */
 	  
-	  if(tree->rates->lk_approx == NORMAL)
-	    {
-	      tree->rates->lk_approx = EXACT;
-	      if(tree->mcmc->use_data == YES) Lk(tree);
-	      change = YES;
-	    }
+/* 	  if(tree->rates->lk_approx == NORMAL) */
+/* 	    { */
+/* 	      tree->rates->lk_approx = EXACT; */
+/* 	      if(tree->mcmc->use_data == YES) Lk(tree); */
+/* 	      change = YES; */
+/* 	    } */
 	  
-	  MCMC_Single_Param_Generic(&(tree->mod->kappa),0.0,100.,move,
-				    NULL,&(tree->c_lnL),
-				    NULL,Wrap_Lk,MCMC_MOVE_SCALE,NULL,tree,NULL);
+/* 	  MCMC_Single_Param_Generic(&(tree->mod->kappa),0.0,100.,move, */
+/* 				    NULL,&(tree->c_lnL), */
+/* 				    NULL,Wrap_Lk,MCMC_MOVE_SCALE,NULL,tree,NULL); */
 	  
-	  if(change == YES)
-	    {
-	      tree->rates->lk_approx = NORMAL;
-	      if(tree->mcmc->use_data == YES) Lk(tree);
-	    }
+/* 	  if(change == YES) */
+/* 	    { */
+/* 	      tree->rates->lk_approx = NORMAL; */
+/* 	      if(tree->mcmc->use_data == YES) Lk(tree); */
+/* 	    } */
 	}
 
       /* Times */
       else if(move >= tree->mcmc->num_move_nd_t) 
 	{
-	  node_num = move - tree->mcmc->num_move_nd_t + tree->n_otu;
-	  MCMC_One_Time(tree->noeud[node_num]->anc,tree->noeud[node_num],NO,tree);
+/* 	  node_num = move - tree->mcmc->num_move_nd_t + tree->n_otu; */
+/* 	  MCMC_One_Time(tree->noeud[node_num]->anc,tree->noeud[node_num],NO,tree); */
 	}
 
       
@@ -266,8 +266,8 @@ void MCMC_All_Rates(t_tree *tree)
 {
   int i,j,dim,cond;
   phydbl T;
-  phydbl *lambda,*min_r,*max_r,*cov_r, *cond_mean, *cond_cov,*r;
-  phydbl muz,varz;
+  phydbl *lambda,*min_r,*max_r,*cov_r, *cond_mean, *cond_cov,*joint_cov,*r;
+  phydbl varz;
   int nc,nr;
 
   cond = 0;
@@ -278,6 +278,7 @@ void MCMC_All_Rates(t_tree *tree)
   max_r     = tree->rates->_2n_vect3;
   cond_mean = tree->rates->_2n_vect4;
   cond_cov  = tree->rates->_2n2n_vect1;
+  joint_cov = tree->rates->_2n2n_vect2;
   cov_r     = tree->rates->cov_r;
 
   RATES_Fill_Lca_Table(tree);
@@ -297,30 +298,52 @@ void MCMC_All_Rates(t_tree *tree)
   For(i,dim) lambda[i] = (tree->rates->nd_t[tree->noeud[i]->num] - tree->rates->nd_t[tree->noeud[i]->anc->num])/T;
   
   /* Fill in the covariance matrix (joint rates and z) */
-  cov_r[cond*dim+cond] = 0.0;
-  For(i,dim) 
-    { 
+  For(i,dim*dim) joint_cov[i] = .0;
+
+  For(i,dim)
+    {
       if(i != cond)
 	{
-	  cov_r[i*dim+cond] = 0.0;
+	  joint_cov[i*dim+cond] = 0;
 	  For(j,dim)
 	    {
-	      if(j != cond)
-		{
-		  cov_r[i*dim+cond] += lambda[j] * cov_r[i*dim+j];
-		  cov_r[cond*dim+cond] += lambda[j] * lambda[i]  * cov_r[i*dim+j];
-		}
+	      joint_cov[i*dim+cond] += lambda[j] * cov_r[i*dim+j];
 	    }
-	  cov_r[cond*dim+i] = cov_r[i*dim+cond];
+	  joint_cov[cond*dim+i] = joint_cov[i*dim+cond]; /* Symmetry */
 	}
     }
 
-  /* Fill in the conditional mean vector (rates | z) */
-  muz = 1. - lambda[cond];
-  varz = cov_r[cond*dim+cond];
+  /* Cov(z,z) */
+  joint_cov[cond*dim+cond] = 0.0;
+  For(i,dim)
+    {
+      For(j,dim)
+	{
+	  joint_cov[cond*dim+cond] += lambda[j] * lambda[i] * cov_r[i*dim+j];
+	}
+    }
+
+  For(i,dim)
+    {
+      if(i != cond)
+	{
+	  For(j,dim)
+	    {
+	      if(j != cond)
+		joint_cov[i*dim+j] = cov_r[i*dim+j];
+	    }
+	  joint_cov[j*dim+i] = joint_cov[i*dim+j]; /* Symmetry */
+	}
+    }
+
+
+  varz = joint_cov[cond*dim+cond];
   
+  /* Fill in the conditional mean vector */
   nr = 0;
-  For(i,dim) if(i != cond) { cond_mean[nr] = tree->rates->mean_r[i] + cov_r[i*dim+cond]*lambda[cond]/varz; nr++; }
+  For(i,dim) if(i != cond) { cond_mean[nr] = tree->rates->mean_r[i]; nr++; }  
+
+  /* Fill in the conditional covariance matrix */
   nr = nc = 0;
   For(i,dim)
     {
@@ -331,13 +354,14 @@ void MCMC_All_Rates(t_tree *tree)
 	    {
 	      if(j != cond)
 		{
-		  cond_cov[nr*(dim-1)+nc] = cov_r[i*dim+j] - cov_r[i*dim+cond]*cov_r[cond*dim+j]/varz;
+		  cond_cov[nr*(dim-1)+nc] = joint_cov[i*dim+j] - joint_cov[i*dim+cond]*joint_cov[cond*dim+j]/varz;
 		  nc++;
 		}
 	    }
 	  nr++;
 	}
     }
+
 
   /* Sample rates */
   r = Rnorm_Multid_Trunc(cond_mean,cond_cov,min_r,max_r,dim-1);
@@ -346,6 +370,7 @@ void MCMC_All_Rates(t_tree *tree)
 
   tree->rates->nd_r[cond] = 1.;
   For(i,dim) if(i != cond) tree->rates->nd_r[cond] -= lambda[i] * tree->rates->nd_r[i];
+  tree->rates->nd_r[cond] /= lambda[cond];
   
   Free(r);
 
