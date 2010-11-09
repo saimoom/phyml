@@ -64,7 +64,8 @@ int TIMES_main(int argc, char **argv)
   io = (option *)Get_Input(argc,argv);
   r_seed = (io->r_seed < 0)?(time(NULL)):(io->r_seed);
   /* !!!!!!!!!!!!!!!!!!!!!!!! */
-  r_seed = 1264735233;
+/*   r_seed = 1289246338; */
+  r_seed = 1289266727;
   /* sys = system("sleep 5s"); */
 
   srand(r_seed); rand();

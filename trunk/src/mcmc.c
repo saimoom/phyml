@@ -266,26 +266,30 @@ void MCMC_All_Rates(t_tree *tree)
 {
   int i,j,dim,cond;
   phydbl T;
-  phydbl *lambda,*min_r,*max_r,*cov_r, *cond_mean, *cond_cov,*joint_cov,*r;
-  phydbl varz;
-  int nc,nr;
+  phydbl *cov_r,cond_mean, cond_var,*r,*t,*lambda;
+  phydbl min_r;
+  phydbl k;
+  int err;
+  phydbl cov_zic,cov_zii,cov_zcc,mean_zi,mean_zc,zi;
+  phydbl alpha;
+  phydbl sum;
+  int iter;
 
-  cond = 0;
-  dim = 2*tree->n_otu-2;
+  cond = 1;
+  dim  = 2*tree->n_otu-2;
 
-  lambda    = tree->rates->_2n_vect1;
-  min_r     = tree->rates->_2n_vect2;
-  max_r     = tree->rates->_2n_vect3;
-  cond_mean = tree->rates->_2n_vect4;
-  cond_cov  = tree->rates->_2n2n_vect1;
-  joint_cov = tree->rates->_2n2n_vect2;
+  lambda    = tree->rates->_2n_vect3;
   cov_r     = tree->rates->cov_r;
+  r         = tree->rates->nd_r;
+  t         = tree->rates->nd_t;
+  min_r     = tree->rates->min_rate;
 
   RATES_Fill_Lca_Table(tree);
   For(i,dim) tree->rates->mean_r[i] = 1.0;
-  For(i,dim) min_r[i] = tree->rates->min_rate;
-  For(i,dim) max_r[i] = tree->rates->max_rate;
   RATES_Covariance_Mu(tree);
+
+
+
 /*   Free(tree->rates->nd_r); */
 /*   tree->rates->nd_r = Rnorm_Multid_Trunc(tree->rates->mean_r,  */
 /* 					 tree->rates->cov_r,  */
@@ -294,89 +298,53 @@ void MCMC_All_Rates(t_tree *tree)
 /* 					 dim); */
 
   T = .0;
-  For(i,dim) T += (tree->rates->nd_t[tree->noeud[i]->num] - tree->rates->nd_t[tree->noeud[i]->anc->num]);
-  For(i,dim) lambda[i] = (tree->rates->nd_t[tree->noeud[i]->num] - tree->rates->nd_t[tree->noeud[i]->anc->num])/T;
-  
-  /* Fill in the covariance matrix (joint rates and z) */
-  For(i,dim*dim) joint_cov[i] = .0;
+  For(i,dim) T += (t[tree->noeud[i]->num] - t[tree->noeud[i]->anc->num]);
+  For(i,dim) lambda[i] = (t[tree->noeud[i]->num] - t[tree->noeud[i]->anc->num])/T;
+  For(i,dim) r[i] = 1.0;
 
-  For(i,dim)
+  k = 1.;
+
+  iter = 0;
+  do
     {
-      if(i != cond)
-	{
-	  joint_cov[i*dim+cond] = 0;
-	  For(j,dim)
+      sum = 0.0;
+      For(i,dim)
+	{      
+	  if(i != cond)
 	    {
-	      joint_cov[i*dim+cond] += lambda[j] * cov_r[i*dim+j];
-	    }
-	  joint_cov[cond*dim+i] = joint_cov[i*dim+cond]; /* Symmetry */
-	}
-    }
+	      cov_zic = lambda[i]    * lambda[cond] * cov_r[i*dim+cond];
+	      cov_zii = lambda[i]    * lambda[i]    * cov_r[i*dim+i];
+	      cov_zcc = lambda[cond] * lambda[cond] * cov_r[cond*dim+cond];
+	      
+	      mean_zi = lambda[i];
+	      mean_zc = lambda[cond];
+	      
+	      alpha = k;
+	      For(j,dim) if(j != cond && j != i) alpha -= lambda[j] * r[j];
+	      
+	      cond_mean = mean_zi + (cov_zii + cov_zic) / (cov_zii + 2.*cov_zic + cov_zcc) * (alpha - mean_zi - mean_zc);
+	      cond_var  = cov_zii - POW(cov_zii + cov_zic,2)/(cov_zii + 2.*cov_zic + cov_zcc);
+	      
+/* 	      printf("\n. cond_mean = %f cond_var = %f",cond_mean,cond_var); */
 
-  /* Cov(z,z) */
-  joint_cov[cond*dim+cond] = 0.0;
-  For(i,dim)
-    {
-      For(j,dim)
-	{
-	  joint_cov[cond*dim+cond] += lambda[j] * lambda[i] * cov_r[i*dim+j];
-	}
-    }
-
-  For(i,dim)
-    {
-      if(i != cond)
-	{
-	  For(j,dim)
-	    {
-	      if(j != cond)
-		joint_cov[i*dim+j] = cov_r[i*dim+j];
-	    }
-	  joint_cov[j*dim+i] = joint_cov[i*dim+j]; /* Symmetry */
-	}
-    }
-
-
-  varz = joint_cov[cond*dim+cond];
-  
-  /* Fill in the conditional mean vector */
-  nr = 0;
-  For(i,dim) if(i != cond) { cond_mean[nr] = tree->rates->mean_r[i]; nr++; }  
-
-  /* Fill in the conditional covariance matrix */
-  nr = nc = 0;
-  For(i,dim)
-    {
-      if(i != cond)
-	{
-	  nc = 0;
-	  For(j,dim)
-	    {
-	      if(j != cond)
+	      err = NO;
+	      zi = Rnorm_Trunc(cond_mean,SQRT(cond_var),
+			       MIN(lambda[i]*min_r,alpha - lambda[cond]*min_r),
+			       MAX(lambda[i]*min_r,alpha - lambda[cond]*min_r),&err);
+	      if(err == YES)
 		{
-		  cond_cov[nr*(dim-1)+nc] = joint_cov[i*dim+j] - joint_cov[i*dim+cond]*joint_cov[cond*dim+j]/varz;
-		  nc++;
+		  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+		  Exit("\n");
 		}
+	      sum += zi;
+	      r[i] = zi / lambda[i];
 	    }
-	  nr++;
 	}
-    }
-
-
-  /* Sample rates */
-  r = Rnorm_Multid_Trunc(cond_mean,cond_cov,min_r,max_r,dim-1);
-  nr = 0;
-  For(i,dim) if(i != cond) { tree->rates->nd_r[i] = r[nr]; nr++; }
-
-  tree->rates->nd_r[cond] = 1.;
-  For(i,dim) if(i != cond) tree->rates->nd_r[cond] -= lambda[i] * tree->rates->nd_r[i];
-  tree->rates->nd_r[cond] /= lambda[cond];
-  
-  Free(r);
-
+      r[cond] = (k - sum)/lambda[cond];
+    }while(iter++ < 20);
 }
-
-/*********************************************************/
+  
+  /*********************************************************/
 void MCMC_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree)
 {
   t_edge *b;

@@ -2561,6 +2561,7 @@ void RATES_Covariance_Mu(t_tree *tree)
   var = dt * tree->rates->nu;
   tree->rates->cov_r[tree->n_root->v[0]->num*dim+tree->n_root->v[0]->num] = var;
 
+
   dt = tree->rates->nd_t[tree->n_root->v[1]->num] - tree->rates->nd_t[tree->n_root->num];
   var = dt * tree->rates->nu;
   tree->rates->cov_r[tree->n_root->v[1]->num*dim+tree->n_root->v[1]->num] = var;
