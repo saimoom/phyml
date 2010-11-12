@@ -164,6 +164,8 @@ void RATES_Update_Mean_Br_Len(int iter, t_tree *tree);
 void RATES_Update_Cov_Br_Len(int iter, t_tree *tree);
 void RATES_Set_Mean_L(t_tree *tree);
 void RATES_Fill_All_Param(t_rate *rate, t_tree *tree);
+void RATES_Record_Rates(t_tree *tree);
+void RATES_Reset_Rates(t_tree *tree);
 
 
 #endif

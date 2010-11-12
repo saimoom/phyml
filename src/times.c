@@ -65,7 +65,9 @@ int TIMES_main(int argc, char **argv)
   r_seed = (io->r_seed < 0)?(time(NULL)):(io->r_seed);
   /* !!!!!!!!!!!!!!!!!!!!!!!! */
 /*   r_seed = 1289246338; */
-  r_seed = 1289266727;
+/*   r_seed = 1289266727; */
+/*   r_seed = 1289422815; */
+  r_seed = 1289443891;
   /* sys = system("sleep 5s"); */
 
   srand(r_seed); rand();

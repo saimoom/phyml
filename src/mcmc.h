@@ -103,8 +103,10 @@ void MCMC_Sim_Rate(t_node *a, t_node *d, t_tree *tree);
 void Fill_All_Param(t_mcmc *mcmc, t_rate *rate, t_tree *tree);
 int Get_Param_Num(t_mcmc *mcmc, phydbl *param);
 void MCMC_Complete_MCMC(t_mcmc *mcmc, t_tree *tree);
-void MCMC_All_Rates(t_tree *tree);
-
+void MCMC_Sample_Joint_Rates_Prior(t_tree *tree);
+void MCMC_Sample_Joint_Rates_Posterior(t_tree *tree);
+void MCMC_Pair_Rates_Constraint(t_node *a, t_node *d, int traversal, t_tree *tree);
+void MCMC_Times_And_Rates(t_node *a, t_node *d, int traversal, t_tree *tree);
 
 
 

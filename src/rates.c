@@ -714,9 +714,10 @@ t_rate *RATES_Make_Rate_Struct(int n_otu)
   
   rates                 = (t_rate  *)mCalloc(1,sizeof(t_rate));
   rates->nd_r           = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
+  rates->buff_r         = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
   rates->true_r         = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
   rates->nd_t           = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
-  rates->old_t          = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
+  rates->buff_t          = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
   rates->true_t         = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
   rates->t_mean         = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
   rates->t_prior        = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
@@ -757,8 +758,9 @@ t_rate *RATES_Make_Rate_Struct(int n_otu)
 void Free_Rates(t_rate *rates)
 {
   Free(rates->nd_r);
+  Free(rates->buff_r);
   Free(rates->true_r);
-  Free(rates->old_t);
+  Free(rates->buff_t);
   Free(rates->nd_t);
   Free(rates->true_t);
   Free(rates->t_prior);
@@ -819,7 +821,7 @@ void RATES_Init_Rate_Struct(t_rate *rates, int n_otu)
   rates->min_clock     = 1.E-10;
 
   rates->nu            = 1.E-3;
-  rates->max_nu        = 1.E+1;
+  rates->max_nu        = 1.E+2;
   rates->min_nu        = 1.E-10;
   rates->lbda_nu       = 1.E+3;
 
@@ -3277,7 +3279,7 @@ void RATES_Set_Mean_L(t_tree *tree)
 void RATES_Record_Times(t_tree *tree)
 {
   int i;
-  For(i,2*tree->n_otu-1) tree->rates->old_t[i] = tree->rates->nd_t[i];
+  For(i,2*tree->n_otu-1) tree->rates->buff_t[i] = tree->rates->nd_t[i];
 }
 
 /*********************************************************/
@@ -3285,11 +3287,25 @@ void RATES_Record_Times(t_tree *tree)
 void RATES_Reset_Times(t_tree *tree)
 {
   int i;
-  For(i,2*tree->n_otu-1) tree->rates->nd_t[i] = tree->rates->old_t[i];
+  For(i,2*tree->n_otu-1) tree->rates->nd_t[i] = tree->rates->buff_t[i];
 }
 
 /*********************************************************/
+
+void RATES_Record_Rates(t_tree *tree)
+{
+  int i;
+  For(i,2*tree->n_otu-2) tree->rates->buff_r[i] = tree->rates->nd_r[i];
+}
+
 /*********************************************************/
+
+void RATES_Reset_Rates(t_tree *tree)
+{
+  int i;
+  For(i,2*tree->n_otu-2) tree->rates->nd_r[i] = tree->rates->buff_r[i];
+}
+
 /*********************************************************/
 /*********************************************************/
 /*********************************************************/

@@ -3121,6 +3121,90 @@ phydbl Covariance(phydbl *x, phydbl *y, int n)
 }
 
 /*********************************************************/
+/* Sample X from a multivariate normal with mean mu and covariance cov, within
+   the interval [min,max], under the linear constraint X.lambda=k 
+*/
+   
+phydbl *Rnorm_Multid_Trunc_Constraint(phydbl *mu, phydbl *cov, phydbl *min, phydbl *max, phydbl *lambda, phydbl k, phydbl *res, int len)
+{
+
+  phydbl *loc_res;
+  int i,j,cond,iter;
+  phydbl *x;
+  phydbl cond_mean,cond_var;
+  phydbl cov_zic,cov_zii,cov_zcc;
+  phydbl mean_zi, mean_zc;
+  phydbl alpha;
+  phydbl sum;
+  int err;
+  phydbl zi;
+
+
+  cond    = 0;
+
+  loc_res = NULL;
+  if(!res) 
+    {
+      loc_res = (phydbl *)mCalloc(len,sizeof(phydbl));
+      x = loc_res;
+    }
+  else x = res;
+  
+
+
+  /* zi = x[i] . lambda[i] */
+
+  iter = 0;
+  do
+    {
+      sum = 0.0;
+      For(i,len)
+	{      
+	  if(i != cond)
+	    {
+	      cov_zic = lambda[i]    * lambda[cond] * cov[i*len+cond];
+	      cov_zii = lambda[i]    * lambda[i]    * cov[i*len+i];
+	      cov_zcc = lambda[cond] * lambda[cond] * cov[cond*len+cond];
+	      
+	      mean_zi = lambda[i];
+	      mean_zc = lambda[cond];
+	      
+	      /* alpha = k - \sum_{j != cond, j !=i} z_j */
+	      alpha = k;
+	      For(j,len) if(j != cond && j != i) alpha -= lambda[j] * x[j];
+	      
+	      cond_mean = mean_zi + (cov_zii + cov_zic) / (cov_zii + 2.*cov_zic + cov_zcc) * (alpha - mean_zi - mean_zc);
+	      cond_var  = cov_zii - POW(cov_zii + cov_zic,2)/(cov_zii + 2.*cov_zic + cov_zcc);
+	      
+	      if(lambda[i]*min[i] > alpha - lambda[cond]*min[i])
+		{
+		  PhyML_Printf("\n. Cannot satisfy the constraint.\n");
+		  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+		  Exit("\n");
+		}
+
+	      err = NO;
+	      zi = Rnorm_Trunc(cond_mean,SQRT(cond_var),
+			       MAX(lambda[i]*min[i],alpha-lambda[cond]*max[cond]),
+			       MIN(lambda[i]*max[i],alpha-lambda[cond]*min[cond]),&err);
+	      if(err == YES)
+		{
+		  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+		  Exit("\n");
+		}
+	      sum += zi;
+	      x[i] = zi / lambda[i];
+	    }
+	}
+      
+      x[cond] = (k - sum)/lambda[cond];
+    
+    }while(iter++ < 10);
+
+  return(loc_res);
+
+}
+
 /*********************************************************/
 /*********************************************************/
 /*********************************************************/
