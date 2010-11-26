@@ -28,7 +28,8 @@ void MCMC(t_tree *tree)
     {
       MCMC_Randomize_Nu(tree);
       MCMC_Randomize_Node_Times(tree);
-      MCMC_Sample_Joint_Rates_Prior(tree);
+      /* !!!!!!!!!!!!!! */
+/*       MCMC_Sample_Joint_Rates_Prior(tree); */
       MCMC_Randomize_Clock_Rate(tree); /* Clock Rate must be the last parameter to be randomized */
     }
 
@@ -39,6 +40,7 @@ void MCMC(t_tree *tree)
 
   Update_Ancestors(tree->n_root,tree->n_root->v[0],tree);
   Update_Ancestors(tree->n_root,tree->n_root->v[1],tree);
+
 
   RATES_Update_Cur_Bl(tree);
   RATES_Lk_Rates(tree);
@@ -109,8 +111,17 @@ void MCMC(t_tree *tree)
       /* Times */
       else if(move >= tree->mcmc->num_move_nd_t) 
 	{
-	  MCMC_Times_And_Rates(tree->n_root,tree->n_root->v[0],YES,tree);
-	  MCMC_Times_And_Rates(tree->n_root,tree->n_root->v[1],YES,tree);
+/* 	  MCMC_Pair_Rates_Constraint(NULL,tree->n_root,YES,NO,tree); */
+
+/* 	  int node_num; */
+/* 	  For(i,tree->n_otu-2) */
+/* 	    { */
+/* 	      node_num = Rand_Int(tree->n_otu,2*tree->n_otu-3); */
+/* 	      MCMC_Times_And_Rates(tree->noeud[node_num]->anc,tree->noeud[node_num],NO,tree); */
+/* 	    } */
+
+/* 	  MCMC_Times_And_Rates(tree->n_root,tree->n_root->v[1],YES,tree); */
+/* 	  MCMC_Times_And_Rates(tree->n_root,tree->n_root->v[0],YES,tree); */
 
 /* 	  node_num = move - tree->mcmc->num_move_nd_t + tree->n_otu; */
 /* 	  MCMC_One_Time(tree->noeud[node_num]->anc,tree->noeud[node_num],YES,tree); */
@@ -126,7 +137,7 @@ void MCMC(t_tree *tree)
       else if(move >= tree->mcmc->num_move_nd_r) 
 	{
 /* 	  MCMC_Sample_Joint_Rates_Posterior(tree); */
-/* 	  MCMC_Pair_Rates_Constraint(NULL,tree->n_root,YES,tree); */
+ 	  MCMC_Pair_Rates_Constraint(NULL,tree->n_root,YES,YES,tree);
 
 /* 	  tree->both_sides = YES; */
 /* 	  if(tree->mcmc->use_data == YES) Lk(tree); */
@@ -468,7 +479,7 @@ void MCMC_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree)
 
 /*********************************************************/
 
-void MCMC_Pair_Rates_Constraint(t_node *a, t_node *d, int traversal, t_tree *tree)
+void MCMC_Pair_Rates_Constraint(t_node *a, t_node *d, int random, int traversal, t_tree *tree)
 {
   phydbl u;
   phydbl new_lnL_data, cur_lnL_data, new_lnL_rate, cur_lnL_rate;
@@ -491,6 +502,7 @@ void MCMC_Pair_Rates_Constraint(t_node *a, t_node *d, int traversal, t_tree *tre
   if(d == tree->n_root)
     {
       v1 = tree->n_root->v[0];
+      v2 = tree->n_root->v[1];
     }
   else
     {
@@ -498,15 +510,17 @@ void MCMC_Pair_Rates_Constraint(t_node *a, t_node *d, int traversal, t_tree *tre
 	{
 	  if(d->v[i] != a && d->b[i] != tree->e_root)
 	    {
-	      v1 = d->v[i];
-	      break;
+	      if(!v1) v1 = d->v[i];
+	      else    v2 = d->v[i];
 	    }
 	}
     }
 
-
-  do { i = Rand_Int(0,2*tree->n_otu-3); }while(i == v1->num);
-  v2 = tree->noeud[i];
+  if(random == YES)
+    {
+      do { i = Rand_Int(0,2*tree->n_otu-3); }while(i == v1->num);
+      v2 = tree->noeud[i];
+    }
 
   cur_r1       = tree->rates->nd_r[v1->num];
   cur_r2       = tree->rates->nd_r[v2->num];
@@ -533,8 +547,8 @@ void MCMC_Pair_Rates_Constraint(t_node *a, t_node *d, int traversal, t_tree *tre
   r1_min = MAX(r1_min,tree->rates->min_rate);
   r1_max = MIN(r1_max,tree->rates->max_rate);
   
-/*   new_r1 = u*(r1_max - r1_min) + r1_min; */
-  new_r1 = cur_r1 * mult;
+  new_r1 = u*(r1_max - r1_min) + r1_min;
+/*   new_r1 = cur_r1 * mult; */
   
 
   if(new_r1 > r1_max || new_r1 < r1_min)
@@ -553,10 +567,11 @@ void MCMC_Pair_Rates_Constraint(t_node *a, t_node *d, int traversal, t_tree *tre
       if(tree->mcmc->use_data) new_lnL_data = Lk(tree);
       new_lnL_rate = RATES_Lk_Rates(tree);
       
-/*       ratio = 0.0; */
-      /*   ratio += new_logr - cur_logr; */
-      ratio += LOG(mult);
-      /*   ratio -= LOG(mult); */
+      ratio = 0.0;
+	/* ratio += new_logr - cur_logr; */
+	/* ratio += LOG(mult); */
+	/* ratio -= LOG(mult); */
+
       ratio += (new_lnL_rate - cur_lnL_rate);
       if(tree->mcmc->use_data) ratio += (new_lnL_data - cur_lnL_data);
       
@@ -589,7 +604,7 @@ void MCMC_Pair_Rates_Constraint(t_node *a, t_node *d, int traversal, t_tree *tre
 	{
 	  if(d->v[i] != a && d->b[i] != tree->e_root)
 	    {
-	      MCMC_Pair_Rates_Constraint(d,d->v[i],YES,tree);
+	      MCMC_Pair_Rates_Constraint(d,d->v[i],random,traversal,tree);
 	    }
 	}
     }
@@ -760,7 +775,10 @@ void MCMC_Times_And_Rates(t_node *a, t_node *d, int traversal, t_tree *tree)
       int i;
       phydbl A,B;
       phydbl t1_min,t1_max;
-
+      phydbl glo_Z,loc_Z,comp_glo_Z;
+      phydbl treesize;
+      int bail;
+      int iter;
 
       v2 = v3 = NULL;
       if(d == tree->n_root)
@@ -780,13 +798,12 @@ void MCMC_Times_And_Rates(t_node *a, t_node *d, int traversal, t_tree *tree)
 		}
 	    }
 	}
-      
-      cur_lnLike = tree->c_lnL;
-      new_lnLike = tree->c_lnL;
+
+      cur_lnLike  = tree->c_lnL;
+      new_lnLike  = tree->c_lnL;
       cur_lnPrior = tree->rates->c_lnL;
       new_lnPrior = tree->rates->c_lnL;
-
-      RATES_Record_Rates(tree);
+      ratio       = 0.0;
 
       min_r = tree->rates->min_rate;
       max_r = tree->rates->max_rate;
@@ -803,97 +820,101 @@ void MCMC_Times_And_Rates(t_node *a, t_node *d, int traversal, t_tree *tree)
       dt1 = t1-t0;
       dt2 = t2-t1;
       dt3 = t3-t1;
-      
-      K = r1*dt1+r2*dt2+r3*dt3;
 
-      /* We want new_z1+new_z2+new_z3=K */
-
-      /* Sample new value of nd_t[d->num] */
-      A = min_r/MIN(MIN(r1,r2),r3);
-      B = max_r/MAX(MAX(r1,r2),r3);
-      if(r1-r2-r3 > 0)
-	{
-	  t1_min = (1./(r1-r2-r3))*(K/B+r1*t0-r2*t2-r3*t3);
-	  t1_max = (1./(r1-r2-r3))*(K/A+r1*t0-r2*t2-r3*t3);
-	}
-      else
-	{
-	  t1_min = (1./(r1-r2-r3))*(K/A+r1*t0-r2*t2-r3*t3);
-	  t1_max = (1./(r1-r2-r3))*(K/B+r1*t0-r2*t2-r3*t3);
-	}
-
-      if(t1_min > t1_max)
-	{
-	  printf("\n0 t1_min = %10f t1_max=%f A=%f B=%f r1-r2-r3=%f",t1_min,t1_max,A,B,r1-r2-r3);
-	  Exit("\n");
-	}
-      t1_min = MAX(t0,t1_min);
-      t1_max = MIN(MIN(t2,t3),t1_max);
+      t1_min = t0;
+      t1_max = MIN(t2,t3);
 
       u = Uni();
       new_t1 = u*(t1_max-t1_min)+t1_min;
       
-      dt1 = new_t1-t0;
-      dt2 = t2-new_t1;
-      dt3 = t3-new_t1;
-
-      new_K = r1*dt1+r2*dt2+r3*dt3;
-      r1 *= K/new_K;
-      r2 *= K/new_K;
-      r3 *= K/new_K;
+      /* !!!!!!!!!!!!!! */
+      new_t1 = t1;
 
 
-      /* Max and min value that z1 can take given the constraint z1+z2+z3=K */
-      min_z1 = MAX(K - max_r*dt3 - r2*dt2, min_r*dt1);
-      max_z1 = MIN(K - min_r*dt3 - r2*dt2, max_r*dt1);
+      /* Update node height */
+      tree->rates->nd_t[d->num] = new_t1;
+
+      /* Update tree size */
+      treesize = 0.0;
+      For(i,2*tree->n_otu-2) treesize += tree->rates->nd_t[i] - tree->rates->nd_t[tree->noeud[i]->anc->num];
       
-      u = Uni();
-      z1 = u*(max_z1 - min_z1) + min_z1; /* z1 */
-      r1 = z1/dt1;
-
-      z3 = K-r2*dt2-r1*dt1; /* Update the value of z3 */
-      r3 = z3/dt3;
-
-      /* Max and min value that z2 can take given the constraint z2+z3=K-z1 */
-      min_z2 = MAX(K - max_r*dt3 - r1*dt1, min_r*dt2);
-      max_z2 = MIN(K - min_r*dt3 - r1*dt1, max_r*dt2);
-
-      u = Uni();
-      z2 = u*(max_z2 - min_z2) + min_z2;
-      r2 = z2/dt2;
+      comp_glo_Z = 0.0;
+      For(i,2*tree->n_otu-2) 
+	if((tree->noeud[i] != d)  && 
+	   (tree->noeud[i] != v2) && 
+	   (tree->noeud[i] != v3)) 
+	  comp_glo_Z += tree->rates->nd_r[i]*(tree->rates->nd_t[i] - tree->rates->nd_t[tree->noeud[i]->anc->num]);
       
-      z3 = K-r2*dt2-r1*dt1; /* Update the value of z3 */
-      r3 = z3/dt3;
+      
+      /* Global constraint \sum_i dt_i r_i / \sum_i dt_i = 1.0 */
+      glo_Z = 1.0;
+      /* Local constraint */
+      loc_Z = glo_Z * treesize - comp_glo_Z;
 
 
-      if(r1 < min_r || r1 > max_r)
+      if(loc_Z > 0.0) 
 	{
-	  printf("\n. r1 = %10f",r1);
-	  Exit("\n");
-	}
-      if(r2 < min_r || r2 > max_r)
-	{
-	  printf("\n. r2 = %10f",r2);
-	  Exit("\n");
-	}
-      if(r3 < min_r || r3 > max_r)
-	{
-	  printf("\n. r3 = %10f",r3);
-	  Exit("\n");
-	}
+	  
+	  dt1 = new_t1-t0;
+	  dt2 = t2-new_t1;
+	  dt3 = t3-new_t1;
+	  
+	  new_r1 = r1;
+	  new_r2 = r2;
+	  new_r3 = r3;
+	  
+	  
+	  iter = 0;
+	  do
+	    {
+	      bail = YES;
+	      
+	      /* Max and min value that z1 can take given the constraint z1+z2+z3=loc_Z */
+	      min_z1 = MAX(loc_Z - max_r*dt3 - new_r2*dt2, min_r*dt1);
+	      max_z1 = MIN(loc_Z - min_r*dt3 - new_r2*dt2, max_r*dt1);
+	      
+	      u = Uni();
+	      z1 = u*(max_z1 - min_z1) + min_z1; /* z1 */
+	      new_r1 = z1/dt1;
 
+	      /* Max and min value that z2 can take given the constraint z1+z2+z3=loc_Z */
+	      min_z2 = MAX(loc_Z - max_r*dt3 - new_r1*dt1, min_r*dt2);
+	      max_z2 = MIN(loc_Z - min_r*dt3 - new_r1*dt1, max_r*dt2);
+	      
+	      u = Uni();
+	      z2 = u*(max_z2 - min_z2) + min_z2;
+	      new_r2 = z2/dt2;
+	      
+	      z3 = loc_Z-new_r2*dt2-new_r1*dt1; /* Update the value of z3 */
+	      new_r3 = z3/dt3;	  
+	      
 
-      tree->rates->nd_r[d->num]  = r1;
-      tree->rates->nd_r[v2->num] = r2;
-      tree->rates->nd_r[v3->num] = r3;
-      tree->rates->nd_t[d->num]  = new_t1;
+	      if(new_r1 < min_r || new_r1 > max_r) { bail = NO; }
+	      if(new_r2 < min_r || new_r2 > max_r) { bail = NO; }
+	      if(new_r3 < min_r || new_r3 > max_r) { bail = NO; }
+	      
+	      if(iter++ > 1000)
+		{
+		  PhyML_Printf("\n. loc_Z = %f r1=%f r2=%f r3=%f dt1=%f dt2=%f dt3=%f",loc_Z,new_r1,new_r2,new_r3,dt1,dt2,dt3);
+		  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+		  Warn_And_Exit("");
+		}
+	      
+	    }while(bail == NO && iter < 100);
+	  
+	  tree->rates->nd_r[d->num]  = new_r1;
+	  tree->rates->nd_r[v2->num] = new_r2;
+	  tree->rates->nd_r[v3->num] = new_r3;
+	}
+      else
+	{
+	  tree->rates->nd_t[d->num] = t1;	  
+	}
 
       RATES_Update_Cur_Bl(tree);
-           
       if(tree->mcmc->use_data) new_lnLike = Lk(tree);
       new_lnPrior = RATES_Lk_Rates(tree);
       
-      ratio = 0.0;
       ratio += (new_lnPrior - cur_lnPrior);
       if(tree->mcmc->use_data) ratio += (new_lnLike - cur_lnLike);
       
@@ -904,13 +925,16 @@ void MCMC_Times_And_Rates(t_node *a, t_node *d, int traversal, t_tree *tree)
       
       if(u > alpha) /* Reject */
 	{
-	  RATES_Reset_Rates(tree);
-	  tree->rates->nd_t[d->num] = t1;
+	  tree->rates->nd_t[d->num]  = t1;
+	  tree->rates->nd_r[d->num]  = r1;
+	  tree->rates->nd_r[v2->num] = r2;
+	  tree->rates->nd_r[v3->num] = r3;
 	  RATES_Update_Cur_Bl(tree);
 	  tree->c_lnL        = cur_lnLike;
 	  tree->rates->c_lnL = cur_lnPrior;
 	}
       
+
       if(traversal == YES)
 	{
 	  For(i,3)
@@ -1220,7 +1244,7 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
 /* 				tree->noeud[i] == tree->n_root?"*":"", */
 /* 	  			i,tree->noeud[i]->rank,tree->noeud[i]->rank_max); */
 /* 	  	  PhyML_Fprintf(fp,"T%d[%7.1f;%7.1f]\t",i,tree->rates->t_prior_min[i],tree->rates->t_prior_max[i]); */
-	  	  PhyML_Fprintf(fp,"T%d\t",i);
+	  	  PhyML_Fprintf(fp,"T%d%s\t",i,tree->noeud[i] == tree->n_root?"*":"");
 	  	}
 	    }
 
@@ -1234,7 +1258,7 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
 	  	  else if(tree->noeud[i] == tree->n_root->v[1])
 	  	    PhyML_Fprintf(fp,"1R%d\t",i);
 	  	  else
-	  	    PhyML_Fprintf(fp," R%d\t",i);
+	  	    PhyML_Fprintf(fp," R%d(%d)\t",i,tree->noeud[i]->anc->num);
 
 /* 		  PhyML_Fprintf(fp," R%d[%f]\t",i,tree->rates->mean_l[i]); */
 	  	}
@@ -1280,10 +1304,10 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
 
 
       tree->rates->lk_approx = (tree->rates->lk_approx == NORMAL)?EXACT:NORMAL;
-      Lk(tree);
+      if(tree->mcmc->use_data)  Lk(tree);  else tree->c_lnL = 0.0;
       PhyML_Fprintf(fp,"%.1f\t",(tree->mcmc->use_data)?tree->c_lnL:0.0);
       tree->rates->lk_approx = (tree->rates->lk_approx == NORMAL)?EXACT:NORMAL;
-      Lk(tree);
+      if(tree->mcmc->use_data)  Lk(tree);  else tree->c_lnL = 0.0;
       PhyML_Fprintf(fp,"%.1f\t",(tree->mcmc->use_data)?tree->c_lnL:0.0);
 
 /*       PhyML_Fprintf(fp,"0\t0\t"); */
