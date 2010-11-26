@@ -1648,7 +1648,6 @@ matrix *ML_Dist(calign *data, model *mod)
   phydbl *F;
   eigen *eigen_struct;
 
-
   tmpdata         = (calign *)mCalloc(1,sizeof(calign));
   tmpdata->c_seq  = (align **)mCalloc(2,sizeof(align *));
   tmpdata->b_frq  = (phydbl *)mCalloc(mod->ns,sizeof(phydbl));
@@ -1690,7 +1689,7 @@ matrix *ML_Dist(calign *data, model *mod)
 	  tmpdata->c_seq[1]->name = data->c_seq[k]->name;
 
 	  twodata = Compact_Cdata(tmpdata,mod->io);
-	  For(l,mod->ns) twodata->b_frq[l] = data->b_frq[l];
+
 	  Check_Ambiguities(twodata,mod->io->datatype,mod->io->mod->state_len);
 	  
 	  Hide_Ambiguities(twodata);
@@ -1744,13 +1743,14 @@ matrix *ML_Dist(calign *data, model *mod)
 
   mod->n_catg = n_catg;
     
+  
   Free(tmpdata->ambigu);
   Free(tmpdata->b_frq);
   Free(tmpdata->c_seq);
   free(tmpdata);
   Free_Eigen(eigen_struct);
   Free(F);
-  
+
   return mat;
 }
 

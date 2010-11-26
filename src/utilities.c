@@ -3023,6 +3023,7 @@ void Get_AA_Freqs(calign *data)
   data->b_frq[8]  = fH;  data->b_frq[9]  = fI;  data->b_frq[10] = fL;  data->b_frq[11] = fK;
   data->b_frq[12] = fM;  data->b_frq[13] = fF;  data->b_frq[14] = fP;  data->b_frq[15] = fS;
   data->b_frq[16] = fT;  data->b_frq[17] = fW;  data->b_frq[18] = fY;  data->b_frq[19] = fV;
+
 }
 
 /*********************************************************/
@@ -4998,14 +4999,15 @@ void Print_Fp_Out(FILE *fp_out, time_t t_beg, time_t t_end, t_tree *tree, option
 
   PhyML_Fprintf(fp_out,"\n\n");
   PhyML_Fprintf(fp_out," oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo\n");
-  PhyML_Fprintf(fp_out," Suggested citation:\n");
+  PhyML_Fprintf(fp_out," Suggested citations:\n");
+  PhyML_Fprintf(fp_out," S. Guindon, JF. Dufayard, V. Lefort, M. Anisimova, W. Hordijk, O. Gascuel\n");
+  PhyML_Fprintf(fp_out," \"New algorithms and methods to estimate maximum-likelihood phylogenies: assessing the performance of PhyML 3.0.\"\n");
+  PhyML_Fprintf(fp_out," Systematic Biology. 2010. 59(3):307-321.\n");
+  PhyML_Fprintf(fp_out,"\n");
   PhyML_Fprintf(fp_out," S. Guindon & O. Gascuel\n");
   PhyML_Fprintf(fp_out," \"A simple, fast, and accurate algorithm to estimate large phylogenies by maximum likelihood\"\n");
   PhyML_Fprintf(fp_out," Systematic Biology. 2003. 52(5):696-704.\n");
   PhyML_Fprintf(fp_out," oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo\n");
-
-
-
 }
 
 /*********************************************************/
@@ -11169,13 +11171,13 @@ void Read_Clade_Priors(char *file_name, t_tree *tree)
 	      if(FABS(prior_low - prior_up) < 1.E-6 && tree->noeud[node_num]->tax == YES)
 		tree->rates->nd_t[node_num] = prior_low;
 
-	      PhyML_Printf("\n");
-	      PhyML_Printf("\n. [%3d]>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",n_clade_priors);
-	      PhyML_Printf("\n. Node %4d matches the clade with the following taxa names:",node_num);
-	      For(i,clade_size) PhyML_Printf("\n. - \"%s\"",clade_list[i]);
-	      PhyML_Printf("\n. Lower bound set to: %15f time units.",MIN(prior_low,prior_up)); 
-	      PhyML_Printf("\n. Upper bound set to: %15f time units.",MAX(prior_low,prior_up)); 
-	      PhyML_Printf("\n. <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+/* 	      PhyML_Printf("\n"); */
+/* 	      PhyML_Printf("\n. [%3d]>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",n_clade_priors); */
+/* 	      PhyML_Printf("\n. Node %4d matches the clade with the following taxa names:",node_num); */
+/* 	      For(i,clade_size) PhyML_Printf("\n. - \"%s\"",clade_list[i]); */
+/* 	      PhyML_Printf("\n. Lower bound set to: %15f time units.",MIN(prior_low,prior_up));  */
+/* 	      PhyML_Printf("\n. Upper bound set to: %15f time units.",MAX(prior_low,prior_up));  */
+/* 	      PhyML_Printf("\n. <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"); */
 	    }
 	}
     }

@@ -811,8 +811,8 @@ void RATES_Init_Rate_Struct(t_rate *rates, int n_otu)
   rates->birth_rate       = 0.001;
   rates->norm_fact        = 1.0;
 
-  rates->max_rate      = 1.E+2;
-  rates->min_rate      = 1.E-5;
+  rates->max_rate      = 1.E+8;
+  rates->min_rate      = 1.E-10;
 /*   rates->max_rate      = 1.E+4; */
 /*   rates->min_rate      = -1.E+4; */
 

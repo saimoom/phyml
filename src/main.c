@@ -157,7 +157,6 @@ int main(int argc, char **argv)
 		      tree->update_alias_subpatt = NO;
 		    }
 
-
 		  if(tree->mod->s_opt->opt_topo)
 		    {
 		      if(tree->mod->s_opt->topo_search      == NNI_MOVE) Simu_Loop(tree);

@@ -67,7 +67,8 @@ int TIMES_main(int argc, char **argv)
 /*   r_seed = 1289246338; */
 /*   r_seed = 1289266727; */
 /*   r_seed = 1289422815; */
-  r_seed = 1289443891;
+/*   r_seed = 1289443891; */
+  r_seed = 1290652518;
   /* sys = system("sleep 5s"); */
 
   srand(r_seed); rand();
