@@ -493,20 +493,27 @@ phydbl Log_Dnorm_Trunc(phydbl x, phydbl mean, phydbl sd, phydbl lo, phydbl up, i
 
   if(*err == YES)
     {
-      PhyML_Printf("\n. mean=%f sd=%f lo=%f up=%f cdf_lo=%G CDF_up=%G",mean,sd,lo,up,cdf_lo,cdf_up);
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. mean=%f sd=%f lo=%f up=%f cdf_lo=%G CDF_up=%G log_dens=%G",mean,sd,lo,up,cdf_lo,cdf_up,log_dens);
+      PhyML_Printf("\n. Warning in file %s at line %d\n",__FILE__,__LINE__);
       *err = YES;
     }
 
   cdf_up = Pnorm(up,mean,sd);
   cdf_lo = Pnorm(lo,mean,sd);
 
-  log_dens -= LOG(cdf_up - cdf_lo);
+  if(cdf_up - cdf_lo < 1.E-20)
+    {
+      log_dens = -230.; /* ~LOG(1.E-100) */
+    }
+  else
+    {
+      log_dens -= LOG(cdf_up - cdf_lo);
+    }
 
   if(isnan(log_dens) || isinf(FABS(log_dens)))
     {
-      PhyML_Printf("\n. x=%f mean=%f sd=%f lo=%f up=%f cdf_lo=%G CDF_up=%G",x,mean,sd,lo,up,cdf_lo,cdf_up);
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n. x=%f mean=%f sd=%f lo=%f up=%f cdf_lo=%G CDF_up=%G log_dens=%G",x,mean,sd,lo,up,cdf_lo,cdf_up,log_dens);
+      PhyML_Printf("\n. Warning in file %s at line %d\n",__FILE__,__LINE__);
       *err = YES;
     }
 

@@ -11852,6 +11852,46 @@ void Scale_Node_Heights_Post(t_node *a, t_node *d, phydbl K, phydbl floor, int *
 
 /*********************************************************/
 
+void Scale_Subtree_Rates(t_node *a, phydbl mult, t_tree *tree)
+{
+  if(a == tree->n_root)
+    {
+      Scale_Subtree_Rates_Post(a,a->v[0],mult,tree);
+      Scale_Subtree_Rates_Post(a,a->v[1],mult,tree);
+    }
+  else
+    {
+      int i;
+      For(i,3) if(a->v[i] != a->anc && a->b[i] != tree->e_root) Scale_Subtree_Rates_Post(a,a->v[i],mult,tree);
+    }
+}
+
+/*********************************************************/
+
+void Scale_Subtree_Rates_Post(t_node *a, t_node *d, phydbl mult, t_tree *tree)
+{
+
+  tree->rates->nd_r[d->num] *= mult;
+
+  if(d->tax) return;
+  else
+    {
+      int i;
+
+      For(i,3)
+	{
+	  if(d->v[i] != a && d->b[i] != tree->e_root)
+	    {
+	      Scale_Subtree_Rates_Post(d,d->v[i],mult,tree);
+	    }
+	}
+    }
+}
+
+/*********************************************************/
+/*********************************************************/
+
+
 void Get_Node_Ranks(t_tree *tree)
 {
   tree->n_root->rank = 1;

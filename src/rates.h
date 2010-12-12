@@ -128,7 +128,7 @@ void RATES_Posterior_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree)
 void Free_Rates(t_rate *rates);
 void RATES_Initialize_True_Rates(t_tree *tree);
 void RATES_Posterior_Times(t_tree *tree);
-void RATES_Posterior_One_Time(t_node *a, t_node *d, t_tree *tree);
+void RATES_Posterior_One_Time(t_node *a, t_node *d, int traversal, t_tree *tree);
 void RATES_Update_Cur_Bl(t_tree *tree);
 void RATES_Update_Cur_Bl_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree);
 void RATES_Get_Cov_Matrix_Rooted(phydbl *unroot_cov, t_tree *tree);

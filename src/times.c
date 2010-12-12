@@ -68,7 +68,7 @@ int TIMES_main(int argc, char **argv)
 /*   r_seed = 1289266727; */
 /*   r_seed = 1289422815; */
 /*   r_seed = 1289443891; */
-  r_seed = 1290652518;
+/*   r_seed = 1290652518; */
   /* sys = system("sleep 5s"); */
 
   srand(r_seed); rand();
@@ -219,6 +219,7 @@ int TIMES_main(int argc, char **argv)
 		  MCMC(tree);
 		  MCMC_Close_MCMC(tree->mcmc);
 
+		  
 		  new_mcmc = MCMC_Make_MCMC_Struct(tree);
 		  MCMC_Complete_MCMC(new_mcmc,tree);
 		  MCMC_Copy_MCMC_Struct(tree->mcmc,new_mcmc,"phytime");
@@ -229,6 +230,7 @@ int TIMES_main(int argc, char **argv)
 		  tree->mcmc->randomize       = NO;
 		  tree->mcmc->adjust_tuning   = NO;
 		  
+
 		  time(&t_beg);
 		  PhyML_Printf("\n. Sampling the %s density...\n",(tree->mcmc->use_data)?"posterior":"prior");
 		  MCMC(tree);
