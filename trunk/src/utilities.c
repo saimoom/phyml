@@ -4985,7 +4985,7 @@ void Print_Fp_Out(FILE *fp_out, time_t t_beg, time_t t_end, t_tree *tree, option
 
 
   PhyML_Fprintf(fp_out,"\n");
-  PhyML_Fprintf(fp_out,"\n. Run ID:\t\t\t\t%s", (io->append_run_ID) ? (io->run_id_string): ("none"));
+  PhyML_Fprintf(fp_out,"\n. Run ID:\t\t\t\t%s", (io->appebr_run_ID) ? (io->run_id_string): ("none"));
   PhyML_Fprintf(fp_out,"\n. Random seed:\t\t\t\t%d", io->r_seed);
   PhyML_Fprintf(fp_out,"\n. Subtree patterns aliasing:\t\t%s",io->do_alias_subpatt?"yes":"no");
   PhyML_Fprintf(fp_out,"\n. Version:\t\t\t\t%s", VERSION);
@@ -6478,7 +6478,7 @@ void Set_Defaults_Input(option* io)
   io->print_site_lnl             = 0;
   io->m4_model                   = NO;
   io->rm_ambigu                  = 0;
-  io->append_run_ID              = 0;
+  io->appebr_run_ID              = 0;
   io->quiet                      = 0;
   io->datatype                   = NT;
   io->colalias                   = YES;
@@ -6487,7 +6487,8 @@ void Set_Defaults_Input(option* io)
   io->boot_prog_every            = 20;
   io->mem_question               = YES;
   io->do_alias_subpatt           = NO;
-  
+  io->lk_approx                  = EXACT;
+
   MCMC_Init_MCMC_Struct(NULL,io->mcmc);
 }
 
@@ -9011,7 +9012,7 @@ void Print_Settings(option *io)
   
   PhyML_Printf("\n                . Optimise substitution model parameters:\t %s", (answer) ? "yes": "no");
 
-  PhyML_Printf("\n                . Run ID:\t\t\t\t\t %s", (io->append_run_ID) ? (io->run_id_string): ("none"));
+  PhyML_Printf("\n                . Run ID:\t\t\t\t\t %s", (io->appebr_run_ID) ? (io->run_id_string): ("none"));
   PhyML_Printf("\n                . Random seed:\t\t\t\t\t %d", io->r_seed);
   PhyML_Printf("\n                . Subtree patterns aliasing:\t\t\t %s",io->do_alias_subpatt?"yes":"no");
   PhyML_Printf("\n                . Version:\t\t\t\t\t %s", VERSION);
@@ -10966,7 +10967,7 @@ void Branch_Lengths_To_Rate_Lengths_Pre(t_node *a, t_node *d, t_tree *tree)
   int i;
 
   tree->rates->cur_l[d->num] = 
-    tree->rates->nd_r[d->num] * 
+    tree->rates->br_r[d->num] * 
     tree->rates->clock_r *
     tree->rates->norm_fact;
 
@@ -11871,7 +11872,7 @@ void Scale_Subtree_Rates(t_node *a, phydbl mult, t_tree *tree)
 void Scale_Subtree_Rates_Post(t_node *a, t_node *d, phydbl mult, t_tree *tree)
 {
 
-  tree->rates->nd_r[d->num] *= mult;
+  tree->rates->br_r[d->num] *= mult;
 
   if(d->tax) return;
   else

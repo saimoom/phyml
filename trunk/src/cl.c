@@ -86,6 +86,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
       {"no_colalias",         no_argument,NULL,57},
       {"alias_subpatt",       no_argument,NULL,58},      
       {"no_data",             no_argument,NULL,59},      
+      {"fastlk",              required_argument,NULL,60},      
       {0,0,0,0}
     };
 
@@ -96,6 +97,24 @@ void Read_Command_Line(option *io, int argc, char **argv)
     {
       switch(c)
 	{
+	case 60:
+	  {
+	    if(!strcmp(optarg,"yes") || !strcmp(optarg,"YES"))
+	      {
+		io->lk_approx = NORMAL;
+	      }
+	    else if(!strcmp(optarg,"no") || !strcmp(optarg,"NO"))
+	      {
+		io->lk_approx = EXACT;		
+	      }
+	    else
+	      {
+		PhyML_Printf("\n. 'fastlk' option: please use 'yes' or 'no'"); 
+		Exit("\n");
+	      }
+	    
+	    break;
+	  }
 	case 59:
 	  {
 	    io->mcmc->use_data = NO;
@@ -206,7 +225,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	  }
 	case 46 : 
 	  {
-	    io->append_run_ID = 1;
+	    io->appebr_run_ID = 1;
 	    strcpy(io->run_id_string,optarg);
 	    break;
 	  }
@@ -1148,7 +1167,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
     {
       strcpy(io->out_lk_file,io->in_align_file);
       strcat(io->out_lk_file, "_phyml_lk");
-      if(io->append_run_ID) { strcat(io->out_lk_file,"_"); strcat(io->out_lk_file,io->run_id_string); }
+      if(io->appebr_run_ID) { strcat(io->out_lk_file,"_"); strcat(io->out_lk_file,io->run_id_string); }
       strcat(io->out_lk_file, ".txt");
       io->fp_out_lk = Openfile(io->out_lk_file,1);
     }
@@ -1157,7 +1176,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
     {
       strcpy(io->out_trace_file,io->in_align_file);
       strcat(io->out_trace_file,"_phyml_trace");
-      if(io->append_run_ID) { strcat(io->out_trace_file,"_"); strcat(io->out_trace_file,io->run_id_string); }
+      if(io->appebr_run_ID) { strcat(io->out_trace_file,"_"); strcat(io->out_trace_file,io->run_id_string); }
       strcat(io->out_trace_file,".txt");
       io->fp_out_trace = Openfile(io->out_trace_file,1);
     }
@@ -1166,7 +1185,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
     {
       strcpy(io->out_trees_file,io->in_align_file);
       strcat(io->out_trees_file,"_phyml_rand_trees");
-      if(io->append_run_ID) { strcat(io->out_trees_file,"_"); strcat(io->out_trees_file,io->run_id_string); }
+      if(io->appebr_run_ID) { strcat(io->out_trees_file,"_"); strcat(io->out_trees_file,io->run_id_string); }
       strcat(io->out_trees_file,".txt");
       io->fp_out_trees = Openfile(io->out_trees_file,1);
     }
@@ -1175,18 +1194,18 @@ void Read_Command_Line(option *io, int argc, char **argv)
     {
       strcpy(io->out_boot_tree_file,io->in_align_file);
       strcat(io->out_boot_tree_file,"_phyml_boot_trees");
-      if(io->append_run_ID) { strcat(io->out_boot_tree_file,"_"); strcat(io->out_boot_tree_file,io->run_id_string); }
+      if(io->appebr_run_ID) { strcat(io->out_boot_tree_file,"_"); strcat(io->out_boot_tree_file,io->run_id_string); }
       strcat(io->out_boot_tree_file,".txt");
       io->fp_out_boot_tree = Openfile(io->out_boot_tree_file,1);
       
       strcpy(io->out_boot_stats_file,io->in_align_file);
       strcat(io->out_boot_stats_file,"_phyml_boot_stats");
-      if(io->append_run_ID) { strcat(io->out_boot_stats_file,"_"); strcat(io->out_boot_stats_file,io->run_id_string); }
+      if(io->appebr_run_ID) { strcat(io->out_boot_stats_file,"_"); strcat(io->out_boot_stats_file,io->run_id_string); }
       strcat(io->out_boot_stats_file,".txt");
       io->fp_out_boot_stats = Openfile(io->out_boot_stats_file,1);
     }
   
-  if(io->append_run_ID)
+  if(io->appebr_run_ID)
     {
       strcat(io->out_tree_file,"_");
       strcat(io->out_stats_file,"_");

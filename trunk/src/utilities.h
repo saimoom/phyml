@@ -754,9 +754,10 @@ typedef struct __Option { /*! mostly used in 'help.c' */
   int                       m4_model;
   int                      rm_ambigu; /*! 0 is the default. 1: columns with ambiguous characters are discarded prior further analysis */
   int                       colalias;
-  int                  append_run_ID;
+  int                  appebr_run_ID;
   char                *run_id_string;
   int                          quiet; /*! 0 is the default. 1: no interactive question (for batch mode) */
+  int                      lk_approx; /* EXACT or NORMAL */
   char                    **alphabet;
 
   char              **long_tax_names;
@@ -969,7 +970,7 @@ typedef struct __T_Rate {
   phydbl max_nu;
   phydbl covdet;
 
-  phydbl     *nd_r;  /*! Current rates at nodes and the corresponding incoming edges */
+  phydbl     *br_r;  /*! Current rates at nodes and the corresponding incoming edges */
   phydbl     *nd_t; /*! Current t_node times */
   phydbl     *triplet;
   phydbl     *true_t; /*! true t_node times (including root node) */
@@ -1012,7 +1013,6 @@ typedef struct __T_Rate {
 
   int met_within_gibbs;
 
-  int       lk_approx;
   int      update_mean_l;
   int       update_cov_l;
 
@@ -1036,7 +1036,7 @@ typedef struct __Tmcmc {
   int *num_move;
   char **move_name;
 
-  int num_move_nd_r;
+  int num_move_br_r;
   int num_move_nd_t;
   int num_move_nu;
   int num_move_clock_r;
