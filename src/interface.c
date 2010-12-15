@@ -133,7 +133,7 @@ void Launch_Interface(option *io)
     {
       strcpy(io->out_lk_file,io->in_align_file);
       strcat(io->out_lk_file, "_phyml_lk");
-      if(io->append_run_ID) { strcat(io->out_lk_file,"_"); strcat(io->out_lk_file,io->run_id_string); }
+      if(io->appebr_run_ID) { strcat(io->out_lk_file,"_"); strcat(io->out_lk_file,io->run_id_string); }
       strcat(io->out_lk_file, ".txt");
       io->fp_out_lk = Openfile(io->out_lk_file,1);
     }
@@ -142,7 +142,7 @@ void Launch_Interface(option *io)
     {
       strcpy(io->out_trace_file,io->in_align_file);
       strcat(io->out_trace_file,"_phyml_trace");
-      if(io->append_run_ID) { strcat(io->out_trace_file,"_"); strcat(io->out_trace_file,io->run_id_string); }
+      if(io->appebr_run_ID) { strcat(io->out_trace_file,"_"); strcat(io->out_trace_file,io->run_id_string); }
       strcat(io->out_trace_file,".txt");
       io->fp_out_trace = Openfile(io->out_trace_file,1);
     }
@@ -151,7 +151,7 @@ void Launch_Interface(option *io)
     {
       strcpy(io->out_trees_file,io->in_align_file);
       strcat(io->out_trees_file,"_phyml_trees");
-      if(io->append_run_ID) { strcat(io->out_trees_file,"_"); strcat(io->out_trees_file,io->run_id_string); }
+      if(io->appebr_run_ID) { strcat(io->out_trees_file,"_"); strcat(io->out_trees_file,io->run_id_string); }
       strcat(io->out_trees_file,".txt");
       io->fp_out_trees = Openfile(io->out_trees_file,1);
     }
@@ -160,18 +160,18 @@ void Launch_Interface(option *io)
     {
       strcpy(io->out_boot_tree_file,io->in_align_file);
       strcat(io->out_boot_tree_file,"_phyml_boot_trees");
-      if(io->append_run_ID) { strcat(io->out_boot_tree_file,"_"); strcat(io->out_boot_tree_file,io->run_id_string); }
+      if(io->appebr_run_ID) { strcat(io->out_boot_tree_file,"_"); strcat(io->out_boot_tree_file,io->run_id_string); }
       strcat(io->out_boot_tree_file,".txt");
       io->fp_out_boot_tree = Openfile(io->out_boot_tree_file,1);
       
       strcpy(io->out_boot_stats_file,io->in_align_file);
       strcat(io->out_boot_stats_file,"_phyml_boot_stats");
-      if(io->append_run_ID) { strcat(io->out_boot_stats_file,"_"); strcat(io->out_boot_stats_file,io->run_id_string); }
+      if(io->appebr_run_ID) { strcat(io->out_boot_stats_file,"_"); strcat(io->out_boot_stats_file,io->run_id_string); }
       strcat(io->out_boot_stats_file,".txt");
       io->fp_out_boot_stats = Openfile(io->out_boot_stats_file,1);
     }
   
-  if(io->append_run_ID)
+  if(io->appebr_run_ID)
     {
       strcat(io->out_tree_file,"_");
       strcat(io->out_stats_file,"_");
@@ -432,7 +432,7 @@ void Launch_Interface_Data_Type(option *io)
 	 "....................... Analyze multiple data sets "
 	 " %-15s \n",buff);
 
-  if(!io->append_run_ID) strcpy(s,"none");
+  if(!io->appebr_run_ID) strcpy(s,"none");
   else strcpy(s,io->run_id_string);
   PhyML_Printf("                [R] "
 	 "........................................... Run ID "
@@ -458,7 +458,7 @@ void Launch_Interface_Data_Type(option *io)
 /*       } */
     case 'R' :
       {
-	io->append_run_ID = (io->append_run_ID)?(0):(1);
+	io->appebr_run_ID = (io->appebr_run_ID)?(0):(1);
 	PhyML_Printf("\n. Enter a run ID (any string of characters) > ");
 	Getstring_Stdin(io->run_id_string);
 	break;

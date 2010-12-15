@@ -36,7 +36,7 @@ int TIMES_main(int argc, char **argv)
   int sys;
   t_mcmc *new_mcmc;
   int i;
-
+  int user_lk_approx;
   
 #ifdef MPI
   int rc;
@@ -69,6 +69,7 @@ int TIMES_main(int argc, char **argv)
 /*   r_seed = 1289422815; */
 /*   r_seed = 1289443891; */
 /*   r_seed = 1290652518; */
+/*   r_seed = 1292195490; */
   /* sys = system("sleep 5s"); */
 
   srand(r_seed); rand();
@@ -162,6 +163,10 @@ int TIMES_main(int argc, char **argv)
 		  tree->mod->log_l = NO;
 		  if(tree->mod->log_l == YES) Log_Br_Len(tree);
 		  
+		  /* Force the exact likelihood score */
+		  user_lk_approx = tree->io->lk_approx;
+		  tree->io->lk_approx = EXACT;
+
 		  /* MLE for branch lengths */
 		  PhyML_Printf("\n");
 		  Round_Optimize(tree,tree->data,ROUND_MAX);
@@ -205,6 +210,7 @@ int TIMES_main(int argc, char **argv)
 							     2*tree->n_otu-3,YES);
 		  PhyML_Printf("\n. p(data|model) [approx] ~ %.2f",tree->c_lnL);
 
+		  tree->io->lk_approx = user_lk_approx;
 
 		  tree->rates->model      = THORNE;
 		  tree->rates->bl_from_rt = YES;

@@ -329,7 +329,7 @@ phydbl Lk(t_tree *tree)
   if((tree->rates) && (tree->rates->bl_from_rt)) RATES_Update_Cur_Bl(tree);
 #endif
 
-  if(tree->rates && tree->rates->lk_approx == NORMAL)
+  if(tree->rates && tree->io->lk_approx == NORMAL)
     {
       tree->c_lnL = Lk_Normal_Approx(tree);
       return tree->c_lnL;
@@ -380,7 +380,7 @@ phydbl Lk_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
   if((tree->rates) && (tree->rates->bl_from_rt)) RATES_Update_Cur_Bl(tree);
 #endif
 
-  if(tree->rates && tree->rates->lk_approx == NORMAL)
+  if(tree->rates && tree->io->lk_approx == NORMAL)
     {
       tree->c_lnL = Lk_Normal_Approx(tree);
       return tree->c_lnL;
