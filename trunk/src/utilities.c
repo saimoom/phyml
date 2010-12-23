@@ -6054,11 +6054,11 @@ void Br_Len_Not_Involving_Invar(t_tree *tree)
 
 /*********************************************************/
 
-void Getstring_Stdin(char *file_name)
+void Getstring_Stdin(char *s)
 {
-  if(!fgets(file_name,T_MAX_LINE,stdin)) Exit("");
-  if (strchr(file_name, '\n') != NULL)
-    *strchr(file_name, '\n') = '\0';
+  if(!fgets(s,T_MAX_LINE,stdin)) Exit("");
+  if (strchr(s, '\n') != NULL)
+    *strchr(s, '\n') = '\0';
 }
 
 /*********************************************************/
@@ -11095,8 +11095,7 @@ void Read_Clade_Priors(char *file_name, t_tree *tree)
   phydbl prior_low,prior_up;
   int node_num;
 
-  PhyML_Printf("\n");
-  PhyML_Printf("\n. Reading prior ages on clade.\n");
+  PhyML_Printf("\n. Reading prior on node ages.\n");
 
   line = (char *)mCalloc(T_MAX_LINE,sizeof(char));
   s    = (char *)mCalloc(T_MAX_LINE,sizeof(char));
@@ -11361,8 +11360,9 @@ option *Get_Input(int argc, char **argv)
 
 #ifdef MPI
   Read_Command_Line(io,argc,argv);
+#elif defined (PHYTIME)
+  Read_Command_Line(io,argc,argv);
 #else
-
   putchar('\n');
 
   switch (argc)
@@ -11853,39 +11853,56 @@ void Scale_Node_Heights_Post(t_node *a, t_node *d, phydbl K, phydbl floor, int *
 
 /*********************************************************/
 
-void Scale_Subtree_Rates(t_node *a, phydbl mult, t_tree *tree)
+int Scale_Subtree_Rates(t_node *a, phydbl mult, int *n_nodes, t_tree *tree)
 {
+  int res;
+  int i;
+
+  *n_nodes = 0;
+  res      = 1;
+
   if(a == tree->n_root)
     {
-      Scale_Subtree_Rates_Post(a,a->v[0],mult,tree);
-      Scale_Subtree_Rates_Post(a,a->v[1],mult,tree);
+      res = Scale_Subtree_Rates_Post(a,a->v[0],mult,n_nodes,tree);
+      if(res) res = Scale_Subtree_Rates_Post(a,a->v[1],mult,n_nodes,tree);
+      return res;
     }
   else
     {
-      int i;
-      For(i,3) if(a->v[i] != a->anc && a->b[i] != tree->e_root) Scale_Subtree_Rates_Post(a,a->v[i],mult,tree);
+      For(i,3) if((a->v[i] != a->anc) && 
+		  (a->b[i] != tree->e_root) && 
+		  (res == 1)) res = Scale_Subtree_Rates_Post(a,a->v[i],mult,n_nodes,tree);
+      return res;
     }
 }
 
 /*********************************************************/
 
-void Scale_Subtree_Rates_Post(t_node *a, t_node *d, phydbl mult, t_tree *tree)
+int Scale_Subtree_Rates_Post(t_node *a, t_node *d, phydbl mult, int *n_nodes, t_tree *tree)
 {
 
   tree->rates->br_r[d->num] *= mult;
+  *n_nodes = *n_nodes+1;
 
-  if(d->tax) return;
+  if(tree->rates->br_r[d->num] < tree->rates->min_rate) return 0;
+  if(tree->rates->br_r[d->num] > tree->rates->max_rate) return 0;
+
+  if(d->tax) return 1;
   else
     {
-      int i;
+      int i,res;
 
+      res = 1;
       For(i,3)
 	{
-	  if(d->v[i] != a && d->b[i] != tree->e_root)
+	  if((d->v[i] != a) && 
+	     (d->b[i] != tree->e_root) && 
+	     (res == 1))
 	    {
-	      Scale_Subtree_Rates_Post(d,d->v[i],mult,tree);
+	      res = Scale_Subtree_Rates_Post(d,d->v[i],mult,n_nodes,tree);
 	    }
 	}
+      return res;
     }
 }
 

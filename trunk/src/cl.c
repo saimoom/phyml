@@ -24,6 +24,8 @@ void Read_Command_Line(option *io, int argc, char **argv)
   int use_gamma;
   int writemode;
 
+  if(argc == 1) Exit("\n. No argument was passed to the program. Please check the documentation. \n");
+
   struct option longopts[] =
     {
       {"n_rgrft",           required_argument,NULL,0},

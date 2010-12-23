@@ -216,33 +216,46 @@ int TIMES_main(int argc, char **argv)
 		  tree->rates->bl_from_rt = YES;
 
 		  PhyML_Printf("\n");
-		  PhyML_Printf("\n. Burnin...\n");
-		  tree->mcmc = MCMC_Make_MCMC_Struct();
-		  MCMC_Copy_MCMC_Struct(tree->io->mcmc,tree->mcmc,"burnin");
-		  MCMC_Complete_MCMC(tree->mcmc,tree);
-		  tree->mcmc->adjust_tuning = YES;
-		  tree->mcmc->chain_len = tree->io->mcmc->chain_len_burnin;
-		  MCMC(tree);
-		  MCMC_Close_MCMC(tree->mcmc);
-
-		  
-		  new_mcmc = MCMC_Make_MCMC_Struct(tree);
-		  MCMC_Complete_MCMC(new_mcmc,tree);
-		  MCMC_Copy_MCMC_Struct(tree->mcmc,new_mcmc,"phytime");
-		  MCMC_Free_MCMC(tree->mcmc);
-
-		  tree->mcmc                  = new_mcmc;
-		  tree->mcmc->chain_len       = tree->io->mcmc->chain_len;
-		  tree->mcmc->randomize       = NO;
-		  tree->mcmc->adjust_tuning   = NO;
-		  
-
 		  time(&t_beg);
-		  PhyML_Printf("\n. Sampling the %s density...\n",(tree->mcmc->use_data)?"posterior":"prior");
+		  tree->mcmc = MCMC_Make_MCMC_Struct();
+		  MCMC_Copy_MCMC_Struct(tree->io->mcmc,tree->mcmc,"phytime");
+		  MCMC_Complete_MCMC(tree->mcmc,tree);
+		  tree->mcmc->randomize     = YES;
+		  tree->mcmc->adjust_tuning = YES;
+		  tree->mcmc->is_burnin     = NO;
 		  MCMC(tree);
 		  MCMC_Close_MCMC(tree->mcmc);
 		  MCMC_Free_MCMC(tree->mcmc);
 		  PhyML_Printf("\n");
+
+
+/* 		  tree->mcmc = MCMC_Make_MCMC_Struct(); */
+/* 		  MCMC_Copy_MCMC_Struct(tree->io->mcmc,tree->mcmc,"burnin"); */
+/* 		  MCMC_Complete_MCMC(tree->mcmc,tree); */
+/* 		  tree->mcmc->adjust_tuning = YES; */
+/* 		  tree->mcmc->is_burnin     = YES; */
+/* 		  tree->mcmc->chain_len = tree->io->mcmc->chain_len_burnin; */
+/* 		  MCMC(tree); */
+/* 		  MCMC_Close_MCMC(tree->mcmc); */
+
+		  
+/* 		  new_mcmc = MCMC_Make_MCMC_Struct(tree); */
+/* 		  MCMC_Complete_MCMC(new_mcmc,tree); */
+/* 		  MCMC_Copy_MCMC_Struct(tree->mcmc,new_mcmc,"phytime"); */
+/* 		  MCMC_Free_MCMC(tree->mcmc); */
+
+/* 		  tree->mcmc                  = new_mcmc; */
+/* 		  tree->mcmc->chain_len       = tree->io->mcmc->chain_len; */
+/* 		  tree->mcmc->randomize       = NO; */
+/* 		  tree->mcmc->adjust_tuning   = NO; */
+/* 		  tree->mcmc->is_burnin       = NO; */
+
+/* 		  time(&t_beg); */
+/* 		  MCMC(tree); */
+/* 		  MCMC_Close_MCMC(tree->mcmc); */
+/* 		  MCMC_Free_MCMC(tree->mcmc); */
+/* 		  PhyML_Printf("\n"); */
+
 
 		  Free_Tree_Pars(tree);
 		  Free_Tree_Lk(tree);
