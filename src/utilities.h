@@ -1033,6 +1033,8 @@ typedef struct __Tmcmc {
   phydbl *acc_rate;
   int *acc_move;
   int *run_move;
+  int *prev_acc_move;
+  int *prev_run_move;
   int *num_move;
   char **move_name;
 
@@ -1043,12 +1045,14 @@ typedef struct __Tmcmc {
   int num_move_tree_height;
   int num_move_subtree_height;
   int num_move_kappa;
-  int num_move_swing_rates;
+  int num_move_tree_rates;
+  int num_move_subtree_rates;
 
   char *out_filename;
 
   time_t t_beg;
   time_t t_cur;
+  time_t t_last_print;
 
   FILE *out_fp_stats;
   FILE *out_fp_trees;
@@ -1064,10 +1068,17 @@ typedef struct __Tmcmc {
   int chain_len;
   int sample_interval;
   int chain_len_burnin;
+  int print_every;
+  int is_burnin;
 
   phydbl max_tune;
   phydbl min_tune;
 
+  phydbl *sum_val;
+  phydbl *sum_valsq;
+  phydbl *sum_curval_nextval;
+  phydbl *ess;
+  phydbl *first_val;
 }t_mcmc;
 
 /*!********************************************************/
@@ -1408,8 +1419,8 @@ void Log_Br_Len(t_tree *tree);
 void Make_Short_L(t_tree *tree);
 phydbl Diff_Lk_Norm_At_Given_Edge(t_edge *b, t_tree *tree);
 void Adjust_Variances(t_tree *tree);
-void Scale_Subtree_Rates_Post(t_node *a, t_node *d, phydbl mult, t_tree *tree);
-void Scale_Subtree_Rates(t_node *a, phydbl mult, t_tree *tree);
+int Scale_Subtree_Rates_Post(t_node *a, t_node *d, phydbl mult, int *n_nodes, t_tree *tree);
+int Scale_Subtree_Rates(t_node *a, phydbl mult, int *n_nodes, t_tree *tree);
 
 #include "free.h"
 #include "spr.h"

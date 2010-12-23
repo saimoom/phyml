@@ -77,14 +77,14 @@ void MCMC_Print_Last(t_mcmc *mcmc, t_tree *tree);
 void MCMC_Close_MCMC(t_mcmc *mcmc);
 void MCMC_Rates_Global(t_tree *tree);
 void MCMC_Omega(t_tree *tree);
-void MCMC_Adjust_Tuning_Parameter(t_mcmc *mcmc);
+void MCMC_Adjust_Tuning_Parameter(int move, t_mcmc *mcmc);
 void MCMC_Copy_MCMC_Struct(t_mcmc *ori, t_mcmc *cpy, char *filename);
 void MCMC_Randomize_Node_Times_Bottom_Up(t_node *a, t_node *d, t_tree *tree);
 void MCMC_One_Length(t_edge *b,  t_tree *tree);
 void MCMC_Br_Lens(t_tree *tree);
 void MCMC_Br_Lens_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree);
 void MCMC_Tree_Height(t_tree *tree);
-void MCMC_SubTree_Height(t_tree *tree);
+void MCMC_Subtree_Height(t_tree *tree);
 void MCMC_Swing(t_tree *tree);
 void MCMC_Single_Param_Generic(phydbl *val, 
 			       phydbl lim_inf, 
@@ -107,8 +107,11 @@ void MCMC_Sample_Joint_Rates_Prior(t_tree *tree);
 void MCMC_Sample_Joint_Rates_Posterior(t_tree *tree);
 void MCMC_Pair_Rates_Constraint(t_node *a, t_node *d, int random, int traversal, t_tree *tree);
 void MCMC_Times_And_Rates(t_node *a, t_node *d, int random, int traversal, t_tree *tree);
-void MCMC_Swing_Rates(t_tree *tree);
-
-
+void MCMC_Tree_Rates(t_tree *tree);
+void MCMC_Pause(t_mcmc *mcmc);
+void MCMC_Print_Param_Stdin(t_mcmc *mcmc, t_tree *tree);
+void MCMC_Subtree_Rates(t_tree *tree);
+phydbl MCMC_Effective_Sample_Size(phydbl first_val, phydbl last_val, phydbl sum, phydbl sumsq, phydbl sumcurnext, int iter);
+void MCMC_Get_Acc_Rates(t_mcmc *mcmc);
 
 #endif

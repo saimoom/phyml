@@ -95,8 +95,8 @@ rates.c rates.h\
 mcmc.c mcmc.h\
 stats.c stats.h\
 mg.c mg.h\
-tiporder.c tiporder.h\
-continuous.c continuous.h
+tiporder.c tiporder.h
+# continuous.c continuous.h
 phycont_LDADD = -lm
 else 
 # if WANT_RWRAP
