@@ -1858,8 +1858,10 @@ void RATES_Posterior_One_Time(t_node *a, t_node *d, int traversal, t_tree *tree)
   phydbl nf;
   phydbl u, ratio;
   phydbl new_lnL_data, cur_lnL_data, new_lnL_rate, cur_lnL_rate;
-  
+  int num_move;
+
   dim = 2*tree->n_otu-3;
+  num_move = tree->mcmc->num_move_nd_t+d->num-tree->n_otu;
 
   if(d->tax) return;
   
@@ -2325,18 +2327,13 @@ void RATES_Posterior_One_Time(t_node *a, t_node *d, int traversal, t_tree *tree)
     }
   else
     {
-      tree->mcmc->acc_move[tree->mcmc->num_move_nd_t]++;
+      tree->mcmc->acc_move[num_move]++;
     }
   
   RATES_Update_Norm_Fact(tree);
 
-
-  tree->mcmc->run_move[tree->mcmc->num_move_nd_t]++;
-  tree->mcmc->acc_rate[tree->mcmc->num_move_nd_t] = 
-    (tree->mcmc->acc_move[tree->mcmc->num_move_nd_t]+1.E-6)/ 
-    (tree->mcmc->run_move[tree->mcmc->num_move_nd_t]+1.E+6);
+  tree->mcmc->run_move[num_move]++;
   
-
   if(traversal == YES)
     {
       if(d->tax == YES) return;

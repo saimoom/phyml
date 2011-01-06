@@ -306,12 +306,12 @@ void Usage()
   PhyML_Printf("\n");  
   #endif
 
-  #ifdef PHYTIME
-  PhyML_Printf("%s\n\t--burnin %snum%s\n",BOLD,LINE,FLAT);
-  PhyML_Printf("\t\t%snum%s is the number of generations of runs of the Markov Chain Monte Carlo during the 'burnin' period.\n",LINE,FLAT);
-  PhyML_Printf("\t\t%sSet to 1E+5 by default. Must be an integer. \n",FLAT);
-  PhyML_Printf("\n");  
-  #endif
+/*   #ifdef PHYTIME */
+/*   PhyML_Printf("%s\n\t--burnin %snum%s\n",BOLD,LINE,FLAT); */
+/*   PhyML_Printf("\t\t%snum%s is the number of generations of runs of the Markov Chain Monte Carlo during the 'burnin' period.\n",LINE,FLAT); */
+/*   PhyML_Printf("\t\t%sSet to 1E+5 by default. Must be an integer. \n",FLAT); */
+/*   PhyML_Printf("\n");   */
+/*   #endif */
 
   #ifdef PHYTIME
   PhyML_Printf("%s\n\t--sample_freq %snum%s\n",BOLD,LINE,FLAT);
@@ -325,6 +325,13 @@ void Usage()
   PhyML_Printf("%s\n\t--no_data%s\n",BOLD,FLAT);
   PhyML_Printf("\t\tUse this option to sample from the priors only (rather from the posterior joint density\n");
   PhyML_Printf("\t\tof the model parameters).\n");
+  PhyML_Printf("\n");  
+  #endif
+
+
+  #ifdef PHYTIME
+  PhyML_Printf("%s\n\t--fastlk%s\n",BOLD,FLAT);
+  PhyML_Printf("\t\tUse the multivariate normal approximation to the likelihood and speed up calculations\n");
   PhyML_Printf("\n");  
   #endif
 

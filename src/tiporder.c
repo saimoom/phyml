@@ -1143,18 +1143,19 @@ phydbl TIPO_Read_One_Taxon_Zscore(FILE *fp_coord, char *seqname_qry, int col, t_
   rewind(fp_coord);
 
   /* skip first line */
-  if(!fgets(line,T_MAX_LINE,fp_coord))
-    {
-      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
-      Warn_And_Exit("");
-    }
-  Free(line);
+/*   if(!fgets(line,T_MAX_LINE,fp_coord)) */
+/*     { */
+/*       PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__); */
+/*       Warn_And_Exit(""); */
+/*     } */
+/*   Free(line); */
 
   do
     {
 /*       if(fscanf(fp_coord,"%s\t%s\t%lf\t%lf\t%d\n",seqname,place,&lat,&lon,&year) == EOF) */
 /*       if(fscanf(fp_coord,"%s\t%s\t%lf\t%lf\n",seqname,place,&lat,&lon) == EOF) */
-      if(fscanf(fp_coord,"%s\t%lf\t%lf\n",seqname,&lat,&lon) == EOF)
+/*       if(fscanf(fp_coord,"%s\t%lf\t%lf\n",seqname,&lat,&lon) == EOF) */
+      if(fscanf(fp_coord,"%s %lf\n",seqname,&lat) == EOF)
 	{
 	  PhyML_Printf("\n. Could not find sequence '%s' in coordinate file",seqname_qry);
 	  PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
@@ -1171,10 +1172,11 @@ phydbl TIPO_Read_One_Taxon_Zscore(FILE *fp_coord, char *seqname_qry, int col, t_
   Free(seqname);
   Free(place);
   
-  if(col == 1)      return lat;
-  else if(col == 2) return lon;
-  else              return -1.;
+/*   if(col == 1)      return lat; */
+/*   else if(col == 2) return lon; */
+/*   else              return -1.; */
 
+  return lat;
 }
 
 /*********************************************************/

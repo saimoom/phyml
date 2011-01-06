@@ -33,6 +33,7 @@ the GNU public licence. See http://www.opensource.org for details.
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <signal.h>
 
 void MCMC_Lexp(t_tree *tree);
 void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree);
@@ -111,7 +112,10 @@ void MCMC_Tree_Rates(t_tree *tree);
 void MCMC_Pause(t_mcmc *mcmc);
 void MCMC_Print_Param_Stdin(t_mcmc *mcmc, t_tree *tree);
 void MCMC_Subtree_Rates(t_tree *tree);
-phydbl MCMC_Effective_Sample_Size(phydbl first_val, phydbl last_val, phydbl sum, phydbl sumsq, phydbl sumcurnext, int iter);
 void MCMC_Get_Acc_Rates(t_mcmc *mcmc);
+void MCMC_Update_Effective_Sample_Size(int move_num, t_mcmc *mcmc);
+void MCMC_Initialize_Param_Val(t_mcmc *mcmc, t_tree *tree);
+void MCMC_Terminate();
+void MCMC_Copy_To_New_Param_Val(t_mcmc *mcmc, t_tree *tree);
 
 #endif

@@ -12053,7 +12053,19 @@ void Adjust_Variances(t_tree *tree)
 
 /*********************************************************/
 
+phydbl Effective_Sample_Size(phydbl first_val, phydbl last_val, phydbl sum, phydbl sumsq, phydbl sumcurnext, int n)
+{
+  phydbl numerator,denom;
+  phydbl mean;
+  phydbl r;
 
+  mean = sum / n;
+  denom = sumsq - n * POW(mean,2);
+  numerator = sumcurnext - (n+1.)*POW(mean,2) + (first_val+last_val)*mean;
 
-/*********************************************************/
+  r = numerator/denom;
+  
+  return (phydbl)n * (1.-r)/(1.+r);
+}
+
 /*********************************************************/

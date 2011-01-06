@@ -1074,11 +1074,16 @@ typedef struct __Tmcmc {
   phydbl max_tune;
   phydbl min_tune;
 
+  phydbl *old_param_val;
+  phydbl *new_param_val;
+
   phydbl *sum_val;
   phydbl *sum_valsq;
   phydbl *sum_curval_nextval;
   phydbl *ess;
   phydbl *first_val;
+  int    *ess_run;
+  int    *start_ess;
 }t_mcmc;
 
 /*!********************************************************/
@@ -1421,6 +1426,7 @@ phydbl Diff_Lk_Norm_At_Given_Edge(t_edge *b, t_tree *tree);
 void Adjust_Variances(t_tree *tree);
 int Scale_Subtree_Rates_Post(t_node *a, t_node *d, phydbl mult, int *n_nodes, t_tree *tree);
 int Scale_Subtree_Rates(t_node *a, phydbl mult, int *n_nodes, t_tree *tree);
+phydbl Effective_Sample_Size(phydbl first_val, phydbl last_val, phydbl sum, phydbl sumsq, phydbl sumcurnext, int iter);
 
 #include "free.h"
 #include "spr.h"
