@@ -182,14 +182,14 @@ int TIMES_main(int argc, char **argv)
 		  PhyML_Printf("\n. Computing Hessian...");
 		  tree->rates->bl_from_rt = 0;
 		  Free(tree->rates->cov_l);
-		  tree->rates->cov_l = Hessian(tree);
+		  Hessian(tree);
+		  tree->rates->cov_l = Hessian_Seo(tree);
 		  For(i,(2*tree->n_otu-3)*(2*tree->n_otu-3)) tree->rates->cov_l[i] *= -1.0;
 		  if(!Iter_Matinv(tree->rates->cov_l,2*tree->n_otu-3,2*tree->n_otu-3,YES)) Exit("\n");
-/* 		  Print_Square_Matrix_Generic(2*tree->n_otu-3,tree->rates->cov_l); */
 		  tree->rates->covdet = Matrix_Det(tree->rates->cov_l,2*tree->n_otu-3,YES);
 		  For(i,(2*tree->n_otu-3)*(2*tree->n_otu-3)) tree->rates->invcov[i] = tree->rates->cov_l[i];
 		  if(!Iter_Matinv(tree->rates->invcov,2*tree->n_otu-3,2*tree->n_otu-3,YES)) Exit("\n");
-
+		  tree->rates->grad_l = Gradient(tree);
 
 		  /* Pre-calculation of conditional variances to speed up calculations */
 		  RATES_Bl_To_Ml(tree);

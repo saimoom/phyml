@@ -1003,6 +1003,7 @@ typedef struct __T_Rate {
   phydbl     *t_mean;
   phydbl     *mean_l;
   phydbl     *cov_l;
+  phydbl     *grad_l; /* gradient */
 
   int adjust_rates; /*! if = 1, branch rates are adjusted such that a modification of a given t_node time
 		       does not modify any branch lengths */

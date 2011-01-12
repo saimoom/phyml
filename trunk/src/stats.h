@@ -85,6 +85,8 @@ int Iter_Matinv(phydbl *x, int n, int m, int verbose);
 phydbl Dorder_Unif(phydbl x, int r, int n, phydbl min, phydbl max);
 phydbl Covariance(phydbl *x, phydbl *y, int n);
 phydbl *Rnorm_Multid_Trunc_Constraint(phydbl *mu, phydbl *cov, phydbl *min, phydbl *max, phydbl *lambda, phydbl k, phydbl *res, int len);
+phydbl *Gradient(t_tree *tree);
+phydbl *Hessian_Seo(t_tree *tree);
 
 
 #endif
