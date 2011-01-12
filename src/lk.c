@@ -2877,13 +2877,22 @@ phydbl Lk_Normal_Approx(t_tree *tree)
 {
   phydbl lnL,lambda,l;
   int i,dim,err;
+  phydbl first_order;
 
+  dim = 2*tree->n_otu-3;
+  
   lnL = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,
 				     tree->rates->mean_l,
 				     tree->rates->invcov,
 				     tree->rates->covdet,
 				     2*tree->n_otu-3,YES);
+/*   printf("%f\t",lnL); */    
 
+  first_order = 0.0;
+  For(i,dim) first_order += (tree->rates->u_cur_l[i] - tree->rates->mean_l[i]) * tree->rates->grad_l[i];
+  
+  lnL += first_order;
+  
 /*   err = NO; */
 /*   dim = 2*tree->n_otu-3; */
 /*   For(i,dim) */

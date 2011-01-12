@@ -316,8 +316,8 @@ void RATES_Update_Triplet(t_node *n, t_tree *tree)
 }
 
 /*********************************************************/
-/* Returns LOG(f(mu2;mu1)) */
-phydbl RATES_Lk_Rates_Core(phydbl mu1, phydbl mu2, int n1, int n2, phydbl dt1, phydbl dt2, t_tree *tree)
+/* Returns LOG(f(br_r_rght;br_r_left)) */
+phydbl RATES_Lk_Rates_Core(phydbl br_r_left, phydbl br_r_rght, int n_left, int n_rght, phydbl dt_left, phydbl dt_rght, t_tree *tree)
 {
   phydbl log_dens;
   phydbl alpha, beta, lexp;
@@ -331,28 +331,28 @@ phydbl RATES_Lk_Rates_Core(phydbl mu1, phydbl mu2, int n1, int n2, phydbl dt1, p
     {
     case COMPOUND_COR:
       {       
-	log_dens = RATES_Compound_Core(mu1,mu2,n1,n2,dt1,dt2,alpha,beta,lexp,tree->rates->step_rate,tree->rates->approx);
+	log_dens = RATES_Compound_Core(br_r_left,br_r_rght,n_left,n_rght,dt_left,dt_rght,alpha,beta,lexp,tree->rates->step_rate,tree->rates->approx);
 	log_dens = LOG(log_dens);
 	break;
       }
       
     case COMPOUND_NOCOR :
       {
-	log_dens = RATES_Dmu(mu2,n2,dt2,alpha,beta,lexp,0,1);
+	log_dens = RATES_Dmu(br_r_rght,n_rght,dt_rght,alpha,beta,lexp,0,1);
 	log_dens = LOG(log_dens);
 	break;
       }
       
     case EXPONENTIAL :
       {
-	log_dens = Dexp(mu2,tree->rates->lexp);
+	log_dens = Dexp(br_r_rght,tree->rates->lexp);
 	log_dens = LOG(log_dens);
 	break;
       }
       
     case GAMMA :
       {
-	log_dens = Dgamma(mu2,tree->rates->nu,1./tree->rates->nu);
+	log_dens = Dgamma(br_r_rght,tree->rates->nu,1./tree->rates->nu);
 	log_dens = LOG(log_dens);
 	break;
       }
@@ -362,15 +362,15 @@ phydbl RATES_Lk_Rates_Core(phydbl mu1, phydbl mu2, int n1, int n2, phydbl dt1, p
 	int err;	
 	phydbl mean,sd;
 
-	sd   = SQRT(tree->rates->nu*dt2);
-	mean = mu1;
+	sd   = SQRT(tree->rates->nu*dt_rght);
+	mean = br_r_left;
 
-	log_dens = Log_Dnorm_Trunc(mu2,mean,sd,tree->rates->min_rate,tree->rates->max_rate,&err);
+	log_dens = Log_Dnorm_Trunc(br_r_rght,mean,sd,tree->rates->min_rate,tree->rates->max_rate,&err);
 
 	if(err)
 	  {
 	    log_dens = LOG(1.E-70);
-	    PhyML_Printf("\n. mu1=%f mu2=%f dt2=%f nu=%G",mu1,mu2,dt2,tree->rates->nu);
+	    PhyML_Printf("\n. br_r_left=%f br_r_rght=%f dt_rght=%f nu=%G",br_r_left,br_r_rght,dt_rght,tree->rates->nu);
 	    PhyML_Printf("\n. Run: %d",tree->mcmc->run);
 	    PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
 	    Exit("\n");
@@ -387,10 +387,10 @@ phydbl RATES_Lk_Rates_Core(phydbl mu1, phydbl mu2, int n1, int n2, phydbl dt1, p
 
   if(isnan(log_dens) || isinf(FABS(log_dens)))
     {
-      PhyML_Printf("\n. Run=%4d mu2=%f mu1=%f dt2=%f dt1=%f nu=%f log_dens=%G sd=%f\n",
+      PhyML_Printf("\n. Run=%4d br_r_rght=%f br_r_left=%f dt_rght=%f dt_left=%f nu=%f log_dens=%G sd=%f\n",
 		   tree->mcmc->run,
-		   mu2,mu1,dt2,dt1,tree->rates->nu,log_dens,
-		   SQRT(tree->rates->nu*dt2));
+		   br_r_rght,br_r_left,dt_rght,dt_left,tree->rates->nu,log_dens,
+		   SQRT(tree->rates->nu*dt_rght));
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Exit("\n");
     }
@@ -792,6 +792,7 @@ void Free_Rates(t_rate *rates)
   Free(rates->_2n2n_vect2);
   Free(rates->cov_l);
   Free(rates->mean_l);
+  Free(rates->grad_l);
 }
 
 /*********************************************************/
