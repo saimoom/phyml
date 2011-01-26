@@ -44,8 +44,8 @@ phydbl RATES_Lk_Rates(t_tree *tree)
 void RATES_Lk_Rates_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 {
   int i;
-  phydbl log_dens,mu1,mu2,dt1,dt2;
-  int n1,n2;
+  phydbl log_dens,mu_a,mu_d,r_a,r_d,dt_a,dt_d;
+  int n_a,n_d;
 
   log_dens = -1.;
 
@@ -58,39 +58,43 @@ void RATES_Lk_Rates_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 
   if(a != tree->n_root)
     {
-      dt1 = tree->rates->nd_t[a->num] - tree->rates->nd_t[a->anc->num];
-      mu1 = tree->rates->br_r[a->num];
-      n1  = tree->rates->n_jps[a->num];
+      dt_a = tree->rates->nd_t[a->num] - tree->rates->nd_t[a->anc->num];
+      mu_a = tree->rates->br_r[a->num];
+      r_a  = tree->rates->nd_r[a->num];
+      n_a  = tree->rates->n_jps[a->num];
 
-      dt2 = tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num];
-      mu2 = tree->rates->br_r[d->num];
-      n2  = tree->rates->n_jps[d->num];
+      dt_d = tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num];
+      mu_d = tree->rates->br_r[d->num];
+      r_d  = tree->rates->nd_r[d->num];
+      n_d  = tree->rates->n_jps[d->num];
 
-      log_dens = RATES_Lk_Rates_Core(mu1,mu2,n1,n2,dt1,dt2,tree);
+      log_dens = RATES_Lk_Rates_Core(mu_a,mu_d,r_a,r_d,n_a,n_d,dt_a,dt_d,tree);
     }
   else
     {
-      dt2 = FABS(tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num]);
-      mu2 = tree->rates->br_r[d->num];
-      n2  = tree->rates->n_jps[d->num];
-        
+      dt_d = tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num];
+      mu_d = tree->rates->br_r[d->num];
+      r_d  = tree->rates->nd_r[d->num];
+      n_d  = tree->rates->n_jps[d->num];
+      r_a  = tree->rates->nd_r[a->num]; 
+      
       switch(tree->rates->model)
 	{
 	case COMPOUND_COR: case COMPOUND_NOCOR:
 	  {       
-	    log_dens = RATES_Dmu(mu2,n2,dt2,tree->rates->nu,1./tree->rates->nu,tree->rates->lexp,0,1);
+	    log_dens = RATES_Dmu(mu_d,n_d,dt_d,tree->rates->nu,1./tree->rates->nu,tree->rates->lexp,0,1);
 	    log_dens = LOG(log_dens);
 	    break;
 	  }
 	case EXPONENTIAL:
 	  {
-	    log_dens = Dexp(mu2,tree->rates->lexp);
+	    log_dens = Dexp(mu_d,tree->rates->lexp);
 	    log_dens = LOG(log_dens);
 	    break;
 	  }
 	case GAMMA:
 	  {
-	    log_dens = Dgamma(mu2,tree->rates->nu,1./tree->rates->nu);
+	    log_dens = Dgamma(mu_d,tree->rates->nu,1./tree->rates->nu);
 	    log_dens = LOG(log_dens);
 	    break;
 	  }
@@ -99,20 +103,52 @@ void RATES_Lk_Rates_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 	    int err;
 	    phydbl mean,sd;
 	    
-	    sd = SQRT(tree->rates->nu*dt2);
+	    sd = SQRT(tree->rates->nu*dt_d);
 	    mean = 1.0;
 
-	    log_dens = Log_Dnorm_Trunc(mu2,mean,sd,tree->rates->min_rate,tree->rates->max_rate,&err);
+	    log_dens = Log_Dnorm_Trunc(mu_d,mean,sd,tree->rates->min_rate,tree->rates->max_rate,&err);
 
 	    if(err)
 	      {
 		PhyML_Printf("\n. log_dens=%f",log_dens);
-		PhyML_Printf("\n. mu2=%f dt2=%f",mu2,dt2);
+		PhyML_Printf("\n. mu_d=%f dt_d=%f",mu_d,dt_d);
 		PhyML_Printf("\n. a->t=%f %f",tree->rates->nd_t[a->num],tree->rates->nd_t[d->num]);
 		PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
 /* 		Exit("\n"); */
 	      }
 
+	    break;
+	  }
+	case GUINDON:
+	  {
+	    phydbl mean,sd;
+	    int err;
+	    phydbl log_nd_r_d,log_nd_r_a;
+
+	    log_nd_r_d = LOG(r_d);
+	    log_nd_r_a = LOG(r_a); /* Has to be 0.0 as r_a=1.0 */
+	    
+	    log_dens = 0.0;
+	    
+/* 	    /\* Branch rate *\/ */
+	    mean = (log_nd_r_d + log_nd_r_a)/2.;
+	    sd   = SQRT(dt_d*tree->rates->nu/12.);
+/* 	    mean = 0.0; */
+/* 	    sd   = SQRT(tree->rates->nu * dt_d); */
+	    log_dens = Log_Dnorm(LOG(mu_d),mean,sd,&err);
+	    
+	    /* Node rate */
+	    mean = log_nd_r_a;
+	    sd   = SQRT(tree->rates->nu * dt_d);
+	    log_dens += Log_Dnorm(log_nd_r_d,mean,sd,&err);
+	    
+
+	    if(err)
+	      {
+		PhyML_Printf("\n. Run: %d",tree->mcmc->run);
+		PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+		Exit("\n");
+	      }
 	    break;
 	  }
 
@@ -135,6 +171,7 @@ void RATES_Lk_Rates_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
     }
 
   tree->rates->triplet[a->num] += log_dens;
+
 
   if(d->tax) return;
   else
@@ -194,6 +231,7 @@ void RATES_Update_Triplet(t_node *n, t_tree *tree)
   phydbl dt0,dt1,dt2;
   phydbl mu1_mu0,mu2_mu0;
   phydbl mu0,mu1,mu2;
+  phydbl r0,r1,r2;
   int n0,n1,n2;
   int i;
   t_node *v1,*v2;
@@ -215,6 +253,9 @@ void RATES_Update_Triplet(t_node *n, t_tree *tree)
       
       mu0 = tree->rates->br_r[tree->n_root->v[0]->num];
       mu1 = tree->rates->br_r[tree->n_root->v[1]->num];
+
+      r0 = tree->rates->nd_r[tree->n_root->v[0]->num];
+      r1 = tree->rates->nd_r[tree->n_root->v[1]->num];
       
       n0  = tree->rates->n_jps[tree->n_root->v[0]->num];
       n1  = tree->rates->n_jps[tree->n_root->v[1]->num];
@@ -259,6 +300,12 @@ void RATES_Update_Triplet(t_node *n, t_tree *tree)
 
 	    break;
 	  }
+	case GUINDON :
+	  {
+	    Exit("\n. Not implemented yet.\n");
+	    PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	    break;
+	  }
 	default :
 	  {
 	    Exit("\n. Model not implemented yet.\n");
@@ -282,6 +329,7 @@ void RATES_Update_Triplet(t_node *n, t_tree *tree)
       mu0 = tree->rates->br_r[n->num];
       dt0 = FABS(tree->rates->nd_t[n->num] - tree->rates->nd_t[n->anc->num]);
       n0  = tree->rates->n_jps[n->num];
+      r0 = tree->rates->nd_r[n->num];
 
       v1 = v2 = NULL;
       For(i,3)
@@ -294,6 +342,7 @@ void RATES_Update_Triplet(t_node *n, t_tree *tree)
 		  mu1 = tree->rates->br_r[v1->num];
 		  dt1 = FABS(tree->rates->nd_t[v1->num] - tree->rates->nd_t[n->num]);
 		  n1  = tree->rates->n_jps[v1->num];
+		  r1  = tree->rates->nd_r[v1->num];
 		}
 	      else
 		{
@@ -301,12 +350,13 @@ void RATES_Update_Triplet(t_node *n, t_tree *tree)
 		  mu2 = tree->rates->br_r[v2->num];
 		  dt2 = FABS(tree->rates->nd_t[v2->num] - tree->rates->nd_t[n->num]);
 		  n2  = tree->rates->n_jps[v2->num];
+		  r2  = tree->rates->nd_r[v2->num];
 		}
 	    }
 	}
  
-      mu1_mu0 = RATES_Lk_Rates_Core(mu0,mu1,n0,n1,dt0,dt1,tree);
-      mu2_mu0 = RATES_Lk_Rates_Core(mu0,mu2,n0,n2,dt0,dt2,tree);
+      mu1_mu0 = RATES_Lk_Rates_Core(mu0,mu1,r0,r1,n0,n1,dt0,dt1,tree);
+      mu2_mu0 = RATES_Lk_Rates_Core(mu0,mu2,r0,r1,n0,n2,dt0,dt2,tree);
       
       new_triplet = mu1_mu0 + mu2_mu0;
     }
@@ -317,7 +367,7 @@ void RATES_Update_Triplet(t_node *n, t_tree *tree)
 
 /*********************************************************/
 /* Returns LOG(f(br_r_rght;br_r_left)) */
-phydbl RATES_Lk_Rates_Core(phydbl br_r_left, phydbl br_r_rght, int n_left, int n_rght, phydbl dt_left, phydbl dt_rght, t_tree *tree)
+phydbl RATES_Lk_Rates_Core(phydbl br_r_a, phydbl br_r_d, phydbl nd_r_a, phydbl nd_r_d, int n_a, int n_d, phydbl dt_a, phydbl dt_d, t_tree *tree)
 {
   phydbl log_dens;
   phydbl alpha, beta, lexp;
@@ -331,28 +381,28 @@ phydbl RATES_Lk_Rates_Core(phydbl br_r_left, phydbl br_r_rght, int n_left, int n
     {
     case COMPOUND_COR:
       {       
-	log_dens = RATES_Compound_Core(br_r_left,br_r_rght,n_left,n_rght,dt_left,dt_rght,alpha,beta,lexp,tree->rates->step_rate,tree->rates->approx);
+	log_dens = RATES_Compound_Core(br_r_a,br_r_d,n_a,n_d,dt_a,dt_d,alpha,beta,lexp,tree->rates->step_rate,tree->rates->approx);
 	log_dens = LOG(log_dens);
 	break;
       }
       
     case COMPOUND_NOCOR :
       {
-	log_dens = RATES_Dmu(br_r_rght,n_rght,dt_rght,alpha,beta,lexp,0,1);
+	log_dens = RATES_Dmu(br_r_d,n_d,dt_d,alpha,beta,lexp,0,1);
 	log_dens = LOG(log_dens);
 	break;
       }
       
     case EXPONENTIAL :
       {
-	log_dens = Dexp(br_r_rght,tree->rates->lexp);
+	log_dens = Dexp(br_r_d,tree->rates->lexp);
 	log_dens = LOG(log_dens);
 	break;
       }
       
     case GAMMA :
       {
-	log_dens = Dgamma(br_r_rght,tree->rates->nu,1./tree->rates->nu);
+	log_dens = Dgamma(br_r_d,tree->rates->nu,1./tree->rates->nu);
 	log_dens = LOG(log_dens);
 	break;
       }
@@ -362,15 +412,46 @@ phydbl RATES_Lk_Rates_Core(phydbl br_r_left, phydbl br_r_rght, int n_left, int n
 	int err;	
 	phydbl mean,sd;
 
-	sd   = SQRT(tree->rates->nu*dt_rght);
-	mean = br_r_left;
+	sd   = SQRT(tree->rates->nu*dt_d);
+	mean = br_r_a;
 
-	log_dens = Log_Dnorm_Trunc(br_r_rght,mean,sd,tree->rates->min_rate,tree->rates->max_rate,&err);
+	log_dens = Log_Dnorm_Trunc(br_r_d,mean,sd,tree->rates->min_rate,tree->rates->max_rate,&err);
 
 	if(err)
 	  {
-	    log_dens = LOG(1.E-70);
-	    PhyML_Printf("\n. br_r_left=%f br_r_rght=%f dt_rght=%f nu=%G",br_r_left,br_r_rght,dt_rght,tree->rates->nu);
+	    PhyML_Printf("\n. br_r_a=%f br_r_d=%f dt_d=%f nu=%G",br_r_a,br_r_d,dt_d,tree->rates->nu);
+	    PhyML_Printf("\n. Run: %d",tree->mcmc->run);
+	    PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	    Exit("\n");
+	  }
+	break;
+      }
+    case GUINDON :
+      {
+	phydbl mean,sd;
+	int err;
+	phydbl log_nd_r_a, log_nd_r_d;
+
+	log_nd_r_a = LOG(nd_r_a);
+	log_nd_r_d = LOG(nd_r_d);
+
+
+	log_dens = 0.0;
+
+	/* Branch rate */
+	mean = (log_nd_r_d + log_nd_r_a)/2.;
+	sd   = SQRT(dt_d*tree->rates->nu/12.);
+/* 	mean = LOG(br_r_a); */
+/* 	sd   = SQRT(tree->rates->nu * dt_d); */
+	log_dens = Log_Dnorm(LOG(br_r_d),mean,sd,&err);
+
+	/* Node rate */
+	mean = log_nd_r_a;
+	sd   = SQRT(tree->rates->nu * dt_d);
+	log_dens += Log_Dnorm(log_nd_r_d,mean,sd,&err);
+
+	if(err)
+	  {
 	    PhyML_Printf("\n. Run: %d",tree->mcmc->run);
 	    PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
 	    Exit("\n");
@@ -387,10 +468,10 @@ phydbl RATES_Lk_Rates_Core(phydbl br_r_left, phydbl br_r_rght, int n_left, int n
 
   if(isnan(log_dens) || isinf(FABS(log_dens)))
     {
-      PhyML_Printf("\n. Run=%4d br_r_rght=%f br_r_left=%f dt_rght=%f dt_left=%f nu=%f log_dens=%G sd=%f\n",
+      PhyML_Printf("\n. Run=%4d br_r_d=%f br_r_a=%f dt_d=%f dt_a=%f nu=%f log_dens=%G sd=%f\n",
 		   tree->mcmc->run,
-		   br_r_rght,br_r_left,dt_rght,dt_left,tree->rates->nu,log_dens,
-		   SQRT(tree->rates->nu*dt_rght));
+		   br_r_d,br_r_a,dt_d,dt_a,tree->rates->nu,log_dens,
+		   SQRT(tree->rates->nu*dt_d));
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Exit("\n");
     }
@@ -713,6 +794,7 @@ t_rate *RATES_Make_Rate_Struct(int n_otu)
   t_rate *rates;
   
   rates                 = (t_rate  *)mCalloc(1,sizeof(t_rate));
+  rates->nd_r           = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
   rates->br_r           = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
   rates->buff_r         = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
   rates->true_r         = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
@@ -757,6 +839,7 @@ t_rate *RATES_Make_Rate_Struct(int n_otu)
 
 void Free_Rates(t_rate *rates)
 {
+  Free(rates->nd_r);
   Free(rates->br_r);
   Free(rates->buff_r);
   Free(rates->true_r);
@@ -814,6 +897,8 @@ void RATES_Init_Rate_Struct(t_rate *rates, int n_otu)
 
   rates->max_rate      = 1.E+2;
   rates->min_rate      = 1.E-3;
+/*   rates->max_rate      = 1.E+10; */
+/*   rates->min_rate      = 1.E-10; */
   /* rates->max_rate      = 5.0; */
   /* rates->min_rate      = 1.E-3; */
 /*   rates->max_rate      = 1.E+4; */
@@ -853,6 +938,7 @@ void RATES_Init_Rate_Struct(t_rate *rates, int n_otu)
 
   For(i,2*n_otu-1) 
     {
+      rates->nd_r[i]   = 1.0;
       rates->br_r[i]   = 1.0;
       rates->nd_t[i]   = 0.0;
       rates->true_t[i] = 0.0;
@@ -1700,7 +1786,6 @@ void RATES_Posterior_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree)
 
   post_sd = SQRT(post_var);
 
-  /* !!!!!!!!!!!!!!!! */
   rd = Rnorm_Trunc(post_mean,post_sd,r_min,r_max,&err);
 /*   rd = Rnorm_Trunc(post_mean,2.*post_sd,r_min,r_max,&err); */
 
@@ -1746,8 +1831,9 @@ void RATES_Posterior_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree)
   new_lnL_rate = tree->rates->c_lnL;
   
   if(tree->mcmc->use_data) new_lnL_data = Lk_At_Given_Edge(b,tree);
-/*   new_lnL_rate = RATES_Lk_Rates(tree); */
-  new_lnL_rate = tree->rates->c_lnL - Log_Dnorm_Trunc(U1,U0,sd1,r_min,r_max,&err) + Log_Dnorm_Trunc(rd,U0,sd1,r_min,r_max,&err);
+  /* !!!!!!!!!!!!! */
+  new_lnL_rate = RATES_Lk_Rates(tree);
+/*   new_lnL_rate = tree->rates->c_lnL - Log_Dnorm_Trunc(U1,U0,sd1,r_min,r_max,&err) + Log_Dnorm_Trunc(rd,U0,sd1,r_min,r_max,&err); */
   tree->rates->c_lnL = new_lnL_rate;
 
       

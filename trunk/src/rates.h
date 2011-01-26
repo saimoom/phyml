@@ -91,7 +91,7 @@ phydbl RATES_Dmu1_And_Mu2_One_Jump_Old(phydbl mu1, phydbl mu2, phydbl a, phydbl 
 
 phydbl RATES_Dmu2_And_Min_N_Given_Mu1(phydbl mu1, phydbl mu2, phydbl dt1, phydbl dt2, int n_min, phydbl a, phydbl b, phydbl lexp);
 phydbl RATES_Dmu2_And_Mu1_Given_N(phydbl mu1, phydbl mu2, phydbl dt1, phydbl dt2, int n, phydbl a, phydbl b, phydbl lexp);
-phydbl RATES_Lk_Rates_Core(phydbl mu1, phydbl mu2, int n1, int n2, phydbl dt1, phydbl dt2, t_tree *tree);
+phydbl RATES_Lk_Rates_Core(phydbl br_r_a, phydbl br_r_d, phydbl nd_r_a, phydbl nd_r_d, int n_a, int n_d, phydbl dt_a, phydbl dt_d, t_tree *tree);
 void RATES_Init_Triplets(t_tree *tree);
 phydbl RATES_Lk_Change_One_Time(t_node *n, phydbl new_t, t_tree *tree);
 void RATES_Update_Triplet(t_node *n, t_tree *tree);

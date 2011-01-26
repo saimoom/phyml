@@ -93,9 +93,9 @@ void MCMC_Single_Param_Generic(phydbl *val,
 			       int move_num,
 			       phydbl *lnPrior,
 			       phydbl *lnLike,
-			       phydbl (*prior_func)(t_tree *), 
+			       phydbl (*prior_func)(t_edge *,t_tree *,supert_tree *), 
 			       phydbl (*like_func)(t_edge *,t_tree *,supert_tree *),
-			       int move_type,
+			       int move_type, int _log,
 			       t_edge *branch, t_tree *tree, supert_tree *stree);
 void MCMC_Scale_Br_Lens(t_tree *tree);
 void MCMC_Update_Mean_Br_Len(t_tree *tree);
@@ -117,5 +117,7 @@ void MCMC_Update_Effective_Sample_Size(int move_num, t_mcmc *mcmc);
 void MCMC_Initialize_Param_Val(t_mcmc *mcmc, t_tree *tree);
 void MCMC_Terminate();
 void MCMC_Copy_To_New_Param_Val(t_mcmc *mcmc, t_tree *tree);
+void MCMC_Randomize_Node_Rates(t_tree *tree);
+void MCMC_One_Node_Rate(t_node *a, t_node *d, int traversal, t_tree *tree);
 
 #endif

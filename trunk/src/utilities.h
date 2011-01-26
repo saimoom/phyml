@@ -153,7 +153,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  SCALE_POW             10    /*! Scaling factor will be 2^SCALE_POW or 2^(-SCALE_POW) [[ WARNING: SCALE_POW < 31 ]]*/
 #define  DEFAULT_SIZE_SPR_LIST 20
 #define  OUTPUT_TREE_FORMAT  0 /*! 0-->Newick; 1-->Nexus */
-#define  MAX_PARS        1000000000
+#define  MAX_PARS      1000000000
 
 #define  LIM_SCALE_VAL     1.E-50 /*! Scaling limit (deprecated) */
 
@@ -192,6 +192,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define EXPONENTIAL    2
 #define GAMMA          3
 #define THORNE         4
+#define GUINDON        5
 
 /* #define USE_OLD_LK */
 
@@ -970,7 +971,8 @@ typedef struct __T_Rate {
   phydbl max_nu;
   phydbl covdet;
 
-  phydbl     *br_r;  /*! Current rates at nodes and the corresponding incoming edges */
+  phydbl     *nd_r;  /*! Current rates at nodes */
+  phydbl     *br_r;  /*! Current rates along edges */
   phydbl     *nd_t; /*! Current t_node times */
   phydbl     *triplet;
   phydbl     *true_t; /*! true t_node times (including root node) */
@@ -1039,6 +1041,7 @@ typedef struct __Tmcmc {
   int *num_move;
   char **move_name;
 
+  int num_move_nd_r;
   int num_move_br_r;
   int num_move_nd_t;
   int num_move_nu;
