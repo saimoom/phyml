@@ -1772,17 +1772,17 @@ phydbl *Hessian(t_tree *tree)
 	}
     }
   
-  printf("\n");
-  printf("HESSIAN\n");
-  For(i,dim)
-    {
-      PhyML_Printf("[%f] ",tree->t_edges[i]->l);
-      For(j,dim)
-	{
-	  PhyML_Printf("%12lf ",hessian[i*dim+j]);
-	}
-      PhyML_Printf("\n");
-    }
+/*   printf("\n"); */
+/*   printf("HESSIAN\n"); */
+/*   For(i,dim) */
+/*     { */
+/*       PhyML_Printf("[%f] ",tree->t_edges[i]->l); */
+/*       For(j,dim) */
+/* 	{ */
+/* 	  PhyML_Printf("%12lf ",hessian[i*dim+j]); */
+/* 	} */
+/*       PhyML_Printf("\n"); */
+/*     } */
 
   /* Matinv(hessian,dim,dim,NO); */
 
@@ -1981,6 +1981,8 @@ phydbl *Hessian_Seo(t_tree *tree)
   int iter;
   phydbl scaler;
   phydbl l_inf;
+  int l,n;
+  phydbl small_var;
 
   dim = 2*tree->n_otu-3;
   eps = (tree->mod->log_l == YES)?(0.2):(1.E-1);
@@ -2109,7 +2111,10 @@ phydbl *Hessian_Seo(t_tree *tree)
   tree->both_sides = YES;
   Lk(tree);
 
-  /* !!!!!!!!!!!!!!!!!! */
+  l = tree->data->init_len;
+  n = tree->mod->ns;
+  /* Delta method for variance. Assume Jukes and Cantor with p=1/n */
+  small_var = (1./(l*l))*(1.-1./l)*(n-1.)*(n-1.)/(n-1.-n/l);
   For(i,dim)
     if(is_ok[i] == NO)
       {
@@ -2118,7 +2123,7 @@ phydbl *Hessian_Seo(t_tree *tree)
 	    hessian[i*dim+j] = 0.;
 	    hessian[j*dim+i] = 0.;
 	  }
-	hessian[i*dim+i] = -100000.;
+	hessian[i*dim+i] = -1./small_var;
       }
 
 
@@ -2140,17 +2145,17 @@ phydbl *Hessian_Seo(t_tree *tree)
 
 
 
-  printf("\n");
-  printf("HESSIAN SEO\n");
-  For(i,dim)
-    {
-      PhyML_Printf("[%f] ",tree->t_edges[i]->l);
-      For(j,dim)
-	{
-	  PhyML_Printf("%12lf ",hessian[i*dim+j]);
-	}
-      PhyML_Printf("\n");
-    }
+/*   printf("\n"); */
+/*   printf("HESSIAN SEO\n"); */
+/*   For(i,dim) */
+/*     { */
+/*       PhyML_Printf("[%f] ",tree->t_edges[i]->l); */
+/*       For(j,dim) */
+/* 	{ */
+/* 	  PhyML_Printf("%12lf ",hessian[i*dim+j]); */
+/* 	} */
+/*       PhyML_Printf("\n"); */
+/*     } */
 
 
 
