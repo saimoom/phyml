@@ -878,8 +878,8 @@ void MCMC_One_Time(t_node *a, t_node *d, int traversal, t_tree *tree)
   cur_lnL_data   = tree->c_lnL;
   cur_lnL_rate   = tree->rates->c_lnL;
   t1_cur         = tree->rates->nd_t[d->num];
-  new_lnL_data   = UNLIKELY;
-  new_lnL_rate   = UNLIKELY;
+  new_lnL_data   = cur_lnL_data;
+  new_lnL_rate   = cur_lnL_rate;
 
   v2 = v3 = NULL;
 
@@ -931,7 +931,7 @@ void MCMC_One_Time(t_node *a, t_node *d, int traversal, t_tree *tree)
 
       if(tree->mcmc->use_data) new_lnL_data = Lk(tree);
 
-      new_lnL_rate = RATES_Lk_Rates(tree);
+ /*      new_lnL_rate = RATES_Lk_Rates(tree); */
       
       ratio = 0.0;
 /*       ratio += LOG(mult); */
@@ -954,7 +954,7 @@ void MCMC_One_Time(t_node *a, t_node *d, int traversal, t_tree *tree)
       else
 	{
 	  tree->mcmc->acc_move[move_num]++;
-/* 	  RATES_Lk_Rates(tree); */
+	  RATES_Lk_Rates(tree);
 	}
       
       if(t1_new < t0)
@@ -1200,7 +1200,7 @@ void MCMC_Tree_Height(t_tree *tree)
 
   K = tree->mcmc->tune_move[tree->mcmc->num_move_tree_height];
   cur_lnL_data = tree->c_lnL;
-  new_lnL_data = UNLIKELY;
+  new_lnL_data = cur_lnL_data;
 
   u = Uni();
   mult = EXP(K*(u-0.5));
@@ -1268,7 +1268,7 @@ void MCMC_Subtree_Height(t_tree *tree)
 
   K = tree->mcmc->tune_move[tree->mcmc->num_move_subtree_height];
   cur_lnL_data = tree->c_lnL;
-  new_lnL_data = UNLIKELY;
+  new_lnL_data = cur_lnL_data;
   
   u = Uni();
   mult = EXP(K*(u-0.5));
@@ -1349,7 +1349,7 @@ void MCMC_Swing(t_tree *tree)
 
   K = tree->mcmc->tune_move[tree->mcmc->num_move_tree_height];
   cur_lnL_data  = tree->c_lnL;
-  new_lnL_data  = UNLIKELY;
+  new_lnL_data  = cur_lnL_data;
 
   u = Uni();
   mult = EXP(K*(u-0.5));
