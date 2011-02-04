@@ -1006,6 +1006,7 @@ typedef struct __T_Rate {
   phydbl     *mean_l;
   phydbl     *cov_l;
   phydbl     *grad_l; /* gradient */
+  phydbl     inflate_var;
 
   int adjust_rates; /*! if = 1, branch rates are adjusted such that a modification of a given t_node time
 		       does not modify any branch lengths */
@@ -1021,6 +1022,8 @@ typedef struct __T_Rate {
 
   int *n_jps;
   int *t_jps;
+
+  
 
   short int *t_has_prior;
   struct __Node **lca; /*! 2-way table of common ancestral nodes for each pari of nodes */
@@ -1063,7 +1066,7 @@ typedef struct __Tmcmc {
   FILE *out_fp_means;
   FILE *out_fp_last;
  
-  int adjust_tuning;
+  int *adjust_tuning;
   int n_moves;
   int use_data;
   int randomize;

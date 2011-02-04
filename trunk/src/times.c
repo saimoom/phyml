@@ -63,6 +63,7 @@ int TIMES_main(int argc, char **argv)
 
   io = (option *)Get_Input(argc,argv);
   r_seed = (io->r_seed < 0)?(time(NULL)):(io->r_seed);
+  io->r_seed = r_seed;
   /* !!!!!!!!!!!!!!!!!!!!!!!! */
 /*   r_seed = 1289246338; */
 /*   r_seed = 1289266727; */
@@ -70,7 +71,7 @@ int TIMES_main(int argc, char **argv)
 /*   r_seed = 1289443891; */
 /*   r_seed = 1290652518; */
 /*   r_seed = 1292195490; */
-  r_seed = 1295646926;
+/*   r_seed = 1295646926; */
   /* sys = system("sleep 5s"); */
 
   srand(r_seed); rand();
@@ -224,7 +225,6 @@ int TIMES_main(int argc, char **argv)
 		  MCMC_Copy_MCMC_Struct(tree->io->mcmc,tree->mcmc,"phytime");
 		  MCMC_Complete_MCMC(tree->mcmc,tree);
 		  tree->mcmc->randomize     = YES;
-		  tree->mcmc->adjust_tuning = YES;
 		  tree->mcmc->is_burnin     = NO;
 		  MCMC(tree);
 		  MCMC_Close_MCMC(tree->mcmc);

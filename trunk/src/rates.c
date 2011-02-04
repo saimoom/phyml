@@ -107,6 +107,7 @@ void RATES_Lk_Rates_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 	    mean = 1.0;
 
 	    log_dens = Log_Dnorm_Trunc(mu_d,mean,sd,tree->rates->min_rate,tree->rates->max_rate,&err);
+/* 	    log_dens = Log_Dnorm(mu_d,mean,sd,&err); */
 
 	    if(err)
 	      {
@@ -416,6 +417,7 @@ phydbl RATES_Lk_Rates_Core(phydbl br_r_a, phydbl br_r_d, phydbl nd_r_a, phydbl n
 	mean = br_r_a;
 
 	log_dens = Log_Dnorm_Trunc(br_r_d,mean,sd,tree->rates->min_rate,tree->rates->max_rate,&err);
+/* 	log_dens = Log_Dnorm(br_r_d,mean,sd,&err); */
 
 	if(err)
 	  {
@@ -894,9 +896,9 @@ void RATES_Init_Rate_Struct(t_rate *rates, int n_otu)
   rates->nu               = 2.;
   rates->birth_rate       = 0.001;
   rates->norm_fact        = 1.0;
-
-  rates->max_rate      = 1.E+2;
-  rates->min_rate      = 1.E-3;
+  rates->inflate_var      = 1.0;
+  rates->max_rate         = 1.E+2;
+  rates->min_rate         = 1.E-3;
 /*   rates->max_rate      = 1.E+10; */
 /*   rates->min_rate      = 1.E-10; */
   /* rates->max_rate      = 5.0; */
@@ -1654,16 +1656,17 @@ void RATES_Posterior_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree)
   phydbl nf;
   phydbl new_lnL_data, cur_lnL_data, new_lnL_rate, cur_lnL_rate;
   phydbl sd1,sd2,sd3;
-
+  phydbl inflate_var;
 
   if(d == tree->n_root) return;
 
   dim = 2*tree->n_otu-3;
   err = NO;
 
-  is_1     = tree->rates->_2n_vect5;
-  cond_mu  = tree->rates->_2n_vect1;
-  cond_cov = tree->rates->_2n2n_vect1;
+  is_1        = tree->rates->_2n_vect5;
+  cond_mu     = tree->rates->_2n_vect1;
+  cond_cov    = tree->rates->_2n2n_vect1;
+  inflate_var = tree->rates->inflate_var;
 
   b = NULL;
   if(a == tree->n_root) b = tree->e_root;
@@ -1786,8 +1789,7 @@ void RATES_Posterior_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree)
 
   post_sd = SQRT(post_var);
 
-  rd = Rnorm_Trunc(post_mean,post_sd,r_min,r_max,&err);
-/*   rd = Rnorm_Trunc(post_mean,2.*post_sd,r_min,r_max,&err); */
+  rd = Rnorm_Trunc(post_mean,inflate_var*post_sd,r_min,r_max,&err);
 
   if(err || isnan(rd) || rd < r_min || rd > r_max)
     {
@@ -1803,6 +1805,10 @@ void RATES_Posterior_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree)
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Exit("\n");
     }    
+
+  /* !!!!!!!!!!!!!! */
+/*   u = Uni(); */
+/*   rd = U1 * EXP(1.*(u-0.5)); */
 
   tree->rates->br_r[d->num] = rd;
   RATES_Update_Norm_Fact(tree);
@@ -1831,16 +1837,15 @@ void RATES_Posterior_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree)
   new_lnL_rate = tree->rates->c_lnL;
   
   if(tree->mcmc->use_data) new_lnL_data = Lk_At_Given_Edge(b,tree);
-  /* !!!!!!!!!!!!! */
-  new_lnL_rate = RATES_Lk_Rates(tree);
-/*   new_lnL_rate = tree->rates->c_lnL - Log_Dnorm_Trunc(U1,U0,sd1,r_min,r_max,&err) + Log_Dnorm_Trunc(rd,U0,sd1,r_min,r_max,&err); */
+/*   new_lnL_rate = RATES_Lk_Rates(tree); */
+  new_lnL_rate = tree->rates->c_lnL - Log_Dnorm_Trunc(U1,U0,sd1,r_min,r_max,&err) + Log_Dnorm_Trunc(rd,U0,sd1,r_min,r_max,&err);
   tree->rates->c_lnL = new_lnL_rate;
 
       
   ratio = 0.0;
   /* Proposal ratio */
-  ratio += (Log_Dnorm_Trunc(U1,post_mean,post_sd,r_min,r_max,&err) - Log_Dnorm_Trunc(rd,post_mean,post_sd,r_min,r_max,&err));
-/*   ratio += (Log_Dnorm_Trunc(U1,post_mean,2.*post_sd,r_min,r_max,&err) - Log_Dnorm_Trunc(rd,post_mean,2.*post_sd,r_min,r_max,&err)); */
+  ratio += (Log_Dnorm_Trunc(U1,post_mean,inflate_var*post_sd,r_min,r_max,&err) - Log_Dnorm_Trunc(rd,post_mean,inflate_var*post_sd,r_min,r_max,&err));
+/*   ratio += LOG(rd/U1); */
   /* Prior ratio */
   ratio += (new_lnL_rate - cur_lnL_rate);
   /* Likelihood ratio */
@@ -1946,9 +1951,11 @@ void RATES_Posterior_One_Time(t_node *a, t_node *d, int traversal, t_tree *tree)
   phydbl u, ratio;
   phydbl new_lnL_data, cur_lnL_data, new_lnL_rate, cur_lnL_rate;
   int num_move;
+  phydbl inflate_var;
 
   dim = 2*tree->n_otu-3;
   num_move = tree->mcmc->num_move_nd_t+d->num-tree->n_otu;
+  inflate_var = tree->rates->inflate_var;
 
   if(d->tax) return;
   
@@ -2245,7 +2252,7 @@ void RATES_Posterior_One_Time(t_node *a, t_node *d, int traversal, t_tree *tree)
   bl_min = (t_min - t0) * r1 * cr * nf;
   bl_max = (t_max - t0) * r1 * cr * nf;
 
-  new_l1 = Rnorm_Trunc(cond_mu[0],SQRT(cond_cov[0*3+0]),bl_min,bl_max,&err);
+  new_l1 = Rnorm_Trunc(cond_mu[0],inflate_var*SQRT(cond_cov[0*3+0]),bl_min,bl_max,&err);
 /*   new_l1 = Rnorm(cond_mu[0],SQRT(cond_cov[0*3+0])); */
 
 
@@ -2377,7 +2384,8 @@ void RATES_Posterior_One_Time(t_node *a, t_node *d, int traversal, t_tree *tree)
 
   /* Proposal ratio */
   if(tree->mcmc->use_data)
-    ratio += (Log_Dnorm_Trunc(l1,cond_mu[0],SQRT(cond_cov[0*3+0]),bl_min,bl_max,&err) - Log_Dnorm_Trunc(new_l1,cond_mu[0],SQRT(cond_cov[0*3+0]),bl_min,bl_max,&err));
+    ratio += (Log_Dnorm_Trunc(l1,    cond_mu[0],inflate_var*SQRT(cond_cov[0*3+0]),bl_min,bl_max,&err) - 
+	      Log_Dnorm_Trunc(new_l1,cond_mu[0],inflate_var*SQRT(cond_cov[0*3+0]),bl_min,bl_max,&err));
     
   /* Prior ratio */
   ratio += .0;
