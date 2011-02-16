@@ -416,6 +416,7 @@ phydbl RATES_Lk_Rates_Core(phydbl br_r_a, phydbl br_r_d, phydbl nd_r_a, phydbl n
 	sd   = SQRT(tree->rates->nu*dt_d);
 	mean = br_r_a;
 
+
 	log_dens = Log_Dnorm_Trunc(br_r_d,mean,sd,tree->rates->min_rate,tree->rates->max_rate,&err);
 /* 	log_dens = Log_Dnorm(br_r_d,mean,sd,&err); */
 
@@ -1790,8 +1791,9 @@ void RATES_Posterior_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree)
   post_sd = SQRT(post_var);
 
   rd = Rnorm_Trunc(post_mean,inflate_var*post_sd,r_min,r_max,&err);
+  /* rd = Rnorm(post_mean,inflate_var*post_sd); */
 
-  if(err || isnan(rd) || rd < r_min || rd > r_max)
+  if(err || isnan(rd))
     {
       PhyML_Printf("\n");
       PhyML_Printf("\n. run: %d err=%d d->tax=%d",tree->mcmc->run,err,d->tax);
@@ -1810,80 +1812,83 @@ void RATES_Posterior_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree)
 /*   u = Uni(); */
 /*   rd = U1 * EXP(1.*(u-0.5)); */
 
-  tree->rates->br_r[d->num] = rd;
-  RATES_Update_Norm_Fact(tree);
-  RATES_Update_Cur_Bl(tree);
-
-/*   if(!d->tax) */
-/*     { */
-      
-/*       ratio = */
-/* 	(LOG(Pnorm(r_max,U1,sd2)-Pnorm(r_min,U1,sd2)) + */
-/* 	 LOG(Pnorm(r_max,U1,sd3)-Pnorm(r_min,U1,sd3))) - */
-/* 	(LOG(Pnorm(r_max,rd,sd2)-Pnorm(r_min,rd,sd2)) + */
-/* 	 LOG(Pnorm(r_max,rd,sd3)-Pnorm(r_min,rd,sd3))); */
-      
-/*       ratio = EXP(ratio); */
-/*     } */
-/*   else */
-/*     { */
-/*       ratio = 1.0; */
-/*     } */
-
-
-  cur_lnL_data = tree->c_lnL;
-  cur_lnL_rate = tree->rates->c_lnL;
-  new_lnL_data = tree->c_lnL;
-  new_lnL_rate = tree->rates->c_lnL;
-  
-  if(tree->mcmc->use_data) new_lnL_data = Lk_At_Given_Edge(b,tree);
-/*   new_lnL_rate = RATES_Lk_Rates(tree); */
-  new_lnL_rate = tree->rates->c_lnL - Log_Dnorm_Trunc(U1,U0,sd1,r_min,r_max,&err) + Log_Dnorm_Trunc(rd,U0,sd1,r_min,r_max,&err);
-  tree->rates->c_lnL = new_lnL_rate;
-
-      
-  ratio = 0.0;
-  /* Proposal ratio */
-  ratio += (Log_Dnorm_Trunc(U1,post_mean,inflate_var*post_sd,r_min,r_max,&err) - Log_Dnorm_Trunc(rd,post_mean,inflate_var*post_sd,r_min,r_max,&err));
-/*   ratio += LOG(rd/U1); */
-  /* Prior ratio */
-  ratio += (new_lnL_rate - cur_lnL_rate);
-  /* Likelihood ratio */
-  ratio += (new_lnL_data - cur_lnL_data);
- 
-
-  ratio = EXP(ratio);
- 
-/*   printf("\n. R a=%3d T0=%6.1f T1=%6.1f T2=%6.1f T3=%6.1f ratio=%8f pm=%7f U1=%7.2f rd=%7.2f %f %f lr=%f %f ld=%f %f [%f]",a->num,T0,T1,T2,T3,ratio,post_mean,U1,rd, */
-/* 	 Log_Dnorm_Trunc(U1,post_mean,post_sd,r_min,r_max,&err), */
-/* 	 Log_Dnorm_Trunc(rd,post_mean,post_sd,r_min,r_max,&err), */
-/* 	 new_lnL_rate,cur_lnL_rate, */
-/* 	 new_lnL_data,cur_lnL_data, */
-/* 	 ((Pnorm(r_max,U1,sd2)-Pnorm(r_min,U1,sd2)) * */
-/* 	  (Pnorm(r_max,U1,sd3)-Pnorm(r_min,U1,sd3)))/ */
-/* 	 ((Pnorm(r_max,rd,sd2)-Pnorm(r_min,rd,sd2)) * */
-/* 	  (Pnorm(r_max,rd,sd3)-Pnorm(r_min,rd,sd3)))); */
-
-
-  u = Uni();
-
-  if(u > MIN(1.,ratio))
+  if(rd > r_min && rd < r_max)
     {
-      tree->rates->br_r[d->num] = U1; /* reject */
-      tree->rates->c_lnL        = cur_lnL_rate;
-      tree->c_lnL               = cur_lnL_data;
+      tree->rates->br_r[d->num] = rd;
+      RATES_Update_Norm_Fact(tree);
+      RATES_Update_Cur_Bl(tree);
+      
+      /*   if(!d->tax) */
+      /*     { */
+      
+      /*       ratio = */
+      /* 	(LOG(Pnorm(r_max,U1,sd2)-Pnorm(r_min,U1,sd2)) + */
+      /* 	 LOG(Pnorm(r_max,U1,sd3)-Pnorm(r_min,U1,sd3))) - */
+      /* 	(LOG(Pnorm(r_max,rd,sd2)-Pnorm(r_min,rd,sd2)) + */
+      /* 	 LOG(Pnorm(r_max,rd,sd3)-Pnorm(r_min,rd,sd3))); */
+      
+      /*       ratio = EXP(ratio); */
+      /*     } */
+      /*   else */
+      /*     { */
+      /*       ratio = 1.0; */
+      /*     } */
+      
+      
+      cur_lnL_data = tree->c_lnL;
+      cur_lnL_rate = tree->rates->c_lnL;
+      new_lnL_data = tree->c_lnL;
+      new_lnL_rate = tree->rates->c_lnL;
+      
+      if(tree->mcmc->use_data) new_lnL_data = Lk_At_Given_Edge(b,tree);
+      /*   new_lnL_rate = RATES_Lk_Rates(tree); */
+      new_lnL_rate = tree->rates->c_lnL - Log_Dnorm_Trunc(U1,U0,sd1,r_min,r_max,&err) + Log_Dnorm_Trunc(rd,U0,sd1,r_min,r_max,&err);
+      tree->rates->c_lnL = new_lnL_rate;
+      
+      
+      ratio = 0.0;
+      /* Proposal ratio */
+      ratio += (Log_Dnorm_Trunc(U1,post_mean,inflate_var*post_sd,r_min,r_max,&err) - Log_Dnorm_Trunc(rd,post_mean,inflate_var*post_sd,r_min,r_max,&err));
+      /*   ratio += LOG(rd/U1); */
+      /* Prior ratio */
+      ratio += (new_lnL_rate - cur_lnL_rate);
+      /* Likelihood ratio */
+      ratio += (new_lnL_data - cur_lnL_data);
+      
+      
+      ratio = EXP(ratio);
+      
+      /*   printf("\n. R a=%3d T0=%6.1f T1=%6.1f T2=%6.1f T3=%6.1f ratio=%8f pm=%7f U1=%7.2f rd=%7.2f %f %f lr=%f %f ld=%f %f [%f]",a->num,T0,T1,T2,T3,ratio,post_mean,U1,rd, */
+      /* 	 Log_Dnorm_Trunc(U1,post_mean,post_sd,r_min,r_max,&err), */
+      /* 	 Log_Dnorm_Trunc(rd,post_mean,post_sd,r_min,r_max,&err), */
+      /* 	 new_lnL_rate,cur_lnL_rate, */
+      /* 	 new_lnL_data,cur_lnL_data, */
+      /* 	 ((Pnorm(r_max,U1,sd2)-Pnorm(r_min,U1,sd2)) * */
+      /* 	  (Pnorm(r_max,U1,sd3)-Pnorm(r_min,U1,sd3)))/ */
+      /* 	 ((Pnorm(r_max,rd,sd2)-Pnorm(r_min,rd,sd2)) * */
+      /* 	  (Pnorm(r_max,rd,sd3)-Pnorm(r_min,rd,sd3)))); */
+      
+      
+      u = Uni();
+      
+      if(u > MIN(1.,ratio))
+	{
+	  tree->rates->br_r[d->num] = U1; /* reject */
+	  tree->rates->c_lnL        = cur_lnL_rate;
+	  tree->c_lnL               = cur_lnL_data;
+	}
+      else tree->mcmc->acc_move[tree->mcmc->num_move_br_r+d->num]++;
+      
+      
+      RATES_Update_Norm_Fact(tree);
+      RATES_Update_Cur_Bl(tree);
+      tree->mcmc->acc_rate[tree->mcmc->num_move_br_r+d->num] = 
+	(tree->mcmc->acc_move[tree->mcmc->num_move_br_r+d->num]+1.E-6)/
+	(tree->mcmc->run_move[tree->mcmc->num_move_br_r+d->num]+1.E-6);
     }
-  else tree->mcmc->acc_move[tree->mcmc->num_move_br_r+d->num]++;
 
-
-  RATES_Update_Norm_Fact(tree);
-  RATES_Update_Cur_Bl(tree);
   tree->mcmc->run_move[tree->mcmc->num_move_br_r+d->num]++;
-  tree->mcmc->acc_rate[tree->mcmc->num_move_br_r+d->num] = 
-    (tree->mcmc->acc_move[tree->mcmc->num_move_br_r+d->num]+1.E-6)/
-    (tree->mcmc->run_move[tree->mcmc->num_move_br_r+d->num]+1.E-6);
-
-
+      
   if(traversal == YES)
     {
       if(d->tax == YES) return;
@@ -2367,16 +2372,17 @@ void RATES_Posterior_One_Time(t_node *a, t_node *d, int traversal, t_tree *tree)
   
   if(tree->mcmc->use_data) 
     {
-/*       tree->both_sides = NO; */
-/*       new_lnL_data = Lk(tree); */
+      /* !!!!!!!!!!!!!!!!! */
+      /* tree->both_sides = NO; */
+      /* new_lnL_data = Lk(tree); */
 
-      if(tree->io->lk_approx == EXACT) 
-	{
-	  Update_PMat_At_Given_Edge(b1,tree);
-	  Update_PMat_At_Given_Edge(b2,tree);
-	  Update_PMat_At_Given_Edge(b3,tree);
-	  Update_P_Lk(tree,b1,d);
-	}
+      if(tree->io->lk_approx == EXACT)
+      	{
+      	  Update_PMat_At_Given_Edge(b1,tree);
+      	  Update_PMat_At_Given_Edge(b2,tree);
+      	  Update_PMat_At_Given_Edge(b3,tree);
+      	  Update_P_Lk(tree,b1,d);
+      	}
       new_lnL_data = Lk_At_Given_Edge(b1,tree);
     }
   

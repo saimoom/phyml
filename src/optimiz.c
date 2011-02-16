@@ -860,7 +860,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 	    }
 	}
       
-      if(tree->mod->s_opt->opt_alpha)
+      if(tree->mod->s_opt->opt_alpha && tree->mod->free_mixt_rates == NO)
 	{
 	  if(tree->mod->n_catg > 1)
 /* 	    Optimize_Single_Param_Generic(tree,&(tree->mod->alpha), */
@@ -890,14 +890,14 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
         
         failed = 0;
         tree->mod->update_eigen = 1;
-        BFGS(tree,tree->mod->pi,4,1.e-5,1.e-5,
+        BFGS(tree,tree->mod->pi_unscaled,tree->mod->ns,1.e-5,1.e-5,
 	     &Return_Abs_Lk,
 	     &Num_Derivative_Several_Param,
 	     &Lnsrch_Nucleotide_Frequencies,&failed);
 
         if(failed)
 	  {
-	    For(i,4) 
+	    For(i,tree->mod->ns) 
 	      {
 /* 		Optimize_Single_Param_Generic(tree,&(tree->mod->pi_unscaled[i]), */
 /* 					      -1000.,1000., */
@@ -915,6 +915,53 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 	if(verbose) Print_Lk(tree,"[Nucleotide freqs.  ]");
         tree->mod->update_eigen = 0;
     }
+
+
+
+  if((tree->mod->s_opt->opt_free_mixt_rates) && (tree->mod->free_mixt_rates == YES))
+    {
+      int failed,i;
+        
+      /* failed = 0; */
+      /* tree->mod->update_eigen = 1; */
+      /* BFGS(tree,tree->mod->gamma_r_proba_unscaled,tree->mod->n_catg,1.e-5,1.e-5, */
+      /* 	   &Return_Abs_Lk, */
+      /* 	   &Num_Derivative_Several_Param, */
+      /* 	   &Lnsrch_Free_Mixt_Rates,&failed); */
+
+
+      /* if(failed) */
+      /* 	{ */
+      	  For(i,tree->mod->n_catg)
+      	    {
+      	      Generic_Brent_Lk(&(tree->mod->gamma_r_proba_unscaled[i]),
+      			       -1000.,1000.,
+      			       tree->mod->s_opt->min_diff_lk_global,
+      			       tree->mod->s_opt->brent_it_max,
+      			       tree->mod->s_opt->quickdirty,
+      			       Wrap_Lk,NULL,tree,NULL);
+      	    }
+      	/* } */
+      
+      
+      if(verbose) Print_Lk(tree,"[Rate class freqs.  ]");
+
+      For(i,tree->mod->n_catg) 
+	{
+	  Generic_Brent_Lk(&(tree->mod->gamma_rr[i]),
+			   0.001,100.,
+			   tree->mod->s_opt->min_diff_lk_global,
+			   tree->mod->s_opt->brent_it_max,
+			   tree->mod->s_opt->quickdirty,
+			   Wrap_Lk,NULL,tree,NULL);
+	}
+
+      if(verbose) Print_Lk(tree,"[Rate class values  ]");
+
+      tree->mod->update_eigen = 0;
+    }
+
+
 
   if(tree->mod->use_m4mod)
     {
@@ -1490,7 +1537,7 @@ int Lnsrch_Nucleotide_Frequencies(t_tree *tree, int n, phydbl *xold, phydbl fold
       /**/      
       for(i=0;i<n;i++) 
 	{
-	  tree->mod->pi[i]=FABS(local_xold[i]+alam*p[i]);
+	  tree->mod->pi_unscaled[i]=FABS(local_xold[i]+alam*p[i]);
 /* 	  if( */
 /* 	     (tree->mod->pi[i] < 0.001) || */
 /* 	     (tree->mod->pi[i] > 0.999) */
@@ -1506,7 +1553,7 @@ int Lnsrch_Nucleotide_Frequencies(t_tree *tree, int n, phydbl *xold, phydbl fold
       if (alam < alamin)
 	{
 	  for (i=0;i<n;i++) x[i]=local_xold[i];
-	  for (i=0;i<n;i++) tree->mod->pi[i]=local_xold[i];
+	  for (i=0;i<n;i++) tree->mod->pi_unscaled[i]=local_xold[i];
 	  *check=1;
 	  For(i,n) xold[i] = local_xold[i];
 	  Free(local_xold);
@@ -1556,6 +1603,105 @@ int Lnsrch_Nucleotide_Frequencies(t_tree *tree, int n, phydbl *xold, phydbl fold
 }
 
 /*********************************************************/
+
+
+#define ALF 1.0e-4
+#define TOLX 1.0e-7
+
+int Lnsrch_Free_Mixt_Rates(t_tree *tree, int n, phydbl *xold, phydbl fold, phydbl *g, phydbl *p, phydbl *x,
+			   phydbl *f, phydbl stpmax, int *check)
+{
+  int i;
+  phydbl a,alam,alam2,alamin,b,disc,f2,fold2,rhs1,rhs2,slope,sum,temp,test,tmplam;
+  phydbl *local_xold;
+
+  alam = alam2 = f2 = fold2 = tmplam = .0;
+
+  local_xold = (phydbl *)mCalloc(n,sizeof(phydbl));
+  For(i,n) local_xold[i] = xold[i];
+
+
+  *check=0;
+  for(sum=0.0,i=0;i<n;i++) sum += p[i]*p[i];
+  sum=SQRT(sum);
+  if(sum > stpmax)
+    for(i=0;i<n;i++) p[i] *= stpmax/sum;
+  for(slope=0.0,i=0;i<n;i++)
+    slope += g[i]*p[i];
+  test=0.0;
+  for(i=0;i<n;i++) 
+    {
+      temp=FABS(p[i])/MAX(FABS(local_xold[i]),1.0);
+      if (temp > test) test=temp;
+    }
+  alamin=TOLX/test;
+  alam=1.0;
+  for (;;) 
+    {
+      for(i=0;i<n;i++) x[i]=FABS(local_xold[i]+alam*p[i]);
+      /**/      
+      for(i=0;i<n;i++) 
+	{
+	  tree->mod->gamma_r_proba[i]=FABS(local_xold[i]+alam*p[i]);
+	}
+      /**/
+      if(i==n) 
+	{
+	  *f=Return_Abs_Lk(tree);
+	}
+      else     *f=1.+fold+ALF*alam*slope;
+      if (alam < alamin)
+	{
+	  for (i=0;i<n;i++) x[i]=local_xold[i];
+	  for (i=0;i<n;i++) tree->mod->gamma_r_proba[i]=local_xold[i];
+	  *check=1;
+	  For(i,n) xold[i] = local_xold[i];
+	  Free(local_xold);
+	  return 0;
+	} 
+      else if (*f <= fold+ALF*alam*slope) 
+	{
+	  For(i,n) xold[i] = local_xold[i];
+	  Free(local_xold); 
+	  return 0;
+	}
+      else 
+	{
+	  if ((alam < 1.0+SMALL) && (alam > 1.0-SMALL))
+/* 	  if (alam == 1.0) */
+	    tmplam = -slope/(2.0*(*f-fold-slope));
+	  else 
+	    {
+	      rhs1 = *f-fold-alam*slope;
+	      rhs2=f2-fold2-alam2*slope;
+	      a=(rhs1/(alam*alam)-rhs2/(alam2*alam2))/(alam-alam2);
+	      b=(-alam2*rhs1/(alam*alam)+alam*rhs2/(alam2*alam2))/(alam-alam2);
+	      if (a < SMALL && a > -SMALL) tmplam = -slope/(2.0*b);
+/* 	      if (a == 0.0) tmplam = -slope/(2.0*b); */
+	      else 
+		{
+		  disc=b*b-3.0*a*slope;
+		  if (disc<0.0) 
+		    {
+		      disc=b*b-3.0*a*slope;
+		      if (disc<0.0) tmplam = 0.5*alam;
+		      else if(b <= 0.0) tmplam=(-b+SQRT(disc))/(3.0*a);
+		      else tmplam = -slope/(b+SQRT(disc));
+		    }
+		  else tmplam=(-b+SQRT(disc))/(3.0*a);
+		}
+	      if (tmplam>0.5*alam) tmplam=0.5*alam;
+	    }
+	}
+      alam2=alam;
+      f2 = *f;
+      fold2=fold;
+      alam=MAX(tmplam,0.1*alam);
+    }
+  Free(local_xold);
+  return 1;
+}
+
 
 /* void Optimize_Global_Rate(t_tree *tree) */
 /* { */

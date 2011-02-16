@@ -215,7 +215,7 @@ int TIMES_main(int argc, char **argv)
 		  tree->io->lk_approx = user_lk_approx;
 
 		  /* !!!!!!!!!!!!!!!!! */
-/*  		  tree->rates->model      = GUINDON; */
+ 		  /* tree->rates->model      = GUINDON; */
  		  tree->rates->model      = THORNE;
 		  tree->rates->bl_from_rt = YES;
 

@@ -685,6 +685,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
       PhyML_Printf("\n. invar = %d",tree->data->invar[site]);
       PhyML_Printf("\n. scale_left = %d scale_rght = %d",sum_scale_left,sum_scale_rght);
       PhyML_Printf("\n. Lk = %G LOG(Lk) = %f < %G",site_lk,log_site_lk,-BIG);
+      For(catg,tree->mod->n_catg) PhyML_Printf("\n. rr=%f p=%f",tree->mod->gamma_rr[catg],tree->mod->gamma_r_proba[catg]);
       PhyML_Printf("\n. Err in file %s at line %d",__FILE__,__LINE__);
       Warn_And_Exit("\n");
     }
@@ -1058,23 +1059,22 @@ void Update_P_Lk_Nucl(t_tree *tree, t_edge *b, t_node *d)
 
   n_patterns = tree->n_pattern;
   
-  /* TO DO: Might be worth keeping these directions in memory instead of
-     calculating them every time... */
   dir1=dir2=-1;
   For(i,3) if(d->b[i] != b) (dir1<0)?(dir1=i):(dir2=i);
 
-/*   if((dir1 == -1) || (dir2 == -1)) */
-/*     { */
-/*       PhyML_Printf("\n. d = %d",d->num); */
-/*       PhyML_Printf("\n. d->v[0] = %d, d->v[1] = %d, d->v[2] = %d",d->v[0]->num,d->v[1]->num,d->v[2]->num); */
-/*       PhyML_Printf("\n. d->b[0] = %d, d->b[1] = %d, d->b[2] = %d",d->b[0]->num,d->b[1]->num,d->b[2]->num); */
-/*       PhyML_Printf("\n. d->num = %d dir1 = %d dir2 = %d",d->num,dir1,dir2); */
-/*       PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__); */
-/*       Exit(""); */
-/*     } */
+  if((dir1 == -1) || (dir2 == -1))
+    {
+      PhyML_Printf("\n. d = %d",d->num);
+      PhyML_Printf("\n. d->v[0] = %d, d->v[1] = %d, d->v[2] = %d",d->v[0]->num,d->v[1]->num,d->v[2]->num);
+      PhyML_Printf("\n. d->b[0] = %d, d->b[1] = %d, d->b[2] = %d",d->b[0]->num,d->b[1]->num,d->b[2]->num);
+      PhyML_Printf("\n. d->num = %d dir1 = %d dir2 = %d",d->num,dir1,dir2);
+      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
+      Exit("");
+    }
   
   n_v1 = d->v[dir1];
   n_v2 = d->v[dir2];
+
 
   /* Get the partial likelihood vectors on edge b and the two pendant
      edges (i.e., the two other edges connected to d) */

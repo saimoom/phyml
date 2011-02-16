@@ -89,6 +89,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
       {"alias_subpatt",       no_argument,NULL,58},      
       {"no_data",             no_argument,NULL,59},      
       {"fastlk",              required_argument,NULL,60},      
+      {"free_rates",          no_argument,NULL,61},
       {0,0,0,0}
     };
 
@@ -99,6 +100,12 @@ void Read_Command_Line(option *io, int argc, char **argv)
     {
       switch(c)
 	{
+	case 61:
+	  {
+	    io->mod->free_mixt_rates            = YES;
+	    io->mod->s_opt->opt_free_mixt_rates = YES;
+	    break;
+	  }
 	case 60:
 	  {
 	    if(!strcmp(optarg,"yes") || !strcmp(optarg,"YES"))

@@ -72,9 +72,9 @@ t_tree *Read_Tree(char *s_tree)
   Clean_Multifurcation(subs,degree,3);
   if(degree == 2) 
     {
-/*       Unroot_Tree(subs); */
-/*       degree = 3; */
-/*       root_node = tree->noeud[n_otu]; */
+      /* Unroot_Tree(subs); */
+      /* degree = 3; */
+      /* root_node = tree->noeud[n_otu]; */
       root_node      = tree->noeud[2*n_otu-2];
       root_node->num = 2*n_otu-2;
       tree->n_root   = root_node;
@@ -96,18 +96,21 @@ t_tree *Read_Tree(char *s_tree)
   if(tree->n_root)
     {
       tree->e_root = tree->t_edges[tree->num_curr_branch_available];
-      
-      tree->n_root->v[0]->v[0] = tree->n_root->v[1];
-      tree->n_root->v[1]->v[0] = tree->n_root->v[0];
-      
+            
+      For(i,3) if(tree->n_root->v[0]->v[i] == tree->n_root) { tree->n_root->v[0]->v[i] = tree->n_root->v[1]; break; }
+      For(i,3) if(tree->n_root->v[1]->v[i] == tree->n_root) { tree->n_root->v[1]->v[i] = tree->n_root->v[0]; break; }
+
       Connect_One_Edge_To_Two_Nodes(tree->n_root->v[0],
-				    tree->n_root->v[1],
-				    tree->e_root,
-				    tree);      
+      				    tree->n_root->v[1],
+      				    tree->e_root,
+      				    tree);
+      
+
       tree->e_root->l = tree->n_root->l[0] + tree->n_root->l[1];
       tree->n_root_pos = tree->n_root->l[0] / tree->e_root->l;
     }
   
+
   For(i,NODE_DEG_MAX) Free(subs[i]);
   Free(subs);
   return tree;
@@ -694,7 +697,10 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
 	    {
 	      (*pos) += sprintf(*s_tree+*pos,"%f",fils->b[p]->ratio_test);
 	    }
-	  if(tree->print_labels)
+	  
+	  fflush(NULL);
+
+	  if((tree->print_labels) && (fils->b[p]->labels != NULL))
 	    {
 	      if(fils->b[p]->n_labels < 10)
 		For(i,fils->b[p]->n_labels) 
@@ -834,8 +840,8 @@ t_edge *Make_Edge_Light(t_node *a, t_node *d, int num)
       /* a tip is necessary on the right side of the t_edge */
 
       (b->left == a)?
-	(Make_Edge_Dirs(b,a,d)):
-	(Make_Edge_Dirs(b,d,a));
+	(Make_Edge_Dirs(b,a,d,NULL)):
+	(Make_Edge_Dirs(b,d,a,NULL));
 
       b->l             = a->l[b->l_r];
       if(a->tax) b->l  = a->l[b->r_l];
@@ -890,10 +896,13 @@ void Init_Node_Light(t_node *n, int num)
 
 /*********************************************************/
 
-void Make_Edge_Dirs(t_edge *b, t_node *a, t_node *d)
+void Make_Edge_Dirs(t_edge *b, t_node *a, t_node *d, t_tree *tree)
 {
   int i;
+  t_edge *e_root;
 
+  e_root = (tree)?(tree->e_root):(NULL);
+ 
   if(a == b->rght)
     {
       PhyML_Printf("\n. a->num = %3d ; d->num = %3d",a->num,d->num);
@@ -910,12 +919,12 @@ void Make_Edge_Dirs(t_edge *b, t_node *a, t_node *d)
   b->l_r = b->r_l = -1;
   For(i,3)
     {
-      if((a->v[i]) && (a->v[i] == d))
+      if((a->v[i]) && ((a->v[i] == d) || (e_root && a->b[i] == e_root)))
 	{
 	  b->l_r  = i; /* we consider here that 'a' is on the left handside of 'b'*/
 	  a->b[i] = b;
 	}
-      if((d->v[i]) && (d->v[i] == a))
+      if((d->v[i]) && ((d->v[i] == a) || (e_root && d->b[i] == e_root)))
 	{
 	  b->r_l  = i; /* we consider here that 'd' is on the right handside of 'b'*/
 	  d->b[i] = b;
@@ -3155,27 +3164,31 @@ void Connect_Edges_To_Nodes_Recur(t_node *a, t_node *d, t_tree *tree)
 
 void Connect_One_Edge_To_Two_Nodes(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 {
-  int i,dir_a_d;
+  int i,dir_a_d,dir_d_a;
 
   dir_a_d = -1;
   For(i,3) if(a->v[i] == d) {dir_a_d = i; break;}
 
-  if(dir_a_d == -1)
+  dir_d_a = -1;
+  For(i,3) if(d->v[i] == a) {dir_d_a = i; break;}
+
+  if(dir_a_d == -1 || dir_d_a == -1)
     {
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
   a->b[dir_a_d] = b;
+  d->b[dir_d_a] = b;
   b->num        = tree->num_curr_branch_available;
   b->left       = a;
   b->rght       = d;
   if(a->tax) {b->rght = a; b->left = d;} /* root */
   /* a tip is necessary on the right hand side of the t_edge */
-
+  
   (b->left == a)?
-    (Make_Edge_Dirs(b,a,d)):
-    (Make_Edge_Dirs(b,d,a));
+    (Make_Edge_Dirs(b,a,d,tree)):
+    (Make_Edge_Dirs(b,d,a,tree));
 
   b->l                    = a->l[b->l_r];
   if(a->tax) b->l         = a->l[b->r_l];
@@ -3877,11 +3890,14 @@ void Print_Node(t_node *a, t_node *d, t_tree *tree)
   PhyML_Printf("Node names = '%s' '%s' ; ",a->name,d->name);
   For(i,3) if(a->v[i] == d)
     {
-      PhyML_Printf("Branch num = %3d (%d %d) %f",
-	     a->b[i]->num,a->b[i]->left->num,
-	     a->b[i]->rght->num,a->b[i]->l);
-      if(a->b[i]->left->tax) PhyML_Printf(" WARNING LEFT->TAX!");
-      break;
+      if(a->b[i])
+	{
+	  PhyML_Printf("Branch num = %3d%c (%d %d) %f",
+		       a->b[i]->num,a->b[i]==tree->e_root?'*':' ',a->b[i]->left->num,
+		       a->b[i]->rght->num,a->b[i]->l);
+	  if(a->b[i]->left->tax) PhyML_Printf(" WARNING LEFT->TAX!");
+	  break;
+	}
     }
   PhyML_Printf("\n");
 
@@ -4150,7 +4166,6 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
   v2                     = b_fcus->left->v[b_fcus->l_v2];
   v3                     = b_fcus->rght->v[b_fcus->r_v1];
   v4                     = b_fcus->rght->v[b_fcus->r_v2];
-
 
   if(v1->num < v2->num)
     {
@@ -4509,7 +4524,6 @@ void Swap(t_node *a, t_node *b, t_node *c, t_node *d, t_tree *tree)
     }
 #endif
 
-
   ab = ba = cd = dc = bc = -1;
 
   For(i,3) if(a->v[i] == b) { ab = i; break; }
@@ -4550,12 +4564,10 @@ void Swap(t_node *a, t_node *b, t_node *c, t_node *d, t_tree *tree)
       if(d->b[dc]->rght->v[i] == d->b[dc]->left) d->b[dc]->r_l = i;
     }
 
-
   a->b[ab]->l_v1 = a->b[ab]->l_v2 =
   a->b[ab]->r_v1 = a->b[ab]->r_v2 =
   d->b[dc]->l_v1 = d->b[dc]->l_v2 =
   d->b[dc]->r_v1 = d->b[dc]->r_v2 = -1;
-
 
   For(i,3)
     {
@@ -4823,9 +4835,7 @@ void Print_Fp_Out(FILE *fp_out, time_t t_beg, time_t t_end, t_tree *tree, option
 {
   char *s;
   div_t hour,min;
-
-
-/*   int i; */
+  int i;
 
 /*   For(i,2*tree->n_otu-3) fprintf(fp_out,"\n. * Edge %3d: %f",i,tree->t_edges[i]->l); */
 
@@ -4906,12 +4916,20 @@ void Print_Fp_Out(FILE *fp_out, time_t t_beg, time_t t_end, t_tree *tree, option
 
   PhyML_Fprintf(fp_out,"\n. Tree size: \t\t\t\t%.5f",tree->size);
 
-  PhyML_Fprintf(fp_out,"\n. Discrete gamma model: \t\t%s",
-	  (tree->mod->n_catg>1)?("Yes"):("No"));
-  if(tree->mod->n_catg > 1)
+  if(tree->mod->n_catg > 1 && tree->mod->free_mixt_rates == NO)
     {
+      PhyML_Fprintf(fp_out,"\n. Discrete gamma model: \t\t%s","Yes");
       PhyML_Fprintf(fp_out,"\n  - Number of categories: \t\t%d",tree->mod->n_catg);
       PhyML_Fprintf(fp_out,"\n  - Gamma shape parameter: \t\t%.3f",tree->mod->alpha);
+    }
+  else if(tree->mod->free_mixt_rates == YES)
+    {
+      PhyML_Fprintf(fp_out,"\n. Discrete gamma model: \t\t%s","No");
+      PhyML_Fprintf(fp_out,"\n  - Number of categories: \t\t%d",tree->mod->n_catg);
+      For(i,tree->mod->n_catg)
+	{
+	  PhyML_Fprintf(fp_out,"\n  - Relative rate in class %d: \t\t%.5f [prop=%4f] \t\t",i+1,tree->mod->gamma_rr[i],tree->mod->gamma_r_proba[i]);
+	}
     }
 
   if(tree->mod->invar) PhyML_Fprintf(fp_out,"\n. Proportion of invariant: \t\t%.3f",tree->mod->pinvar);
@@ -6286,6 +6304,8 @@ model *Make_Model_Basic()
 void Make_Model_Complete(model *mod)
 {
 
+  int i;
+
   if(mod->use_m4mod == YES)
     {
       M4_Make_Complete(mod->m4mod->n_h,mod->m4mod->n_o,mod->m4mod);
@@ -6300,6 +6320,12 @@ void Make_Model_Complete(model *mod)
   mod->qmat          = (phydbl *)mCalloc(mod->ns*mod->ns,sizeof(phydbl));
   mod->qmat_buff     = (phydbl *)mCalloc(mod->ns*mod->ns,sizeof(phydbl));
   mod->eigen = (eigen *)Make_Eigen_Struct(mod->ns);
+  mod->gamma_r_proba_unscaled = (phydbl *)mCalloc(mod->n_catg,sizeof(phydbl));
+
+  For(i,mod->n_catg) mod->gamma_rr[i] = 1.0;
+  For(i,mod->n_catg) mod->gamma_r_proba_unscaled[i] = 1.0;
+  For(i,mod->n_catg) mod->gamma_r_proba[i] = 1.0/(phydbl)mod->n_catg;
+
 
   if(mod->n_rr_branch)
     {
@@ -6519,6 +6545,7 @@ void Set_Defaults_Model(model *mod)
   mod->n_rr_per_cat            = NULL;
   mod->io                      = NULL;
   mod->log_l                   = NO;
+  mod->free_mixt_rates         = NO;
 
 #ifndef PHYTIME
   mod->l_min = 1.E-8;
@@ -6576,6 +6603,7 @@ void Set_Defaults_Optimiz(optimiz *s_opt)
   s_opt->deepest_path         = 20;
   s_opt->max_delta_lnL_spr    = 50.;
   s_opt->br_len_in_spr        = 10;
+  s_opt->opt_free_mixt_rates  = YES;
 
   s_opt->wim_n_rgrft          = -1;
   s_opt->wim_n_globl          = -1;
@@ -6636,21 +6664,21 @@ void Get_Bip(t_node *a, t_node *d, t_tree *tree)
 		  /* Sort bipartition */
 		  do
 		    {
-			  swapped = NO;
-			  For(j,a->bip_size[i]-1)
+		      swapped = NO;
+		      For(j,a->bip_size[i]-1)
+			{
+			  if(a->bip_node[i][j]->num > a->bip_node[i][j+1]->num)
 			    {
-			      if(a->bip_node[i][j]->num > a->bip_node[i][j+1]->num)
-				{
-				  swapped = YES;
-				  tmp                 = a->bip_node[i][j];
-				  a->bip_node[i][j]   = a->bip_node[i][j+1];
-				  a->bip_node[i][j+1] = tmp;
-				}
+			      swapped = YES;
+			      tmp                 = a->bip_node[i][j];
+			      a->bip_node[i][j]   = a->bip_node[i][j+1];
+			      a->bip_node[i][j+1] = tmp;
 			    }
+			}
 		    }while(swapped == YES);
-				      
+		  
 		  break;
-
+		  
 		}
 	    }
 	}
@@ -6699,7 +6727,7 @@ void Get_Bip(t_node *a, t_node *d, t_tree *tree)
 		  tmp                   = d->bip_node[d_a][j];
 		  d->bip_node[d_a][j]   = d->bip_node[d_a][j+1];
 		  d->bip_node[d_a][j+1] = tmp;
-		    }
+		}
 	    }
 	}while(swapped == YES);
 	
@@ -7856,8 +7884,8 @@ void Prune_Subtree(t_node *a, t_node *d, t_edge **target, t_edge **residual, t_t
   b1->l += b2->l;
 
   (v1 == b1->left)?
-    (Make_Edge_Dirs(b1,v1,v2)):
-    (Make_Edge_Dirs(b1,v2,v1));
+    (Make_Edge_Dirs(b1,v1,v2,tree)):
+    (Make_Edge_Dirs(b1,v2,v1,tree));
 
   if(target)   (*target)   = b1;
   if(residual) (*residual) = b2;
@@ -8008,9 +8036,9 @@ void Graft_Subtree(t_edge *target, t_node *link, t_edge *residual, t_tree *tree)
   target->l /= 2.;
   residual->l = target->l;
 
-  Make_Edge_Dirs(target,target->left,target->rght);
-  Make_Edge_Dirs(residual,residual->left,residual->rght);
-  Make_Edge_Dirs(b_up,b_up->left,b_up->rght);
+  Make_Edge_Dirs(target,target->left,target->rght,tree);
+  Make_Edge_Dirs(residual,residual->left,residual->rght,tree);
+  Make_Edge_Dirs(b_up,b_up->left,b_up->rght,tree);
 }
 
 /*********************************************************/
@@ -8194,7 +8222,7 @@ void Update_Dir_To_Tips(t_node *a, t_node *d, t_tree *tree)
 
       For(i,3)
 	{
-	  if(d->v[i] != a && d->b[i] != tree->e_root) Update_Dir_To_Tips(d,d->v[i],tree);
+	  if(d->v[i] != a) Update_Dir_To_Tips(d,d->v[i],tree);
 	  else if(d->v[i] == a) d_a = i;
 	}
 
@@ -8219,6 +8247,7 @@ void Fill_Dir_Table(t_tree *tree)
   Alloc_Bip(tree);
   Get_Bip(tree->noeud[0],tree->noeud[0]->v[0],tree);
   Update_Dir_To_Tips(tree->noeud[0],tree->noeud[0]->v[0],tree);
+
 
   for(i=tree->n_otu;i<2*tree->n_otu-2;i++)
     for(j=i;j<2*tree->n_otu-2;j++)
@@ -9797,7 +9826,7 @@ void Random_Lineage_Rates(t_node *a, t_node *d, t_edge *b, phydbl stick_prob, ph
   else
     {
       For(i,3) 
-	if((d->v[i] != a) && (d->b[i] != tree->e_root)) 
+	if(d->v[i] != a) 
 	  Random_Lineage_Rates(d,d->v[i],d->b[i],stick_prob,rates,curr_rate,n_rates,tree);
     }
 }
@@ -11608,7 +11637,7 @@ void Get_Best_Root_Position(t_tree *tree)
   
   best_edge = NULL;
 
-  if(tree->e_root)
+  if(tree->n_root)
     {
       PhyML_Printf("\n. Tree already has a root.");
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
@@ -11682,7 +11711,7 @@ void Get_Best_Root_Position_Post(t_node *a, t_node *d, int *has_outgrp, t_tree *
       int i;
 
       For(i,3)
-	if(d->v[i] != a)
+	if(d->v[i] != a && (d->b[i] != tree->e_root))
 	  Get_Best_Root_Position_Post(d,d->v[i],has_outgrp,tree);
 
       Get_OutIn_Scores(a,d);
@@ -11707,7 +11736,7 @@ void Get_Best_Root_Position_Pre(t_node *a, t_node *d, t_tree *tree)
       int i;
 
       For(i,3)
-	if(d->v[i] != a)
+	if(d->v[i] != a && (d->b[i] != tree->e_root))
 	  {
 	    Get_OutIn_Scores(d->v[i],d);
 	    Get_Best_Root_Position_Pre(d,d->v[i],tree);
@@ -12068,4 +12097,21 @@ phydbl Effective_Sample_Size(phydbl first_val, phydbl last_val, phydbl sum, phyd
   return (phydbl)n * (1.-r)/(1.+r);
 }
 
+/*********************************************************/
+
+phydbl Rescale_Free_Rate_Tree(t_tree *tree)
+{
+  int i;
+  phydbl sum;
+
+  sum = 0.0;
+  For(i,tree->mod->n_catg) sum += tree->mod->gamma_rr[i]*tree->mod->gamma_r_proba[i];
+  For(i,tree->mod->n_catg) tree->mod->gamma_rr[i] /= sum;
+  
+  For(i,2*tree->n_otu-3) tree->t_edges[i]->l *= sum;
+}
+
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
 /*********************************************************/

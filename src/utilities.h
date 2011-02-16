@@ -635,6 +635,7 @@ typedef struct __Model {
   phydbl      *pi_unscaled; /*! states frequencies (unscaled) */
 
   phydbl    *gamma_r_proba; /*! probabilities of the substitution rates defined by the discrete gamma distribution */
+  phydbl    *gamma_r_proba_unscaled; 
   phydbl         *gamma_rr; /*! substitution rates defined by the discrete gamma distribution */
   phydbl             kappa; /*! transition/transversion rate */
   phydbl            lambda; /*! parameter used to define the ts/tv ratios in the F84 and TN93 models */
@@ -662,6 +663,8 @@ typedef struct __Model {
   short int          log_l; /* Edge lengths are actually log(Edge lengths) if log_l == YES */
   phydbl             l_min; /* Minimum branch length */
   phydbl             l_max; /* Maximum branch length */
+
+  int      free_mixt_rates;
 }model;
 
 /*!********************************************************/
@@ -828,7 +831,8 @@ typedef struct __Optimiz { /*! parameters to be optimised (mostly used in 'optim
   int          deepest_path;
   phydbl  max_delta_lnL_spr;
   int         br_len_in_spr; 
- 
+  int   opt_free_mixt_rates;
+
   int           wim_n_rgrft;
   int           wim_n_globl;
   int          wim_max_dist;
@@ -1146,7 +1150,7 @@ void R_wtree(t_node *pere,t_node *fils,int *available,char **s_tree, int *pos,t_
 void Init_Tree(t_tree *tree, int n_otu);
 t_edge *Make_Edge_Light(t_node *a, t_node *d, int num);
 void Init_Edge_Light(t_edge *b, int num);
-void Make_Edge_Dirs(t_edge *b,t_node *a,t_node *d);
+void Make_Edge_Dirs(t_edge *b, t_node *a, t_node *d, t_tree *tree);
 void Make_Edge_Lk(t_edge *b, t_tree *tree);
 t_node *Make_Node_Light(int num);
 void Make_Node_Lk(t_node *n);
@@ -1434,6 +1438,7 @@ void Adjust_Variances(t_tree *tree);
 int Scale_Subtree_Rates_Post(t_node *a, t_node *d, phydbl mult, int *n_nodes, t_tree *tree);
 int Scale_Subtree_Rates(t_node *a, phydbl mult, int *n_nodes, t_tree *tree);
 phydbl Effective_Sample_Size(phydbl first_val, phydbl last_val, phydbl sum, phydbl sumsq, phydbl sumcurnext, int iter);
+phydbl Rescale_Free_Rate_Tree(t_tree *tree);
 
 #include "free.h"
 #include "spr.h"
