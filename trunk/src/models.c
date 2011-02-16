@@ -2674,7 +2674,27 @@ void Set_Model_Parameters(model *mod)
   int result, n_iter;
   phydbl scalar;
 
-  DiscreteGamma(mod->gamma_r_proba, mod->gamma_rr, mod->alpha, mod->alpha, mod->n_catg, mod->gamma_median);
+  if(mod->free_mixt_rates == NO) DiscreteGamma(mod->gamma_r_proba, mod->gamma_rr, mod->alpha, mod->alpha, mod->n_catg, mod->gamma_median);
+  else
+    {
+      mod->gamma_rr[0] = 1.0;
+      sum = .0;
+      For(i,mod->n_catg) sum += FABS(mod->gamma_r_proba_unscaled[i]);
+      For(i,mod->n_catg) mod->gamma_r_proba[i] = FABS(mod->gamma_r_proba_unscaled[i])/sum;
+
+      do
+	{
+	  sum = .0;
+	  For(i,mod->n_catg)
+	    {
+	      if(mod->gamma_r_proba[i] < 0.01) mod->gamma_r_proba[i]=0.01;
+	      if(mod->gamma_r_proba[i] > 0.99) mod->gamma_r_proba[i]=0.99;
+	      sum += mod->gamma_r_proba[i];
+	    }
+	  For(i,mod->n_catg) mod->gamma_r_proba[i]/=sum;
+	}
+      while((sum > 1.01) || (sum < 0.99));
+    }
 
   if(mod->n_rr_branch > 0)
     DiscreteGamma(mod->p_rr_branch, mod->rr_branch, 

@@ -146,6 +146,8 @@ phydbl Generic_Brent_Lk(phydbl *param, phydbl ax, phydbl cx, phydbl tol,
 void Round_Optimize_Node_Heights(t_tree *tree);
 void Opt_Node_Heights_Recurr_Pre(t_node *a, t_node *d, t_tree *tree);
 void Opt_Node_Heights_Recurr(t_tree *tree);
+int Lnsrch_Free_Mixt_Rates(t_tree *tree, int n, phydbl *xold, phydbl fold, phydbl *g, phydbl *p, phydbl *x,
+			   phydbl *f, phydbl stpmax, int *check);
 
 #endif
 

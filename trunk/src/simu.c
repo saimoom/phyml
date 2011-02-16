@@ -119,12 +119,12 @@ int Simu(t_tree *tree, int n_step_max)
       n_neg = 0;
       For(i,2*tree->n_otu-3)
 	if((!tree->t_edges[i]->left->tax) && 
-	   (!tree->t_edges[i]->rght->tax)) 
+	   (!tree->t_edges[i]->rght->tax))
 	  NNI(tree,tree->t_edges[i],0);
       
       
       Select_Edges_To_Swap(tree,sorted_b,&n_neg);	    	  
-      Sort_Edges_NNI_Score(tree,sorted_b,n_neg);	    
+      Sort_Edges_NNI_Score(tree,sorted_b,n_neg);
       Optimiz_Ext_Br(tree);	  	    
       Update_Bl(tree,lambda);
 	  	        
@@ -133,7 +133,7 @@ int Simu(t_tree *tree, int n_step_max)
 	tested_b[n_tested++] = sorted_b[i];
       
       Make_N_Swap(tree,tested_b,0,n_tested);
-            
+
       if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("[# nnis=%3d]",n_tested);
 
       n_tot_swap += n_tested;
@@ -263,8 +263,8 @@ void Select_Edges_To_Swap(t_tree *tree, t_edge **sorted_b, int *n_neg)
 
       if((!b->left->tax) && (!b->rght->tax) && (b->nni->score < -tree->mod->s_opt->min_diff_lk_move)) 
 	{
-	  Check_NNI_Scores_Around(b->left,b->rght,b,&best_score);
-	  Check_NNI_Scores_Around(b->rght,b->left,b,&best_score);
+	  Check_NNI_Scores_Around(b->left,b->rght,b,&best_score,tree);
+	  Check_NNI_Scores_Around(b->rght,b->left,b,&best_score,tree);
 	  if(best_score < b->nni->score) continue;
 	  sorted_b[*n_neg] = b;
 	  (*n_neg)++;
@@ -295,23 +295,36 @@ void Make_N_Swap(t_tree *tree,t_edge **b, int beg, int end)
 
   dim = 2*tree->n_otu-2;
 
-/*   PhyML_Printf("\n. Beg Actually performing swaps\n"); */
+  /* PhyML_Printf("\n. Beg Actually performing swaps\n"); */
   tree->n_swap = 0;
   for(i=beg;i<end;i++)
     {
       /* we use t_dir here to take into account previous modifications of the topology */
+      /* printf("\n. Swap on edge %d [%d %d %d %d]",b[i]->num, */
+      /* 	     b[i]->nni->swap_node_v2->v[tree->t_dir[b[i]->nni->swap_node_v2->num*dim+b[i]->nni->swap_node_v1->num]]->num, */
+      /* 	     b[i]->nni->swap_node_v2->num, */
+      /* 	     b[i]->nni->swap_node_v3->num, */
+      /* 	     b[i]->nni->swap_node_v3->v[tree->t_dir[b[i]->nni->swap_node_v3->num*dim+b[i]->nni->swap_node_v4->num]]->num); */
+
       Swap(b[i]->nni->swap_node_v2->v[tree->t_dir[b[i]->nni->swap_node_v2->num*dim+b[i]->nni->swap_node_v1->num]],
 	   b[i]->nni->swap_node_v2,
 	   b[i]->nni->swap_node_v3,
 	   b[i]->nni->swap_node_v3->v[tree->t_dir[b[i]->nni->swap_node_v3->num*dim+b[i]->nni->swap_node_v4->num]],
 	   tree);
 
+      if(tree->n_root)
+	{
+	  tree->n_root->v[0] = tree->e_root->left;
+	  tree->n_root->v[1] = tree->e_root->rght;
+	}
+
       b[i]->l = b[i]->nni->best_l;
 
       tree->n_swap++;
     }
 
-/*   PhyML_Printf("\n. End Actually performing swaps\n"); */
+
+  /* PhyML_Printf("\n. End Actually performing swaps\n"); */
 
 }
 
@@ -578,7 +591,7 @@ void Swap_N_Branch(t_tree *tree,t_edge **b, int beg, int end)
 
 /*********************************************************/
 
-void Check_NNI_Scores_Around(t_node *a, t_node *d, t_edge *b, phydbl *best_score)
+void Check_NNI_Scores_Around(t_node *a, t_node *d, t_edge *b, phydbl *best_score, t_tree *tree)
 {
 
   int i;
@@ -592,7 +605,7 @@ void Check_NNI_Scores_Around(t_node *a, t_node *d, t_edge *b, phydbl *best_score
 	       d->b[i]->nni->score = *best_score+1.;
 	     }
 
-	  if(d->b[i]->nni->score < *best_score) 
+	  if(d->b[i]->nni->score < *best_score)
 	    {
 	      *best_score = d->b[i]->nni->score;
 	    }
