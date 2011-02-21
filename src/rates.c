@@ -1876,12 +1876,12 @@ void RATES_Posterior_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree)
 	  tree->rates->br_r[d->num] = U1; /* reject */
 	  tree->rates->c_lnL        = cur_lnL_rate;
 	  tree->c_lnL               = cur_lnL_data;
+	  RATES_Update_Cur_Bl(tree);
+	  Update_PMat_At_Given_Edge(b,tree);
 	}
       else tree->mcmc->acc_move[tree->mcmc->num_move_br_r+d->num]++;
-      
-      
+            
       RATES_Update_Norm_Fact(tree);
-      RATES_Update_Cur_Bl(tree);
       tree->mcmc->acc_rate[tree->mcmc->num_move_br_r+d->num] = 
 	(tree->mcmc->acc_move[tree->mcmc->num_move_br_r+d->num]+1.E-6)/
 	(tree->mcmc->run_move[tree->mcmc->num_move_br_r+d->num]+1.E-6);
@@ -1898,10 +1898,14 @@ void RATES_Posterior_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree)
 	    if(d->v[i] != a && d->b[i] != tree->e_root)
 	      {
 		if(tree->io->lk_approx == EXACT && tree->mcmc->use_data) Update_P_Lk(tree,d->b[i],d);
+		/* if(tree->io->lk_approx == EXACT && tree->mcmc->use_data) { tree->both_sides = YES; Lk(tree); } */
 		RATES_Posterior_One_Rate(d,d->v[i],YES,tree);
 	      }
 	}
+      
+
       if(tree->io->lk_approx == EXACT && tree->mcmc->use_data) Update_P_Lk(tree,b,d);
+      /* if(tree->io->lk_approx == EXACT && tree->mcmc->use_data) { tree->both_sides = YES; Lk(tree); } */
     }
 }
 

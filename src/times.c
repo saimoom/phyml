@@ -71,7 +71,7 @@ int TIMES_main(int argc, char **argv)
 /*   r_seed = 1289443891; */
 /*   r_seed = 1290652518; */
 /*   r_seed = 1292195490; */
-/*   r_seed = 1295646926; */
+  /* r_seed =  1298284669; */
   /* sys = system("sleep 5s"); */
 
   srand(r_seed); rand();
@@ -172,7 +172,7 @@ int TIMES_main(int argc, char **argv)
 		  /* MLE for branch lengths */
 		  PhyML_Printf("\n");
 		  Round_Optimize(tree,tree->data,ROUND_MAX);
-		  
+		  		  
 		  /* Set vector of mean branch lengths for the Normal approximation
 		     of the likelihood */
 		  RATES_Set_Mean_L(tree);
@@ -184,8 +184,8 @@ int TIMES_main(int argc, char **argv)
 		  PhyML_Printf("\n. Computing Hessian...");
 		  tree->rates->bl_from_rt = 0;
 		  Free(tree->rates->cov_l);
-/* 		  Hessian(tree); */
 		  tree->rates->cov_l = Hessian_Seo(tree);
+		  /* tree->rates->cov_l = Hessian(tree); */
 		  For(i,(2*tree->n_otu-3)*(2*tree->n_otu-3)) tree->rates->cov_l[i] *= -1.0;
 		  if(!Iter_Matinv(tree->rates->cov_l,2*tree->n_otu-3,2*tree->n_otu-3,YES)) Exit("\n");
 		  tree->rates->covdet = Matrix_Det(tree->rates->cov_l,2*tree->n_otu-3,YES);

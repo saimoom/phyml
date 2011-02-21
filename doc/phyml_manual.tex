@@ -903,7 +903,7 @@ starting trees are printed in a separate tree file (see last row of Table \ref{t
 
 
 
-\section{Recommendations on program usage.}
+\section{Recommendations on PhyML usage.}
 
 The choice of the  tree searching algorithm among those provided by PhyML  is generally a tough one.
 The  fastest option  relies  on local  and simultaneous  modifications  of the  phylogeny using  NNI
@@ -993,7 +993,7 @@ explained below:
 \begin{itemize}
 \item PhyTime takes as mandatory input a {\em rooted} phylogenetic tree.  Hence, the `\x{-u}' option
 must be used. Also, unlike PhyML, PhyTime does not modify the tree topology. Hence, the options that
-go with the '\x{-s}' command do not alter the input tree topology.
+go with the `\x{-s}' command do not alter the input tree topology.
 \item  PhyTime  needs  an input  file  giving  information  about  calibration nodes.   The  command
 `\x{--calibration=}' followed by the name of  the file containing the calibration node information is
 mandatory. The content of that file should look as follows:
@@ -1012,14 +1012,29 @@ Dryomys_nitedula Glis_glis | -120 -28.5
 \end{small}
 \end{figure}
 
-Every row in this file lists a set of species found in the user tree (i.e., a clade). This list of
-taxa is followed by the character `\x{|}' and two real numbers corresponding to the lower and upper
+Every row in this file  lists a set of species found in the user tree  (i.e., a clade). This list of
+taxa is followed by the character `\x{|}' and  two real numbers corresponding to the lower and upper
 bounds of the calibration interval for the node at the root of the clade. In the example given here,
-the clade grouping the three taxa ``Dugong\_dugon'', ``Procavia\_capensis'' and  ``Elephantida'' has
--65 as lower bound and -54 as upper bound. Note also that the node corresponding to the root of the
-whole tree has a specific label: `\x{@root@}'. {\color{red}{It is important to specify upper and lower bounds for
-the root node in order to ensure convergence of the Gibbs sampler.}} Not defining these bounds is
-likely to produce inaccurate estimates of node ages.
+the clade grouping the three  taxa ``Dugong\_dugon'', ``Procavia\_capensis'' and ``Elephantida'' has
+-65 as lower  bound and -54 as  upper bound.  Node ages (or  node heights) are relative  to the most
+recent tip node  in the phylogeny, which age is  set to 0. Note also that  the node corresponding to
+the root  of the whole  tree has  a specific label:  `\x{@root@}'.  {\color{red}{It is  important to
+specify  upper and  lower bounds  for the  root node  in order  to ensure  convergence of  the Gibbs
+sampler.}}   Not defining  these bounds  is likely  to produce  inaccurate estimates  of  node ages,
+especially if there are only few calibration nodes available.  
+
+A notable exception to this rule comes from  the analysis of serial sample data, i.e., alignments in
+which sequences  were not sampled at  the same time point.   For such data, the  estimated number of
+substitutions accumulated  between successive time  points is used  to estimate the  substitution rate
+averaged over lineages. Because  the time of collection of the sequences  is generally known without
+ambiguity, this  extra piece of data is  translated into very informative  calibration intervals for
+the tip nodes (i.e., calibration interval of zero width), which in turn results in substitution rate
+estimates  with  descreased variances.  Posterior  distribution  of  substitution rates  with  small
+variances then allows one to get good estimates of the root age. 
+
+
+
+
 \end{itemize}
 
 A typical PhyTime command-line should look like the following:
@@ -1038,6 +1053,26 @@ probable ones. By default, $10^6$ sets of  parameters are collected. These value
 $10^4$ sample. At the  moment, the total sample size and the frequency  at which these sample values
 are recorded can not be modified by the user.
 
+\subsubsection{PhyTime specific options}
+
+Beside the \x{calibration} option, there are other command line options that are specific to PhyTime:
+
+\begin{itemize}
+\item \x{--chain\_len=num} \\
+\x{num} is the number of iterations required to estimate the joint posterior density of all the model
+parameters, i.e., the length of the MCMC chain. Its default is set to 1E+6.
+\item \x{--burnin=num} \\
+\x{num} is the number of iterations for the ``burnin'' period, i.e., the number of iterations
+required before actually starting to get valid samples from the joint posterior density of all the
+model parameters. Its default is set to 1E+5, i.e., 0.1 times the default value of the \x{chain\_len}
+parameter (see above).
+\item \x{--sample\_freq=num} \\
+\x{num} is the number of iterations elapsed between successive collection of the estimated model
+parameters throughout the MCMC algorithm. For instance, the \x{--sample\_freq=1E+2} option will make
+PhyTime sample the model parameter every 100th iteration of the MCMC algorithm. Its default is set
+to 1E+3.
+\end{itemize}
+
 \subsubsection{PhyTime output}
 
 The program PhyTime generates two output  files. The first file, called `\x{phytime.XXXX} where XXXX
@@ -1052,7 +1087,28 @@ from the posterior density  of trees.  This file can be processed  using the sof
 also part of the BEAST  package (see \url{http://beast.bio.ed.ac.uk/Main_Page}) in order to generate
 confidence sets for the node time estimates.
 
+
+
+% \subsubsection{Technical notes}
+
+% \begin{itemize}
+% \item {\it Update all branch rates in a single traversal versus branch-by-branch.}
+% \item {\it Normalisation of rates.}
+% \end{itemize}
+
+
+
+
+
+
+
 % \subsection{PhyGeo (Guindon, {\it in preparation})}\index{PhyGeo}
+
+
+
+
+
+
 
 
 
