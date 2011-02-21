@@ -184,14 +184,14 @@ void MCMC(t_tree *tree)
 	  if(tree->mcmc->use_data == YES) Lk(tree);
 	  tree->both_sides = NO;
 	  
-	  /* MCMC_Slice_One_Rate(tree->n_root,tree->n_root->v[first],YES,tree); */
-	  /* MCMC_Slice_One_Rate(tree->n_root,tree->n_root->v[secod],YES,tree); */
+	  MCMC_Slice_One_Rate(tree->n_root,tree->n_root->v[first],YES,tree);
+	  MCMC_Slice_One_Rate(tree->n_root,tree->n_root->v[secod],YES,tree);
 
 	  /* MCMC_One_Rate(tree->n_root,tree->n_root->v[first],YES,tree); */
 	  /* MCMC_One_Rate(tree->n_root,tree->n_root->v[secod],YES,tree); */
 
-	  RATES_Posterior_One_Rate(tree->n_root,tree->n_root->v[first],YES,tree);
-	  RATES_Posterior_One_Rate(tree->n_root,tree->n_root->v[secod],YES,tree);
+	  /* RATES_Posterior_One_Rate(tree->n_root,tree->n_root->v[first],YES,tree); */
+	  /* RATES_Posterior_One_Rate(tree->n_root,tree->n_root->v[secod],YES,tree); */
 
 	  /* MCMC_Sim_Rate(tree->n_root,tree->n_root->v[first],tree); */
 	  /* MCMC_Sim_Rate(tree->n_root,tree->n_root->v[secod],tree); */
