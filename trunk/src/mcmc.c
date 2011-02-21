@@ -184,21 +184,18 @@ void MCMC(t_tree *tree)
 	  if(tree->mcmc->use_data == YES) Lk(tree);
 	  tree->both_sides = NO;
 	  
-	  MCMC_One_Rate(tree->n_root,tree->n_root->v[first],YES,tree);
-	  MCMC_One_Rate(tree->n_root,tree->n_root->v[secod],YES,tree);
-	  /* RATES_Posterior_One_Rate(tree->n_root,tree->n_root->v[first],YES,tree); */
-	  /* RATES_Posterior_One_Rate(tree->n_root,tree->n_root->v[secod],YES,tree); */
+	  /* MCMC_Slice_One_Rate(tree->n_root,tree->n_root->v[first],YES,tree); */
+	  /* MCMC_Slice_One_Rate(tree->n_root,tree->n_root->v[secod],YES,tree); */
+
+	  /* MCMC_One_Rate(tree->n_root,tree->n_root->v[first],YES,tree); */
+	  /* MCMC_One_Rate(tree->n_root,tree->n_root->v[secod],YES,tree); */
+
+	  RATES_Posterior_One_Rate(tree->n_root,tree->n_root->v[first],YES,tree);
+	  RATES_Posterior_One_Rate(tree->n_root,tree->n_root->v[secod],YES,tree);
+
 	  /* MCMC_Sim_Rate(tree->n_root,tree->n_root->v[first],tree); */
 	  /* MCMC_Sim_Rate(tree->n_root,tree->n_root->v[secod],tree); */
 	}
-
-      /* !!!!!!!!!!!!!!!!! */
-      /* tree->both_sides = YES; */
-      /* if(tree->mcmc->use_data == YES) Lk(tree); */
-      /* tree->both_sides = NO; */
-      
-      /* MCMC_One_Rate(tree->n_root,tree->n_root->v[first],NO,tree); */
-      /* MCMC_One_Rate(tree->n_root,tree->n_root->v[secod],NO,tree); */
 
 
       tree->mcmc->run++;
@@ -488,6 +485,9 @@ void MCMC_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree)
 				Wrap_Lk_Rates,Wrap_Lk_At_Given_Edge,MCMC_MOVE_LOG_RANDWALK,YES,b,tree,NULL);
 /* 				Wrap_Lk_Rates,Wrap_Lk_At_Given_Edge,MCMC_MOVE_SCALE,YES,b,tree,NULL); */
     }
+  
+
+  Update_PMat_At_Given_Edge(b,tree);
 
 
 /*   tree->rates->br_r[d->num] = Rnorm(LOG(.5*(tree->rates->nd_r[a->num]+tree->rates->nd_r[a->num])), */
@@ -855,6 +855,7 @@ void MCMC_One_Time(t_node *a, t_node *d, int traversal, t_tree *tree)
   phydbl cur_lnL_data, new_lnL_data;
   phydbl cur_lnL_rate, new_lnL_rate;
   phydbl ratio,alpha;
+  t_edge *b1,*b2,*b3;
   int    i;
   phydbl t0,t2,t3;
   t_node *v2,*v3;
@@ -877,21 +878,26 @@ void MCMC_One_Time(t_node *a, t_node *d, int traversal, t_tree *tree)
   new_lnL_rate   = cur_lnL_rate;
 
   v2 = v3 = NULL;
+  For(i,3)
+    if((d->v[i] != a) && (d->b[i] != tree->e_root))
+      {
+	if(!v2) { v2 = d->v[i]; }
+	else    { v3 = d->v[i]; }
+      }
 
-  if(a)
-    {
-      For(i,3)
-	if((d->v[i] != a) && (d->b[i] != tree->e_root))
-	  {
-	    if(!v2) { v2 = d->v[i]; }
-	    else    { v3 = d->v[i]; }
-	  }
-    }
-  else
-    {
-      v2 = tree->n_root->v[0];
-      v3 = tree->n_root->v[1];
-    }
+
+  b1 = NULL;
+  if(a == tree->n_root) b1 = tree->e_root;
+  else For(i,3) if(d->v[i] == a) { b1 = d->b[i]; break; }
+
+  b2 = b3 = NULL;
+  For(i,3)
+    if((d->v[i] != a) && (d->b[i] != tree->e_root))
+      {
+	if(!b2) { b2 = d->b[i]; }
+	else    { b3 = d->b[i]; }
+      }
+
   
   t0 = (a)?(tree->rates->nd_t[a->num]):(tree->rates->t_prior_min[d->num]);
   t2 = tree->rates->nd_t[v2->num];
@@ -945,12 +951,18 @@ void MCMC_One_Time(t_node *a, t_node *d, int traversal, t_tree *tree)
 	  RATES_Update_Cur_Bl(tree);
 	  tree->c_lnL        = cur_lnL_data;
 	  tree->rates->c_lnL = cur_lnL_rate;
+
+	  if(tree->io->lk_approx == EXACT)
+	    {
+	      Update_PMat_At_Given_Edge(b1,tree);
+	      Update_PMat_At_Given_Edge(b2,tree);
+	      Update_PMat_At_Given_Edge(b3,tree);
+	      Update_P_Lk(tree,b1,d);
+	    }
 	}
       else
 	{
 	  tree->mcmc->acc_move[move_num]++;
-	  /* !!!!!!!!!!!!!!! */
-/* 	  RATES_Lk_Rates(tree); */
 	}
       
       if(t1_new < t0)
@@ -1796,6 +1808,7 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
 	  PhyML_Fprintf(fp,"LnLike[Exact]\t");
 	  PhyML_Fprintf(fp,"LnLike[Approx]\t");
 	  PhyML_Fprintf(fp,"LnPriorRate\t");
+	  PhyML_Fprintf(fp,"LnPosterior\t");
 	  PhyML_Fprintf(fp,"ClockRate\t");
 	  PhyML_Fprintf(fp,"EvolRate\t");
 	  PhyML_Fprintf(fp,"Nu\t");
@@ -1902,6 +1915,7 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
 
 
       PhyML_Fprintf(fp,"%G\t",tree->rates->c_lnL);
+      PhyML_Fprintf(fp,"%G\t",tree->c_lnL+tree->rates->c_lnL);
       PhyML_Fprintf(fp,"%G\t",tree->rates->clock_r);
       PhyML_Fprintf(fp,"%G\t",RATES_Average_Substitution_Rate(tree));
       PhyML_Fprintf(fp,"%G\t",tree->rates->nu);
@@ -2966,6 +2980,95 @@ void MCMC_Copy_To_New_Param_Val(t_mcmc *mcmc, t_tree *tree)
 }
 
 /*********************************************************/
+
+void MCMC_Slice_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree)
+{
+  phydbl L,R; /* Left and Right limits of the slice */
+  phydbl w; /* window width */
+  phydbl u;
+  phydbl x0,x1;
+  phydbl logy;
+  t_edge *b;
+  int i;
+
+
+
+  b = NULL;
+  if(a == tree->n_root) b = tree->e_root;
+  else For(i,3) if(d->v[i] == a) { b = d->b[i]; break; }
+  
+  /* w = 0.05; */
+  w = 10.;
+
+  x0 = tree->rates->br_r[d->num];
+  logy = tree->c_lnL+tree->rates->c_lnL - Rexp(1.);
+  
+  u = Uni();
+
+  L = x0 - w*u;  
+  R = L + w;
+  
+  do
+    {
+      tree->rates->br_r[d->num] = L;
+      RATES_Update_Cur_Bl(tree);
+      Lk_At_Given_Edge(b,tree);
+      RATES_Lk_Rates(tree);
+      if(L < tree->rates->min_rate) { L = tree->rates->min_rate - w; break;}
+      L = L - w;
+    }
+  while(tree->c_lnL + tree->rates->c_lnL > logy);
+  L = L + w;
+
+
+  do
+    {
+      tree->rates->br_r[d->num] = R;
+      RATES_Update_Cur_Bl(tree);
+      Lk_At_Given_Edge(b,tree);
+      RATES_Lk_Rates(tree);
+      if(R > tree->rates->max_rate) { R = tree->rates->max_rate + w; break;}
+      R = R + w;
+    }
+  while(tree->c_lnL + tree->rates->c_lnL > logy);
+  R = R - w;
+
+
+  for(;;)
+    {
+      u = Uni();
+      x1 = L + u*(R-L);
+
+      tree->rates->br_r[d->num] = x1;
+      RATES_Update_Cur_Bl(tree);
+      Lk_At_Given_Edge(b,tree);
+      RATES_Lk_Rates(tree);
+      
+      if(tree->c_lnL + tree->rates->c_lnL > logy) break;
+      
+      if(x1 < x0) L = x1;
+      else        R = x1;
+    }
+
+
+  if(traversal == YES)
+    {
+      if(d->tax == YES) return;
+      else
+	{
+	  For(i,3)
+	    if(d->v[i] != a && d->b[i] != tree->e_root)
+	      {
+		if(tree->io->lk_approx == EXACT && tree->mcmc->use_data) Update_P_Lk(tree,d->b[i],d);
+		/* if(tree->io->lk_approx == EXACT && tree->mcmc->use_data) { tree->both_sides = YES; Lk(tree); } */
+		MCMC_Slice_One_Rate(d,d->v[i],YES,tree);
+	      }
+	}
+      if(tree->io->lk_approx == EXACT && tree->mcmc->use_data) Update_P_Lk(tree,b,d);
+      /* if(tree->io->lk_approx == EXACT && tree->mcmc->use_data) { tree->both_sides = YES; Lk(tree); } */
+    }
+}
+
 /*********************************************************/
 /*********************************************************/
 /*********************************************************/

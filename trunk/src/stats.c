@@ -1477,13 +1477,13 @@ phydbl *Hessian(t_tree *tree)
   int i,j;
   phydbl eps;
   phydbl lk;
-  phydbl lnL,lnL1,lnL2;
+  phydbl lnL,lnL1,lnL2,ori_lnL;
   int iter;
   phydbl scaler;
   phydbl l_inf;
 
   dim = 2*tree->n_otu-3;
-  eps = (tree->mod->log_l == YES)?(0.2):(0.01);
+  eps = (tree->mod->log_l == YES)?(0.2):(1E-4);
 
   hessian     = (phydbl *)mCalloc((int)dim*dim,sizeof(phydbl));
   ori_bl      = (phydbl *)mCalloc((int)dim,sizeof(phydbl));
@@ -1501,6 +1501,7 @@ phydbl *Hessian(t_tree *tree)
 
   tree->both_sides = 1;
   Lk(tree);
+  ori_lnL = tree->c_lnL;
 
 
   For(i,dim) ori_bl[i] = tree->t_edges[i]->l;
@@ -1526,6 +1527,22 @@ phydbl *Hessian(t_tree *tree)
 	  inc[i] = -1.0;
 	  is_ok[i] = 0;
 	}
+    }
+
+
+  /* Fine tune the increments */
+  For(i,dim)
+    {
+      do
+	{
+	  tree->t_edges[i]->l += inc[i];
+	  lnL1 = Lk_At_Given_Edge(tree->t_edges[i],tree);
+	  tree->t_edges[i]->l = ori_bl[i];
+	  inc[i] *= 1.1;
+	}while((FABS(lnL1 - ori_lnL) < 1.E-1) && 
+	       (tree->t_edges[i]->l+inc[i] < tree->mod->l_max) && 
+	       (tree->t_edges[i]->l-inc[i] > tree->mod->l_min));
+      inc[i] /= 1.1;
     }
 
   /* zero zero */  
@@ -1971,7 +1988,7 @@ phydbl *Hessian_Seo(t_tree *tree)
   phydbl *hessian,*site_hessian;
   phydbl *gradient;
   phydbl *plus, *minus, *plusplus, *zero;
-  phydbl *ori_bl,*inc;
+  phydbl *ori_bl,*inc_plus,*inc_minus,*inc;
   int *is_ok;
   int dim;
   int n_ok_edges;
@@ -1985,7 +2002,7 @@ phydbl *Hessian_Seo(t_tree *tree)
   phydbl small_var;
 
   dim = 2*tree->n_otu-3;
-  eps = (tree->mod->log_l == YES)?(0.2):(1.E-1);
+  eps = (tree->mod->log_l == YES)?(0.2):(1.E-4);
 
   hessian      = (phydbl *)mCalloc((int)dim*dim,sizeof(phydbl));
   site_hessian = (phydbl *)mCalloc((int)dim*dim,sizeof(phydbl));
@@ -1995,6 +2012,8 @@ phydbl *Hessian_Seo(t_tree *tree)
   plusplus     = (phydbl *)mCalloc((int)dim*tree->n_pattern,sizeof(phydbl));
   minus        = (phydbl *)mCalloc((int)dim*tree->n_pattern,sizeof(phydbl));
   zero         = (phydbl *)mCalloc((int)dim*tree->n_pattern,sizeof(phydbl));
+  inc_plus     = (phydbl *)mCalloc((int)dim,sizeof(phydbl));
+  inc_minus    = (phydbl *)mCalloc((int)dim,sizeof(phydbl));
   inc          = (phydbl *)mCalloc((int)dim,sizeof(phydbl));
   is_ok        = (int *)mCalloc((int)dim,sizeof(int));
 
@@ -2016,13 +2035,15 @@ phydbl *Hessian_Seo(t_tree *tree)
     {
       if(tree->t_edges[i]->l*(1.-eps) > l_inf)
 	{
-	  inc[i] = eps * tree->t_edges[i]->l;
-	  is_ok[i] = YES;
+	  inc_plus[i]  = eps * tree->t_edges[i]->l;
+	  inc_minus[i] = eps * tree->t_edges[i]->l;
+	  is_ok[i]     = YES;
 	}
       else
 	{
-	  inc[i] = 0.2 * tree->t_edges[i]->l;
-	  is_ok[i] = NO;
+	  inc_plus[i]  = 0.2 * tree->t_edges[i]->l;
+	  inc_minus[i] = 0.2 * tree->t_edges[i]->l;
+	  is_ok[i]     = NO;
 	}
     }
 
@@ -2032,14 +2053,30 @@ phydbl *Hessian_Seo(t_tree *tree)
     {
       do
 	{
-	  tree->t_edges[i]->l += inc[i];
+	  tree->t_edges[i]->l += inc_plus[i];
 	  lnL1 = Lk_At_Given_Edge(tree->t_edges[i],tree);
 	  tree->t_edges[i]->l = ori_bl[i];
-
-	  inc[i] *= 2.;
-	}while(FABS(lnL1 - ori_lnL) < 1.E-1);
-      inc[i] /= 2.;
+	  inc_plus[i] *= 1.1;
+	}while((FABS(lnL1 - ori_lnL) < 1.E-1) && 
+	       (tree->t_edges[i]->l+inc_plus[i] < tree->mod->l_max));
+      inc_plus[i] /= 1.1;
     }
+
+  For(i,dim)
+    {
+      do
+	{
+	  tree->t_edges[i]->l -= inc_minus[i];
+	  lnL1 = Lk_At_Given_Edge(tree->t_edges[i],tree);
+	  tree->t_edges[i]->l = ori_bl[i];
+	  inc_minus[i] *= 1.1;
+	}while((FABS(lnL1 - ori_lnL) < 1.E-1) && 
+	       (tree->t_edges[i]->l-inc_minus[i] > tree->mod->l_min));
+      inc_minus[i] /= 1.1;
+    }
+
+
+  For(i,dim) inc[i] = MIN(inc_plus[i],inc_minus[i]);
 
   /* plus */  
   For(i,dim) 
@@ -2086,14 +2123,16 @@ phydbl *Hessian_Seo(t_tree *tree)
 	}
     }
 
+  For(i,dim*dim) hessian[i] = 0.0;
+
   For(k,tree->n_pattern)
     {
       For(i,dim) 
 	{
 	  if(is_ok[i] == YES)
-	    gradient[i] = (plus[i*tree->n_pattern+k] - minus[i*tree->n_pattern+k])/(2.*inc[i]); 
+	    gradient[i] = (plus[i*tree->n_pattern+k] - minus[i*tree->n_pattern+k])/(inc[i] + inc[i]); 
 	  else
-	    gradient[i] = (4.*plus[i*tree->n_pattern+k] - plusplus[i*tree->n_pattern+k] - 3.*zero[i*tree->n_pattern+k])/(2.*inc[i]);
+	    gradient[i] = (4.*plus[i*tree->n_pattern+k] - plusplus[i*tree->n_pattern+k] - 3.*zero[i*tree->n_pattern+k])/(inc[i] + inc[i]);
 	  
 /* 	  if(is_ok[i] == NO) */
 /* 	    printf("\n. i=%d site=%d l=%G plus=%G plusplus=%G zero=%G num=%f grad=%G", */
@@ -2167,6 +2206,8 @@ phydbl *Hessian_Seo(t_tree *tree)
   Free(plusplus);
   Free(zero);
   Free(inc);
+  Free(inc_plus);
+  Free(inc_minus);
   Free(is_ok);
   Free(gradient);
   
