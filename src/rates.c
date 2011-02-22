@@ -2422,7 +2422,7 @@ void RATES_Posterior_One_Time(t_node *a, t_node *d, int traversal, t_tree *tree)
       tree->rates->c_lnL        = cur_lnL_rate;
       tree->c_lnL               = cur_lnL_data;
       RATES_Update_Cur_Bl(tree);
-      if(tree->io->lk_approx == EXACT) 
+      if(tree->io->lk_approx == EXACT && tree->mcmc->use_data) 
 	{
 	  Update_PMat_At_Given_Edge(b1,tree);
 	  Update_PMat_At_Given_Edge(b2,tree);
