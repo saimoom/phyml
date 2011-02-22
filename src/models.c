@@ -2677,7 +2677,6 @@ void Set_Model_Parameters(model *mod)
   if(mod->free_mixt_rates == NO) DiscreteGamma(mod->gamma_r_proba, mod->gamma_rr, mod->alpha, mod->alpha, mod->n_catg, mod->gamma_median);
   else
     {
-      mod->gamma_rr[0] = 1.0;
       sum = .0;
       For(i,mod->n_catg) sum += FABS(mod->gamma_r_proba_unscaled[i]);
       For(i,mod->n_catg) mod->gamma_r_proba[i] = FABS(mod->gamma_r_proba_unscaled[i])/sum;

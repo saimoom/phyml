@@ -611,12 +611,17 @@ void Round_Optimize(t_tree *tree, calign *data, int n_round_max)
 
       (!((n_round+2)%2))?(root=tree->noeud[0]):(root=tree->noeud[tree->n_otu-1]);
       
-      if(tree->mod->s_opt->opt_bl) Optimize_Br_Len_Serie(root,root->v[0],root->b[0],tree,data);
-            
+      if((tree->mod->s_opt->opt_bl) && 
+	 (tree->mod->s_opt->print) && 
+	 (!tree->io->quiet)) 
+	{
+	  Print_Lk(tree,"[Branch lengths     ]");
+	  Optimize_Br_Len_Serie(root,root->v[0],root->b[0],tree,data);
+	}
+
       tree->both_sides = 1;
       Lk(tree);
 
-      if((tree->mod->s_opt->print) && (!tree->io->quiet)) Print_Lk(tree,"[Branch lengths     ]");
 
       if(!each)
 	{
@@ -647,8 +652,7 @@ void Optimize_Br_Len_Serie(t_node *a, t_node *d, t_edge *b_fcus, t_tree *tree, c
   
   
   lk_init = tree->c_lnL;
-  
- 
+   
 /*   l_infa = 10.*b_fcus->l; */
   l_max  = b_fcus->l;
   l_infa = tree->mod->l_max;
