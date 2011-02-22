@@ -930,9 +930,19 @@ void MCMC_One_Time(t_node *a, t_node *d, int traversal, t_tree *tree)
       RATES_Update_Norm_Fact(tree);
       RATES_Update_Cur_Bl(tree);
 
-      if(tree->mcmc->use_data) new_lnL_data = Lk(tree);
+      
+      if(tree->mcmc->use_data)
+	{
+	  if(tree->io->lk_approx == EXACT)
+	    {
+	      Update_PMat_At_Given_Edge(b1,tree);
+	      Update_PMat_At_Given_Edge(b2,tree);
+	      Update_PMat_At_Given_Edge(b3,tree);
+	      Update_P_Lk(tree,b1,d);
+	    }
+	  new_lnL_data = Lk_At_Given_Edge(b1,tree);
+	}
 
-      /* new_lnL_rate = RATES_Lk_Rates(tree); */
       
       ratio = 0.0;
 /*       ratio += LOG(mult); */
@@ -952,7 +962,7 @@ void MCMC_One_Time(t_node *a, t_node *d, int traversal, t_tree *tree)
 	  tree->c_lnL        = cur_lnL_data;
 	  tree->rates->c_lnL = cur_lnL_rate;
 
-	  if(tree->io->lk_approx == EXACT)
+	  if(tree->io->lk_approx == EXACT && tree->mcmc->use_data) 
 	    {
 	      Update_PMat_At_Given_Edge(b1,tree);
 	      Update_PMat_At_Given_Edge(b2,tree);
@@ -1003,8 +1013,12 @@ void MCMC_One_Time(t_node *a, t_node *d, int traversal, t_tree *tree)
       else
 	For(i,3)
 	  if(d->v[i] != a && d->b[i] != tree->e_root)
-	    MCMC_One_Time(d,d->v[i],YES,tree);
-    }
+	    {
+	      if(tree->io->lk_approx == EXACT && tree->mcmc->use_data) Update_P_Lk(tree,d->b[i],d);
+	      MCMC_One_Time(d,d->v[i],YES,tree);
+	    }
+      if(tree->io->lk_approx == EXACT && tree->mcmc->use_data) Update_P_Lk(tree,b1,d);
+    }	    
 }
 
 /*********************************************************/
