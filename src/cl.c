@@ -90,6 +90,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
       {"no_data",             no_argument,NULL,59},      
       {"fastlk",              required_argument,NULL,60},      
       {"free_rates",          no_argument,NULL,61},
+      {"is",                  no_argument,NULL,62},
       {0,0,0,0}
     };
 
@@ -100,6 +101,11 @@ void Read_Command_Line(option *io, int argc, char **argv)
     {
       switch(c)
 	{
+	case 62:
+	  {
+	    io->mcmc->is = YES;
+	    break;
+	  }
 	case 61:
 	  {
 	    io->mod->free_mixt_rates            = YES;

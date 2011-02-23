@@ -131,7 +131,7 @@ void RATES_Lk_Rates_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 	    
 	    log_dens = 0.0;
 	    
-/* 	    /\* Branch rate *\/ */
+	    /* Branch rate */
 	    mean = (log_nd_r_d + log_nd_r_a)/2.;
 	    sd   = SQRT(dt_d*tree->rates->nu/12.);
 /* 	    mean = 0.0; */
