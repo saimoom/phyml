@@ -2644,15 +2644,18 @@ void RATES_Update_Cur_Bl(t_tree *tree)
 
 void RATES_Update_Cur_Bl_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 {
-  phydbl dt,rr,cr,nf;
+  phydbl dt,rr,cr,nf,ra,rd;
   
   dt = tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num];
   rr = tree->rates->br_r[d->num];
   cr = tree->rates->clock_r;
   nf = tree->rates->norm_fact;
+  rd = tree->rates->br_r[d->num];
+  ra = tree->rates->br_r[a->num];
 
-  tree->rates->cur_l[d->num] = dt*rr*cr*nf;
+  if(tree->rates->model != GUINDON) tree->rates->cur_l[d->num] = dt*rr*cr*nf;
   
+
   if(tree->mod->log_l == YES) tree->rates->cur_l[d->num] = LOG(tree->rates->cur_l[d->num]);
 
   if(b)
