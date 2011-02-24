@@ -69,7 +69,8 @@ void MCMC(t_tree *tree)
 /*       if(move == tree->mcmc->num_move_clock_r) */
       if(!strcmp(tree->mcmc->move_name[move],"clock"))
 	{
-/* 	  printf("\n. clock"); */
+	  /* printf("\n. clock move=%d",move); */
+
 	  MCMC_Single_Param_Generic(&(tree->rates->clock_r),tree->rates->min_clock,tree->rates->max_clock,move,
 	  			    NULL,&(tree->c_lnL),
 	  			    NULL,Wrap_Lk,MCMC_MOVE_SCALE,NO,NULL,tree,NULL);
@@ -81,18 +82,17 @@ void MCMC(t_tree *tree)
 /*       else if(move == tree->mcmc->num_move_nu) */
       else if(!strcmp(tree->mcmc->move_name[move],"nu"))
 	{
-/* 	  printf("\n. nu"); */
-/* 	  tree->mcmc->tune_move[move] = 1.0; */
-
-/* 	  MCMC_Single_Param_Generic(&(tree->rates->nu),tree->rates->min_nu,tree->rates->max_nu,move, */
-/* 	  			    &(tree->rates->c_lnL),NULL, */
-/* 	  			    Wrap_Lk_Rates,NULL,MCMC_MOVE_SCALE,NO,NULL,tree,NULL); */
-/* /\* 	  			    Wrap_Lk_Rates,NULL,MCMC_MOVE_LOG_RANDWALK,NO,NULL,tree,NULL); *\/ */
+	  /* printf("\n. nu move=%d",move); */
 
 	  MCMC_Single_Param_Generic(&(tree->rates->nu),tree->rates->min_nu,tree->rates->max_nu,move,
 	  			    &(tree->rates->c_lnL),NULL,
-	  			    NULL,Wrap_Lk_Rates,MCMC_MOVE_SCALE,NO,NULL,tree,NULL);
-/* 	  			    NULL,Wrap_Lk_Rates,MCMC_MOVE_LOG_RANDWALK,NO,NULL,tree,NULL); */
+	  			    Wrap_Lk_Rates,NULL,MCMC_MOVE_SCALE,NO,NULL,tree,NULL);
+/* 	  			    Wrap_Lk_Rates,NULL,MCMC_MOVE_LOG_RANDWALK,NO,NULL,tree,NULL); */
+
+/* 	  MCMC_Single_Param_Generic(&(tree->rates->nu),tree->rates->min_nu,tree->rates->max_nu,move, */
+/* 	  			    NULL,&(tree->rates->c_lnL), */
+/* 	  			    NULL,Wrap_Lk_Rates,MCMC_MOVE_SCALE,NO,NULL,tree,NULL); */
+/* /\* 	  			    NULL,Wrap_Lk_Rates,MCMC_MOVE_LOG_RANDWALK,NO,NULL,tree,NULL); *\/ */
 	}
 
 
@@ -253,11 +253,18 @@ void MCMC_Single_Param_Generic(phydbl *val,
   ratio         =  0.0;
   mult          = -1.0;
   K             = tree->mcmc->tune_move[move_num];
-  cur_lnLike    = (lnLike)?(*lnLike):(UNLIKELY);
-  cur_lnPrior   = (lnPrior)?(*lnPrior):(UNLIKELY);
   cur_lnval     = LOG(*val);
+
+
+  if(like_func) cur_lnLike = *lnLike;
+  else          cur_lnLike = UNLIKELY;
+
+  if(prior_func) cur_lnPrior = *lnPrior;
+  else           cur_lnPrior = UNLIKELY;
+
   new_lnLike    = cur_lnLike;
   new_lnPrior   = cur_lnPrior;
+
 
   u = Uni();
 
@@ -278,6 +285,7 @@ void MCMC_Single_Param_Generic(phydbl *val,
       /* Random walk on the original scale. log(HR) = 0 */
       new_val = u*(2.*K) + cur_val - K;
     }
+
 
   if(new_val < lim_sup && new_val > lim_inf)
     {
@@ -307,10 +315,11 @@ void MCMC_Single_Param_Generic(phydbl *val,
 	  ratio += (new_lnLike - cur_lnLike);  
 	}
       
-      
+
       ratio = EXP(ratio);
       alpha = MIN(1.,ratio);
-      
+
+
       u = Uni();
       if(u > alpha) /* Reject */
 	{
