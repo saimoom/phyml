@@ -1642,9 +1642,13 @@ void Launch_Interface_Branch_Support(option *io)
     {
       strcpy(s,"yes / min of SH-like & Chi2-based supports");
     }
-  else
+  else if(io->ratio_test == 4)
     {
       strcpy(s,"yes / SH-like supports");
+    }
+  else if(io->ratio_test == 5)
+    {
+      strcpy(s,"yes / aBayes supports");
     }
   
   
@@ -1768,6 +1772,11 @@ void Launch_Interface_Branch_Support(option *io)
 	      break;
 	    }
 	  case 4 :
+	    {
+	      io->ratio_test = 5;
+	      break;
+	    }
+	  case 5 :
 	    {
 	      io->ratio_test = 0;
 	      break;
