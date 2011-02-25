@@ -88,7 +88,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
       {"no_colalias",         no_argument,NULL,57},
       {"alias_subpatt",       no_argument,NULL,58},      
       {"no_data",             no_argument,NULL,59},      
-      {"fastlk",              required_argument,NULL,60},      
+      {"fastlk",              no_argument,NULL,60},      
       {"free_rates",          no_argument,NULL,61},
       {"is",                  no_argument,NULL,62},
       {0,0,0,0}
@@ -114,20 +114,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	  }
 	case 60:
 	  {
-	    if(!strcmp(optarg,"yes") || !strcmp(optarg,"YES"))
-	      {
-		io->lk_approx = NORMAL;
-	      }
-	    else if(!strcmp(optarg,"no") || !strcmp(optarg,"NO"))
-	      {
-		io->lk_approx = EXACT;		
-	      }
-	    else
-	      {
-		PhyML_Printf("\n. 'fastlk' option: please use 'yes' or 'no'"); 
-		Exit("\n");
-	      }
-	    
+	    io->lk_approx = EXACT;		
 	    break;
 	  }
 	case 59:
@@ -744,7 +731,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	  }
 	case 'b':case 10:
 	  {
-	    if (atoi(optarg) < -4)
+	    if (atoi(optarg) < -5)
 	      {
 		char choix;
 		PhyML_Printf("\n. Branch test value must be a positive integer for bootstrap, or between -1 and -4 for aLRT branch test\n");

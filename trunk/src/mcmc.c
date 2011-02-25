@@ -196,11 +196,11 @@ void MCMC(t_tree *tree)
 
 	  if(tree->mcmc->is == NO)
 	    {
-	      MCMC_Slice_One_Rate(tree->n_root,tree->n_root->v[first],YES,tree);
-	      MCMC_Slice_One_Rate(tree->n_root,tree->n_root->v[secod],YES,tree);
+	      /* MCMC_Slice_One_Rate(tree->n_root,tree->n_root->v[first],YES,tree); */
+	      /* MCMC_Slice_One_Rate(tree->n_root,tree->n_root->v[secod],YES,tree); */
 	      
-	      /* MCMC_One_Rate(tree->n_root,tree->n_root->v[first],YES,tree); */
-	      /* MCMC_One_Rate(tree->n_root,tree->n_root->v[secod],YES,tree); */
+	      MCMC_One_Rate(tree->n_root,tree->n_root->v[first],YES,tree);
+	      MCMC_One_Rate(tree->n_root,tree->n_root->v[secod],YES,tree);
 	    }
 	  else
 	    {

@@ -232,8 +232,9 @@ int Compute_Likelihood_Ratio_Test(t_edge *tested_edge, t_tree *tree)
 	{
 	  //aLRT statistic is valid, compute the wished support
 	  if (tree->io->ratio_test == 2)
-	    tested_edge->ratio_test = Statistics_To_Probabilities(tested_edge->alrt_statistic);
-	  
+	    {
+	      tested_edge->ratio_test = Statistics_To_Probabilities(tested_edge->alrt_statistic);	  
+	    }
 	  else if(tree->io->ratio_test == 3)
 	    {
 	      phydbl sh_support;
@@ -250,9 +251,21 @@ int Compute_Likelihood_Ratio_Test(t_edge *tested_edge, t_tree *tree)
 	    {
 	      tested_edge->ratio_test=tested_edge->alrt_statistic;
 	    } 
-	  else 
+	  else if(tree->io->ratio_test == 4) 
 	    {
 	      tested_edge->ratio_test = Statistics_To_SH(tree);
+	    }
+	  else if(tree->io->ratio_test == 5)
+	    {
+	      phydbl Kp0,Kp1,Kp2,logK;
+	      
+	      logK = 1. - MAX(MAX(tested_edge->nni->lk0,tested_edge->nni->lk1),tested_edge->nni->lk2);
+
+	      Kp0 = EXP(tested_edge->nni->lk0+logK);
+	      Kp1 = EXP(tested_edge->nni->lk1+logK);
+	      Kp2 = EXP(tested_edge->nni->lk2+logK);
+	      tested_edge->ratio_test = Kp0/(Kp0+Kp1+Kp2);
+	      
 	    }
 	}
     }  
