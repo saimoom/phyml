@@ -1171,6 +1171,9 @@ void Read_Command_Line(option *io, int argc, char **argv)
       io->mod->m4mod->use_cov_free       = 1;
     }
   
+  if(io->mod->s_opt->opt_topo == YES && io->mod->s_opt->constrained_br_len == YES)
+    io->mod->s_opt->constrained_br_len = NO;
+
   if(io->print_site_lnl)
     {
       strcpy(io->out_lk_file,io->in_align_file);
