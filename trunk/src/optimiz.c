@@ -616,7 +616,16 @@ void Round_Optimize(t_tree *tree, calign *data, int n_round_max)
 	 (!tree->io->quiet)) 
 	{
 	  Print_Lk(tree,"[Branch lengths     ]");
-	  Optimize_Br_Len_Serie(root,root->v[0],root->b[0],tree,data);
+	  if(tree->mod->s_opt->constrained_br_len == NO)
+	    Optimize_Br_Len_Serie(root,root->v[0],root->b[0],tree,data);
+	  else
+	    Generic_Brent_Lk(&(tree->mod->br_len_multiplier),
+			     1.E-2,1.E+2,
+			     tree->mod->s_opt->min_diff_lk_global,
+			     tree->mod->s_opt->brent_it_max,
+			     tree->mod->s_opt->quickdirty,
+			     Wrap_Lk,NULL,tree,NULL);
+	  
 	}
 
       tree->both_sides = 1;
@@ -771,7 +780,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 /* 					      tree->mod->s_opt->brent_it_max, */
 /* 					      tree->mod->s_opt->quickdirty); */
 
-		Generic_Brent_Lk(&(tree->mod->rr_val[i]),
+		Generic_Brent_Lk(&(tree->mod->br_len_multiplier),
 				 1.E-2,1.E+2,
 				 tree->mod->s_opt->min_diff_lk_global,
 				 tree->mod->s_opt->brent_it_max,

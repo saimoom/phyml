@@ -366,6 +366,10 @@ typedef struct __Edge {
   char                           **labels; /*! string of characters that labels the corresponding t_edge */
   int                            n_labels; /*! number of labels */
   int                             n_jumps; /*! number of jumps of substitution rates */
+
+  phydbl                 gamma_prior_mean; /* Branch length has a gamma distributed prior with this mean */
+  phydbl                  gamma_prior_var; /* Branch length has a gamma distributed prior with this var */
+
 }t_edge;
 
 /*!********************************************************/
@@ -660,11 +664,15 @@ typedef struct __Model {
   phydbl   rr_branch_alpha; /*! Shape of the gamma distribution that defines the rr_branch and p_rr_branch values */
 
   int            state_len;
-  short int          log_l; /* Edge lengths are actually log(Edge lengths) if log_l == YES */
-  phydbl             l_min; /* Minimum branch length */
-  phydbl             l_max; /* Maximum branch length */
+  short int          log_l; /*! Edge lengths are actually log(Edge lengths) if log_l == YES !*/
+  phydbl             l_min; /*! Minimum branch length !*/
+  phydbl             l_max; /*! Maximum branch length !*/
 
   int      free_mixt_rates;
+
+  int         gamma_mgf_bl; /*! P = \int_0^inf exp(QL) p(L) where L=\int_0^t R(s) ds and p(L) is the gamma density. Set to NO by default !*/
+
+  phydbl br_len_multiplier;
 }model;
 
 /*!********************************************************/
@@ -832,6 +840,7 @@ typedef struct __Optimiz { /*! parameters to be optimised (mostly used in 'optim
   phydbl  max_delta_lnL_spr;
   int         br_len_in_spr; 
   int   opt_free_mixt_rates;
+  int    constrained_br_len;
 
   int           wim_n_rgrft;
   int           wim_n_globl;
@@ -1441,6 +1450,7 @@ int Scale_Subtree_Rates_Post(t_node *a, t_node *d, phydbl mult, int *n_nodes, t_
 int Scale_Subtree_Rates(t_node *a, phydbl mult, int *n_nodes, t_tree *tree);
 phydbl Effective_Sample_Size(phydbl first_val, phydbl last_val, phydbl sum, phydbl sumsq, phydbl sumcurnext, int iter);
 phydbl Rescale_Free_Rate_Tree(t_tree *tree);
+phydbl Rescale_Br_Len_Multiplier_Tree(t_tree *tree);
 
 #include "free.h"
 #include "spr.h"

@@ -716,6 +716,14 @@ void Launch_Interface_Model(option *io)
 
   if(io->mod->n_catg > 1)
     {
+      PhyML_Printf("                [G] "
+		   "............. Gamma distributed rates across sites "
+		   " %-15s \n",(io->mod->free_mixt_rates)?("no"):("yes"));
+    }
+
+
+  if((io->mod->n_catg > 1) && (io->mod->free_mixt_rates == NO))
+    {
       strcpy(s,(io->mod->s_opt->opt_alpha)?("estimated"):("fixed"));
       (io->mod->s_opt->opt_alpha)?(strcat(s, "")):(strcat(s," (alpha = "));
       
@@ -759,11 +767,11 @@ void Launch_Interface_Model(option *io)
 /* 	break; */
 /*       } */
 
-/*     case 'G' : */
-/*       { */
-/* 	io->mod->gamma_median = (io->mod->gamma_median)?(0):(1); */
-/* 	break; */
-/*       } */
+    case 'G' :
+      {
+	io->mod->free_mixt_rates = (io->mod->free_mixt_rates)?(NO):(YES);
+	break;
+      }
 
     case 'O' :
       {

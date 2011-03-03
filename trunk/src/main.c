@@ -178,6 +178,8 @@ int main(int argc, char **argv)
 		  PhyML_Printf("\n. Log likelihood of the current tree: %f.\n",tree->c_lnL);
 
 		  Rescale_Free_Rate_Tree(tree);
+		  Rescale_Br_Len_Multiplier_Tree(tree);
+
 		  if(!tree->n_root) Get_Best_Root_Position(tree);
 
 		  /* Print the tree estimated using the current random (or BioNJ) starting tree */
