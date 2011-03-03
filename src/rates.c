@@ -122,27 +122,39 @@ void RATES_Lk_Rates_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 	  }
 	case GUINDON:
 	  {
-	    phydbl mean,sd;
-	    int err;
-	    phydbl log_nd_r_d,log_nd_r_a;
+	    /* phydbl mean,sd; */
+	    /* int err; */
+	    /* phydbl log_nd_r_d,log_nd_r_a; */
 
-	    log_nd_r_d = LOG(r_d);
-	    log_nd_r_a = LOG(r_a); /* Has to be 0.0 as r_a=1.0 */
+	    /* log_nd_r_d = LOG(r_d); */
+	    /* log_nd_r_a = LOG(r_a); /\* Has to be 0.0 as r_a=1.0 *\/ */
 	    
-	    log_dens = 0.0;
+	    /* log_dens = 0.0; */
 	    
 	    /* Branch rate */
-	    mean = (log_nd_r_d + log_nd_r_a)/2.;
-	    sd   = SQRT(dt_d*tree->rates->nu/12.);
-/* 	    mean = 0.0; */
-/* 	    sd   = SQRT(tree->rates->nu * dt_d); */
-	    log_dens = Log_Dnorm(LOG(mu_d),mean,sd,&err);
+/* 	    mean = (log_nd_r_d + log_nd_r_a)/2.; */
+/* 	    sd   = SQRT(dt_d*tree->rates->nu/12.); */
+/* /\* 	    mean = 0.0; *\/ */
+/* /\* 	    sd   = SQRT(tree->rates->nu * dt_d); *\/ */
+/* 	    log_dens = Log_Dnorm(LOG(mu_d),mean,sd,&err); */
 	    
 	    /* Node rate */
-	    mean = log_nd_r_a;
-	    sd   = SQRT(tree->rates->nu * dt_d);
-	    log_dens += Log_Dnorm(log_nd_r_d,mean,sd,&err);
+	    /* mean = log_nd_r_a; */
+	    /* sd   = SQRT(tree->rates->nu * dt_d); */
+	    /* log_dens += Log_Dnorm(log_nd_r_d,mean,sd,&err); */
+
+	    /* log_dens += Log_Dnorm(LOG(mu_d),1.0,SQRT(tree->rates->nu*dt_d),&err); */
 	    
+
+	    int err;
+	    phydbl mean,sd;
+	    
+	    sd = SQRT(tree->rates->nu*dt_d);
+	    mean = 1.0;
+
+	    log_dens = Log_Dnorm_Trunc(mu_d,mean,sd,
+				       tree->rates->min_rate,
+				       tree->rates->max_rate,&err);
 
 	    if(err)
 	      {
@@ -431,27 +443,40 @@ phydbl RATES_Lk_Rates_Core(phydbl br_r_a, phydbl br_r_d, phydbl nd_r_a, phydbl n
       }
     case GUINDON :
       {
-	phydbl mean,sd;
-	int err;
-	phydbl log_nd_r_a, log_nd_r_d;
+	/* phydbl mean,sd; */
+	/* int err; */
+	/* phydbl log_nd_r_a, log_nd_r_d; */
 
-	log_nd_r_a = LOG(nd_r_a);
-	log_nd_r_d = LOG(nd_r_d);
+	/* log_nd_r_a = LOG(nd_r_a); */
+	/* log_nd_r_d = LOG(nd_r_d); */
 
 
-	log_dens = 0.0;
+	/* log_dens = 0.0; */
 
 	/* Branch rate */
-	mean = (log_nd_r_d + log_nd_r_a)/2.;
-	sd   = SQRT(dt_d*tree->rates->nu/12.);
-/* 	mean = LOG(br_r_a); */
-/* 	sd   = SQRT(tree->rates->nu * dt_d); */
-	log_dens = Log_Dnorm(LOG(br_r_d),mean,sd,&err);
+/* 	mean = (log_nd_r_d + log_nd_r_a)/2.; */
+/* 	sd   = SQRT(dt_d*tree->rates->nu/12.); */
+/* /\* 	mean = LOG(br_r_a); *\/ */
+/* /\* 	sd   = SQRT(tree->rates->nu * dt_d); *\/ */
+/* 	log_dens = Log_Dnorm(LOG(br_r_d),mean,sd,&err); */
 
 	/* Node rate */
-	mean = log_nd_r_a;
-	sd   = SQRT(tree->rates->nu * dt_d);
-	log_dens += Log_Dnorm(log_nd_r_d,mean,sd,&err);
+	/* mean = log_nd_r_a; */
+	/* sd   = SQRT(tree->rates->nu * dt_d); */
+	/* log_dens += Log_Dnorm(log_nd_r_d,mean,sd,&err); */
+
+
+	/* log_dens += Log_Dnorm(LOG(br_r_d),LOG(br_r_a),SQRT(tree->rates->nu*dt_d),&err); */
+	    
+
+	int err;	
+	phydbl mean,sd;
+
+	sd   = SQRT(tree->rates->nu*dt_d);
+	mean = br_r_a;
+
+
+	log_dens = Log_Dnorm_Trunc(br_r_d,mean,sd,tree->rates->min_rate,tree->rates->max_rate,&err);
 
 	if(err)
 	  {
@@ -2654,7 +2679,17 @@ void RATES_Update_Cur_Bl_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
   ra = tree->rates->br_r[a->num];
 
   if(tree->rates->model != GUINDON) tree->rates->cur_l[d->num] = dt*rr*cr*nf;
-  
+  else
+    {
+      phydbl intercept, slope;
+
+      ra *= cr;
+      rd *= cr;
+
+      intercept = ra;
+      slope = (rd - ra)/dt;
+      tree->rates->cur_l[d->num] = dt * (slope*dt/2. + intercept);
+    }
 
   if(tree->mod->log_l == YES) tree->rates->cur_l[d->num] = LOG(tree->rates->cur_l[d->num]);
 

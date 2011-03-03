@@ -87,6 +87,9 @@ phydbl Covariance(phydbl *x, phydbl *y, int n);
 phydbl *Rnorm_Multid_Trunc_Constraint(phydbl *mu, phydbl *cov, phydbl *min, phydbl *max, phydbl *lambda, phydbl k, phydbl *res, int len);
 phydbl *Gradient(t_tree *tree);
 phydbl *Hessian_Seo(t_tree *tree);
+void Integrated_Brownian_Bridge_Moments(phydbl x_beg, phydbl x_end, 
+					phydbl y_beg, phydbl y_end, 
+					phydbl sd, phydbl *mean, phydbl *var);
 
 
 #endif

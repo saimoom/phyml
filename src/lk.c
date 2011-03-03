@@ -2025,42 +2025,60 @@ void Update_PMat_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
   phydbl len;
   phydbl l_min, l_max;
 
-  len = -1.0;
 
-  if(b_fcus->l > tree->mod->l_max) b_fcus->l = tree->mod->l_max;
-  if(b_fcus->l < tree->mod->l_min) b_fcus->l = tree->mod->l_min;
-
-  if(tree->mod->log_l == YES)
+  if(tree->mod->gamma_mgf_bl == YES)
     {
-      l_min = EXP(tree->mod->l_min);
-      l_max = EXP(tree->mod->l_max);
+      phydbl shape,scale,mean,var;
+
+      mean = b_fcus->gamma_prior_mean;
+      var  = b_fcus->gamma_prior_var;
+
+      shape = mean*mean/var;
+      scale = var/mean;
+
+      /* TO DO: add the possibility to have rate variation across sites */
+      Pmat_MGF_Gamma(b_fcus->Pij_rr,shape,scale,tree->mod);
     }
   else
     {
-      l_min = tree->mod->l_min;
-      l_max = tree->mod->l_max;
-    }
-  
+      len = -1.0;
 
-  if(tree->mod->log_l == YES) b_fcus->l = EXP(b_fcus->l);
-
-  For(i,tree->mod->n_catg)
-    {
-      if(b_fcus->has_zero_br_len == YES) 
+      if(b_fcus->l > tree->mod->l_max) b_fcus->l = tree->mod->l_max;
+      if(b_fcus->l < tree->mod->l_min) b_fcus->l = tree->mod->l_min;
+      
+      if(tree->mod->log_l == YES)
 	{
-	  len = -1.0;
+	  l_min = EXP(tree->mod->l_min);
+	  l_max = EXP(tree->mod->l_max);
 	}
       else
 	{
-	  len = b_fcus->l*tree->mod->gamma_rr[i];	  
-	  if(len < l_min)      len = l_min;
-	  else if(len > l_max) len = l_max;
+	  l_min = tree->mod->l_min;
+	  l_max = tree->mod->l_max;
 	}
-      PMat(len,tree->mod,tree->mod->ns*tree->mod->ns*i,b_fcus->Pij_rr);
+      
+      
+      if(tree->mod->log_l == YES) b_fcus->l = EXP(b_fcus->l);
+      
+      For(i,tree->mod->n_catg)
+	{
+	  if(b_fcus->has_zero_br_len == YES) 
+	    {
+	      len = -1.0;
+	    }
+	  else
+	    {
+	      len = b_fcus->l*tree->mod->gamma_rr[i];	  
+	      if(len < l_min)      len = l_min;
+	      else if(len > l_max) len = l_max;
+	    }
+
+	  len *= tree->mod->br_len_multiplier;
+
+	  PMat(len,tree->mod,tree->mod->ns*tree->mod->ns*i,b_fcus->Pij_rr);
+	}      
+      if(tree->mod->log_l == YES) b_fcus->l = LOG(b_fcus->l);
     }
-
-  if(tree->mod->log_l == YES) b_fcus->l = LOG(b_fcus->l);
-
 }
 
 /*********************************************************/

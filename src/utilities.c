@@ -867,6 +867,8 @@ void Init_Edge_Light(t_edge *b, int num)
   b->topo_dist_btw_edges  = 0;
   b->has_zero_br_len      = NO;
   b->n_jumps              = 0;
+  b->gamma_prior_mean     = -1.0;
+  b->gamma_prior_var      = -1.0;
 
   b->p_lk_left            = NULL;
   b->p_lk_rght            = NULL;
@@ -6546,6 +6548,8 @@ void Set_Defaults_Model(model *mod)
   mod->io                      = NULL;
   mod->log_l                   = NO;
   mod->free_mixt_rates         = NO;
+  mod->gamma_mgf_bl            = NO;
+  mod->br_len_multiplier       = 1.0;
 
 #ifndef PHYTIME
   mod->l_min = 1.E-8;
@@ -6604,6 +6608,7 @@ void Set_Defaults_Optimiz(optimiz *s_opt)
   s_opt->max_delta_lnL_spr    = 50.;
   s_opt->br_len_in_spr        = 10;
   s_opt->opt_free_mixt_rates  = YES;
+  s_opt->constrained_br_len   = NO;
 
   s_opt->wim_n_rgrft          = -1;
   s_opt->wim_n_globl          = -1;
@@ -8948,6 +8953,8 @@ void Print_Settings(option *io)
 	PhyML_Printf("\n                . Compute approximate likelihood ratio test:\t yes (Minimum of SH-like and Chi2-based branch supports)");
       else if(io->ratio_test == 4)
 	PhyML_Printf("\n                . Compute approximate likelihood ratio test:\t yes (SH-like branch supports)");
+      else if(io->ratio_test == 5)
+	PhyML_Printf("\n                . Compute approximate likelihood ratio test:\t yes (aBayes branch supports)");
     }
 
   PhyML_Printf("\n                . Model name:\t\t\t\t\t %s", io->mod->modelname);
@@ -8973,13 +8980,17 @@ void Print_Settings(option *io)
 
 
   PhyML_Printf("\n                . Number of subst. rate categs:\t\t\t %d", io->mod->n_catg);
-  if(io->mod->s_opt->opt_alpha)
-    PhyML_Printf("\n                . Gamma distribution parameter:\t\t\t estimated");
-  else
-    PhyML_Printf("\n                . Gamma distribution parameter:\t\t\t %f", io->mod->alpha);
-  
   if(io->mod->n_catg > 1)
-    PhyML_Printf("\n                . 'Middle' of each rate class:\t\t\t %s",(io->mod->gamma_median)?("median"):("mean"));
+    {
+      if(io->mod->free_mixt_rates == NO)
+	{
+	  if(io->mod->s_opt->opt_alpha)
+	    PhyML_Printf("\n                . Gamma distribution parameter:\t\t\t estimated");
+	  else
+	    PhyML_Printf("\n                . Gamma distribution parameter:\t\t\t %f", io->mod->alpha);
+	  PhyML_Printf("\n                . 'Middle' of each rate class:\t\t\t %s",(io->mod->gamma_median)?("median"):("mean"));
+	}
+    }
     
   
   if(io->datatype == AA)
@@ -12112,6 +12123,14 @@ phydbl Rescale_Free_Rate_Tree(t_tree *tree)
 }
 
 /*********************************************************/
+
+phydbl Rescale_Br_Len_Multiplier_Tree(t_tree *tree)
+{
+  int i;
+  For(i,2*tree->n_otu-3) tree->t_edges[i]->l *= tree->mod->br_len_multiplier;
+}
+
+
 /*********************************************************/
 /*********************************************************/
 /*********************************************************/

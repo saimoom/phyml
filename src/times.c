@@ -73,7 +73,7 @@ int TIMES_main(int argc, char **argv)
 /*   r_seed = 1292195490; */
   /* r_seed =  1298284669; */
   /* r_seed  = 1298403366; */
-  r_seed = 1298509108;
+  /* r_seed = 1298509108; */
   /* sys = system("sleep 5s"); */
 
   srand(r_seed); rand();
@@ -216,9 +216,10 @@ int TIMES_main(int argc, char **argv)
 
 		  tree->io->lk_approx = user_lk_approx;
 
+
 		  /* !!!!!!!!!!!!!!!!! */
- 		  /* tree->rates->model      = GUINDON; */
- 		  tree->rates->model      = THORNE;
+ 		  tree->rates->model      = GUINDON;
+ 		  /* tree->rates->model      = THORNE; */
 		  tree->rates->bl_from_rt = YES;
 
 		  PhyML_Printf("\n");

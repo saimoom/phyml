@@ -3616,7 +3616,133 @@ phydbl *Rnorm_Multid_Trunc_Constraint(phydbl *mu, phydbl *cov, phydbl *min, phyd
 }
 
 /*********************************************************/
+
+void Pmat_MGF_Gamma(phydbl *Pij, phydbl shape, phydbl scale, model *mod)
+{
+  int dim;
+  int i,j,k;
+  phydbl *uexpt;
+
+  dim = mod->eigen->size;
+  
+  For(i,dim*dim) mod->qmat_buff[i]        = mod->qmat[i];
+  For(i,dim*dim) mod->qmat_buff[i]       *= -scale;
+  For(i,dim)     mod->qmat_buff[i*dim+i] += 1.0;
+
+  if(!Eigen(1,mod->qmat_buff,mod->eigen->size,mod->eigen->e_val,
+	    mod->eigen->e_val_im,mod->eigen->r_e_vect,
+	    mod->eigen->r_e_vect_im,mod->eigen->space))
+    {
+      For(i,dim*dim) mod->eigen->l_e_vect[i] = mod->eigen->r_e_vect[i];
+
+      if(!Matinv(mod->eigen->l_e_vect,mod->eigen->size,mod->eigen->size,YES))
+	{
+	  PhyML_Printf("\n. Err in file %s at line %d.",__FILE__,__LINE__);
+	  Exit("\n");
+	}
+    }
+  
+  For(i,dim) mod->eigen->e_val[i] = POW(mod->eigen->e_val[i],-shape);
+
+  uexpt = mod->eigen->r_e_vect_im;
+
+  For(i,dim) For(k,dim) uexpt[i*dim+k] = mod->eigen->r_e_vect[i*dim+k] * mod->eigen->e_val[k];
+
+  For(i,dim) For(k,dim) Pij[dim*i+k] = .0;
+
+  For(i,dim)
+    {
+      For(j,dim)
+	{
+	  For(k,dim)
+	    {
+	      Pij[dim*i+j] += (uexpt[i*dim+k] * mod->eigen->l_e_vect[k*dim+j]);
+	    }
+	  if(Pij[dim*i+j] < SMALL_PIJ) Pij[dim*i+j] = SMALL_PIJ;
+	}
+    }
+
+  /* printf("\n. shape = %f scale = %f",shape,scale); */
+  /* printf("\n. Qmat"); */
+  /* For(i,dim) */
+  /*   { */
+  /*     printf("\n"); */
+  /*     For(j,dim) */
+  /* 	{ */
+  /* 	  printf("%12f ",mod->qmat[i*dim+j]); */
+  /* 	} */
+  /*   } */
+
+  /* printf("\n. Pmat"); */
+  /* For(i,dim) */
+  /*   { */
+  /*     printf("\n"); */
+  /*     For(j,dim) */
+  /* 	{ */
+  /* 	  printf("%12f ",Pij[i*dim+j]); */
+  /* 	} */
+  /*   } */
+  /* Exit("\n"); */
+}
+
 /*********************************************************/
+
+void Integrated_Brownian_Bridge_Moments(phydbl x_beg, phydbl x_end, 
+					phydbl y_beg, phydbl y_end, 
+					phydbl sd, phydbl *mean, phydbl *var)
+{
+  phydbl *y,*y_mean;
+  int n_breaks, n_rep;
+  int i,j;
+  phydbl traj_mean, traj_sd;
+  phydbl x_prev, x_curr;
+  phydbl x_step;
+  phydbl sum,sumsum;
+
+  n_breaks = 50;
+  n_rep    = 500;
+  
+  x_step   = (x_end - x_beg)/n_breaks;
+
+  y      = (phydbl *)mCalloc(n_breaks,sizeof(phydbl));
+  y_mean = (phydbl *)mCalloc(n_rep,sizeof(phydbl));
+
+  y[0] = y_beg;
+
+  For(i,n_rep)
+    {
+      for(j=1;j<n_breaks;j++)
+	{
+	  x_prev = x_beg + (j-1)*x_step;
+	  x_curr = x_prev + x_step;
+
+	  traj_mean = y[j-1] + (y_end - y[j-1])*(x_curr - x_prev)/(x_end - x_prev);
+	  traj_sd   = SQRT(sd*(x_curr - x_prev)*(x_end - x_curr)/(x_end - x_prev));
+
+	  y[j] = Rnorm(traj_mean,traj_sd);
+	}
+      
+      sum = 0.0;
+      For(j,n_breaks) sum += FABS(y[j]);
+      y_mean[i] = sum/n_breaks;
+    }
+
+  sum = sumsum = 0.0;
+  For(i,n_rep)
+    {
+      sum += y_mean[i];
+      sumsum += y_mean[i] * y_mean[i];
+    }
+
+  *mean = sum/n_rep;
+  *var = sumsum/n_rep - (*mean) * (*mean); 
+
+  Free(y);
+  Free(y_mean);
+
+}
+
+
 /*********************************************************/
 /*********************************************************/
 /*********************************************************/

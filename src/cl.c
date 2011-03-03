@@ -91,6 +91,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
       {"fastlk",              no_argument,NULL,60},      
       {"free_rates",          no_argument,NULL,61},
       {"is",                  no_argument,NULL,62},
+      {"constrained_lens",    no_argument,NULL,63},
       {0,0,0,0}
     };
 
@@ -101,6 +102,11 @@ void Read_Command_Line(option *io, int argc, char **argv)
     {
       switch(c)
 	{
+	case 63:
+	  {
+	    io->mod->s_opt->constrained_br_len = YES;
+	    break;
+	  }
 	case 62:
 	  {
 	    io->mcmc->is = YES;
@@ -1084,18 +1090,18 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	      }
 	    break;
 	  }
-	case '?':
-	  {
-	    char choix;
-	    if (isprint (optopt))
-	      PhyML_Printf ("\n. Unknown option `-%c'.\n", optopt);
-	    else
-	      PhyML_Printf ("\n. Unknown option character `\\x%x'.\n", optopt);
-	    PhyML_Printf("\n. Type any key to exit.\n");
-	    if(!scanf("%c",&choix)) Exit("\n");
-	    Exit("\n");
-	    break;
-	  }
+	/* case '?': */
+	/*   { */
+	/*     char choix; */
+	/*     if (isprint (optopt)) */
+	/*       PhyML_Printf ("\n. Unknown option `-%c'.\n", optopt); */
+	/*     else */
+	/*       PhyML_Printf ("\n. Unknown option character `\\x%x'.\n", optopt); */
+	/*     PhyML_Printf("\n. Type any key to exit.\n"); */
+	/*     if(!scanf("%c",&choix)) Exit("\n"); */
+	/*     Exit("\n"); */
+	/*     break; */
+	/*   } */
 	  
 	default:
 	  Usage();
