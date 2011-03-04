@@ -218,8 +218,8 @@ int TIMES_main(int argc, char **argv)
 
 
 		  /* !!!!!!!!!!!!!!!!! */
- 		  tree->rates->model      = GUINDON;
- 		  /* tree->rates->model      = THORNE; */
+ 		  /* tree->rates->model      = GUINDON; */
+ 		  tree->rates->model      = THORNE;
 		  tree->rates->bl_from_rt = YES;
 
 		  PhyML_Printf("\n");

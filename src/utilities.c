@@ -5947,7 +5947,6 @@ void Bootstrap(t_tree *tree)
 	  boot_tree->mat = boot_mat;
 	}
 
-
       boot_tree->mod                = boot_mod;
       boot_tree->io                 = tree->io;
       boot_tree->data               = boot_data;
@@ -6384,6 +6383,14 @@ void Record_Model(model *ori, model *cpy)
   cpy->invar        = ori->invar;
   cpy->pinvar       = ori->pinvar;
   cpy->n_diff_rr    = ori->n_diff_rr;
+  cpy->l_min        = ori->l_min;
+  cpy->l_max        = ori->l_max;
+  cpy->log_l        = ori->log_l;
+
+  cpy->free_mixt_rates = ori->free_mixt_rates;
+  cpy->state_len   = ori->state_len;
+  cpy->br_len_multiplier = ori->br_len_multiplier;
+
 
 /*   if(ori->whichmodel == CUSTOM) */
 /*     { */

@@ -529,7 +529,7 @@ void MCMC_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree)
       ratio        = 0.0;
       nu           = tree->rates->nu;
 
-      
+      u = Uni();
       mult = EXP(K*(u-0.5));
       new_mu = mult * cur_mu;
 
@@ -571,44 +571,64 @@ void MCMC_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree)
 	  else For(i,3) if(d->v[i] == a) { b1 = d->b[i]; break; }
 	  
 	  b2 = b3 = NULL;
-	  For(i,3)
-	    if((d->v[i] != a) && (d->b[i] != tree->e_root))
-	      {
-		if(!b2) { b2 = d->b[i]; }
-		else    { b3 = d->b[i]; }
-	      }
-
+	  if(!d->tax)
+	    {
+	      For(i,3)
+		if((d->v[i] != a) && (d->b[i] != tree->e_root))
+		  {
+		    if(!b2) { b2 = d->b[i]; }
+		    else    { b3 = d->b[i]; }
+		  }
+	    }
 
 	  ori_b1_prior_mean = b1->gamma_prior_mean;
 	  ori_b1_prior_var  = b1->gamma_prior_var;
-	  ori_b2_prior_mean = b2->gamma_prior_mean;
-	  ori_b2_prior_var  = b2->gamma_prior_var;
-	  ori_b3_prior_mean = b3->gamma_prior_mean;
-	  ori_b3_prior_var  = b3->gamma_prior_var;
+
+	  if(!d->tax)
+	    {
+	      ori_b2_prior_mean = b2->gamma_prior_mean;
+	      ori_b2_prior_var  = b2->gamma_prior_var;
+	      ori_b3_prior_mean = b3->gamma_prior_mean;
+	      ori_b3_prior_var  = b3->gamma_prior_var;
+	    }
 
 	  t0 = tree->rates->nd_t[a->num];
 	  t1 = tree->rates->nd_t[d->num];
-	  t2 = tree->rates->nd_t[v2->num];
-	  t3 = tree->rates->nd_t[v3->num];
+
+	  if(!d->tax)
+	    {
+	      t2 = tree->rates->nd_t[v2->num];
+	      t3 = tree->rates->nd_t[v3->num];
+	    }
 
 	  r0 = tree->rates->br_r[a->num]  * tree->rates->clock_r;
 	  r1 = tree->rates->br_r[d->num]  * tree->rates->clock_r;
-	  r2 = tree->rates->br_r[v2->num] * tree->rates->clock_r;
-	  r3 = tree->rates->br_r[v3->num] * tree->rates->clock_r;
+	  
+	  if(!d->tax)
+	    {
+	      r2 = tree->rates->br_r[v2->num] * tree->rates->clock_r;
+	      r3 = tree->rates->br_r[v3->num] * tree->rates->clock_r;
+	    }
 
   	  /* RATES_Update_Cur_Bl(tree); */
 
 	  Integrated_Brownian_Bridge_Moments(t0,t1,r0,r1,SQRT(t1-t0)*nu,&b1->gamma_prior_mean,&b1->gamma_prior_var);
-	  Integrated_Brownian_Bridge_Moments(t1,t2,r1,r2,SQRT(t2-t1)*nu,&b2->gamma_prior_mean,&b2->gamma_prior_var);
-	  Integrated_Brownian_Bridge_Moments(t1,t3,r1,r3,SQRT(t3-t1)*nu,&b3->gamma_prior_mean,&b3->gamma_prior_var);
-	  
+	  if(!d->tax)
+	    {
+	      Integrated_Brownian_Bridge_Moments(t1,t2,r1,r2,SQRT(t2-t1)*nu,&b2->gamma_prior_mean,&b2->gamma_prior_var);
+	      Integrated_Brownian_Bridge_Moments(t1,t3,r1,r3,SQRT(t3-t1)*nu,&b3->gamma_prior_mean,&b3->gamma_prior_var);
+	    }
+
 	  if(tree->mcmc->use_data)
 	    {
 	      if(tree->io->lk_approx == EXACT)
 		{
 		  Update_PMat_At_Given_Edge(b1,tree);
-		  Update_PMat_At_Given_Edge(b2,tree);
-		  Update_PMat_At_Given_Edge(b3,tree);
+		  if(!d->tax)
+		    {
+		      Update_PMat_At_Given_Edge(b2,tree);
+		      Update_PMat_At_Given_Edge(b3,tree);
+		    }
 		  Update_P_Lk(tree,b1,d);
 		}
 	      new_lnL_data = Lk_At_Given_Edge(b1,tree);
@@ -635,16 +655,22 @@ void MCMC_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree)
 	      
 	      b1->gamma_prior_mean = ori_b1_prior_mean;
 	      b1->gamma_prior_var  = ori_b1_prior_var;
-	      b2->gamma_prior_mean = ori_b2_prior_mean;
-	      b2->gamma_prior_var  = ori_b2_prior_var;
-	      b3->gamma_prior_mean = ori_b3_prior_mean;
-	      b3->gamma_prior_var  = ori_b3_prior_var;
-	      
+	      if(!d->tax)
+		{
+		  b2->gamma_prior_mean = ori_b2_prior_mean;
+		  b2->gamma_prior_var  = ori_b2_prior_var;
+		  b3->gamma_prior_mean = ori_b3_prior_mean;
+		  b3->gamma_prior_var  = ori_b3_prior_var;
+		}
+
 	      if(tree->mcmc->use_data && tree->io->lk_approx == EXACT)
 		{
 		  Update_PMat_At_Given_Edge(b1,tree);
-		  Update_PMat_At_Given_Edge(b2,tree);
-		  Update_PMat_At_Given_Edge(b3,tree);
+		  if(!d->tax)
+		    {
+		      Update_PMat_At_Given_Edge(b2,tree);
+		      Update_PMat_At_Given_Edge(b3,tree);
+		    }
 		  Update_P_Lk(tree,b1,d);
 		}
   	    }
