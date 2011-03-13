@@ -92,6 +92,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
       {"free_rates",          no_argument,NULL,61},
       {"is",                  no_argument,NULL,62},
       {"constrained_lens",    no_argument,NULL,63},
+      {"rate_model",    required_argument,NULL,64},
       {0,0,0,0}
     };
 
@@ -102,6 +103,17 @@ void Read_Command_Line(option *io, int argc, char **argv)
     {
       switch(c)
 	{
+	case 64:
+	  {
+	    if(!strcmp(optarg,"thorne") || !strcmp(optarg,"THORNE")) io->rates->model = THORNE;
+	    else if(!strcmp(optarg,"guindon") || !strcmp(optarg,"GUINDON")) io->rates->model = GUINDON;
+	    else 
+	      {
+		PhyML_Printf("\n. rate_model should be 'thorne' or 'guindon'.");
+		Exit("\n");
+	      }
+	    break;
+	  }
 	case 63:
 	  {
 	    io->mod->s_opt->constrained_br_len = YES;
@@ -800,7 +812,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	  {
 	    if(!strcmp(optarg,"e"))
 	      {
-	        if (io->datatype == NT)
+	        if(io->datatype == NT)
 		  io->mod->s_opt->opt_state_freq = NO;
 		else
 		  io->mod->s_opt->opt_state_freq = YES;

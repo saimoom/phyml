@@ -387,6 +387,7 @@ void Free(void *p)
 void Free_Input(option *io)
 {
   int i;
+  RATES_Free_Rates(io->rates);
   MCMC_Free_MCMC(io->mcmc);
   Free(io->in_align_file);
   Free(io->in_tree_file);

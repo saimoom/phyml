@@ -369,6 +369,8 @@ typedef struct __Edge {
 
   phydbl                 gamma_prior_mean; /* Branch length has a gamma distributed prior with this mean */
   phydbl                  gamma_prior_var; /* Branch length has a gamma distributed prior with this var */
+  phydbl             gamma_prior_mean_old; /* (Backup) Branch length has a gamma distributed prior with this mean */
+  phydbl              gamma_prior_var_old; /* (Backup) Branch length has a gamma distributed prior with this var */
 
 }t_edge;
 
@@ -785,6 +787,8 @@ typedef struct __Option { /*! mostly used in 'help.c' */
   int                    mem_question;
   int                do_alias_subpatt;
   struct __Tmcmc                *mcmc;
+  struct __T_Rate              *rates;
+
 
 }option;
 
@@ -1041,6 +1045,10 @@ typedef struct __T_Rate {
   short int *t_has_prior;
   struct __Node **lca; /*! 2-way table of common ancestral nodes for each pari of nodes */
 
+  short int *br_do_updt;
+  phydbl *cur_gamma_prior_mean;
+  phydbl *cur_gamma_prior_var;
+
 }t_rate;
 
 /*!********************************************************/
@@ -1067,6 +1075,7 @@ typedef struct __Tmcmc {
   int num_move_kappa;
   int num_move_tree_rates;
   int num_move_subtree_rates;
+  int num_move_updown_nu_cr;
 
   char *out_filename;
 
@@ -1266,8 +1275,8 @@ void Insert(t_tree *tree);
 void Connect_Two_Nodes(t_node *a, t_node *d);
 void Get_List_Of_Target_Edges(t_node *a, t_node *d, t_edge **list, int *list_size, t_tree *tree);
 void Fix_All(t_tree *tree);
-void Record_Br_Len(phydbl *where, t_tree *tree);
-void Restore_Br_Len(phydbl *from, t_tree *tree);
+void Record_Br_Len(t_tree *tree);
+void Restore_Br_Len(t_tree *tree);
 void Get_Dist_Btw_Edges(t_node *a, t_node *d, t_tree *tree);
 void Detect_Polytomies(t_edge *b, phydbl l_thresh, t_tree *tree);
 void Find_Mutual_Direction(t_node *n1, t_node *n2, short int *dir_n1_to_n2, short int *dir_n2_to_n1);
@@ -1451,6 +1460,10 @@ int Scale_Subtree_Rates(t_node *a, phydbl mult, int *n_nodes, t_tree *tree);
 phydbl Effective_Sample_Size(phydbl first_val, phydbl last_val, phydbl sum, phydbl sumsq, phydbl sumcurnext, int iter);
 phydbl Rescale_Free_Rate_Tree(t_tree *tree);
 phydbl Rescale_Br_Len_Multiplier_Tree(t_tree *tree);
+int Scale_Subtree_Height(t_node *a, phydbl K, phydbl floor, int *n_nodes, t_tree *tree);
+phydbl Unscale_Br_Len_Multiplier_Tree(t_tree *tree);
+phydbl Unscale_Free_Rate_Tree(t_tree *tree);
+
 
 #include "free.h"
 #include "spr.h"

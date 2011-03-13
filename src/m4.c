@@ -923,7 +923,7 @@ void M4_Compute_Posterior_Mean_Rates(phydbl ***post_probs, t_tree *tree)
   For(i,2*tree->n_otu-3) mean_post_probs[i] = (phydbl *)mCalloc(tree->mod->m4mod->n_h,sizeof(phydbl ));
   mrr = (phydbl *)mCalloc(2*tree->n_otu-3,sizeof(phydbl));
 
-  Record_Br_Len(NULL,tree);
+  Record_Br_Len(tree);
   M4_Scale_Br_Len(tree);
 
   /* Compute the posterior mean relative rate on each branch averaged over the 
@@ -1112,7 +1112,7 @@ void M4_Compute_Posterior_Mean_Rates(phydbl ***post_probs, t_tree *tree)
   Free(s);
 /*   DR_Print_Tree_Postscript(tree->ps_page_number++,tree->io->fp_out_ps,tree); */
 
-  Restore_Br_Len(NULL,tree);
+  Restore_Br_Len(tree);
 
   DR_Print_Postscript_EOF(tree->io->fp_out_ps);
 
@@ -1541,6 +1541,8 @@ void M4_Posterior_Prediction_Experiment(t_tree *tree)
   t_edge *best_edge;
 
   s = (char *)mCalloc(100,sizeof(char));
+  
+  best_edge = NULL;
 
   strcpy(s,tree->io->in_align_file);
   fp_nocov = Openfile(strcat(s,"_nocov"),1);

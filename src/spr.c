@@ -2362,7 +2362,7 @@ void Make_Move (_move_ *move, int type, t_tree *tree)
 
   if(type > 0) /* local or global move */
     {
-      Restore_Br_Len(NULL,tree);
+      Restore_Br_Len(tree);
     }
   
   /*
@@ -2494,7 +2494,7 @@ int Find_Optim_Local (t_tree *tree)
 	    {
 	      best_cand = i;
 	      max_change = move->delta_lk;
-	      Record_Br_Len(NULL,tree);
+	      Record_Br_Len(tree);
 	    }
 	  
 
@@ -2565,7 +2565,7 @@ int Find_Optim_Globl (t_tree *tree)
     move = optim_cand[cand];
     if (move->delta_lk > -1.0*BIG)
     {
-      Record_Br_Len(NULL,tree);
+      Record_Br_Len(tree);
       
       /*
       ** Get the relevant nodes and edges.
@@ -2620,7 +2620,7 @@ int Find_Optim_Globl (t_tree *tree)
 	{
 	  best_cand = cand;
 	  max_change = move->delta_lk;
-	  Record_Br_Len(NULL,tree);
+	  Record_Br_Len(tree);
 	}
 
       Prune (e_prune, v_prune, &(e_regraft), &(e_avail), tree);
@@ -2631,7 +2631,7 @@ int Find_Optim_Globl (t_tree *tree)
 	  v_prune->b[i]->l = v_prune->b[i]->l_old;
 	}
       tree->both_sides = 1;
-      Restore_Br_Len(NULL,tree);
+      Restore_Br_Len(tree);
       Lk(tree);
       nr_glb++;
 /*       PhyML_Printf("\n. global back to = %f",tree->c_lnL); */
@@ -3607,7 +3607,7 @@ void Speed_Spr(t_tree *tree, int max_cycles)
   tree->both_sides = 1;
   Pars(tree);
   Lk(tree);
-  Record_Br_Len(NULL,tree);
+  Record_Br_Len(tree);
 
   tree->mod->s_opt->deepest_path  = 0;
   tree->best_pars                 = tree->c_pars;
@@ -3680,7 +3680,7 @@ void Speed_Spr(t_tree *tree, int max_cycles)
 	}
 
       /* Record the current best branch lengths  */
-      Record_Br_Len(NULL,tree);
+      Record_Br_Len(tree);
 
       /* Exit if no improvements after complete optimization */      
       if(step+1 > max_cycles) break;
@@ -3732,7 +3732,7 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, t_tree *t
 	{
 
 	  /* Record t_edge lengths */
-	  Record_Br_Len(NULL,tree);
+	  Record_Br_Len(tree);
 
 	  /* Prune subtree */
 	  Prune_Subtree(move->n_link,move->n_opp_to_link,&init_target,&b_residual,tree);
@@ -3850,7 +3850,7 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, t_tree *t
 			tree);
 
 	  /* Restore branch lengths */
-	  Restore_Br_Len(NULL,tree);
+	  Restore_Br_Len(tree);
 
 	  /* Update relevant change proba matrices */
 /* 	  Update_PMat_At_Given_Edge(move->n_link->b[0],tree); */
@@ -3936,7 +3936,7 @@ int Try_One_Spr_Move_Triple(spr *move, t_tree *tree)
   int dir_v0, dir_v1, dir_v2;
 
 
-  Record_Br_Len(NULL,tree);
+  Record_Br_Len(tree);
 
   Prune_Subtree(move->n_link,
 		move->n_opp_to_link,
@@ -4011,7 +4011,7 @@ int Try_One_Spr_Move_Triple(spr *move, t_tree *tree)
 
       tree->n_improvements++;
       tree->best_lnL = tree->c_lnL;
-      Record_Br_Len(NULL,tree);
+      Record_Br_Len(tree);
 
       if(move->depth_path > tree->mod->s_opt->deepest_path) 
 	tree->mod->s_opt->deepest_path = move->depth_path;
@@ -4030,7 +4030,7 @@ int Try_One_Spr_Move_Triple(spr *move, t_tree *tree)
 		b_residual,
 		tree);
 
-  Restore_Br_Len(NULL,tree);
+  Restore_Br_Len(tree);
 
 
   tree->both_sides = 1;
@@ -4047,7 +4047,7 @@ int Try_One_Spr_Move_Full(spr *move, t_tree *tree)
 {
   t_edge *init_target, *b_residual;
 
-  Record_Br_Len(NULL,tree);
+  Record_Br_Len(tree);
 
   Prune_Subtree(move->n_link,
 		move->n_opp_to_link,
@@ -4077,7 +4077,7 @@ int Try_One_Spr_Move_Full(spr *move, t_tree *tree)
       if((tree->mod->s_opt->print) && (!tree->io->quiet)) Print_Lk(tree,"[Topology           ]");
       tree->n_improvements++;
       tree->best_lnL = tree->c_lnL;
-      Record_Br_Len(NULL,tree);
+      Record_Br_Len(tree);
       return 1;
     }
   else
@@ -4093,7 +4093,7 @@ int Try_One_Spr_Move_Full(spr *move, t_tree *tree)
 		    b_residual,
 		    tree);
       
-      Restore_Br_Len(NULL,tree);
+      Restore_Br_Len(tree);
       tree->both_sides = 1;
       
       tree->update_alias_subpatt = YES;

@@ -121,5 +121,6 @@ void MCMC_Randomize_Node_Rates(t_tree *tree);
 void MCMC_One_Node_Rate(t_node *a, t_node *d, int traversal, t_tree *tree);
 void MCMC_Tree_Rates_Bis(t_tree *tree);
 void MCMC_Slice_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree);
+void MCMC_Updown_Nu_Cr(t_tree *tree);
 
 #endif

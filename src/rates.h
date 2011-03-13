@@ -125,7 +125,7 @@ phydbl RATES_Compound_Core_Marginal(phydbl mu1, phydbl mu2, phydbl dt1, phydbl d
 phydbl RATES_Lk_Jumps(t_tree *tree);
 void RATES_Posterior_Rates(t_tree *tree);
 void RATES_Posterior_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree);
-void Free_Rates(t_rate *rates);
+void RATES_Free_Rates(t_rate *rates);
 void RATES_Initialize_True_Rates(t_tree *tree);
 void RATES_Posterior_Times(t_tree *tree);
 void RATES_Posterior_One_Time(t_node *a, t_node *d, int traversal, t_tree *tree);

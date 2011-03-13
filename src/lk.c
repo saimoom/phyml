@@ -686,6 +686,21 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
       PhyML_Printf("\n. scale_left = %d scale_rght = %d",sum_scale_left,sum_scale_rght);
       PhyML_Printf("\n. Lk = %G LOG(Lk) = %f < %G",site_lk,log_site_lk,-BIG);
       For(catg,tree->mod->n_catg) PhyML_Printf("\n. rr=%f p=%f",tree->mod->gamma_rr[catg],tree->mod->gamma_r_proba[catg]);
+      int i;
+      For(i,2*tree->n_otu-3)
+	{
+	  PhyML_Printf("\n. b%3d->l = %f %f [%G] %f %f %f %f [%s]",i,
+		       tree->t_edges[i]->l,
+		       tree->t_edges[i]->gamma_prior_mean,
+		       tree->t_edges[i]->gamma_prior_var,
+		       tree->rates->nd_t[tree->t_edges[i]->left->num],
+		       tree->rates->nd_t[tree->t_edges[i]->rght->num],
+		       tree->rates->br_r[tree->t_edges[i]->left->num],
+		       tree->rates->br_r[tree->t_edges[i]->rght->num],
+		       tree->t_edges[i] == tree->e_root ? "YES" : "NO");
+		       
+	}
+
       PhyML_Printf("\n. Err in file %s at line %d",__FILE__,__LINE__);
       Warn_And_Exit("\n");
     }
@@ -2893,8 +2908,9 @@ void Init_P_Lk_Loc(t_tree *tree)
 
 phydbl Lk_Normal_Approx(t_tree *tree)
 {
-  phydbl lnL,lambda,l;
-  int i,dim,err;
+  phydbl lnL;
+  int i;
+  int dim;
   phydbl first_order;
 
   dim = 2*tree->n_otu-3;

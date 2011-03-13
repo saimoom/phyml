@@ -33,8 +33,6 @@ int TIMES_main(int argc, char **argv)
   phydbl best_lnL,most_likely_size,tree_size;
   int r_seed;
   char *most_likely_tree;
-  int sys;
-  t_mcmc *new_mcmc;
   int i;
   int user_lk_approx;
   
@@ -75,6 +73,8 @@ int TIMES_main(int argc, char **argv)
   /* r_seed  = 1298403366; */
   /* r_seed = 1298509108; */
   /* sys = system("sleep 5s"); */
+  /* r_seed = 1299649586; */
+
 
   srand(r_seed); rand();
   PhyML_Printf("\n. Seed: %d\n",r_seed);
@@ -137,7 +137,6 @@ int TIMES_main(int argc, char **argv)
 		      Exit("\n");      
 		    }
 
-
 		  time(&t_beg);
 		  time(&(tree->t_beg));
 
@@ -175,6 +174,8 @@ int TIMES_main(int argc, char **argv)
 		  PhyML_Printf("\n");
 		  Round_Optimize(tree,tree->data,ROUND_MAX);
 		  		  
+
+
 		  /* Set vector of mean branch lengths for the Normal approximation
 		     of the likelihood */
 		  RATES_Set_Mean_L(tree);
@@ -216,12 +217,14 @@ int TIMES_main(int argc, char **argv)
 
 		  tree->io->lk_approx = user_lk_approx;
 
+		  tree->rates->model = io->rates->model;		  
+		  PhyML_Printf("\n. Selected model '%s'",(io->rates->model == THORNE)?("thorne"):("guindon"));
+		  if(tree->rates->model == GUINDON) tree->mod->gamma_mgf_bl = YES;
+		  
 
-		  /* !!!!!!!!!!!!!!!!! */
- 		  /* tree->rates->model      = GUINDON; */
- 		  tree->rates->model      = THORNE;
+
 		  tree->rates->bl_from_rt = YES;
-
+		  
 		  PhyML_Printf("\n");
 		  time(&t_beg);
 		  tree->mcmc = MCMC_Make_MCMC_Struct();
@@ -558,9 +561,8 @@ void TIMES_Set_All_Node_Priors(t_tree *tree)
 void TIMES_Set_All_Node_Priors_Bottom_Up(t_node *a, t_node *d, t_tree *tree)
 {
   int i;
-  phydbl t_inf,t_sup;
-  phydbl u;
-
+  phydbl t_sup;
+  
   if(d->tax) return;
   else 
     {
@@ -701,7 +703,7 @@ phydbl TIMES_Log_Conditional_Uniform_Density(t_tree *tree)
 {
   phydbl min,max;
   phydbl dens;
-  int i,j;
+  int i;
 
   min = tree->rates->nd_t[tree->n_root->num];
 

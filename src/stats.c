@@ -71,10 +71,11 @@ phydbl tt800()
 
 phydbl Uni()
 {
-  phydbl r; 
+  phydbl r,mx;
+  mx = (phydbl)RAND_MAX;
   r  = (phydbl)rand();
-  r /= RAND_MAX;
-/*   r = tt800(); */
+  r /= mx;
+  /* r = tt800(); */
   return r;
 }
 
@@ -175,29 +176,34 @@ phydbl Rexp(phydbl lambda)
 phydbl Rnorm(phydbl mean, phydbl sd)
 {
   /* Box-Muller transformation */
-  phydbl u1, u2;
-
-  u1=Uni();
-  u2=Uni();
-  u1 = SQRT(-2.*LOG(u1))*COS(6.28318530717959f*u2);
+  phydbl u1, u2, res;
+  
+  /* u1=Uni(); */
+  /* u2=Uni(); */
+  /* u1 = SQRT(-2.*LOG(u1))*COS(6.28318530717959f*u2); */
 
   /* Polar */
-/*   phydbl d,x,y; */
+  phydbl d,x,y;
 
-/*   do */
-/*     { */
-/*       u1=Uni(); */
-/*       u2=Uni(); */
-/*       x = 2.*u1-1.; */
-/*       y = 2.*u2-1.; */
-/*       d = x*x + y*y; */
-/*       if(d>.0 && d<1.) break; */
-/*     } */
-/*   while(1); */
-/*   u1 = x*SQRT((-2.*LOG(d))/d); */
+  do
+    {
+      u1=Uni();
+      u2=Uni();
+      x = 2.*u1-1.;
+      y = 2.*u2-1.;
+      d = x*x + y*y;
+      if(d>.0 && d<1.) break;
+    }
+  while(1);
+  u1 = x*SQRT((-2.*LOG(d))/d);
 
+  res = u1*sd+mean;
 
-  return u1*sd+mean;
+  if(isnan(res) || isinf(res))
+    {
+      printf("\n. res=%f sd=%f mean=%f u1=%f u2=%f",res,sd,mean,u1,u2);
+    }
+  return res;
 }
 
 /*********************************************************/
@@ -1478,8 +1484,6 @@ phydbl *Hessian(t_tree *tree)
   phydbl eps;
   phydbl lk;
   phydbl lnL,lnL1,lnL2,ori_lnL;
-  int iter;
-  phydbl scaler;
   phydbl l_inf;
 
   dim = 2*tree->n_otu-3;
@@ -1848,12 +1852,10 @@ phydbl *Gradient(t_tree *tree)
   int *is_ok;
   int dim;
   int n_ok_edges;
-  int i,j;
+  int i;
   phydbl eps;
   phydbl lk;
   phydbl lnL,lnL1,lnL2;
-  int iter;
-  phydbl scaler;
   phydbl l_inf;
 
   dim = 2*tree->n_otu-3;
@@ -1995,8 +1997,6 @@ phydbl *Hessian_Seo(t_tree *tree)
   int i,j,k;
   phydbl eps;
   phydbl ori_lnL,lnL,lnL1,lnL2;
-  int iter;
-  phydbl scaler;
   phydbl l_inf;
   int l,n;
   phydbl small_var;
@@ -2852,9 +2852,8 @@ void Normal_Conditional(phydbl *mu, phydbl *cov, phydbl *a, int n, short int *is
   phydbl *ctrd_a;
   phydbl *cond_cov_norder,*cond_mu_norder;
   int    n2;
-  int i,j,nr,nc,iter;
+  int i,j,nr,nc;
   phydbl *buff_mat;
-  phydbl scaler;
 
   n2 = n-n1;
 
@@ -3621,32 +3620,38 @@ void Pmat_MGF_Gamma(phydbl *Pij, phydbl shape, phydbl scale, model *mod)
 {
   int dim;
   int i,j,k;
-  phydbl *uexpt;
+  phydbl *uexpt,*imbd;
 
   dim = mod->eigen->size;
-  
-  For(i,dim*dim) mod->qmat_buff[i]        = mod->qmat[i];
-  For(i,dim*dim) mod->qmat_buff[i]       *= -scale;
-  For(i,dim)     mod->qmat_buff[i*dim+i] += 1.0;
-
-  if(!Eigen(1,mod->qmat_buff,mod->eigen->size,mod->eigen->e_val,
-	    mod->eigen->e_val_im,mod->eigen->r_e_vect,
-	    mod->eigen->r_e_vect_im,mod->eigen->space))
-    {
-      For(i,dim*dim) mod->eigen->l_e_vect[i] = mod->eigen->r_e_vect[i];
-
-      if(!Matinv(mod->eigen->l_e_vect,mod->eigen->size,mod->eigen->size,YES))
-	{
-	  PhyML_Printf("\n. Err in file %s at line %d.",__FILE__,__LINE__);
-	  Exit("\n");
-	}
-    }
-  
-  For(i,dim) mod->eigen->e_val[i] = POW(mod->eigen->e_val[i],-shape);
-
   uexpt = mod->eigen->r_e_vect_im;
+  imbd  = mod->eigen->e_val_im;
 
-  For(i,dim) For(k,dim) uexpt[i*dim+k] = mod->eigen->r_e_vect[i*dim+k] * mod->eigen->e_val[k];
+  /* For(i,dim*dim) mod->qmat_buff[i]        = mod->qmat[i]; */
+  /* /\* For(i,dim*dim) mod->qmat_buff[i]       *= -scale; *\/ */
+  /* /\* For(i,dim)     mod->qmat_buff[i*dim+i] += 1.0; *\/ */
+
+  /* if(!Eigen(1,mod->qmat_buff,mod->eigen->size,mod->eigen->e_val, */
+  /* 	    mod->eigen->e_val_im,mod->eigen->r_e_vect, */
+  /* 	    mod->eigen->r_e_vect_im,mod->eigen->space)) */
+  /*   { */
+  /*     For(i,dim*dim) mod->eigen->l_e_vect[i] = mod->eigen->r_e_vect[i]; */
+
+  /*     if(!Matinv(mod->eigen->l_e_vect,mod->eigen->size,mod->eigen->size,YES)) */
+  /* 	{ */
+  /* 	  PhyML_Printf("\n. Err in file %s at line %d.",__FILE__,__LINE__); */
+  /* 	  Exit("\n"); */
+  /* 	} */
+  /*   } */
+  /* /\* For(i,dim) mod->eigen->e_val[i] = POW(mod->eigen->e_val[i],-shape); *\/ */
+
+  For(i,dim) imbd[i]  = LOG(mod->eigen->e_val[i]);
+  /* For(i,dim) imbd[i]  = mod->eigen->e_val[i]; */
+
+  For(i,dim) imbd[i] *= -scale;
+  For(i,dim) imbd[i] += 1.0;
+  For(i,dim) imbd[i]  = POW(imbd[i],-shape);
+
+  For(i,dim) For(k,dim) uexpt[i*dim+k] = mod->eigen->r_e_vect[i*dim+k] * imbd[k];
 
   For(i,dim) For(k,dim) Pij[dim*i+k] = .0;
 
@@ -3699,19 +3704,22 @@ void Integrated_Brownian_Bridge_Moments(phydbl x_beg, phydbl x_end,
   phydbl x_step;
   phydbl sum,sumsum;
 
-  n_breaks = 50;
-  n_rep    = 500;
+  n_breaks = 100;
+  n_rep    = 1000;
   
-  x_step   = (x_end - x_beg)/n_breaks;
+  sd /= FABS(x_end - x_beg);
 
-  y      = (phydbl *)mCalloc(n_breaks,sizeof(phydbl));
+  x_step   = (x_end - x_beg)/(n_breaks+1);
+
+  y      = (phydbl *)mCalloc(n_breaks+2,sizeof(phydbl));
   y_mean = (phydbl *)mCalloc(n_rep,sizeof(phydbl));
 
   y[0] = y_beg;
+  y[n_breaks+1] = y_end;
 
   For(i,n_rep)
     {
-      for(j=1;j<n_breaks;j++)
+      for(j=1;j<n_breaks+1;j++)
 	{
 	  x_prev = x_beg + (j-1)*x_step;
 	  x_curr = x_prev + x_step;
@@ -3719,12 +3727,27 @@ void Integrated_Brownian_Bridge_Moments(phydbl x_beg, phydbl x_end,
 	  traj_mean = y[j-1] + (y_end - y[j-1])*(x_curr - x_prev)/(x_end - x_prev);
 	  traj_sd   = SQRT(sd*(x_curr - x_prev)*(x_end - x_curr)/(x_end - x_prev));
 
+	  if(isnan(traj_mean) || isnan(traj_sd))
+	    {
+	      PhyML_Printf("\n. traj_mean=%f traj_sd=%f x_end=%f x_prev=%f x_step=%f [%f %f %f %f %f %f %f] j=%d n_breaks=%d",
+			   traj_mean,traj_sd,x_end,x_prev,x_step,
+			   y[j-1],y_end,y[j-1],x_curr,x_prev,x_end,x_prev,j,n_breaks);
+	      Exit("\n");
+	    }
+
 	  y[j] = Rnorm(traj_mean,traj_sd);
+
+	  if(isnan(y[j]) || isinf(y[j]))
+	    {
+	      printf("\n. mean=%f sd=%f %f j=%d y[j]=%f",traj_sd,traj_mean,Rnorm(traj_mean,traj_sd),j,y[j]);
+	      Exit("\n");
+	    }
+
 	}
       
       sum = 0.0;
-      For(j,n_breaks) sum += FABS(y[j]);
-      y_mean[i] = sum/n_breaks;
+      For(j,n_breaks+2) sum += FABS(y[j]);
+      y_mean[i] = sum/(n_breaks+2);
     }
 
   sum = sumsum = 0.0;
@@ -3736,6 +3759,14 @@ void Integrated_Brownian_Bridge_Moments(phydbl x_beg, phydbl x_end,
 
   *mean = sum/n_rep;
   *var = sumsum/n_rep - (*mean) * (*mean); 
+
+  if(isnan(*mean) || isnan(*var))
+    {
+      PhyML_Printf("\n. sum=%f sumsum=%f n_rep=%d",sum,sumsum,n_rep);
+      Exit("\n");
+    }
+
+  printf("\n. mean=%f  [%f]",(*mean),(y_beg + y_end)/2.);
 
   Free(y);
   Free(y_mean);
