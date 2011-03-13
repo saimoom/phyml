@@ -98,6 +98,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  NT 0 /*! nucleotides */
 #define  AA 1 /*! amino acids */
 #define  GENERIC 2 /*! custom alphabet */
+#define  UNDEFINED 3
 
 #define  ACGT 0 /*! A,G,G,T encoding */
 #define  RY   1 /*! R,Y     encoding */
