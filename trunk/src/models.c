@@ -2187,6 +2187,12 @@ void Init_Model(calign *data, model *mod, option *io)
   di      = (phydbl *)mCalloc(  mod->ns,sizeof(phydbl));
   space   = (phydbl *)mCalloc(2*mod->ns,sizeof(phydbl));
   
+
+  For(i,mod->n_catg) mod->gamma_r_proba[i] = 1./(phydbl)mod->n_catg;
+  For(i,mod->n_catg) mod->gamma_rr[i]      = 1.;
+
+  mod->br_len_multiplier = 1.0;
+
   For(i,mod->ns) 
     {
       mod->pi[i] = data->b_frq[i];
@@ -2218,7 +2224,6 @@ void Init_Model(calign *data, model *mod, option *io)
   if(mod->s_opt->opt_alpha)   mod->alpha  = 1.0;
   if(mod->s_opt->opt_pinvar)  mod->pinvar = 0.2;
   
-
   if(io->datatype == NT) /* Nucleotides */
     { 
       /* init for nucleotides */

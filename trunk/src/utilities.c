@@ -867,8 +867,8 @@ void Init_Edge_Light(t_edge *b, int num)
   b->topo_dist_btw_edges  = 0;
   b->has_zero_br_len      = NO;
   b->n_jumps              = 0;
-  b->gamma_prior_mean     = -1.0;
-  b->gamma_prior_var      = -1.0;
+  b->gamma_prior_mean     = 1.E-0;
+  b->gamma_prior_var      = 1.E-1;
 
   b->p_lk_left            = NULL;
   b->p_lk_rght            = NULL;
@@ -5898,8 +5898,10 @@ void Bootstrap(t_tree *tree)
 
   boot_data = Copy_Cseq(tree->data,tree->io);
 
+
   PhyML_Printf("\n\n. Non parametric bootstrap analysis \n\n");
   PhyML_Printf("  ["); 
+  
 
   For(replicate,tree->mod->bootstrap)
     {
@@ -5969,6 +5971,7 @@ void Bootstrap(t_tree *tree)
       Init_Ui_Tips(boot_tree);
       Init_P_Pars_Tips(boot_tree);
       Br_Len_Not_Involving_Invar(boot_tree);
+
       
       if(boot_tree->io->do_alias_subpatt)
 	{
@@ -6469,7 +6472,8 @@ option *Make_Input()
   For(i,T_MAX_ALPHABET) io->alphabet[i] = (char *)mCalloc(T_MAX_STATE,sizeof(char ));
   io->treelist             = (t_treelist *)mCalloc(1,sizeof(t_treelist));
   io->mcmc                 = (t_mcmc *)MCMC_Make_MCMC_Struct();
-  return io;
+  io->rates                = (t_rate *)RATES_Make_Rate_Struct(-1);
+ return io;
 }
 
 /*********************************************************/
@@ -6525,6 +6529,7 @@ void Set_Defaults_Input(option* io)
   io->lk_approx                  = EXACT;
 
   MCMC_Init_MCMC_Struct(NULL,io->mcmc);
+  RATES_Init_Rate_Struct(io->rates,-1);
 }
 
 /*********************************************************/
@@ -8613,33 +8618,29 @@ void Fix_All(t_tree *tree)
 
 /*********************************************************/
 
-void Record_Br_Len(phydbl *where, t_tree *tree)
+void Record_Br_Len(t_tree *tree)
 {
   int i;
   
-  if(!where)
+  For(i,2*tree->n_otu-3) 
     {
-      For(i,2*tree->n_otu-3) tree->t_edges[i]->l_old = tree->t_edges[i]->l;
-    }
-  else
-    {
-      For(i,2*tree->n_otu-3) where[i] = tree->t_edges[i]->l;
+      tree->t_edges[i]->l_old                = tree->t_edges[i]->l;
+      tree->t_edges[i]->gamma_prior_mean_old = tree->t_edges[i]->gamma_prior_mean;
+      tree->t_edges[i]->gamma_prior_var_old  = tree->t_edges[i]->gamma_prior_var;
     }
 }
 
 /*********************************************************/
 
-void Restore_Br_Len(phydbl *from, t_tree *tree)
+void Restore_Br_Len(t_tree *tree)
 {
   int i;
-  
-  if(!from)
+
+  For(i,2*tree->n_otu-3) 
     {
-      For(i,2*tree->n_otu-3) tree->t_edges[i]->l = tree->t_edges[i]->l_old;
-    }
-  else
-    {
-      For(i,2*tree->n_otu-3) tree->t_edges[i]->l = from[i];
+      tree->t_edges[i]->l                = tree->t_edges[i]->l_old;
+      tree->t_edges[i]->gamma_prior_mean = tree->t_edges[i]->gamma_prior_mean_old;
+      tree->t_edges[i]->gamma_prior_var  = tree->t_edges[i]->gamma_prior_var_old;
     }
 }
 
@@ -10352,6 +10353,7 @@ void Best_Of_NNI_And_SPR(t_tree *tree)
       model *ori_mod,*best_mod;
       phydbl *ori_bl,*best_bl;
       phydbl best_lnL,ori_lnL,nni_lnL,spr_lnL;
+      int i;
 
       ori_bl = (phydbl *)mCalloc(2*tree->n_otu-3,sizeof(phydbl));
       best_bl = (phydbl *)mCalloc(2*tree->n_otu-3,sizeof(phydbl));
@@ -10375,7 +10377,8 @@ void Best_Of_NNI_And_SPR(t_tree *tree)
 /*       Make_All_Tree_Edges(best_tree); */
 
       Copy_Tree(tree,ori_tree);
-      Record_Br_Len(ori_bl,tree);
+      Record_Br_Len(tree);
+      For(i,2*tree->n_otu-3) ori_bl[i] = tree->t_edges[i]->l;
 
       best_lnL = UNLIKELY;
       Lk(tree);
@@ -10386,12 +10389,13 @@ void Best_Of_NNI_And_SPR(t_tree *tree)
       best_lnL = tree->c_lnL; /* Record the likelihood */
       nni_lnL = tree->c_lnL;
       Copy_Tree(tree,best_tree); /* Record the tree topology and branch lengths */
-      Record_Br_Len(best_bl,tree);
-      Restore_Br_Len(best_bl,best_tree);
+      Record_Br_Len(tree);
+      For(i,2*tree->n_otu-3) best_bl[i] = tree->t_edges[i]->l;
+      For(i,2*tree->n_otu-3) best_tree->t_edges[i]->l = best_bl[i];
       Record_Model(tree->mod,best_mod);
       
       Copy_Tree(ori_tree,tree); /* Back to the original tree topology */
-      Restore_Br_Len(ori_bl,tree); /* Back to the original branch lengths */
+      For(i,2*tree->n_otu-3) tree->t_edges[i]->l = ori_bl[i]; /* Back to the original branch lengths */
       Record_Model(ori_mod,tree->mod); /* Back to the original model */
       
       /* Make sure the tree is in its original form */
@@ -10410,13 +10414,14 @@ void Best_Of_NNI_And_SPR(t_tree *tree)
 	{
 	  best_lnL = tree->c_lnL;
 	  Copy_Tree(tree,best_tree); /* Record tree topology, branch lengths and model parameters */
-	  Record_Br_Len(best_bl,tree);
-	  Restore_Br_Len(best_bl,best_tree);
+	  Record_Br_Len(tree);
+	  For(i,2*tree->n_otu-3) best_bl[i] = tree->t_edges[i]->l;
+	  For(i,2*tree->n_otu-3) best_tree->t_edges[i]->l = best_bl[i];
 	  Record_Model(tree->mod,best_mod);
 	}
       
       Copy_Tree(best_tree,tree);
-      Restore_Br_Len(best_bl,tree);
+      For(i,2*tree->n_otu-3) tree->t_edges[i]->l = best_bl[i];
       Record_Model(best_mod,tree->mod);
       
       /* Make sure the current tree has the best topology, branch lengths and model parameters */
@@ -11827,8 +11832,7 @@ int Check_Sequence_Name(char *s)
 int Scale_Subtree_Height(t_node *a, phydbl K, phydbl floor, int *n_nodes, t_tree *tree)
 {
   phydbl new_height;
-  phydbl eps;
-
+  
   *n_nodes = 0;
 
   new_height = .0;
@@ -12011,7 +12015,7 @@ phydbl Diff_Lk_Norm_At_Given_Edge(t_edge *b, t_tree *tree)
   int i,dim,err;
   phydbl lk_exact,lk_norm,sum;
 
-  Record_Br_Len(NULL,tree);
+  Record_Br_Len(tree);
 
   dim = 2*tree->n_otu-3;
   sum = 0.0;
@@ -12033,7 +12037,7 @@ phydbl Diff_Lk_Norm_At_Given_Edge(t_edge *b, t_tree *tree)
       sum += pow(lk_exact - lk_norm,2);      
     }
 
-  Restore_Br_Len(NULL,tree);
+  Restore_Br_Len(tree);
   Lk_At_Given_Edge(b,tree);
 
   return(sum);
@@ -12127,6 +12131,8 @@ phydbl Rescale_Free_Rate_Tree(t_tree *tree)
   For(i,tree->mod->n_catg) tree->mod->gamma_rr[i] /= sum;
   
   For(i,2*tree->n_otu-3) tree->t_edges[i]->l *= sum;
+  
+  return(-1.);
 }
 
 /*********************************************************/
@@ -12135,9 +12141,39 @@ phydbl Rescale_Br_Len_Multiplier_Tree(t_tree *tree)
 {
   int i;
   For(i,2*tree->n_otu-3) tree->t_edges[i]->l *= tree->mod->br_len_multiplier;
+  return(-1.);
 }
 
 
 /*********************************************************/
+
+phydbl Unscale_Free_Rate_Tree(t_tree *tree)
+{
+  int i;
+  phydbl sum;
+
+  sum = 0.0;
+  For(i,tree->mod->n_catg) sum += tree->mod->gamma_rr[i]*tree->mod->gamma_r_proba[i];
+  For(i,tree->mod->n_catg) tree->mod->gamma_rr[i] *= sum;
+  For(i,2*tree->n_otu-3) tree->t_edges[i]->l /= sum;
+  
+  return(-1.);
+}
+
+/*********************************************************/
+
+phydbl Unscale_Br_Len_Multiplier_Tree(t_tree *tree)
+{
+  int i;
+  For(i,2*tree->n_otu-3) tree->t_edges[i]->l /= tree->mod->br_len_multiplier;
+  return(-1.);
+}
+
+
+/*********************************************************/
+
+
+
+
 /*********************************************************/
 /*********************************************************/

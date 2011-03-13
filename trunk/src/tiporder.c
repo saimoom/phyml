@@ -1134,7 +1134,7 @@ phydbl TIPO_Read_One_Taxon_Zscore(FILE *fp_coord, char *seqname_qry, int col, t_
 {
   char *line;
   char *seqname, *place;
-  phydbl lat, lon;
+  phydbl lat;
 
   line    = (char *)mCalloc(T_MAX_LINE,sizeof(char));
   seqname = (char *)mCalloc(T_MAX_NAME,sizeof(char));

@@ -91,5 +91,6 @@ void Integrated_Brownian_Bridge_Moments(phydbl x_beg, phydbl x_end,
 					phydbl y_beg, phydbl y_end, 
 					phydbl sd, phydbl *mean, phydbl *var);
 
+void Pmat_MGF_Gamma(phydbl *Pij, phydbl shape, phydbl scale, model *mod);
 
 #endif

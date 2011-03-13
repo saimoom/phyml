@@ -1442,7 +1442,7 @@ void PART_Speed_Spr(supert_tree *st)
   For(gt,st->n_part) 
     {
       st->treelist->tree[gt]->both_sides = 1;
-      Record_Br_Len(NULL,st->treelist->tree[gt]);
+      Record_Br_Len(st->treelist->tree[gt]);
     }
   
   st->tree->c_pars = PART_Pars(st);
@@ -1512,7 +1512,7 @@ void PART_Speed_Spr(supert_tree *st)
 	}
 
       /* Record the current best branch lengths  */
-      For(gt,st->n_part) Record_Br_Len(NULL,st->treelist->tree[gt]);
+      For(gt,st->n_part) Record_Br_Len(st->treelist->tree[gt]);
 
       /* Exit if no improvements after complete optimization */
       if((!st->tree->n_improvements) || 
@@ -1688,7 +1688,7 @@ int PART_Test_List_Of_Regraft_Pos(spr **st_spr_list, int list_size, supert_tree 
 		  init_lnL = st->treelist->tree[gt]->c_lnL;
 
 		  /* Record t_edge lengths */
-		  Record_Br_Len(NULL,st->treelist->tree[gt]);
+		  Record_Br_Len(st->treelist->tree[gt]);
 		  
 		  /* Prune subtree */
 		  Prune_Subtree(move->n_link,
@@ -1764,7 +1764,7 @@ int PART_Test_List_Of_Regraft_Pos(spr **st_spr_list, int list_size, supert_tree 
 				st->treelist->tree[gt]);
 		  
 		  /* Restore branch lengths */
-		  Restore_Br_Len(NULL,st->treelist->tree[gt]);
+		  Restore_Br_Len(st->treelist->tree[gt]);
 	      
 		  /* Update relevant change proba matrices */
 		  Update_PMat_At_Given_Edge(move->b_target,st->treelist->tree[gt]);
@@ -1829,7 +1829,7 @@ int PART_Try_One_Spr_Move(spr *st_move, supert_tree *st)
 	  if(gt_move[gt]->b_target)
 	    {
 	      /* Record t_edge lengths */
-	      Record_Br_Len(NULL,st->treelist->tree[gt]);
+	      Record_Br_Len(st->treelist->tree[gt]);
 
 	      /* Prune subtree */
 	      Prune_Subtree(gt_move[gt]->n_link,
@@ -1929,7 +1929,7 @@ int PART_Try_One_Spr_Move(spr *st_move, supert_tree *st)
 	  
 	  st->tree->n_improvements++;
 	  st->tree->best_lnL = st->tree->c_lnL;
-	  For(gt,st->n_part) Record_Br_Len(NULL,st->treelist->tree[gt]);
+	  For(gt,st->n_part) Record_Br_Len(st->treelist->tree[gt]);
 	  
 	  Free(init_target);
 	  Free(b_residual);
@@ -1986,7 +1986,7 @@ int PART_Try_One_Spr_Move(spr *st_move, supert_tree *st)
 	      
 /* 	      st->tree->n_improvements++; */
 /* 	      st->tree->best_lnL = st->tree->c_lnL; */
-/* 	      For(gt,st->n_part) Record_Br_Len(NULL,st->treelist->tree[gt]); */
+/* 	      For(gt,st->n_part) Record_Br_Len(st->treelist->tree[gt]); */
 
 /* 	      Free(init_target); */
 /* 	      Free(b_residual); */
@@ -2014,7 +2014,7 @@ int PART_Try_One_Spr_Move(spr *st_move, supert_tree *st)
 			st->treelist->tree[gt]);	  
 
 	  /* Restore branch lengths */
-	  Restore_Br_Len(NULL,st->treelist->tree[gt]);
+	  Restore_Br_Len(st->treelist->tree[gt]);
 	}
     }
   
