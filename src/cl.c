@@ -96,6 +96,8 @@ void Read_Command_Line(option *io, int argc, char **argv)
       {0,0,0,0}
     };
 
+  io->datatype = UNDEFINED;
+
   writemode = 1;
   open_ps_file = 0;
   use_gamma = 0;
@@ -814,15 +816,25 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	      {
 	        if(io->datatype == NT)
 		  io->mod->s_opt->opt_state_freq = NO;
-		else
+		else if (io->datatype == AA)
 		  io->mod->s_opt->opt_state_freq = YES;
+		else
+		  {
+		    PhyML_Printf("\n. Please define the data type (nt or aa) before setting the -f option\n");
+		    Exit("\n");
+		  }
 	      }
 	    else if(!strcmp(optarg,"m"))
 	      {
 	        if (io->datatype == NT)
 		  io->mod->s_opt->opt_state_freq = YES;
-		else
+		else if (io->datatype == AA)
 		  io->mod->s_opt->opt_state_freq = NO;
+		else
+		  {
+		    PhyML_Printf("\n. Please define the data type (nt or aa) before setting the -f option\n");
+		    Exit("\n");
+		  }
 	      }
 	    else if(!isalpha(optarg[0]))
 	      {
@@ -1143,7 +1155,9 @@ void Read_Command_Line(option *io, int argc, char **argv)
 #endif 
   
   
-  
+  if(io->datatype == UNDEFINED) io->datatype = NT;
+
+
   if((io->mod->s_opt->n_rand_starts)           && 
      (io->mod->s_opt->topo_search == NNI_MOVE) && 
      (io->mod->s_opt->random_input_tree))
@@ -1167,6 +1181,8 @@ void Read_Command_Line(option *io, int argc, char **argv)
       if(!scanf("%c",&choix)) Exit("\n");
       Exit("\n");
     }
+  
+
   
 
   if(io->mod->use_m4mod == NO)
