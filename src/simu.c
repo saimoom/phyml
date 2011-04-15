@@ -282,7 +282,7 @@ void Update_Bl(t_tree *tree, phydbl fact)
   For(i,2*tree->n_otu-3)
     {
       b = tree->t_edges[i];
-      b->l = b->l_old + (b->nni->l0 - b->l_old)*fact;
+      b->l = b->l_old + (b->nni->l0 - b->l_old)*fact;      
     }
 }
 

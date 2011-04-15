@@ -84,7 +84,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  SQRT2PI         2.50662827463100024161
 #define  LOG2PI          1.83787706640934533908
 #define  LOG2            0.69314718055994528623
-#define  LOG_SQRT_2_PI   0.918938533204673
+#define  LOG_SQRT_2_PI   0.918938533204672741780329736406
 
 #define  NORMAL 1
 #define  EXACT  2
@@ -846,6 +846,7 @@ typedef struct __Optimiz { /*! parameters to be optimised (mostly used in 'optim
   int         br_len_in_spr; 
   int   opt_free_mixt_rates;
   int    constrained_br_len;
+  int      opt_gamma_br_len;
 
   int           wim_n_rgrft;
   int           wim_n_globl;
@@ -973,6 +974,8 @@ typedef struct __T_Rate {
   phydbl birth_rate;
   phydbl min_rate;
   phydbl max_rate;
+  phydbl c_lnL1; 
+  phydbl c_lnL2; 
   phydbl c_lnL; /*! Prob(Br len | time stamps, model of rate evolution) */
   phydbl c_lnL_jps; /*! Prob(# Jumps | time stamps, rates, model of rate evolution) */
   phydbl clock_r; /*! Mean substitution rate, i.e., 'molecular clock' rate */
@@ -1049,6 +1052,9 @@ typedef struct __T_Rate {
   short int *br_do_updt;
   phydbl *cur_gamma_prior_mean;
   phydbl *cur_gamma_prior_var;
+
+
+  int model_log_rates;
 
 }t_rate;
 
@@ -1464,6 +1470,8 @@ phydbl Rescale_Br_Len_Multiplier_Tree(t_tree *tree);
 int Scale_Subtree_Height(t_node *a, phydbl K, phydbl floor, int *n_nodes, t_tree *tree);
 phydbl Unscale_Br_Len_Multiplier_Tree(t_tree *tree);
 phydbl Unscale_Free_Rate_Tree(t_tree *tree);
+void Check_Br_Len_Bounds(t_tree *tree);
+phydbl Reflect(phydbl x, phydbl l, phydbl u);
 
 
 #include "free.h"

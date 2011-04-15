@@ -329,6 +329,8 @@ phydbl Lk(t_tree *tree)
   if((tree->rates) && (tree->rates->bl_from_rt)) RATES_Update_Cur_Bl(tree);
 #endif
 
+  Check_Br_Len_Bounds(tree);
+  
   if(tree->rates && tree->io->lk_approx == NORMAL)
     {
       tree->c_lnL = Lk_Normal_Approx(tree);
@@ -2045,9 +2047,11 @@ void Update_PMat_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
     {
       phydbl shape,scale,mean,var;
 
+      b_fcus->gamma_prior_mean = b_fcus->l;
+
       mean = b_fcus->gamma_prior_mean;
       var  = b_fcus->gamma_prior_var;
-
+      
       shape = mean*mean/var;
       scale = var/mean;
 
@@ -2057,22 +2061,10 @@ void Update_PMat_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
   else
     {
       len = -1.0;
-
-      if(b_fcus->l > tree->mod->l_max) b_fcus->l = tree->mod->l_max;
-      if(b_fcus->l < tree->mod->l_min) b_fcus->l = tree->mod->l_min;
       
-      if(tree->mod->log_l == YES)
-	{
-	  l_min = EXP(tree->mod->l_min);
-	  l_max = EXP(tree->mod->l_max);
-	}
-      else
-	{
-	  l_min = tree->mod->l_min;
-	  l_max = tree->mod->l_max;
-	}
-      
-      
+      l_min = tree->mod->l_min;
+      l_max = tree->mod->l_max;
+            
       if(tree->mod->log_l == YES) b_fcus->l = EXP(b_fcus->l);
       
       For(i,tree->mod->n_catg)
@@ -2091,7 +2083,8 @@ void Update_PMat_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
 	  len *= tree->mod->br_len_multiplier;
 
 	  PMat(len,tree->mod,tree->mod->ns*tree->mod->ns*i,b_fcus->Pij_rr);
-	}      
+	}
+
       if(tree->mod->log_l == YES) b_fcus->l = LOG(b_fcus->l);
     }
 }
@@ -2920,13 +2913,17 @@ phydbl Lk_Normal_Approx(t_tree *tree)
 				     tree->rates->invcov,
 				     tree->rates->covdet,
 				     2*tree->n_otu-3,YES);
-/*   printf("%f\t",lnL); */    
 
   first_order = 0.0;
   For(i,dim) first_order += (tree->rates->u_cur_l[i] - tree->rates->mean_l[i]) * tree->rates->grad_l[i];
   
   lnL += first_order;
   
+  /* printf("\n"); */
+  /* For(i,dim) printf("%f\t",tree->rates->u_cur_l[i]); */
+  /* printf("\n. Lk=%f %f",lnL,tree->mod->l_min); */
+
+
 /*   err = NO; */
 /*   dim = 2*tree->n_otu-3; */
 /*   For(i,dim) */

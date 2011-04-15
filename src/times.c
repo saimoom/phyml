@@ -74,6 +74,9 @@ int TIMES_main(int argc, char **argv)
   /* r_seed = 1298509108; */
   /* sys = system("sleep 5s"); */
   /* r_seed = 1299649586; */
+  /* r_seed = 1302160422; */
+  /* r_seed = 1302576741; */
+  /* r_seed = 1302588678; */
 
 
   srand(r_seed); rand();
@@ -85,6 +88,12 @@ int TIMES_main(int argc, char **argv)
   else io->n_trees = 1;
 
   io->colalias = 1;  /* Do not compress sites if you're using Evolve function */
+
+  if(!io->colalias)
+    {
+      PhyML_Printf("\n. Pattern alias off.");
+    }
+
 
   mat = NULL;
   tree_line_number = 0;
@@ -163,7 +172,6 @@ int TIMES_main(int argc, char **argv)
 		  TIMES_Set_All_Node_Priors(tree);
 
 		  /* Work with log of branch lengths? */
-		  tree->mod->log_l = NO;
 		  if(tree->mod->log_l == YES) Log_Br_Len(tree);
 		  
 		  /* Force the exact likelihood score */
@@ -173,8 +181,6 @@ int TIMES_main(int argc, char **argv)
 		  /* MLE for branch lengths */
 		  PhyML_Printf("\n");
 		  Round_Optimize(tree,tree->data,ROUND_MAX);
-		  		  
-
 
 		  /* Set vector of mean branch lengths for the Normal approximation
 		     of the likelihood */
@@ -188,7 +194,7 @@ int TIMES_main(int argc, char **argv)
 		  tree->rates->bl_from_rt = 0;
 		  Free(tree->rates->cov_l);
 		  tree->rates->cov_l = Hessian_Seo(tree);
-		  /* tree->rates->cov_l = Hessian(tree); */
+		  /* tree->rates->cov_l = Hessian_Log(tree); */
 		  For(i,(2*tree->n_otu-3)*(2*tree->n_otu-3)) tree->rates->cov_l[i] *= -1.0;
 		  if(!Iter_Matinv(tree->rates->cov_l,2*tree->n_otu-3,2*tree->n_otu-3,YES)) Exit("\n");
 		  tree->rates->covdet = Matrix_Det(tree->rates->cov_l,2*tree->n_otu-3,YES);
@@ -203,16 +209,13 @@ int TIMES_main(int argc, char **argv)
 		  RATES_Get_Trip_Conditional_Variances(tree);
 		  RATES_Get_All_Trip_Reg_Coeff(tree);
 
-
 		  Lk(tree);
 		  PhyML_Printf("\n");
 		  PhyML_Printf("\n. p(data|model) [exact ] ~ %.2f",tree->c_lnL);
-		  For(i,2*tree->n_otu-3) tree->rates->u_cur_l[i] = tree->t_edges[i]->l;
-		  tree->c_lnL = Dnorm_Multi_Given_InvCov_Det(tree->rates->u_cur_l,
-							     tree->rates->mean_l,
-							     tree->rates->invcov,
-							     tree->rates->covdet,
-							     2*tree->n_otu-3,YES);
+
+		  tree->io->lk_approx = NORMAL;
+		  For(i,2*tree->n_otu-3) tree->rates->u_cur_l[i] = tree->rates->mean_l[i] ;
+		  tree->c_lnL = Lk(tree);
 		  PhyML_Printf("\n. p(data|model) [approx] ~ %.2f",tree->c_lnL);
 
 		  tree->io->lk_approx = user_lk_approx;
@@ -221,17 +224,15 @@ int TIMES_main(int argc, char **argv)
 		  PhyML_Printf("\n. Selected model '%s'",(io->rates->model == THORNE)?("thorne"):("guindon"));
 		  if(tree->rates->model == GUINDON) tree->mod->gamma_mgf_bl = YES;
 		  
-
-
 		  tree->rates->bl_from_rt = YES;
-		  
+
 		  PhyML_Printf("\n");
 		  time(&t_beg);
 		  tree->mcmc = MCMC_Make_MCMC_Struct();
 		  MCMC_Copy_MCMC_Struct(tree->io->mcmc,tree->mcmc,"phytime");
 		  MCMC_Complete_MCMC(tree->mcmc,tree);
-		  tree->mcmc->randomize     = YES;
-		  tree->mcmc->is_burnin     = NO;
+		  tree->mcmc->randomize = YES;
+		  tree->mcmc->is_burnin = NO;
 		  MCMC(tree);
 		  MCMC_Close_MCMC(tree->mcmc);
 		  MCMC_Free_MCMC(tree->mcmc);
@@ -544,7 +545,7 @@ void TIMES_Set_All_Node_Priors(t_tree *tree)
 		min_prior = tree->rates->t_prior_min[i];
 	    }
 	}
-      tree->rates->t_prior_min[tree->n_root->num] = 3. * min_prior;
+      tree->rates->t_prior_min[tree->n_root->num] = 5.0 * min_prior;
       /* tree->rates->t_prior_min[tree->n_root->num] = 10. * min_prior; */
     }
 
@@ -698,7 +699,7 @@ void TIMES_Set_Floor_Post(t_node *a, t_node *d, t_tree *tree)
 }
 
 /*********************************************************/
-
+/* Does it work for serial samples? */
 phydbl TIMES_Log_Conditional_Uniform_Density(t_tree *tree)
 {
   phydbl min,max;
@@ -726,6 +727,7 @@ phydbl TIMES_Log_Conditional_Uniform_Density(t_tree *tree)
 /*********************************************************/
 
 /* Logarithm of Formula (9) in Rannala and Yang (1996) */
+/* Not sure that is works for serial samples */
 phydbl TIMES_Log_Yule(t_tree *tree)
 {
   phydbl sumti,density,lambda;
