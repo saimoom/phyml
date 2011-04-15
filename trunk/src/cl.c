@@ -92,7 +92,9 @@ void Read_Command_Line(option *io, int argc, char **argv)
       {"free_rates",          no_argument,NULL,61},
       {"is",                  no_argument,NULL,62},
       {"constrained_lens",    no_argument,NULL,63},
-      {"rate_model",    required_argument,NULL,64},
+      {"rate_model",          required_argument,NULL,64},
+      {"log_l",               no_argument,NULL,65},
+      {"gamma_lens",          no_argument,NULL,66},
       {0,0,0,0}
     };
 
@@ -105,6 +107,17 @@ void Read_Command_Line(option *io, int argc, char **argv)
     {
       switch(c)
 	{
+	case 66:
+	  {
+	    io->mod->gamma_mgf_bl = YES;
+	    io->mod->s_opt->opt_gamma_br_len = YES;
+	    break;
+	  }
+	case 65:
+	  {
+	    io->mod->log_l = YES;
+	    break;
+	  }
 	case 64:
 	  {
 	    if(!strcmp(optarg,"thorne") || !strcmp(optarg,"THORNE")) io->rates->model = THORNE;
@@ -123,7 +136,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	  }
 	case 62:
 	  {
-	    io->mcmc->is = YES;
+	    io->mcmc->is   = YES;
 	    break;
 	  }
 	case 61:
@@ -134,7 +147,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	  }
 	case 60:
 	  {
-	    io->lk_approx = EXACT;		
+	    io->lk_approx = NORMAL;		
 	    break;
 	  }
 	case 59:

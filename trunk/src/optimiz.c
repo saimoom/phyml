@@ -488,7 +488,18 @@ phydbl Br_Len_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
   phydbl a,b,d,etemp,fu,fv,fw,fx,p,q,r,tol1,tol2,u,v,w,x,xm;
   phydbl e=0.0;
   phydbl old_lnL, init_lnL;
+  
+  if(tree->mod->gamma_mgf_bl == YES)
+    {
+      Generic_Brent_Lk(&(b_fcus->gamma_prior_var),
+      		       0.0,1000.,
+      		       tree->mod->s_opt->min_diff_lk_local,
+      		       tree->mod->s_opt->brent_it_max,
+      		       tree->mod->s_opt->quickdirty,
+      		       Wrap_Lk_At_Given_Edge,b_fcus,tree,NULL);
 
+    }
+      
   d=0.0;
   a=((ax < cx) ? ax : cx);
   b=((ax > cx) ? ax : cx);
@@ -497,30 +508,30 @@ phydbl Br_Len_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
   b_fcus->l = bx;
   fw=fv=fx=fu=-Lk_At_Given_Edge(b_fcus,tree);
   init_lnL = -fw;
-
-/*   PhyML_Printf("\n. INIT BRENT t_edge %3d l=%f lnL=%20f",b_fcus->num,b_fcus->l,fu); */
-
+  
+  /*   PhyML_Printf("\n. INIT BRENT t_edge %3d l=%f lnL=%20f",b_fcus->num,b_fcus->l,fu); */
+  
   for(iter=1;iter<=BRENT_ITMAX;iter++)
     {
       xm=0.5*(a+b);
       tol2=2.0*(tol1=tol*x+BRENT_ZEPS);
-
+      
       if((tree->c_lnL > init_lnL + tol) && (quickdirty))
 	{
 	  b_fcus->l = x;
 	  Lk_At_Given_Edge(b_fcus,tree);
-/* 	  PhyML_Printf("\n> iter=%3d max=%3d v=%f lnL=%f init_lnL=%f tol=%f",iter,n_iter_max,(*xmin),tree->c_lnL,init_lnL,tol); */
-/* 	  Exit("\n"); */
+	  /* 	  PhyML_Printf("\n> iter=%3d max=%3d v=%f lnL=%f init_lnL=%f tol=%f",iter,n_iter_max,(*xmin),tree->c_lnL,init_lnL,tol); */
+	  /* 	  Exit("\n"); */
 	  return tree->c_lnL;	  
 	}
-
-/*       if(((FABS(tree->c_lnL-old_lnL) < tol) && (tree->c_lnL > init_lnL - tol)) || (iter > n_iter_max - 1)) */
+      
+      /*       if(((FABS(tree->c_lnL-old_lnL) < tol) && (tree->c_lnL > init_lnL - tol)) || (iter > n_iter_max - 1)) */
       if((FABS(tree->c_lnL-old_lnL) < tol) || (iter > n_iter_max - 1))
 	{
 	  b_fcus->l=x;
 	  Lk_At_Given_Edge(b_fcus,tree);
-/* 	  PhyML_Printf("\n. iter=%3d max=%3d l=%f lnL=%f init_lnL=%f",iter,n_iter_max,b_fcus->l,tree->c_lnL,init_lnL); */
-/* 	  Exit("\n"); */
+	  /* 	  PhyML_Printf("\n. iter=%3d max=%3d l=%f lnL=%f init_lnL=%f",iter,n_iter_max,b_fcus->l,tree->c_lnL,init_lnL); */
+	  /* 	  Exit("\n"); */
 	  return tree->c_lnL;
 	}
       
@@ -548,25 +559,25 @@ phydbl Br_Len_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 	  d=BRENT_CGOLD*(e=(x >= xm ? a-x : b-x));
 	}
       u=(FABS(d) >= tol1 ? x+d : x+SIGN(tol1,d));
-/*       if(u<tree->l_min) u = tree->l_min; */
+      /*       if(u<tree->l_min) u = tree->l_min; */
       b_fcus->l=u;
       old_lnL = tree->c_lnL;
       fu=-Lk_At_Given_Edge(b_fcus,tree);
-
-/*       PhyML_Printf("\n. BRENT t_edge %3d l=%f lnL=%20f iter=%3d",b_fcus->num,b_fcus->l,fu,iter); */
-
-/*       if(fu <= fx) */
+      
+      /*       PhyML_Printf("\n. BRENT t_edge %3d l=%f lnL=%20f iter=%3d",b_fcus->num,b_fcus->l,fu,iter); */
+      
+      /*       if(fu <= fx) */
       if(fu < fx)
 	{
 	  if(u > x) a=x; else b=x;
-/* 	  if(u >= x) a=x; else b=x; */
+	  /* 	  if(u >= x) a=x; else b=x; */
 	  SHFT(v,w,x,u)
-	  SHFT(fv,fw,fx,fu)
-	}
+	    SHFT(fv,fw,fx,fu)
+	    }
       else
 	{
 	  if (u < x) a=u; else b=u;
-/* 	  if (fu <= fw || w == x) */
+	  /* 	  if (fu <= fw || w == x) */
 	  if (fu < fw || FABS(w-x) < SMALL)
 	    {
 	      v=w;
@@ -575,14 +586,14 @@ phydbl Br_Len_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 	      fw=fu;
 	    }
 	  else if (fu < fv || FABS(v-x) < SMALL || FABS(v-w) < SMALL)
-/* 	  else if (fu <= fv || v == x || v == w)  */
+	    /* 	  else if (fu <= fv || v == x || v == w)  */
 	    {
 	      v=u;
 	      fv=fu;
 	    }
 	}
     }
-  if(iter > BRENT_ITMAX) PhyML_Printf("\n. Too many iterations in BRENT (%d) (%f)",iter,b_fcus->l);
+  if(iter > BRENT_ITMAX) PhyML_Printf("\n. Too many iterations in BRENT (%d) (%f)",iter,b_fcus->l);      
   return(-1);
   /* Not Reached ??  *xmin=x;   */
   /* Not Reached ??  return fx; */
@@ -658,23 +669,29 @@ void Optimize_Br_Len_Serie(t_node *a, t_node *d, t_edge *b_fcus, t_tree *tree, c
 		       tree->mod->s_opt->brent_it_max,
 		       tree->mod->s_opt->quickdirty,
 		       Wrap_Lk,NULL,tree,NULL);
-      return;
     }
-
 
   lk_init = tree->c_lnL;
    
-/*   l_infa = 10.*b_fcus->l; */
   l_max  = b_fcus->l;
   l_infa = tree->mod->l_max;
   l_infb = tree->mod->l_min;
-
+  
   Br_Len_Brent(l_infa,l_max,l_infb,
 	       tree->mod->s_opt->min_diff_lk_local,
 	       b_fcus,tree,
 	       tree->mod->s_opt->brent_it_max,
 	       tree->mod->s_opt->quickdirty);
 
+  if(tree->mod->s_opt->opt_gamma_br_len == YES)
+    {      
+      Generic_Brent_Lk(&(b_fcus->gamma_prior_var),
+		       0.0,1000.,
+		       tree->mod->s_opt->min_diff_lk_local,
+		       tree->mod->s_opt->brent_it_max,
+		       tree->mod->s_opt->quickdirty,
+		       Wrap_Lk_At_Given_Edge,b_fcus,tree,NULL);
+    }
 
 /*   Generic_Brent_Lk(&(b_fcus->l), */
 /* 		   l_infa,l_infb, */

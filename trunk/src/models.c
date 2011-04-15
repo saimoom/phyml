@@ -2188,6 +2188,12 @@ void Init_Model(calign *data, model *mod, option *io)
   space   = (phydbl *)mCalloc(2*mod->ns,sizeof(phydbl));
   
 
+  if(mod->log_l == YES)
+    {
+      mod->l_min = LOG(mod->l_min);
+      mod->l_max = LOG(mod->l_max);
+    }
+
   For(i,mod->n_catg) mod->gamma_r_proba[i] = 1./(phydbl)mod->n_catg;
   For(i,mod->n_catg) mod->gamma_rr[i]      = 1.;
 

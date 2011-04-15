@@ -64,7 +64,7 @@ phydbl tt800()
   */
   y ^= (y >> 16); /* added to the 1994 version */
   k++;
-  return(phydbl)(y / (unsigned long) 0xffffffff);
+  return((phydbl)y / (unsigned long) 0xffffffff);
 }
 
 /*********************************************************************/
@@ -474,7 +474,8 @@ phydbl Log_Dnorm(phydbl x, phydbl mean, phydbl sd, int *err)
 
   x = (x-mean)/sd;
   
-  dens = -(phydbl)LOG_SQRT_2_PI - x*x*0.5 - LOG(sd);
+  /* dens = -(phydbl)LOG_SQRT_2_PI - x*x*0.5 - LOG(sd); */
+  dens = -(phydbl)LOG(SQRT(2.*PI)) - x*x*0.5 - LOG(sd);
 
   if(dens < -BIG)
     {
@@ -670,7 +671,6 @@ phydbl Dgamma_Moments(phydbl x, phydbl mean, phydbl var)
   shape = mean * mean / var;
   scale = var / mean;
   
-
   return(Dgamma(x,shape,scale));
 }
 
@@ -1934,14 +1934,14 @@ phydbl *Gradient(t_tree *tree)
     {
       if(is_ok[i] == NO)
 	{
-	  eps = 0.2 * tree->t_edges[i]->l;
+	  eps = FABS(0.2 * tree->t_edges[i]->l);
 	  lnL  = Lk_At_Given_Edge(tree->t_edges[i],tree);	
 	  tree->t_edges[i]->l += eps;
 	  lnL1 = Lk_At_Given_Edge(tree->t_edges[i],tree);
 	  tree->t_edges[i]->l += eps;
 	  lnL2 = Lk_At_Given_Edge(tree->t_edges[i],tree);
-	  tree->t_edges[i]->l -= 2.*eps;
-	
+	  tree->t_edges[i]->l -= eps;
+	  tree->t_edges[i]->l -= eps;
 	  gradient[i] = (4.*lnL1 - lnL2 - 3.*lnL) / (2.*eps);
 	}
     }
@@ -2035,14 +2035,14 @@ phydbl *Hessian_Seo(t_tree *tree)
     {
       if(tree->t_edges[i]->l*(1.-eps) > l_inf)
 	{
-	  inc_plus[i]  = eps * tree->t_edges[i]->l;
-	  inc_minus[i] = eps * tree->t_edges[i]->l;
+	  inc_plus[i]  = FABS(eps * tree->t_edges[i]->l);
+	  inc_minus[i] = FABS(eps * tree->t_edges[i]->l);
 	  is_ok[i]     = YES;
 	}
       else
 	{
-	  inc_plus[i]  = 0.2 * tree->t_edges[i]->l;
-	  inc_minus[i] = 0.2 * tree->t_edges[i]->l;
+	  inc_plus[i]  = FABS(0.2 * tree->t_edges[i]->l);
+	  inc_minus[i] = FABS(0.2 * tree->t_edges[i]->l);
 	  is_ok[i]     = NO;
 	}
     }
@@ -2053,7 +2053,7 @@ phydbl *Hessian_Seo(t_tree *tree)
     {
       do
 	{
-	  tree->t_edges[i]->l += inc_plus[i];
+	  tree->t_edges[i]->l += inc_plus[i];	  
 	  lnL1 = Lk_At_Given_Edge(tree->t_edges[i],tree);
 	  tree->t_edges[i]->l = ori_bl[i];
 	  inc_plus[i] *= 1.1;
@@ -2075,7 +2075,6 @@ phydbl *Hessian_Seo(t_tree *tree)
       inc_minus[i] /= 1.1;
     }
 
-
   For(i,dim) inc[i] = MIN(inc_plus[i],inc_minus[i]);
 
   /* plus */  
@@ -2091,7 +2090,7 @@ phydbl *Hessian_Seo(t_tree *tree)
     }
 
 
-  /* minus */  
+  /* minus */
   For(i,dim)
     {
       if(is_ok[i] == YES)
@@ -2134,14 +2133,13 @@ phydbl *Hessian_Seo(t_tree *tree)
 	  else
 	    gradient[i] = (4.*plus[i*tree->n_pattern+k] - plusplus[i*tree->n_pattern+k] - 3.*zero[i*tree->n_pattern+k])/(inc[i] + inc[i]);
 	  
-/* 	  if(is_ok[i] == NO) */
-/* 	    printf("\n. i=%d site=%d l=%G plus=%G plusplus=%G zero=%G num=%f grad=%G", */
-/* 		   i,k,tree->t_edges[i]->l, */
-/* 		   plus[i*tree->n_pattern+k],plusplus[i*tree->n_pattern+k],zero[i*tree->n_pattern+k], */
-/* 		   (4.*plus[i*tree->n_pattern+k] - plusplus[i*tree->n_pattern+k] - 3.*zero[i*tree->n_pattern+k]), */
-/* 		   gradient[i]); */
+	  /* if(is_ok[i] == NO) */
+	  /*   printf("\n. i=%d site=%d l=%G plus=%G plusplus=%G zero=%G num=%f grad=%G", */
+	  /* 	   i,k,tree->t_edges[i]->l, */
+	  /* 	   plus[i*tree->n_pattern+k],plusplus[i*tree->n_pattern+k],zero[i*tree->n_pattern+k], */
+	  /* 	   (4.*plus[i*tree->n_pattern+k] - plusplus[i*tree->n_pattern+k] - 3.*zero[i*tree->n_pattern+k]), */
+	  /* 	   gradient[i]); */
 	}
-
       For(i,dim) For(j,dim) site_hessian[i*dim+j] = gradient[i] * gradient[j];
       For(i,dim*dim) hessian[i] -= site_hessian[i] * tree->data->wght[k]; 
     }
@@ -2164,8 +2162,13 @@ phydbl *Hessian_Seo(t_tree *tree)
 	    hessian[j*dim+i] = 0.;
 	  }
 	hessian[i*dim+i] = -1./small_var;
-      }
 
+	if(tree->mod->log_l == YES) 
+	  {
+	    hessian[i*dim+i] = small_var * POW(EXP(tree->t_edges[i]->l),-2); 
+	    hessian[i*dim+i] = -1./hessian[i*dim+i];
+	  }
+      }
 
 
   For(i,dim)
@@ -2183,21 +2186,17 @@ phydbl *Hessian_Seo(t_tree *tree)
 	}
     }
 
-
-
-/*   printf("\n"); */
-/*   printf("HESSIAN SEO\n"); */
-/*   For(i,dim) */
-/*     { */
-/*       PhyML_Printf("[%f] ",tree->t_edges[i]->l); */
-/*       For(j,dim) */
-/* 	{ */
-/* 	  PhyML_Printf("%12lf ",hessian[i*dim+j]); */
-/* 	} */
-/*       PhyML_Printf("\n"); */
-/*     } */
-
-
+  /* printf("\n"); */
+  /* printf("HESSIAN SEO\n"); */
+  /* For(i,dim) */
+  /*   { */
+  /*     PhyML_Printf("[%f] ",tree->t_edges[i]->l); */
+  /*     For(j,dim) */
+  /* 	{ */
+  /* 	  PhyML_Printf("%12lf ",hessian[i*dim+j]); */
+  /* 	} */
+  /*     PhyML_Printf("\n"); */
+  /*   } */
 
   Free(site_hessian);
   Free(ori_bl);
@@ -2288,7 +2287,7 @@ phydbl *Hessian_Log(t_tree *tree)
     {
       if(tree->t_edges[i]->l > 3.0/(phydbl)tree->data->init_len)
 	{
-	  inc[i] = eps * tree->t_edges[i]->l;
+	  inc[i] = FABS(eps * tree->t_edges[i]->l);
 	  ok_edges[n_ok_edges] = i;
 	  n_ok_edges++;
 	  is_ok[i] = 1;
@@ -2504,15 +2503,15 @@ phydbl *Hessian_Log(t_tree *tree)
 
 /*   PhyML_Printf("\n"); */
 
-/*   For(i,dim) */
-/*     { */
-/*       PhyML_Printf("[%f] ",tree->t_edges[i]->l); */
-/*       For(j,i+1) */
-/* 	{ */
-/* 	  PhyML_Printf("%12lf ",hessian[i*dim+j]); */
-/* 	} */
-/*       PhyML_Printf("\n"); */
-/*     } */
+  For(i,dim)
+    {
+      PhyML_Printf("[%f] ",tree->t_edges[i]->l);
+      For(j,i+1)
+	{
+	  PhyML_Printf("%12lf ",hessian[i*dim+j]);
+	}
+      PhyML_Printf("\n");
+    }
 /*   Exit("\n"); */
 
 
@@ -2747,14 +2746,17 @@ int Iter_Matinv(phydbl *x, int n, int m, int verbose)
   phydbl *buff;
   int i,iter;
   phydbl scaler;
+  int pb;
 
   buff = (phydbl *)mCalloc(n*m,sizeof(phydbl));
 
+  pb = NO;
   iter   = 0;
   scaler = 1.;
   For(i,n*m) buff[i] = x[i];
   while(!Matinv(buff,n,m,verbose))
     {
+      pb = YES;
       For(i,n*m) buff[i] = x[i];
       scaler *= 10.;
       For(i,n*m) buff[i] *= scaler;
@@ -2766,7 +2768,7 @@ int Iter_Matinv(phydbl *x, int n, int m, int verbose)
 	  return 0;
 	}      
     }
-
+  if(pb)  PhyML_Printf("\n. Managed to fix the problem by rescaling the matrix.");
   For(i,n*m) x[i] = buff[i]*scaler;
   Free(buff);
   return 1;
@@ -3694,86 +3696,129 @@ void Pmat_MGF_Gamma(phydbl *Pij, phydbl shape, phydbl scale, model *mod)
 
 void Integrated_Brownian_Bridge_Moments(phydbl x_beg, phydbl x_end, 
 					phydbl y_beg, phydbl y_end, 
-					phydbl sd, phydbl *mean, phydbl *var)
+					phydbl brownian_var, phydbl *mean, phydbl *var)
 {
   phydbl *y,*y_mean;
   int n_breaks, n_rep;
   int i,j;
   phydbl traj_mean, traj_sd;
-  phydbl x_prev, x_curr;
+  phydbl x,x_prev, x_curr;
   phydbl x_step;
   phydbl sum,sumsum;
+  phydbl scaled_var;
+
+  scaled_var = brownian_var/FABS(x_end - x_beg);
 
   n_breaks = 100;
-  n_rep    = 1000;
-  
-  sd /= FABS(x_end - x_beg);
 
-  x_step   = (x_end - x_beg)/(n_breaks+1);
 
-  y      = (phydbl *)mCalloc(n_breaks+2,sizeof(phydbl));
-  y_mean = (phydbl *)mCalloc(n_rep,sizeof(phydbl));
+  /* n_rep    = 500;   */
 
-  y[0] = y_beg;
-  y[n_breaks+1] = y_end;
+  /* x_step   = (x_end - x_beg)/(n_breaks+1); */
 
-  For(i,n_rep)
-    {
-      for(j=1;j<n_breaks+1;j++)
-	{
-	  x_prev = x_beg + (j-1)*x_step;
-	  x_curr = x_prev + x_step;
+  /* y      = (phydbl *)mCalloc(n_breaks+2,sizeof(phydbl)); */
+  /* y_mean = (phydbl *)mCalloc(n_rep,sizeof(phydbl)); */
 
-	  traj_mean = y[j-1] + (y_end - y[j-1])*(x_curr - x_prev)/(x_end - x_prev);
-	  traj_sd   = SQRT(sd*(x_curr - x_prev)*(x_end - x_curr)/(x_end - x_prev));
+  /* y[0] = y_beg; */
+  /* y[n_breaks+1] = y_end; */
 
-	  if(isnan(traj_mean) || isnan(traj_sd))
-	    {
-	      PhyML_Printf("\n. traj_mean=%f traj_sd=%f x_end=%f x_prev=%f x_step=%f [%f %f %f %f %f %f %f] j=%d n_breaks=%d",
-			   traj_mean,traj_sd,x_end,x_prev,x_step,
-			   y[j-1],y_end,y[j-1],x_curr,x_prev,x_end,x_prev,j,n_breaks);
-	      Exit("\n");
-	    }
+  /* For(i,n_rep) */
+  /*   { */
+  /*     for(j=1;j<n_breaks+1;j++) */
+  /* 	{ */
+  /* 	  x_prev = x_beg + (j-1)*x_step; */
+  /* 	  x_curr = x_prev + x_step; */
 
-	  y[j] = Rnorm(traj_mean,traj_sd);
+  /* 	  traj_mean = y[j-1] + (y_end - y[j-1])*(x_curr - x_prev)/(x_end - x_prev); */
+  /* 	  traj_sd   = SQRT(scaled_var*(x_curr - x_prev)*(x_end - x_curr)/(x_end - x_prev)); */
 
-	  if(isnan(y[j]) || isinf(y[j]))
-	    {
-	      printf("\n. mean=%f sd=%f %f j=%d y[j]=%f",traj_sd,traj_mean,Rnorm(traj_mean,traj_sd),j,y[j]);
-	      Exit("\n");
-	    }
+  /* 	  if(isnan(traj_mean) || isnan(traj_sd)) */
+  /* 	    { */
+  /* 	      PhyML_Printf("\n. traj_mean=%f traj_sd=%f x_end=%f x_prev=%f x_step=%f [%f %f %f %f %f %f %f] j=%d n_breaks=%d", */
+  /* 			   traj_mean,traj_sd,x_end,x_prev,x_step, */
+  /* 			   y[j-1],y_end,y[j-1],x_curr,x_prev,x_end,x_prev,j,n_breaks); */
+  /* 	      Exit("\n"); */
+  /* 	    } */
 
-	}
+  /* 	  y[j] = Rnorm(traj_mean,traj_sd); */
+
+  /* 	  if(isnan(y[j]) || isinf(y[j])) */
+  /* 	    { */
+  /* 	      printf("\n. mean=%f sd=%f %f j=%d y[j]=%f",traj_sd,traj_mean,Rnorm(traj_mean,traj_sd),j,y[j]); */
+  /* 	      Exit("\n"); */
+  /* 	    } */
+
+  /* 	} */
       
-      sum = 0.0;
-      For(j,n_breaks+2) sum += FABS(y[j]);
-      y_mean[i] = sum/(n_breaks+2);
-    }
+  /*     sum = 0.0; */
+  /*     For(j,n_breaks+2) sum += FABS(y[j]); */
+  /*     y_mean[i] = sum/(n_breaks+2); */
+  /*   } */
 
-  sum = sumsum = 0.0;
-  For(i,n_rep)
+  /* sum = sumsum = 0.0; */
+  /* For(i,n_rep) */
+  /*   { */
+  /*     sum += y_mean[i]; */
+  /*     sumsum += y_mean[i] * y_mean[i]; */
+  /*   } */
+
+  /* *mean = sum/n_rep; */
+  /* *var = sumsum/n_rep - (*mean) * (*mean); */
+
+  /* if(isnan(*mean) || isnan(*var)) */
+  /*   { */
+  /*     PhyML_Printf("\n. sum=%f sumsum=%f n_rep=%d",sum,sumsum,n_rep); */
+  /*     Exit("\n"); */
+  /*   } */
+
+  /* Free(y); */
+  /* Free(y_mean); */
+
+  /* /\* printf("\n. [%f %f]",*mean,*var); *\/ */
+
+  phydbl mux,six;
+
+  x_step = (x_end - x_beg)/(n_breaks+1);
+  sum = y_beg;
+  for(i=1;i<n_breaks+1;i++)
     {
-      sum += y_mean[i];
-      sumsum += y_mean[i] * y_mean[i];
+      x = x_beg + i*x_step;
+
+      mux = y_beg + (y_end - y_beg)*(x - x_beg)/(x_end - x_beg);
+      six = SQRT(scaled_var*(x - x_beg)*(x_end - x)/(x_end - x_beg));
+
+      sum += 
+	(2.*six)/SQRT(2.*PI)*EXP(-POW(mux,2)/(2.*POW(six,2))) + 
+	2.*mux*Pnorm(mux/six,.0,1.) - mux;
     }
+  sum += y_end;
 
-  *mean = sum/n_rep;
-  *var = sumsum/n_rep - (*mean) * (*mean); 
+  (*mean) = sum / (n_breaks+2.);
+  (*var)  = (1./12.)*scaled_var*(x_end - x_beg);
 
-  if(isnan(*mean) || isnan(*var))
-    {
-      PhyML_Printf("\n. sum=%f sumsum=%f n_rep=%d",sum,sumsum,n_rep);
-      Exit("\n");
-    }
-
-  printf("\n. mean=%f  [%f]",(*mean),(y_beg + y_end)/2.);
-
-  Free(y);
-  Free(y_mean);
-
+  /* printf(" [%f %f] -- x_beg=%f x_end=%f y_beg=%f y_end=%f sd=%f", */
+  /* 	 (*mean),(*var),x_beg,x_end,y_beg,y_end,brownian_var); */
 }
 
 
 /*********************************************************/
 /*********************************************************/
 /*********************************************************/
+
+/* Let X'(t) = A + (B-A)t/T + X(t) and X(t) = W(t) + t/T * W(T),
+i.e., X(t) is a Brownian bridge starting at 0 at t=0 and stopping
+at 0 at t=T. X'(t) starts at X'(t) = A at t=0 and stops at B at
+t=T. This function calculates the mean and variance of 
+Z(T) = 1/T \int_0^T exp(X'(t)) dt. It uses a 10th order approximation
+to exp(X) = 1 + X + (1/2!)X^2 + ... (1/10!)X^10
+*/
+
+void Integrated_Geometric_Brownian_Bridge_Moments(phydbl T, phydbl A, phydbl B, phydbl u, phydbl *mean, phydbl *var)
+
+{
+  /* From Maple */
+  
+  *var = -EXP( (2 * A)) * T * u * u * (-0.49559114981376000e17 - 0.106883444828160e15 * POW(u, 0.6e1) * POW(T, 0.3e1) *  (A * A) + 0.16340175371520e14 * POW(u, 0.8e1) * POW(T, 0.4e1) *  A + 0.198629786234880e15 *  A * POW(u, 0.6e1) * POW(T, 0.3e1) - 0.1044281351393280e16 *  (A * A) * POW(u, 0.4e1) * T * T + 0.2910614689382400e16 *   POW( A,  3) * u * u * T - 0.198629786234880e15 * B * POW(u, 0.6e1) * POW(T, 0.3e1) - 0.1044281351393280e16 * B * B * POW(u, 0.4e1) * T * T - 0.2910614689382400e16 * POW(B, 0.3e1) * u * u * T + 0.1917465758208000e16 *  A * POW(u, 0.4e1) * T * T - 0.7315869354393600e16 *  (A * A) * u * u * T - 0.1917465758208000e16 * B * POW(u, 0.4e1) * T * T - 0.7315869354393600e16 * B * B * u * u * T - 0.198629786234880e15 * POW(u, 0.6e1) * POW(T, 0.3e1) - 0.920383563939840e15 * u * u * T * POW(B, 0.4e1) - 0.920383563939840e15 * u * u * T *   POW( A,  4) - 0.405126098657280e15 * POW(u, 0.4e1) * T * T * POW(B, 0.3e1) - 0.106883444828160e15 * POW(u, 0.6e1) * POW(T, 0.3e1) * B * B - 0.16340175371520e14 * POW(u, 0.8e1) * POW(T, 0.4e1) * B + 0.405126098657280e15 * POW(u, 0.4e1) * T * T *   POW( A,  3) + 0.1128373678080e13 *  A * POW(u, 0.10e2) * POW(T, 0.5e1) - 0.124292603635200e15 * POW(u, 0.4e1) * T * T *   POW( A,  4) + 0.243862311813120e15 * u * u * T *   POW( A,  5) - 0.8712253883520e13 * POW(u, 0.8e1) * POW(T, 0.4e1) *  (A * A) + 0.40673516083200e14 * POW(u, 0.6e1) * POW(T, 0.3e1) *   POW( A,  3) - 0.1128373678080e13 * B * POW(u, 0.10e2) * POW(T, 0.5e1) - 0.8712253883520e13 * POW(u, 0.8e1) * POW(T, 0.4e1) * B * B - 0.40673516083200e14 * POW(u, 0.6e1) * POW(T, 0.3e1) * POW(B, 0.3e1) - 0.124292603635200e15 * POW(u, 0.4e1) * T * T * POW(B, 0.4e1) - 0.243862311813120e15 * u * u * T * POW(B, 0.5e1) + 0.15221728172851200e17 * B *   POW( A,  3) - 0.22832592259276800e17 * B * B *  (A * A) + 0.15221728172851200e17 * POW(B, 0.3e1) *  A + 0.13215763995033600e17 *  A * u * u * T - 0.34691380486963200e17 * B *  (A * A) + 0.34691380486963200e17 * B * B *  A - 0.1128373678080e13 * POW(u, 0.10e2) * POW(T, 0.5e1) - 0.16340175371520e14 * POW(u, 0.8e1) * POW(T, 0.4e1) + 0.56166996978892800e17 * B *  A + 0.14631738708787200e17 * B *  A * u * u * T - 0.8731844068147200e16 * B *  (A * A) * u * u * T + 0.8731844068147200e16 * B * B *  A * u * u * T + 0.2088562702786560e16 * B *  A * POW(u, 0.4e1) * T * T - 0.5522301383639040e16 * u * u * T * B * B *  (A * A) + 0.3681534255759360e16 * u * u * T * B *   POW( A,  3) - 0.1215378295971840e16 * POW(u, 0.4e1) * T * T * B *  (A * A) + 0.3681534255759360e16 * u * u * T * POW(B, 0.3e1) *  A + 0.213766889656320e15 * POW(u, 0.6e1) * POW(T, 0.3e1) * B *  A + 0.1215378295971840e16 * POW(u, 0.4e1) * T * T * B * B *  A + 0.10521478775808000e17 * B * B *   POW( A,  3) + 0.31860920931840e14 * POW(u, 0.4e1) * T * T *   POW( A,  5) - 0.597299662080e12 *  (A * A) * POW(u, 0.10e2) * POW(T, 0.5e1) - 0.67619843280e11 * B * POW(u, 0.12e2) * POW(T, 0.6e1) - 0.55919876812800e14 * u * u * T * POW(B, 0.6e1) - 0.31860920931840e14 * POW(u, 0.4e1) * T * T * POW(B, 0.5e1) - 0.12185764462080e14 * POW(u, 0.6e1) * POW(T, 0.3e1) * POW(B, 0.4e1) - 0.3265528759680e13 * POW(u, 0.8e1) * POW(T, 0.4e1) * POW(B, 0.3e1) - 0.597299662080e12 * B * B * POW(u, 0.10e2) * POW(T, 0.5e1) - 0.10521478775808000e17 * POW(B, 0.3e1) *  (A * A) + 0.67619843280e11 *  A * POW(u, 0.12e2) * POW(T, 0.6e1) - 0.12185764462080e14 * POW(u, 0.6e1) * POW(T, 0.3e1) *   POW( A,  4) + 0.3265528759680e13 * POW(u, 0.8e1) * POW(T, 0.4e1) *   POW( A,  3) - 0.55919876812800e14 * u * u * T *   POW( A,  6) + 0.5260739387904000e16 * POW(B, 0.4e1) *  A - 0.3041921017344e13 * POW(u, 0.6e1) * POW(T, 0.3e1) * POW(B, 0.5e1) - 0.7057520025600e13 * POW(u, 0.4e1) * T * T * POW(B, 0.6e1) - 0.11342895083520e14 * u * u * T * POW(B, 0.7e1) - 0.5260739387904000e16 * B *   POW( A,  4) - 0.35587449920e11 * B * B * POW(u, 0.12e2) * POW(T, 0.6e1) + 0.11342895083520e14 * u * u * T *   POW( A,  7) - 0.959866826160e12 * POW(u, 0.8e1) * POW(T, 0.4e1) *   POW( A,  4) + 0.3041921017344e13 * POW(u, 0.6e1) * POW(T, 0.3e1) *   POW( A,  5) - 0.35587449920e11 *  (A * A) * POW(u, 0.12e2) * POW(T, 0.6e1) - 0.3594047600e10 * B * POW(u, 0.14e2) * POW(T, 0.7e1) - 0.221175102720e12 * POW(B, 0.3e1) * POW(u, 0.10e2) * POW(T, 0.5e1) - 0.959866826160e12 * POW(u, 0.8e1) * POW(T, 0.4e1) * POW(B, 0.4e1) + 0.3594047600e10 *  A * POW(u, 0.14e2) * POW(T, 0.7e1) + 0.5041132198502400e16 * POW(B, 0.3e1) *   POW( A,  3) + 0.1512339659550720e16 * POW(B, 0.5e1) *  A - 0.3780849148876800e16 * POW(B, 0.4e1) *  (A * A) + 0.1512339659550720e16 * B *   POW( A,  5) - 0.3780849148876800e16 * B * B *   POW( A,  4) - 0.122020548249600e15 * B * POW(u, 0.6e1) * POW(T, 0.3e1) *  (A * A) - 0.2438623118131200e16 * u * u * T * POW(B, 0.3e1) *  (A * A) + 0.497170414540800e15 * B * POW(u, 0.4e1) * T * T *   POW( A,  3) - 0.1219311559065600e16 * B * u * u * T *   POW( A,  4) - 0.67619843280e11 * POW(u, 0.12e2) * POW(T, 0.6e1) + 0.17424507767040e14 * B * POW(u, 0.8e1) * POW(T, 0.4e1) *  A +  (11563793495654400 *  POW( A,  3)) - 0.745755621811200e15 * POW(u, 0.4e1) * T * T * B * B *  (A * A) - 0.7057520025600e13 * POW(u, 0.4e1) * T * T *   POW( A,  6) + 0.2438623118131200e16 * u * u * T * B * B *   POW( A,  3) +  (49559114981376000 * A) + 0.497170414540800e15 * POW(u, 0.4e1) * T * T * POW(B, 0.3e1) *  A + 0.122020548249600e15 * POW(u, 0.6e1) * POW(T, 0.3e1) * B * B *  A + 0.1219311559065600e16 * u * u * T * POW(B, 0.4e1) *  A - 0.49559114981376000e17 * B -  (3805432043212800 *  POW( A,  4)) - 0.3805432043212800e16 * POW(B, 0.4e1) - 0.1052147877580800e16 * POW(B, 0.5e1) -  (252056609925120 *  POW( A,  6)) - 0.252056609925120e15 * POW(B, 0.6e1) +  (1052147877580800 *  POW( A,  5)) - 0.1760532533760e13 * POW(B, 0.9e1) +  (1760532533760 *  POW( A,  9)) - 0.13215763995033600e17 * u * u * T + 0.9796586279040e13 * B * B * POW(u, 0.8e1) * POW(T, 0.4e1) *  A - 0.838798152192000e15 * B * B * u * u * T *   POW( A,  4) + 0.318609209318400e15 * B * B * POW(u, 0.4e1) * T * T *   POW( A,  3) - 0.838798152192000e15 * u * u * T * POW(B, 0.4e1) *  (A * A) - 0.73114586772480e14 * B * B * POW(u, 0.6e1) * POW(T, 0.3e1) *  (A * A) + 0.48743057848320e14 * B * POW(u, 0.6e1) * POW(T, 0.3e1) *   POW( A,  3) - 0.9796586279040e13 * B * POW(u, 0.8e1) * POW(T, 0.4e1) *  (A * A) + 0.335519260876800e15 * B * u * u * T *   POW( A,  5) - 0.159304604659200e15 * B * POW(u, 0.4e1) * T * T *   POW( A,  4) - 0.13215763995033600e17 * B * u * u * T + 0.1194599324160e13 * B *  A * POW(u, 0.10e2) * POW(T, 0.5e1) - 0.1917465758208000e16 * POW(u, 0.4e1) * T * T -  (28083498489446400 * A * A) - 0.28083498489446400e17 * B * B + 0.335519260876800e15 * u * u * T * POW(B, 0.5e1) *  A + 0.48743057848320e14 * POW(u, 0.6e1) * POW(T, 0.3e1) * POW(B, 0.3e1) *  A + 0.159304604659200e15 * POW(u, 0.4e1) * T * T * POW(B, 0.4e1) *  A + 0.1118397536256000e16 * u * u * T * POW(B, 0.3e1) *   POW( A,  3) - 0.318609209318400e15 * POW(u, 0.4e1) * T * T * POW(B, 0.3e1) *  (A * A) - 0.1121963297495040e16 * POW(B, 0.5e1) *  (A * A) + 0.1121963297495040e16 * B * B *   POW( A,  5) + 0.1869938829158400e16 * POW(B, 0.4e1) *   POW( A,  3) + 0.373987765831680e15 * POW(B, 0.6e1) *  A - 0.11563793495654400e17 * POW(B, 0.3e1) - 0.1869938829158400e16 * POW(B, 0.3e1) *   POW( A,  4) - 0.53426823690240e14 * POW(B, 0.7e1) +  (53426823690240 *  POW( A,  7)) - 0.10173345262080e14 * POW(B, 0.8e1) -  (10173345262080 *  POW( A,  8)) - 0.373987765831680e15 * B *   POW( A,  6) - 0.15844792803840e14 * B *   POW( A,  8) - 0.63379171215360e14 * POW(B, 0.7e1) *  (A * A) + 0.221827099253760e15 * POW(B, 0.4e1) *   POW( A,  5) + 0.147884732835840e15 * POW(B, 0.6e1) *   POW( A,  3) + 0.15844792803840e14 * POW(B, 0.8e1) *  A + 0.2344722478560e13 * B * B * POW(u, 0.8e1) * POW(T, 0.4e1) *   POW( A,  3) + 0.115785241313280e15 * POW(B, 0.3e1) * u * u * T *   POW( A,  5) - 0.2344722478560e13 * POW(B, 0.3e1) * POW(u, 0.8e1) * POW(T, 0.4e1) *  (A * A) + 0.13101517524480e14 * POW(B, 0.3e1) * POW(u, 0.6e1) * POW(T, 0.3e1) *   POW( A,  3) - 0.9826138143360e13 * POW(B, 0.4e1) * POW(u, 0.6e1) * POW(T, 0.3e1) *  (A * A) - 0.57892620656640e14 * u * u * T * POW(B, 0.6e1) *  (A * A) + 0.48366032816640e14 * POW(B, 0.4e1) * POW(u, 0.4e1) * T * T *   POW( A,  3) - 0.144731551641600e15 * POW(B, 0.4e1) * u * u * T *   POW( A,  4) + 0.256027340800e12 * POW(B, 0.3e1) *  A * POW(u, 0.10e2) * POW(T, 0.5e1) - 0.48366032816640e14 * POW(B, 0.3e1) * POW(u, 0.4e1) * T * T *   POW( A,  4) + 0.16540748759040e14 * u * u * T * POW(B, 0.7e1) *  A - 0.29019619689984e14 * POW(u, 0.4e1) * T * T * POW(B, 0.5e1) *  (A * A) + 0.115785241313280e15 * u * u * T * POW(B, 0.5e1) *   POW( A,  3) + 0.9673206563328e13 * POW(u, 0.4e1) * T * T * POW(B, 0.6e1) *  A - 0.655075876224e12 * POW(u, 0.6e1) * POW(T, 0.3e1) * POW(B, 0.6e1) - 0.1381886651904e13 * POW(u, 0.4e1) * T * T * POW(B, 0.7e1) - 0.2067593594880e13 * u * u * T * POW(B, 0.8e1) - 0.13047502160e11 * POW(B, 0.3e1) * POW(u, 0.12e2) * POW(T, 0.6e1) - 0.1882551264e10 * B * B * POW(u, 0.14e2) * POW(T, 0.7e1) - 0.64006835200e11 * POW(B, 0.4e1) * POW(u, 0.10e2) * POW(T, 0.5e1) - 0.234472247856e12 * POW(u, 0.8e1) * POW(T, 0.4e1) * POW(B, 0.5e1) - 0.172033169e9 * B * POW(u, 0.16e2) * POW(T, 0.8e1) - 0.2067593594880e13 * u * u * T *   POW( A,  8) + 0.234472247856e12 * POW(u, 0.8e1) * POW(T, 0.4e1) *   POW( A,  5) - 0.655075876224e12 * POW(u, 0.6e1) * POW(T, 0.3e1) *   POW( A,  6) + 0.13047502160e11 *   POW( A,  3) * POW(u, 0.12e2) * POW(T, 0.6e1) - 0.1882551264e10 *  (A * A) * POW(u, 0.14e2) * POW(T, 0.7e1) + 0.1381886651904e13 * POW(u, 0.4e1) * T * T *   POW( A,  7) + 0.172033169e9 *  A * POW(u, 0.16e2) * POW(T, 0.8e1) - 0.64006835200e11 *   POW( A,  4) * POW(u, 0.10e2) * POW(T, 0.5e1) + 0.63379171215360e14 * B * B *   POW( A,  7) - 0.7500076e7 * POW(u, 0.18e2) * POW(T, 0.9e1) + 0.3930455257344e13 * POW(u, 0.6e1) * POW(T, 0.3e1) * POW(B, 0.5e1) *  A + 0.256027340800e12 * B *   POW( A,  3) * POW(u, 0.10e2) * POW(T, 0.5e1) - 0.147884732835840e15 * POW(B, 0.3e1) *   POW( A,  6) + 0.16540748759040e14 * B * u * u * T *   POW( A,  7) - 0.1172361239280e13 * B * POW(u, 0.8e1) * POW(T, 0.4e1) *   POW( A,  4) + 0.3930455257344e13 * B * POW(u, 0.6e1) * POW(T, 0.3e1) *   POW( A,  5) - 0.39142506480e11 * B *  (A * A) * POW(u, 0.12e2) * POW(T, 0.6e1) + 0.3765102528e10 * B *  A * POW(u, 0.14e2) * POW(T, 0.7e1) - 0.9673206563328e13 * B * POW(u, 0.4e1) * T * T *   POW( A,  6) + 0.29019619689984e14 * B * B * POW(u, 0.4e1) * T * T *   POW( A,  5) - 0.384041011200e12 * B * B *  (A * A) * POW(u, 0.10e2) * POW(T, 0.5e1) - 0.9826138143360e13 * B * B * POW(u, 0.6e1) * POW(T, 0.3e1) *   POW( A,  4) + 0.39142506480e11 * B * B *  A * POW(u, 0.12e2) * POW(T, 0.6e1) + 0.1172361239280e13 * POW(B, 0.4e1) * POW(u, 0.8e1) * POW(T, 0.4e1) *  A - 0.57892620656640e14 * B * B * u * u * T *   POW( A,  6) - 0.221827099253760e15 * POW(B, 0.5e1) *   POW( A,  4) + 0.42345120153600e14 * B * POW(u, 0.4e1) * T * T *   POW( A,  5) - 0.3594047600e10 * POW(u, 0.14e2) * POW(T, 0.7e1) - 0.663525308160e12 * B *  (A * A) * POW(u, 0.10e2) * POW(T, 0.5e1) - 0.15209605086720e14 * B * POW(u, 0.6e1) * POW(T, 0.3e1) *   POW( A,  4) + 0.71174899840e11 * B *  A * POW(u, 0.12e2) * POW(T, 0.6e1) + 0.3839467304640e13 * POW(B, 0.3e1) * POW(u, 0.8e1) * POW(T, 0.4e1) *  A - 0.79400265584640e14 * B * u * u * T *   POW( A,  6) + 0.3839467304640e13 * B * POW(u, 0.8e1) * POW(T, 0.4e1) *   POW( A,  3) + 0.238200796753920e15 * B * B * u * u * T *   POW( A,  5) - 0.5759200956960e13 * B * B * POW(u, 0.8e1) * POW(T, 0.4e1) *  (A * A) + 0.30419210173440e14 * B * B * POW(u, 0.6e1) * POW(T, 0.3e1) *   POW( A,  3) - 0.30419210173440e14 * POW(B, 0.3e1) * POW(u, 0.6e1) * POW(T, 0.3e1) *  (A * A) - 0.238200796753920e15 * u * u * T * POW(B, 0.5e1) *  (A * A) + 0.141150400512000e15 * POW(B, 0.3e1) * POW(u, 0.4e1) * T * T *   POW( A,  3) - 0.397001327923200e15 * POW(B, 0.3e1) * u * u * T *   POW( A,  4) + 0.663525308160e12 * B * B *  A * POW(u, 0.10e2) * POW(T, 0.5e1) - 0.284853667338240e15 * POW(B, 0.6e1) *  (A * A) + 0.569707334676480e15 * POW(B, 0.3e1) *   POW( A,  5) - 0.105862800384000e15 * B * B * POW(u, 0.4e1) * T * T *   POW( A,  4) + 0.79400265584640e14 * u * u * T * POW(B, 0.6e1) *  A - 0.105862800384000e15 * POW(u, 0.4e1) * T * T * POW(B, 0.4e1) *  (A * A) + 0.397001327923200e15 * u * u * T * POW(B, 0.4e1) *   POW( A,  3) + 0.42345120153600e14 * POW(u, 0.4e1) * T * T * POW(B, 0.5e1) *  A + 0.15209605086720e14 * POW(u, 0.6e1) * POW(T, 0.3e1) * POW(B, 0.4e1) *  A + 0.569707334676480e15 * POW(B, 0.5e1) *   POW( A,  3) + 0.81386762096640e14 * POW(B, 0.7e1) *  A - 0.284853667338240e15 * B * B *   POW( A,  6) - 0.712134168345600e15 * POW(B, 0.4e1) *   POW( A,  4) + 0.81386762096640e14 * B *   POW( A,  7) - 0.172033169e9 * POW(u, 0.16e2) * POW(T, 0.8e1) + 0.221175102720e12 *   POW( A,  3) * POW(u, 0.10e2) * POW(T, 0.5e1)) / 0.594709379776512000e18;
+
+  *mean = (0.297974476800e12 * POW(u, 0.6e1) * POW(T, 0.3e1) * A * A - 0.29797447680e11 * POW(u, 0.8e1) * POW(T, 0.4e1) * A - 0.1072708116480e13 * A * POW(u, 0.6e1) * POW(T, 0.3e1) + 0.8581664931840e13 * A * A * POW(u, 0.4e1) * T * T - 0.40047769681920e14 * POW(A, 0.3e1) * u * u * T + 0.1072708116480e13 * B * POW(u, 0.6e1) * POW(T, 0.3e1) + 0.8581664931840e13 * B * B * POW(u, 0.4e1) * T * T + 0.40047769681920e14 * POW(B, 0.3e1) * u * u * T - 0.30035827261440e14 * A * POW(u, 0.4e1) * T * T + 0.180214963568640e15 * A * A * u * u * T + 0.30035827261440e14 * B * POW(u, 0.4e1) * T * T + 0.180214963568640e15 * B * B * u * u * T + 0.2145416232960e13 * POW(u, 0.6e1) * POW(T, 0.3e1) + 0.7151387443200e13 * u * u * T * POW(B, 0.4e1) + 0.7151387443200e13 * u * u * T * POW(A, 0.4e1) + 0.1787846860800e13 * POW(u, 0.4e1) * T * T * POW(B, 0.3e1) + 0.297974476800e12 * POW(u, 0.6e1) * POW(T, 0.3e1) * B * B + 0.29797447680e11 * POW(u, 0.8e1) * POW(T, 0.4e1) * B - 0.1787846860800e13 * POW(u, 0.4e1) * T * T * POW(A, 0.3e1) - 0.677214720e9 * A * POW(u, 0.10e2) * POW(T, 0.5e1) + 0.297974476800e12 * POW(u, 0.4e1) * T * T * POW(A, 0.4e1) - 0.1072708116480e13 * u * u * T * POW(A, 0.5e1) + 0.8126576640e10 * POW(u, 0.8e1) * POW(T, 0.4e1) * A * A - 0.59594895360e11 * POW(u, 0.6e1) * POW(T, 0.3e1) * POW(A, 0.3e1) + 0.677214720e9 * B * POW(u, 0.10e2) * POW(T, 0.5e1) + 0.8126576640e10 * POW(u, 0.8e1) * POW(T, 0.4e1) * B * B + 0.59594895360e11 * POW(u, 0.6e1) * POW(T, 0.3e1) * POW(B, 0.3e1) + 0.297974476800e12 * POW(u, 0.4e1) * T * T * POW(B, 0.4e1) + 0.1072708116480e13 * u * u * T * POW(B, 0.5e1) - 0.480573236183040e15 * B * POW(A, 0.3e1) + 0.720859854274560e15 * B * B * A * A - 0.480573236183040e15 * POW(B, 0.3e1) * A - 0.600716545228800e15 * A * u * u * T + 0.1802149635686400e16 * B * A * A - 0.1802149635686400e16 * B * B * A + 0.1354429440e10 * POW(u, 0.10e2) * POW(T, 0.5e1) + 0.59594895360e11 * POW(u, 0.8e1) * POW(T, 0.4e1) - 0.4805732361830400e16 * B * A - 0.360429927137280e15 * B * A * u * u * T + 0.120143309045760e15 * B * A * A * u * u * T - 0.120143309045760e15 * B * B * A * u * u * T - 0.17163329863680e14 * B * A * POW(u, 0.4e1) * T * T + 0.42908324659200e14 * u * u * T * B * B * A * A - 0.28605549772800e14 * u * u * T * B * POW(A, 0.3e1) + 0.5363540582400e13 * POW(u, 0.4e1) * T * T * B * A * A - 0.28605549772800e14 * u * u * T * POW(B, 0.3e1) * A - 0.595948953600e12 * POW(u, 0.6e1) * POW(T, 0.3e1) * B * A - 0.5363540582400e13 * POW(u, 0.4e1) * T * T * B * B * A - 0.200238848409600e15 * B * B * POW(A, 0.3e1) - 0.41716426752e11 * POW(u, 0.4e1) * T * T * POW(A, 0.5e1) + 0.182327040e9 * A * A * POW(u, 0.10e2) * POW(T, 0.5e1) + 0.13023360e8 * B * POW(u, 0.12e2) * POW(T, 0.6e1) + 0.139054755840e12 * u * u * T * POW(B, 0.6e1) + 0.41716426752e11 * POW(u, 0.4e1) * T * T * POW(B, 0.5e1) + 0.9481006080e10 * POW(u, 0.6e1) * POW(T, 0.3e1) * POW(B, 0.4e1) + 0.1580167680e10 * POW(u, 0.8e1) * POW(T, 0.4e1) * POW(B, 0.3e1) + 0.182327040e9 * B * B * POW(u, 0.10e2) * POW(T, 0.5e1) + 0.200238848409600e15 * POW(B, 0.3e1) * A * A - 0.13023360e8 * A * POW(u, 0.12e2) * POW(T, 0.6e1) + 0.9481006080e10 * POW(u, 0.6e1) * POW(T, 0.3e1) * POW(A, 0.4e1) - 0.1580167680e10 * POW(u, 0.8e1) * POW(T, 0.4e1) * POW(A, 0.3e1) + 0.139054755840e12 * u * u * T * POW(A, 0.6e1) - 0.416747520e9 * B * POW(u, 0.4e1) * T * T * POW(A, 0.7e1) - 0.1680e4 * B * A * POW(u, 0.16e2) * POW(T, 0.8e1) + 0.3255840e7 * B * POW(A, 0.4e1) * POW(u, 0.10e2) * POW(T, 0.5e1) - 0.104186880e9 * POW(u, 0.6e1) * POW(T, 0.3e1) * POW(B, 0.6e1) * A - 0.6511680e7 * B * B * POW(A, 0.3e1) * POW(u, 0.10e2) * POW(T, 0.5e1) - 0.5417717760e10 * B * B * u * u * T * POW(A, 0.7e1) + 0.52093440e8 * B * B * POW(u, 0.8e1) * POW(T, 0.4e1) * POW(A, 0.4e1) - 0.312560640e9 * B * B * POW(u, 0.6e1) * POW(T, 0.3e1) * POW(A, 0.5e1) + 0.574560e6 * B * B * A * A * POW(u, 0.12e2) * POW(T, 0.6e1) - 0.31920e5 * B * B * A * POW(u, 0.14e2) * POW(T, 0.7e1) + 0.1458616320e10 * B * B * POW(u, 0.4e1) * T * T * POW(A, 0.6e1) - 0.2917232640e10 * POW(B, 0.3e1) * POW(u, 0.4e1) * T * T * POW(A, 0.5e1) + 0.6511680e7 * POW(B, 0.3e1) * A * A * POW(u, 0.10e2) * POW(T, 0.5e1) + 0.520934400e9 * POW(B, 0.3e1) * POW(u, 0.6e1) * POW(T, 0.3e1) * POW(A, 0.4e1) - 0.100119424204800e15 * POW(B, 0.4e1) * A + 0.1264134144e10 * POW(u, 0.6e1) * POW(T, 0.3e1) * POW(B, 0.5e1) + 0.5056536576e10 * POW(u, 0.4e1) * T * T * POW(B, 0.6e1) + 0.15891972096e11 * u * u * T * POW(B, 0.7e1) + 0.100119424204800e15 * B * POW(A, 0.4e1) + 0.3472896e7 * B * B * POW(u, 0.12e2) * POW(T, 0.6e1) - 0.15891972096e11 * u * u * T * POW(A, 0.7e1) + 0.243102720e9 * POW(u, 0.8e1) * POW(T, 0.4e1) * POW(A, 0.4e1) - 0.1264134144e10 * POW(u, 0.6e1) * POW(T, 0.3e1) * POW(A, 0.5e1) + 0.3472896e7 * A * A * POW(u, 0.12e2) * POW(T, 0.6e1) + 0.217056e6 * B * POW(u, 0.14e2) * POW(T, 0.7e1) + 0.34728960e8 * POW(B, 0.3e1) * POW(u, 0.10e2) * POW(T, 0.5e1) + 0.243102720e9 * POW(u, 0.8e1) * POW(T, 0.4e1) * POW(B, 0.4e1) - 0.217056e6 * A * POW(u, 0.14e2) * POW(T, 0.7e1) - 0.57211099545600e14 * POW(B, 0.3e1) * POW(A, 0.3e1) - 0.17163329863680e14 * POW(B, 0.5e1) * A + 0.42908324659200e14 * POW(B, 0.4e1) * A * A - 0.17163329863680e14 * B * POW(A, 0.5e1) + 0.42908324659200e14 * B * B * POW(A, 0.4e1) + 0.178784686080e12 * B * POW(u, 0.6e1) * POW(T, 0.3e1) * A * A - 0.383040e6 * POW(B, 0.3e1) * A * POW(u, 0.12e2) * POW(T, 0.6e1) - 0.20837376e8 * POW(B, 0.5e1) * POW(u, 0.8e1) * POW(T, 0.4e1) * A + 0.12641341440e11 * POW(B, 0.3e1) * u * u * T * POW(A, 0.6e1) + 0.10727081164800e14 * u * u * T * POW(B, 0.3e1) * A * A - 0.1191897907200e13 * B * POW(u, 0.4e1) * T * T * POW(A, 0.3e1) + 0.5363540582400e13 * B * u * u * T * POW(A, 0.4e1) + 0.26046720e8 * POW(u, 0.12e2) * POW(T, 0.6e1) - 0.16253153280e11 * B * POW(u, 0.8e1) * POW(T, 0.4e1) * A - 0.600716545228800e15 * POW(A, 0.3e1) + 0.1787846860800e13 * POW(u, 0.4e1) * T * T * B * B * A * A + 0.5056536576e10 * POW(u, 0.4e1) * T * T * POW(A, 0.6e1) - 0.10727081164800e14 * u * u * T * B * B * POW(A, 0.3e1) - 0.7208598542745600e16 * A - 0.1191897907200e13 * POW(u, 0.4e1) * T * T * POW(B, 0.3e1) * A - 0.178784686080e12 * POW(u, 0.6e1) * POW(T, 0.3e1) * B * B * A - 0.5363540582400e13 * u * u * T * POW(B, 0.4e1) * A + 0.7208598542745600e16 * B + POW(u, 0.20e2) * POW(T, 0.10e2) + 0.120143309045760e15 * POW(A, 0.4e1) + 0.120143309045760e15 * POW(B, 0.4e1) + 0.20023884840960e14 * POW(B, 0.5e1) + 0.2860554977280e13 * POW(A, 0.6e1) + 0.2860554977280e13 * POW(B, 0.6e1) - 0.20023884840960e14 * POW(A, 0.5e1) + 0.3972993024e10 * POW(B, 0.9e1) - 0.3972993024e10 * POW(A, 0.9e1) + 0.361181184e9 * POW(B, 0.10e2) + 0.361181184e9 * POW(A, 0.10e2) + 0.1201433090457600e16 * u * u * T - 0.4740503040e10 * B * B * POW(u, 0.8e1) * POW(T, 0.4e1) * A + 0.2085821337600e13 * B * B * u * u * T * POW(A, 0.4e1) - 0.417164267520e12 * B * B * POW(u, 0.4e1) * T * T * POW(A, 0.3e1) + 0.2085821337600e13 * u * u * T * POW(B, 0.4e1) * A * A + 0.56886036480e11 * B * B * POW(u, 0.6e1) * POW(T, 0.3e1) * A * A - 0.37924024320e11 * B * POW(u, 0.6e1) * POW(T, 0.3e1) * POW(A, 0.3e1) + 0.4740503040e10 * B * POW(u, 0.8e1) * POW(T, 0.4e1) * A * A - 0.834328535040e12 * B * u * u * T * POW(A, 0.5e1) + 0.208582133760e12 * B * POW(u, 0.4e1) * T * T * POW(A, 0.4e1) + 0.600716545228800e15 * B * u * u * T - 0.364654080e9 * B * A * POW(u, 0.10e2) * POW(T, 0.5e1) + 0.60071654522880e14 * POW(u, 0.4e1) * T * T + 0.2402866180915200e16 * A * A + 0.2402866180915200e16 * B * B - 0.834328535040e12 * u * u * T * POW(B, 0.5e1) * A - 0.37924024320e11 * POW(u, 0.6e1) * POW(T, 0.3e1) * POW(B, 0.3e1) * A - 0.208582133760e12 * POW(u, 0.4e1) * T * T * POW(B, 0.4e1) * A - 0.2781095116800e13 * u * u * T * POW(B, 0.3e1) * POW(A, 0.3e1) + 0.417164267520e12 * POW(u, 0.4e1) * T * T * POW(B, 0.3e1) * A * A + 0.7508956815360e13 * POW(B, 0.5e1) * A * A - 0.7508956815360e13 * B * B * POW(A, 0.5e1) - 0.12514928025600e14 * POW(B, 0.4e1) * POW(A, 0.3e1) - 0.2502985605120e13 * POW(B, 0.6e1) * A + 0.600716545228800e15 * POW(B, 0.3e1) + 0.12514928025600e14 * POW(B, 0.3e1) * POW(A, 0.4e1) + 0.357569372160e12 * POW(B, 0.7e1) - 0.357569372160e12 * POW(A, 0.7e1) + 0.39729930240e11 * POW(B, 0.8e1) + 0.39729930240e11 * POW(A, 0.8e1) + 0.2502985605120e13 * B * POW(A, 0.6e1) + 0.35756937216e11 * B * POW(A, 0.8e1) + 0.143027748864e12 * POW(B, 0.7e1) * A * A - 0.500597121024e12 * POW(B, 0.4e1) * POW(A, 0.5e1) - 0.333731414016e12 * POW(B, 0.6e1) * POW(A, 0.3e1) - 0.35756937216e11 * POW(B, 0.8e1) * A - 0.312560640e9 * B * B * POW(u, 0.8e1) * POW(T, 0.4e1) * POW(A, 0.3e1) - 0.91017658368e11 * POW(B, 0.3e1) * u * u * T * POW(A, 0.5e1) + 0.312560640e9 * POW(B, 0.3e1) * POW(u, 0.8e1) * POW(T, 0.4e1) * A * A - 0.2917232640e10 * POW(B, 0.3e1) * POW(u, 0.6e1) * POW(T, 0.3e1) * POW(A, 0.3e1) + 0.2187924480e10 * POW(B, 0.4e1) * POW(u, 0.6e1) * POW(T, 0.3e1) * A * A + 0.45508829184e11 * u * u * T * POW(B, 0.6e1) * A * A - 0.18962012160e11 * POW(B, 0.4e1) * POW(u, 0.4e1) * T * T * POW(A, 0.3e1) + 0.113772072960e12 * POW(B, 0.4e1) * u * u * T * POW(A, 0.4e1) - 0.20837376e8 * POW(B, 0.3e1) * A * POW(u, 0.10e2) * POW(T, 0.5e1) + 0.18962012160e11 * POW(B, 0.3e1) * POW(u, 0.4e1) * T * T * POW(A, 0.4e1) - 0.13002522624e11 * u * u * T * POW(B, 0.7e1) * A + 0.11377207296e11 * POW(u, 0.4e1) * T * T * POW(B, 0.5e1) * A * A - 0.91017658368e11 * u * u * T * POW(B, 0.5e1) * POW(A, 0.3e1) - 0.3792402432e10 * POW(u, 0.4e1) * T * T * POW(B, 0.6e1) * A + 0.145861632e9 * POW(u, 0.6e1) * POW(T, 0.3e1) * POW(B, 0.6e1) + 0.541771776e9 * POW(u, 0.4e1) * T * T * POW(B, 0.7e1) + 0.1625315328e10 * u * u * T * POW(B, 0.8e1) + 0.651168e6 * POW(B, 0.3e1) * POW(u, 0.12e2) * POW(T, 0.6e1) + 0.57456e5 * B * B * POW(u, 0.14e2) * POW(T, 0.7e1) + 0.5209344e7 * POW(B, 0.4e1) * POW(u, 0.10e2) * POW(T, 0.5e1) + 0.31256064e8 * POW(u, 0.8e1) * POW(T, 0.4e1) * POW(B, 0.5e1) + 0.3192e4 * B * POW(u, 0.16e2) * POW(T, 0.8e1) + 0.1625315328e10 * u * u * T * POW(A, 0.8e1) - 0.31256064e8 * POW(u, 0.8e1) * POW(T, 0.4e1) * POW(A, 0.5e1) + 0.145861632e9 * POW(u, 0.6e1) * POW(T, 0.3e1) * POW(A, 0.6e1) - 0.651168e6 * POW(A, 0.3e1) * POW(u, 0.12e2) * POW(T, 0.6e1) + 0.57456e5 * A * A * POW(u, 0.14e2) * POW(T, 0.7e1) - 0.541771776e9 * POW(u, 0.4e1) * T * T * POW(A, 0.7e1) - 0.3192e4 * A * POW(u, 0.16e2) * POW(T, 0.8e1) + 0.5209344e7 * POW(A, 0.4e1) * POW(u, 0.10e2) * POW(T, 0.5e1) - 0.143027748864e12 * B * B * POW(A, 0.7e1) + 0.84e2 * POW(u, 0.18e2) * POW(T, 0.9e1) - 0.875169792e9 * POW(u, 0.6e1) * POW(T, 0.3e1) * POW(B, 0.5e1) * A - 0.20837376e8 * B * POW(A, 0.3e1) * POW(u, 0.10e2) * POW(T, 0.5e1) + 0.333731414016e12 * POW(B, 0.3e1) * POW(A, 0.6e1) - 0.13002522624e11 * B * u * u * T * POW(A, 0.7e1) + 0.156280320e9 * B * POW(u, 0.8e1) * POW(T, 0.4e1) * POW(A, 0.4e1) - 0.875169792e9 * B * POW(u, 0.6e1) * POW(T, 0.3e1) * POW(A, 0.5e1) + 0.1953504e7 * B * A * A * POW(u, 0.12e2) * POW(T, 0.6e1) - 0.114912e6 * B * A * POW(u, 0.14e2) * POW(T, 0.7e1) + 0.3792402432e10 * B * POW(u, 0.4e1) * T * T * POW(A, 0.6e1) - 0.11377207296e11 * B * B * POW(u, 0.4e1) * T * T * POW(A, 0.5e1) + 0.31256064e8 * B * B * A * A * POW(u, 0.10e2) * POW(T, 0.5e1) + 0.2187924480e10 * B * B * POW(u, 0.6e1) * POW(T, 0.3e1) * POW(A, 0.4e1) - 0.1953504e7 * B * B * A * POW(u, 0.12e2) * POW(T, 0.6e1) - 0.156280320e9 * POW(B, 0.4e1) * POW(u, 0.8e1) * POW(T, 0.4e1) * A + 0.45508829184e11 * B * B * u * u * T * POW(A, 0.6e1) + 0.500597121024e12 * POW(B, 0.5e1) * POW(A, 0.4e1) - 0.30339219456e11 * B * POW(u, 0.4e1) * T * T * POW(A, 0.5e1) + 0.434112e6 * POW(u, 0.14e2) * POW(T, 0.7e1) + 0.104186880e9 * B * A * A * POW(u, 0.10e2) * POW(T, 0.5e1) + 0.6320670720e10 * B * POW(u, 0.6e1) * POW(T, 0.3e1) * POW(A, 0.4e1) - 0.6945792e7 * B * A * POW(u, 0.12e2) * POW(T, 0.6e1) - 0.972410880e9 * POW(B, 0.3e1) * POW(u, 0.8e1) * POW(T, 0.4e1) * A + 0.111243804672e12 * B * u * u * T * POW(A, 0.6e1) - 0.972410880e9 * B * POW(u, 0.8e1) * POW(T, 0.4e1) * POW(A, 0.3e1) - 0.333731414016e12 * B * B * u * u * T * POW(A, 0.5e1) + 0.1458616320e10 * B * B * POW(u, 0.8e1) * POW(T, 0.4e1) * A * A - 0.12641341440e11 * B * B * POW(u, 0.6e1) * POW(T, 0.3e1) * POW(A, 0.3e1) + 0.12641341440e11 * POW(B, 0.3e1) * POW(u, 0.6e1) * POW(T, 0.3e1) * A * A + 0.333731414016e12 * u * u * T * POW(B, 0.5e1) * A * A - 0.101130731520e12 * POW(B, 0.3e1) * POW(u, 0.4e1) * T * T * POW(A, 0.3e1) + 0.556219023360e12 * POW(B, 0.3e1) * u * u * T * POW(A, 0.4e1) - 0.104186880e9 * B * B * A * POW(u, 0.10e2) * POW(T, 0.5e1) + 0.1112438046720e13 * POW(B, 0.6e1) * A * A - 0.2224876093440e13 * POW(B, 0.3e1) * POW(A, 0.5e1) + 0.75848048640e11 * B * B * POW(u, 0.4e1) * T * T * POW(A, 0.4e1) - 0.111243804672e12 * u * u * T * POW(B, 0.6e1) * A + 0.75848048640e11 * POW(u, 0.4e1) * T * T * POW(B, 0.4e1) * A * A - 0.556219023360e12 * u * u * T * POW(B, 0.4e1) * POW(A, 0.3e1) - 0.30339219456e11 * POW(u, 0.4e1) * T * T * POW(B, 0.5e1) * A - 0.6320670720e10 * POW(u, 0.6e1) * POW(T, 0.3e1) * POW(B, 0.4e1) * A - 0.2224876093440e13 * POW(B, 0.5e1) * POW(A, 0.3e1) - 0.317839441920e12 * POW(B, 0.7e1) * A + 0.1112438046720e13 * B * B * POW(A, 0.6e1) + 0.2781095116800e13 * POW(B, 0.4e1) * POW(A, 0.4e1) - 0.317839441920e12 * B * POW(A, 0.7e1) + 0.6384e4 * POW(u, 0.16e2) * POW(T, 0.8e1) - 0.34728960e8 * POW(A, 0.3e1) * POW(u, 0.10e2) * POW(T, 0.5e1) - 0.3611811840e10 * B * POW(A, 0.9e1) + 0.16253153280e11 * B * B * POW(A, 0.8e1) + 0.16253153280e11 * POW(B, 0.8e1) * A * A - 0.91017658368e11 * POW(B, 0.5e1) * POW(A, 0.5e1) - 0.43341742080e11 * POW(B, 0.7e1) * POW(A, 0.3e1) - 0.3611811840e10 * POW(B, 0.9e1) * A - 0.43341742080e11 * POW(B, 0.3e1) * POW(A, 0.7e1) + 0.75848048640e11 * POW(B, 0.4e1) * POW(A, 0.6e1) + 0.75848048640e11 * POW(B, 0.6e1) * POW(A, 0.4e1) + 0.14883840e8 * POW(u, 0.6e1) * POW(T, 0.3e1) * POW(B, 0.7e1) + 0.52093440e8 * POW(u, 0.4e1) * T * T * POW(B, 0.8e1) - 0.69457920e8 * POW(B, 0.3e1) * POW(u, 0.8e1) * POW(T, 0.4e1) * POW(A, 0.3e1) - 0.18962012160e11 * POW(B, 0.4e1) * u * u * T * POW(A, 0.5e1) + 0.52093440e8 * POW(B, 0.4e1) * POW(u, 0.8e1) * POW(T, 0.4e1) * A * A - 0.520934400e9 * POW(B, 0.4e1) * POW(u, 0.6e1) * POW(T, 0.3e1) * POW(A, 0.3e1) + 0.312560640e9 * POW(B, 0.5e1) * POW(u, 0.6e1) * POW(T, 0.3e1) * A * A + 0.5417717760e10 * u * u * T * POW(B, 0.7e1) * A * A - 0.2917232640e10 * POW(B, 0.5e1) * POW(u, 0.4e1) * T * T * POW(A, 0.3e1) + 0.18962012160e11 * POW(B, 0.5e1) * u * u * T * POW(A, 0.4e1) - 0.3255840e7 * POW(B, 0.4e1) * A * POW(u, 0.10e2) * POW(T, 0.5e1) + 0.3646540800e10 * POW(B, 0.4e1) * POW(u, 0.4e1) * T * T * POW(A, 0.4e1) - 0.1354429440e10 * u * u * T * POW(B, 0.8e1) * A + 0.1458616320e10 * POW(u, 0.4e1) * T * T * POW(B, 0.6e1) * A * A - 0.12641341440e11 * u * u * T * POW(B, 0.6e1) * POW(A, 0.3e1) - 0.416747520e9 * POW(u, 0.4e1) * T * T * POW(B, 0.7e1) * A + 0.1354429440e10 * B * u * u * T * POW(A, 0.8e1) - 0.20837376e8 * B * POW(u, 0.8e1) * POW(T, 0.4e1) * POW(A, 0.5e1) + 0.104186880e9 * B * POW(u, 0.6e1) * POW(T, 0.3e1) * POW(A, 0.6e1) - 0.383040e6 * B * POW(A, 0.3e1) * POW(u, 0.12e2) * POW(T, 0.6e1) + 0.31920e5 * B * A * A * POW(u, 0.14e2) * POW(T, 0.7e1) + 0.150492160e9 * u * u * T * POW(B, 0.9e1) + 0.95760e5 * POW(B, 0.4e1) * POW(u, 0.12e2) * POW(T, 0.6e1) + 0.10640e5 * POW(B, 0.3e1) * POW(u, 0.14e2) * POW(T, 0.7e1) + 0.651168e6 * POW(B, 0.5e1) * POW(u, 0.10e2) * POW(T, 0.5e1) + 0.3472896e7 * POW(u, 0.8e1) * POW(T, 0.4e1) * POW(B, 0.6e1) + 0.840e3 * B * B * POW(u, 0.16e2) * POW(T, 0.8e1) + 0.42e2 * B * POW(u, 0.18e2) * POW(T, 0.9e1) - 0.150492160e9 * u * u * T * POW(A, 0.9e1) + 0.3472896e7 * POW(u, 0.8e1) * POW(T, 0.4e1) * POW(A, 0.6e1) - 0.14883840e8 * POW(u, 0.6e1) * POW(T, 0.3e1) * POW(A, 0.7e1) + 0.95760e5 * POW(A, 0.4e1) * POW(u, 0.12e2) * POW(T, 0.6e1) - 0.10640e5 * POW(A, 0.3e1) * POW(u, 0.14e2) * POW(T, 0.7e1) + 0.52093440e8 * POW(u, 0.4e1) * T * T * POW(A, 0.8e1) + 0.840e3 * A * A * POW(u, 0.16e2) * POW(T, 0.8e1) - 0.651168e6 * POW(A, 0.5e1) * POW(u, 0.10e2) * POW(T, 0.5e1) - 0.42e2 * A * POW(u, 0.18e2) * POW(T, 0.9e1) + 0.14417197085491200e17) * EXP(A) / 0.14417197085491200e17;
+}

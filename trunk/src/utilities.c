@@ -4169,6 +4169,8 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
   v3                     = b_fcus->rght->v[b_fcus->r_v1];
   v4                     = b_fcus->rght->v[b_fcus->r_v2];
 
+  Record_Br_Len(tree);
+
   if(v1->num < v2->num)
     {
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
@@ -4223,7 +4225,8 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
 
   /***********/
   Swap(v2,b_fcus->left,b_fcus->rght,v4,tree);
-  b_fcus->l = bl_init;
+  Restore_Br_Len(tree);
+  /* b_fcus->l = bl_init; */
   tree->both_sides = 1;
 
   tree->update_alias_subpatt = YES;
@@ -4262,7 +4265,8 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
 
   
   /***********/
-  b_fcus->l = bl_init;
+  Restore_Br_Len(tree);
+  /* b_fcus->l = bl_init; */
   tree->both_sides = 1;
 
   tree->update_alias_subpatt = YES;
@@ -4300,8 +4304,8 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
   
   if(lk0 < lk_init - tree->mod->s_opt->min_diff_lk_local)
     {
-      PhyML_Printf("\n\n%f %f %f %f\n",l_infa,l_max,l_infb,b_fcus->l);
-      PhyML_Printf("%f -- %f \n",lk0_init,lk0);
+      PhyML_Printf("\n. %f %f %f %f",l_infa,l_max,l_infb,b_fcus->l);
+      PhyML_Printf("\n. %f -- %f",lk0_init,lk0);
       PhyML_Printf("\n. Err. in NNI (3)\n");
       Warn_And_Exit("\n");
     }
@@ -4389,7 +4393,8 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
     }
   else
     {
-      b_fcus->l = bl_init;
+      /* b_fcus->l = bl_init; */
+      Restore_Br_Len(tree);
       Update_PMat_At_Given_Edge(b_fcus,tree);
       tree->c_lnL = lk_init;
     }
@@ -6390,6 +6395,7 @@ void Record_Model(model *ori, model *cpy)
   cpy->l_max        = ori->l_max;
   cpy->log_l        = ori->log_l;
 
+
   cpy->free_mixt_rates = ori->free_mixt_rates;
   cpy->state_len   = ori->state_len;
   cpy->br_len_multiplier = ori->br_len_multiplier;
@@ -6570,7 +6576,6 @@ void Set_Defaults_Model(model *mod)
   mod->l_min = 1.E-8;
   mod->l_max = 100.00;
 #endif
-
 }
 
 /*********************************************************/
@@ -6621,6 +6626,7 @@ void Set_Defaults_Optimiz(optimiz *s_opt)
   s_opt->br_len_in_spr        = 10;
   s_opt->opt_free_mixt_rates  = YES;
   s_opt->constrained_br_len   = NO;
+  s_opt->opt_gamma_br_len     = NO;
 
   s_opt->wim_n_rgrft          = -1;
   s_opt->wim_n_globl          = -1;
@@ -11832,12 +11838,12 @@ int Check_Sequence_Name(char *s)
 int Scale_Subtree_Height(t_node *a, phydbl K, phydbl floor, int *n_nodes, t_tree *tree)
 {
   phydbl new_height;
-  
-  *n_nodes = 0;
 
+  *n_nodes = 0;
+  
   new_height = .0;
 
-  if(tree->rates->nd_t[a->num] < floor)
+  if(!(tree->rates->nd_t[a->num] > floor))
     new_height = K*(tree->rates->nd_t[a->num]-floor)+floor;
 
   if(a == tree->n_root)
@@ -11929,10 +11935,44 @@ int Scale_Subtree_Rates(t_node *a, phydbl mult, int *n_nodes, t_tree *tree)
 
 /*********************************************************/
 
+void Check_Br_Len_Bounds(t_tree *tree)
+{
+  int i;
+  t_edge *b;
+
+  b = NULL;
+
+  For(i,2*tree->n_otu-3)
+    {
+      b = tree->t_edges[i];
+      if(b->l > tree->mod->l_max) b->l = tree->mod->l_max;
+      if(b->l < tree->mod->l_min) b->l = tree->mod->l_min;
+    }
+
+  if(tree->rates)
+    {
+      For(i,2*tree->n_otu-3)
+	{
+	  if(tree->rates->u_cur_l[i] > tree->mod->l_max) tree->rates->u_cur_l[i] = tree->mod->l_max;
+	  if(tree->rates->u_cur_l[i] < tree->mod->l_min) tree->rates->u_cur_l[i] = tree->mod->l_min;
+	}
+    }
+}
+
+/*********************************************************/
+
 int Scale_Subtree_Rates_Post(t_node *a, t_node *d, phydbl mult, int *n_nodes, t_tree *tree)
 {
 
-  tree->rates->br_r[d->num] *= mult;
+  if(tree->rates->model_log_rates == YES)
+    {
+      tree->rates->br_r[d->num] += LOG(mult);
+    }
+  else
+    {
+      tree->rates->br_r[d->num] *= mult;
+    }
+
   *n_nodes = *n_nodes+1;
 
   if(tree->rates->br_r[d->num] < tree->rates->min_rate) return 0;
@@ -11978,7 +12018,6 @@ void Get_Node_Ranks_Pre(t_node *a, t_node *d,t_tree *tree)
   else
     {
       int i;
-
       
       For(i,3)
 	{
@@ -11996,8 +12035,6 @@ void Log_Br_Len(t_tree *tree)
 {
   int i;
   For(i,2*tree->n_otu-3) tree->t_edges[i]->l = LOG(tree->t_edges[i]->l);
-  tree->mod->l_min = LOG(tree->mod->l_min);
-  tree->mod->l_max = LOG(tree->mod->l_max);
 }
 
 /*********************************************************/
@@ -12169,11 +12206,53 @@ phydbl Unscale_Br_Len_Multiplier_Tree(t_tree *tree)
   return(-1.);
 }
 
-
 /*********************************************************/
 
+phydbl Reflect(phydbl x, phydbl l, phydbl u)
+{
+  int rounds;
+  phydbl tmp;
+  int k;
 
+  if(u < l)
+    {
+      tmp = u;
+      u   = l;
+      l   = tmp;
+    }
 
+  if(x < l) x = x + 2.*(l - x);
+  
+  if(((x-u) > (u-l)) && (x > u))
+    {
+      k = (x - (2.*u-l))/(2.*(u-l));
+      x = x - 2.*k*(u-l);
+    }
+
+  rounds = 0;
+  do
+    {
+      rounds++;
+      /* printf("\n. l=%f u=%f x=%f",l,u,x); */
+      if(x > u || x < l) 
+	{
+	  if(x > u) x = x - 2.*(x - u);	  
+	  else      x = x + 2.*(l - x);
+	}
+      else break;
+      /* printf(" x'=%f",x); */
+    }
+  while(rounds < 100);
+    
+  if(rounds == 100 && (x > u || x < l))
+    {
+      PhyML_Printf("\n. u=%f l=%f x=%f",u,l,x);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");
+    }
+
+  return x;
+}
 
 /*********************************************************/
 /*********************************************************/
