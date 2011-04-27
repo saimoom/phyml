@@ -9438,12 +9438,17 @@ void Read_Qmat(phydbl *daa, phydbl *pi, FILE *fp)
       For(j,19)
 	{
 /* 	  if(!fscanf(fp,"%lf",&(daa[i*20+j]))) Exit("\n"); */
-	  if(!fscanf(fp,"%lf",&val)) Exit("\n");
+	  if(!fscanf(fp,"%lf",&val)) 
+	    {
+	      PhyML_Printf("\n. Rate matrix file does not appear to have a proper format. Please refer to the documentation.");
+	      Exit("\n");
+	    }
 	  daa[i*20+j] = (phydbl)val;
 	  daa[j*20+i] = daa[i*20+j];
 	  if(j == i-1) break; 
 	}
     }
+
 
   For(i,20) 
     { 

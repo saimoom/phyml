@@ -1290,6 +1290,12 @@ void Read_Command_Line(option *io, int argc, char **argv)
       io->mod->s_opt->opt_kappa = 0;
     }
   
+  if(io->datatype == AA && io->mod->whichmodel == CUSTOMAA && !io->fp_aa_rate_mat)
+    {
+      PhyML_Printf("\n. Custom model option with amino-acid requires you to specify a rate matrix file through the '--aa_rate_file' option.\n");
+      Exit("\n");
+    }
+
   io->fp_out_tree  = Openfile(io->out_tree_file,writemode);
   io->fp_out_stats = Openfile(io->out_stats_file,writemode);
   
