@@ -1633,17 +1633,12 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
 
 
       // TREES
-/*       char *s_tree; */
-/* /\*       Branch_Lengths_To_Time_Lengths(tree); *\/ */
-/*       Branch_Lengths_To_Rate_Lengths(tree); */
-/*       tree->bl_ndigits = 5; */
-/* /\*       tree->bl_ndigits = 0; *\/ */
-/*       s_tree = Write_Tree(tree); */
-/*       tree->bl_ndigits = 7; */
-/*       PhyML_Fprintf(mcmc->out_fp_trees,"TREE %8d [%f] = [&R] %s\n",mcmc->run,tree->c_lnL,s_tree); */
-/*       Free(s_tree); */
-/*       RATES_Update_Cur_Bl(tree); */
-
+      char *s_tree;
+      tree->bl_ndigits = 5;
+      s_tree = Write_Tree(tree);
+      tree->bl_ndigits = 7;
+      PhyML_Fprintf(mcmc->out_fp_trees,"TREE %8d [%f] = [&R] %s\n",mcmc->run,tree->c_lnL,s_tree);
+      Free(s_tree);
     }
 
   if(tree->mcmc->run == mcmc->chain_len)
