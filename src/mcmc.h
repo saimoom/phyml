@@ -125,5 +125,7 @@ void MCMC_Updown_Nu_Cr(t_tree *tree);
 void MCMC_All_Rates(t_tree *tree);
 void MCMC_Alpha(t_tree *tree);
 void MCMC_Kappa(t_tree *tree);
+void MCMC_Rate_Across_Sites(t_tree *tree);
+void MCMC_Free_Mixt_Rate(t_tree *tree);
 
 #endif
