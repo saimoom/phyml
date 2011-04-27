@@ -6535,7 +6535,7 @@ void Set_Defaults_Input(option* io)
   io->lk_approx                  = EXACT;
 
   MCMC_Init_MCMC_Struct(NULL,io->mcmc);
-  RATES_Init_Rate_Struct(io->rates,-1);
+  RATES_Init_Rate_Struct(io->rates,NULL,-1);
 }
 
 /*********************************************************/
@@ -9611,7 +9611,7 @@ t_tree *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
   tree = Make_Tree_From_Scratch(n_otu,NULL);
 
   tree->rates = RATES_Make_Rate_Struct(tree->n_otu);
-  RATES_Init_Rate_Struct(tree->rates,tree->n_otu);
+  RATES_Init_Rate_Struct(tree->rates,tree->io->rates,tree->n_otu);
 
   For(i,2*tree->n_otu-2) 
     {

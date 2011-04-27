@@ -36,7 +36,7 @@ void RATES_Monte_Carlo_Mean_Rates_Pre(t_node *a, t_node *d, t_edge *b, phydbl cu
 void RATES_Print_Rates(t_tree *tree);
 void RATES_Print_Rates_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree);
 t_rate *RATES_Make_Rate_Struct(int n_otu);
-void RATES_Init_Rate_Struct(t_rate *rates, int n_otu);
+void RATES_Init_Rate_Struct(t_rate *rates, t_rate *existing_rates, int n_otu);
 void RATES_Classify_Branches(t_tree *tree);
 void RATES_Adjust_Rates(t_tree *tree);
 void RATES_Adjust_Rates_Local_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree);

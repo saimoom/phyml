@@ -300,13 +300,14 @@ phydbl RATES_Lk_Rates_Core(phydbl br_r_a, phydbl br_r_d, phydbl nd_r_a, phydbl n
 
 	/* dt_d /= FABS(tree->rates->nd_t[tree->n_root->num]); */
 
-	sd   = SQRT(dt_d*tree->rates->nu);
+	sd = SQRT(dt_d*tree->rates->nu);
  	/* sd   = SQRT(dt_d*EXP(tree->rates->nu)); */
 	/* mean = LOG(br_r_a) - .5*sd*sd; */
 
 	if(tree->rates->model_log_rates == YES)
 	  {
-	    mean = br_r_a - .5*sd*sd;
+	    mean = br_r_a;
+	    /* mean = br_r_a - .5*sd*sd; */
 	  }
 	else
 	  {
@@ -339,7 +340,9 @@ phydbl RATES_Lk_Rates_Core(phydbl br_r_a, phydbl br_r_d, phydbl nd_r_a, phydbl n
     case GUINDON :
       {
 	int err;	
-	
+	phydbl cr;
+
+	cr   = tree->rates->clock_r;
 	sd   = SQRT(tree->rates->nu*dt_d);
 	mean = br_r_a;
 
@@ -779,13 +782,25 @@ void RATES_Free_Rates(t_rate *rates)
 
 /*********************************************************/
 
-void RATES_Init_Rate_Struct(t_rate *rates, int n_otu)
+void RATES_Init_Rate_Struct(t_rate *rates, t_rate *existing_rates, int n_otu)
 {
   int i;
 
+  if(existing_rates && (existing_rates->model != -1))
+    {
+      rates->model = existing_rates->model;
+    }
+  else
+    {
+      rates->model = NONE;
+    }
+
+  if(rates->model == NONE || rates->model == THORNE)
+    rates->model_log_rates = NO;
+  else if(rates->model == GUINDON)
+    rates->model_log_rates = YES;
+
   rates->met_within_gibbs = NO;
-  rates->model            = THORNE;
-  rates->model_log_rates  = NO;
   rates->c_lnL            = UNLIKELY;
   rates->c_lnL_jps        = UNLIKELY;
   rates->adjust_rates     = 0;
@@ -798,8 +813,10 @@ void RATES_Init_Rate_Struct(t_rate *rates, int n_otu)
 
   if(rates->model_log_rates == YES)
     {
-      rates->max_rate  =  2.*LOG(10.);
-      rates->min_rate  = -2.*LOG(10.);
+      rates->max_rate  =  LOG(100.);
+      rates->min_rate  = -LOG(100.);
+      /* rates->max_rate  =  MDBL_MAX; */
+      /* rates->min_rate  = -MDBL_MAX; */
     }
   else
     {
@@ -811,14 +828,17 @@ void RATES_Init_Rate_Struct(t_rate *rates, int n_otu)
 
 
   rates->clock_r       = 1.E-4;
-  rates->min_clock     = 1.E-5;
+  /* !!!!!!!!!!!!!!!!!!!!!1 */
+  rates->min_clock     = 1.E-8;
+  /* rates->max_clock     = 1.E+1; */
+  /* rates->min_clock     = 1.E-5; */
   rates->max_clock     = 1.E-1;
 
   /* rates->clock_r       = 3.E-4; */
   /* rates->max_clock     = 1.E-3; */
   /* rates->min_clock     = 1.E-5; */
 
-  rates->nu            = 1.E-2;
+  rates->nu            = 1.E-3;
   rates->min_nu        = 0.0;
   rates->max_nu        = 0.1;
 
@@ -2561,16 +2581,51 @@ void RATES_Update_Cur_Bl_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 	  
 	  /* if(FABS(ta-td) < 1.0) { td = ta + 1.0; dt = 1.0; } */
 	  	  
-	  ra *= cr;
-	  rd *= cr;
-	  Integrated_Brownian_Bridge_Moments(ta,td,ra,rd,
-					     nu*dt*cr*cr,
-					     &(tree->rates->cur_gamma_prior_mean[d->num]),
-					     &(tree->rates->cur_gamma_prior_var[d->num]));
+	  
+	  ra += LOG(cr);
+	  rd += LOG(cr);
 
-	  /* printf("\n. ra=%f rd=%f %f ml=%f",ra,rd,tree->rates->cur_gamma_prior_mean[d->num],tree->rates->ml_l[d->num]); */
-	  /* tree->rates->cur_gamma_prior_mean[d->num] *= cr; */
-	  /* tree->rates->cur_gamma_prior_var[d->num]  *= POW(cr,2); */
+	  /* Integrated_Brownian_Bridge_Moments(ta,td,ra,rd, */
+	  /* 				     nu*dt*cr*cr, */
+	  /* 				     &(tree->rates->cur_gamma_prior_mean[d->num]), */
+	  /* 				     &(tree->rates->cur_gamma_prior_var[d->num])); */
+
+	  /* dt=10.; */
+	  /* ra=-2.; */
+	  /* rd=2.; */
+	  /* nu=0.1; */
+
+	  Integrated_Geometric_Brownian_Bridge_Moments(dt,ra,rd,nu,
+	  					       &(tree->rates->cur_gamma_prior_mean[d->num]),
+	  					       &(tree->rates->cur_gamma_prior_var[d->num]));
+
+	  tree->rates->cur_gamma_prior_mean[d->num] *= (dt);
+	  tree->rates->cur_gamma_prior_var[d->num]  *= (dt*dt);
+	  /* tree->rates->cur_gamma_prior_mean[d->num] *= (dt)*(cr); */
+	  /* tree->rates->cur_gamma_prior_var[d->num]  *= (dt*dt)*(cr)*(cr); */
+
+	  /* printf("\n%f %f",EXP(rd)*dt,tree->rates->cur_gamma_prior_mean[d->num]); */
+	  /* tree->rates->cur_gamma_prior_mean[d->num] = EXP(rd)*dt; */
+	  /* tree->rates->cur_gamma_prior_var[d->num] = 1.E-3; */
+
+	  /* printf("\n. dt=%10f,%10f,%10f,%10f mean=%10f var=%10f", */
+	  /* 	 dt,ra,rd,nu, */
+	  /* 	 tree->rates->cur_gamma_prior_mean[d->num]/dt, */
+	  /* 	 tree->rates->cur_gamma_prior_var[d->num]/(dt*dt)); */
+	  /* Exit("\n"); */
+
+	  /* if(tree->rates->cur_gamma_prior_var[d->num] < 0.0 || tree->rates->cur_gamma_prior_mean[d->num] < tree->mod->l_min || tree->rates->cur_gamma_prior_mean[d->num] > tree->mod->l_max) */
+	  /*   { */
+	  /*     printf("\n. ra=%f rd=%f mean=%f ml=%f dt=%f nu=%f",ra,rd,tree->rates->cur_gamma_prior_mean[d->num],tree->rates->ml_l[d->num],dt,nu); */
+	  /*   } */
+
+	  if(tree->rates->cur_gamma_prior_var[d->num] < 1.E-10) tree->rates->cur_gamma_prior_var[d->num] = 1.E-10;
+	  if(tree->rates->cur_gamma_prior_var[d->num] > 1.E+02) tree->rates->cur_gamma_prior_var[d->num] = 1.E+02;
+
+	  if(tree->rates->cur_gamma_prior_mean[d->num] < tree->mod->l_min) tree->rates->cur_gamma_prior_mean[d->num] = EXP(rd) * dt;
+	  if(tree->rates->cur_gamma_prior_mean[d->num] > tree->mod->l_max) tree->rates->cur_gamma_prior_mean[d->num] = EXP(rd) * dt;
+
+
 	}
       
       if(tree->mod->log_l == YES) tree->rates->cur_l[d->num] = LOG(tree->rates->cur_l[d->num]);

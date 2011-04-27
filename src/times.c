@@ -77,8 +77,8 @@ int TIMES_main(int argc, char **argv)
   /* r_seed = 1302160422; */
   /* r_seed = 1302576741; */
   /* r_seed = 1302588678; */
-
-
+  /* r_seed = 1303247709; */
+  
   srand(r_seed); rand();
   PhyML_Printf("\n. Seed: %d\n",r_seed);
   PhyML_Printf("\n. Pid: %d\n",getpid());
@@ -150,7 +150,7 @@ int TIMES_main(int argc, char **argv)
 		  time(&(tree->t_beg));
 
 		  tree->rates = RATES_Make_Rate_Struct(tree->n_otu);
-		  RATES_Init_Rate_Struct(tree->rates,tree->n_otu);
+		  RATES_Init_Rate_Struct(tree->rates,io->rates,tree->n_otu);
 
 		  Update_Ancestors(tree->n_root,tree->n_root->v[0],tree);
 		  Update_Ancestors(tree->n_root,tree->n_root->v[1],tree);		  

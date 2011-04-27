@@ -668,7 +668,7 @@ phydbl TIPO_Untangle_Tree(t_tree *tree)
 
 	  Test_Node_Table_Consistency(tree);
 	  tree->rates = RATES_Make_Rate_Struct(tree->n_otu);
-	  RATES_Init_Rate_Struct(tree->rates,tree->n_otu);
+	  RATES_Init_Rate_Struct(tree->rates,tree->io->rates,tree->n_otu);
 	  TIMES_Least_Square_Node_Times(tree->e_root,tree);
 	  TIMES_Adjust_Node_Times(tree);
 	  RATES_Update_Cur_Bl(tree);
