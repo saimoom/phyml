@@ -731,7 +731,11 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		io->datatype              = AA;
 		io->mod->whichmodel       = CUSTOMAA;
 	      }
-	    
+	    else
+	      {
+		PhyML_Printf("\n. The model name is incorrect. Please see the documentation.\n");
+		Exit("\n");
+	      }
 	    Set_Model_Name(io->mod);
 	    
 	    break;
