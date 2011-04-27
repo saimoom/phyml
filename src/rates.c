@@ -685,7 +685,7 @@ t_rate *RATES_Make_Rate_Struct(int n_otu)
 {
   t_rate *rates;
   
-  rates                 = (t_rate  *)mCalloc(1,sizeof(t_rate));
+  rates = (t_rate  *)mCalloc(1,sizeof(t_rate));
 
   if(n_otu > 0)
     {
