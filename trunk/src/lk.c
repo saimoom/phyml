@@ -2047,16 +2047,14 @@ void Update_PMat_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
     {
       phydbl shape,scale,mean,var;
 
-      b_fcus->gamma_prior_mean = b_fcus->l;
-
       mean = b_fcus->gamma_prior_mean;
       var  = b_fcus->gamma_prior_var;
       
       shape = mean*mean/var;
       scale = var/mean;
 
-      /* TO DO: add the possibility to have rate variation across sites */
-      Pmat_MGF_Gamma(b_fcus->Pij_rr,shape,scale,tree->mod);
+      For(i,tree->mod->n_catg) PMat_MGF_Gamma(b_fcus->Pij_rr+tree->mod->ns*tree->mod->ns*i,
+					      shape,scale,tree->mod->gamma_rr[i],tree->mod);
     }
   else
     {

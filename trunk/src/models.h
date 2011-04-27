@@ -50,5 +50,6 @@ void Switch_From_Mod_To_M4mod(model *mod);
 void Switch_From_M4mod_To_Mod(model *mod);
 void PMat_JC69(phydbl l, int pos, phydbl *Pij, model *mod);
 phydbl Get_Lambda_F84(phydbl *pi, phydbl *kappa);
+void Update_Eigen(model *mod);
 
 #endif

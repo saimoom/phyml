@@ -194,6 +194,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define GAMMA          3
 #define THORNE         4
 #define GUINDON        5
+#define NONE          -1
 
 /* #define USE_OLD_LK */
 
@@ -1083,6 +1084,7 @@ typedef struct __Tmcmc {
   int num_move_tree_rates;
   int num_move_subtree_rates;
   int num_move_updown_nu_cr;
+  int num_move_alpha;
 
   char *out_filename;
 

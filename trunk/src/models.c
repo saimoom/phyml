@@ -2177,6 +2177,7 @@ void Init_Model(calign *data, model *mod, option *io)
   phydbl *dr, *di, *space;
 
 
+
   mod->ns = io->mod->ns;
 
   if(io->datatype == GENERIC) mod->whichmodel = JC69;
@@ -2682,8 +2683,6 @@ void Set_Model_Parameters(model *mod)
 {
   phydbl sum;
   int i;
-  int result, n_iter;
-  phydbl scalar;
 
   if(mod->free_mixt_rates == NO) DiscreteGamma(mod->gamma_r_proba, mod->gamma_rr, mod->alpha, mod->alpha, mod->n_catg, mod->gamma_median);
   else
@@ -2731,6 +2730,18 @@ void Set_Model_Parameters(model *mod)
 	}
       while((sum > 1.01) || (sum < 0.99));
     }
+
+  Update_Eigen(mod);
+
+}
+
+/*********************************************************/
+
+void Update_Eigen(model *mod)
+{
+  int result, n_iter;
+  phydbl scalar;
+  int i;
 
   if(mod->update_eigen) 
     {
@@ -2829,6 +2840,7 @@ void Set_Model_Parameters(model *mod)
 	  Warn_And_Exit("\n");
 	}
     }
+
 }
 
 /*********************************************************/
