@@ -78,7 +78,9 @@ int TIMES_main(int argc, char **argv)
   /* r_seed = 1302576741; */
   /* r_seed = 1302588678; */
   /* r_seed = 1303247709; */
-  
+  /* r_seed =  1303970631; */
+  /* r_seed = 1304059976; */
+
   srand(r_seed); rand();
   PhyML_Printf("\n. Seed: %d\n",r_seed);
   PhyML_Printf("\n. Pid: %d\n",getpid());
@@ -87,13 +89,7 @@ int TIMES_main(int argc, char **argv)
   if(io->in_tree == 2) Test_Multiple_Data_Set_Format(io);
   else io->n_trees = 1;
 
-  io->colalias = 1;  /* Do not compress sites if you're using Evolve function */
-
-  if(!io->colalias)
-    {
-      PhyML_Printf("\n. Pattern alias off.");
-    }
-
+  io->colalias = 0;  /* Do not compress sites if you're using Evolve function */
 
   mat = NULL;
   tree_line_number = 0;
@@ -536,7 +532,7 @@ void TIMES_Set_All_Node_Priors(t_tree *tree)
   /* Set all t_prior_min values */
   if(!tree->rates->t_has_prior[tree->n_root->num])
     {
-      min_prior = 1E+10;
+      min_prior = 1.E+10;
       For(i,2*tree->n_otu-2)
 	{
 	  if(tree->rates->t_has_prior[i])
@@ -545,7 +541,7 @@ void TIMES_Set_All_Node_Priors(t_tree *tree)
 		min_prior = tree->rates->t_prior_min[i];
 	    }
 	}
-      tree->rates->t_prior_min[tree->n_root->num] = 5.0 * min_prior;
+      tree->rates->t_prior_min[tree->n_root->num] = 2.0 * min_prior;
       /* tree->rates->t_prior_min[tree->n_root->num] = 10. * min_prior; */
     }
 

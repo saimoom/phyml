@@ -306,8 +306,8 @@ phydbl RATES_Lk_Rates_Core(phydbl br_r_a, phydbl br_r_d, phydbl nd_r_a, phydbl n
 
 	if(tree->rates->model_log_rates == YES)
 	  {
-	    mean = br_r_a;
-	    /* mean = br_r_a - .5*sd*sd; */
+	    /* mean = br_r_a; */
+	    mean = br_r_a - .5*sd*sd;
 	  }
 	else
 	  {
@@ -344,7 +344,8 @@ phydbl RATES_Lk_Rates_Core(phydbl br_r_a, phydbl br_r_d, phydbl nd_r_a, phydbl n
 
 	cr   = tree->rates->clock_r;
 	sd   = SQRT(tree->rates->nu*dt_d);
-	mean = br_r_a;
+	/* mean = br_r_a; */
+	mean = br_r_a - .5*sd*sd;
 
  	log_dens = Log_Dnorm_Trunc(br_r_d,mean,sd,
 				   tree->rates->min_rate,
@@ -598,6 +599,18 @@ void RATES_Print_Rates_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 
 /*********************************************************/
 
+phydbl RATES_Average_Rate(t_tree *tree)
+{
+  int i;
+  phydbl sum;
+  sum = 0.0;
+  For(i,2*tree->n_otu-2) sum += tree->rates->br_r[i];
+  return sum/(2*tree->n_otu-2);
+}
+/*********************************************************/
+
+
+
 phydbl RATES_Average_Substitution_Rate(t_tree *tree)
 {
   phydbl sum_r,sum_dt;
@@ -609,29 +622,16 @@ phydbl RATES_Average_Substitution_Rate(t_tree *tree)
   sum_r  = 0.0;
   sum_dt = 0.0;
 
-  For(i,2*tree->n_otu-2) 
+  For(i,2*tree->n_otu-3) 
     {
       t     = tree->rates->nd_t[i];
       t_anc = tree->rates->nd_t[tree->noeud[i]->anc->num];      
-
-      if(tree->mod->log_l == YES)
-	{
-	  u = EXP(tree->rates->cur_l[i]);
-	}
-      else
-	{
-	  u = tree->rates->cur_l[i];
-	}
-
-
-      if(tree->rates->model == GUINDON)
-	{ 
-	  u = tree->rates->cur_gamma_prior_mean[i];
-	}
-
+      u = tree->t_edges[i]->l;
+      if(tree->rates->model == GUINDON) u = tree->t_edges[i]->gamma_prior_mean;
       sum_r += u;	  
       sum_dt += FABS(t-t_anc);
     }
+
   return(sum_r / sum_dt);
 }
 
@@ -795,8 +795,10 @@ void RATES_Init_Rate_Struct(t_rate *rates, t_rate *existing_rates, int n_otu)
       rates->model = NONE;
     }
 
-  if(rates->model == NONE || rates->model == THORNE)
+  if(rates->model == NONE)
     rates->model_log_rates = NO;
+  else if(rates->model == THORNE)
+    rates->model_log_rates = YES;
   else if(rates->model == GUINDON)
     rates->model_log_rates = YES;
 
@@ -813,8 +815,8 @@ void RATES_Init_Rate_Struct(t_rate *rates, t_rate *existing_rates, int n_otu)
 
   if(rates->model_log_rates == YES)
     {
-      rates->max_rate  =  LOG(100.);
-      rates->min_rate  = -LOG(100.);
+      rates->max_rate  =  LOG(10.);
+      rates->min_rate  = -LOG(10.);
       /* rates->max_rate  =  MDBL_MAX; */
       /* rates->min_rate  = -MDBL_MAX; */
     }
@@ -828,11 +830,8 @@ void RATES_Init_Rate_Struct(t_rate *rates, t_rate *existing_rates, int n_otu)
 
 
   rates->clock_r       = 1.E-4;
-  /* !!!!!!!!!!!!!!!!!!!!!1 */
   rates->min_clock     = 1.E-8;
-  /* rates->max_clock     = 1.E+1; */
-  /* rates->min_clock     = 1.E-5; */
-  rates->max_clock     = 1.E-1;
+  rates->max_clock     = 0.5E-2;
 
   /* rates->clock_r       = 3.E-4; */
   /* rates->max_clock     = 1.E-3; */
@@ -840,7 +839,7 @@ void RATES_Init_Rate_Struct(t_rate *rates, t_rate *existing_rates, int n_otu)
 
   rates->nu            = 1.E-3;
   rates->min_nu        = 0.0;
-  rates->max_nu        = 0.1;
+  rates->max_nu        = 0.5;
 
   /* rates->nu            = 1.E-4; */
   /* rates->max_nu        = 1.E-1; */
@@ -2624,8 +2623,8 @@ void RATES_Update_Cur_Bl_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 
 	  if(tree->rates->cur_gamma_prior_mean[d->num] < tree->mod->l_min) tree->rates->cur_gamma_prior_mean[d->num] = EXP(rd) * dt;
 	  if(tree->rates->cur_gamma_prior_mean[d->num] > tree->mod->l_max) tree->rates->cur_gamma_prior_mean[d->num] = EXP(rd) * dt;
-
-
+	  /* if(tree->rates->cur_gamma_prior_mean[d->num] < tree->mod->l_min) tree->rates->cur_gamma_prior_mean[d->num] = tree->mod->l_min; */
+	  /* if(tree->rates->cur_gamma_prior_mean[d->num] > tree->mod->l_max) tree->rates->cur_gamma_prior_mean[d->num] = tree->mod->l_max; */
 	}
       
       if(tree->mod->log_l == YES) tree->rates->cur_l[d->num] = LOG(tree->rates->cur_l[d->num]);

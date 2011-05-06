@@ -325,9 +325,11 @@ phydbl Lk(t_tree *tree)
 
   tree->old_lnL = tree->c_lnL;
 
+
 #ifdef PHYTIME
   if((tree->rates) && (tree->rates->bl_from_rt)) RATES_Update_Cur_Bl(tree);
 #endif
+
 
   Check_Br_Len_Bounds(tree);
   
