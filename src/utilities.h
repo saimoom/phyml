@@ -57,9 +57,12 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #endif
      
 
-#define MCMC_MOVE_RANDWALK       0
-#define MCMC_MOVE_SCALE          1         
-#define MCMC_MOVE_LOG_RANDWALK   2
+#define MCMC_MOVE_RANDWALK_UNIFORM       0
+#define MCMC_MOVE_LOG_RANDWALK_UNIFORM   1
+#define MCMC_MOVE_RANDWALK_NORMAL        2
+#define MCMC_MOVE_LOG_RANDWALK_NORMAL    3
+#define MCMC_MOVE_SCALE_THORNE           4         
+#define MCMC_MOVE_SCALE_GAMMA            5         
 
 #define N_MAX_MOVES     50
 
@@ -1071,6 +1074,7 @@ typedef struct __Tmcmc {
   int *prev_acc_move;
   int *prev_run_move;
   int *num_move;
+  int *move_type;
   char **move_name;
 
   int num_move_nd_r;

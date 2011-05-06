@@ -11849,6 +11849,7 @@ int Scale_Subtree_Height(t_node *a, phydbl K, phydbl floor, int *n_nodes, t_tree
   
   new_height = .0;
 
+
   if(!(tree->rates->nd_t[a->num] > floor))
     new_height = K*(tree->rates->nd_t[a->num]-floor)+floor;
 
@@ -11900,11 +11901,20 @@ void Scale_Node_Heights_Post(t_node *a, t_node *d, phydbl K, phydbl floor, int *
     {
       int i;
 
-
-      if(tree->rates->nd_t[d->num] < floor)
+      
+      if(!(tree->rates->nd_t[d->num] > floor))
 	{
 	  tree->rates->nd_t[d->num] = K*(tree->rates->nd_t[d->num]-floor)+floor;
 	  *n_nodes = *n_nodes+1;
+	}
+
+      if(tree->rates->nd_t[d->num] < tree->rates->nd_t[a->num])
+	{
+	  PhyML_Printf("\n. K = %f floor = %f t_prior_max(a) = %f t_prior_max(d) = %f a->t = %f d->t %f",
+		       K,floor,tree->rates->t_prior_max[a->num],tree->rates->t_prior_max[d->num],
+		       tree->rates->nd_t[a->num],tree->rates->nd_t[d->num]);
+	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  Warn_And_Exit("");
 	}
 
       For(i,3)
