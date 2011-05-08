@@ -81,7 +81,7 @@ void MCMC(t_tree *tree)
       /* 	} */
 
 
-      if(tree->mcmc->run > 100000)
+      if(tree->mcmc->run > 70000)
       	{
       	  FILE *fp;
       	  char *s,*t;
