@@ -2553,17 +2553,18 @@ void RATES_Update_Cur_Bl_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
       td = tree->rates->nd_t[d->num];
       ta = tree->rates->nd_t[a->num];
       nu = tree->rates->nu;
-      rr = tree->rates->br_r[d->num];
-      /* rr = (ra+rd)/2.; */
 
-      if(tree->rates->model_log_rates == YES) 
+
+      if(tree->rates->model_log_rates == YES)
 	{
-	  tree->rates->cur_l[d->num] = dt*EXP(rr)*cr;
+	  rr = (EXP(ra*rd))/2.;
 	}
       else
 	{
-	  tree->rates->cur_l[d->num] = dt*rr*cr;
+	  rr = tree->rates->br_r[d->num];
 	}
+
+      tree->rates->cur_l[d->num] = dt*rr*cr;
       
       if(tree->rates->model == GUINDON)
 	{
