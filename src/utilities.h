@@ -647,7 +647,8 @@ typedef struct __Model {
 
   phydbl    *gamma_r_proba; /*! probabilities of the substitution rates defined by the discrete gamma distribution */
   phydbl    *gamma_r_proba_unscaled; 
-  phydbl         *gamma_rr; /*! substitution rates defined by the discrete gamma distribution */
+  phydbl         *gamma_rr; /*! substitution rates defined by the RAS distribution */
+  phydbl         *gamma_rr_unscaled; /*! substitution rates defined by the RAS distribution (unscaled) */
   phydbl             kappa; /*! transition/transversion rate */
   phydbl            lambda; /*! parameter used to define the ts/tv ratios in the F84 and TN93 models */
   phydbl             alpha; /*! gamma shapa parameter */

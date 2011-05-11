@@ -981,8 +981,8 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 
       For(i,tree->mod->n_catg) 
 	{
-	  Generic_Brent_Lk(&(tree->mod->gamma_rr[i]),
-			   0.001,100.,
+	  Generic_Brent_Lk(&(tree->mod->gamma_rr_unscaled[i]),
+			   -1000.,1000.,
 			   tree->mod->s_opt->min_diff_lk_global,
 			   tree->mod->s_opt->brent_it_max,
 			   tree->mod->s_opt->quickdirty,

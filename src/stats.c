@@ -3683,14 +3683,18 @@ void Integrated_Brownian_Bridge_Moments(phydbl x_beg, phydbl x_end,
 					phydbl y_beg, phydbl y_end, 
 					phydbl brownian_var, phydbl *mean, phydbl *var)
 {
-  phydbl *y,*y_mean;
-  int n_breaks, n_rep;
-  int i,j;
-  phydbl traj_mean, traj_sd;
-  phydbl x,x_prev, x_curr;
+  /* phydbl *y; */
+  /* phydbl *y_mean; */
+  /* int n_rep; */
+  int n_breaks;
+  int i;
+  /* int j; */
+  /* phydbl traj_mean, traj_sd; */
+  /* phydbl x_prev, x_curr; */
+  phydbl x;
   phydbl x_step;
   phydbl sum;
-  phydbl sumsum;
+  /* phydbl sumsum; */
   phydbl scaled_var;
 
   scaled_var = brownian_var/FABS(x_end - x_beg);
