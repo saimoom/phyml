@@ -64,8 +64,10 @@ the GNU public licence. See http://www.opensource.org for details.
 \setlength{\baselineskip}{0.5\baselineskip}
 \section{Citation}
 \begin{itemize}
-\item ``A simple, fast and accurate algorithm to estimate large phylogenies by maximum likelihood''
-  Guindon S., Gascuel O. {\it Systematic Biology} {\bf \small 52}(5):696-704
+% \item ``A simple, fast and accurate algorithm to estimate large phylogenies by maximum likelihood''
+%   Guindon S., Gascuel O. {\it Systematic Biology} {\bf \small 52}(5):696-704
+\item ``New algorithms and methods to estimate maximum-likelihood phylogenies: assessing the performance of PhyML 3.0.''
+  Guindon S., J.-F Dufayard, V. Lefort, M. Anisimova, W. Hordijk and O. Gascuel {\it Systematic Biology} {\bf \small 59}:307-21
 \end{itemize}
 }
 
@@ -80,7 +82,7 @@ the GNU public licence. See http://www.opensource.org for details.
 \item { St\'ephane Guindon, Franck Lethiec}, Jean-Francois Dufayard and Vincent Lefort implemented PhyML.
 \item { Jean-Francois Dufayard} created the benchmark and implemented the tools that are used to check
   PhyML accuracy and performances. 
-\item { Vincent Lefort, St\'ephane Guindon, Patrice Duroux} and { Olivier Gascuel} conceived and
+\item { Vincent Lefort, St\'ephane Guindon, Patrice Duroux} and {Olivier Gascuel} conceived and
   implemented PhyML web server.
 \item St\'ephane Guindon wrote this document.
 \end{itemize}
@@ -315,19 +317,21 @@ framework.
 \index{gamma distribution (discrete)!shape parameter}
 \begin{center} \framebox{\x{[R]  ....... One category  of substitution rate  (yes/no)}} \end{center}
 \begin{center} \framebox{\x{[C] ........... Number of substitution rate categories}} \end{center}
+\begin{center} \framebox{\x{[G] ............. Gamma distributed rates across sites}} \end{center} 
 \begin{center} \framebox{\x{[A] ... Gamma distribution parameter (fixed/estimated)}} \end{center}
-\begin{center} \framebox{\x{[G] .........`Middle' of each rate class (mean/median)}} \end{center}
-Rates of evolution often vary from site to site. This heterogeneity can be modelled using a discrete
-gamma distribution. Type \x{R} to switch this option on or off.
+% \begin{center} \framebox{\x{[G] .........`Middle' of each rate class (mean/median)}} \end{center}
+Rates of evolution often vary from site to site. This heterogeneity can be modelled using mixture
+models.  Type \x{R} to switch this option on or off.
 
-The different categories  of this discrete distribution correspond to  different (relative) rates of
-evolution. The number of categories of this distribution is set to 4 by default.  It is probably not
-wise to  go below this  number.  Larger values  are generally preferred. However,  the computational
-burden involved  is proportional to the  number of categories  (i.e., an analysis with  8 categories
-will generally  take twice  the time of  the same analysis  with only  4 categories). Note  that the
-likelihood will not necessarily increase as the number of categories increases. Hence, the number of
-categories should be kept  below a ``reasonable'' number, say 20.  The  default number of categories
-can be changed by typing \x{C}.  
+By default, the  distribution of substitution rates is modelled using  a discrete gamma distribution
+\cite{yang94b}.  The different  categories of  this  discrete distribution  correspond to  different
+(relative) rates of evolution. The number of categories of this distribution is set to 4 by default.
+It is probably  not wise to go below  this number.  Larger values are  generally preferred. However,
+the computational  burden involved is  proportional to the  number of categories (i.e.,  an analysis
+with  8  categories  will  generally  take  twice  the  time  of  the  same  analysis  with  only  4
+categories). Note  that the  likelihood will not  necessarily increase  as the number  of categories
+increases. Hence,  the number of categories  should be kept  below a ``reasonable'' number,  say 20.
+The default number of categories can be changed by typing \x{C}.
 
 The middle  of each  discretized substitution rate  class can  be determined using  the mean  or the
 median. PAML,  MrBayes and RAxML  use the  mean.  However, the  median is generally  associated with
@@ -342,7 +346,11 @@ values,  typically  in  the $[0.1,1.0]$  range,  correspond  to  large variabili
 correspond to moderate to  low heterogeneity. The gamma shape parameter can be  fixed by the user or
 estimated via maximum-likelihood. Type \x{A} to select one or the other option.
 
-
+PhyML  also implements  a  `free rate'  model  where the  relative  rate and  the  frequency of  the
+corresponding class  are estimated from the  data. This mixture  model has more parameters  than the
+discrete gamma one.  For instance, with 4 rate classes,  the number of free parameter  is 7 (4 rates
+plus 3 frequencies). However, this model generally provides a better fit to the data compared to the
+gamma one.
 
 
 
@@ -398,7 +406,8 @@ estimated. This approach is considerably faster than the bootstrap one. However,
 to  estimate different quantities  and conducting  a fair  comparison between  both criteria  is not
 straightforward. The estimation of approximate likelihood  branch support comes in two flavours: the
 measured  statistics  is  compared to  a  $\chi^2$  distribution  or a  non-parametric  distribution
-estimated using a RELL approximation.
+estimated using a RELL approximation.  Also,  the approximate Bayes approach estimates the posterior
+probabilty of each internal edge being correct.
 
 
 
@@ -439,6 +448,7 @@ is absent and when tree topology modifications are to be done.
 \item \x{int} = -2: approximate likelihood ratio test returning Chi2-based parametric branch supports.
 % \item \x{int} = -3: minimum of Chi2-based parametric and SH-like branch supports.
 \item \x{int} = -4: SH-like branch supports alone.
+\item \x{int} = -5: approximate Bayes support.
 \end{itemize}
 
 \item \x{-m} (or \x{--model}) \x{model\_name}\index{substitution models!DNA}\index{substitution models!amino acids} \\
@@ -981,7 +991,7 @@ is not readily available for Windows machines but  compilation should be easy on
 the `phyml' directory, where the `src/' and `doc/' directories stand, enter the following commands:
 {\setlength{\baselineskip}{0.5\baselineskip}
 \begin{verbatim}
-./configure --enable-times;
+./configure --enable-phytime;
 make clean;
 make;
 \end{verbatim} } This set of commands generates  a binary file called \x{phytime} which can be found
@@ -1031,9 +1041,6 @@ ambiguity, this  extra piece of data is  translated into very informative  calib
 the tip nodes (i.e., calibration interval of zero width), which in turn results in substitution rate
 estimates  with  descreased variances.  Posterior  distribution  of  substitution rates  with  small
 variances then allows one to get good estimates of the root age. 
-
-
-
 
 \end{itemize}
 
@@ -1159,8 +1166,8 @@ The development of PhyML since 2000 has been supported by the Centre National de
 Scientifique (CNRS) and the Minist\`ere de l'\'Education Nationale.
 
 % \bibliographystyle{/home/guindon/latex/biblio/OUPnum}
-\bibliographystyle{/Users/guindon/latex/biblio/nature/naturemag}
-\bibliography{/Users/guindon/latex/biblio/ref}
+\bibliographystyle{/home/guindon/latex/biblio/nature/naturemag}
+\bibliography{/home/guindon/latex/biblio/ref}
 
 \printindex
 \end{document}
