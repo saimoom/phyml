@@ -118,7 +118,7 @@ void MCMC(t_tree *tree)
       phydbl cur_lnL;
       cur_lnL = tree->c_lnL;
 
-      printf("\n. [%15s] %15f ",tree->mcmc->move_name[move],tree->c_lnL);
+/*       printf("\n. [%15s] %15f ",tree->mcmc->move_name[move],tree->c_lnL); */
 
       /* Clock rate */
       if(!strcmp(tree->mcmc->move_name[move],"clock"))
@@ -185,6 +185,7 @@ void MCMC(t_tree *tree)
       	  if(tree->mcmc->use_data == YES) Lk(tree);
       	  tree->both_sides = NO;
 
+
       	  if(tree->mcmc->is == NO || tree->rates->model_log_rates == YES)
       	    {
 	      MCMC_One_Time(tree->n_root,tree->n_root->v[first],YES,tree);
@@ -214,8 +215,6 @@ void MCMC(t_tree *tree)
       	  if(tree->mcmc->use_data == YES) Lk(tree);
       	  tree->both_sides = NO;
 
-	  printf("\n. <%f %f>",cur_lnL,tree->c_lnL);
-
       	  if(tree->mcmc->is == NO)
       	    {
       	      /* MCMC_Slice_One_Rate(tree->n_root,tree->n_root->v[first],YES,tree); */
@@ -238,12 +237,20 @@ void MCMC(t_tree *tree)
       tree->mcmc->run++;
       MCMC_Get_Acc_Rates(tree->mcmc);
 
-      /* !!!!!!!!!!!!!!!!1 */
-      /* Is it necessary? */
-      /* RATES_Lk_Rates(tree); */
-      /* if(tree->mcmc->use_data == YES) Lk(tree); */
+/*       cur_lnL = tree->c_lnL; */
+/*       /\* !!!!!!!!!!!!!!!!1 *\/ */
+/*       /\* Is it necessary? *\/ */
+/*       RATES_Lk_Rates(tree); */
+/*       if(tree->mcmc->use_data == YES) Lk(tree); */
+
+/*       if(FABS(cur_lnL - tree->c_lnL) > 0.1) */
+/* 	{ */
+/* 	  printf("\n\nn. ######## \n\n"); */
+/* 	  system("sleep 2s"); */
+/* 	  fflush(NULL); */
+/* 	} */
       
-      printf("-- %15f %15f",tree->c_lnL,tree->rates->c_lnL);
+/*       printf("-- %15f %15f",tree->c_lnL,tree->rates->c_lnL); */
 
       MCMC_Print_Param(tree->mcmc,tree);
       MCMC_Print_Param_Stdin(tree->mcmc,tree);
@@ -757,7 +764,7 @@ void MCMC_One_Time(t_node *a, t_node *d, int traversal, t_tree *tree)
       if(u > alpha) /* Reject */
 	{
 	  tree->c_lnL        = cur_lnL_data;
-	  tree->rates->c_lnL = cur_lnL_rate;
+         	  tree->rates->c_lnL = cur_lnL_rate;
 	  Restore_Br_Len(tree);
 	  RATES_Reset_Rates(tree);
 	  RATES_Reset_Times(tree);
@@ -1068,13 +1075,13 @@ void MCMC_Tree_Rates(t_tree *tree)
       return;
     }
 
-  if(tree->rates->model == GUINDON)
-    {
+/*   if(tree->rates->model == GUINDON) */
+/*     { */
       int i;
       For(i,2*tree->n_otu-2) tree->rates->br_do_updt[i] = YES;
       RATES_Update_Cur_Bl(tree);
       if(tree->mcmc->use_data) new_lnL_data = Lk(tree);
-    }
+/*     } */
 
   new_lnL_rate = RATES_Lk_Rates(tree);
 
@@ -1092,18 +1099,16 @@ void MCMC_Tree_Rates(t_tree *tree)
   /* Likelihood density ratio */
   ratio += (new_lnL_data - cur_lnL_data);
 
-
-
   ratio = EXP(ratio);
   alpha = MIN(1.,ratio);
   u = Uni();
   
-  printf("\n. cur_lnL=%f new_lnL=%f ratio=%f mult=%f %f [%f %f]",
-  	 cur_lnL_rate,new_lnL_rate,ratio,mult,(+(2*tree->n_otu-2)-1-2)*LOG(mult) + LOG(Dgamma(1./mult,1./K,K)/Dgamma(mult,1./K,K)),new_lnL_data,cur_lnL_data);
+/*   printf("\n. cur_lnL=%f new_lnL=%f ratio=%f mult=%f %f [%f %f]", */
+/*   	 cur_lnL_rate,new_lnL_rate,ratio,mult,(+(2*tree->n_otu-2)-1-2)*LOG(mult) + LOG(Dgamma(1./mult,1./K,K)/Dgamma(mult,1./K,K)),new_lnL_data,cur_lnL_data); */
 
   if(u > alpha)
     {
-      /* PhyML_Printf("\n. Reject mult=%f",mult); */
+/*       PhyML_Printf("\n. Reject mult=%f",mult); */
       tree->rates->clock_r = init_clock;
       RATES_Reset_Rates(tree);
       Restore_Br_Len(tree);
@@ -1112,7 +1117,7 @@ void MCMC_Tree_Rates(t_tree *tree)
     }
   else
     {
-      /* PhyML_Printf("\n. Accept mult=%f",mult); */
+/*       PhyML_Printf("\n. Accept mult=%f",mult); */
       tree->mcmc->acc_move[tree->mcmc->num_move_tree_rates]++;
     }
 
