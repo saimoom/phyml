@@ -274,7 +274,7 @@ void Post_Order_Lk(t_node *a, t_node *d, t_tree *tree)
   int i,dir;
 
   dir = -1;
-
+  
   if(d->tax) 
     {
       Get_All_Partial_Lk_Scale(tree,d->b[0],a,d);
@@ -288,7 +288,7 @@ void Post_Order_Lk(t_node *a, t_node *d, t_tree *tree)
 	    Post_Order_Lk(d,d->v[i],tree);
 	  else dir = i;
 	}      
-      Get_All_Partial_Lk_Scale(tree,d->b[dir],a,d);
+    Get_All_Partial_Lk_Scale(tree,d->b[dir],a,d);
     }
 }
 
@@ -444,6 +444,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
   phydbl logbig;
   phydbl inv_site_lk;
 
+
   logbig = LOG((phydbl)BIG);
 
   dim1 = tree->mod->n_catg * tree->mod->ns;
@@ -492,9 +493,13 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
                   sum +=
                     b->Pij_rr[catg*dim3+state*dim2+l] *
                     b->p_lk_left[site*dim1+catg*dim2+l];
+		  
+		  /* if(tree->curr_site == 0) printf("\n. %f %f %d",  */
+		  /* 				  b->Pij_rr[catg*dim3+state*dim2+l],                     */
+		  /* 				  b->p_lk_left[site*dim1+catg*dim2+l],b->left->num); */
                 }
 
-              site_lk_cat += sum * tree->mod->pi[state];
+              site_lk_cat += sum * tree->mod->pi[state];	
 	    }
           /* If the character observed at the tip is ambiguous: ns x ns terms to consider */
           else
@@ -690,20 +695,23 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
       PhyML_Printf("\n. scale_left = %d scale_rght = %d",sum_scale_left,sum_scale_rght);
       PhyML_Printf("\n. Lk = %G LOG(Lk) = %f < %G",site_lk,log_site_lk,-BIG);
       For(catg,tree->mod->n_catg) PhyML_Printf("\n. rr=%f p=%f",tree->mod->gamma_rr[catg],tree->mod->gamma_r_proba[catg]);
-      int i;
-      For(i,2*tree->n_otu-3)
-	{
-	  PhyML_Printf("\n. b%3d->l = %f %f [%G] %f %f %f %f [%s]",i,
-		       tree->t_edges[i]->l,
-		       tree->t_edges[i]->gamma_prior_mean,
-		       tree->t_edges[i]->gamma_prior_var,
-		       tree->rates->nd_t[tree->t_edges[i]->left->num],
-		       tree->rates->nd_t[tree->t_edges[i]->rght->num],
-		       tree->rates->br_r[tree->t_edges[i]->left->num],
-		       tree->rates->br_r[tree->t_edges[i]->rght->num],
-		       tree->t_edges[i] == tree->e_root ? "YES" : "NO");
+      PhyML_Printf("\n. pinv = %G",tree->mod->pinvar);
+
+      /* int i; */
+      /* For(i,2*tree->n_otu-3) */
+      /* 	{ */
+      /* 	  PhyML_Printf("\n. b%3d->l = %f %f [%G] %f %f %f %f [%s]",i, */
+      /* 		       tree->t_edges[i]->l, */
+      /* 		       tree->t_edges[i]->gamma_prior_mean, */
+      /* 		       tree->t_edges[i]->gamma_prior_var, */
+      /* 		       tree->rates->nd_t[tree->t_edges[i]->left->num], */
+      /* 		       tree->rates->nd_t[tree->t_edges[i]->rght->num], */
+      /* 		       tree->rates->br_r[tree->t_edges[i]->left->num], */
+      /* 		       tree->rates->br_r[tree->t_edges[i]->rght->num], */
+      /* 		       tree->t_edges[i] == tree->e_root ? "YES" : "NO"); */
+      /* 	  fflush(NULL); */
 		       
-	}
+      /* 	} */
 
       PhyML_Printf("\n. Err in file %s at line %d",__FILE__,__LINE__);
       Warn_And_Exit("\n");
@@ -1058,6 +1066,7 @@ void Update_P_Lk_Nucl(t_tree *tree, t_edge *b, t_node *d)
   phydbl p0,p1,p2,p3;
   int *p_lk_loc;
 
+
   p_lk_lim_inf = (phydbl)P_LK_LIM_INF;
  
   dim1 = tree->mod->n_catg * tree->mod->ns;
@@ -1199,6 +1208,13 @@ void Update_P_Lk_Nucl(t_tree *tree, t_edge *b, t_node *d)
 			  p2=Pij1[catg*dim3+i*dim2+2] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+2];
 			  p3=Pij1[catg*dim3+i*dim2+3] * (phydbl)n_v1->b[0]->p_lk_tip_r[site*dim2+3];
 			  p1_lk1 = p0+p1+p2+p3;
+
+			  if(isnan(p1_lk1))
+			    {
+			      PhyML_Printf("\n. p0=%f p1=%f p2=%f p3=%f",p0,p1,p2,p3);
+			      PhyML_Printf("\n. Err in file %s at line %d.",__FILE__,__LINE__);
+			      Warn_And_Exit("\n");		  
+			    }
 			}
 		    }
 		  /* n_v1 is an internal node */
@@ -1215,6 +1231,12 @@ void Update_P_Lk_Nucl(t_tree *tree, t_edge *b, t_node *d)
 		      p2=Pij1[catg*dim3+i*dim2+2] * p_lk_v1[site*dim1+catg*dim2+2];
 		      p3=Pij1[catg*dim3+i*dim2+3] * p_lk_v1[site*dim1+catg*dim2+3];
 		      p1_lk1 = p0+p1+p2+p3;
+		      if(isnan(p1_lk1))
+			{
+			  PhyML_Printf("\n. p0=%f p1=%f p2=%f p3=%f",p0,p1,p2,p3);
+			  PhyML_Printf("\n. Err in file %s at line %d.",__FILE__,__LINE__);
+			  Warn_And_Exit("\n");		  
+			}
 		    }
 		  
 		  p2_lk2 = .0;
@@ -1227,6 +1249,11 @@ void Update_P_Lk_Nucl(t_tree *tree, t_edge *b, t_node *d)
 			{
 			  /* For the (non-ambiguous) state at node n_v2 */
 			  p2_lk2 = Pij2[catg*dim3+i*dim2+state_v2];
+			  if(isnan(p2_lk2))
+			    {
+			      PhyML_Printf("\n. Err in file %s at line %d.",__FILE__,__LINE__);
+			      Warn_And_Exit("\n");		  
+			    }
 			}
 		      else
 			{
@@ -1236,6 +1263,12 @@ void Update_P_Lk_Nucl(t_tree *tree, t_edge *b, t_node *d)
 			  p2=Pij2[catg*dim3+i*dim2+2] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+2];
 			  p3=Pij2[catg*dim3+i*dim2+3] * (phydbl)n_v2->b[0]->p_lk_tip_r[site*dim2+3];
 			  p2_lk2 = p0+p1+p2+p3;
+			  if(isnan(p2_lk2))
+			    {
+			      PhyML_Printf("\n. p0=%f p1=%f p2=%f p3=%f",p0,p1,p2,p3);
+			      PhyML_Printf("\n. Err in file %s at line %d.",__FILE__,__LINE__);
+			      Warn_And_Exit("\n");		  
+			    }
 			}
 		    }
 		  /* n_v2 is an internal node */
@@ -1247,10 +1280,22 @@ void Update_P_Lk_Nucl(t_tree *tree, t_edge *b, t_node *d)
 		      p2=Pij2[catg*dim3+i*dim2+2] * p_lk_v2[site*dim1+catg*dim2+2];
 		      p3=Pij2[catg*dim3+i*dim2+3] * p_lk_v2[site*dim1+catg*dim2+3];
 		      p2_lk2 = p0+p1+p2+p3;
+		      if(isnan(p2_lk2))
+			{
+			  PhyML_Printf("\n. p0=%f p1=%f p2=%f p3=%f",p0,p1,p2,p3);
+			  PhyML_Printf("\n. Err in file %s at line %d.",__FILE__,__LINE__);
+			  Warn_And_Exit("\n");		  
+			}
 		    }
 		  
 		  p_lk[site*dim1+catg*dim2+i] = p1_lk1 * p2_lk2;	    
 		  
+		  
+		  if(isnan(p2_lk2))
+		    {
+		      PhyML_Printf("\n. Err in file %s at line %d.",__FILE__,__LINE__);
+		      Warn_And_Exit("\n");		  
+		    }
 
 		  if(p_lk[site*dim1+catg*dim2+i] < smallest_p_lk) smallest_p_lk = p_lk[site*dim1+catg*dim2+i] ; 
 		}
@@ -2680,7 +2725,7 @@ void Alias_Subpatt(t_tree *tree)
     {
       Alias_Subpatt_Post(tree->noeud[0],tree->noeud[0]->v[0],tree);
       /* if(tree->both_sides)  */
-	Alias_Subpatt_Pre(tree->noeud[0],tree->noeud[0]->v[0],tree);
+      Alias_Subpatt_Pre(tree->noeud[0],tree->noeud[0]->v[0],tree);
     }
 }
 

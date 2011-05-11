@@ -330,6 +330,7 @@ void Free_Model_Complete(model *mod)
   Free(mod->gamma_r_proba);
   Free(mod->gamma_r_proba_unscaled);
   Free(mod->gamma_rr);
+  Free(mod->gamma_rr_unscaled);
   Free(mod->pi_unscaled);
   Free(mod->Pij_rr);
   Free(mod->qmat);

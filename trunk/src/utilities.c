@@ -104,13 +104,14 @@ t_tree *Read_Tree(char *s_tree)
       				    tree->n_root->v[1],
       				    tree->e_root,
       				    tree);
-      
 
       tree->e_root->l = tree->n_root->l[0] + tree->n_root->l[1];
-      tree->n_root_pos = tree->n_root->l[0] / tree->e_root->l;
+      if(tree->e_root->l > 0.0)
+	tree->n_root_pos = tree->n_root->l[0] / tree->e_root->l;
+      else
+	tree->n_root_pos = .5;
     }
   
-
   For(i,NODE_DEG_MAX) Free(subs[i]);
   Free(subs);
   return tree;
@@ -567,7 +568,7 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
 	{
 	  if(tree->write_tax_names == YES)
 	    {
-	      if(tree->io->long_tax_names) 
+	      if(tree->io && tree->io->long_tax_names) 
 		{
 		  strcat(*s_tree,tree->io->long_tax_names[fils->num]);
 		  (*pos) += (int)strlen(tree->io->long_tax_names[fils->num]);
@@ -615,6 +616,7 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
 	    {
 	      if(pere == tree->n_root)
 		{
+		  printf("\nxx %f",tree->e_root->l);
 		  phydbl root_pos = (fils == tree->n_root->v[0])?(tree->n_root_pos):(1.-tree->n_root_pos);
 		  (*pos) += sprintf(*s_tree+*pos,format,tree->e_root->l * root_pos);
 		}
@@ -687,7 +689,7 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
       (*s_tree)[(*pos)-1] = ')';
       (*s_tree)[(*pos)]   = '\0';
 
-      if((fils->b) && (fils->b[0]->l > -1.))
+      if((fils->b) && (fils->b[p]->l > -1.))
 	{
 	  if(tree->print_boot_val)
 	    {
@@ -6321,14 +6323,15 @@ void Make_Model_Complete(model *mod)
       mod->ns = mod->m4mod->n_o * mod->m4mod->n_h;
     }
   
-  mod->pi            = (phydbl *)mCalloc(mod->ns,sizeof(phydbl));
-  mod->pi_unscaled   = (phydbl *)mCalloc(mod->ns,sizeof(phydbl));
-  mod->Pij_rr        = (phydbl *)mCalloc(mod->n_catg*mod->ns*mod->ns,sizeof(phydbl));
-  mod->gamma_r_proba = (phydbl *)mCalloc(mod->n_catg,sizeof(phydbl));
-  mod->gamma_rr      = (phydbl *)mCalloc(mod->n_catg,sizeof(phydbl));
-  mod->qmat          = (phydbl *)mCalloc(mod->ns*mod->ns,sizeof(phydbl));
-  mod->qmat_buff     = (phydbl *)mCalloc(mod->ns*mod->ns,sizeof(phydbl));
-  mod->eigen = (eigen *)Make_Eigen_Struct(mod->ns);
+  mod->pi                     = (phydbl *)mCalloc(mod->ns,sizeof(phydbl));
+  mod->pi_unscaled            = (phydbl *)mCalloc(mod->ns,sizeof(phydbl));
+  mod->Pij_rr                 = (phydbl *)mCalloc(mod->n_catg*mod->ns*mod->ns,sizeof(phydbl));
+  mod->gamma_r_proba          = (phydbl *)mCalloc(mod->n_catg,sizeof(phydbl));
+  mod->gamma_rr               = (phydbl *)mCalloc(mod->n_catg,sizeof(phydbl));
+  mod->gamma_rr_unscaled      = (phydbl *)mCalloc(mod->n_catg,sizeof(phydbl));
+  mod->qmat                   = (phydbl *)mCalloc(mod->ns*mod->ns,sizeof(phydbl));
+  mod->qmat_buff              = (phydbl *)mCalloc(mod->ns*mod->ns,sizeof(phydbl));
+  mod->eigen                  = (eigen *)Make_Eigen_Struct(mod->ns);
   mod->gamma_r_proba_unscaled = (phydbl *)mCalloc(mod->n_catg,sizeof(phydbl));
 
   For(i,mod->n_catg) mod->gamma_rr[i] = 1.0;
@@ -6436,8 +6439,10 @@ void Record_Model(model *ori, model *cpy)
 
   For(i,cpy->n_catg)
     {
-      cpy->gamma_r_proba[i] = ori->gamma_r_proba[i];
-      cpy->gamma_rr[i]      = ori->gamma_rr[i];
+      cpy->gamma_r_proba[i]          = ori->gamma_r_proba[i];
+      cpy->gamma_rr[i]               = ori->gamma_rr[i];
+      cpy->gamma_r_proba_unscaled[i] = ori->gamma_r_proba_unscaled[i];
+      cpy->gamma_rr_unscaled[i]      = ori->gamma_rr_unscaled[i];
     }
   
   cpy->use_m4mod = ori->use_m4mod;
@@ -10667,10 +10672,19 @@ char *Bootstrap_From_String(char *s_tree, calign *cdata, model *mod, option *io)
   Update_Dirs(tree);
   Make_Tree_4_Pars(tree,cdata,cdata->init_len);
   Make_Tree_4_Lk(tree,cdata,cdata->init_len);
-  tree->triplet_struct = Make_Triplet_Struct(mod);
+  tree->triplet_struct = Make_Triplet_Struct(mod);  
+  Unscale_Br_Len_Multiplier_Tree(tree);
   Br_Len_Not_Involving_Invar(tree);
   Make_Spr_List(tree);
   Make_Best_Spr(tree);
+
+  printf("\n. %s",Write_Tree(tree));
+  fflush(NULL);
+
+  tree->both_sides = 1;
+  Lk(tree);
+
+
 
 #ifdef MPI
   Bootstrap_MPI(tree);
@@ -10699,7 +10713,6 @@ char *aLRT_From_String(char *s_tree, calign *cdata, model *mod, option *io)
 
   tree = Read_Tree(s_tree);
 
-
   if(!tree)
     {
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
@@ -10719,6 +10732,7 @@ char *aLRT_From_String(char *s_tree, calign *cdata, model *mod, option *io)
   Make_Tree_4_Pars(tree,cdata,cdata->init_len);
   Make_Tree_4_Lk(tree,cdata,cdata->init_len);
   tree->triplet_struct = Make_Triplet_Struct(mod);
+  Unscale_Br_Len_Multiplier_Tree(tree);
   Br_Len_Not_Involving_Invar(tree);
   Make_Spr_List(tree);
   Make_Best_Spr(tree);
@@ -10752,6 +10766,7 @@ void Prepare_Tree_For_Lk(t_tree *tree)
   Make_Tree_4_Lk(tree,tree->data,tree->data->init_len);
   tree->triplet_struct = Make_Triplet_Struct(tree->mod);
   Br_Len_Not_Involving_Invar(tree);
+  Unscale_Br_Len_Multiplier_Tree(tree);
   Make_Spr_List(tree);
   Make_Best_Spr(tree);
 }

@@ -158,7 +158,6 @@ int main(int argc, char **argv)
 		      tree->update_alias_subpatt = NO;
 		    }
 
-
 		  if(tree->mod->s_opt->opt_topo)
 		    {
 		      if(tree->mod->s_opt->topo_search      == NNI_MOVE) Simu_Loop(tree);
@@ -178,8 +177,6 @@ int main(int argc, char **argv)
 		  Get_Tree_Size(tree);
 		  PhyML_Printf("\n. Log likelihood of the current tree: %f.\n",tree->c_lnL);
 
-
-		  Rescale_Free_Rate_Tree(tree);
 		  Rescale_Br_Len_Multiplier_Tree(tree);
 		  Br_Len_Involving_Invar(tree);
 
