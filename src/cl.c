@@ -136,7 +136,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	  }
 	case 62:
 	  {
-	    io->mcmc->is   = YES;
+	    io->mcmc->is = YES;
 	    break;
 	  }
 	case 61:
