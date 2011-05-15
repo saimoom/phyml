@@ -36,10 +36,8 @@ void MCMC(t_tree *tree)
 
   tree->mod->update_eigen = YES;
 
-  
   MCMC_Initialize_Param_Val(tree->mcmc,tree);
-  MCMC_Print_Param(tree->mcmc,tree);
-
+  
   Update_Ancestors(tree->n_root,tree->n_root->v[0],tree);
   Update_Ancestors(tree->n_root,tree->n_root->v[1],tree);
   
@@ -49,39 +47,40 @@ void MCMC(t_tree *tree)
   tree->both_sides = NO;
   if(tree->mcmc->use_data) Lk(tree);
   else tree->c_lnL = 0.0;
-
   tree->mod->update_eigen = NO;
+  MCMC_Print_Param(tree->mcmc,tree);
+
 
   first = 0;
   secod = 1;
   do
     {
 
-      if(tree->mcmc->run > 10000)
-      	{
-      	  FILE *fp;
-      	  char *s;
+      /* if(tree->mcmc->run > 10000) */
+      /* 	{ */
+      /* 	  FILE *fp; */
+      /* 	  char *s; */
 
-      	  /* dens=kde2d(d$nu.true,d$nu.est); plot(d$nu.true,d$nu.est,pch=20); contour(dens,add=T); abline(0,1); */
+      /* 	  /\* dens=kde2d(d$nu.true,d$nu.est); plot(d$nu.true,d$nu.est,pch=20); contour(dens,add=T); abline(0,1); *\/ */
 
-      	  s = (char *)mCalloc(100,sizeof(char));
-      	  sprintf(s,"simul_seq.%d",getpid());
-      	  fp = fopen(s,"w");
-      	  fclose(tree->mcmc->out_fp_stats);
-      	  tree->mcmc->out_fp_stats = fopen(tree->mcmc->out_filename,"w");
-      	  tree->mcmc->run = 0;
-      	  MCMC_Print_Param(tree->mcmc,tree);
-      	  RATES_Update_Cur_Bl(tree);
-      	  Evolve(tree->data,tree->mod,tree);
-      	  Print_CSeq(fp,tree->data);
-      	  sprintf(s,"simul_par.%d",getpid());
-      	  rename(tree->mcmc->out_filename,s);
-      	  fflush(NULL);
-      	  fclose(fp);
-      	  Free(s);
+      /* 	  s = (char *)mCalloc(100,sizeof(char)); */
+      /* 	  sprintf(s,"simul_seq.%d",getpid()); */
+      /* 	  fp = fopen(s,"w"); */
+      /* 	  fclose(tree->mcmc->out_fp_stats); */
+      /* 	  tree->mcmc->out_fp_stats = fopen(tree->mcmc->out_filename,"w"); */
+      /* 	  tree->mcmc->run = 0; */
+      /* 	  MCMC_Print_Param(tree->mcmc,tree); */
+      /* 	  RATES_Update_Cur_Bl(tree); */
+      /* 	  Evolve(tree->data,tree->mod,tree); */
+      /* 	  Print_CSeq(fp,tree->data); */
+      /* 	  sprintf(s,"simul_par.%d",getpid()); */
+      /* 	  rename(tree->mcmc->out_filename,s); */
+      /* 	  fflush(NULL); */
+      /* 	  fclose(fp); */
+      /* 	  Free(s); */
 
-      	  Exit("\n");
-      	}
+      /* 	  Exit("\n"); */
+      /* 	} */
 
 
       /* if(tree->mcmc->run > 70000) */
@@ -1672,7 +1671,8 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
 
       // TREES
       char *s_tree;
-      tree->bl_ndigits = 10;
+      Branch_Lengths_To_Time_Lengths(tree);
+      tree->bl_ndigits = 3;
       s_tree = Write_Tree(tree);
       tree->bl_ndigits = 7;
       PhyML_Fprintf(mcmc->out_fp_trees,"TREE %8d [%f] = [&R] %s\n",mcmc->run,tree->c_lnL,s_tree);

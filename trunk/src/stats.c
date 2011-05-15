@@ -1544,10 +1544,11 @@ phydbl *Hessian(t_tree *tree)
 	  tree->t_edges[i]->l = ori_bl[i];
 	  inc[i] *= 1.1;
 	}while((FABS(lnL1 - ori_lnL) < 1.E-1) && 
-	       (tree->t_edges[i]->l+inc[i] < tree->mod->l_max) && 
-	       (tree->t_edges[i]->l-inc[i] > tree->mod->l_min));
+	       (tree->t_edges[i]->l+inc[i] < tree->mod->l_max));
       inc[i] /= 1.1;
     }
+
+
 
   /* zero zero */  
   zero_zero = tree->c_lnL;
@@ -2075,7 +2076,10 @@ phydbl *Hessian_Seo(t_tree *tree)
       inc_minus[i] /= 1.1;
     }
 
-  For(i,dim) inc[i] = MIN(inc_plus[i],inc_minus[i]);
+  For(i,dim) 
+    {
+      inc[i] = MIN(inc_plus[i],inc_minus[i]);
+    }
 
   /* plus */  
   For(i,dim) 

@@ -616,7 +616,6 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
 	    {
 	      if(pere == tree->n_root)
 		{
-		  printf("\nxx %f",tree->e_root->l);
 		  phydbl root_pos = (fils == tree->n_root->v[0])?(tree->n_root_pos):(1.-tree->n_root_pos);
 		  (*pos) += sprintf(*s_tree+*pos,format,tree->e_root->l * root_pos);
 		}
@@ -684,6 +683,14 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
 	}
 
       ori_len = *pos;
+      
+      if(p < 0)
+	{
+	  PhyML_Printf("\n. fils=%p root=%p root->v[0]=%p root->v[1]=%p",fils,tree->n_root,tree->n_root->v[0],tree->n_root->v[1]);
+	  PhyML_Printf("\n. tree->e_root=%p fils->b[0]=%p fils->b[1]=%p fils->b[2]=%p",tree->e_root,fils->b[0],fils->b[1],fils->b[2]);		       
+	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  Warn_And_Exit("");
+	}
 
 /*       printf("\n+ Writing on %p",*s_tree); */
       (*s_tree)[(*pos)-1] = ')';
@@ -6580,7 +6587,7 @@ void Set_Defaults_Model(model *mod)
   mod->l_max = 100.0;
 #else
   mod->l_min = 1.E-8;
-  mod->l_max = 100.00;
+  mod->l_max = 10.00;
 #endif
 }
 
