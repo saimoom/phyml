@@ -157,12 +157,14 @@ int main(int argc, char **argv)
 		      Lk(tree);
 		      tree->update_alias_subpatt = NO;
 		    }
-
+		  
 		  if(tree->mod->s_opt->opt_topo)
 		    {
 		      if(tree->mod->s_opt->topo_search      == NNI_MOVE) Simu_Loop(tree);
 		      else if(tree->mod->s_opt->topo_search == SPR_MOVE) Speed_Spr_Loop(tree);
 		      else                                               Best_Of_NNI_And_SPR(tree);
+
+		      if(tree->n_root) Add_Root(tree->t_edges[0],tree);
 		    }
 		  else
 		    {
@@ -170,7 +172,7 @@ int main(int argc, char **argv)
 			 tree->mod->s_opt->opt_bl)                       Round_Optimize(tree,tree->data,ROUND_MAX);
 		      else                                               Lk(tree);
 		    }
-		  
+
 		  tree->both_sides = 1;
 		  Lk(tree);
 		  Pars(tree);
