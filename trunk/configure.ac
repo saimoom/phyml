@@ -48,7 +48,6 @@ dnl CFLAGS="-O3 -Wfloat-equal -fomit-frame-pointer -funroll-loops"
 dnl CFLAGS="-O3 -Wfloat-equal"
 dnl CFLAGS="-g"
 
-
 LDFLAGS="${ARGC_flag}"
 
 dnl LT_INIT
