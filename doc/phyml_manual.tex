@@ -5,7 +5,7 @@
 % \usepackage{color}
 \usepackage{xcolor}
 \usepackage{psfrag}
-\usepackage{url}
+\usepackage[hyphens]{url}
 \usepackage{vmargin}
 \usepackage{cite}
 \usepackage{caption2}
@@ -33,6 +33,7 @@
 \renewcommand{\baselinestretch}{1}
 \makeindex
 \begin{document}
+\sloppy
 \begin{center}
 \thispagestyle{empty}
 \vfill\vfill
@@ -64,10 +65,10 @@ the GNU public licence. See http://www.opensource.org for details.
 \setlength{\baselineskip}{0.5\baselineskip}
 \section{Citation}
 \begin{itemize}
-% \item ``A simple, fast and accurate algorithm to estimate large phylogenies by maximum likelihood''
-%   Guindon S., Gascuel O. {\it Systematic Biology} {\bf \small 52}(5):696-704
-\item ``New algorithms and methods to estimate maximum-likelihood phylogenies: assessing the performance of PhyML 3.0.''
-  Guindon S., J.-F Dufayard, V. Lefort, M. Anisimova, W. Hordijk and O. Gascuel {\it Systematic Biology} {\bf \small 59}:307-21
+\item PhyML: ``A simple, fast and accurate algorithm to estimate large phylogenies by maximum likelihood''
+  Guindon S., Gascuel O. 2003, {\it Systematic Biology}, {\bf \small 52}(5):696-704
+\item PhyTime: ``Bayesian estimation of divergence times from large sequence alignments'' Guindon
+  S. 2010, {\it Molecular Biology and Evolution}, {\bf \small 27}(8):1768-81
 \end{itemize}
 }
 
@@ -77,12 +78,13 @@ the GNU public licence. See http://www.opensource.org for details.
 \section{Authors}
 \begin{itemize}
 \item { St\'ephane Guindon} and { Olivier Gascuel} conceived the original PhyML algorithm.
+\item { St\'ephane Guindon} conceived the PhyTime method.
 \item { St\'ephane Guindon, Wim Hordjik} and { Olivier Gascuel} conceived the SPR-based tree search algorithm.
 \item { Maria Anisimova} and { Olivier Gascuel} conceived the aLRT method for branch support.
 \item { St\'ephane Guindon, Franck Lethiec}, Jean-Francois Dufayard and Vincent Lefort implemented PhyML.
 \item { Jean-Francois Dufayard} created the benchmark and implemented the tools that are used to check
   PhyML accuracy and performances. 
-\item { Vincent Lefort, St\'ephane Guindon, Patrice Duroux} and {Olivier Gascuel} conceived and
+\item { Vincent Lefort, St\'ephane Guindon, Patrice Duroux} and { Olivier Gascuel} conceived and
   implemented PhyML web server.
 \item St\'ephane Guindon wrote this document.
 \end{itemize}
@@ -292,7 +294,7 @@ the \x{F} option depends on the type of the data to be processed.
 
 \vspace{0.7cm}
 \begin{center}          \framebox{\x{[T]          ....................          Ts/tv          ratio
-(fixed/estimated)}}   \end{center}\index{$\kappa$}\index{ts/tv   ratio}    Fix   or   estimate   the
+(fixed/estimated)}}   \end{center}\index{$\kappa$}\index{ts/tv ratio}    Fix   or   estimate   the
 transition/transversion ratio  in the maximum likelihood  framework.  This option  is only available
 when DNA sequences are to be analysed under  K80, HKY85 or TN93 models. The definition given to this
 parameter by PhyML  is the same as  PAML's\index{PAML} one.  Therefore, the value  of this parameter
@@ -303,7 +305,7 @@ definitions.
 
 \vspace{0.7cm}
 \begin{center}       \framebox{\x{[V]       .        Proportion      of       invariable       sites
-(fixed/estimated)}}   \end{center}\index{invariable  sites}\index{proportion   of   invariants}  The
+(fixed/estimated)}}   \end{center}\index{invariable sites}\index{proportion of invariants}  The
 proportion of  invariable sites, i.e., the  expected frequency of sites  that do not  evolve, can be
 fixed or estimated. The default is to fix this proportion to 0.0. By doing so, we consider that each
 site in  the sequence may accumulate  substitutions at some point  during its evolution,  even if no
@@ -317,25 +319,23 @@ framework.
 \index{gamma distribution (discrete)!shape parameter}
 \begin{center} \framebox{\x{[R]  ....... One category  of substitution rate  (yes/no)}} \end{center}
 \begin{center} \framebox{\x{[C] ........... Number of substitution rate categories}} \end{center}
-\begin{center} \framebox{\x{[G] ............. Gamma distributed rates across sites}} \end{center} 
 \begin{center} \framebox{\x{[A] ... Gamma distribution parameter (fixed/estimated)}} \end{center}
-% \begin{center} \framebox{\x{[G] .........`Middle' of each rate class (mean/median)}} \end{center}
-Rates of evolution often vary from site to site. This heterogeneity can be modelled using mixture
-models.  Type \x{R} to switch this option on or off.
+\begin{center} \framebox{\x{[G] .........`Middle' of each rate class (mean/median)}} \end{center}
+Rates of evolution often vary from site to site. This heterogeneity can be modelled using a discrete
+gamma distribution. Type \x{R} to switch this option on or off.
 
-By default, the  distribution of substitution rates is modelled using  a discrete gamma distribution
-\cite{yang94b}.  The different  categories of  this  discrete distribution  correspond to  different
-(relative) rates of evolution. The number of categories of this distribution is set to 4 by default.
-It is probably  not wise to go below  this number.  Larger values are  generally preferred. However,
-the computational  burden involved is  proportional to the  number of categories (i.e.,  an analysis
-with  8  categories  will  generally  take  twice  the  time  of  the  same  analysis  with  only  4
-categories). Note  that the  likelihood will not  necessarily increase  as the number  of categories
-increases. Hence,  the number of categories  should be kept  below a ``reasonable'' number,  say 20.
-The default number of categories can be changed by typing \x{C}.
+The different categories  of this discrete distribution correspond to  different (relative) rates of
+evolution. The number of categories of this distribution is set to 4 by default.  It is probably not
+wise to  go below this  number.  Larger values  are generally preferred. However,  the computational
+burden involved  is proportional to the  number of categories  (i.e., an analysis with  8 categories
+will generally  take twice  the time of  the same analysis  with only  4 categories). Note  that the
+likelihood will not necessarily increase as the number of categories increases. Hence, the number of
+categories should be kept  below a ``reasonable'' number, say 20.  The  default number of categories
+can be changed by typing \x{C}.  
 
 The middle  of each  discretized substitution rate  class can  be determined using  the mean  or the
 median. PAML,  MrBayes and RAxML  use the  mean.  However, the  median is generally  associated with
-greater likelihoods than the median.  This conclusion is based on our analysis of several real-world
+greater likelihoods than the  mean.  This conclusion is based on our  analysis of several real-world
 data sets extracted from TreeBase.  Despite this, the  default option in PhyML is to use the mean in
 order to make PhyML  likelihoods comparable to those of other phylogenetic  software.  One must bare
 in  mind that  {\color{red}{likelihoods  calculated with  the  mean approximation  are not  directly
@@ -346,11 +346,7 @@ values,  typically  in  the $[0.1,1.0]$  range,  correspond  to  large variabili
 correspond to moderate to  low heterogeneity. The gamma shape parameter can be  fixed by the user or
 estimated via maximum-likelihood. Type \x{A} to select one or the other option.
 
-PhyML  also implements  a  `free rate'  model  where the  relative  rate and  the  frequency of  the
-corresponding class  are estimated from the  data. This mixture  model has more parameters  than the
-discrete gamma one.  For instance, with 4 rate classes,  the number of free parameter  is 7 (4 rates
-plus 3 frequencies). However, this model generally provides a better fit to the data compared to the
-gamma one.
+
 
 
 
@@ -406,8 +402,7 @@ estimated. This approach is considerably faster than the bootstrap one. However,
 to  estimate different quantities  and conducting  a fair  comparison between  both criteria  is not
 straightforward. The estimation of approximate likelihood  branch support comes in two flavours: the
 measured  statistics  is  compared to  a  $\chi^2$  distribution  or a  non-parametric  distribution
-estimated using a RELL approximation.  Also,  the approximate Bayes approach estimates the posterior
-probabilty of each internal edge being correct.
+estimated using a RELL approximation.
 
 
 
@@ -420,27 +415,27 @@ displayed  after entering the  `\x{phyml help}'  command.  The  options are  als
 follows.
 
 \begin{itemize}
-\item \x{-i} (or \x{--input}) \x{seq\_file\_name} \\
+\item \x{-i} (or \x{--input}) \x{seq\_file\_name}\index{command-line options!\x{--input}} \\
 \x{seq\_file\_name} is the name of the nucleotide or amino-acid sequence file in PHYLIP format.
 
 
-\item \x{-d} (or \x{--datatype}) \x{data\_type}\\
+\item \x{-d} (or \x{--datatype}) \x{data\_type}\index{command-line options!\x{--data\_type}}\\
 \x{data\_type} is \x{nt} for nucleotide (default) and \x{aa} for amino-acid sequences.
 
 
-\item \x{-q} (or \x{--sequential})\index{sequence format!interleaved}\index{sequence format!sequential} \\
+\item \x{-q} (or \x{--sequential})\index{sequence format!interleaved}\index{sequence format!sequential}\index{command-line options!\x{--sequential}} \\
 Changes interleaved format (default) to sequential format.
 
 
-\item \x{-n} (or \x{--multiple}) \x{nb\_data\_sets}\index{multiple data sets}\\
+\item \x{-n} (or \x{--multiple}) \x{nb\_data\_sets}\index{multiple data sets}\index{command-line options!\x{--multiple}}\\
 \x{nb\_data\_sets} is an integer giving the number of data sets to analyse.
 
-\item \x{-p} (or \x{--pars})\\
+\item \x{-p} (or \x{--pars})\index{command-line options!\x{--pars}}\\
 Use a minimum parsimony starting tree. This option is taken into account when the '-u' option
 is absent and when tree topology modifications are to be done.
 
 
-\item \x{-b} (or \x{--bootstrap}) \x{int}\index{bootstrap} \\
+\item \x{-b} (or \x{--bootstrap}) \x{int}\index{bootstrap}\index{command-line options!\x{--bootstrap}} \\
 \begin{itemize}  
 \item \x{int} $>$  0: \x{int} is the number of bootstrap replicates.
 \item \x{int} =  0: neither approximate likelihood ratio test nor bootstrap values are computed.
@@ -448,10 +443,9 @@ is absent and when tree topology modifications are to be done.
 \item \x{int} = -2: approximate likelihood ratio test returning Chi2-based parametric branch supports.
 % \item \x{int} = -3: minimum of Chi2-based parametric and SH-like branch supports.
 \item \x{int} = -4: SH-like branch supports alone.
-\item \x{int} = -5: approximate Bayes support.
 \end{itemize}
 
-\item \x{-m} (or \x{--model}) \x{model\_name}\index{substitution models!DNA}\index{substitution models!amino acids} \\
+\item \x{-m} (or \x{--model}) \x{model\_name}\index{substitution models!DNA}\index{substitution models!amino acids}\index{command-line options!\x{--model}} \\
 \x{model\_name} : substitution model name.
 \begin{itemize}
 \item {\it Nucleotide-based models}: \x{HKY85} (default) \x{| JC69 |  K80 | F81 | F84 | TN93 | GTR |
@@ -471,11 +465,11 @@ amino-acid frequencies, are  given in a file which name  is asked for by the  pr
 this file is described in section \ref{sec:customaa}.
 \end{itemize}
 
-\item \x{--aa\_rate\_file file\_name} \\
+\item \x{--aa\_rate\_file file\_name}\index{command-line options!\x{--aa\_rate\_file}} \\
 This option is compulsory when analysing amino-acid sequences under a `custom' model. \x{file\_name}
 should provide a rate matrix and equilibrium amino acid in PAML format (see Section \label{sec:customaa}).
 
-\item \x{-f e}, \x{m}, or ``\x{fA,fC,fG,fT}" \index{frequencies!nucleotide}\index{frequencies!amino-acid}\index{stationary frequencies}\\
+\item \x{-f e}, \x{m}, or ``\x{fA,fC,fG,fT}" \index{frequencies!nucleotide}\index{frequencies!amino-acid}\index{stationary frequencies}\index{command-line options!\x{-f}}\\
 Nucleotide or amino-acid frequencies.
 \begin{itemize}
 \item \x{e} : the character frequencies are determined as follows : 
@@ -498,31 +492,31 @@ Nucleotide or amino-acid frequencies.
 correspond to the frequencies of A, C, G and T respectively.
 \end{itemize}  
 
-\item \x{-t} (or \x{--ts/tv}) \x{ts/tv\_ratio} \index{$\kappa$}\index{ts/tv ratio}\\
+\item \x{-t} (or \x{--ts/tv}) \x{ts/tv\_ratio} \index{$\kappa$}\index{ts/tv ratio}\index{command-line options!\x{--ts/tv}}\\
 \x{ts/tv\_ratio}: transition/transversion ratio. DNA sequences only. Can be a fixed positive value
 (e.g., 4.0) or type \x{e} to get the maximum likelihood estimate.
 
-\item \x{-v} (or \x{--pinv}) \x{prop\_invar}\index{proportion of invariants}\index{invariable sites} \\
+\item \x{-v} (or \x{--pinv}) \x{prop\_invar}\index{proportion of invariants}\index{invariable sites} \index{command-line options!\x{--pinv}}\\
 \x{prop\_invar}: proportion of invariable sites. Can be a fixed value in the [0,1] range or type \x{e} to get the maximum likelihood estimate.
 
-\item \x{-c} (or \x{--nclasses}) \x{nb\_subst\_cat}\index{gamma distribution (discrete)!number of categories} \\
+\item \x{-c} (or \x{--nclasses}) \x{nb\_subst\_cat}\index{gamma distribution (discrete)!number of categories} \index{command-line options!\x{--nclasses}}\\
 \x{nb\_subst\_cat}: number of relative substitution rate categories. Default: \x{nb\_subst\_cat=4}. Must be a positive integer.
 
-\item \x{-a} (or \x{--alpha}) \x{gamma} \index{gamma distribution (discrete)!shape parameter} \\
+\item \x{-a} (or \x{--alpha}) \x{gamma} \index{gamma distribution (discrete)!shape parameter}\index{command-line options!\x{--alpha}} \\
 \x{gamma}: value of the gamma shape parameter. Can be a fixed positive value or e to get the maximum
 likelihood estimate. The value of this parameter is estimated in the maximum likelihood framework by default.
 
-\item \x{--use\_median} \index{gamma distribution (discrete)!mean vs. median} \\
+\item \x{--use\_median} \index{gamma distribution (discrete)!mean vs. median} \index{command-line options!\x{--use\_median}}\\
 The middle of each substitution rate class in the discrete gamma distribution is taken as the
 median. The mean is used by default.
 
-\item \x{-s} (or \x{--search}) \x{move}\index{NNI}\index{SPR} \\
+\item \x{-s} (or \x{--search}) \x{move}\index{NNI}\index{SPR} \index{command-line options!\x{--search}}\\
 Tree topology search operation option. Can be either \x{NNI} (default, fast) or \x{SPR} (a bit slower than \x{NNI}) or \x{BEST} (best of NNI and SPR search).
 
-\item \x{-u} (or \x{--inputtree}) \x{user\_tree\_file}\index{input tree}\index{user tree} \\
+\item \x{-u} (or \x{--inputtree}) \x{user\_tree\_file}\index{input tree}\index{user tree} \index{command-line options!\x{--inputtree}}\\
 \x{user\_tree\_file}: starting tree filename. The tree must be in Newick format.
 
-\item \x{-o params}\index{optimisation!topology}\index{optimisation!substitution parameters} \\
+\item \x{-o params}\index{optimisation!topology}\index{optimisation!substitution parameters} \index{command-line options!\x{-o}}\\
 This option focuses on specific parameter optimisation.
 \begin{itemize}
 \item \x{params=tlr}: tree topology (\x{t}), branch length (\x{l}) and substitution rate parameters (\x{r}) are optimised.
@@ -533,22 +527,22 @@ This option focuses on specific parameter optimisation.
 \item \x{params=n}: no parameter is optimised.
 \end{itemize}
 
-\item \x{--rand\_start}\index{random tree} \\
+\item \x{--rand\_start}\index{random tree} \index{command-line options!\x{--rand\_start}}\\
 This option sets the initial tree to random. It is only valid if SPR searches are to be performed.
 
-\item \x{--n\_rand\_starts num} \\
+\item \x{--n\_rand\_starts num} \index{command-line options!\x{--n\_rand\_starts}}\\
 \x{num} is the number of initial random trees to be used. It is only valid if SPR searches are to be performed.
 
-\item \x{--r\_seed num}\index{random number} \\
+\item \x{--r\_seed num}\index{random number} \index{command-line options!\x{--r\_seed}}\\
 \x{num} is the seed used to initiate the random number generator. Must be an integer.
 
-\item \x{--print\_site\_lnl}\index{likelihood!print site likelihood} \\
+\item \x{--print\_site\_lnl}\index{likelihood!print site likelihood} \index{command-line options!\x{--print\_site\_lk}}\\
 Print the likelihood for each site in file *\_phyml\_lk.txt.
 
-\item \x{--print\_trace} \\
+\item \x{--print\_trace} \index{command-line options!\x{--print\_trace}}\\
 Print each phylogeny explored during the tree search process in file *\_phyml\_trace.txt.
 
-\item \x{--run\_id ID\_string}\index{run ID} \\
+\item \x{--run\_id ID\_string}\index{run ID} \index{command-line options!\x{--run\_id}}\\
 Append the string ID\_string at the end of each PhyML output file. This option may be useful when
 running simulations involving PhyML. It can also be used to `tag' multiple analysis of the same data
 set with various program settings.
@@ -912,8 +906,198 @@ starting trees are printed in a separate tree file (see last row of Table \ref{t
 
 
 
+\section{Other programs in the PhyML package}
 
-\section{Recommendations on PhyML usage.}
+PhyML  is software package  that provides  tools to  tackle problems  other than  estimating maximum
+likelihood  phylogenies.  Installing these  tools  and  processing data  sets  is  explained is  the
+following sections.
+
+\subsection{PhyTime (Guindon, {\it Mol. Biol. Evol.} 2010)}\index{PhyTime} PhyTime is a program that
+estimates node  ages and substitution rates  using a fast Bayesian  approach.  It relies  on a Gibbs
+sampler which outperforms the ``standard''  Metropolis-Hastings algorithm implemented in a number of
+phylogenetic softwares.  The details and performance of this approach are described in the following
+article:  Guindon  S.   ``Bayesian  estimation  of  divergence times  from  large  data  sets'',  {\it
+Mol. Biol. Evol.}, 2010, 27(8):1768:81.
+
+\subsubsection{Installing PhyTime}
+
+Compiling PhyTime is straightforward on Unix-like  machines (i.e., linux and MacOS systems). PhyTime
+is not readily available for Windows machines but  compilation should be easy on this system too. In
+the `phyml' directory, where the `src/' and `doc/' directories stand, enter the following commands:
+{\setlength{\baselineskip}{0.5\baselineskip}
+\begin{verbatim}
+./configure --enable-phytime;
+make clean;
+make;
+\end{verbatim} } This set of commands generates  a binary file called \x{phytime} which can be found
+  in the `src/' directory.
+
+\subsubsection{Running  PhyTime} Passing  options and  running  PhyTime on  your data  set is  quite
+similar to running  PhyML in commmand-line mode.  The main differences between the  two programs are
+explained below:
+\begin{itemize}
+\item PhyTime takes as mandatory input a {\em rooted} phylogenetic tree.  Hence, the `\x{-u}' option
+must be used. Also, unlike PhyML, PhyTime does not modify the tree topology. Hence, the options that
+go with the `\x{-s}' command do not alter the input tree topology.
+\item  PhyTime  needs  an input  file  giving  information  about  calibration nodes.   The  command
+`\x{--calibration=}' followed by the name of  the file containing the calibration node information is
+mandatory. The content of that file should look as follows:
+
+\begin{figure}[h]
+\begin{small}
+\begin{Verbatim}[frame=single, label=Calibration node file, samepage=true, baselinestretch=0.5]
+Dugong_dugon Procavia_capensis Elephantidae | -65 -54
+Equus_sp. Ceratomorpha | -58 -54
+Cercopithecus_solatus Macaca_mulatta Hylobates_lar Homo_sapiens | -35 -25
+Lepus_crawshayi Oryctolagus_cuniculus Ochotona_princeps | -90 -37
+Marmota_monax Aplodontia_rufa | -120 -37 
+Dryomys_nitedula Glis_glis | -120 -28.5
+@root@ | -100 -120
+\end{Verbatim}
+\end{small}
+\end{figure}
+
+Every row in this file lists a set of taxa that belong to the same subtree (i.e., a clade). This
+list of taxa is followed by the character `\x{|}' and two real numbers corresponding to the lower
+and upper bounds of the calibration interval for the node at the root of the clade. In the example
+given here, the clade grouping the three taxa ``Dugong\_dugon'', ``Procavia\_capensis'' and
+``Elephantida'' has -65 as lower bound and -54 as upper bound.  Node ages (or node heights) are
+relative to the most recent tip node in the phylogeny, which age is set to 0. Note also that the
+node corresponding to the root of the whole tree has a specific label: `\x{@root@}'.
+{\color{red}{It is important to specify upper and lower bounds for the root node in order to ensure
+convergence of the Gibbs sampler.}}  Not defining these bounds is likely to produce inaccurate
+estimates of node ages, especially if there are only few calibration nodes available.
+
+A notable exception to this rule comes from the analysis of serial sample \index{serial sample}
+data, i.e., alignments in which sequences were not sampled at the same time point.  For such data,
+the estimated number of substitutions accumulated between successive time points is used to estimate
+the substitution rate averaged over lineages. Because the time of collection of the sequences is
+generally known without ambiguity, this extra piece of data is translated into very informative
+calibration intervals for the tip nodes (i.e., calibration interval of zero width), which in turn
+results in substitution rate estimates with descreased variances.  Posterior distribution of
+substitution rates with small variances then allows one to get good estimates of the root age.
+
+
+
+
+\end{itemize}
+
+A typical PhyTime command-line should look like the following\index{command-line options!\x{--calibration}}:
+
+\begin{Verbatim}[fontsize=\small]
+./phytime -i seqname -u treename --calibration=calibration_file -m GTR -c 8
+\end{Verbatim}
+
+Assuming the file `\x{seqname}' contains DNA  sequences in PHYLIP or NEXUS format, `\x{treename}' is
+the rooted  input tree in NEXUS  format and `\x{calibration\_file}'  is a set of  calibration nodes,
+PhyTime will  estimate the  posterior distribution of  node times  and substitution rates  under the
+assumption that the  substitution process follows a GTR  model with 8 classes of rates  in the Gamma
+distribution of  rates across sites. The  model parameter values  are estimated by a  Gibbs sampling
+technique. This algorithm tries diferent values of the model parameters and record the most probable
+ones. By default,  $10^6$ values for each  parameter are collected. These values  are recorded every
+$10^3$  sample. These  settings can  be  modified using  the appropriate  command-line options  (see
+below).
+
+\subsubsection{PhyTime specific options}
+
+Beside the \x{--calibration} option, there are other command line options that are specific to PhyTime:
+
+\begin{itemize}
+\item \x{--chain\_len=num}\index{command-line options!\x{--chain\_len}} \\
+\x{num} is the number of iterations required to estimate the joint posterior density of all the model
+parameters, i.e., the length of the MCMC chain. Its default is set to 1E+6.
+% \item \x{--burnin=num} \\
+% \x{num} is the number of iterations for the ``burnin'' period, i.e., the number of iterations
+% required before actually starting to get valid samples from the joint posterior density of all the
+% model parameters. Its default is set to 1E+5, i.e., 0.1 times the default value of the \x{chain\_len}
+% parameter (see above).
+\item \x{--sample\_freq=num}\index{command-line options!\x{--sample\_freq}}  \\  \x{num} is the number of  generations between successive collection
+of   the   model   parameter   values   throughout   the   MCMC   algorithm.   For   instance,   the
+\x{--sample\_freq=1E+2} option will make PhyTime sample the model parameter every 100th iteration of
+the MCMC algorithm. Its default is set to 1E+3.
+\item \x{--fastlk=yes (no)}\index{command-line options!\x{--fastlk}} [Default: no]\\
+The option is used to turn on (off) the approximation of the likelihood function using a
+multivariate normal density. By default, the exact likelihood is used. Using the normal
+approximation considerably speeds up the calculation. However, it is necessary to ensure that this
+approximation is appropriate by looking at the correlation between the exact and approximated
+likelihood values that are sampled. Please read Section \ref{sec:recomphytime} for a description of
+the appropriate steps to take.
+\item \x{--no\_data}\index{command-line options!\x{--no\_data}}\\
+Use this option to sample from the priors only (rather from the posterior joint density of the model parameters).
+
+
+\end{itemize}
+
+\subsubsection{PhyTime output}
+
+The program PhyTime generates two output files.  The file called `\x{phytime.XXXX}', where XXXX is a
+randomly generated integer, lists the node times and branch relative rates sampled during the
+estimation process.  It also gives the sampled values for other parameters, such as the
+autocorrelation of rates (parameter `Nu'), and the rate of evolution (parameter `EvolRate') amongst
+others.  This output file can be analysed with the program Tracer\index{Tracer} from the
+BEAST\index{BEAST} package (\url{http://beast.bio.ed.ac.uk/Main_Page}). The second file is called
+`\x{phytime.XXXX.trees}'. It is the list of trees that were collected during the estimation process,
+i.e., phylogenies sampled from the posterior density of trees.  This file can be processed using the
+software TreeAnnotator, also part of the BEAST package (see
+\url{http://beast.bio.ed.ac.uk/Main_Page}) in order to generate confidence sets for the node time
+estimates.
+
+Important  information is also  displayed on  the standard  output of  PhyTime (the  standard output
+generally corresponds to the terminal window from  which PhyTime was launched).  The first column of
+this output gives the current  generation, or run, of the chain. It starts at  1 and goes up to 1E+6
+by default (use \x{--chain\_len} to change this value, see above).  The second column gives the time
+elapsed  in seconds since  the sampling  began. The  third column  gives the  log likelihood  of the
+phylogenetic model (i.e.,  `Felsenstein's likelihood'). The fourth column  gives the current sampled
+value of the  EvolRate parameter along with  the corresponding Effective Sample Size  (ESS) for this
+parameter.  The fifth column  gives the tree height and the corresponding  ESS. The EvolRate and the
+tree height parameters are generally considered as  important parameters of the model. They are also
+difficult to  estimate independently if  the signal conveyed  by the calibration intervals  is weak.
+The MCMC technique  generates samples from a  target distribution (in our case,  the joint posterior
+density  of  parameters).  Due  to  the  Markovian  nature of  the  method,  these samples  are  not
+independent.  The  ESS is the estimated  number of independent  measurements obtained from a  set of
+(usually dependent) measurements. It is calculated using the following formula:
+\begin{eqnarray*}
+\mathrm{ESS} = N\left(\frac{1-r}{1+r}\right),
+\end{eqnarray*}
+where  $N$  is the  length  of  the  chain  (i.e., the  `raw'  or `correlated' sample  size)  and $r$  is  the
+autocorrelation value, which is obtained using the following formula:
+\begin{eqnarray*}
+r = \frac{1}{(N-k)\sigma_x^2} \sum_{i=1}^{N-k} (X_i - \mu_x)(X_{i+k}-\mu_x),
+\end{eqnarray*} where $\mu_x$ and $\sigma_x$ are the mean and standard deviation of the $X_i$ values
+respectively and $k$ is the lag. The value of $r$ that is used in PhyTime corresponds to the case where $k=1$,
+which therefore gives a first order  approximation of the `average' autocorrelation value (i.e., the
+autocorrelation averaged over the set of possible values of the lag).
+
+The last column of the standard output gives the  minimum of the ESS values taken over the whole set
+of node height estimates.  It provides useful information when one has to  decide whether or not the
+sample size  is large enough to  draw valid conclusion, i.e.,  decide whether the chain  was run for
+long enough (see Section \ref{sec:recomphytime} for more detail about adequate chain length).
+
+\subsubsection{ClockRate vs. EvolRate}
+
+The average rate of evolution along a branch  is broken into two components. One is called ClockRate
+and is  the same throughout  the tree. The  other is called EvolRate  and corresponds to  a weighted
+average of  branch-specific rates.  The  model of rate  evolution implemented in PhyTime  forces the
+branch-specific rate values to  be greater than one. As a consequence,  ClockRate is usually smaller
+EvolRate.
+
+In more mathematical terms, let $\mu$ be the value of ClockRate, $r_i$ be the value of the relative
+rate along branch $i$ and $\Delta_i$ the time elapsed along branch $i$. The value of EvolRate is
+then given by:
+\begin{eqnarray*}
+\mathrm{EvolRate} = \mu \frac{\sum_{i}^{2n-3} r_i \Delta_i}{\sum_{i}^{2n-3} \Delta_i}.
+\end{eqnarray*}  It is  clear from  this equation  that  multiplying each  $r_i$ by  a constant  and
+dividing $\mu$ by the same constant does not  change the value of EvolRate. The $r_i$s and $\mu$
+are then confounded,  or non-identifiable, and only  the value of EvolRate can  be estimated from
+the data.   {\color{red}{Please make sure  that you use  the value of  EvolRate rather than  that of
+ClockRate when referring to the estimate of the substitution rate}}.
+
+
+
+
+\section{Recommendations on program usage.}\label{sec:progusage}
+
+\subsection{PhyML}
 
 The choice of the  tree searching algorithm among those provided by PhyML  is generally a tough one.
 The  fastest option  relies  on local  and simultaneous  modifications  of the  phylogeny using  NNI
@@ -971,152 +1155,64 @@ pre-analysis with the  simplest model should help the  user to determine the num
 that represents the best trade-off between computing time and fit of the model to the data.
 
 
-\section{Other programs in the PhyML package}
+\subsection{PhyTime}\label{sec:recomphytime}
 
-As well as being a computer program that builds maximum likelihood phylogenies, PhyML is software
-package that provides tools to tackle different problems. Installing these programs and processing
-data sets is explained is the following sections.
+Analysing a data set using PhyTime should  involve three steps based on the following questions: (1)
+do the priors seem to be adequate (2) can I use the fast approximation of the likelihood and (3) how
+long shall I run the program for? I explain below how to provide answers to these questions.
 
-\subsection{PhyTime (Guindon, {\it Mol. Biol. Evol.} 2010)}\index{PhyTime} PhyTime is a program that
-estimates node  ages and substitution rates  using a fast Bayesian  approach.  It relies  on a Gibbs
-sampler  which  outperforms  the  ``standard''  Metropolis-Hastings algorithm  implemented  in  most
-phylogenetic  softwares that  aim at  estimating node  ages.  The  details and  performance  of this
-approach are described in the following  paper: Guindon S. ``Bayesian estimation of divergence times
-from large data sets'', {\it Mol. Biol. Evol.}, 2010.
+\begin{itemize} 
+\item {\em  Do the priors seem  to be adequate?} Bayesian  analysis relies on  specifiying the joint
+prior density  of model parameters.  In  the case of  node age estimation, these  priors essentially
+describe how rates of substitution vary across lineages and the probabilistic distribution that node
+ages have when  ignoring the information provided  by the genetic sequences. These  priors vary from
+tree to tree. It is therefore essential to  check the adequacy of priors for each user-defined input
+tree. In order to do so, PhyTime needs to be run with the \x{--no\_data} option. When this option is
+required, the  sequence data provided  as input will  be ignored and the  rest of the  analysis will
+proceed  normally. The  prior distribution  of  model parameters,  essentially edge  rates and  node
+heights, can then be  checked using the program Tracer as one would  do for the standard `posterior'
+analysis.
 
-\subsubsection{Installing PhyTime}
+\item {\em  Can I use the  fast approximation to the  likelihood?} The suface  of the log-likelihood
+function can  be approximated using  a multivariate normal  density.  This technique is  saving very
+substantial amounts  of computation  time. However, like  most approximations, there  are situations
+where it does not provide a good fit to the actual function. This usually happens when the phylogeny
+displays  a lot  of short  branches, i.e.,  the  signal conveyed  by the  sequences is  weak. It  is
+therefore important to first check whether  using the approximate likelihood is reasonable. In order
+to do  so, it is  recommended to first  run the program without  the approximation, i.e.,  using the
+default settings. Once  the minimum value of the ESS  of node ages (the last column  on the right of
+the  standard output)  has reached  40-50, open  the \x{phytime.XXXX}  output file  with  Tracer and
+examine   the  correlation   between  the   exact   and  approximate   likelihood  values.    Figure
+\ref{fig:approxbad} gives an example where the correlation  is too weak and the approximation of the
+likelihood should be avoided. Figure \ref{fig:approxbad} gives an example where the approximation is
+good enough.   The current execution  of PhyTime  can be terminated  and then re-launched  using the
+\x{--fast\_lk} option.
 
-Compiling PhyTime is straightforward on Unix-like  machines (i.e., linux and MacOS systems). PhyTime
-is not readily available for Windows machines but  compilation should be easy on this system too. In
-the `phyml' directory, where the `src/' and `doc/' directories stand, enter the following commands:
-{\setlength{\baselineskip}{0.5\baselineskip}
-\begin{verbatim}
-./configure --enable-phytime;
-make clean;
-make;
-\end{verbatim} } This set of commands generates  a binary file called \x{phytime} which can be found
-  in the `src/' directory.
-
-\subsubsection{Running  PhyTime} Passing  options and  running  PhyTime on  your data  set is  quite
-similar to running  PhyML in commmand-line mode.  The main differences between the  two programs are
-explained below:
-\begin{itemize}
-\item PhyTime takes as mandatory input a {\em rooted} phylogenetic tree.  Hence, the `\x{-u}' option
-must be used. Also, unlike PhyML, PhyTime does not modify the tree topology. Hence, the options that
-go with the `\x{-s}' command do not alter the input tree topology.
-\item  PhyTime  needs  an input  file  giving  information  about  calibration nodes.   The  command
-`\x{--calibration=}' followed by the name of  the file containing the calibration node information is
-mandatory. The content of that file should look as follows:
-
-\begin{figure}[h]
-\begin{small}
-\begin{Verbatim}[frame=single, label=Calibration node file, samepage=true, baselinestretch=0.5]
-Dugong_dugon Procavia_capensis Elephantidae | -65 -54
-Equus_sp. Ceratomorpha | -58 -54
-Cercopithecus_solatus Macaca_mulatta Hylobates_lar Homo_sapiens | -35 -25
-Lepus_crawshayi Oryctolagus_cuniculus Ochotona_princeps | -90 -37
-Marmota_monax Aplodontia_rufa | -120 -37 
-Dryomys_nitedula Glis_glis | -120 -28.5
-@root@ | -100 -120
-\end{Verbatim}
-\end{small}
+\begin{figure}
+\begin{center}
+\resizebox{14cm}{8cm}{\includegraphics{./fig/approx_bad.eps}}
+\caption{{\bf Exact vs. approximate likelihoods.} The correlation between the normally approximated
+  (Y-axis) and the exact (X-axis) likelihoods is weak here. The exact likelihood should be used (option \x{fastlk=no}).}
+\label{fig:approxbad}
+\end{center}
 \end{figure}
 
-Every row in this file  lists a set of species found in the user tree  (i.e., a clade). This list of
-taxa is followed by the character `\x{|}' and  two real numbers corresponding to the lower and upper
-bounds of the calibration interval for the node at the root of the clade. In the example given here,
-the clade grouping the three  taxa ``Dugong\_dugon'', ``Procavia\_capensis'' and ``Elephantida'' has
--65 as lower  bound and -54 as  upper bound.  Node ages (or  node heights) are relative  to the most
-recent tip node  in the phylogeny, which age is  set to 0. Note also that  the node corresponding to
-the root  of the whole  tree has  a specific label:  `\x{@root@}'.  {\color{red}{It is  important to
-specify  upper and  lower bounds  for the  root node  in order  to ensure  convergence of  the Gibbs
-sampler.}}   Not defining  these bounds  is likely  to produce  inaccurate estimates  of  node ages,
-especially if there are only few calibration nodes available.  
 
-A notable exception to this rule comes from  the analysis of serial sample data, i.e., alignments in
-which sequences  were not sampled at  the same time point.   For such data, the  estimated number of
-substitutions accumulated  between successive time  points is used  to estimate the  substitution rate
-averaged over lineages. Because  the time of collection of the sequences  is generally known without
-ambiguity, this  extra piece of data is  translated into very informative  calibration intervals for
-the tip nodes (i.e., calibration interval of zero width), which in turn results in substitution rate
-estimates  with  descreased variances.  Posterior  distribution  of  substitution rates  with  small
-variances then allows one to get good estimates of the root age. 
+\begin{figure}
+\begin{center}
+\resizebox{14cm}{8cm}{\includegraphics{./fig/approx_good.eps}}
+\caption{{\bf Exact vs. approximate likelihoods.} The correlation between the normally approximated
+  (Y-axis) and the exact (X-axis) likelihoods is good. The approximation of the  likelihood can be used (option \x{fastlk=yes}).}
+\label{fig:approxgood}
+\end{center}
+\end{figure}
+
+\item {\em How  long shall I run the program  for?} PhyTime should be run long  enough such that the
+ESS of  each parameter  is `large enough'.  The last column  on the  right handside of  the standard
+output gives the minimum ESS across all internal  node heights. It is recommended to run the program
+so that this number reaches at least 100.
 
 \end{itemize}
-
-A typical PhyTime command-line should look like the following:
-
-\begin{Verbatim}[fontsize=\small]
-./phytime -i seqname -u treename --calibration=calibration_file -m GTR -c 8
-\end{Verbatim}
-
-Assuming the file `\x{seqname}' contains DNA  sequences in PHYLIP or NEXUS format, `\x{treename}' is
-the rooted  input tree in NEXUS  format and `\x{calibration\_file}'  is a set of  calibration nodes,
-PhyTime will  estimate the  posterior distribution of  node times  and substitution rates  under the
-assumption that the  substitution process follows a GTR  model with 8 classes of rates  in the Gamma
-distribution of  rates across sites. The  model parameter values  are estimated by a  Gibbs sampling
-technique. This algorithm tries  diferent sets of model parameter values and  only conserve the most
-probable ones. By default, $10^6$ sets of  parameters are collected. These values are recorder every
-$10^4$ sample. At the  moment, the total sample size and the frequency  at which these sample values
-are recorded can not be modified by the user.
-
-\subsubsection{PhyTime specific options}
-
-Beside the \x{calibration} option, there are other command line options that are specific to PhyTime:
-
-\begin{itemize}
-\item \x{--chain\_len=num} \\
-\x{num} is the number of iterations required to estimate the joint posterior density of all the model
-parameters, i.e., the length of the MCMC chain. Its default is set to 1E+6.
-\item \x{--burnin=num} \\
-\x{num} is the number of iterations for the ``burnin'' period, i.e., the number of iterations
-required before actually starting to get valid samples from the joint posterior density of all the
-model parameters. Its default is set to 1E+5, i.e., 0.1 times the default value of the \x{chain\_len}
-parameter (see above).
-\item \x{--sample\_freq=num} \\
-\x{num} is the number of iterations elapsed between successive collection of the estimated model
-parameters throughout the MCMC algorithm. For instance, the \x{--sample\_freq=1E+2} option will make
-PhyTime sample the model parameter every 100th iteration of the MCMC algorithm. Its default is set
-to 1E+3.
-\end{itemize}
-
-\subsubsection{PhyTime output}
-
-The program PhyTime generates two output  files. The first file, called `\x{phytime.XXXX} where XXXX
-is a randomly generated  integer, lists the node times and branch  relative rates sampled during the
-estimation  process. It  also gives  the sampled  values  for other  parameter values,  such as  the
-autocorrelation of  rates (parameter `Nu'), the  overall rates of evolution  (parameter `Clock') and
-the  average of the  relative substitution  rates (parameter  `MeanRate'). This  output file  can be
-analysed       with      the       program       Tracer      from       the      BEAST       package
-(\url{http://beast.bio.ed.ac.uk/Main_Page}). The second  file is called `\x{phytime.XXXX.trees}'. It
-is the list  of trees that were  collected during the estimation process,  i.e., phylogenies sampled
-from the posterior density  of trees.  This file can be processed  using the software TreeAnnotator,
-also part of the BEAST  package (see \url{http://beast.bio.ed.ac.uk/Main_Page}) in order to generate
-confidence sets for the node time estimates.
-
-
-
-% \subsubsection{Technical notes}
-
-% \begin{itemize}
-% \item {\it Update all branch rates in a single traversal versus branch-by-branch.}
-% \item {\it Normalisation of rates.}
-% \end{itemize}
-
-
-
-
-
-
-
-% \subsection{PhyGeo (Guindon, {\it in preparation})}\index{PhyGeo}
-
-
-
-
-
-
-
 
 
 \section{Frequently asked questions}  
@@ -1166,8 +1262,8 @@ The development of PhyML since 2000 has been supported by the Centre National de
 Scientifique (CNRS) and the Minist\`ere de l'\'Education Nationale.
 
 % \bibliographystyle{/home/guindon/latex/biblio/OUPnum}
-\bibliographystyle{/home/guindon/latex/biblio/nature/naturemag}
-\bibliography{/home/guindon/latex/biblio/ref}
+\bibliographystyle{/Users/guindon/latex/biblio/nature/naturemag}
+\bibliography{/Users/guindon/latex/biblio/ref}
 
 \printindex
 \end{document}
