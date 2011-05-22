@@ -2196,9 +2196,9 @@ void Init_Model(calign *data, model *mod, option *io)
     }
 
   For(i,mod->n_catg) mod->gamma_r_proba[i]          = 1./(phydbl)mod->n_catg;
-  For(i,mod->n_catg) mod->gamma_r_proba_unscaled[i] = 1./(phydbl)mod->n_catg;
+  For(i,mod->n_catg) mod->gamma_r_proba_unscaled[i] = 1.;
   For(i,mod->n_catg) mod->gamma_rr[i]               = 1.;
-  For(i,mod->n_catg) mod->gamma_rr_unscaled[i]      = 1.;
+  For(i,mod->n_catg) mod->gamma_rr_unscaled[i]      = 10.;
 
   mod->br_len_multiplier = 1.0;
 

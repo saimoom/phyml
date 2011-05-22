@@ -128,5 +128,7 @@ void MCMC_Kappa(t_tree *tree);
 void MCMC_Rate_Across_Sites(t_tree *tree);
 void MCMC_Free_Mixt_Rate(t_tree *tree);
 void MCMC_Make_Move(phydbl *cur, phydbl *new, phydbl inf, phydbl sup, phydbl *loghr, phydbl tune, int move_type);
+void MCMC_Randomize_Rate_Across_Sites(t_tree *tree);
+void MCMC_Randomize_Kappa(t_tree *tree);
 
 #endif
