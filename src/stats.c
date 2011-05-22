@@ -715,7 +715,9 @@ phydbl Dgamma(phydbl x, phydbl shape, phydbl scale)
     {
       PhyML_Printf("\n. WARNING v=%f x=%f shape=%f scale=%f",v,x,shape,scale);
       PhyML_Printf("\n. LOG(x) = %G LnGamma(shape)=%G",LOG(x),LnGamma(shape));
-      Exit("\n");
+      v = EXP(v);
+      /* PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
+      /* Exit("\n"); */
     }
 
 	 
