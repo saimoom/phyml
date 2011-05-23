@@ -85,24 +85,24 @@ void MCMC(t_tree *tree)
       /* 	} */
 
 
-      /* if(tree->mcmc->run > 100000) */
-      /* 	{ */
-      /* 	  FILE *fp; */
-      /* 	  char *s,*t; */
+      if(tree->mcmc->run > 50000)
+      	{
+      	  FILE *fp;
+      	  char *s,*t;
 
-      /* 	  s = (char *)mCalloc(100,sizeof(char)); */
+      	  s = (char *)mCalloc(100,sizeof(char));
 	  
-      /* 	  t = strrchr(tree->io->in_align_file,'.'); */
-      /* 	  sprintf(s,"res%s",t); */
-      /* 	  fp = fopen(s,"w"); */
-      /* 	  fclose(tree->mcmc->out_fp_stats); */
-      /* 	  tree->mcmc->out_fp_stats = fopen(s,"w"); */
-      /* 	  tree->mcmc->run = 0; */
-      /* 	  MCMC_Print_Param(tree->mcmc,tree); */
-      /* 	  fclose(fp); */
-      /* 	  Free(s); */
-      /* 	  Exit("\n"); */
-      /* 	} */
+      	  t = strrchr(tree->io->in_align_file,'.');
+      	  sprintf(s,"res%s",t);
+      	  fp = fopen(s,"w");
+      	  fclose(tree->mcmc->out_fp_stats);
+      	  tree->mcmc->out_fp_stats = fopen(s,"w");
+      	  tree->mcmc->run = 0;
+      	  MCMC_Print_Param(tree->mcmc,tree);
+      	  fclose(fp);
+      	  Free(s);
+      	  Exit("\n");
+      	}
 
       u = Uni();
 
