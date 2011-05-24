@@ -63,7 +63,6 @@ void MCMC(t_tree *tree)
       /* 	  FILE *fp; */
       /* 	  char *s; */
 
-      /* 	  /\* dens=kde2d(d$nu.true,d$nu.est); plot(d$nu.true,d$nu.est,pch=20); contour(dens,add=T); abline(0,1); *\/ */
 
       /* 	  s = (char *)mCalloc(100,sizeof(char)); */
       /* 	  sprintf(s,"simul_seq.%d",getpid()); */
@@ -85,24 +84,24 @@ void MCMC(t_tree *tree)
       /* 	} */
 
 
-      if(tree->mcmc->run > 50000)
-      	{
-      	  FILE *fp;
-      	  char *s,*t;
+      /* if(tree->mcmc->run > 50000) */
+      /* 	{ */
+      /* 	  FILE *fp; */
+      /* 	  char *s,*t; */
 
-      	  s = (char *)mCalloc(100,sizeof(char));
+      /* 	  s = (char *)mCalloc(100,sizeof(char)); */
 	  
-      	  t = strrchr(tree->io->in_align_file,'.');
-      	  sprintf(s,"res%s",t);
-      	  fp = fopen(s,"w");
-      	  fclose(tree->mcmc->out_fp_stats);
-      	  tree->mcmc->out_fp_stats = fopen(s,"w");
-      	  tree->mcmc->run = 0;
-      	  MCMC_Print_Param(tree->mcmc,tree);
-      	  fclose(fp);
-      	  Free(s);
-      	  Exit("\n");
-      	}
+      /* 	  t = strrchr(tree->io->in_align_file,'.'); */
+      /* 	  sprintf(s,"res%s",t); */
+      /* 	  fp = fopen(s,"w"); */
+      /* 	  fclose(tree->mcmc->out_fp_stats); */
+      /* 	  tree->mcmc->out_fp_stats = fopen(s,"w"); */
+      /* 	  tree->mcmc->run = 0; */
+      /* 	  MCMC_Print_Param(tree->mcmc,tree); */
+      /* 	  fclose(fp); */
+      /* 	  Free(s); */
+      /* 	  Exit("\n"); */
+      /* 	} */
 
       u = Uni();
 
@@ -1387,7 +1386,8 @@ void MCMC_Print_Param_Stdin(t_mcmc *mcmc, t_tree *tree)
       PhyML_Printf("\t%10s","Prior");
       PhyML_Printf("\t%18s","SubstRate[ESS]");
       PhyML_Printf("\t%15s","TreeHeight[ESS]");    
-      PhyML_Printf("\t%9s","AutoCor");    
+      if(tree->rates->model == THORNE || tree->rates->model == GUINDON) PhyML_Printf("\t%9s","AutoCor");    
+      else PhyML_Printf("\t%9s","RateVar");
       PhyML_Printf("\t%7s","MinESS");    
     }
 
@@ -2854,7 +2854,7 @@ void MCMC_Complete_MCMC(t_mcmc *mcmc, t_tree *tree)
   if(tree->rates->model_log_rates == YES)
     for(i=mcmc->num_move_br_r;i<mcmc->num_move_br_r+2*tree->n_otu-2;i++) mcmc->move_type[i] = MCMC_MOVE_RANDWALK_NORMAL;  
   else
-    for(i=mcmc->num_move_br_r;i<mcmc->num_move_br_r+2*tree->n_otu-2;i++) mcmc->move_type[i] = MCMC_MOVE_RANDWALK_NORMAL;  
+    for(i=mcmc->num_move_br_r;i<mcmc->num_move_br_r+2*tree->n_otu-2;i++) mcmc->move_type[i] = MCMC_MOVE_SCALE_THORNE;  
 
   for(i=mcmc->num_move_nd_r;i<mcmc->num_move_nd_r+2*tree->n_otu-1;i++) mcmc->move_type[i] = MCMC_MOVE_SCALE_THORNE;
   for(i=mcmc->num_move_nd_t;i<mcmc->num_move_nd_t+tree->n_otu-1;i++)   mcmc->move_type[i] = MCMC_MOVE_RANDWALK_UNIFORM;

@@ -961,7 +961,7 @@ phydbl *Cholesky_Decomp(phydbl *A,  int dim)
 	      L[j*dim+i] = SQRT(sum);
 	    }
 
-	  else L[j*dim+i] = sum / (L[i*dim+i]);
+	  else L[j*dim+i] = sum / L[i*dim+i];
 
  	}
     }
