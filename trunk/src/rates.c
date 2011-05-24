@@ -344,15 +344,11 @@ phydbl RATES_Lk_Rates_Core(phydbl br_r_a, phydbl br_r_d, phydbl nd_r_a, phydbl n
 
 	cr   = tree->rates->clock_r;
 	sd   = SQRT(tree->rates->nu*dt_d);
-	/* mean = br_r_a; */
 	mean = br_r_a - .5*sd*sd;
 
  	log_dens = Log_Dnorm_Trunc(br_r_d,mean,sd,
 				   tree->rates->min_rate,
 				   tree->rates->max_rate,&err);
-
-	/* if(log_dens < 0.0) */
-	/*   printf("\n. d=%f a=%f sd=%f dt=%f dens=%f tot=%f",br_r_d*tree->rates->clock_r,mean,sd,dt_d,log_dens,tree->rates->c_lnL); */
 
 	if(err)
 	  {
@@ -362,7 +358,12 @@ phydbl RATES_Lk_Rates_Core(phydbl br_r_a, phydbl br_r_d, phydbl nd_r_a, phydbl n
 	  }
 	break;
       }
-
+    case GAMMA :
+      {
+ 	log_dens = Dgamma(br_r_d,1./tree->rates->nu,tree->rates->nu);
+	log_dens = LOG(log_dens);
+	break;
+      }
     default : 
       {
 	PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
@@ -801,6 +802,14 @@ void RATES_Init_Rate_Struct(t_rate *rates, t_rate *existing_rates, int n_otu)
     rates->model_log_rates = YES;
   else if(rates->model == GUINDON)
     rates->model_log_rates = YES;
+  else if(rates->model == GAMMA)
+    rates->model_log_rates = NO;
+  else
+    {
+      PhyML_Printf("\n. Please initialize model properly.");
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
 
   rates->met_within_gibbs = NO;
   rates->c_lnL            = UNLIKELY;
@@ -839,7 +848,8 @@ void RATES_Init_Rate_Struct(t_rate *rates, t_rate *existing_rates, int n_otu)
 
   rates->nu            = 1.E-3;
   rates->min_nu        = 0.0;
-  rates->max_nu        = 0.5;
+  /* rates->max_nu        = 0.5; */
+  rates->max_nu        = 2.0;
 
   /* rates->nu            = 1.E-4; */
   /* rates->max_nu        = 1.E-1; */
@@ -1122,11 +1132,9 @@ void RATES_Expect_Number_Subst(phydbl t_beg, phydbl t_end, phydbl r_beg,  int *n
 	*r_end = curr_r;
 	break;
       }
-
-
     case EXPONENTIAL:
       {
-	*mean_r = Rexp(rates->lexp);
+	*mean_r = Rexp(rates->nu);
 
 	if(*mean_r < rates->min_rate) *mean_r = rates->min_rate;
 	if(*mean_r > rates->max_rate) *mean_r = rates->max_rate;

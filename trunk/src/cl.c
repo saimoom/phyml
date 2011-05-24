@@ -120,13 +120,20 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	  }
 	case 64:
 	  {
-	    if(!strcmp(optarg,"thorne") || !strcmp(optarg,"THORNE")) io->rates->model = THORNE;
-	    else if(!strcmp(optarg,"guindon") || !strcmp(optarg,"GUINDON")) io->rates->model = GUINDON;
+	    char *s;
+	    int i;
+	    s = (char *)mCalloc(T_MAX_NAME,sizeof(char));
+	    i = 0;
+	    while(optarg[i++]) s[i]=tolower(optarg[i]);
+	    if(!strcmp(optarg,"thorne")) io->rates->model       = THORNE;
+	    else if(!strcmp(optarg,"guindon")) io->rates->model = GUINDON;
+	    else if(!strcmp(optarg,"gamma")) io->rates->model   = GAMMA;
 	    else 
 	      {
 		PhyML_Printf("\n. rate_model should be 'thorne' or 'guindon'.");
 		Exit("\n");
 	      }
+	    Free(s);
 	    break;
 	  }
 	case 63:
