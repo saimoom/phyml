@@ -11899,12 +11899,6 @@ int Scale_Subtree_Height(t_node *a, phydbl K, phydbl floor, int *n_nodes, t_tree
 	  }
     }
   
-  if(RATES_Check_Node_Times(tree))
-    {
-      PhyML_Printf("\n. floor=%f a->root=%d",floor,a==tree->n_root);
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-      Warn_And_Exit("");
-    }
   return 1;
 }
 

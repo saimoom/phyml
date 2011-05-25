@@ -80,6 +80,7 @@ int TIMES_main(int argc, char **argv)
   /* r_seed = 1303247709; */
   /* r_seed =  1303970631; */
   /* r_seed = 1304059976; */
+  /* r_seed = 1306315195; */
 
   srand(r_seed); rand();
   PhyML_Printf("\n. Seed: %d\n",r_seed);
