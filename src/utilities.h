@@ -1089,6 +1089,7 @@ typedef struct __Tmcmc {
   int num_move_tree_rates;
   int num_move_subtree_rates;
   int num_move_updown_nu_cr;
+  int num_move_updown_t_cr;
   int num_move_ras;
 
   char *out_filename;

@@ -628,7 +628,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		io->mod->s_opt->opt_rr    = 1;
 	      }
 	    
-	    if (strcmp(optarg, "JC69") == 0)
+	    else if (strcmp(optarg, "JC69") == 0)
 	      {
 		io->datatype              = NT;
 		io->mod->whichmodel       = JC69;
@@ -743,6 +743,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		PhyML_Printf("\n. The model name is incorrect. Please see the documentation.\n");
 		Exit("\n");
 	      }
+
 	    Set_Model_Name(io->mod);
 	    
 	    break;
