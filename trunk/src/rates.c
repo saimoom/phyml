@@ -298,9 +298,10 @@ phydbl RATES_Lk_Rates_Core(phydbl br_r_a, phydbl br_r_d, phydbl nd_r_a, phydbl n
 	
 	/* if(dt_d < 5.0) dt_d = 5.0; */
 
-	/* dt_d /= FABS(tree->rates->nd_t[tree->n_root->num]); */
+	dt_d /= FABS(tree->rates->nd_t[tree->n_root->num]);
 
 	sd = SQRT(dt_d*tree->rates->nu);
+
  	/* sd   = SQRT(dt_d*EXP(tree->rates->nu)); */
 	/* mean = LOG(br_r_a) - .5*sd*sd; */
 
@@ -341,6 +342,9 @@ phydbl RATES_Lk_Rates_Core(phydbl br_r_a, phydbl br_r_d, phydbl nd_r_a, phydbl n
       {
 	int err;	
 	phydbl cr;
+
+	
+	dt_d /= FABS(tree->rates->nd_t[tree->n_root->num]);
 
 	cr   = tree->rates->clock_r;
 	sd   = SQRT(tree->rates->nu*dt_d);
@@ -848,8 +852,8 @@ void RATES_Init_Rate_Struct(t_rate *rates, t_rate *existing_rates, int n_otu)
 
   rates->nu            = 1.E-3;
   rates->min_nu        = 0.0;
-  /* rates->max_nu        = 0.5; */
-  rates->max_nu        = 2.0;
+  rates->max_nu        = 100.;
+  /* rates->max_nu        = 2.0; */
 
   /* rates->nu            = 1.E-4; */
   /* rates->max_nu        = 1.E-1; */
