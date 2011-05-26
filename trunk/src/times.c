@@ -223,7 +223,6 @@ int TIMES_main(int argc, char **argv)
 		  
 		  tree->rates->bl_from_rt = YES;
 
-		  PhyML_Printf("\n");
 		  time(&t_beg);
 		  tree->mcmc = MCMC_Make_MCMC_Struct();
 		  MCMC_Copy_MCMC_Struct(tree->io->mcmc,tree->mcmc,"phytime");

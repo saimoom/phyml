@@ -24,6 +24,8 @@ void MCMC(t_tree *tree)
   int i;
 
 
+  RATES_Set_Nu_Max(tree);
+
   if(tree->mcmc->randomize)
     {
       MCMC_Randomize_Nu(tree);
@@ -53,12 +55,13 @@ void MCMC(t_tree *tree)
   MCMC_Print_Param(tree->mcmc,tree);
 
 
+
   first = 0;
   secod = 1;
   do
     {
 
-      if(tree->mcmc->run > 10000)
+      if(tree->mcmc->run > 50000)
       	{
       	  FILE *fp;
       	  char *s;
@@ -1391,9 +1394,6 @@ void MCMC_Updown_Nu_Cr(t_tree *tree)
   new_lnL_rate  = tree->rates->c_lnL;
   n_nodes       = 0;
 
-  /* !!!!!!!!!!!!!!!1 */
-  K = 1.5;
-
   u = Uni();
   mult = EXP(K*(u-0.5));
 
@@ -1488,7 +1488,7 @@ void MCMC_Print_Param_Stdin(t_mcmc *mcmc, t_tree *tree)
 
   if(mcmc->run == 1)
     {
-      PhyML_Printf("\n");
+      PhyML_Printf("\n\n");
       PhyML_Printf("\t%7s","Run");
       PhyML_Printf("\t%5s","Time");
       PhyML_Printf("\t%10s","Likelihood");
@@ -1583,17 +1583,17 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
 	  /* PhyML_Fprintf(fp,"MeanRate\t"); */
 /* 	  PhyML_Fprintf(fp,"NormFact\t"); */
 
-	  For(i,mcmc->n_moves)
-	    {
-	      strcpy(s,"Acc.");
-	      PhyML_Fprintf(fp,"%s%d\t",strcat(s,mcmc->move_name[i]),i);
-	    }
+	  /* For(i,mcmc->n_moves) */
+	  /*   { */
+	  /*     strcpy(s,"Acc."); */
+	  /*     PhyML_Fprintf(fp,"%s%d\t",strcat(s,mcmc->move_name[i]),i); */
+	  /*   } */
 
-	  For(i,mcmc->n_moves)
-	    {
-	      strcpy(s,"Tune.");
-	      PhyML_Fprintf(fp,"%s%d\t",strcat(s,mcmc->move_name[i]),i);
-	    }
+	  /* For(i,mcmc->n_moves) */
+	  /*   { */
+	  /*     strcpy(s,"Tune."); */
+	  /*     PhyML_Fprintf(fp,"%s%d\t",strcat(s,mcmc->move_name[i]),i); */
+	  /*   } */
 
 	  /* For(i,mcmc->n_moves) */
 	  /*   { */
@@ -1721,8 +1721,8 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
 /*       PhyML_Fprintf(fp,"%f\t",RATES_Check_Mean_Rates(tree)); */
 
 /*       PhyML_Fprintf(fp,"%f\t",tree->rates->norm_fact); */
-      For(i,tree->mcmc->n_moves) PhyML_Fprintf(fp,"%f\t",tree->mcmc->acc_rate[i]);
-      For(i,tree->mcmc->n_moves) PhyML_Fprintf(fp,"%f\t",(phydbl)(tree->mcmc->tune_move[i]));
+      /* For(i,tree->mcmc->n_moves) PhyML_Fprintf(fp,"%f\t",tree->mcmc->acc_rate[i]); */
+      /* For(i,tree->mcmc->n_moves) PhyML_Fprintf(fp,"%f\t",(phydbl)(tree->mcmc->tune_move[i])); */
 /*       For(i,tree->mcmc->n_moves) PhyML_Fprintf(fp,"%d\t",(int)(tree->mcmc->run_move[i])); */
 
       orig_approx = tree->io->lk_approx;
@@ -1762,7 +1762,7 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
 
       for(i=tree->n_otu;i<2*tree->n_otu-1;i++) PhyML_Fprintf(fp,"%.1f\t",tree->rates->nd_t[i]);
       /* for(i=0;i<2*tree->n_otu-1;i++) PhyML_Fprintf(fp,"%.4f\t",LOG(tree->rates->nd_r[i])); */
-      for(i=0;i<2*tree->n_otu-2;i++) PhyML_Fprintf(fp,"%.4f\t",tree->rates->br_r[i]);
+      for(i=0;i<2*tree->n_otu-2;i++) PhyML_Fprintf(fp,"%.4f\t",EXP(tree->rates->br_r[i]));
       /* for(i=0;i<2*tree->n_otu-2;i++) PhyML_Fprintf(fp,"%.4f\t",tree->rates->cur_gamma_prior_mean[i]); */
       /* if(fp != stdout) for(i=tree->n_otu;i<2*tree->n_otu-1;i++) PhyML_Fprintf(fp,"%G\t",tree->rates->t_prior[i]); */
 /*       For(i,2*tree->n_otu-3) PhyML_Fprintf(fp,"%f\t",EXP(tree->t_edges[i]->l)); */
@@ -2253,14 +2253,14 @@ void MCMC_Randomize_Nu(t_tree *tree)
   phydbl u;
 
   min_nu = tree->rates->min_nu;
-  /* max_nu = tree->rates->max_nu; */
+  max_nu = tree->rates->max_nu;
   /* min_nu = 0.0; */
   /* It is preferable to start with small values of nu 
      as they lead to high prior densities. Starting with
      large values tend to increase the chance of being
      stuck in region of low posterior densities 
   */
-  max_nu = 0.1;
+  /* max_nu = 0.1; */
   
   u = Uni();
   tree->rates->nu = (max_nu - min_nu) * u + min_nu;
@@ -3034,9 +3034,9 @@ void MCMC_Complete_MCMC(t_mcmc *mcmc, t_tree *tree)
   mcmc->move_weight[mcmc->num_move_kappa]           = 0.5;
   mcmc->move_weight[mcmc->num_move_tree_rates]      = 1.0;
   mcmc->move_weight[mcmc->num_move_subtree_rates]   = 0.5;
-  mcmc->move_weight[mcmc->num_move_updown_nu_cr]    = 0.5;
+  mcmc->move_weight[mcmc->num_move_updown_nu_cr]    = 0.0;
   for(i=mcmc->num_move_ras;i<mcmc->num_move_ras+2*tree->mod->n_catg;i++) mcmc->move_weight[i] = 0.5*(1./(phydbl)tree->mod->n_catg);  
-  mcmc->move_weight[mcmc->num_move_updown_t_cr]     = 0.5;
+  mcmc->move_weight[mcmc->num_move_updown_t_cr]     = 0.0;
  
   sum = 0.0;
   For(i,mcmc->n_moves) sum += mcmc->move_weight[i];
