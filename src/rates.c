@@ -298,8 +298,6 @@ phydbl RATES_Lk_Rates_Core(phydbl br_r_a, phydbl br_r_d, phydbl nd_r_a, phydbl n
 	
 	/* if(dt_d < 5.0) dt_d = 5.0; */
 
-	dt_d /= FABS(tree->rates->nd_t[tree->n_root->num]);
-
 	sd = SQRT(dt_d*tree->rates->nu);
 
  	/* sd   = SQRT(dt_d*EXP(tree->rates->nu)); */
@@ -342,9 +340,6 @@ phydbl RATES_Lk_Rates_Core(phydbl br_r_a, phydbl br_r_d, phydbl nd_r_a, phydbl n
       {
 	int err;	
 	phydbl cr;
-
-	
-	dt_d /= FABS(tree->rates->nd_t[tree->n_root->num]);
 
 	cr   = tree->rates->clock_r;
 	sd   = SQRT(tree->rates->nu*dt_d);
@@ -844,7 +839,7 @@ void RATES_Init_Rate_Struct(t_rate *rates, t_rate *existing_rates, int n_otu)
 
   rates->clock_r       = 1.E-4;
   rates->min_clock     = 1.E-8;
-  rates->max_clock     = 0.5E-2;
+  rates->max_clock     = 1.E-3;
 
   /* rates->clock_r       = 3.E-4; */
   /* rates->max_clock     = 1.E-3; */
@@ -2580,27 +2575,12 @@ void RATES_Update_Cur_Bl_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
       
       if(tree->rates->model == GUINDON)
 	{
-	  /* phydbl intercept, slope; */
-	  
-	  /* ra *= cr; */
-	  /* rd *= cr; */
-	  
-	  /* intercept = ra; */
-	  /* slope = (rd - ra)/dt; */
-	  /* tree->rates->cur_l[d->num] = dt * (slope*dt/2. + intercept); */
-	  
-	  /* tree->rates->cur_l[d->num] = dt * (ra + rd) * cr / 2.; */
-	  
-	  /* if(FABS(ta-td) < 1.0) { td = ta + 1.0; dt = 1.0; } */
-	  	  
-	  
-	  ra += LOG(cr);
-	  rd += LOG(cr);
+	  phydbl logcr;
 
-	  /* Integrated_Brownian_Bridge_Moments(ta,td,ra,rd, */
-	  /* 				     nu*dt*cr*cr, */
-	  /* 				     &(tree->rates->cur_gamma_prior_mean[d->num]), */
-	  /* 				     &(tree->rates->cur_gamma_prior_var[d->num])); */
+	  logcr = LOG(cr);
+
+	  ra += logcr;
+	  rd += logcr;
 
 	  /* dt=10.; */
 	  /* ra=-2.; */
@@ -2613,23 +2593,6 @@ void RATES_Update_Cur_Bl_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 
 	  tree->rates->cur_gamma_prior_mean[d->num] *= (dt);
 	  tree->rates->cur_gamma_prior_var[d->num]  *= (dt*dt);
-	  /* tree->rates->cur_gamma_prior_mean[d->num] *= (dt)*(cr); */
-	  /* tree->rates->cur_gamma_prior_var[d->num]  *= (dt*dt)*(cr)*(cr); */
-
-	  /* printf("\n%f %f",EXP(rd)*dt,tree->rates->cur_gamma_prior_mean[d->num]); */
-	  /* tree->rates->cur_gamma_prior_mean[d->num] = EXP(rd)*dt; */
-	  /* tree->rates->cur_gamma_prior_var[d->num] = 1.E-3; */
-
-	  /* printf("\n. dt=%10f,%10f,%10f,%10f mean=%10f var=%10f", */
-	  /* 	 dt,ra,rd,nu, */
-	  /* 	 tree->rates->cur_gamma_prior_mean[d->num]/dt, */
-	  /* 	 tree->rates->cur_gamma_prior_var[d->num]/(dt*dt)); */
-	  /* Exit("\n"); */
-
-	  /* if(tree->rates->cur_gamma_prior_var[d->num] < 0.0 || tree->rates->cur_gamma_prior_mean[d->num] < tree->mod->l_min || tree->rates->cur_gamma_prior_mean[d->num] > tree->mod->l_max) */
-	  /*   { */
-	  /*     printf("\n. ra=%f rd=%f mean=%f ml=%f dt=%f nu=%f",ra,rd,tree->rates->cur_gamma_prior_mean[d->num],tree->rates->ml_l[d->num],dt,nu); */
-	  /*   } */
 
 	  /* if(tree->rates->cur_gamma_prior_var[d->num] < 1.E-10) tree->rates->cur_gamma_prior_var[d->num] = 1.E-10; */
 	  /* if(tree->rates->cur_gamma_prior_var[d->num] > 1.E+02) tree->rates->cur_gamma_prior_var[d->num] = 1.E+02; */
@@ -2638,7 +2601,12 @@ void RATES_Update_Cur_Bl_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 	  /* if(tree->rates->cur_gamma_prior_mean[d->num] > tree->mod->l_max) tree->rates->cur_gamma_prior_mean[d->num] = EXP(rd) * dt; */
 
 	  /* if(tree->rates->cur_gamma_prior_mean[d->num] < tree->mod->l_min) tree->rates->cur_gamma_prior_mean[d->num] = tree->mod->l_min; */
-	  /* if(tree->rates->cur_gamma_prior_mean[d->num] > tree->mod->l_max) tree->rates->cur_gamma_prior_mean[d->num] = tree->mod->l_max; */
+	  if(tree->rates->cur_gamma_prior_mean[d->num] > tree->mod->l_max) 
+	    {
+	      printf("\n. mean=%f nu=%f dt=%f ra=%f rd=%f m=%f cr=%f",
+		     tree->rates->cur_gamma_prior_mean[d->num]/(dt*cr),nu,dt,ra,rd,EXP((ra+rd)/2.),tree->rates->clock_r);
+	      tree->rates->cur_gamma_prior_mean[d->num] = tree->mod->l_max;
+	    }
 	}
       
       if(tree->mod->log_l == YES) tree->rates->cur_l[d->num] = LOG(tree->rates->cur_l[d->num]);
@@ -3547,6 +3515,37 @@ void RATES_Reset_Rates(t_tree *tree)
 }
 
 /*********************************************************/
+
+void RATES_Set_Nu_Max(t_tree *tree)
+{
+  phydbl dt,ra,rd,nu,mean,var;
+  phydbl min_t,max_rate;
+  int i;
+
+  max_rate = 1.E-2;
+
+  min_t = 0;
+  For(i,2*tree->n_otu-1)
+    {
+      if(tree->rates->t_prior_min[i] < min_t) min_t = tree->rates->t_prior_min[i];
+    }
+  
+  dt = FABS(min_t);    
+  ra = rd = LOG(max_rate);
+
+  nu = 1.E-10;
+  do
+    {
+      Integrated_Geometric_Brownian_Bridge_Moments(dt,ra,rd,nu,&(mean),&(var));
+      nu += 1.E-2;
+    }while(mean*dt < tree->mod->l_max);
+  
+  tree->rates->max_nu = nu;
+
+  PhyML_Printf("\n. Autocorrelation parameter upper bound set to %f",nu);
+}
+
+
 /*********************************************************/
 /*********************************************************/
 /*********************************************************/
