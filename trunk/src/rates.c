@@ -2627,11 +2627,12 @@ void RATES_Update_Cur_Bl_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 	  /*     printf("\n. ra=%f rd=%f mean=%f ml=%f dt=%f nu=%f",ra,rd,tree->rates->cur_gamma_prior_mean[d->num],tree->rates->ml_l[d->num],dt,nu); */
 	  /*   } */
 
-	  if(tree->rates->cur_gamma_prior_var[d->num] < 1.E-10) tree->rates->cur_gamma_prior_var[d->num] = 1.E-10;
-	  if(tree->rates->cur_gamma_prior_var[d->num] > 1.E+02) tree->rates->cur_gamma_prior_var[d->num] = 1.E+02;
+	  /* if(tree->rates->cur_gamma_prior_var[d->num] < 1.E-10) tree->rates->cur_gamma_prior_var[d->num] = 1.E-10; */
+	  /* if(tree->rates->cur_gamma_prior_var[d->num] > 1.E+02) tree->rates->cur_gamma_prior_var[d->num] = 1.E+02; */
 
-	  if(tree->rates->cur_gamma_prior_mean[d->num] < tree->mod->l_min) tree->rates->cur_gamma_prior_mean[d->num] = EXP(rd) * dt;
-	  if(tree->rates->cur_gamma_prior_mean[d->num] > tree->mod->l_max) tree->rates->cur_gamma_prior_mean[d->num] = EXP(rd) * dt;
+	  /* if(tree->rates->cur_gamma_prior_mean[d->num] < tree->mod->l_min) tree->rates->cur_gamma_prior_mean[d->num] = EXP(rd) * dt; */
+	  /* if(tree->rates->cur_gamma_prior_mean[d->num] > tree->mod->l_max) tree->rates->cur_gamma_prior_mean[d->num] = EXP(rd) * dt; */
+
 	  /* if(tree->rates->cur_gamma_prior_mean[d->num] < tree->mod->l_min) tree->rates->cur_gamma_prior_mean[d->num] = tree->mod->l_min; */
 	  /* if(tree->rates->cur_gamma_prior_mean[d->num] > tree->mod->l_max) tree->rates->cur_gamma_prior_mean[d->num] = tree->mod->l_max; */
 	}

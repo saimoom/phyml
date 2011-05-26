@@ -58,50 +58,50 @@ void MCMC(t_tree *tree)
   do
     {
 
-      /* if(tree->mcmc->run > 10000) */
-      /* 	{ */
-      /* 	  FILE *fp; */
-      /* 	  char *s; */
-
-
-      /* 	  s = (char *)mCalloc(100,sizeof(char)); */
-      /* 	  sprintf(s,"simul_seq.%d",getpid()); */
-      /* 	  fp = fopen(s,"w"); */
-      /* 	  fclose(tree->mcmc->out_fp_stats); */
-      /* 	  tree->mcmc->out_fp_stats = fopen(tree->mcmc->out_filename,"w"); */
-      /* 	  tree->mcmc->run = 0; */
-      /* 	  MCMC_Print_Param(tree->mcmc,tree); */
-      /* 	  RATES_Update_Cur_Bl(tree); */
-      /* 	  Evolve(tree->data,tree->mod,tree); */
-      /* 	  Print_CSeq(fp,tree->data); */
-      /* 	  sprintf(s,"simul_par.%d",getpid()); */
-      /* 	  rename(tree->mcmc->out_filename,s); */
-      /* 	  fflush(NULL); */
-      /* 	  fclose(fp); */
-      /* 	  Free(s); */
-
-      /* 	  Exit("\n"); */
-      /* 	} */
-
-
-      if(tree->mcmc->run > 50000)
+      if(tree->mcmc->run > 10000)
       	{
       	  FILE *fp;
-      	  char *s,*t;
+      	  char *s;
+
 
       	  s = (char *)mCalloc(100,sizeof(char));
-	  
-      	  t = strrchr(tree->io->in_align_file,'.');
-      	  sprintf(s,"res%s",t);
+      	  sprintf(s,"simul_seq.%d",getpid());
       	  fp = fopen(s,"w");
       	  fclose(tree->mcmc->out_fp_stats);
-      	  tree->mcmc->out_fp_stats = fopen(s,"w");
+      	  tree->mcmc->out_fp_stats = fopen(tree->mcmc->out_filename,"w");
       	  tree->mcmc->run = 0;
       	  MCMC_Print_Param(tree->mcmc,tree);
+      	  RATES_Update_Cur_Bl(tree);
+      	  Evolve(tree->data,tree->mod,tree);
+      	  Print_CSeq(fp,tree->data);
+      	  sprintf(s,"simul_par.%d",getpid());
+      	  rename(tree->mcmc->out_filename,s);
+      	  fflush(NULL);
       	  fclose(fp);
       	  Free(s);
+
       	  Exit("\n");
       	}
+
+
+      /* if(tree->mcmc->run > 50000) */
+      /* 	{ */
+      /* 	  FILE *fp; */
+      /* 	  char *s,*t; */
+
+      /* 	  s = (char *)mCalloc(100,sizeof(char)); */
+	  
+      /* 	  t = strrchr(tree->io->in_align_file,'.'); */
+      /* 	  sprintf(s,"res%s",t); */
+      /* 	  fp = fopen(s,"w"); */
+      /* 	  fclose(tree->mcmc->out_fp_stats); */
+      /* 	  tree->mcmc->out_fp_stats = fopen(s,"w"); */
+      /* 	  tree->mcmc->run = 0; */
+      /* 	  MCMC_Print_Param(tree->mcmc,tree); */
+      /* 	  fclose(fp); */
+      /* 	  Free(s); */
+      /* 	  Exit("\n"); */
+      /* 	} */
 
       u = Uni();
 
@@ -1390,6 +1390,9 @@ void MCMC_Updown_Nu_Cr(t_tree *tree)
   cur_lnL_rate  = tree->rates->c_lnL;
   new_lnL_rate  = tree->rates->c_lnL;
   n_nodes       = 0;
+
+  /* !!!!!!!!!!!!!!!1 */
+  K = 1.5;
 
   u = Uni();
   mult = EXP(K*(u-0.5));
@@ -2774,6 +2777,7 @@ void MCMC_Nu(t_tree *tree)
       
       ratio +=
       	(new_lnL_rate - cur_lnL_rate);
+
       ratio +=
 	(new_lnL_data - cur_lnL_data);
 
@@ -2783,7 +2787,7 @@ void MCMC_Nu(t_tree *tree)
       /* ratio += (new_nu - cur_nu); */
 	 
       /* Exponential prior on nu */
-      ratio += LOG(Dexp(new_nu,10.) / Dexp(cur_nu,10.));
+      /* ratio += LOG(Dexp(new_nu,10.) / Dexp(cur_nu,10.)); */
 
  
       ratio = EXP(ratio);
@@ -3030,7 +3034,7 @@ void MCMC_Complete_MCMC(t_mcmc *mcmc, t_tree *tree)
   mcmc->move_weight[mcmc->num_move_kappa]           = 0.5;
   mcmc->move_weight[mcmc->num_move_tree_rates]      = 1.0;
   mcmc->move_weight[mcmc->num_move_subtree_rates]   = 0.5;
-  mcmc->move_weight[mcmc->num_move_updown_nu_cr]    = 0.0;
+  mcmc->move_weight[mcmc->num_move_updown_nu_cr]    = 0.5;
   for(i=mcmc->num_move_ras;i<mcmc->num_move_ras+2*tree->mod->n_catg;i++) mcmc->move_weight[i] = 0.5*(1./(phydbl)tree->mod->n_catg);  
   mcmc->move_weight[mcmc->num_move_updown_t_cr]     = 0.5;
  
