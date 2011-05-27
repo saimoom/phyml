@@ -2176,22 +2176,22 @@ phydbl *Hessian_Seo(t_tree *tree)
 	  }
       }
 
-  /* For(i,dim) */
-  /*   if(is_ok[i] == YES && hessian[i*dim+i] < -1./small_var) */
-  /*     { */
-  /* 	For(j,dim) */
-  /* 	  { */
-  /* 	    hessian[i*dim+j] = 0.; */
-  /* 	    hessian[j*dim+i] = 0.; */
-  /* 	  } */
-  /* 	hessian[i*dim+i] = -1./small_var; */
+  For(i,dim)
+    if(is_ok[i] == YES && hessian[i*dim+i] < -1./small_var)
+      {
+  	For(j,dim)
+  	  {
+  	    hessian[i*dim+j] = 0.;
+  	    hessian[j*dim+i] = 0.;
+  	  }
+  	hessian[i*dim+i] = -1./small_var;
 
-  /* 	if(tree->mod->log_l == YES)  */
-  /* 	  { */
-  /* 	    hessian[i*dim+i] = small_var * POW(EXP(tree->t_edges[i]->l),-2);  */
-  /* 	    hessian[i*dim+i] = -1./hessian[i*dim+i]; */
-  /* 	  } */
-  /*     } */
+  	if(tree->mod->log_l == YES)
+  	  {
+  	    hessian[i*dim+i] = small_var * POW(EXP(tree->t_edges[i]->l),-2);
+  	    hessian[i*dim+i] = -1./hessian[i*dim+i];
+  	  }
+      }
 
 
   For(i,dim)
