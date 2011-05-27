@@ -2594,9 +2594,29 @@ void RATES_Update_Cur_Bl_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 	  tree->rates->cur_gamma_prior_mean[d->num] *= (dt);
 	  tree->rates->cur_gamma_prior_var[d->num]  *= (dt*dt);
 
-	  if(tree->rates->cur_gamma_prior_var[d->num] < 1.E-10) tree->rates->cur_gamma_prior_var[d->num] = 1.E-10;
-	  if(tree->rates->cur_gamma_prior_var[d->num] > 1.E+02) tree->rates->cur_gamma_prior_var[d->num] = 1.E+02;
+	  if(tree->rates->cur_gamma_prior_var[d->num] < 1.E-20) 
+	    {
+	      /* printf("\n. SMALL %f, %f, %f, %f var=%G mean=%f",dt,rd,ra,nu, */
+	      /* 	     tree->rates->cur_gamma_prior_var[d->num]/(dt*dt), */
+	      /* 	     tree->rates->cur_gamma_prior_mean[d->num]/dt); */
+	      tree->rates->cur_gamma_prior_var[d->num] = 1.E-20;
+	    }
 
+	  else if(tree->rates->cur_gamma_prior_var[d->num] > 1.E+02) 
+	    {
+	      /* printf("\n. LARGE %f, %f, %f, %f var=%G mean=%f",dt,rd,ra,nu, */
+	      /* 	     tree->rates->cur_gamma_prior_var[d->num]/(dt*dt), */
+	      /* 	     tree->rates->cur_gamma_prior_mean[d->num]/dt); */
+	      tree->rates->cur_gamma_prior_var[d->num] = 1.E+02;
+	    }
+	  /* else if(tree->rates->cur_gamma_prior_var[d->num] > 1.E-02) */
+	  else
+	    {
+	      /* printf("\n. NORMAL %f, %f, %f, %f var=%G mean=%f",dt,rd,ra,nu, */
+	      /* 	     tree->rates->cur_gamma_prior_var[d->num], */
+	      /* 	     tree->rates->cur_gamma_prior_mean[d->num]); */
+	    }
+	  
 	  /* if(tree->rates->cur_gamma_prior_mean[d->num] < tree->mod->l_min) tree->rates->cur_gamma_prior_mean[d->num] = EXP(rd) * dt; */
 	  /* if(tree->rates->cur_gamma_prior_mean[d->num] > tree->mod->l_max) tree->rates->cur_gamma_prior_mean[d->num] = EXP(rd) * dt; */
 
@@ -3541,7 +3561,7 @@ void RATES_Set_Nu_Max(t_tree *tree)
     }while(mean*dt < tree->mod->l_max);
   
   tree->rates->max_nu = nu;
-
+  
   PhyML_Printf("\n. Autocorrelation parameter upper bound set to %f",nu);
 }
 

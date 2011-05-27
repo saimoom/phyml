@@ -60,6 +60,7 @@ int TIMES_main(int argc, char **argv)
   tree_size        = -1.0;
 
   io = (option *)Get_Input(argc,argv);
+  system("sleep 2s;");
   r_seed = (io->r_seed < 0)?(time(NULL)):(io->r_seed);
   io->r_seed = r_seed;
   /* !!!!!!!!!!!!!!!!!!!!!!!! */
@@ -90,7 +91,7 @@ int TIMES_main(int argc, char **argv)
   if(io->in_tree == 2) Test_Multiple_Data_Set_Format(io);
   else io->n_trees = 1;
 
-  io->colalias = 1;  /* Do not compress sites if you're using Evolve function */
+  io->colalias = 0;  /* Do not compress sites if you're using Evolve function */
 
   mat = NULL;
   tree_line_number = 0;
