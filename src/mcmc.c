@@ -61,30 +61,30 @@ void MCMC(t_tree *tree)
   do
     {
 
-      /* if(tree->mcmc->run > 50000) */
-      /* 	{ */
-      /* 	  FILE *fp; */
-      /* 	  char *s; */
+      if(tree->mcmc->run > 50000)
+      	{
+      	  FILE *fp;
+      	  char *s;
 
 
-      /* 	  s = (char *)mCalloc(100,sizeof(char)); */
-      /* 	  sprintf(s,"simul_seq.%d",getpid()); */
-      /* 	  fp = fopen(s,"w"); */
-      /* 	  fclose(tree->mcmc->out_fp_stats); */
-      /* 	  tree->mcmc->out_fp_stats = fopen(tree->mcmc->out_filename,"w"); */
-      /* 	  tree->mcmc->run = 0; */
-      /* 	  MCMC_Print_Param(tree->mcmc,tree); */
-      /* 	  RATES_Update_Cur_Bl(tree); */
-      /* 	  Evolve(tree->data,tree->mod,tree); */
-      /* 	  Print_CSeq(fp,tree->data); */
-      /* 	  sprintf(s,"simul_par.%d",getpid()); */
-      /* 	  rename(tree->mcmc->out_filename,s); */
-      /* 	  fflush(NULL); */
-      /* 	  fclose(fp); */
-      /* 	  Free(s); */
+      	  s = (char *)mCalloc(100,sizeof(char));
+      	  sprintf(s,"simul_seq.%d",getpid());
+      	  fp = fopen(s,"w");
+      	  fclose(tree->mcmc->out_fp_stats);
+      	  tree->mcmc->out_fp_stats = fopen(tree->mcmc->out_filename,"w");
+      	  tree->mcmc->run = 0;
+      	  MCMC_Print_Param(tree->mcmc,tree);
+      	  RATES_Update_Cur_Bl(tree);
+      	  Evolve(tree->data,tree->mod,tree);
+      	  Print_CSeq(fp,tree->data);
+      	  sprintf(s,"simul_par.%d",getpid());
+      	  rename(tree->mcmc->out_filename,s);
+      	  fflush(NULL);
+      	  fclose(fp);
+      	  Free(s);
 
-      /* 	  Exit("\n"); */
-      /* 	} */
+      	  Exit("\n");
+      	}
 
 
       /* if(tree->mcmc->run > 100000) */
