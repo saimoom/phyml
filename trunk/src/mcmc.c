@@ -87,24 +87,24 @@ void MCMC(t_tree *tree)
       /* 	} */
 
 
-      if(tree->mcmc->run > 100000)
-      	{
-      	  FILE *fp;
-      	  char *s,*t;
+      /* if(tree->mcmc->run > 100000) */
+      /* 	{ */
+      /* 	  FILE *fp; */
+      /* 	  char *s,*t; */
 
-      	  s = (char *)mCalloc(100,sizeof(char));
+      /* 	  s = (char *)mCalloc(100,sizeof(char)); */
 	  
-      	  t = strrchr(tree->io->in_align_file,'.');
-      	  sprintf(s,"res%s",t);
-      	  fp = fopen(s,"w");
-      	  fclose(tree->mcmc->out_fp_stats);
-      	  tree->mcmc->out_fp_stats = fopen(s,"w");
-      	  tree->mcmc->run = 0;
-      	  MCMC_Print_Param(tree->mcmc,tree);
-      	  fclose(fp);
-      	  Free(s);
-      	  Exit("\n");
-      	}
+      /* 	  t = strrchr(tree->io->in_align_file,'.'); */
+      /* 	  sprintf(s,"res%s",t); */
+      /* 	  fp = fopen(s,"w"); */
+      /* 	  fclose(tree->mcmc->out_fp_stats); */
+      /* 	  tree->mcmc->out_fp_stats = fopen(s,"w"); */
+      /* 	  tree->mcmc->run = 0; */
+      /* 	  MCMC_Print_Param(tree->mcmc,tree); */
+      /* 	  fclose(fp); */
+      /* 	  Free(s); */
+      /* 	  Exit("\n"); */
+      /* 	} */
 
       u = Uni();
 
@@ -2313,7 +2313,7 @@ void MCMC_Randomize_Node_Times(t_tree *tree)
   iter = 0;
   do
     {
-      min_dt = 1E+5;
+      min_dt = MDBL_MAX;
       For(i,2*tree->n_otu-2) 
 	{
 	  dt = tree->rates->nd_t[i] - tree->rates->nd_t[tree->noeud[i]->anc->num];
@@ -2324,7 +2324,7 @@ void MCMC_Randomize_Node_Times(t_tree *tree)
 	    }
 	}
 
-      if(min_dt > -.1 * tree->rates->nd_t[tree->n_root->num]/(phydbl)(tree->n_otu-1)) break;
+      if(min_dt > .1 * FABS(tree->rates->nd_t[tree->n_root->num])/(phydbl)(tree->n_otu-1)) break;
 
       MCMC_Randomize_Node_Times_Bottom_Up(tree->n_root,tree->n_root->v[0],tree);
       MCMC_Randomize_Node_Times_Bottom_Up(tree->n_root,tree->n_root->v[1],tree);
