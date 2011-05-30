@@ -2568,7 +2568,7 @@ void RATES_Update_Cur_Bl_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 	}
       else
 	{
-	  rr = tree->rates->br_r[d->num];
+	  rr = (ra+rd)/2.;
 	}
 
       tree->rates->cur_l[d->num] = dt*rr*cr;
@@ -3550,7 +3550,7 @@ void RATES_Set_Nu_Max(t_tree *tree)
       if(tree->rates->t_prior_min[i] < min_t) min_t = tree->rates->t_prior_min[i];
     }
   
-  dt = FABS(min_t);    
+  dt = FABS(.5*min_t);    
   ra = rd = LOG(max_rate);
 
   nu = 1.E-10;
