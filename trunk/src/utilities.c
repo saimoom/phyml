@@ -6587,7 +6587,7 @@ void Set_Defaults_Model(model *mod)
   mod->l_max = 100.0;
 #else
   mod->l_min = 1.E-8;
-  mod->l_max = 5.00;
+  mod->l_max = 1.00;
 #endif
 }
 
@@ -11916,8 +11916,12 @@ void Scale_Node_Heights_Post(t_node *a, t_node *d, phydbl K, phydbl floor, int *
   else
     {
       int i;
-
       
+      /* It is tempting to set floor = tree->rates->t_prior_max[d->num]; but
+	 it then becomes possible for nodes with different floor values
+	 to have their orders interverted (i.e., ancestor below descendant)
+      */
+            
       if(!(tree->rates->nd_t[d->num] > floor))
 	{
 	  tree->rates->nd_t[d->num] = K*(tree->rates->nd_t[d->num]-floor)+floor;

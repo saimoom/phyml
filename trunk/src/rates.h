@@ -167,7 +167,7 @@ void RATES_Fill_All_Param(t_rate *rate, t_tree *tree);
 void RATES_Record_Rates(t_tree *tree);
 void RATES_Reset_Rates(t_tree *tree);
 phydbl RATES_Average_Rate(t_tree *tree);
-void RATES_Set_Nu_Max(t_tree *tree);
+void RATES_Set_Clock_And_Nu_Max(t_tree *tree);
 
 
 #endif

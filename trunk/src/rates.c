@@ -2564,7 +2564,7 @@ void RATES_Update_Cur_Bl_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 
       if(tree->rates->model_log_rates == YES)
 	{
-	  rr = (EXP(ra*rd))/2.;
+	  rr = (EXP(ra) + EXP(rd))/2.;
 	}
       else
 	{
@@ -2623,8 +2623,8 @@ void RATES_Update_Cur_Bl_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 	  /* if(tree->rates->cur_gamma_prior_mean[d->num] < tree->mod->l_min) tree->rates->cur_gamma_prior_mean[d->num] = tree->mod->l_min; */
 	  if(tree->rates->cur_gamma_prior_mean[d->num] > tree->mod->l_max) 
 	    {
-	      printf("\n. mean=%f nu=%f dt=%f ra=%f rd=%f m=%f cr=%f",
-		     tree->rates->cur_gamma_prior_mean[d->num]/(dt*cr),nu,dt,ra,rd,EXP((ra+rd)/2.),tree->rates->clock_r);
+	      /* printf("\n. LARGE mean=%f nu=%f dt=%f ra=%f rd=%f m=%f cr=%f", */
+	      /* 	     tree->rates->cur_gamma_prior_mean[d->num]/(dt*cr),nu,dt,ra,rd,EXP((ra+rd)/2.),tree->rates->clock_r); */
 	      tree->rates->cur_gamma_prior_mean[d->num] = tree->mod->l_max;
 	    }
 	}
@@ -3536,33 +3536,57 @@ void RATES_Reset_Rates(t_tree *tree)
 
 /*********************************************************/
 
-void RATES_Set_Nu_Max(t_tree *tree)
+void RATES_Set_Clock_And_Nu_Max(t_tree *tree)
 {
   phydbl dt,ra,rd,nu,mean,var;
-  phydbl min_t,max_rate;
+  phydbl min_t;
   int i;
-
-  max_rate = 1.E-2;
-
-  min_t = 0;
-  For(i,2*tree->n_otu-1)
-    {
-      if(tree->rates->t_prior_min[i] < min_t) min_t = tree->rates->t_prior_min[i];
-    }
+  phydbl step;
+  phydbl l_max;
+  phydbl max_r_rate,max_clock;
+  phydbl tune;
   
-  dt = FABS(.5*min_t);    
-  ra = rd = LOG(max_rate);
+  /* If the rates at the begininning and the end of
+     a given branch are tune * max_rate, what is
+     the maximum value nu can take so that the branch
+     length does not go beyond l_max. We assume that 
+     the length of the branch in calendar time unit
+     is given by the deepest calibration node 
+  */
+  tune = .1;
 
-  nu = 1.E-10;
+  l_max = tree->mod->l_max;
+  max_r_rate = (tree->rates->model_log_rates)?(EXP(tree->rates->max_rate)):(tree->rates->max_rate);
+
+  min_t = .0;
+  For(i,2*tree->n_otu-1) if(tree->rates->t_prior_min[i] < min_t) min_t = tree->rates->t_prior_min[i];
+  
+  dt = FABS(min_t);
+  max_clock = l_max / (max_r_rate * dt); 
+
+  ra = max_clock * max_r_rate * tune;
+  ra = LOG(ra);
+  rd = ra;
+
+  nu   = 1.E-10;
+  step = 1.E-1;
   do
     {
-      Integrated_Geometric_Brownian_Bridge_Moments(dt,ra,rd,nu,&(mean),&(var));
-      nu += 1.E-2;
-    }while(mean*dt < tree->mod->l_max);
+      do
+	{
+	  nu += step;
+	  Integrated_Geometric_Brownian_Bridge_Moments(dt,ra,rd,nu,&(mean),&(var));
+	}while(mean*dt < l_max);
+      nu -= step;
+      step /= 10.;
+    }while(step > 1.E-10);
   
-  tree->rates->max_nu = nu;
-  
-  PhyML_Printf("\n. Autocorrelation parameter upper bound set to %f",nu);
+  /* tree->rates->max_nu    = nu; */
+  tree->rates->max_nu    = 1.0;
+  tree->rates->max_clock = max_clock;
+
+  PhyML_Printf("\n. Clock rate parameter upper bound set to %G",tree->rates->max_clock);
+  PhyML_Printf("\n. Autocorrelation parameter upper bound set to %G",tree->rates->max_nu);
 }
 
 
