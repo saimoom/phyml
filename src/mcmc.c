@@ -24,7 +24,7 @@ void MCMC(t_tree *tree)
   int i;
 
 
-  RATES_Set_Nu_Max(tree);
+  RATES_Set_Clock_And_Nu_Max(tree);
 
   if(tree->mcmc->randomize)
     {
@@ -53,58 +53,56 @@ void MCMC(t_tree *tree)
   else tree->c_lnL = 0.0;
   tree->mod->update_eigen = NO;
   MCMC_Print_Param(tree->mcmc,tree);
-
-
-
+      
   first = 0;
   secod = 1;
   do
     {
 
-      /* if(tree->mcmc->run > 50000) */
-      /* 	{ */
-      /* 	  FILE *fp; */
-      /* 	  char *s; */
-
-
-      /* 	  s = (char *)mCalloc(100,sizeof(char)); */
-      /* 	  sprintf(s,"simul_seq.%d",getpid()); */
-      /* 	  fp = fopen(s,"w"); */
-      /* 	  fclose(tree->mcmc->out_fp_stats); */
-      /* 	  tree->mcmc->out_fp_stats = fopen(tree->mcmc->out_filename,"w"); */
-      /* 	  tree->mcmc->run = 0; */
-      /* 	  MCMC_Print_Param(tree->mcmc,tree); */
-      /* 	  RATES_Update_Cur_Bl(tree); */
-      /* 	  Evolve(tree->data,tree->mod,tree); */
-      /* 	  Print_CSeq(fp,tree->data); */
-      /* 	  sprintf(s,"simul_par.%d",getpid()); */
-      /* 	  rename(tree->mcmc->out_filename,s); */
-      /* 	  fflush(NULL); */
-      /* 	  fclose(fp); */
-      /* 	  Free(s); */
-
-      /* 	  Exit("\n"); */
-      /* 	} */
-
-
-      if(tree->mcmc->run > 100000)
+      if(tree->mcmc->run > 50000)
       	{
       	  FILE *fp;
-      	  char *s,*t;
+      	  char *s;
+
 
       	  s = (char *)mCalloc(100,sizeof(char));
-	  
-      	  t = strrchr(tree->io->in_align_file,'.');
-      	  sprintf(s,"res%s",t);
+      	  sprintf(s,"simul_seq.%d",getpid());
       	  fp = fopen(s,"w");
       	  fclose(tree->mcmc->out_fp_stats);
-      	  tree->mcmc->out_fp_stats = fopen(s,"w");
+      	  tree->mcmc->out_fp_stats = fopen(tree->mcmc->out_filename,"w");
       	  tree->mcmc->run = 0;
       	  MCMC_Print_Param(tree->mcmc,tree);
+      	  RATES_Update_Cur_Bl(tree);
+      	  Evolve(tree->data,tree->mod,tree);
+      	  Print_CSeq(fp,tree->data);
+      	  sprintf(s,"simul_par.%d",getpid());
+      	  rename(tree->mcmc->out_filename,s);
+      	  fflush(NULL);
       	  fclose(fp);
       	  Free(s);
+
       	  Exit("\n");
       	}
+
+
+      /* if(tree->mcmc->run > 100000) */
+      /* 	{ */
+      /* 	  FILE *fp; */
+      /* 	  char *s,*t; */
+
+      /* 	  s = (char *)mCalloc(100,sizeof(char)); */
+	  
+      /* 	  t = strrchr(tree->io->in_align_file,'.'); */
+      /* 	  sprintf(s,"res%s",t); */
+      /* 	  fp = fopen(s,"w"); */
+      /* 	  fclose(tree->mcmc->out_fp_stats); */
+      /* 	  tree->mcmc->out_fp_stats = fopen(s,"w"); */
+      /* 	  tree->mcmc->run = 0; */
+      /* 	  MCMC_Print_Param(tree->mcmc,tree); */
+      /* 	  fclose(fp); */
+      /* 	  Free(s); */
+      /* 	  Exit("\n"); */
+      /* 	} */
 
       u = Uni();
 
@@ -857,7 +855,8 @@ void MCMC_Tree_Height(t_tree *tree)
 
   /* !!!!!!!!!!!!!!! */
   /* Should be floor = tree->rates->t_prior_max[tree->n_root->num]; ? */
-  floor = tree->rates->t_floor[tree->n_root->num];
+  floor = tree->rates->t_prior_max[tree->n_root->num];
+  /* floor *= u; */
 
   Scale_Subtree_Height(tree->n_root,mult,floor,&n_nodes,tree);
   new_height = tree->rates->nd_t[tree->n_root->num];
@@ -1633,7 +1632,7 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
 		  else if(tree->noeud[i] == tree->n_root)
 		    PhyML_Fprintf(fp,"T%d%s\t",i,"[Root]");
 		  else
-		    PhyML_Fprintf(fp,"T%d\t",i);
+		    PhyML_Fprintf(fp,"T%d[%d]\t",i,tree->noeud[i]->anc->num);
 	  	}
 	    }
 
