@@ -292,46 +292,68 @@ phydbl RATES_Lk_Rates_Core(phydbl br_r_a, phydbl br_r_d, phydbl nd_r_a, phydbl n
     {
     case THORNE :
       {
-	int err;
+	int err;	
+	phydbl cr;
+	phydbl min_r, max_r;
 
-	err = NO;
-	
-	/* if(dt_d < 5.0) dt_d = 5.0; */
+	cr = tree->rates->clock_r;
+	min_r = tree->rates->min_rate + LOG(cr);
+	max_r = tree->rates->max_rate + LOG(cr);
 
-	sd = SQRT(dt_d*tree->rates->nu);
+	br_r_d += LOG(cr);
+	br_r_a += LOG(cr);
 
- 	/* sd   = SQRT(dt_d*EXP(tree->rates->nu)); */
-	/* mean = LOG(br_r_a) - .5*sd*sd; */
+	sd   = SQRT(tree->rates->nu*dt_d);
+	mean = br_r_a - .5*sd*sd;
 
-	if(tree->rates->model_log_rates == YES)
+ 	log_dens = Log_Dnorm_Trunc(br_r_d,mean,sd,min_r,max_r,&err);
+
+	if(err)
 	  {
-	    /* mean = br_r_a; */
-	    mean = br_r_a - .5*sd*sd;
-	  }
-	else
-	  {
-	    mean = br_r_a;
-
-	    /* mean = br_r_a + */
-	    /*   sd* */
-	    /*   (Dnorm(tree->rates->min_rate,br_r_a,sd) - Dnorm(tree->rates->max_rate,br_r_a,sd)) / */
-	    /*   (Pnorm(tree->rates->min_rate,br_r_a,sd) - Pnorm(tree->rates->max_rate,br_r_a,sd)) ; */
-
-	    /* mean = 1.0 + */
-	    /*   sd* */
-	    /*   (Dnorm(tree->rates->min_rate,1.0,sd) - Dnorm(tree->rates->max_rate,1.0,sd)) / */
-	    /*   (Pnorm(tree->rates->min_rate,1.0,sd) - Pnorm(tree->rates->max_rate,1.0,sd)) ; */
-	  }
-
-	log_dens = Log_Dnorm_Trunc(br_r_d,mean,sd,tree->rates->min_rate,tree->rates->max_rate,&err);
-
-	if(err || isnan(log_dens) || isinf(log_dens))
-	  {
-	    PhyML_Printf("\n. br_r_a=%f br_r_d=%f dt_d=%f nu=%G",br_r_a,br_r_d,dt_d,tree->rates->nu);
 	    PhyML_Printf("\n. Run: %d",tree->mcmc->run);
 	    PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
 	    Exit("\n");
 	  }
+
+	/* int err; */
+	/* phydbl cr; */
+	/* phydbl min_r, max_r; */
+
+	/* cr = tree->rates->clock_r; */
+	/* min_r = tree->rates->min_rate * cr; */
+	/* max_r = tree->rates->max_rate * cr; */
+
+	/* /\* !!!!!!!!!!!!1 *\/ */
+	/* br_r_d *= cr; */
+	/* br_r_a *= cr; */
+
+	/* err = NO; */
+	
+	/* /\* if(dt_d < 5.0) dt_d = 5.0; *\/ */
+
+	/* sd = SQRT(dt_d*tree->rates->nu); */
+
+ 	/* /\* sd   = SQRT(dt_d*EXP(tree->rates->nu)); *\/ */
+	/* /\* mean = LOG(br_r_a) - .5*sd*sd; *\/ */
+
+	/* if(tree->rates->model_log_rates == YES) */
+	/*   { */
+	/*     mean = br_r_a - .5*sd*sd; */
+	/*   } */
+	/* else */
+	/*   { */
+	/*     mean = br_r_a; */
+	/*   } */
+
+	/* log_dens = Log_Dnorm_Trunc(br_r_d,mean,sd,min_r,max_r,&err); */
+
+	/* if(err || isnan(log_dens) || isinf(log_dens)) */
+	/*   { */
+	/*     PhyML_Printf("\n. br_r_a=%f br_r_d=%f dt_d=%f nu=%G",br_r_a,br_r_d,dt_d,tree->rates->nu); */
+	/*     PhyML_Printf("\n. Run: %d",tree->mcmc->run); */
+	/*     PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
+	/*     Exit("\n"); */
+	/*   } */
 
 	break;
 
@@ -340,14 +362,19 @@ phydbl RATES_Lk_Rates_Core(phydbl br_r_a, phydbl br_r_d, phydbl nd_r_a, phydbl n
       {
 	int err;	
 	phydbl cr;
+	phydbl min_r, max_r;
 
-	cr   = tree->rates->clock_r;
+	cr = tree->rates->clock_r;
+	min_r = tree->rates->min_rate + LOG(cr);
+	max_r = tree->rates->max_rate + LOG(cr);
+
+	br_r_d += LOG(cr);
+	br_r_a += LOG(cr);
+
 	sd   = SQRT(tree->rates->nu*dt_d);
 	mean = br_r_a - .5*sd*sd;
 
- 	log_dens = Log_Dnorm_Trunc(br_r_d,mean,sd,
-				   tree->rates->min_rate,
-				   tree->rates->max_rate,&err);
+ 	log_dens = Log_Dnorm_Trunc(br_r_d,mean,sd,min_r,max_r,&err);
 
 	if(err)
 	  {
@@ -3538,14 +3565,15 @@ void RATES_Reset_Rates(t_tree *tree)
 
 void RATES_Set_Clock_And_Nu_Max(t_tree *tree)
 {
-  phydbl dt,ra,rd,nu,mean,var;
+  phydbl dt,ra,rd,nu;
   phydbl min_t;
   int i;
   phydbl step;
   phydbl l_max;
   phydbl max_r_rate,max_clock;
   phydbl tune;
-  
+  phydbl a,p;
+
   /* If the rates at the begininning and the end of
      a given branch are tune * max_rate, what is
      the maximum value nu can take so that the branch
@@ -3553,7 +3581,7 @@ void RATES_Set_Clock_And_Nu_Max(t_tree *tree)
      the length of the branch in calendar time unit
      is given by the deepest calibration node 
   */
-  tune = .1;
+  tune = 100.;
 
   l_max = tree->mod->l_max;
   max_r_rate = (tree->rates->model_log_rates)?(EXP(tree->rates->max_rate)):(tree->rates->max_rate);
@@ -3564,19 +3592,20 @@ void RATES_Set_Clock_And_Nu_Max(t_tree *tree)
   dt = FABS(min_t);
   max_clock = l_max / (max_r_rate * dt); 
 
-  ra = max_clock * max_r_rate * tune;
+  ra = max_clock * max_r_rate;
   ra = LOG(ra);
   rd = ra;
 
   nu   = 1.E-10;
   step = 1.E-1;
+  a    = 1.E-2;
   do
     {
       do
 	{
 	  nu += step;
-	  Integrated_Geometric_Brownian_Bridge_Moments(dt,ra,rd,nu,&(mean),&(var));
-	}while(mean*dt < l_max);
+	  p = Pnorm(LOG(tune*max_clock),LOG(max_clock),SQRT(nu*dt));
+	}while(p > (1.-a));
       nu -= step;
       step /= 10.;
     }while(step > 1.E-10);
@@ -3585,8 +3614,8 @@ void RATES_Set_Clock_And_Nu_Max(t_tree *tree)
   tree->rates->max_nu    = 1.0;
   tree->rates->max_clock = max_clock;
 
-  PhyML_Printf("\n. Clock rate parameter upper bound set to %G",tree->rates->max_clock);
-  PhyML_Printf("\n. Autocorrelation parameter upper bound set to %G",tree->rates->max_nu);
+  PhyML_Printf("\n. Clock rate parameter upper bound set to %f expected subst./site/time unit",tree->rates->max_clock);
+  PhyML_Printf("\n. Autocorrelation parameter upper bound set to %f",tree->rates->max_nu);
 }
 
 
