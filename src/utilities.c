@@ -6587,7 +6587,7 @@ void Set_Defaults_Model(model *mod)
   mod->l_max = 100.0;
 #else
   mod->l_min = 1.E-8;
-  mod->l_max = 1.00;
+  mod->l_max = 5.00;
 #endif
 }
 
