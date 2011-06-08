@@ -297,20 +297,30 @@ phydbl RATES_Lk_Rates_Core(phydbl br_r_a, phydbl br_r_d, phydbl nd_r_a, phydbl n
 	phydbl min_r, max_r;
 
 	cr = tree->rates->clock_r;
-	min_r = tree->rates->min_rate + LOG(cr);
-	max_r = tree->rates->max_rate + LOG(cr);
 
-	br_r_d += LOG(cr);
-	br_r_a += LOG(cr);
-
-	sd   = SQRT(tree->rates->nu*dt_d);
-	mean = br_r_a - .5*sd*sd;
-
- 	log_dens = Log_Dnorm_Trunc(br_r_d,mean,sd,min_r,max_r,&err);
-
-	if(err)
+	if(tree->rates->model_log_rates == YES)
 	  {
-	    PhyML_Printf("\n. Run: %d",tree->mcmc->run);
+	    min_r = tree->rates->min_rate + LOG(cr);
+	    max_r = tree->rates->max_rate + LOG(cr);
+	    
+	    br_r_d += LOG(cr);
+	    br_r_a += LOG(cr);
+	    
+	    sd   = SQRT(tree->rates->nu*dt_d);
+	    mean = br_r_a - .5*sd*sd;
+	    
+	    log_dens = Log_Dnorm_Trunc(br_r_d,mean,sd,min_r,max_r,&err);
+	    
+	    if(err)
+	      {
+		PhyML_Printf("\n. Run: %d",tree->mcmc->run);
+		PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+		Exit("\n");
+	      }
+	  }
+	else
+	  {
+	    PhyML_Printf("\n. Not implemented yet.");
 	    PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
 	    Exit("\n");
 	  }
@@ -2591,6 +2601,7 @@ void RATES_Update_Cur_Bl_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 
       if(tree->rates->model_log_rates == YES)
 	{
+	  /* Artihmetic average */
 	  rr = (EXP(ra) + EXP(rd))/2.;
 	}
       else
@@ -2603,20 +2614,38 @@ void RATES_Update_Cur_Bl_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
       if(tree->rates->model == GUINDON)
 	{
 	  phydbl logcr;
+	  phydbl shift;
+	  phydbl m,v;
 
 	  logcr = LOG(cr);
 
 	  ra += logcr;
 	  rd += logcr;
 
-	  /* dt=10.; */
-	  /* ra=-2.; */
-	  /* rd=2.; */
-	  /* nu=0.1; */
+	  /* ra = -2.; */
+	  /* rd = 2.; */
+	  /* dt = 10.0; */
+	  /* nu = 0.1; */
 
-	  Integrated_Geometric_Brownian_Bridge_Moments(dt,ra,rd,nu,
-	  					       &(tree->rates->cur_gamma_prior_mean[d->num]),
-	  					       &(tree->rates->cur_gamma_prior_var[d->num]));
+	  /* ra=LOG(1.E-9); */
+	  /* rd=LOG(1.E-6); */
+
+	  shift = MAX(ra,rd);
+
+	  ra -= shift;
+	  rd -= shift;
+
+	  Integrated_Geometric_Brownian_Bridge_Moments(dt,ra,rd,nu,&m,&v);
+	  
+	  m *= EXP(shift);
+	  v *= EXP(2.*shift);
+
+	  /* printf("\n. m=%G;v=%G",m,v); */
+	  /* printf("\n. shape=%G;scale=%G",m*m/v,v/m); */
+	  /* Exit("\n"); */
+
+	  tree->rates->cur_gamma_prior_mean[d->num] = m;
+	  tree->rates->cur_gamma_prior_var[d->num]  = v;
 
 	  tree->rates->cur_gamma_prior_mean[d->num] *= (dt);
 	  tree->rates->cur_gamma_prior_var[d->num]  *= (dt*dt);
