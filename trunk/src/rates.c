@@ -284,33 +284,35 @@ phydbl RATES_Lk_Rates_Core(phydbl br_r_a, phydbl br_r_d, phydbl nd_r_a, phydbl n
 {
   phydbl log_dens;
   phydbl mean,sd;
-
-  log_dens = UNLIKELY;
+  phydbl min_r, max_r;
+  phydbl cr,logcr;
+  
+  cr        = tree->rates->clock_r;
+  logcr     = LOG(cr);
+  log_dens  = UNLIKELY;
   mean = sd = -1.;
+  min_r     = tree->rates->min_rate;
+  max_r     = tree->rates->max_rate;
 
   switch(tree->rates->model)
     {
     case THORNE :
       {
 	int err;	
-	phydbl cr;
-	phydbl min_r, max_r;
-
-	cr = tree->rates->clock_r;
 
 	if(tree->rates->model_log_rates == YES)
 	  {
-	    min_r = tree->rates->min_rate + LOG(cr);
-	    max_r = tree->rates->max_rate + LOG(cr);
-	    
-	    br_r_d += LOG(cr);
-	    br_r_a += LOG(cr);
-	    
+
+	    br_r_d += logcr;
+	    br_r_a += logcr;
+	    min_r  += logcr;
+	    max_r  += logcr;
+
 	    sd   = SQRT(tree->rates->nu*dt_d);
 	    mean = br_r_a - .5*sd*sd;
-	    
+
 	    log_dens = Log_Dnorm_Trunc(br_r_d,mean,sd,min_r,max_r,&err);
-	    
+
 	    if(err)
 	      {
 		PhyML_Printf("\n. Run: %d",tree->mcmc->run);
@@ -371,15 +373,14 @@ phydbl RATES_Lk_Rates_Core(phydbl br_r_a, phydbl br_r_d, phydbl nd_r_a, phydbl n
     case GUINDON :
       {
 	int err;	
-	phydbl cr;
-	phydbl min_r, max_r;
 
-	cr = tree->rates->clock_r;
-	min_r = tree->rates->min_rate + LOG(cr);
-	max_r = tree->rates->max_rate + LOG(cr);
+	min_r = tree->rates->min_rate;
+	max_r = tree->rates->max_rate;
 
-	br_r_d += LOG(cr);
-	br_r_a += LOG(cr);
+	br_r_d += logcr;
+	br_r_a += logcr;
+	min_r  += logcr;
+	max_r  += logcr;
 
 	sd   = SQRT(tree->rates->nu*dt_d);
 	mean = br_r_a - .5*sd*sd;
@@ -884,7 +885,7 @@ void RATES_Init_Rate_Struct(t_rate *rates, t_rate *existing_rates, int n_otu)
 
   rates->nu            = 1.E-3;
   rates->min_nu        = 0.0;
-  rates->max_nu        = 100.;
+  rates->max_nu        = 1.0;
   /* rates->max_nu        = 2.0; */
 
   /* rates->nu            = 1.E-4; */
@@ -3594,53 +3595,55 @@ void RATES_Reset_Rates(t_tree *tree)
 
 void RATES_Set_Clock_And_Nu_Max(t_tree *tree)
 {
-  phydbl dt,ra,rd,nu;
+  phydbl dt,nu;
   phydbl min_t;
   int i;
   phydbl step;
   phydbl l_max;
-  phydbl max_r_rate,max_clock;
+  phydbl max_clock;
+  phydbl a;
+  phydbl r_min,r_max;
   phydbl tune;
-  phydbl a,p;
+  phydbl pa,pb;
 
-  /* If the rates at the begininning and the end of
-     a given branch are tune * max_rate, what is
-     the maximum value nu can take so that the branch
-     length does not go beyond l_max. We assume that 
-     the length of the branch in calendar time unit
-     is given by the deepest calibration node 
-  */
-  tune = 100.;
+  tune = 1.1;
+
+  if(tree->rates->model_log_rates == NO)
+    {
+      r_min = LOG(tree->rates->min_rate);
+      r_max = LOG(tree->rates->max_rate);
+    }
+  else
+    {
+      r_min = tree->rates->min_rate;
+      r_max = tree->rates->max_rate;
+    }
 
   l_max = tree->mod->l_max;
-  max_r_rate = (tree->rates->model_log_rates)?(EXP(tree->rates->max_rate)):(tree->rates->max_rate);
 
   min_t = .0;
   For(i,2*tree->n_otu-1) if(tree->rates->t_prior_min[i] < min_t) min_t = tree->rates->t_prior_min[i];
   
   dt = FABS(min_t);
-  max_clock = l_max / (max_r_rate * dt); 
-
-  ra = max_clock * max_r_rate;
-  ra = LOG(ra);
-  rd = ra;
+  max_clock = l_max / dt; 
 
   nu   = 1.E-10;
   step = 1.E-1;
-  a    = 1.E-2;
+  a    = 0.5;
   do
     {
       do
 	{
 	  nu += step;
-	  p = Pnorm(LOG(tune*max_clock),LOG(max_clock),SQRT(nu*dt));
-	}while(p > (1.-a));
+	  pa = Dnorm(1.0,  1.0,SQRT(nu*dt)); 
+	  pb = Dnorm(r_max,1.0,SQRT(nu*dt));
+	}while(pa/pb > tune);
       nu -= step;
       step /= 10.;
     }while(step > 1.E-10);
   
-  /* tree->rates->max_nu    = nu; */
-  tree->rates->max_nu    = 1.0;
+  tree->rates->max_nu    = nu;
+  /* tree->rates->max_nu    = 1.0; */
   tree->rates->max_clock = max_clock;
 
   PhyML_Printf("\n. Clock rate parameter upper bound set to %f expected subst./site/time unit",tree->rates->max_clock);
