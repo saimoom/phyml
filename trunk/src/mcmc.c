@@ -54,13 +54,17 @@ void MCMC(t_tree *tree)
   tree->mod->update_eigen = NO;
   MCMC_Print_Param(tree->mcmc,tree);
 
+
+  //  tree->rates->nu = 0.006;
+  //MCMC_Sim_Rate(tree->n_root,tree->n_root->v[0],tree);
+  //MCMC_Sim_Rate(tree->n_root,tree->n_root->v[1],tree);
       
   first = 0;
   secod = 1;
   do
-    {
+    {      
 
-      /* if(tree->mcmc->run > 50000) */
+      /* if(tree->mcmc->run > 5000) */
       /* 	{ */
       /* 	  FILE *fp; */
       /* 	  char *s; */
@@ -116,7 +120,7 @@ void MCMC(t_tree *tree)
       phydbl cur_lnL;
       cur_lnL = tree->c_lnL;
 
-/*       printf("\n. [%15s] %15f ",tree->mcmc->move_name[move],tree->c_lnL); */
+      /* printf("\n. [%15s] %15f ",tree->mcmc->move_name[move],tree->c_lnL); */
 
       /* Clock rate */
       if(!strcmp(tree->mcmc->move_name[move],"clock"))
@@ -1583,17 +1587,17 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
 	  /* PhyML_Fprintf(fp,"MeanRate\t"); */
 /* 	  PhyML_Fprintf(fp,"NormFact\t"); */
 
-	  /* For(i,mcmc->n_moves) */
-	  /*   { */
-	  /*     strcpy(s,"Acc."); */
-	  /*     PhyML_Fprintf(fp,"%s%d\t",strcat(s,mcmc->move_name[i]),i); */
-	  /*   } */
+	  For(i,mcmc->n_moves)
+	    {
+	      strcpy(s,"Acc.");
+	      PhyML_Fprintf(fp,"%s%d\t",strcat(s,mcmc->move_name[i]),i);
+	    }
 
-	  /* For(i,mcmc->n_moves) */
-	  /*   { */
-	  /*     strcpy(s,"Tune."); */
-	  /*     PhyML_Fprintf(fp,"%s%d\t",strcat(s,mcmc->move_name[i]),i); */
-	  /*   } */
+	  For(i,mcmc->n_moves)
+	    {
+	      strcpy(s,"Tune.");
+	      PhyML_Fprintf(fp,"%s%d\t",strcat(s,mcmc->move_name[i]),i);
+	    }
 
 	  /* For(i,mcmc->n_moves) */
 	  /*   { */
@@ -1721,8 +1725,8 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
 /*       PhyML_Fprintf(fp,"%f\t",RATES_Check_Mean_Rates(tree)); */
 
 /*       PhyML_Fprintf(fp,"%f\t",tree->rates->norm_fact); */
-      /* For(i,tree->mcmc->n_moves) PhyML_Fprintf(fp,"%f\t",tree->mcmc->acc_rate[i]); */
-      /* For(i,tree->mcmc->n_moves) PhyML_Fprintf(fp,"%f\t",(phydbl)(tree->mcmc->tune_move[i])); */
+      For(i,tree->mcmc->n_moves) PhyML_Fprintf(fp,"%f\t",tree->mcmc->acc_rate[i]);
+      For(i,tree->mcmc->n_moves) PhyML_Fprintf(fp,"%f\t",(phydbl)(tree->mcmc->tune_move[i]));
 /*       For(i,tree->mcmc->n_moves) PhyML_Fprintf(fp,"%d\t",(int)(tree->mcmc->run_move[i])); */
 
       orig_approx = tree->io->lk_approx;
@@ -2481,6 +2485,11 @@ void MCMC_Adjust_Tuning_Parameter(int move, t_mcmc *mcmc)
 	  rate_inf = 0.3;
 	  rate_sup = 0.3;
 	}
+      if(!strcmp(mcmc->move_name[move],"tree_rates"))
+	{
+	  rate_inf = 0.05;
+	  rate_sup = 0.05;
+	}
       else
 	{
 	  rate_inf = 0.3;
@@ -3030,13 +3039,13 @@ void MCMC_Complete_MCMC(t_mcmc *mcmc, t_tree *tree)
   mcmc->move_weight[mcmc->num_move_clock_r]         = 1.0;
   mcmc->move_weight[mcmc->num_move_tree_height]     = 1.0;
   mcmc->move_weight[mcmc->num_move_subtree_height]  = 0.1;
-  mcmc->move_weight[mcmc->num_move_nu]              = 1.0;
+  mcmc->move_weight[mcmc->num_move_nu]              = 2.0;
   mcmc->move_weight[mcmc->num_move_kappa]           = 0.5;
   mcmc->move_weight[mcmc->num_move_tree_rates]      = 1.0;
   mcmc->move_weight[mcmc->num_move_subtree_rates]   = 0.5;
   mcmc->move_weight[mcmc->num_move_updown_nu_cr]    = 0.0;
   for(i=mcmc->num_move_ras;i<mcmc->num_move_ras+2*tree->mod->n_catg;i++) mcmc->move_weight[i] = 0.5*(1./(phydbl)tree->mod->n_catg);  
-  mcmc->move_weight[mcmc->num_move_updown_t_cr]     = 0.0;
+  mcmc->move_weight[mcmc->num_move_updown_t_cr]     = 1.0;
  
   sum = 0.0;
   For(i,mcmc->n_moves) sum += mcmc->move_weight[i];
