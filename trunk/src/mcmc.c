@@ -2257,7 +2257,7 @@ void MCMC_Randomize_Nu(t_tree *tree)
   phydbl u;
 
   min_nu = tree->rates->min_nu;
-  max_nu = tree->rates->max_nu;
+  max_nu = tree->rates->max_nu/100.;
   /* min_nu = 0.0; */
   /* It is preferable to start with small values of nu 
      as they lead to high prior densities. Starting with
