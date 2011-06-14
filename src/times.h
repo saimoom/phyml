@@ -65,5 +65,6 @@ void TIMES_Set_Floor(t_tree *tree);
 void TIMES_Set_Floor_Post(t_node *a, t_node *d, t_tree *tree);
 phydbl TIMES_Log_Conditional_Uniform_Density(t_tree *tree);
 phydbl TIMES_Log_Yule(t_tree *tree);
+phydbl TIMES_Lk_Times(t_tree *tree);
 
 #endif

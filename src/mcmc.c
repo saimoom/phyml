@@ -54,7 +54,6 @@ void MCMC(t_tree *tree)
   tree->mod->update_eigen = NO;
   MCMC_Print_Param(tree->mcmc,tree);
 
-
   //  tree->rates->nu = 0.006;
   //MCMC_Sim_Rate(tree->n_root,tree->n_root->v[0],tree);
   //MCMC_Sim_Rate(tree->n_root,tree->n_root->v[1],tree);
@@ -239,7 +238,8 @@ void MCMC(t_tree *tree)
 
 	  /* MCMC_Sim_Rate(tree->n_root,tree->n_root->v[0],tree); */
 	  /* MCMC_Sim_Rate(tree->n_root,tree->n_root->v[1],tree); */
-
+      	  /* if(tree->mcmc->use_data == YES) Lk(tree); */
+	  /* RATES_Lk_Rates(tree); */
       	}
 
       tree->mcmc->run++;
@@ -479,7 +479,15 @@ void MCMC_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree)
   
   u = Uni();
   
-  MCMC_Make_Move(&cur_mu,&new_mu,r_min,r_max,&ratio,K,tree->mcmc->move_type[tree->mcmc->num_move_br_r+d->num]);
+  /* MCMC_Make_Move(&cur_mu,&new_mu,r_min,r_max,&ratio,K,tree->mcmc->move_type[tree->mcmc->num_move_br_r+d->num]); */
+
+  phydbl dt,sd,mean;
+  int err;
+  dt     = tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num];
+  sd     = SQRT(tree->rates->nu * dt);
+  mean   = tree->rates->br_r[a->num] - 0.5*sd*sd;
+  new_mu = Rnorm_Trunc(mean,sd,r_min,r_max,&err);
+  ratio  = Log_Dnorm_Trunc(cur_mu,mean,sd,r_min,r_max,&err) - Log_Dnorm_Trunc(new_mu,mean,sd,r_min,r_max,&err);
 
   if(new_mu > r_min && new_mu < r_max)
     {      
@@ -511,10 +519,10 @@ void MCMC_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree)
       
       tree->rates->br_do_updt[d->num] = YES;
       if(!d->tax)
-	{
-	  tree->rates->br_do_updt[v2->num] = YES;
-	  tree->rates->br_do_updt[v3->num] = YES;
-	}
+      	{
+      	  tree->rates->br_do_updt[v2->num] = YES;
+      	  tree->rates->br_do_updt[v3->num] = YES;
+      	}
       
       RATES_Update_Cur_Bl(tree);
       
@@ -1511,7 +1519,7 @@ void MCMC_Print_Param_Stdin(t_mcmc *mcmc, t_tree *tree)
       PhyML_Printf("\t%7d",tree->mcmc->run);
       PhyML_Printf("\t%5d",(int)(cur_time-mcmc->t_beg));
       PhyML_Printf("\t%10.2f",tree->c_lnL);
-      PhyML_Printf("\t%10.2f",tree->rates->c_lnL);
+      PhyML_Printf("\t%10.2f",tree->rates->c_lnL+TIMES_Lk_Times(tree));
       PhyML_Printf("\t%12.6f[%4.0f]",RATES_Average_Substitution_Rate(tree),tree->mcmc->ess[tree->mcmc->num_move_clock_r]);
       PhyML_Printf("\t%9.1f[%4.0f]",tree->rates->nd_t[tree->n_root->num],tree->mcmc->ess[tree->mcmc->num_move_nd_t+tree->n_root->num-tree->n_otu]);
       PhyML_Printf("\t%9.4G",tree->rates->nu);
@@ -1745,7 +1753,7 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
 
 
       PhyML_Fprintf(fp,"%G\t",tree->rates->c_lnL);
-      PhyML_Fprintf(fp,"%G\t",tree->c_lnL+tree->rates->c_lnL);
+      PhyML_Fprintf(fp,"%G\t",tree->c_lnL+tree->rates->c_lnL+TIMES_Lk_Times(tree));
       PhyML_Fprintf(fp,"%G\t",tree->rates->clock_r);
       PhyML_Fprintf(fp,"%G\t",RATES_Average_Substitution_Rate(tree));
       PhyML_Fprintf(fp,"%G\t",tree->rates->nu);
@@ -1766,7 +1774,18 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
 
       for(i=tree->n_otu;i<2*tree->n_otu-1;i++) PhyML_Fprintf(fp,"%.1f\t",tree->rates->nd_t[i]);
       /* for(i=0;i<2*tree->n_otu-1;i++) PhyML_Fprintf(fp,"%.4f\t",LOG(tree->rates->nd_r[i])); */
-      for(i=0;i<2*tree->n_otu-2;i++) PhyML_Fprintf(fp,"%.4f\t",EXP(tree->rates->br_r[i]));
+
+      for(i=0;i<2*tree->n_otu-2;i++) PhyML_Fprintf(fp,"%.4f\t",tree->rates->br_r[i]);
+      /* phydbl p,sd,mean; */
+      
+      /* for(i=0;i<2*tree->n_otu-2;i++)  */
+      /* 	{ */
+      /* 	  sd = tree->rates->nu * (tree->rates->nd_t[i] - tree->rates->nd_t[tree->noeud[i]->anc->num]); */
+      /* 	  mean = tree->rates->br_r[tree->noeud[i]->anc->num] - .5*sd*sd; */
+      /* 	  p = Pnorm(tree->rates->br_r[i],mean,sd); */
+      /* 	  PhyML_Fprintf(fp,"%f\t",p); */
+      /* 	} */
+
       /* for(i=0;i<2*tree->n_otu-2;i++) PhyML_Fprintf(fp,"%.4f\t",tree->rates->cur_gamma_prior_mean[i]); */
       /* if(fp != stdout) for(i=tree->n_otu;i<2*tree->n_otu-1;i++) PhyML_Fprintf(fp,"%G\t",tree->rates->t_prior[i]); */
 /*       For(i,2*tree->n_otu-3) PhyML_Fprintf(fp,"%f\t",EXP(tree->t_edges[i]->l)); */
@@ -2257,7 +2276,7 @@ void MCMC_Randomize_Nu(t_tree *tree)
   phydbl u;
 
   min_nu = tree->rates->min_nu;
-  max_nu = tree->rates->max_nu/100.;
+  max_nu = tree->rates->max_nu;
   /* min_nu = 0.0; */
   /* It is preferable to start with small values of nu 
      as they lead to high prior densities. Starting with
@@ -2485,26 +2504,25 @@ void MCMC_Adjust_Tuning_Parameter(int move, t_mcmc *mcmc)
 	  rate_inf = 0.3;
 	  rate_sup = 0.3;
 	}
-      if(!strcmp(mcmc->move_name[move],"tree_rates"))
-	{
-	  rate_inf = 0.05;
-	  rate_sup = 0.05;
-	}
+      /* if(!strcmp(mcmc->move_name[move],"tree_rates")) */
+      /* 	{ */
+      /* 	  rate_inf = 0.05; */
+      /* 	  rate_sup = 0.05; */
+      /* 	} */
       else
 	{
 	  rate_inf = 0.3;
 	  rate_sup = 0.3;
 	}
 
-	      /* PhyML_Printf("\n. %s acc=%d run=%d tune=%f", */
-	      /* 		   mcmc->move_name[i], */
-	      /* 		   mcmc->acc_move[i], */
-	      /* 		   mcmc->run_move[i], */
-	      /* 		   mcmc->tune_move[i]); */
+      /* PhyML_Printf("\n. %s acc=%d run=%d tune=%f", */
+      /* 		   mcmc->move_name[move], */
+      /* 		   mcmc->acc_move[move], */
+      /* 		   mcmc->run_move[move], */
+      /* 		   mcmc->tune_move[move]); */
 
       rate = mcmc->acc_rate[move];
       
-
       if(rate < rate_inf)      
 	{
 	  mcmc->tune_move[move] /= scale;
@@ -2865,35 +2883,19 @@ void MCMC_Sim_Rate(t_node *a, t_node *d, t_tree *tree)
   phydbl mean,sd,br_r_a,dt_d;
 
   br_r_a = tree->rates->br_r[a->num];
-  dt_d = tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num];
-
-  sd   = SQRT(dt_d*tree->rates->nu);
+  dt_d   = tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num];
+  sd     = SQRT(dt_d*tree->rates->nu);
   
   if(tree->rates->model_log_rates == YES)
     {
-      /* mean = br_r_a - .5*sd*sd; */
-      mean = br_r_a ;
+      mean = br_r_a - .5*sd*sd;
     }
   else
     {
       mean = br_r_a;
-      /* mean = br_r_a + */
-      /* 	sd* */
-      /* 	(Dnorm(tree->rates->min_rate,br_r_a,sd) - Dnorm(tree->rates->max_rate,br_r_a,sd)) / */
-      /* 	(Pnorm(tree->rates->min_rate,br_r_a,sd) - Pnorm(tree->rates->max_rate,br_r_a,sd)) ; */
     }
-
       
-  tree->rates->br_r[d->num] = Rnorm_Trunc(mean,sd,
-  					  tree->rates->min_rate,
-  					  tree->rates->max_rate,
-  					  &err);
-
-
-  /* tree->rates->br_r[d->num] = Rnorm(LOG(tree->rates->br_r[a->num]), */
-  /* 				    SQRT(tree->rates->nu * (tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num]))); */
-  /* tree->rates->br_r[d->num] = EXP(tree->rates->br_r[d->num]); */
-
+  tree->rates->br_r[d->num] = Rnorm_Trunc(mean,sd,tree->rates->min_rate,tree->rates->max_rate,&err);
   
   if(d->tax) return;
   else
@@ -3039,13 +3041,14 @@ void MCMC_Complete_MCMC(t_mcmc *mcmc, t_tree *tree)
   mcmc->move_weight[mcmc->num_move_clock_r]         = 1.0;
   mcmc->move_weight[mcmc->num_move_tree_height]     = 1.0;
   mcmc->move_weight[mcmc->num_move_subtree_height]  = 0.1;
-  mcmc->move_weight[mcmc->num_move_nu]              = 2.0;
+  mcmc->move_weight[mcmc->num_move_nu]              = 1.0;
   mcmc->move_weight[mcmc->num_move_kappa]           = 0.5;
   mcmc->move_weight[mcmc->num_move_tree_rates]      = 1.0;
   mcmc->move_weight[mcmc->num_move_subtree_rates]   = 0.5;
   mcmc->move_weight[mcmc->num_move_updown_nu_cr]    = 0.0;
   for(i=mcmc->num_move_ras;i<mcmc->num_move_ras+2*tree->mod->n_catg;i++) mcmc->move_weight[i] = 0.5*(1./(phydbl)tree->mod->n_catg);  
-  mcmc->move_weight[mcmc->num_move_updown_t_cr]     = 1.0;
+  mcmc->move_weight[mcmc->num_move_updown_t_cr]     = 0.0; /* Does not seem to work well (does not give uniform prior on root height
+							      when sampling from prior) */
  
   sum = 0.0;
   For(i,mcmc->n_moves) sum += mcmc->move_weight[i];

@@ -748,4 +748,10 @@ phydbl TIMES_Log_Yule(t_tree *tree)
 }
 
 /*********************************************************/
+
+phydbl TIMES_Lk_Times(t_tree *tree)
+{
+  return -(tree->n_otu-2)*LOG(FABS(tree->rates->nd_t[tree->n_root->num]));
+}
+
 /*********************************************************/
