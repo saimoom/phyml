@@ -28,7 +28,6 @@ phydbl RATES_Lk_Rates(t_tree *tree)
 
   tree->rates->c_lnL  = .0;
 
-
   RATES_Lk_Rates_Pre(tree->n_root,tree->n_root->v[0],NULL,tree);
   RATES_Lk_Rates_Pre(tree->n_root,tree->n_root->v[1],NULL,tree);
 
