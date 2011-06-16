@@ -168,6 +168,7 @@ void RATES_Record_Rates(t_tree *tree);
 void RATES_Reset_Rates(t_tree *tree);
 phydbl RATES_Average_Rate(t_tree *tree);
 void RATES_Set_Clock_And_Nu_Max(t_tree *tree);
+void RATES_Write_Mean_R_On_Edge_Label(t_node *a, t_node *d, t_edge *b, t_tree *tree);
 
 
 #endif

@@ -156,7 +156,9 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  LINMIN_TOL       2.0E-04
 #define  SCALE_POW             10    /*! Scaling factor will be 2^SCALE_POW or 2^(-SCALE_POW) [[ WARNING: SCALE_POW < 31 ]]*/
 #define  DEFAULT_SIZE_SPR_LIST 20
-#define  OUTPUT_TREE_FORMAT  0 /*! 0-->Newick; 1-->Nexus */
+#define  NEWICK                 0
+#define  NEXUS                  1
+#define  OUTPUT_TREE_FORMAT NEWICK
 #define  MAX_PARS      1000000000
 
 #define  LIM_SCALE_VAL     1.E-50 /*! Scaling limit (deprecated) */
@@ -1012,7 +1014,8 @@ typedef struct __T_Rate {
   phydbl     *u_cur_l; /*! Current t_edge lengths (unrooted) */
   phydbl     *invcov;
   phydbl     *cov_r;
-  phydbl     *mean_r;
+  phydbl     *mean_r; /*! average values of br_r taken across the sampled values during the MCMC */ 
+  phydbl     *mean_t; /*! average values of nd_t taken across the sampled values during the MCMC */
   phydbl     *_2n_vect1;
   phydbl     *_2n_vect2;
   phydbl     *_2n_vect3;
@@ -1102,7 +1105,8 @@ typedef struct __Tmcmc {
   FILE *out_fp_trees;
   FILE *out_fp_means;
   FILE *out_fp_last;
- 
+  FILE *out_fp_constree;
+
   int *adjust_tuning;
   int n_moves;
   int use_data;

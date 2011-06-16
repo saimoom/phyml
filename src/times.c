@@ -125,6 +125,7 @@ int TIMES_main(int argc, char **argv)
 		  if((io->mod->s_opt->random_input_tree) && (io->mod->s_opt->topo_search != NNI_MOVE))
 		    PhyML_Printf("\n. [Random start %3d/%3d]\n",num_rand_tree+1,io->mod->s_opt->n_rand_starts);
 
+
 		  Init_Model(cdata,mod,io);
 
 		  if(io->mod->use_m4mod) M4_Init_Model(mod->m4mod,cdata,mod);
@@ -133,7 +134,6 @@ int TIMES_main(int argc, char **argv)
 		  if(!io->in_tree) tree = Dist_And_BioNJ(cdata,mod,io);
 		  /* A user-given tree is used here instead of BioNJ */
 		  else             tree = Read_User_Tree(cdata,mod,io);
-
 
 		  if(!tree) continue;
 
@@ -151,6 +151,7 @@ int TIMES_main(int argc, char **argv)
 
 		  Update_Ancestors(tree->n_root,tree->n_root->v[0],tree);
 		  Update_Ancestors(tree->n_root,tree->n_root->v[1],tree);		  
+
 
 		  RATES_Fill_Lca_Table(tree);
 
@@ -182,7 +183,6 @@ int TIMES_main(int argc, char **argv)
 		  /* Set vector of mean branch lengths for the Normal approximation
 		     of the likelihood */
 		  RATES_Set_Mean_L(tree);
-
 
 		  /* Estimate the matrix of covariance for the Normal approximation of
 		     the likelihood */
@@ -751,7 +751,19 @@ phydbl TIMES_Log_Yule(t_tree *tree)
 
 phydbl TIMES_Lk_Times(t_tree *tree)
 {
-  return -(tree->n_otu-2)*LOG(FABS(tree->rates->nd_t[tree->n_root->num]));
+  /* return -(tree->n_otu-2)*LOG(FABS(tree->rates->nd_t[tree->n_root->num])); */
+  int i;
+  phydbl logdens;
+
+  logdens = 0.0;
+  For(i,2*tree->n_otu-1)
+    {
+      if((tree->noeud[i]->tax == NO) && (tree->noeud[i] != tree->n_root))
+  	{
+  	  logdens -= LOG(FABS(tree->rates->nd_t[tree->n_root->num] - tree->rates->t_floor[i]));
+  	}
+    }
+  return logdens;
 }
 
 /*********************************************************/

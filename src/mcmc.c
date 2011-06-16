@@ -843,6 +843,7 @@ void MCMC_Tree_Height(t_tree *tree)
   phydbl K,mult,u,alpha,ratio;
   phydbl cur_lnL_data,new_lnL_data;
   phydbl cur_lnL_rate,new_lnL_rate;
+  phydbl cur_lnL_time,new_lnL_time;
   phydbl floor;
   int n_nodes;
   phydbl cur_height, new_height;
@@ -860,16 +861,18 @@ void MCMC_Tree_Height(t_tree *tree)
   cur_lnL_rate = tree->rates->c_lnL;
   new_lnL_rate = tree->rates->c_lnL;
   cur_height   = tree->rates->nd_t[tree->n_root->num];
-  
+  cur_lnL_time = TIMES_Lk_Times(tree);
+
   u = Uni();
   mult = EXP(K*(u-0.5));
   /* mult = Rgamma(1./K,K); */
 
 
-  /* !!!!!!!!!!!!!!! */
-  /* Should be floor = tree->rates->t_prior_max[tree->n_root->num]; ? */
-  floor = tree->rates->t_prior_max[tree->n_root->num];
-  /* floor *= u; */
+  /* WARNING: It must not be floor = tree->rates->t_prior_max[tree->n_root->num]; 
+     floor is the maximum value a node height can take when one ignores the 
+     calibration nodes, i.e., floor is set by the height of the tips
+  */
+  floor = tree->rates->t_floor[tree->n_root->num];
 
   Scale_Subtree_Height(tree->n_root,mult,floor,&n_nodes,tree);
   new_height = tree->rates->nd_t[tree->n_root->num];
@@ -897,7 +900,9 @@ void MCMC_Tree_Height(t_tree *tree)
      to the Jacobian for the change of variable ends up to being equal to mult. 
   */
   ratio += LOG(mult);
-  /* ratio += -LOG(mult) + LOG(Dgamma(1./mult,1./K,K)/Dgamma(mult,1./K,K)); */
+  /* ratio += n_nodes*LOG(mult); */
+  /* new_lnL_time = TIMES_Lk_Times(tree); */
+  /* ratio += (new_lnL_time - cur_lnL_time); */
 
   /* Likelihood ratio */
   if(tree->mcmc->use_data) ratio += (new_lnL_data - cur_lnL_data);
@@ -1536,6 +1541,7 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
   char *s;
   int orig_approx;
   phydbl orig_lnL;
+  char *s_tree;
 
   if(tree->mcmc->run > mcmc->chain_len) return;
 
@@ -1582,11 +1588,8 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
 
       if(tree->mcmc->run == 0)
 	{
-
-
 	  time(&(mcmc->t_beg));
 	  time(&(mcmc->t_last_print));
-
 
 	  PhyML_Fprintf(fp,"# Random seed: %d",tree->io->r_seed);
 	  PhyML_Fprintf(fp,"\n");
@@ -1615,7 +1618,7 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
 
 	  PhyML_Fprintf(fp,"LnLike[Exact]\t");
 	  PhyML_Fprintf(fp,"LnLike[Approx]\t");
-	  PhyML_Fprintf(fp,"LnPriorRate\t");
+	  PhyML_Fprintf(fp,"LnPrior\t");
 	  PhyML_Fprintf(fp,"LnPosterior\t");
 	  PhyML_Fprintf(fp,"ClockRate\t");
 	  PhyML_Fprintf(fp,"EvolRate\t");
@@ -1752,7 +1755,7 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
 /*       PhyML_Fprintf(fp,"0\t0\t"); */
 
 
-      PhyML_Fprintf(fp,"%G\t",tree->rates->c_lnL);
+      PhyML_Fprintf(fp,"%G\t",tree->rates->c_lnL+TIMES_Lk_Times(tree));
       PhyML_Fprintf(fp,"%G\t",tree->c_lnL+tree->rates->c_lnL+TIMES_Lk_Times(tree));
       PhyML_Fprintf(fp,"%G\t",tree->rates->clock_r);
       PhyML_Fprintf(fp,"%G\t",RATES_Average_Substitution_Rate(tree));
@@ -1775,24 +1778,45 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
       for(i=tree->n_otu;i<2*tree->n_otu-1;i++) PhyML_Fprintf(fp,"%.1f\t",tree->rates->nd_t[i]);
       /* for(i=0;i<2*tree->n_otu-1;i++) PhyML_Fprintf(fp,"%.4f\t",LOG(tree->rates->nd_r[i])); */
 
-      for(i=0;i<2*tree->n_otu-2;i++) PhyML_Fprintf(fp,"%.4f\t",tree->rates->br_r[i]);
-      /* phydbl p,sd,mean; */
+      /* for(i=0;i<2*tree->n_otu-2;i++) PhyML_Fprintf(fp,"%.4f\t",tree->rates->br_r[i]); */
+      phydbl p,sd,mean;
       
-      /* for(i=0;i<2*tree->n_otu-2;i++)  */
-      /* 	{ */
-      /* 	  sd = tree->rates->nu * (tree->rates->nd_t[i] - tree->rates->nd_t[tree->noeud[i]->anc->num]); */
-      /* 	  mean = tree->rates->br_r[tree->noeud[i]->anc->num] - .5*sd*sd; */
-      /* 	  p = Pnorm(tree->rates->br_r[i],mean,sd); */
-      /* 	  PhyML_Fprintf(fp,"%f\t",p); */
-      /* 	} */
+      for(i=0;i<2*tree->n_otu-2;i++)
+      	{
+      	  sd = tree->rates->nu * (tree->rates->nd_t[i] - tree->rates->nd_t[tree->noeud[i]->anc->num]);
+      	  mean = tree->rates->br_r[tree->noeud[i]->anc->num] - .5*sd*sd;
+      	  p = Pnorm(tree->rates->br_r[i],mean,sd);
+      	  PhyML_Fprintf(fp,"%f\t",p);
+	  tree->rates->mean_r[i] += p;
+      	}
 
       /* for(i=0;i<2*tree->n_otu-2;i++) PhyML_Fprintf(fp,"%.4f\t",tree->rates->cur_gamma_prior_mean[i]); */
       /* if(fp != stdout) for(i=tree->n_otu;i<2*tree->n_otu-1;i++) PhyML_Fprintf(fp,"%G\t",tree->rates->t_prior[i]); */
 /*       For(i,2*tree->n_otu-3) PhyML_Fprintf(fp,"%f\t",EXP(tree->t_edges[i]->l)); */
       /* For(i,2*tree->n_otu-3) PhyML_Fprintf(fp,"%f\t",tree->t_edges[i]->l); */
 
+
+      /* For(i,2*tree->n_otu-2) tree->rates->mean_r[i] += tree->rates->nd_r[i]; */
+      For(i,2*tree->n_otu-1) tree->rates->mean_t[i] += tree->rates->nd_t[i];
+
+      RATES_Record_Times(tree);
+      For(i,2*tree->n_otu-1) tree->rates->nd_t[i] = tree->rates->mean_t[i] / (phydbl)(mcmc->run/mcmc->sample_interval+1.);
+      RATES_Write_Mean_R_On_Edge_Label(tree->n_root,tree->n_root->v[0],NULL,tree);
+      RATES_Write_Mean_R_On_Edge_Label(tree->n_root,tree->n_root->v[1],NULL,tree);
+      s_tree = Write_Tree(tree);
+
+      Branch_Lengths_To_Time_Lengths(tree);
+      tree->write_tax_names = YES;
+      tree->bl_ndigits = 3;
+      s_tree = Write_Tree(tree);
+      tree->write_tax_names = NO;
+      rewind(mcmc->out_fp_constree);
+      PhyML_Fprintf(mcmc->out_fp_constree,"%s\n",s_tree);
+      Free(s_tree);
+      RATES_Reset_Times(tree);
+
+      
       // TREES
-      char *s_tree;
       Branch_Lengths_To_Time_Lengths(tree);
       tree->bl_ndigits = 3;
       s_tree = Write_Tree(tree);
@@ -2049,6 +2073,10 @@ void MCMC_Init_MCMC_Struct(char *filename, t_mcmc *mcmc)
       strcat(s,".trees");
       mcmc->out_fp_trees = fopen(s,"w");
 
+      strcpy(s,mcmc->out_filename);
+      strcat(s,".constree");
+      mcmc->out_fp_constree = fopen(s,"w");
+
 /*       strcpy(s,tree->mcmc->out_filename); */
 /*       strcat(s,".means"); */
 /*       tree->mcmc->out_fp_means = fopen(s,"w"); */
@@ -2127,6 +2155,10 @@ void MCMC_Copy_MCMC_Struct(t_mcmc *ori, t_mcmc *cpy, char *filename)
       strcat(s,".trees");
       cpy->out_fp_trees = fopen(s,"w");
 
+      strcpy(s,cpy->out_filename);
+      strcat(s,".constree");
+      cpy->out_fp_constree = fopen(s,"w");
+
       Free(s);
     }
   else 
@@ -2143,6 +2175,7 @@ void MCMC_Close_MCMC(t_mcmc *mcmc)
 {
   fclose(mcmc->out_fp_trees);
   fclose(mcmc->out_fp_stats);
+  fclose(mcmc->out_fp_constree);
   /* fclose(mcmc->out_fp_means); */
   /* fclose(mcmc->out_fp_last); */
 }
