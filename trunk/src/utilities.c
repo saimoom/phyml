@@ -494,8 +494,8 @@ void Print_Tree(FILE *fp, t_tree *tree)
 
   s_tree = (char *)Write_Tree(tree);
 
-  if(OUTPUT_TREE_FORMAT == 0) PhyML_Fprintf(fp,"%s\n",s_tree);
-  else if(OUTPUT_TREE_FORMAT == 1)
+  if(OUTPUT_TREE_FORMAT == NEWICK) PhyML_Fprintf(fp,"%s\n",s_tree);
+  else if(OUTPUT_TREE_FORMAT == NEXUS)
     {
       PhyML_Fprintf(fp,"#NEXUS\n");
       PhyML_Fprintf(fp,"BEGIN TREES;\n");
@@ -557,6 +557,7 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
   format = (char *)mCalloc(100,sizeof(char));
 
   sprintf(format,"%%.%df",tree->bl_ndigits);
+  /* strcpy(format,"%f"); */
 
   p = -1;
   if(fils->tax)
@@ -564,7 +565,7 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
 /*       printf("\n- Writing on %p",*s_tree); */
       ori_len = *pos;
 
-      if(OUTPUT_TREE_FORMAT == 0)
+      if(OUTPUT_TREE_FORMAT == NEWICK)
 	{
 	  if(tree->write_tax_names == YES)
 	    {
@@ -584,25 +585,31 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
 	      (*pos) += sprintf(*s_tree+*pos,"%d",fils->num);
 	    }
 	}
-      else
+      else if(OUTPUT_TREE_FORMAT == NEXUS)
 	{
 	  (*pos) += sprintf(*s_tree+*pos,"%d",fils->num+1);
+	}
+      else
+	{
+	  PhyML_Printf("\n. Unknown tree format.");
+	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  PhyML_Printf("\n. s=%s\n",*s_tree);
 	}
 
       if((fils->b) && (fils->b[0]) && (fils->b[0]->l > -1.))
 	{
-	  if(tree->print_labels)
-	    {
-	      if(fils->b[0]->n_labels < 10)
-		For(i,fils->b[0]->n_labels) 
-		  {
-		    (*pos) += sprintf(*s_tree+*pos,"#%s",fils->b[0]->labels[i]);
-		  }
-	      else
-		{
-		  (*pos) += sprintf(*s_tree+*pos,"#%d_labels",fils->b[0]->n_labels);
-		}
-	    }
+	  /* if(tree->print_labels) */
+	  /*   { */
+	  /*     if(fils->b[0]->n_labels < 10) */
+	  /* 	For(i,fils->b[0]->n_labels)  */
+	  /* 	  { */
+	  /* 	    (*pos) += sprintf(*s_tree+*pos,"#%s",fils->b[0]->labels[i]); */
+	  /* 	  } */
+	  /*     else */
+	  /* 	{ */
+	  /* 	  (*pos) += sprintf(*s_tree+*pos,"#%d_labels",fils->b[0]->n_labels); */
+	  /* 	} */
+	  /*   } */
 
 	  strcat(*s_tree,":");
 	  (*pos)++;
@@ -634,6 +641,21 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
 	      (*pos) += sprintf(*s_tree+*pos,format,tree->rates->cur_l[fils->num]);
 	    }
 #endif
+
+	  /* !!!!!!!!!!!!!!!!!!!!1 */
+	  if(tree->print_labels)
+	    {
+	      if(fils->b[0]->n_labels < 10)
+		For(i,fils->b[0]->n_labels) 
+		  {
+		    (*pos) += sprintf(*s_tree+*pos,"::%s",fils->b[0]->labels[i]);
+		  }
+	      else
+		{
+		  (*pos) += sprintf(*s_tree+*pos,"::%d_labels",fils->b[0]->n_labels);
+		}
+	    }
+
 	}
 
       strcat(*s_tree,",");
@@ -709,18 +731,18 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
 	  
 	  fflush(NULL);
 
-	  if((tree->print_labels) && (fils->b[p]->labels != NULL))
-	    {
-	      if(fils->b[p]->n_labels < 10)
-		For(i,fils->b[p]->n_labels) 
-		  {
-		    (*pos) += sprintf(*s_tree+*pos,"#%s",fils->b[p]->labels[i]);
-		  }
-	      else
-		{
-		  (*pos) += sprintf(*s_tree+*pos,"#%d_labels",fils->b[p]->n_labels);
-		}
-	    }
+	  /* if((tree->print_labels) && (fils->b[p]->labels != NULL)) */
+	  /*   { */
+	  /*     if(fils->b[p]->n_labels < 10) */
+	  /* 	For(i,fils->b[p]->n_labels)  */
+	  /* 	  { */
+	  /* 	    (*pos) += sprintf(*s_tree+*pos,"#%s",fils->b[p]->labels[i]); */
+	  /* 	  } */
+	  /*     else */
+	  /* 	{ */
+	  /* 	  (*pos) += sprintf(*s_tree+*pos,"#%d_labels",fils->b[p]->n_labels); */
+	  /* 	} */
+	  /*   } */
 
 	  strcat(*s_tree,":");
 	  (*pos)++;
@@ -752,6 +774,21 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
 	      (*pos) += sprintf(*s_tree+*pos,format,tree->rates->cur_l[fils->num]);
 	    }
 #endif
+
+	  /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!1 */
+	  if((tree->print_labels) && (fils->b[p]->labels != NULL))
+	    {
+	      if(fils->b[p]->n_labels < 10)
+		For(i,fils->b[p]->n_labels) 
+		  {
+		    (*pos) += sprintf(*s_tree+*pos,"::%s",fils->b[p]->labels[i]);
+		  }
+	      else
+		{
+		  (*pos) += sprintf(*s_tree+*pos,"::%d_labels",fils->b[p]->n_labels);
+		}
+	    }
+
 	}
       strcat(*s_tree,",");
       (*pos)++;
@@ -9805,6 +9842,7 @@ t_tree *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
     {
       Free_Node(root);
     }
+
   RATES_Random_Branch_Lengths(tree);
   
   Free(available_nodes);

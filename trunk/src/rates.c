@@ -753,6 +753,7 @@ t_rate *RATES_Make_Rate_Struct(int n_otu)
       rates->cov_r                = (phydbl *)mCalloc((2*n_otu-2)*(2*n_otu-2),sizeof(phydbl));
       rates->cond_var             = (phydbl *)mCalloc(2*n_otu-2,sizeof(phydbl));
       rates->mean_r               = (phydbl *)mCalloc(2*n_otu-2,sizeof(phydbl));
+      rates->mean_t               = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
       rates->lca                  = (t_node **)mCalloc((2*n_otu-1)*(2*n_otu-1),sizeof(t_node *));
       rates->reg_coeff            = (phydbl *)mCalloc((2*n_otu-2)*(2*n_otu-2),sizeof(phydbl));
       rates->trip_reg_coeff       = (phydbl *)mCalloc((2*n_otu-2)*(6*n_otu-9),sizeof(phydbl));
@@ -811,6 +812,7 @@ void RATES_Free_Rates(t_rate *rates)
   Free(rates->_2n2n_vect2);
   Free(rates->cov_l);
   Free(rates->mean_l);
+  Free(rates->mean_t);
   Free(rates->grad_l);
   Free(rates->br_do_updt);
   Free(rates->cur_gamma_prior_mean);
@@ -928,6 +930,8 @@ void RATES_Init_Rate_Struct(t_rate *rates, t_rate *existing_rates, int n_otu)
 	      rates->nd_r[i]   = 1.0;
 	      rates->br_r[i]   = 1.0;
 	    }
+
+	  rates->mean_t[i] = 0.0;
 	  rates->nd_t[i]   = 0.0;
 	  rates->true_t[i] = 0.0;
 	  if(i < n_otu)
@@ -1111,7 +1115,6 @@ phydbl RATES_Dmu_One(phydbl mu, phydbl dt, phydbl a, phydbl b, phydbl lexp)
 }
 
 /*********************************************************/
-
 /* Given the times of nodes a (ta) and d (td), the shape of the gamma distribution of instantaneous
    rates, the parameter of the exponential distribution of waiting times between rate jumps and the 
    instantaneous rate at t_node a, this function works out an expected number of (amino-acids or 
@@ -3649,8 +3652,35 @@ void RATES_Set_Clock_And_Nu_Max(t_tree *tree)
   PhyML_Printf("\n. Autocorrelation parameter upper bound set to %f",tree->rates->max_nu);
 }
 
-
 /*********************************************************/
+
+void RATES_Write_Mean_R_On_Edge_Label(t_node *a, t_node *d, t_edge *b, t_tree *tree)
+{
+
+  if(b) 
+    {
+      if(!b->labels) 
+	{
+	  Make_New_Edge_Label(b);	
+	  b->n_labels++;
+	}
+      sprintf(b->labels[0],"%f",tree->rates->mean_r[d->num] / (phydbl)(tree->mcmc->run/tree->mcmc->sample_interval+1.));
+    }
+
+  if(d->tax) return;
+  else
+    {
+      int i;
+      For(i,3)
+	{
+	  if((d->v[i] != a) && (d->b[i] != tree->e_root))
+	    {
+	      RATES_Write_Mean_R_On_Edge_Label(d,d->v[i],d->b[i],tree);
+	    }
+	}
+    }
+}
+
 /*********************************************************/
 /*********************************************************/
 /*********************************************************/
