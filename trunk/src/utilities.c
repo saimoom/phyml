@@ -11916,6 +11916,7 @@ int Scale_Subtree_Height(t_node *a, phydbl K, phydbl floor, int *n_nodes, t_tree
   if(a == tree->n_root)
     {
       tree->rates->nd_t[tree->n_root->num] = new_height;
+      *n_nodes = 1;
       Scale_Node_Heights_Post(tree->n_root,tree->n_root->v[0],K,floor,n_nodes,tree);
       Scale_Node_Heights_Post(tree->n_root,tree->n_root->v[1],K,floor,n_nodes,tree);
     }
