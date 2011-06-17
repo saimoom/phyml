@@ -81,6 +81,7 @@ int TIMES_main(int argc, char **argv)
   /* r_seed =  1303970631; */
   /* r_seed = 1304059976; */
   /* r_seed = 1306315195; */
+  /* r_seed = 1308263660; */
 
   srand(r_seed); rand();
   PhyML_Printf("\n. Seed: %d\n",r_seed);
@@ -90,7 +91,7 @@ int TIMES_main(int argc, char **argv)
   if(io->in_tree == 2) Test_Multiple_Data_Set_Format(io);
   else io->n_trees = 1;
 
-  io->colalias = 0;  /* Do not compress sites if you're using Evolve function */
+  io->colalias = 1;  /* Do not compress sites if you're using Evolve function */
 
   mat = NULL;
   tree_line_number = 0;
@@ -550,7 +551,6 @@ void TIMES_Set_All_Node_Priors(t_tree *tree)
 
   Get_Node_Ranks(tree);
   TIMES_Set_Floor(tree);
-
 }
 
 /*********************************************************/
@@ -751,19 +751,46 @@ phydbl TIMES_Log_Yule(t_tree *tree)
 
 phydbl TIMES_Lk_Times(t_tree *tree)
 {
-  /* return -(tree->n_otu-2)*LOG(FABS(tree->rates->nd_t[tree->n_root->num])); */
-  int i;
   phydbl logdens;
 
   logdens = 0.0;
-  For(i,2*tree->n_otu-1)
-    {
-      if((tree->noeud[i]->tax == NO) && (tree->noeud[i] != tree->n_root))
-  	{
-  	  logdens -= LOG(FABS(tree->rates->nd_t[tree->n_root->num] - tree->rates->t_floor[i]));
-  	}
-    }
+  TIMES_Lk_Times_Trav(tree->n_root,tree->n_root->v[0],
+		      tree->rates->nd_t[tree->n_root->num],
+		      tree->rates->t_floor[tree->n_root->num],&logdens,tree);
+
+  TIMES_Lk_Times_Trav(tree->n_root,tree->n_root->v[1],
+		      tree->rates->nd_t[tree->n_root->num],
+		      tree->rates->t_floor[tree->n_root->num],&logdens,tree);
+  
   return logdens;
 }
 
 /*********************************************************/
+
+void TIMES_Lk_Times_Trav(t_node *a, t_node *d, phydbl lim_inf, phydbl lim_sup, phydbl *logdens, t_tree *tree)
+{
+  if(d->tax == YES) return;
+  else
+    {
+      int i;
+
+      if(tree->rates->nd_t[d->num] > lim_sup)
+      	{
+      	  lim_inf = lim_sup;
+	  lim_sup = 0.0;
+	  For(i,2*tree->n_otu-2)
+	    if((tree->rates->t_floor[i] < lim_sup) && (tree->rates->t_floor[i] > tree->rates->nd_t[d->num]))
+	      lim_sup = tree->rates->t_floor[i];
+      	}
+
+      *logdens -= LOG(lim_sup - lim_inf);
+      
+      For(i,3)
+	{
+	  if(d->v[i] != a && d->b[i] != tree->e_root)
+	    {
+	      TIMES_Lk_Times_Trav(d,d->v[i],lim_inf,lim_sup,logdens,tree);
+	    }
+	}
+    }
+}
