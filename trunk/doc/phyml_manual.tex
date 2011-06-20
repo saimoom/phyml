@@ -957,16 +957,31 @@ Dryomys_nitedula Glis_glis | -120 -28.5
 \end{small}
 \end{figure}
 
-Every row in this file lists a set of taxa that belong to the same subtree (i.e., a clade). This
-list of taxa is followed by the character `\x{|}' and two real numbers corresponding to the lower
-and upper bounds of the calibration interval for the node at the root of the clade. In the example
-given here, the clade grouping the three taxa ``Dugong\_dugon'', ``Procavia\_capensis'' and
-``Elephantida'' has -65 as lower bound and -54 as upper bound.  Node ages (or node heights) are
-relative to the most recent tip node in the phylogeny, which age is set to 0. Note also that the
-node corresponding to the root of the whole tree has a specific label: `\x{@root@}'.
-{\color{red}{It is important to specify upper and lower bounds for the root node in order to ensure
-convergence of the Gibbs sampler.}}  Not defining these bounds is likely to produce inaccurate
-estimates of node ages, especially if there are only few calibration nodes available.
+Every row in  this file lists a  set of taxa that belong  to the same subtree (i.e.,  a clade). This
+list of taxa  is followed by the character  `\x{|}' and two real numbers corresponding  to the lower
+and upper bounds of the  calibration interval for the node at the root of  the clade. In the example
+given  here,  the  clade  grouping  the three  taxa  ``Dugong\_dugon'',  ``Procavia\_capensis''  and
+``Elephantida'' has  -65 as lower  bound and -54  as upper bound.  Node  ages (or node  heights) are
+relative to the most recent tip node in the phylogeny, which age is set to 0. 
+
+% The maximum  value the average substitution rate  along a branch of  a phylogeny can take  is set to
+% $10^{-2}$ substitution per site per time unit. It  is therefore important that the time unit used to
+% specify the calibration intervals  are realistic with respect to this upper  bound. For instance, it
+% one time unit corresponds to one month,  one assumes that the maximum (average) substitution rate is
+% $10^{-3}$/site/month, which  is very high  (substitution rate in  introns is close  to 3/site/$10^9$
+% years).  Consider that in the example give above, one time unit is $10^6$ years.  Hence, the maximum
+% value the substitution  rate can take is $10^{-2}$/site/$10^6$  years, i.e., $10$/site/$10^9$ years.
+% Multiplying the calibration values by 10 amounts  to considering that the time unit is $10^5$ years,
+% implying a maximum  substitution rate equal to $10^{-2}$/site/$10^5$  years, i.e., $100$/site/$10^9$
+% years.
+
+Note   that  the  node corresponding  to  the  root of  the  whole tree  has  a specific  label:
+`\x{@root@}'.  {\color{red}{It is important  to specify upper and lower bounds for  the root node in
+order to ensure convergence  of the Gibbs sampler. If the prior interval for  the root height is not
+specified, the  upper bound will be set  to the upper bound  of the oldest calibration  node and the
+lower bound  will be set to twice  this age.}}  As a  consequence, leaving the prior  on root height
+interval unspecified may produce inaccurate estimates of node ages, especially if there are only few
+otherwise calibration nodes available.
 
 A notable exception to this rule comes from the analysis of serial sample \index{serial sample}
 data, i.e., alignments in which sequences were not sampled at the same time point.  For such data,
@@ -976,9 +991,6 @@ generally known without ambiguity, this extra piece of data is translated into v
 calibration intervals for the tip nodes (i.e., calibration interval of zero width), which in turn
 results in substitution rate estimates with descreased variances.  Posterior distribution of
 substitution rates with small variances then allows one to get good estimates of the root age.
-
-
-
 
 \end{itemize}
 
@@ -997,6 +1009,28 @@ technique. This algorithm tries diferent values of the model parameters and reco
 ones. By default,  $10^6$ values for each  parameter are collected. These values  are recorded every
 $10^3$  sample. These  settings can  be  modified using  the appropriate  command-line options  (see
 below).
+
+
+\subsubsection{Upper bounds of model parameters}
+
+The  maximum expected  number  of substitutions  per  along a  given  branch is  set  to 1.0.  Since
+calibration times provide prior  information about the time scale considered, it  is possible to use
+that information to  define an upper bound for  the substitution rate. This upper bound  is equal to
+the ratio of  the maximum value for  a branch length (1.0) by  the amount of time  elapsed since the
+oldest  calibration point  (i.e., the  minimum  of the  lower bounds  taken  over the  whole set  of
+calibration points)\footnote{The actual  formula involves an extra parameter which  does not need to
+be  introduced  here}. It  is  important  to keep  in  mind  that the  upper  bound  of the  average
+substitution rate depends  on the time unit used  in the calibration priors. The value  of the upper
+bound is printed on screen at the start of the execution.
+
+PhyTime  implements  two  models  that  authorize  rates  to  be  autocorrelated.  The  strength  of
+autocorrelation is governed  by a parameter which value  is estimated from the data.  However, it is
+necessary to  set an appropriate  upper bound  for this parameter  prior running the  analysis.  The
+maximum value is set such that the correlation between the rate at the beginning and at the end of a
+branch of length 1.0 calendar time unit is not  different from 0. Here again the upper bound for the
+model parameter depends  on the time unit. It is  important to choose this unit so  that a branch of
+length 1.0 calendar unit can be considered as short. For this reason, {\color{red}{we recommend to select a time
+unit so that the calibration times take values between -10 and -1000}}\index{time scale}.
 
 \subsubsection{PhyTime specific options}
 
@@ -1162,7 +1196,7 @@ do the priors seem to be adequate (2) can I use the fast approximation of the li
 long shall I run the program for? I explain below how to provide answers to these questions.
 
 \begin{itemize} 
-\item {\em  Do the priors seem  to be adequate?} Bayesian  analysis relies on  specifiying the joint
+\item {\em  Are the priors adequate?} Bayesian  analysis relies on  specifiying the joint
 prior density  of model parameters.  In  the case of  node age estimation, these  priors essentially
 describe how rates of substitution vary across lineages and the probabilistic distribution that node
 ages have when  ignoring the information provided  by the genetic sequences. These  priors vary from

@@ -665,8 +665,10 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, int *pos
 
       if(*available < 0)
 	{
-	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
 	  PhyML_Printf("\n. s=%s\n",*s_tree);
+	  PhyML_Printf("\n. len=%d\n",strlen(*s_tree));
+	  PhyML_Printf("\n. The sequence names in your input file might be too long.");
+	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
 	  Warn_And_Exit("");
 	}
 
