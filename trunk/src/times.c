@@ -783,6 +783,13 @@ void TIMES_Lk_Times_Trav(t_node *a, t_node *d, phydbl lim_inf, phydbl lim_sup, p
 	      lim_sup = tree->rates->t_floor[i];
       	}
 
+      if(tree->rates->nd_t[d->num] < lim_inf || tree->rates->nd_t[d->num] > lim_sup)
+	{
+	  PhyML_Printf("\n. nd_t = %f lim_inf = %f lim_sup = %f",tree->rates->nd_t[d->num],lim_inf,lim_sup);
+	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  Exit("\n");      
+	}
+
       *logdens -= LOG(lim_sup - lim_inf);
       
       For(i,3)
