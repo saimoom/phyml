@@ -85,24 +85,24 @@ void MCMC(t_tree *tree)
       /* 	} */
 
 
-      if(tree->mcmc->run > 100000)
-      	{
-      	  FILE *fp;
-      	  char *s,*t;
+      /* if(tree->mcmc->run > 100000) */
+      /* 	{ */
+      /* 	  FILE *fp; */
+      /* 	  char *s,*t; */
 
-      	  s = (char *)mCalloc(100,sizeof(char));
+      /* 	  s = (char *)mCalloc(100,sizeof(char)); */
 	  
-      	  t = strrchr(tree->io->in_align_file,'.');
-      	  sprintf(s,"res%s",t);
-      	  fp = fopen(s,"w");
-      	  fclose(tree->mcmc->out_fp_stats);
-      	  tree->mcmc->out_fp_stats = fopen(s,"w");
-      	  tree->mcmc->run = 0;
-      	  MCMC_Print_Param(tree->mcmc,tree);
-      	  fclose(fp);
-      	  Free(s);
-      	  Exit("\n");
-      	}
+      /* 	  t = strrchr(tree->io->in_align_file,'.'); */
+      /* 	  sprintf(s,"res%s",t); */
+      /* 	  fp = fopen(s,"w"); */
+      /* 	  fclose(tree->mcmc->out_fp_stats); */
+      /* 	  tree->mcmc->out_fp_stats = fopen(s,"w"); */
+      /* 	  tree->mcmc->run = 0; */
+      /* 	  MCMC_Print_Param(tree->mcmc,tree); */
+      /* 	  fclose(fp); */
+      /* 	  Free(s); */
+      /* 	  Exit("\n"); */
+      /* 	} */
 
       u = Uni();
 
@@ -656,6 +656,7 @@ void MCMC_One_Time(t_node *a, t_node *d, int traversal, t_tree *tree)
   phydbl t1_cur, t1_new;
   phydbl cur_lnL_data, new_lnL_data;
   phydbl cur_lnL_rate, new_lnL_rate;
+  phydbl cur_lnL_time, new_lnL_time;
   phydbl ratio,alpha;
   t_edge *b1,*b2,*b3;
   int    i;
@@ -682,7 +683,8 @@ void MCMC_One_Time(t_node *a, t_node *d, int traversal, t_tree *tree)
   new_lnL_data   = cur_lnL_data;
   new_lnL_rate   = cur_lnL_rate;
   ratio          = 0.0;
-
+  cur_lnL_time   = TIMES_Lk_Times(tree);
+  new_lnL_time   = cur_lnL_time;
 
   v2 = v3 = NULL;
   For(i,3)
@@ -750,9 +752,11 @@ void MCMC_One_Time(t_node *a, t_node *d, int traversal, t_tree *tree)
 	}
 
       new_lnL_rate = RATES_Lk_Rates(tree);
+      new_lnL_time = TIMES_Lk_Times(tree);
       
       if(tree->mcmc->use_data) ratio += (new_lnL_data - cur_lnL_data);
       ratio += (new_lnL_rate - cur_lnL_rate);
+      ratio += (new_lnL_time - cur_lnL_time);
       
       ratio = EXP(ratio);
       alpha = MIN(1.,ratio);
@@ -939,9 +943,9 @@ void MCMC_Updown_T_Cr(t_tree *tree)
   phydbl K,mult,u,alpha,ratio;
   phydbl cur_lnL_data,new_lnL_data;
   phydbl cur_lnL_rate,new_lnL_rate;
+  phydbl cur_lnL_time,new_lnL_time;
   phydbl floor;
   int n_nodes;
-
 
   if(FABS(tree->rates->t_prior_max[tree->n_root->num] - tree->rates->t_prior_min[tree->n_root->num]) < 1.E-10) return;
 
@@ -954,7 +958,8 @@ void MCMC_Updown_T_Cr(t_tree *tree)
   ratio        = 0.0;
   cur_lnL_rate = tree->rates->c_lnL;
   new_lnL_rate = tree->rates->c_lnL;
-  
+  cur_lnL_time = TIMES_Lk_Times(tree);
+
   u = Uni();
   mult = EXP(K*(u-0.5));
 
@@ -995,12 +1000,13 @@ void MCMC_Updown_T_Cr(t_tree *tree)
   if(tree->mcmc->use_data) new_lnL_data = Lk(tree);
 
   new_lnL_rate = RATES_Lk_Rates(tree);
+  new_lnL_time = TIMES_Lk_Times(tree);
 
   /* The Hastings ratio is actually mult^(n) when changing the absolute
      node heights. When considering the relative heights, this ratio combined
      to the Jacobian for the change of variable ends up to being equal to mult. 
   */
-  ratio += 0.0;
+  ratio += (n_nodes - 1)*LOG(mult);
   /* ratio += -LOG(mult) + LOG(Dgamma(1./mult,1./K,K)/Dgamma(mult,1./K,K)); */
 
   /* Likelihood ratio */
@@ -1008,6 +1014,7 @@ void MCMC_Updown_T_Cr(t_tree *tree)
 
   /* Prior ratio */
   ratio += (new_lnL_rate - cur_lnL_rate);
+  ratio += (new_lnL_time - cur_lnL_time);
 
   /* !!!!!!!!!!!!1 */
   /* ratio += LOG(Dexp(FABS(new_height-floor),1./10.) / Dexp(FABS(cur_height-floor),1./10.)); */
@@ -1777,17 +1784,17 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
       for(i=tree->n_otu;i<2*tree->n_otu-1;i++) PhyML_Fprintf(fp,"%.1f\t",tree->rates->nd_t[i]);
       /* for(i=0;i<2*tree->n_otu-1;i++) PhyML_Fprintf(fp,"%.4f\t",LOG(tree->rates->nd_r[i])); */
 
-      /* for(i=0;i<2*tree->n_otu-2;i++) PhyML_Fprintf(fp,"%.4f\t",tree->rates->br_r[i]); */
-      phydbl p,sd,mean;
+      for(i=0;i<2*tree->n_otu-2;i++) PhyML_Fprintf(fp,"%.4f\t",EXP(tree->rates->br_r[i]));
+      /* phydbl p,sd,mean; */
       
-      for(i=0;i<2*tree->n_otu-2;i++)
-      	{
-      	  sd = tree->rates->nu * (tree->rates->nd_t[i] - tree->rates->nd_t[tree->noeud[i]->anc->num]);
-      	  mean = tree->rates->br_r[tree->noeud[i]->anc->num] - .5*sd*sd;
-      	  p = Pnorm(tree->rates->br_r[i],mean,sd);
-      	  PhyML_Fprintf(fp,"%f\t",p);
-	  tree->rates->mean_r[i] += p;
-      	}
+      /* for(i=0;i<2*tree->n_otu-2;i++) */
+      /* 	{ */
+      /* 	  sd = tree->rates->nu * (tree->rates->nd_t[i] - tree->rates->nd_t[tree->noeud[i]->anc->num]); */
+      /* 	  mean = tree->rates->br_r[tree->noeud[i]->anc->num] - .5*sd*sd; */
+      /* 	  p = Pnorm(tree->rates->br_r[i],mean,sd); */
+      /* 	  PhyML_Fprintf(fp,"%f\t",p); */
+      /* 	  tree->rates->mean_r[i] += p; */
+      /* 	} */
 
       /* for(i=0;i<2*tree->n_otu-2;i++) PhyML_Fprintf(fp,"%.4f\t",tree->rates->cur_gamma_prior_mean[i]); */
       /* if(fp != stdout) for(i=tree->n_otu;i<2*tree->n_otu-1;i++) PhyML_Fprintf(fp,"%G\t",tree->rates->t_prior[i]); */
@@ -1795,7 +1802,7 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
       /* For(i,2*tree->n_otu-3) PhyML_Fprintf(fp,"%f\t",tree->t_edges[i]->l); */
 
 
-      /* For(i,2*tree->n_otu-2) tree->rates->mean_r[i] += tree->rates->nd_r[i]; */
+      For(i,2*tree->n_otu-2) tree->rates->mean_r[i] += EXP(tree->rates->br_r[i]);
       For(i,2*tree->n_otu-1) tree->rates->mean_t[i] += tree->rates->nd_t[i];
 
       RATES_Record_Times(tree);
