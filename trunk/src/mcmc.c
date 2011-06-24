@@ -64,7 +64,6 @@ void MCMC(t_tree *tree)
       	  FILE *fp;
       	  char *s;
 
-
       	  s = (char *)mCalloc(100,sizeof(char));
       	  sprintf(s,"simul_seq.%d",getpid());
       	  fp = fopen(s,"w");
@@ -753,11 +752,11 @@ void MCMC_One_Time(t_node *a, t_node *d, int traversal, t_tree *tree)
 
       new_lnL_rate = RATES_Lk_Rates(tree);
       new_lnL_time = TIMES_Lk_Times(tree);
-      
+
       if(tree->mcmc->use_data) ratio += (new_lnL_data - cur_lnL_data);
       ratio += (new_lnL_rate - cur_lnL_rate);
-      ratio += (new_lnL_time - cur_lnL_time);
-      
+      /* ratio += (new_lnL_time - cur_lnL_time); */
+
       ratio = EXP(ratio);
       alpha = MIN(1.,ratio);
       u = Uni();
@@ -847,7 +846,7 @@ void MCMC_Tree_Height(t_tree *tree)
   phydbl floor;
   int n_nodes;
   phydbl cur_height, new_height;
-
+  phydbl min_t,max_t;
 
   if(FABS(tree->rates->t_prior_max[tree->n_root->num] - tree->rates->t_prior_min[tree->n_root->num]) < 1.E-10) return;
 
@@ -862,11 +861,11 @@ void MCMC_Tree_Height(t_tree *tree)
   new_lnL_rate = tree->rates->c_lnL;
   cur_height   = tree->rates->nd_t[tree->n_root->num];
   cur_lnL_time = TIMES_Lk_Times(tree);
+  min_t        = tree->rates->t_prior_min[tree->n_root->num];
+  max_t        = tree->rates->t_prior_max[tree->n_root->num];
 
   u = Uni();
   mult = EXP(K*(u-0.5));
-  /* mult = Rgamma(1./K,K); */
-
 
   /* WARNING: It must not be floor = tree->rates->t_prior_max[tree->n_root->num]; 
      floor is the maximum value a node height can take when one ignores the 
@@ -883,8 +882,8 @@ void MCMC_Tree_Height(t_tree *tree)
   	 tree->rates->nd_t[i] < tree->rates->t_prior_min[i])
   	{
   	  RATES_Reset_Times(tree);
-	  Restore_Br_Len(tree);
-	  tree->mcmc->run_move[tree->mcmc->num_move_tree_height]++;
+  	  Restore_Br_Len(tree);
+  	  tree->mcmc->run_move[tree->mcmc->num_move_tree_height]++;
   	  return;
   	}
     }
@@ -894,21 +893,22 @@ void MCMC_Tree_Height(t_tree *tree)
   if(tree->mcmc->use_data) new_lnL_data = Lk(tree);
 
   new_lnL_rate = RATES_Lk_Rates(tree);
+  new_lnL_time = TIMES_Lk_Times(tree);
 
   /* The Hastings ratio is actually mult^(n) when changing the absolute
      node heights. When considering the relative heights, this ratio combined
      to the Jacobian for the change of variable ends up to being equal to mult. 
   */
   /* ratio += LOG(mult); */
-  ratio += n_nodes*LOG(mult);
-  new_lnL_time = TIMES_Lk_Times(tree);
-  ratio += (new_lnL_time - cur_lnL_time);
+  ratio += (phydbl)(n_nodes)*LOG(mult);
+
 
   /* Likelihood ratio */
   if(tree->mcmc->use_data) ratio += (new_lnL_data - cur_lnL_data);
 
   /* Prior ratio */
   ratio += (new_lnL_rate - cur_lnL_rate);
+  ratio += (new_lnL_time - cur_lnL_time);
 
   /* !!!!!!!!!!!!1 */
   /* ratio += LOG(Dexp(FABS(new_height-floor),1./10.) / Dexp(FABS(cur_height-floor),1./10.)); */
@@ -1111,7 +1111,7 @@ void MCMC_Subtree_Height(t_tree *tree)
      of the modified node heigths given the unchanged one is 1. This is different from the 
      case where all the nodes, including the root node, are scaled. 
   */
-  ratio += n_nodes*LOG(mult);
+  ratio += (phydbl)(n_nodes)*LOG(mult);
   new_lnL_time = TIMES_Lk_Times(tree);
   ratio += (new_lnL_time - cur_lnL_time);
 
@@ -2554,8 +2554,8 @@ void MCMC_Adjust_Tuning_Parameter(int move, t_mcmc *mcmc)
 	  /* rate_sup = 0.8; */
 	  /* rate_inf = 0.3; */
 	  /* rate_sup = 0.7; */
-	  rate_inf = 0.05;
-	  rate_sup = 0.05;
+	  rate_inf = 0.3;
+	  rate_sup = 0.3;
 	}
       /* if(!strcmp(mcmc->move_name[move],"tree_rates")) */
       /* 	{ */
@@ -3093,7 +3093,7 @@ void MCMC_Complete_MCMC(t_mcmc *mcmc, t_tree *tree)
   /* for(i=mcmc->num_move_nd_t;i<mcmc->num_move_nd_t+tree->n_otu-1;i++)   mcmc->move_weight[i] = 0.0;  /\* Times *\/ */
   mcmc->move_weight[mcmc->num_move_clock_r]         = 1.0;
   mcmc->move_weight[mcmc->num_move_tree_height]     = 1.0;
-  mcmc->move_weight[mcmc->num_move_subtree_height]  = 1.0;
+  mcmc->move_weight[mcmc->num_move_subtree_height]  = 0.0;
   mcmc->move_weight[mcmc->num_move_nu]              = 1.0;
   mcmc->move_weight[mcmc->num_move_kappa]           = 0.5;
   mcmc->move_weight[mcmc->num_move_tree_rates]      = 1.0;

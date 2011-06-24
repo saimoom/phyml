@@ -315,6 +315,7 @@ phydbl RATES_Lk_Rates_Core(phydbl br_r_a, phydbl br_r_d, phydbl nd_r_a, phydbl n
 	    if(err)
 	      {
 		PhyML_Printf("\n. Run: %d",tree->mcmc->run);
+		PhyML_Printf("\n. br_r_d = %f br_r_a = %f dt_d = %f logcr = %f",br_r_d,br_r_a,dt_d,logcr);
 		PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
 		Exit("\n");
 	      }
@@ -862,14 +863,14 @@ void RATES_Init_Rate_Struct(t_rate *rates, t_rate *existing_rates, int n_otu)
 
   if(rates->model_log_rates == YES)
     {
-      rates->max_rate  =  LOG(10.);
-      rates->min_rate  = -LOG(10.);
+      rates->max_rate  =  LOG(20.);
+      rates->min_rate  = -LOG(20.);
       /* rates->max_rate  =  MDBL_MAX; */
       /* rates->min_rate  = -MDBL_MAX; */
     }
   else
     {
-      rates->max_rate  = 10.0;
+      rates->max_rate  = 20.0;
       rates->min_rate  = 0.0;
     }
   /* rates->max_rate         = 6.0; */
@@ -3637,8 +3638,8 @@ void RATES_Set_Clock_And_Nu_Max(t_tree *tree)
       do
 	{
 	  nu += step;
-	  pa = Dnorm(1.0,  1.0,SQRT(nu*dt)); 
-	  pb = Dnorm(r_max,1.0,SQRT(nu*dt));
+	  pa = Dnorm(0.0,  0.0,SQRT(nu*dt)); 
+	  pb = Dnorm(r_max,0.0,SQRT(nu*dt));
 	}while(pa/pb > tune);
       nu -= step;
       step /= 10.;
