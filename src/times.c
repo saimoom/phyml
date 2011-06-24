@@ -751,47 +751,72 @@ phydbl TIMES_Log_Yule(t_tree *tree)
 
 phydbl TIMES_Lk_Times(t_tree *tree)
 {
-  phydbl logdens;
+  phydbl condlogdens;
+  int i;
+  int n_nodes;
 
-  logdens = 0.0;
-  TIMES_Lk_Times_Trav(tree->n_root,tree->n_root->v[0],
-		      tree->rates->nd_t[tree->n_root->num],
-		      tree->rates->t_floor[tree->n_root->num],&logdens,tree);
+  condlogdens = 0.0;
 
-  TIMES_Lk_Times_Trav(tree->n_root,tree->n_root->v[1],
-		      tree->rates->nd_t[tree->n_root->num],
-		      tree->rates->t_floor[tree->n_root->num],&logdens,tree);
-  
-  return logdens;
+  /* TIMES_Lk_Times_Trav(tree->n_root,tree->n_root->v[0], */
+  /* 		      tree->rates->nd_t[tree->n_root->num], */
+  /* 		      tree->rates->t_floor[tree->n_root->v[0]->num],&condlogdens,tree); */
+
+  /* TIMES_Lk_Times_Trav(tree->n_root,tree->n_root->v[1], */
+  /* 		      tree->rates->nd_t[tree->n_root->num], */
+  /* 		      tree->rates->t_floor[tree->n_root->v[1]->num],&condlogdens,tree); */
+
+
+  /* Count the number of internal node (minus the root node) in the deepest slice */
+  n_nodes = 0;
+  For(i,2*tree->n_otu-2)
+    {
+      if(tree->noeud[i]->tax == NO && tree->noeud[i] != tree->n_root)
+	{
+	  if(!(tree->rates->nd_t[i] > tree->rates->t_floor[tree->n_root->num]))
+	    {
+	      n_nodes++;
+	    }
+	}
+    }
+   
+  condlogdens = -(phydbl)(n_nodes)*LOG(tree->rates->t_floor[tree->n_root->num] - tree->rates->nd_t[tree->n_root->num]);
+
+  return(condlogdens);
 }
 
 /*********************************************************/
 
 void TIMES_Lk_Times_Trav(t_node *a, t_node *d, phydbl lim_inf, phydbl lim_sup, phydbl *logdens, t_tree *tree)
 {
+  int i;
+  
+  if(!d->tax)
+    {
+      /* if(tree->rates->nd_t[d->num] > lim_sup) */
+      /* 	{ */
+      /* 	  lim_inf = lim_sup; */
+      /* 	  lim_sup = 0.0; */
+      /* 	  For(i,2*tree->n_otu-2) */
+      /* 	    if((tree->rates->t_floor[i] < lim_sup) && (tree->rates->t_floor[i] > tree->rates->nd_t[d->num])) */
+      /* 	      lim_sup = tree->rates->t_floor[i]; */
+      /* 	} */
+      
+      /* if(tree->rates->nd_t[d->num] < lim_inf || tree->rates->nd_t[d->num] > lim_sup) */
+      /* 	{ */
+      /* 	  PhyML_Printf("\n. nd_t = %f lim_inf = %f lim_sup = %f",tree->rates->nd_t[d->num],lim_inf,lim_sup); */
+      /* 	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
+      /* 	  Exit("\n"); */
+      /* 	} */
+  
+      lim_inf = tree->rates->nd_t[tree->n_root->num];
+      lim_sup = tree->rates->t_floor[d->num];
+      
+      *logdens = *logdens + LOG(lim_sup - lim_inf);   
+    }
+  
   if(d->tax == YES) return;
   else
-    {
-      int i;
-
-      if(tree->rates->nd_t[d->num] > lim_sup)
-      	{
-      	  lim_inf = lim_sup;
-	  lim_sup = 0.0;
-	  For(i,2*tree->n_otu-2)
-	    if((tree->rates->t_floor[i] < lim_sup) && (tree->rates->t_floor[i] > tree->rates->nd_t[d->num]))
-	      lim_sup = tree->rates->t_floor[i];
-      	}
-
-      if(tree->rates->nd_t[d->num] < lim_inf || tree->rates->nd_t[d->num] > lim_sup)
-	{
-	  PhyML_Printf("\n. nd_t = %f lim_inf = %f lim_sup = %f",tree->rates->nd_t[d->num],lim_inf,lim_sup);
-	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-	  Exit("\n");      
-	}
-
-      *logdens -= LOG(lim_sup - lim_inf);
-      
+    {      
       For(i,3)
 	{
 	  if(d->v[i] != a && d->b[i] != tree->e_root)
@@ -800,4 +825,7 @@ void TIMES_Lk_Times_Trav(t_node *a, t_node *d, phydbl lim_inf, phydbl lim_sup, p
 	    }
 	}
     }
-}
+    }
+
+
+/*********************************************************/

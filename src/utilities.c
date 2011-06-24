@@ -6626,7 +6626,7 @@ void Set_Defaults_Model(model *mod)
   mod->l_max = 100.0;
 #else
   mod->l_min = 1.E-8;
-  mod->l_max = 5.00;
+  mod->l_max = 20.00;
 #endif
 }
 
@@ -11953,7 +11953,19 @@ void Scale_Node_Heights_Post(t_node *a, t_node *d, phydbl K, phydbl floor, int *
       Warn_And_Exit("");
     }
 
-  if(d->tax) return;
+  if(d->tax) 
+    {      
+      if(!(tree->rates->nd_t[d->num] > floor)) 
+	{
+	  /* Scaling does not change the node height here 
+	     but, in theory this tip is among the scaled
+	     nodes. Therefore needs to count it in for 
+	     working out correct Hastings ratios
+	  */
+	  /* *n_nodes = *n_nodes+1;  */
+	}
+      return;
+    }
   else
     {
       int i;
@@ -11962,7 +11974,6 @@ void Scale_Node_Heights_Post(t_node *a, t_node *d, phydbl K, phydbl floor, int *
 	 it then becomes possible for nodes with different floor values
 	 to have their orders interverted (i.e., ancestor below descendant)
       */
-            
       if(!(tree->rates->nd_t[d->num] > floor))
 	{
 	  tree->rates->nd_t[d->num] = K*(tree->rates->nd_t[d->num]-floor)+floor;
