@@ -179,8 +179,8 @@ int main(int argc, char **argv)
 		  Get_Tree_Size(tree);
 		  PhyML_Printf("\n. Log likelihood of the current tree: %f.\n",tree->c_lnL);
 
-		  Rescale_Br_Len_Multiplier_Tree(tree);
 		  Br_Len_Involving_Invar(tree);
+		  Rescale_Br_Len_Multiplier_Tree(tree);
 
 		  if(!tree->n_root) Get_Best_Root_Position(tree);
 

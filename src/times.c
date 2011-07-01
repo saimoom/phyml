@@ -170,6 +170,10 @@ int TIMES_main(int argc, char **argv)
 		  /* Set upper and lower bounds for all node ages */
 		  TIMES_Set_All_Node_Priors(tree);
 
+
+		  /* Count the number of time slices */
+		  TIMES_Get_Number_Of_Time_Slices(tree);
+		  
 		  /* Work with log of branch lengths? */
 		  if(tree->mod->log_l == YES) Log_Br_Len(tree);
 		  
@@ -752,8 +756,6 @@ phydbl TIMES_Log_Yule(t_tree *tree)
 phydbl TIMES_Lk_Times(t_tree *tree)
 {
   phydbl condlogdens;
-  int i;
-  int n_nodes;
 
   condlogdens = 0.0;
 
@@ -767,19 +769,23 @@ phydbl TIMES_Lk_Times(t_tree *tree)
 
 
   /* Count the number of internal node (minus the root node) in the deepest slice */
-  n_nodes = 0;
-  For(i,2*tree->n_otu-2)
-    {
-      if(tree->noeud[i]->tax == NO && tree->noeud[i] != tree->n_root)
-	{
-	  if(!(tree->rates->nd_t[i] > tree->rates->t_floor[tree->n_root->num]))
-	    {
-	      n_nodes++;
-	    }
-	}
-    }
+  /* n_nodes = 0; */
+  /* For(i,2*tree->n_otu-2) */
+  /*   { */
+  /*     if(tree->noeud[i]->tax == NO && tree->noeud[i] != tree->n_root) */
+  /* 	{ */
+  /* 	  if(!(tree->rates->nd_t[i] > tree->rates->t_floor[tree->n_root->num])) */
+  /* 	    { */
+  /* 	      n_nodes++; */
+  /* 	    } */
+  /* 	} */
+  /*   } */
    
-  condlogdens = -(phydbl)(n_nodes)*LOG(tree->rates->t_floor[tree->n_root->num] - tree->rates->nd_t[tree->n_root->num]);
+  /* condlogdens = -(phydbl)(n_nodes)*LOG(tree->rates->t_floor[tree->n_root->num] - tree->rates->nd_t[tree->n_root->num]); */
+
+  condlogdens = TIMES_Lk_Uniform_Core(tree);
+
+  tree->rates->c_lnL_times = condlogdens;
 
   return(condlogdens);
 }
@@ -825,7 +831,284 @@ void TIMES_Lk_Times_Trav(t_node *a, t_node *d, phydbl lim_inf, phydbl lim_sup, p
 	    }
 	}
     }
+}
+
+/*********************************************************/
+
+phydbl TIMES_Log_Number_Of_Ranked_Labelled_Histories(t_node *root, int per_slice, t_tree *tree)
+{
+  int i;
+  phydbl logn;
+  t_node *v1,*v2;
+  int dir1r,dir2r;
+  int n1,n2;
+  
+  TIMES_Update_Curr_Slice(tree);
+
+  logn = .0;
+  v1 = v2 = NULL;
+  if(root == tree->n_root)
+    {
+      TIMES_Log_Number_Of_Ranked_Labelled_Histories_Post(root,root->v[0],per_slice,&logn,tree);
+      TIMES_Log_Number_Of_Ranked_Labelled_Histories_Post(root,root->v[1],per_slice,&logn,tree);
+      v1 = root->v[0];
+      v2 = root->v[1];
+    }
+  else
+    {
+      For(i,3)
+	{
+	  if(root->v[i] != root->anc && root->b[i] != tree->e_root)
+	    {
+	      TIMES_Log_Number_Of_Ranked_Labelled_Histories_Post(root,root->v[i],per_slice,&logn,tree);
+	      if(!v1) v1 = root->v[i];
+	      else    v2 = root->v[i];
+	    }
+	}
     }
 
+  dir1r = dir2r = -1;
+  For(i,3) if(v1->v[i] == root || v1->b[i] == tree->e_root) { dir1r = i; break; }
+  For(i,3) if(v2->v[i] == root || v2->b[i] == tree->e_root) { dir2r = i; break; }
 
+  if(per_slice == NO)
+    {
+      n1 = tree->rates->n_tips_below[v1->num];
+      n2 = tree->rates->n_tips_below[v2->num];
+    }
+  else
+    {
+      if(tree->rates->curr_slice[v1->num] == tree->rates->curr_slice[root->num])
+	n1 = tree->rates->n_tips_below[v1->num];
+      else
+	n1 = 1;
+      
+      if(tree->rates->curr_slice[v2->num] == tree->rates->curr_slice[root->num])
+	n2 = tree->rates->n_tips_below[v2->num];
+      else
+	n2 = 1;
+    }
+
+  tree->rates->n_tips_below[root->num] = n1+n2;
+
+  logn += Factln(n1+n2-2) - Factln(n1-1) - Factln(n2-1);  
+
+  return(logn);
+}
+
+/*********************************************************/
+
+void TIMES_Log_Number_Of_Ranked_Labelled_Histories_Post(t_node *a, t_node *d, int per_slice, phydbl *logn, t_tree *tree)
+{
+  if(d->tax == YES) 
+    {
+      tree->rates->n_tips_below[d->num] = 1;
+      return;
+    }
+  else
+    {
+      int i,n1,n2;
+      t_node *v1, *v2;
+      int dir1d,dir2d;
+
+      For(i,3)
+	{
+	  if(d->v[i] != a && d->b[i] != tree->e_root)
+	    {
+	      TIMES_Log_Number_Of_Ranked_Labelled_Histories_Post(d,d->v[i],per_slice,logn,tree);
+	    }
+	}
+
+      v1 = v2 = NULL;
+      dir1d = dir2d = -1;
+      For(i,3)
+	{
+	  if(d->v[i] != a && d->b[i] != tree->e_root)
+	    {
+	      if(v1 == NULL) {v1 = d->v[i];}
+	      else           {v2 = d->v[i];}
+	    }
+	}
+
+      For(i,3) if(v1->v[i] == d) {dir1d = i; break;}
+      For(i,3) if(v2->v[i] == d) {dir2d = i; break;}
+
+      if(per_slice == NO)
+	{
+	  n1 = tree->rates->n_tips_below[v1->num];
+	  n2 = tree->rates->n_tips_below[v2->num];
+	}
+      else
+	{
+	  if(tree->rates->curr_slice[v1->num] == tree->rates->curr_slice[d->num])
+	    n1 = tree->rates->n_tips_below[v1->num];
+	  else
+	    n1 = 1;
+
+	  if(tree->rates->curr_slice[v2->num] == tree->rates->curr_slice[d->num])
+	    n2 = tree->rates->n_tips_below[v2->num];
+	  else
+	    n2 = 1;
+	}
+
+      tree->rates->n_tips_below[d->num] = n1+n2;
+
+      (*logn) += Factln(n1+n2-2) - Factln(n1-1) - Factln(n2-1);
+    }
+}
+
+/*********************************************************/
+
+void TIMES_Update_Curr_Slice(t_tree *tree)
+{
+  int i,j;
+
+  For(i,2*tree->n_otu-1)
+    {
+      For(j,tree->rates->n_time_slices)
+	{
+	  if(!(tree->rates->nd_t[i] > tree->rates->time_slice_lims[j])) break;
+	}
+      tree->rates->curr_slice[i] = j;
+
+      /* PhyML_Printf("\n. Node %3d [%12f] is in slice %3d.",i,tree->rates->nd_t[i],j); */
+    }
+}
+
+/*********************************************************/
+
+phydbl TIMES_Lk_Uniform_Core(t_tree *tree)
+{  
+  phydbl logn;
+
+  logn = TIMES_Log_Number_Of_Ranked_Labelled_Histories(tree->n_root,YES,tree);
+
+
+  tree->rates->c_lnL_times = 0.0;
+  TIMES_Lk_Uniform_Post(tree->n_root,tree->n_root->v[0],tree);
+  TIMES_Lk_Uniform_Post(tree->n_root,tree->n_root->v[1],tree);
+
+  /* printf("\n. ^ %f %f %f", */
+  /* 	 (phydbl)(tree->rates->n_tips_below[tree->n_root->num]-2.), */
+  /* 	 LOG(tree->rates->time_slice_lims[tree->rates->curr_slice[tree->n_root->num]] - */
+  /* 	     tree->rates->nd_t[tree->n_root->num]), */
+  /* 	 (phydbl)(tree->rates->n_tips_below[tree->n_root->num]-2.) * */
+  /* 	 LOG(tree->rates->time_slice_lims[tree->rates->curr_slice[tree->n_root->num]] - */
+  /* 	     tree->rates->nd_t[tree->n_root->num])); */
+	
+  
+  tree->rates->c_lnL_times += 
+    Factln(tree->rates->n_tips_below[tree->n_root->num]-2.) -
+    (phydbl)(tree->rates->n_tips_below[tree->n_root->num]-2.) *
+    LOG(tree->rates->time_slice_lims[tree->rates->curr_slice[tree->n_root->num]] -
+	tree->rates->nd_t[tree->n_root->num]);
+  
+  tree->rates->c_lnL_times -= logn;
+  
+  return(tree->rates->c_lnL_times);
+}
+
+/*********************************************************/
+
+void TIMES_Get_Number_Of_Time_Slices(t_tree *tree)
+{
+  int i;
+
+  tree->rates->n_time_slices=0;
+  TIMES_Get_Number_Of_Time_Slices_Post(tree->n_root,tree->n_root->v[0],tree);
+  TIMES_Get_Number_Of_Time_Slices_Post(tree->n_root,tree->n_root->v[1],tree);
+  Qksort(tree->rates->time_slice_lims,NULL,0,tree->rates->n_time_slices-1);
+
+  if(tree->rates->n_time_slices > 1)
+    {
+      PhyML_Printf("\n");
+      PhyML_Printf("\n. Sequence were collected at %d different time points.",tree->rates->n_time_slices);
+      For(i,tree->rates->n_time_slices) printf("\n+ [%3d] time point @ %12f ",i+1,tree->rates->time_slice_lims[i]);
+    }
+}
+
+/*********************************************************/
+
+void TIMES_Get_Number_Of_Time_Slices_Post(t_node *a, t_node *d, t_tree *tree)
+{
+  int i;
+
+  if(d->tax == YES)
+    {
+      For(i,tree->rates->n_time_slices) 
+	if(Are_Equal(tree->rates->t_floor[d->num],tree->rates->time_slice_lims[i],1.E-6)) break;
+
+      if(i == tree->rates->n_time_slices) 
+	{
+	  tree->rates->time_slice_lims[i] = tree->rates->t_floor[d->num];
+	  tree->rates->n_time_slices++;
+	}
+      return;
+    }
+  else
+    {
+      For(i,3)
+	if(d->v[i] != a && d->b[i] != tree->e_root)
+	  TIMES_Get_Number_Of_Time_Slices_Post(d,d->v[i],tree);
+    }
+}
+
+/*********************************************************/
+
+void TIMES_Get_N_Slice_Spans(t_tree *tree)
+{
+  int i,j;
+
+  For(i,2*tree->n_otu-2)
+    {
+      if(tree->noeud[i]->tax == NO)
+	{
+	  For(j,tree->rates->n_time_slices)
+	    {
+	      if(Are_Equal(tree->rates->t_floor[i],tree->rates->time_slice_lims[j],1.E-6))
+		{
+		  tree->rates->n_time_slice_spans[i] = j+1;
+		  /* PhyML_Printf("\n. Node %3d spans %3d slices [%12f].", */
+		  /* 	       i+1, */
+		  /* 	       tree->rates->n_slice_spans[i], */
+		  /* 	       tree->rates->t_floor[i]); */
+		  break;
+		}
+	    }
+	}
+    }
+}
+
+/*********************************************************/
+
+void TIMES_Lk_Uniform_Post(t_node *a, t_node *d, t_tree *tree)
+{
+  if(d->tax == YES) return;
+  else
+    {
+      int i;
+
+      For(i,3)
+	{
+	  if(d->v[i] != a && d->b[i] != tree->e_root)
+	    {
+	      TIMES_Lk_Uniform_Post(d,d->v[i],tree);
+	    }
+	}
+      
+      if(tree->rates->curr_slice[a->num] != tree->rates->curr_slice[d->num])
+	{
+	  tree->rates->c_lnL_times += 
+	    Factln(tree->rates->n_tips_below[d->num]-1.) - 
+	    (phydbl)(tree->rates->n_tips_below[d->num]-1.) *
+	    LOG(tree->rates->time_slice_lims[tree->rates->curr_slice[d->num]] -
+		tree->rates->nd_t[d->num]);
+	}
+    }
+}
+
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
 /*********************************************************/

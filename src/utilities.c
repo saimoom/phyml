@@ -6530,7 +6530,7 @@ option *Make_Input()
   io->treelist             = (t_treelist *)mCalloc(1,sizeof(t_treelist));
   io->mcmc                 = (t_mcmc *)MCMC_Make_MCMC_Struct();
   io->rates                = (t_rate *)RATES_Make_Rate_Struct(-1);
- return io;
+  return io;
 }
 
 /*********************************************************/
@@ -12269,7 +12269,6 @@ phydbl Rescale_Br_Len_Multiplier_Tree(t_tree *tree)
   return(-1.);
 }
 
-
 /*********************************************************/
 
 phydbl Unscale_Free_Rate_Tree(t_tree *tree)
@@ -12343,4 +12342,12 @@ phydbl Reflect(phydbl x, phydbl l, phydbl u)
 }
 
 /*********************************************************/
+
+int Are_Equal(phydbl a, phydbl b, phydbl eps)
+{
+  if(FABS(a-b) < eps) return TRUE; /* a==b */
+  else return FALSE;
+}
+
+
 /*********************************************************/
