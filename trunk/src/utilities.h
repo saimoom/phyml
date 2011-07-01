@@ -98,6 +98,9 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  YES 1
 #define  NO  0
 
+#define  TRUE  1
+#define  FALSE 0
+
 #define  NT 0 /*! nucleotides */
 #define  AA 1 /*! amino acids */
 #define  GENERIC 2 /*! custom alphabet */
@@ -983,7 +986,8 @@ typedef struct __T_Rate {
   phydbl max_rate;
   phydbl c_lnL1; 
   phydbl c_lnL2; 
-  phydbl c_lnL; /*! Prob(Br len | time stamps, model of rate evolution) */
+  phydbl c_lnL_rates; /*! Prob(Br len | time stamps, model of rate evolution) */
+  phydbl c_lnL_times; /*! Prob(time stamps) */
   phydbl c_lnL_jps; /*! Prob(# Jumps | time stamps, rates, model of rate evolution) */
   phydbl clock_r; /*! Mean substitution rate, i.e., 'molecular clock' rate */
   phydbl min_clock;
@@ -998,6 +1002,8 @@ typedef struct __T_Rate {
   phydbl min_nu;
   phydbl max_nu;
   phydbl covdet;
+  phydbl sum_invalid_areas;
+
 
   phydbl     *nd_r;  /*! Current rates at nodes */
   phydbl     *br_r;  /*! Current rates along edges */
@@ -1036,6 +1042,7 @@ typedef struct __T_Rate {
   phydbl     *cov_l;
   phydbl     *grad_l; /* gradient */
   phydbl     inflate_var;
+  phydbl     *time_slice_lims;
 
   int adjust_rates; /*! if = 1, branch rates are adjusted such that a modification of a given t_node time
 		       does not modify any branch lengths */
@@ -1043,17 +1050,19 @@ typedef struct __T_Rate {
   int bl_from_rt; /*! if =1, branch lengths are obtained as the product of cur_r and t */
   int approx;
   int model; /*! Model number */
-
+  int is_allocated;
   int met_within_gibbs;
 
-  int      update_mean_l;
-  int       update_cov_l;
+  int update_mean_l;
+  int update_cov_l;
 
   int *n_jps;
   int *t_jps;
-
+  int n_time_slices;
+  int *n_time_slice_spans;
+  int *curr_slice;
+  int *n_tips_below;
   
-
   short int *t_has_prior;
   struct __Node **lca; /*! 2-way table of common ancestral nodes for each pari of nodes */
 
@@ -1484,6 +1493,7 @@ phydbl Unscale_Br_Len_Multiplier_Tree(t_tree *tree);
 phydbl Unscale_Free_Rate_Tree(t_tree *tree);
 void Check_Br_Len_Bounds(t_tree *tree);
 phydbl Reflect(phydbl x, phydbl l, phydbl u);
+int Are_Equal(phydbl a, phydbl b, phydbl eps);
 
 
 #include "free.h"

@@ -1170,6 +1170,12 @@ void Read_Command_Line(option *io, int argc, char **argv)
   /*     } */
   
   
+  if(io->mod->s_opt->constrained_br_len == YES)
+    {
+      io->mod->s_opt->opt_topo = NO;
+      io->mod->s_opt->opt_bl   = NO;
+    }
+
 #ifndef PHYML
   if((open_ps_file) || (io->m4_model == YES))
     {
@@ -1224,9 +1230,6 @@ void Read_Command_Line(option *io, int argc, char **argv)
       io->mod->m4mod->use_cov_free       = 1;
     }
   
-  if(io->mod->s_opt->opt_topo == YES && io->mod->s_opt->constrained_br_len == YES)
-    io->mod->s_opt->constrained_br_len = NO;
-
   if(io->print_site_lnl)
     {
       strcpy(io->out_lk_file,io->in_align_file);
@@ -1303,6 +1306,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
       PhyML_Printf("\n. Custom model option with amino-acid requires you to specify a rate matrix file through the '--aa_rate_file' option.\n");
       Exit("\n");
     }
+
 
   io->fp_out_tree  = Openfile(io->out_tree_file,writemode);
   io->fp_out_stats = Openfile(io->out_stats_file,writemode);

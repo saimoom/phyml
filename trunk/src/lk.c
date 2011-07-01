@@ -3036,7 +3036,7 @@ phydbl Wrap_Lk_At_Given_Edge(t_edge *b, t_tree *tree, supert_tree *stree)
 phydbl Wrap_Lk_Rates(t_edge *b, t_tree *tree, supert_tree *stree)
 {
   RATES_Lk_Rates(tree);
-  return tree->rates->c_lnL;
+  return tree->rates->c_lnL_rates;
 }
 /*********************************************************/
 

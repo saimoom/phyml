@@ -67,4 +67,16 @@ phydbl TIMES_Log_Conditional_Uniform_Density(t_tree *tree);
 phydbl TIMES_Log_Yule(t_tree *tree);
 phydbl TIMES_Lk_Times(t_tree *tree);
 void TIMES_Lk_Times_Trav(t_node *a, t_node *d, phydbl lim_inf, phydbl lim_sup, phydbl *logdens, t_tree *tree);
+phydbl TIMES_Log_Number_Of_Ranked_Labelled_Histories(t_node *root, int per_slice, t_tree *tree);
+void TIMES_Log_Number_Of_Ranked_Labelled_Histories_Post(t_node *a, t_node *d, int per_slice, phydbl *logn, t_tree *tree);
+phydbl TIMES_Lk_Uniform_Core(t_tree *tree);
+void TIMES_Get_Number_Of_Time_Slices(t_tree *tree);
+void TIMES_Get_Number_Of_Time_Slices_Post(t_node *a, t_node *d, t_tree *tree);
+void TIMES_Get_N_Slice_Spans(t_tree *tree);
+void TIMES_Allocate_Vectors_Time_Slice_Combin(t_tree *tree);
+void TIMES_Allocate_Vectors_Time_Slice_Combin_Post(t_node *a, t_node *d, t_tree *tree);
+void TIMES_Update_Curr_Slice(t_tree *tree);
+void TIMES_Lk_Uniform_Post(t_node *a, t_node *d, t_tree *tree);
+
+
 #endif
