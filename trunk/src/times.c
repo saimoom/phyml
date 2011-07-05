@@ -91,7 +91,7 @@ int TIMES_main(int argc, char **argv)
   if(io->in_tree == 2) Test_Multiple_Data_Set_Format(io);
   else io->n_trees = 1;
 
-  io->colalias = 1;  /* Do not compress sites if you're using Evolve function */
+  io->colalias = 0;  /* Do not compress sites if you're using Evolve function */
 
   mat = NULL;
   tree_line_number = 0;
@@ -879,19 +879,19 @@ phydbl TIMES_Log_Number_Of_Ranked_Labelled_Histories(t_node *root, int per_slice
   else
     {
       if(tree->rates->curr_slice[v1->num] == tree->rates->curr_slice[root->num])
-	n1 = tree->rates->n_tips_below[v1->num];
+  	n1 = tree->rates->n_tips_below[v1->num];
       else
-	n1 = 1;
+  	n1 = 1;
       
       if(tree->rates->curr_slice[v2->num] == tree->rates->curr_slice[root->num])
-	n2 = tree->rates->n_tips_below[v2->num];
+  	n2 = tree->rates->n_tips_below[v2->num];
       else
-	n2 = 1;
+  	n2 = 1;
     }
 
   tree->rates->n_tips_below[root->num] = n1+n2;
 
-  logn += Factln(n1+n2-2) - Factln(n1-1) - Factln(n2-1);  
+  logn += Factln(n1+n2-2) - Factln(n1-1) - Factln(n2-1);
 
   return(logn);
 }
@@ -995,13 +995,12 @@ phydbl TIMES_Lk_Uniform_Core(t_tree *tree)
   /* 	 (phydbl)(tree->rates->n_tips_below[tree->n_root->num]-2.) * */
   /* 	 LOG(tree->rates->time_slice_lims[tree->rates->curr_slice[tree->n_root->num]] - */
   /* 	     tree->rates->nd_t[tree->n_root->num])); */
-	
-  
-  tree->rates->c_lnL_times += 
+
+  tree->rates->c_lnL_times +=
     Factln(tree->rates->n_tips_below[tree->n_root->num]-2.) -
     (phydbl)(tree->rates->n_tips_below[tree->n_root->num]-2.) *
     LOG(tree->rates->time_slice_lims[tree->rates->curr_slice[tree->n_root->num]] -
-	tree->rates->nd_t[tree->n_root->num]);
+  	tree->rates->nd_t[tree->n_root->num]);
   
   tree->rates->c_lnL_times -= logn;
   
