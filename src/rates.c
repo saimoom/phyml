@@ -877,14 +877,14 @@ void RATES_Init_Rate_Struct(t_rate *rates, t_rate *existing_rates, int n_otu)
 
   if(rates->model_log_rates == YES)
     {
-      rates->max_rate  =  LOG(20.);
-      rates->min_rate  = -LOG(20.);
+      rates->max_rate  =  LOG(10.);
+      rates->min_rate  = -LOG(10.);
       /* rates->max_rate  =  MDBL_MAX; */
       /* rates->min_rate  = -MDBL_MAX; */
     }
   else
     {
-      rates->max_rate  = 20.0;
+      rates->max_rate  = 10.0;
       rates->min_rate  = 0.0;
     }
   /* rates->max_rate         = 6.0; */
