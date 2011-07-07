@@ -196,7 +196,7 @@ int main(int argc, char **argv)
 		    {
 		      best_lnL = tree->c_lnL;
 		      if(most_likely_tree) Free(most_likely_tree);
-		      most_likely_tree = Write_Tree(tree);
+		      most_likely_tree = Write_Tree(tree,NO);
 		      most_likely_size = Get_Tree_Size(tree);
 		    }
 

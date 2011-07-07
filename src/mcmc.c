@@ -74,7 +74,7 @@ void MCMC(t_tree *tree)
       /* 	  tree->mcmc->run = 0; */
       /* 	  MCMC_Print_Param(tree->mcmc,tree); */
       /* 	  RATES_Update_Cur_Bl(tree); */
-      /* 	  printf("\n. %s",Write_Tree(tree)); */
+      /* 	  printf("\n. %s",Write_Tree(tree,NO)); */
       /* 	  Evolve(tree->data,tree->mod,tree); */
       /* 	  Print_CSeq(fp,tree->data); */
       /* 	  sprintf(s,"simul_par.%d",getpid()); */
@@ -87,24 +87,24 @@ void MCMC(t_tree *tree)
       /* 	} */
 
 
-      if(tree->mcmc->run > 100000)
-      	{
-      	  FILE *fp;
-      	  char *s,*t;
+      /* if(tree->mcmc->run > 100000) */
+      /* 	{ */
+      /* 	  FILE *fp; */
+      /* 	  char *s,*t; */
 
-      	  s = (char *)mCalloc(100,sizeof(char));
+      /* 	  s = (char *)mCalloc(100,sizeof(char)); */
 	  
-      	  t = strrchr(tree->io->in_align_file,'.');
-      	  sprintf(s,"res%s",t);
-      	  fp = fopen(s,"w");
-      	  fclose(tree->mcmc->out_fp_stats);
-      	  tree->mcmc->out_fp_stats = fopen(s,"w");
-      	  tree->mcmc->run = 0;
-      	  MCMC_Print_Param(tree->mcmc,tree);
-      	  fclose(fp);
-      	  Free(s);
-      	  Exit("\n");
-      	}
+      /* 	  t = strrchr(tree->io->in_align_file,'.'); */
+      /* 	  sprintf(s,"res%s",t); */
+      /* 	  fp = fopen(s,"w"); */
+      /* 	  fclose(tree->mcmc->out_fp_stats); */
+      /* 	  tree->mcmc->out_fp_stats = fopen(s,"w"); */
+      /* 	  tree->mcmc->run = 0; */
+      /* 	  MCMC_Print_Param(tree->mcmc,tree); */
+      /* 	  fclose(fp); */
+      /* 	  Free(s); */
+      /* 	  Exit("\n"); */
+      /* 	} */
 
       u = Uni();
 
@@ -1550,8 +1550,8 @@ void MCMC_Print_Param_Stdin(t_mcmc *mcmc, t_tree *tree)
       PhyML_Printf("\t%5d",(int)(cur_time-mcmc->t_beg));
       PhyML_Printf("\t%10.2f",tree->c_lnL);
       PhyML_Printf("\t%10.2f",tree->rates->c_lnL_rates+tree->rates->c_lnL_times);
-      /* PhyML_Printf("\t%12.6f[%4.0f]",RATES_Average_Substitution_Rate(tree),tree->mcmc->ess[tree->mcmc->num_move_clock_r]); */
-      PhyML_Printf("\t%12.6f[%4.0f]",tree->rates->clock_r,tree->mcmc->ess[tree->mcmc->num_move_clock_r]);
+      PhyML_Printf("\t%12.6f[%4.0f]",RATES_Average_Substitution_Rate(tree),tree->mcmc->ess[tree->mcmc->num_move_clock_r]);
+      /* PhyML_Printf("\t%12.6f[%4.0f]",tree->rates->clock_r,tree->mcmc->ess[tree->mcmc->num_move_clock_r]); */
       PhyML_Printf("\t%9.1f[%4.0f]",tree->rates->nd_t[tree->n_root->num],tree->mcmc->ess[tree->mcmc->num_move_nd_t+tree->n_root->num-tree->n_otu]);
       PhyML_Printf("\t%9.4G",tree->rates->nu);
       PhyML_Printf("\t%7.0f",min);
@@ -1829,12 +1829,12 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
       For(i,2*tree->n_otu-1) tree->rates->nd_t[i] = tree->rates->mean_t[i] / (phydbl)(mcmc->run/mcmc->sample_interval+1.);
       RATES_Write_Mean_R_On_Edge_Label(tree->n_root,tree->n_root->v[0],NULL,tree);
       RATES_Write_Mean_R_On_Edge_Label(tree->n_root,tree->n_root->v[1],NULL,tree);
-      s_tree = Write_Tree(tree);
+      s_tree = Write_Tree(tree,NO);
 
       Branch_Lengths_To_Time_Lengths(tree);
       tree->write_tax_names = YES;
       tree->bl_ndigits = 3;
-      s_tree = Write_Tree(tree);
+      s_tree = Write_Tree(tree,NO);
       tree->write_tax_names = NO;
       rewind(mcmc->out_fp_constree);
       PhyML_Fprintf(mcmc->out_fp_constree,"%s\n",s_tree);
@@ -1845,7 +1845,7 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
       // TREES
       Branch_Lengths_To_Time_Lengths(tree);
       tree->bl_ndigits = 3;
-      s_tree = Write_Tree(tree);
+      s_tree = Write_Tree(tree,NO);
       tree->bl_ndigits = 7;
       PhyML_Fprintf(mcmc->out_fp_trees,"TREE %8d [%f] = [&R] %s\n",mcmc->run,tree->c_lnL,s_tree);
       Free(s_tree);
@@ -2334,15 +2334,17 @@ void MCMC_Randomize_Nu(t_tree *tree)
   phydbl min_nu,max_nu;
   phydbl u;
 
-  min_nu = tree->rates->min_nu;
-  max_nu = tree->rates->max_nu;
-  /* min_nu = 0.0; */
   /* It is preferable to start with small values of nu 
-     as they lead to high prior densities. Starting with
-     large values tend to increase the chance of being
-     stuck in region of low posterior densities 
+     as if is difficult for the MCMC sampler to sample
+     equal rates on edge (i.e., molecular clock) since
+     such combination of rate lies on the boundary of 
+     the space of all edge rate combination. We give
+     here a bit of help to the sampler by considering 
+     starting points close to the molecular clock
+     constraint.
   */
-  /* max_nu = 0.1; */
+  min_nu = tree->rates->min_nu;
+  max_nu = tree->rates->max_nu/10.;
   
   u = Uni();
   tree->rates->nu = (max_nu - min_nu) * u + min_nu;
@@ -2570,13 +2572,13 @@ void MCMC_Adjust_Tuning_Parameter(int move, t_mcmc *mcmc)
 
       if(!strcmp(mcmc->move_name[move],"tree_height"))
 	{
-	  rate_inf = 0.6;
-	  rate_sup = 0.8;
+	  rate_inf = 0.2;
+	  rate_sup = 0.2;
 	}
       if(!strcmp(mcmc->move_name[move],"subtree_height"))
 	{
-	  rate_inf = 0.1;
-	  rate_sup = 0.1;
+	  rate_inf = 0.2;
+	  rate_sup = 0.2;
 	}
       /* if(!strcmp(mcmc->move_name[move],"tree_rates")) */
       /* 	{ */
