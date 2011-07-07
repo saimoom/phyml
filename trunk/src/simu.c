@@ -104,7 +104,7 @@ int Simu(t_tree *tree, int n_step_max)
 
       if(tree->io->print_trace)
 	{
-	  PhyML_Fprintf(tree->io->fp_out_trace,"[%f]%s\n",tree->c_lnL,Write_Tree(tree)); fflush(tree->io->fp_out_trace);
+	  PhyML_Fprintf(tree->io->fp_out_trace,"[%f]%s\n",tree->c_lnL,Write_Tree(tree,NO)); fflush(tree->io->fp_out_trace);
 	  if(tree->io->print_site_lnl) Print_Site_Lk(tree,tree->io->fp_out_lk); fflush(tree->io->fp_out_lk);
 	}
 

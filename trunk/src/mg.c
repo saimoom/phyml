@@ -172,7 +172,7 @@ int PART_main(int argc, char **argv)
 	  st->tree->both_sides = 1;
 	  PART_Lk(st);
 	  PhyML_Printf("\n. %f",st->tree->c_lnL);
-/* 	  For(part,st->n_part) PhyML_Printf("\n. %s",Write_Tree(st->treelist->tree[part])); */
+/* 	  For(part,st->n_part) PhyML_Printf("\n. %s",Write_Tree(st->treelist->tree[part],NO)); */
 	  n_iter++;
 	}while(n_iter < 5);
 /*       Exit("\n"); */
@@ -219,14 +219,14 @@ int PART_main(int argc, char **argv)
       PhyML_Printf("\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n");
 
       For(i,2*st->tree->n_otu-3) st->tree->t_edges[i]->l = 0.1;
-      s_tree = Write_Tree(st->tree);
+      s_tree = Write_Tree(st->tree,NO);
       PhyML_Fprintf(fp_phyml_tree,"Supertree\n");
       PhyML_Fprintf(fp_phyml_tree,"%s\n",s_tree);
       Free(s_tree);
       For(part,st->n_part)
 	{
 	  PhyML_Fprintf(fp_phyml_tree,"Gene tree number %d\n",part+1);
-	  s_tree = Write_Tree(st->treelist->tree[part]);
+	  s_tree = Write_Tree(st->treelist->tree[part],NO);
 	  PhyML_Fprintf(fp_phyml_tree,"%s\n",s_tree);
 	  Free(s_tree);
 	}
@@ -783,7 +783,7 @@ void PART_Simu(supert_tree *st)
       /* Compute the likelihood of the supertreee */
       st->tree->c_lnL  = PART_Lk(st);
       st->tree->c_pars = PART_Pars(st);
-/*       For(i,st->n_part) PhyML_Printf("\n. %s",Write_Tree(st->treelist->tree[i])); */
+/*       For(i,st->n_part) PhyML_Printf("\n. %s",Write_Tree(st->treelist->tree[i],NO)); */
 /*       PhyML_Printf("\n"); */
 
       time(&(st->tree->t_current));
