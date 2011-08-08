@@ -52,24 +52,28 @@ void Make_All_Edges_Lk(t_node *a, t_node *d, t_tree *tree)
 
 /*********************************************************/
 
-t_tree *Read_Tree(char *s_tree)
+/* Tree parser function. We need to pass a pointer to the string of characters
+   since this string might be freed and then re-allocated by that function (i.e.,
+   its address in memory might change)
+*/
+t_tree *Read_Tree(char **s_tree)
 {
   char **subs;
   int i,n_ext,n_int,n_otu;
   t_tree *tree;
-  int degree;
+  int degree,len;
   t_node *root_node;
-
+  
   n_int = n_ext = 0;
   
   n_otu=0;
-  For(i,(int)strlen(s_tree)) if(s_tree[i] == ',') n_otu++;
+  For(i,(int)strlen((*s_tree))) if((*s_tree)[i] == ',') n_otu++;
   n_otu+=1;
 
   tree = Make_Tree_From_Scratch(n_otu,NULL);
-
-  subs = Sub_Trees(s_tree,&degree);
+  subs = Sub_Trees((*s_tree),&degree);
   Clean_Multifurcation(subs,degree,3);
+
   if(degree == 2) 
     {
       /* Unroot_Tree(subs); */
@@ -81,18 +85,48 @@ t_tree *Read_Tree(char *s_tree)
       n_int         -= 1;
     }
   else
-    {
+    {      
       root_node      = tree->noeud[n_otu];
       root_node->num = n_otu;
       tree->n_root   = NULL;
    }
   
+  if(degree > 3) /* Multifurcation at the root. Need to re-assemble the subtrees
+		    since Clean_Multifurcation added sets of parenthesis and
+		    the corresponding NULL edges */
+    {
+      degree = 3;
+      Free((*s_tree));
+      len = 0;
+      For(i,degree) len += (strlen(subs[i])+1);
+      len += 5;
+
+      (*s_tree) = (char *)mCalloc(len,sizeof(char));
+
+      (*s_tree)[0] = '('; (*s_tree)[1] = '\0';
+      For(i,degree) 
+	{
+	  strcat((*s_tree),subs[i]);
+	  strcat((*s_tree),",\0");
+	}
+
+      sprintf((*s_tree)+strlen((*s_tree))-1,"%s",");\0");
+      
+      For(i,NODE_DEG_MAX) Free(subs[i]);
+      Free(subs);
+      subs = Sub_Trees((*s_tree),&degree);
+    }
+
+
   root_node->tax = 0;
 
   tree->has_branch_lengths = 0;
   tree->num_curr_branch_available = 0;
-  For(i,degree) R_rtree(s_tree,subs[i],root_node,tree,&n_int,&n_ext);
-  
+  For(i,degree) 
+    {
+      R_rtree((*s_tree),subs[i],root_node,tree,&n_int,&n_ext);
+    }
+
   if(tree->n_root)
     {
       tree->e_root = tree->t_edges[tree->num_curr_branch_available];
@@ -145,8 +179,8 @@ void R_rtree(char *s_tree_a, char *s_tree_d, t_node *a, t_tree *tree, int *n_int
       d->tax = 0;
       
       Read_Branch_Label(s_tree_d,s_tree_a,tree->t_edges[tree->num_curr_branch_available]);
-      Read_Branch_Length(s_tree_d,s_tree_a,tree);
-      
+      Read_Branch_Length(s_tree_d,s_tree_a,tree);      
+
       For(i,3)
 	{
 	  if(!a->v[i])
@@ -167,6 +201,7 @@ void R_rtree(char *s_tree_a, char *s_tree_d, t_node *a, t_tree *tree, int *n_int
       
       subs=Sub_Trees(s_tree_d,&degree);
       Clean_Multifurcation(subs,degree,2);
+
       R_rtree(s_tree_d,subs[0],d,tree,n_int,n_ext);
       R_rtree(s_tree_d,subs[1],d,tree,n_int,n_ext);
       For(i,NODE_DEG_MAX) Free(subs[i]);
@@ -213,15 +248,17 @@ void Read_Branch_Label(char *s_d, char *s_a, t_edge *b)
 {
   char *sub_tp;
   char *p;
-  int i,pos;
+  int i,posp,posl;
 
   sub_tp = (char *)mCalloc(3+(int)strlen(s_d)+1,sizeof(char));
+  /* sub_tp = (char *)mCalloc(T_MAX_LINE,sizeof(char)); */
 
   sub_tp[0] = '(';
   sub_tp[1] = '\0';
   strcat(sub_tp,s_d);
   strcat(sub_tp,"#");
   p = strstr(s_a,sub_tp);
+  
   if(!p)
     {
       sub_tp[0] = ',';
@@ -231,44 +268,54 @@ void Read_Branch_Label(char *s_d, char *s_a, t_edge *b)
       p = strstr(s_a,sub_tp);
     }
 
+
   i = 0;
   b->n_labels = 0;
   if(p)
     {
       if(!(b->n_labels%BLOCK_LABELS)) Make_New_Edge_Label(b);
       b->n_labels++;
-      
-      pos = 0;
+
+      posp = strlen(s_d);
+      while(p[posp] != '#') posp++;
+      posp++;
+
+      posl = 0;
       do 
 	{
-	  b->labels[b->n_labels-1][pos] = p[i+strlen(s_d)+1];
-	  i++;
-	  pos++;
-	  if(p[i+strlen(s_d)+1] == '#') 
+	  b->labels[b->n_labels-1][posl] = p[posp];
+	  posl++;
+	  posp++;
+	  if(p[posp] == '#') 
 	    { 
-	      b->labels[b->n_labels-1][pos] = '\0';
+	      b->labels[b->n_labels-1][posl] = '\0';
 	      b->n_labels++;
 	      if(!(b->n_labels%BLOCK_LABELS)) Make_New_Edge_Label(b);
-	      i++;
-	      pos=0;
+	      posp++;
+	      posl=0;
 	    }
 	}
-      while((p[i+strlen(s_d)+1] != ':') && 
-	    (p[i+strlen(s_d)+1] != ',') && 
-	    (p[i+strlen(s_d)+1] != '('));
+      while((p[posp] != ':') && 
+	    (p[posp] != ',') && 
+	    (p[posp] != '('));
 
-      b->labels[b->n_labels-1][pos] = '\0';
+      b->labels[b->n_labels-1][posl] = '\0';
     }
 
   if(p)
     {
       if(b->n_labels == 1)
-	PhyML_Printf("\n. Found label '%s' on t_edge %3d.",b->labels[0],b->num);
+	PhyML_Printf("\n\n. Label '%s' on t_edge %3d.",b->labels[0],b->num);
       else
 	{
-	  PhyML_Printf("\n. Found labels ");
+	  PhyML_Printf("\n\n. Labels ");
 	  For(i,b->n_labels) PhyML_Printf("'%s' ",b->labels[i]);
 	  PhyML_Printf("on t_edge %3d.",b->num);
+	}
+
+      if(!strcmp(b->labels[0],"NULL"))
+	{
+	  b->does_exist = NO;
 	}
     }
 
@@ -286,8 +333,8 @@ void Read_Branch_Length(char *s_d, char *s_a, t_tree *tree)
 
   b = tree->t_edges[tree->num_curr_branch_available];
 
-/*   sub_tp = (char *)mCalloc(T_MAX_LINE,sizeof(char)); */
-  sub_tp = (char *)mCalloc(4+strlen(s_d)+1,sizeof(char));
+  /* sub_tp = (char *)mCalloc(T_MAX_LINE,sizeof(char)); */
+  sub_tp = (char *)mCalloc(10+strlen(s_d)+1,sizeof(char));
 
   For(i,b->n_labels)
     {
@@ -300,6 +347,7 @@ void Read_Branch_Length(char *s_d, char *s_a, t_tree *tree)
   strcat(sub_tp,s_d);
   strcat(sub_tp,":");
   p = strstr(s_a,sub_tp);
+
   if(!p)
     {
       sub_tp[0] = ',';
@@ -312,8 +360,15 @@ void Read_Branch_Length(char *s_d, char *s_a, t_tree *tree)
   if(p)
     {
       b->l = atof((char *)p+(int)strlen(sub_tp));
-      tree->has_branch_lengths = 1;
+      tree->has_branch_lengths = YES;
+      b->does_exist = YES;
     }      
+  else
+    {
+      b->l = -1.;
+    }
+
+
   Free(sub_tp);
 }
 
@@ -383,17 +438,17 @@ void Clean_Multifurcation(char **subtrees, int current_deg, int end_deg)
       char *s_tmp;
       int i;
 
-/*       s_tmp = (char *)mCalloc(T_MAX_LINE,sizeof(char)); */
-      s_tmp = (char *)mCalloc(6+
-			      (int)strlen(subtrees[0])+1+
-			      (int)strlen(subtrees[1])+1,
-			      sizeof(char));
-
+      s_tmp = (char *)mCalloc(T_MAX_LINE,sizeof(char));
+      /* s_tmp = (char *)mCalloc(10+ */
+      /* 			      (int)strlen(subtrees[0])+1+ */
+      /* 			      (int)strlen(subtrees[1])+1, */
+      /* 			      sizeof(char)); */
+      
       strcat(s_tmp,"(\0");
       strcat(s_tmp,subtrees[0]);
       strcat(s_tmp,",\0");
       strcat(s_tmp,subtrees[1]);
-      strcat(s_tmp,")\0");
+      strcat(s_tmp,")#NULL\0"); /* Add the label 'NULL' to identify a non-existing edge */
       Free(subtrees[0]);
       subtrees[0] = s_tmp;
 
@@ -417,7 +472,6 @@ char **Sub_Trees(char *tree, int *degree)
 
   For(i,NODE_DEG_MAX) subs[i]=(char *)mCalloc(strlen(tree)+1,sizeof(char));
 
-  
   posbeg=posend=1;
   (*degree)=0;
   do
@@ -1162,12 +1216,15 @@ void Init_Edge_Light(t_edge *b, int num)
   b->n_jumps              = 0;
   b->gamma_prior_mean     = 1.E-0;
   b->gamma_prior_var      = 1.E-1;
+  b->does_exist           = YES;
+  b->l                    = -1.;
 
   b->p_lk_left            = NULL;
   b->p_lk_rght            = NULL;
   b->p_lk_loc_left        = NULL;
   b->p_lk_loc_rght        = NULL;
   b->Pij_rr               = NULL;
+  b->labels               = NULL;
 }
 
 /*********************************************************/
@@ -1187,6 +1244,7 @@ void Init_Node_Light(t_node *n, int num)
   n->y_rank_min             = 0.;
   n->anc                    = NULL;
   n->rank                   = 0;
+  n->match_node             = NULL;
 }
 
 /*********************************************************/
@@ -1214,12 +1272,14 @@ void Make_Edge_Dirs(t_edge *b, t_node *a, t_node *d, t_tree *tree)
   b->l_r = b->r_l = -1;
   For(i,3)
     {
-      if((a->v[i]) && ((a->v[i] == d) || (e_root && a->b[i] == e_root)))
+      /* if((a->v[i]) && ((a->v[i] == d) || (e_root && a->b[i] == e_root))) */
+      if((a->v[i]) && ((a->v[i] == d)))
 	{
 	  b->l_r  = i; /* we consider here that 'a' is on the left handside of 'b'*/
 	  a->b[i] = b;
 	}
-      if((d->v[i]) && ((d->v[i] == a) || (e_root && d->b[i] == e_root)))
+      /* if((d->v[i]) && ((d->v[i] == a) || (e_root && d->b[i] == e_root))) */
+      if((d->v[i]) && ((d->v[i] == a)))
 	{
 	  b->r_l  = i; /* we consider here that 'd' is on the right handside of 'b'*/
 	  d->b[i] = b;
@@ -2460,7 +2520,7 @@ int Read_Nexus_Format(char *token, nexparm *curr_parm, option *io)
 
 /*       For(i,io->mod->ns) PhyML_Printf("\n. '%s'",io->alphabet[i]); */
     }
-
+  
   else if(!strcmp(curr_parm->name,"equate"))
     {
       PhyML_Printf("\n. PhyML does not recognize the command '%s' yet. Sorry.",curr_parm->name);
@@ -2562,6 +2622,12 @@ align **Get_Seq_Phylip(option *io)
 {
   Read_Ntax_Len_Phylip(io->fp_in_align,&io->n_otu,&io->init_len);
 
+  if(io->n_otu > N_MAX_OTU)
+    {
+      PhyML_Printf("\n. The number of taxa should not exceed %d",N_MAX_OTU);
+      Exit("\n");
+    }
+
   if(io->interleaved) io->data = Read_Seq_Interleaved(io);
   else                io->data = Read_Seq_Sequential(io);
 
@@ -2614,7 +2680,6 @@ align **Read_Seq_Sequential(option *io)
 /*   char c; */
   char *format;
 
-
   format = (char *)mCalloc(T_MAX_NAME,sizeof(char));
   line   = (char *)mCalloc(T_MAX_LINE,sizeof(char));
   data   = (align **)mCalloc(io->n_otu,sizeof(align *));
@@ -2649,6 +2714,8 @@ align **Read_Seq_Sequential(option *io)
 
   For(i,io->n_otu) data[i]->state[data[i]->len] = '\0';
   
+  Restrict_To_Coding_Position(data,io);
+
   Free(format);
   Free(line);
   
@@ -2764,10 +2831,33 @@ align **Read_Seq_Interleaved(option *io)
 	}
     }
 
+  Restrict_To_Coding_Position(data,io);
+
   Free(format);
   Free(line);
 
   return data;
+}
+
+/*********************************************************/
+
+void Restrict_To_Coding_Position(align **data, option *io)
+{
+  int i,j,curr_pos;
+  
+  if(io->codpos != -1)
+    {
+      For(i,io->n_otu) 
+	{
+	  curr_pos = 0; 
+	  for(j=io->codpos-1;j<data[i]->len;j+=3) 
+	    {
+	      data[i]->state[curr_pos] = data[i]->state[j]; 
+	      curr_pos++; 
+	    }
+	  data[i]->len /= 3;
+	}
+    } 
 }
 
 /*********************************************************/
@@ -3399,7 +3489,13 @@ t_tree *Read_Tree_File_Phylip(FILE *fp_input_tree)
   t_tree *tree;
   int i;
   char c;
+  int open,maxopen;
 
+  if(fp_input_tree == NULL)
+    {
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");      
+    }
  
   do
     {
@@ -3407,10 +3503,13 @@ t_tree *Read_Tree_File_Phylip(FILE *fp_input_tree)
     }
   while((c != '(') && (c != EOF));
   
+  
   if(c==EOF) return NULL;
 
   line = (char *)mCalloc(1,sizeof(char));
-  
+  open = 1;
+  maxopen = open;
+
   i=0;
   for(;;)
     {
@@ -3434,11 +3533,18 @@ t_tree *Read_Tree_File_Phylip(FILE *fp_input_tree)
       i++;
       c=fgetc(fp_input_tree);
       if(c==EOF || c==';') break;
+      if(c=='(') open++;
+      if(c==')') open--;
+      if(open>maxopen) maxopen = open;
     }
   line[i] = '\0';
 
-  tree = Read_Tree(line);
+  /* if(maxopen == 1) return NULL; */
+
+  tree = Read_Tree(&line);
+  
   Free(line);
+  
   return tree;
 }
 
@@ -3998,6 +4104,31 @@ void Order_Tree_Seq(t_tree *tree, align **data)
 
 /*********************************************************/
 
+void Check_Constraint_Tree_Taxa_Names(t_tree *tree, calign *cdata)
+{
+  int i,j,n_otu_tree,n_otu_cdata;
+  
+  n_otu_tree  = tree->n_otu;
+  n_otu_cdata = cdata->n_otu;
+  
+  For(i,n_otu_tree)
+    {
+      For(j,n_otu_cdata)
+	{
+	  if(!strcmp(tree->noeud[i]->name,cdata->c_seq[j]->name))
+	    break;
+	}
+      
+      if(j==n_otu_cdata)
+	{
+	  PhyML_Printf("\n. Err: %s is not found in sequence data set\n",tree->noeud[i]->name);
+	  Warn_And_Exit("");
+	}
+    }
+}
+
+/*********************************************************/
+
 void Order_Tree_CSeq(t_tree *tree, calign *cdata)
 {
     int i,j,n_otu_tree,n_otu_cdata;
@@ -4008,7 +4139,7 @@ void Order_Tree_CSeq(t_tree *tree, calign *cdata)
 
     if(n_otu_tree != n_otu_cdata) 
       {
-	PhyML_Printf("\n. Number of taxa in the tree: %d, number of sequences: %d.\n",n_otu_tree,n_otu_cdata);
+	PhyML_Printf("\n\n. Number of taxa in the tree: %d, number of sequences: %d.",n_otu_tree,n_otu_cdata);
 	Warn_And_Exit("\n. The number of tips in the tree is not the same as the number of sequences\n");
       }
 
@@ -5198,6 +5329,7 @@ void Print_Fp_Out(FILE *fp_out, time_t t_beg, time_t t_end, t_tree *tree, option
   else if(tree->io->datatype == AA)
     {
       fprintf(fp_out,"\n. Model of amino acids substitution: \t%s",io->mod->modelname);
+      if(io->mod->whichmodel == CUSTOMAA) fprintf(fp_out," (%s)",io->aa_rate_mat_file);
     }
   else
     {
@@ -6196,11 +6328,9 @@ void Bootstrap(t_tree *tree)
 
   boot_data = Copy_Cseq(tree->data,tree->io);
 
-
   PhyML_Printf("\n\n. Non parametric bootstrap analysis \n\n");
   PhyML_Printf("  ["); 
   
-
   For(replicate,tree->mod->bootstrap)
     {
       For(j,boot_data->crunch_len) boot_data->wght[j] = 0;
@@ -6308,8 +6438,7 @@ void Bootstrap(t_tree *tree)
 	      boot_tree->noeud[0]->v[0],
 	      boot_tree);
 
-
-      Compare_Bip(tree,boot_tree);
+      Compare_Bip(tree,boot_tree,NO);
 
       Br_Len_Involving_Invar(boot_tree);
 
@@ -6605,7 +6734,6 @@ model *Make_Model_Basic()
 
 void Make_Model_Complete(model *mod)
 {
-
   int i;
 
   if(mod->use_m4mod == YES)
@@ -6656,8 +6784,7 @@ model *Copy_Model(model *ori)
   cpy->n_catg = ori->n_catg;
 
   Make_Model_Complete(cpy);
-  if((ori->whichmodel == GTR) || (ori->whichmodel == CUSTOM)) 
-    Make_Custom_Model(cpy);
+  if((ori->whichmodel == GTR) || (ori->whichmodel == CUSTOM)) Make_Custom_Model(cpy);
   Record_Model(ori,cpy);
   cpy->m4mod = M4_Copy_M4_Model(ori, ori->m4mod);
 
@@ -6755,26 +6882,28 @@ void Record_Model(model *ori, model *cpy)
 option *Make_Input()
 {
   int i;
-  option* io               = (option *)mCalloc(1,sizeof(option));
+  option* io                            = (option *)mCalloc(1,sizeof(option));
 
-  io->in_align_file        = (char *)mCalloc(T_MAX_FILE,sizeof(char));
-  io->in_tree_file         = (char *)mCalloc(T_MAX_FILE,sizeof(char));
-  io->out_tree_file        = (char *)mCalloc(T_MAX_FILE,sizeof(char));
-  io->out_trees_file       = (char *)mCalloc(T_MAX_FILE,sizeof(char));
-  io->out_boot_tree_file   = (char *)mCalloc(T_MAX_FILE,sizeof(char));
-  io->out_boot_stats_file  = (char *)mCalloc(T_MAX_FILE,sizeof(char));
-  io->out_stats_file       = (char *)mCalloc(T_MAX_FILE,sizeof(char));
-  io->out_lk_file          = (char *)mCalloc(T_MAX_FILE,sizeof(char));
-  io->out_ps_file          = (char *)mCalloc(T_MAX_FILE,sizeof(char));
-  io->out_trace_file       = (char *)mCalloc(T_MAX_FILE,sizeof(char));
-  io->nt_or_cd             = (char *)mCalloc(T_MAX_FILE,sizeof(char));
-  io->run_id_string        = (char *)mCalloc(T_MAX_OPTION,sizeof(char));
-  io->clade_list_file      = (char *)mCalloc(T_MAX_FILE,sizeof(char));
-  io->alphabet             = (char **)mCalloc(T_MAX_ALPHABET,sizeof(char *));
+  io->in_align_file                     = (char *)mCalloc(T_MAX_FILE,sizeof(char));
+  io->in_tree_file                      = (char *)mCalloc(T_MAX_FILE,sizeof(char));
+  io->in_constraint_tree_file           = (char *)mCalloc(T_MAX_FILE,sizeof(char));
+  io->out_tree_file                     = (char *)mCalloc(T_MAX_FILE,sizeof(char));
+  io->out_trees_file                    = (char *)mCalloc(T_MAX_FILE,sizeof(char));
+  io->out_boot_tree_file                = (char *)mCalloc(T_MAX_FILE,sizeof(char));
+  io->out_boot_stats_file               = (char *)mCalloc(T_MAX_FILE,sizeof(char));
+  io->out_stats_file                    = (char *)mCalloc(T_MAX_FILE,sizeof(char));
+  io->out_lk_file                       = (char *)mCalloc(T_MAX_FILE,sizeof(char));
+  io->out_ps_file                       = (char *)mCalloc(T_MAX_FILE,sizeof(char));
+  io->out_trace_file                    = (char *)mCalloc(T_MAX_FILE,sizeof(char));
+  io->nt_or_cd                          = (char *)mCalloc(T_MAX_FILE,sizeof(char));
+  io->run_id_string                     = (char *)mCalloc(T_MAX_OPTION,sizeof(char));
+  io->clade_list_file                   = (char *)mCalloc(T_MAX_FILE,sizeof(char));
+  io->aa_rate_mat_file                  = (char *)mCalloc(T_MAX_FILE,sizeof(char));
+  io->alphabet                          = (char **)mCalloc(T_MAX_ALPHABET,sizeof(char *));
   For(i,T_MAX_ALPHABET) io->alphabet[i] = (char *)mCalloc(T_MAX_STATE,sizeof(char ));
-  io->treelist             = (t_treelist *)mCalloc(1,sizeof(t_treelist));
-  io->mcmc                 = (t_mcmc *)MCMC_Make_MCMC_Struct();
-  io->rates                = (t_rate *)RATES_Make_Rate_Struct(-1);
+  io->treelist                          = (t_treelist *)mCalloc(1,sizeof(t_treelist));
+  io->mcmc                              = (t_mcmc *)MCMC_Make_MCMC_Struct();
+  io->rates                             = (t_rate *)RATES_Make_Rate_Struct(-1);
   return io;
 }
 
@@ -6784,6 +6913,7 @@ void Set_Defaults_Input(option* io)
 {
   io->fp_in_align                = NULL;
   io->fp_in_tree                 = NULL;
+  io->fp_in_constraint_tree      = NULL;
   io->fp_out_tree                = NULL;
   io->fp_out_trees               = NULL;
   io->fp_out_boot_tree           = NULL;
@@ -6794,6 +6924,8 @@ void Set_Defaults_Input(option* io)
   io->lon                        = NULL;
   io->lat                        = NULL;
   io->z_scores                   = NULL;
+  io->cstr_tree                  = NULL;
+
 
   io->tree                       = NULL;
   io->mod                        = NULL;
@@ -6829,8 +6961,9 @@ void Set_Defaults_Input(option* io)
   io->mem_question               = YES;
   io->do_alias_subpatt           = NO;
   io->lk_approx                  = EXACT;
+  io->codpos                     = -1;
 
-  MCMC_Init_MCMC_Struct(NULL,io->mcmc);
+  MCMC_Init_MCMC_Struct(NULL,io,io->mcmc);
   RATES_Init_Rate_Struct(io->rates,NULL,-1);
   io->rates->model               = THORNE;
 }
@@ -6965,6 +7098,8 @@ void Get_Bip(t_node *a, t_node *d, t_tree *tree)
 	  d->bip_node[0] = (t_node **)mCalloc(1,sizeof(t_node *));
 	  d->bip_node[0][0] = d;
 	  d->bip_size[0]    = 1;
+	  d->bip_size[1]    = -1;
+	  d->bip_size[2]    = -1;
 
 	  For(i,3)
 	    {
@@ -7136,7 +7271,7 @@ int Sort_String(const void *a, const void *b)
 
 /*********************************************************/
 
-void Compare_Bip(t_tree *tree1, t_tree *tree2)
+int Compare_Bip(t_tree *tree1, t_tree *tree2, int on_existing_edges_only)
 {
   int i,j,k;
   t_edge *b1,*b2;
@@ -7144,22 +7279,25 @@ void Compare_Bip(t_tree *tree1, t_tree *tree2)
 /*   int *bip1,*bip2; */
   t_node **bip1, **bip2;
   int bip_size1, bip_size2, bip_size;
+  int diffs;
 
-
-
+  /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
+  /* WARNING: call Match_Tip_Numbers and Get_Bip before using this function. */
+  /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
+  
   For(i,2*tree1->n_otu-3)
     {
       b1 = tree1->t_edges[i];     
       bip_size1 = MIN(b1->left->bip_size[b1->l_r],b1->rght->bip_size[b1->r_l]);
       
-      if(bip_size1 > 1)
+      if(bip_size1 > 1 && ((on_existing_edges_only == YES && b1->does_exist) || (on_existing_edges_only == NO)))
 	{
 	  For(j,2*tree2->n_otu-3)
 	    {
-	      b2 = tree2->t_edges[j];	      
+	      b2 = tree2->t_edges[j];
 	      bip_size2 = MIN(b2->left->bip_size[b2->l_r],b2->rght->bip_size[b2->r_l]);
 
-	      if(bip_size2 > 1)
+	      if(bip_size2 > 1 && ((on_existing_edges_only == YES && b2->does_exist) || (on_existing_edges_only == NO)))
 		{
 		  if(bip_size1 == bip_size2)
 		    {
@@ -7224,7 +7362,7 @@ void Compare_Bip(t_tree *tree1, t_tree *tree2)
 			  if(bip1[k]->num != bip2[k]->num) break;
 			}
 
-		      if(k == bip_size)
+		      if(k == bip_size) /* Branches b1 and b2 define the same bipartition */
 			{
 			  b1->bip_score++;
 			  b2->bip_score++;
@@ -7235,13 +7373,29 @@ void Compare_Bip(t_tree *tree1, t_tree *tree2)
 	    }
 	}
     }
+  
+  diffs = (tree1->n_otu-3);
+  For(i,2*tree1->n_otu-3) diffs -= tree1->t_edges[i]->bip_score;
+  return diffs;
 }
 
 /*********************************************************/
-
+/* Modifiy the tip numbering in tree2 so that tips in
+   tree1 and tree2 corresponding to the same taxon name
+   also have the same tip numbering */
 void Match_Tip_Numbers(t_tree *tree1, t_tree *tree2)
 {
   int i,j;
+
+  if(tree1->n_otu != tree2->n_otu)
+    {
+      PhyML_Printf("\n. tree1 and tree2 must have the same number of tips.");
+      /* Otherwise, if tree2->n_otu < tree->n_otu, then some tips in tree2
+	 will have a number (->num) that is the same as the number of an
+	 internal node in this tree */
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");      
+    }
 
   For(i,tree1->n_otu)
     {
@@ -7908,7 +8062,7 @@ void Hide_Ambiguities(calign *data)
 void Copy_Tree(t_tree *ori, t_tree *cpy)
 {
   int i,j;
-
+  
 
   For(i,2*ori->n_otu-2)
     {
@@ -7928,7 +8082,6 @@ void Copy_Tree(t_tree *ori, t_tree *cpy)
 	}
     }
 
-
   For(i,2*ori->n_otu-3) 
     {
       cpy->t_edges[i]->l    = ori->t_edges[i]->l;
@@ -7946,9 +8099,15 @@ void Copy_Tree(t_tree *ori, t_tree *cpy)
   For(i,ori->n_otu)
     {
       cpy->noeud[i]->tax = 1;
+      if(!cpy->noeud[i]->name) cpy->noeud[i]->name = (char *)mCalloc(strlen(ori->noeud[i]->name)+1,sizeof(char));
       strcpy(cpy->noeud[i]->name,ori->noeud[i]->name);
     }
 
+  if(ori->n_root)
+    {
+      cpy->e_root = cpy->t_edges[ori->e_root->num];
+      Add_Root(cpy->e_root,cpy);
+    }
 
   cpy->num_curr_branch_available = 0;
 /*   Connect_Edges_To_Nodes_Recur(cpy->noeud[0],cpy->noeud[0]->v[0],cpy); */
@@ -9270,6 +9429,8 @@ void Print_Settings(option *io)
 
   PhyML_Printf("\n                . Model name:\t\t\t\t\t %s", io->mod->modelname);
 
+  if(io->datatype == AA && io->mod->whichmodel == CUSTOMAA) PhyML_Printf(" (%s)",io->aa_rate_mat_file);
+
   if (io->datatype == NT)
     {
       if ((io->mod->whichmodel == K80)  ||
@@ -9577,7 +9738,7 @@ void Check_Memory_Amount(t_tree *tree)
   if(((phydbl)nbytes/(1.E+06)) > 256.)
 /*   if(((phydbl)nbytes/(1.E+06)) > 0.) */
     {
-      PhyML_Printf("\n. WARNING: this analysis requires at least %.0f MB of memory space.\n",(phydbl)nbytes/(1.E+06));
+      PhyML_Printf("\n\n. WARNING: this analysis requires at least %.0f MB of memory space.\n",(phydbl)nbytes/(1.E+06));
 #ifndef BATCH
 
       char answer;
@@ -9599,11 +9760,11 @@ void Check_Memory_Amount(t_tree *tree)
     }
   else if(((phydbl)nbytes/(1.E+06)) > 100.)
     {
-      if(!tree->io->quiet) PhyML_Printf("\n. WARNING: this analysis will use at least %.0f Mo of memory space...\n",(phydbl)nbytes/(1.E+06));
+      if(!tree->io->quiet) PhyML_Printf("\n\n. WARNING: this analysis will use at least %.0f Mo of memory space...\n",(phydbl)nbytes/(1.E+06));
     }
   else if(((phydbl)nbytes/(1.E+06)) > 1.)
     {
-      if(!tree->io->quiet) PhyML_Printf("\n. This analysis requires at least %.0f Mo of memory space.\n",(phydbl)nbytes/(1.E+06));
+      if(!tree->io->quiet) PhyML_Printf("\n\n. This analysis requires at least %.0f Mo of memory space.\n",(phydbl)nbytes/(1.E+06));
     }
 }
 
@@ -10875,12 +11036,12 @@ t_tree *Dist_And_BioNJ(calign *cdata, model *mod, option *io)
   t_tree *tree;
   matrix *mat;
 
-  if(!io->quiet) PhyML_Printf("\n. Computing pairwise distances...\n");
+  if(!io->quiet) PhyML_Printf("\n. Computing pairwise distances...");
 
   mat = ML_Dist(cdata,mod);
   Fill_Missing_Dist(mat);
 
-  if(!io->quiet) PhyML_Printf("\n. Building BioNJ tree...\n");
+  if(!io->quiet) PhyML_Printf("\n\n. Building BioNJ tree...");
 
   mat->tree = Make_Tree_From_Scratch(cdata->n_otu,cdata);
   Bionj(mat);
@@ -10944,7 +11105,7 @@ char *Bootstrap_From_String(char *s_tree, calign *cdata, model *mod, option *io)
 {
   t_tree *tree;
 
-  tree = Read_Tree(s_tree);
+  tree = Read_Tree(&s_tree);
 
   if(!tree)
     {
@@ -10998,7 +11159,7 @@ char *aLRT_From_String(char *s_tree, calign *cdata, model *mod, option *io)
 {
   t_tree *tree;
 
-  tree = Read_Tree(s_tree);
+  tree = Read_Tree(&s_tree);
 
   if(!tree)
     {
@@ -11152,7 +11313,8 @@ void Dist_To_Root_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 {
   int i;
 
-  if(b) d->dist_to_root = a->dist_to_root + b->l;
+  /* if(b) d->dist_to_root = a->dist_to_root + b->l; */
+  if(b) d->dist_to_root = a->dist_to_root + tree->rates->cur_l[d->num];
 
   if(d->tax) return;
   else
@@ -11167,10 +11329,10 @@ void Dist_To_Root_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 
 void Dist_To_Root(t_node *n_root, t_tree *tree)
 {  
-/*   n_root->v[0]->dist_to_root = tree->rates->cur_l[n_root->v[0]->num]; */
-/*   n_root->v[1]->dist_to_root = tree->rates->cur_l[n_root->v[1]->num]; */
-  n_root->v[0]->dist_to_root = tree->e_root->l * tree->n_root_pos;
-  n_root->v[1]->dist_to_root = tree->e_root->l * (1. - tree->n_root_pos);
+  n_root->v[0]->dist_to_root = tree->rates->cur_l[n_root->v[0]->num];
+  n_root->v[1]->dist_to_root = tree->rates->cur_l[n_root->v[1]->num];
+  /* n_root->v[0]->dist_to_root = tree->e_root->l * tree->n_root_pos; */
+  /* n_root->v[1]->dist_to_root = tree->e_root->l * (1. - tree->n_root_pos); */
   Dist_To_Root_Pre(n_root,n_root->v[0],NULL,tree);
   Dist_To_Root_Pre(n_root,n_root->v[1],NULL,tree);
 }
@@ -11663,6 +11825,7 @@ t_edge *Find_Root_Edge(FILE *fp_input_tree, t_tree *tree)
   return root_edge;
 }
 
+/*********************************************************/
 /*********************************************************/
 
 void Copy_Tree_Topology_With_Labels(t_tree *ori, t_tree *cpy)
@@ -12589,5 +12752,221 @@ int Are_Equal(phydbl a, phydbl b, phydbl eps)
   else return FALSE;
 }
 
+/*********************************************************/
+/* Returns 1 if small_tree is displayed by big_tree, 0 otherwise 
+   Does not account for the root positions, if any.
+*/
+int Check_Topo_Constraints(t_tree *big_tree, t_tree *small_tree)
+{
+  if(!small_tree) return 1;
+  
+  if(small_tree->n_otu < 4) return 1;
+  
+  if(small_tree->n_otu > big_tree->n_otu)
+    {
+      PhyML_Printf("\n. The tree that defines the topological constraints can not");
+      PhyML_Printf("\n. display more taxa than %d",big_tree->n_otu);
+      Exit("\n");
+    }
+  
+  t_tree *big_tree_cpy;
+  int diffs;
 
+  big_tree_cpy = Make_Tree_From_Scratch(big_tree->n_otu,NULL);
+  Copy_Tree(big_tree,big_tree_cpy);
+
+  Prune_Tree(big_tree_cpy,small_tree);
+  
+  Free_Bip(small_tree);
+  Alloc_Bip(small_tree);
+  Get_Bip(small_tree->noeud[0],small_tree->noeud[0]->v[0],small_tree);
+
+  Free_Bip(big_tree_cpy);
+  Alloc_Bip(big_tree_cpy);  
+  Match_Tip_Numbers(small_tree,big_tree_cpy);
+  Get_Bip(big_tree_cpy->noeud[0],big_tree_cpy->noeud[0]->v[0],big_tree_cpy);
+  diffs = Compare_Bip(small_tree,big_tree_cpy,YES);
+
+  Free_Tree(big_tree_cpy);
+
+  if(diffs == 0) return 1; /* Constraint is satisfied */
+  else           return 0;
+}
+
+/*********************************************************/
+
+void Prune_Tree(t_tree *big_tree, t_tree *small_tree)
+{
+  int i,j;
+  int curr_ext_node, curr_int_node, curr_br, n_pruned_nodes;;
+  t_node **pruned_nodes;
+  t_edge **residual_edges;
+
+  pruned_nodes   = (t_node **)mCalloc(big_tree->n_otu,sizeof(t_node *));
+  residual_edges = (t_edge **)mCalloc(big_tree->n_otu,sizeof(t_edge *));
+  
+  n_pruned_nodes = 0;
+  For(i,big_tree->n_otu)
+    {
+      For(j,small_tree->n_otu)
+	if(!strcmp(small_tree->noeud[j]->name,big_tree->noeud[i]->name))
+	  break;
+     
+      if(j == small_tree->n_otu)
+	{
+	  Prune_Subtree(big_tree->noeud[i]->v[0],
+			big_tree->noeud[i],
+			NULL,&(residual_edges[n_pruned_nodes]),
+			big_tree);
+
+	  pruned_nodes[n_pruned_nodes] = big_tree->noeud[i];
+	  n_pruned_nodes++;
+	}
+    }
+
+  Free(big_tree->t_dir);
+
+  big_tree->n_otu -= n_pruned_nodes;
+
+  curr_ext_node = 0;
+  curr_int_node = big_tree->n_otu;  
+  curr_br = 0;
+  For(i,big_tree->n_otu+n_pruned_nodes)
+    {
+      For(j,n_pruned_nodes)
+	if(!strcmp(pruned_nodes[j]->name,big_tree->noeud[i]->name))
+	  break;
+
+      if(j == n_pruned_nodes) /* That t_node still belongs to the tree */
+	{
+	  Reassign_Node_Nums(big_tree->noeud[i],big_tree->noeud[i]->v[0], 
+			     &curr_ext_node,&curr_int_node,big_tree);
+	  break;
+	}
+    }
+  
+  Reassign_Edge_Nums(big_tree->noeud[0],big_tree->noeud[0]->v[0],&curr_br,big_tree);
+
+  big_tree->t_dir = (short int *)mCalloc((2*big_tree->n_otu-2)*(2*big_tree->n_otu-2),sizeof(short int));
+
+  For(i,n_pruned_nodes) 
+    {
+      Free_Edge(residual_edges[i]);
+      Free_Edge(pruned_nodes[i]->b[0]);
+      Free_Node(pruned_nodes[i]->v[0]);
+      Free_Node(pruned_nodes[i]);
+    }
+
+  Free(pruned_nodes);
+  Free(residual_edges);
+  big_tree->t_edges[2*big_tree->n_otu-3] = big_tree->t_edges[2*(big_tree->n_otu+n_pruned_nodes)-3];
+  big_tree->noeud[2*big_tree->n_otu-2] = big_tree->noeud[2*(big_tree->n_otu+n_pruned_nodes)-2];
+
+}
+
+/*********************************************************/
+/* For every node in small_tree, find which node in big_tree
+   they correspond to and initialize the variable match_node
+   accordingly
+*/
+void Match_Nodes_In_Small_Tree(t_tree *small_tree, t_tree *big_tree)
+{
+  int i,j,k,l,m,n,identical;
+  int *score;
+
+  if(small_tree->n_otu > big_tree->n_otu)
+    {
+      PhyML_Printf("\n. small_tree->n_otu=%d big_tree->n_otu=%d",small_tree->n_otu,big_tree->n_otu);
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");
+    }
+
+  Free_Bip(big_tree);
+  Alloc_Bip(big_tree);  
+  Get_Bip(big_tree->noeud[0],big_tree->noeud[0]->v[0],big_tree);
+
+  Free_Bip(small_tree);
+  Alloc_Bip(small_tree);
+  Get_Bip(small_tree->noeud[0],small_tree->noeud[0]->v[0],small_tree);
+
+  if(!Check_Topo_Constraints(big_tree,small_tree))
+    {
+      PhyML_Printf("\n. small_tree and big_tree cannot have distinct topologies.");
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");
+    }
+
+  score = (int *)mCalloc(3,sizeof(int));
+
+  For(i,small_tree->n_otu)
+    {
+      For(j,big_tree->n_otu)
+	{
+	  if(!strcmp(small_tree->noeud[i]->name,big_tree->noeud[j]->name))
+	    {
+	      small_tree->noeud[i]->match_node = big_tree->noeud[j];
+	      break;
+	    }
+	}
+    }
+
+  For(i,2*small_tree->n_otu-2)
+    {
+      if(small_tree->noeud[i]->tax == NO)
+	{
+	  For(j,2*big_tree->n_otu-2)
+	    {
+	      if(big_tree->noeud[j]->tax == NO)
+		{
+		  For(k,3) score[k] = 0;
+	  		  
+		  For(k,3)
+		    {
+		      For(l,3)
+			{
+			  identical = 0;
+			  For(m,small_tree->noeud[i]->bip_size[k])
+			    {
+			      For(n,big_tree->noeud[j]->bip_size[l])
+				{
+				  if(!strcmp(small_tree->noeud[i]->bip_node[k][m]->name,big_tree->noeud[j]->bip_node[l][n]->name))
+				    {
+				      identical++;
+				      break;
+				    }
+				}
+			    }
+			  if(identical == small_tree->noeud[i]->bip_size[k])
+			    {
+			      score[k]++;
+			    }
+			}
+		    }
+
+		  /* printf("\n. [%d] [%d] %d %d %d -- %d %d %d",i,j, */
+		  /* 	 score[0],score[1],score[2], */
+		  /* 	 small_tree->noeud[i]->bip_size[0], */
+		  /* 	 small_tree->noeud[i]->bip_size[1], */
+		  /* 	 small_tree->noeud[i]->bip_size[2]); */
+
+		  if(
+		     score[0] == 1 && 
+		     score[1] == 1 &&
+		     score[2] == 1 
+		     )
+		    {
+		      small_tree->noeud[i]->match_node = big_tree->noeud[j];
+		      break;
+		    }
+		}
+	    }	  
+	}
+    }
+  
+  Free(score);
+}
+
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
 /*********************************************************/

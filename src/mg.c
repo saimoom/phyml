@@ -609,6 +609,7 @@ void PART_Match_St_Nodes_In_Gt_Recurr(t_node *a_gt, t_node *d_gt, t_node *a_st, 
     {
       score_d_st = (int *)mCalloc(3,sizeof(int));
       
+      /* Might be wrong. Check function Match_Nodes_In_Small_Tree */
       For(i,3)
 	{
 	  For(j,3)

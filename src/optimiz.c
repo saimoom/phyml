@@ -664,7 +664,6 @@ void Optimize_Br_Len_Serie(t_node *a, t_node *d, t_edge *b_fcus, t_tree *tree, c
   phydbl lk_init;
   
   lk_init = tree->c_lnL;
-
   if(tree->mod->s_opt->constrained_br_len == YES)
     {
       Generic_Brent_Lk(&(tree->mod->br_len_multiplier),
@@ -677,7 +676,6 @@ void Optimize_Br_Len_Serie(t_node *a, t_node *d, t_edge *b_fcus, t_tree *tree, c
       
       if(tree->c_lnL < lk_init - tree->mod->s_opt->min_diff_lk_local)
 	{
-	  PhyML_Printf("\n. %f %f %f %f",l_infa,l_max,l_infb,b_fcus->l);
 	  PhyML_Printf("\n. %f -- %f",lk_init,tree->c_lnL);
 	  Warn_And_Exit("\n. Err. in Optimize_Br_Len_Serie\n");
 	}
@@ -1042,7 +1040,6 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 	{
 	  int rcat;
 	  
-
 	  tree->mod->update_eigen = 1;
 	  For(rcat,tree->mod->m4mod->n_h)
 	    {

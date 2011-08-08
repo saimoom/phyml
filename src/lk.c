@@ -3038,6 +3038,15 @@ phydbl Wrap_Lk_Rates(t_edge *b, t_tree *tree, supert_tree *stree)
   RATES_Lk_Rates(tree);
   return tree->rates->c_lnL_rates;
 }
+
+/*********************************************************/
+
+phydbl Wrap_Lk_Linreg(t_edge *b, t_tree *tree, supert_tree *stree)
+{
+  RATES_Lk_Linreg(tree);
+  return tree->rates->c_lnL_linreg;
+}
+
 /*********************************************************/
 
 phydbl Wrap_Diff_Lk_Norm_At_Given_Edge(t_edge *b, t_tree *tree, supert_tree *stree)

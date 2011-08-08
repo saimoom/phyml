@@ -76,6 +76,13 @@ int main(int argc, char **argv)
   if(io->in_tree == 2) Test_Multiple_Data_Set_Format(io);
   else io->n_trees = 1;
 
+  if(io->n_trees == 0 && io->in_tree == 2)
+    {
+      PhyML_Printf("\n. The input tree file does not provide a tree in valid format.");
+      Exit("\n");
+    }
+
+
   mat = NULL;
   tree_line_number = 0;
 
@@ -96,7 +103,6 @@ int main(int argc, char **argv)
       Print_Settings(io);
       mod = io->mod;
         
-      
       if(io->data)
 	{
 	  if(io->n_data_sets > 1) PhyML_Printf("\n. Data set [#%d]\n",num_data_set+1);
@@ -120,23 +126,29 @@ int main(int argc, char **argv)
 		  if((io->mod->s_opt->random_input_tree) && (io->mod->s_opt->topo_search != NNI_MOVE))
 		    if(!io->quiet) PhyML_Printf("\n. [Random start %3d/%3d]\n",num_rand_tree+1,io->mod->s_opt->n_rand_starts);
 
-
 		  Init_Model(cdata,mod,io);
-
-
 
 		  switch(io->in_tree)
 		    {
-		    case 0 : case 1 : { tree = Dist_And_BioNJ(cdata,mod,io);    break; }
+		    case 0 : case 1 : { tree = Dist_And_BioNJ(cdata,mod,io); break; }
 		    case 2 :          { tree = Read_User_Tree(cdata,mod,io); break; }
 		    }
-
+		  
+ 		  if(io->fp_in_constraint_tree != NULL) 
+		    {
+		      io->cstr_tree = Read_Tree_File_Phylip(io->fp_in_constraint_tree);
+		      Check_Constraint_Tree_Taxa_Names(io->cstr_tree,cdata);
+		      Alloc_Bip(io->cstr_tree);  
+		      Get_Bip(io->cstr_tree->noeud[0],
+			      io->cstr_tree->noeud[0]->v[0],
+			      io->cstr_tree);
+		    }
 
 		  if(!tree) continue;
 
 		  time(&t_beg);
 		  time(&(tree->t_beg));
-      
+		  
 		  tree->mod         = mod;
 		  tree->io          = io;
 		  tree->data        = cdata;
@@ -146,6 +158,13 @@ int main(int argc, char **argv)
 		  if(mod->s_opt->random_input_tree) Random_Tree(tree);
 
 		  if((!num_data_set) && (!num_tree) && (!num_rand_tree)) Check_Memory_Amount(tree);		  
+
+		  if(io->cstr_tree && !Check_Topo_Constraints(tree,io->cstr_tree))
+		    {
+		      PhyML_Printf("\n\n. The initial tree does not satisfy the topological constraint.");
+		      PhyML_Printf("\n. Please use the user input tree option with an adequate tree topology.");
+		      Exit("\n");
+		    }
 
 		  Prepare_Tree_For_Lk(tree);
 
@@ -338,44 +357,16 @@ int main(int argc, char **argv)
   fp_tree1 = (FILE *)fopen(argv[1],"r");
   fp_tree2 = (FILE *)fopen(argv[2],"r");
 
-  tree1 = Read_Tree_File(fp_tree1);
-  tree2 = Read_Tree_File(fp_tree2);
+  tree1 = Read_Tree_File_Phylip(fp_tree1);
+  tree2 = Read_Tree_File_Phylip(fp_tree2);
 
+  Match_Nodes_In_Small_Tree(tree1,tree2);
 
-  For(i,tree1->n_otu)
+  For(i,2*tree1->n_otu-2)
     {
-      For(j,tree2->n_otu)
-	{
-	  if(!strcmp(tree1->noeud[i]->name,tree2->noeud[j]->name))
-	    {
-	      break;
-	    }
-	}
-
-      if(j == tree2->n_otu)
-	{
-	  Prune_Subtree(tree1->noeud[i]->v[0],tree1->noeud[i],NULL,NULL,tree1);
-	}
+      printf("\n. Node %d in tree1 matches node %d in tree2",i,(tree1->noeud[i]->match_node)?(tree1->noeud[i]->match_node->num):(-1));
     }
 
-  For(i,tree2->n_otu)
-    {
-      For(j,tree1->n_otu)
-	{
-	  if(!strcmp(tree2->noeud[i]->name,tree1->noeud[j]->name))
-	    {
-	      break;
-	    }
-	}
-
-      if(j == tree1->n_otu)
-	{
-	  Prune_Subtree(tree2->noeud[i]->v[0],tree2->noeud[i],NULL,NULL,tree2);
-	}
-    }
-  
-  PhyML_Printf("%s\n",Write_Tree(tree1));
-  PhyML_Printf("%s\n",Write_Tree(tree2));
 
 
 

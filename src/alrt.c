@@ -142,6 +142,7 @@ int Check_NNI_Five_Branches(t_tree *tree)
       if(better_found)
 	{
 	  Make_Target_Swap(tree,tree->t_edges[best_edge],best_config);
+
 	  tree->update_alias_subpatt = YES;
 	  Lk(tree);
 	  tree->update_alias_subpatt = NO;
@@ -154,6 +155,8 @@ int Check_NNI_Five_Branches(t_tree *tree)
 	    }
 
 	  if((tree->mod->s_opt->print) && (!tree->io->quiet)) Print_Lk(tree,"[Topology           ]");
+
+	  if(FABS(tree->c_lnL - init_lnL) < tree->mod->s_opt->min_diff_lk_move) return 0;	  
 	  return 1;
 	}
     }
@@ -449,7 +452,6 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
 
   //Do first possible swap
   Swap(v2,b_fcus->left,b_fcus->rght,v3,tree);
-
 
   tree->update_alias_subpatt = YES;
   tree->both_sides = 1;
@@ -796,10 +798,12 @@ void Make_Target_Swap(t_tree *tree, t_edge *b_fcus, int swaptodo)
   if(swaptodo==1)
     {
       Swap(v2,b_fcus->left,b_fcus->rght,v3,tree);
+      if(!Check_Topo_Constraints(tree,tree->io->cstr_tree)) Swap(v3,b_fcus->left,b_fcus->rght,v2,tree);
     }
   else
     {
       Swap(v2,b_fcus->left,b_fcus->rght,v4,tree);
+      if(!Check_Topo_Constraints(tree,tree->io->cstr_tree)) Swap(v4,b_fcus->left,b_fcus->rght,v2,tree);
     }
 
   tree->update_alias_subpatt = YES;
@@ -865,7 +869,6 @@ void Make_Target_Swap(t_tree *tree, t_edge *b_fcus, int swaptodo)
 
       Update_P_Lk(tree,b_fcus,b_fcus->rght);
 
-
       if(lk_temp < lktodo - tree->mod->s_opt->min_diff_lk_local)
 	{
 	  PhyML_Printf("\n. Edge %3d lk_temp = %f lktodo = %f\n",b_fcus->num,lk_temp,lktodo);
@@ -894,7 +897,6 @@ void Make_Target_Swap(t_tree *tree, t_edge *b_fcus, int swaptodo)
       PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
-
 }
 
 /*********************************************************/

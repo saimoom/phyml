@@ -20,6 +20,7 @@ void DR_Print_Postscript_EOF(FILE *fp);
 void DR_Print_Postscript_Header(int n_pages, FILE *fp);
 void DR_Get_Tree_Coord_Scaled(tdraw *w, t_tree *tree);
 void DR_Get_Cdf_Mat(t_tree *tree);
+void DR_Draw_Tree(char *file_name, t_tree *tree);
 
 
 

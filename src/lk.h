@@ -73,6 +73,7 @@ phydbl Wrap_Part_Lk(t_edge *b, t_tree *tree, supert_tree *stree);
 phydbl Wrap_Geo_Lk(t_edge *b, t_tree *tree, supert_tree *stree);
 phydbl Wrap_Diff_Lk_Norm_At_Given_Edge(t_edge *b, t_tree *tree, supert_tree *stree);
 phydbl Wrap_Lk_Rates(t_edge *b, t_tree *tree, supert_tree *stree);
+phydbl Wrap_Lk_Linreg(t_edge *b, t_tree *tree, supert_tree *stree);
 
 #endif
 

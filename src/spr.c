@@ -4032,7 +4032,6 @@ int Try_One_Spr_Move_Triple(spr *move, t_tree *tree)
 
   Restore_Br_Len(tree);
 
-
   tree->both_sides = 1;
   tree->update_alias_subpatt = YES;      
   Lk(tree);
