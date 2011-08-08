@@ -71,6 +71,9 @@ AM_CONDITIONAL([WANT_PHYCONT], [test "$phycont" = yes])
 AC_ARG_ENABLE([m4],[  --enable-m4    Compile M4],[m4=yes])
 AM_CONDITIONAL([WANT_M4], [test "$m4" = yes]) 
 
+AC_ARG_ENABLE([rf],[  --enable-rf    Compile RF],[rf=yes])
+AM_CONDITIONAL([WANT_RF], [test "$rf" = yes]) 
+
 dnl AC_ARG_ENABLE([phyml],[  --enable-phyml    Compile PhyML],[phyml=yes])
 dnl AM_CONDITIONAL([WANT_PHYML], [test "$phyml" = yes]) 
 
