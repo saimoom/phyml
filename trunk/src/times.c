@@ -170,7 +170,6 @@ int TIMES_main(int argc, char **argv)
 		  /* Set upper and lower bounds for all node ages */
 		  TIMES_Set_All_Node_Priors(tree);
 
-
 		  /* Count the number of time slices */
 		  TIMES_Get_Number_Of_Time_Slices(tree);
 		  
@@ -223,7 +222,7 @@ int TIMES_main(int argc, char **argv)
 		  tree->io->lk_approx = user_lk_approx;
 
 		  tree->rates->model = io->rates->model;		  
-		  PhyML_Printf("\n. Selected model '%s'",(io->rates->model == THORNE)?("thorne"):("guindon"));
+		  PhyML_Printf("\n. Selected model '%s'",RATES_Get_Model_Name(io->rates->model));
 		  if(tree->rates->model == GUINDON) tree->mod->gamma_mgf_bl = YES;
 		  
 		  tree->rates->bl_from_rt = YES;

@@ -75,6 +75,7 @@ void Launch_Interface(option *io)
       PhyML_Printf("\n. Enter the rate matrix file name > "); fflush(NULL);
       Getstring_Stdin(filename);
       io->fp_aa_rate_mat = Openfile(filename,0);
+      strcpy(io->aa_rate_mat_file,filename);
       PhyML_Printf("\n");
       Free(filename);
       fflush(NULL);

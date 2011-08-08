@@ -202,6 +202,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define GAMMA          3
 #define THORNE         4
 #define GUINDON        5
+#define STRICTCLOCK    6
 #define NONE          -1
 
 /* #define USE_OLD_LK */
@@ -270,6 +271,7 @@ typedef struct __Node {
   struct __Edge                       **b; /*! table of pointers to neighbor branches */
   struct __Node                      *anc; /*! direct ancestor t_node (for rooted tree only) */
   struct __Node                 *ext_node;
+  struct __Node               *match_node;
 
   int                           *bip_size; /*! Size of each of the three lists from bip_node */
   int                                 num; /*! t_node number */
@@ -338,6 +340,7 @@ typedef struct __Edge {
   short int      *p_lk_tip_r, *p_lk_tip_l; 
   short int           *div_post_pred_left; /*! posterior prediction of nucleotide/aa diversity (left-hand subtree) */
   short int           *div_post_pred_rght; /*! posterior prediction of nucleotide/aa diversity (rght-hand subtree) */
+  short int                    does_exist;
 
   int                       *patt_id_left;
   int                       *patt_id_rght;
@@ -706,12 +709,13 @@ typedef struct __Eigen{
 
 typedef struct __Option { /*! mostly used in 'help.c' */
   struct __Model                *mod; /*! pointer to a substitution model */
-  struct __Tree               *tree; /*! pointer to the current tree */
+  struct __Tree                *tree; /*! pointer to the current tree */
   struct __Align              **data; /*! pointer to the uncompressed sequences */
+  struct __Tree           *cstr_tree; /*! pointer to a constraint tree (can be a multifurcating one) */
   struct __Calign             *cdata; /*! pointer to the compressed sequences */
-  struct __Super_Tree           *st; /*! pointer to supertree */
+  struct __Super_Tree            *st; /*! pointer to supertree */
   struct __Tnexcom    **nex_com_list;
-  struct __List_Tree      *treelist; /*! list of trees. */
+  struct __List_Tree       *treelist; /*! list of trees. */
 
 
   int                    interleaved; /*! interleaved or sequential sequence file format ? */
@@ -722,6 +726,9 @@ typedef struct __Option { /*! mostly used in 'help.c' */
 
   char                 *in_tree_file; /*! input tree file name */
   FILE                   *fp_in_tree; /*! pointer to the input tree file */
+
+  char      *in_constraint_tree_file; /*! input constraint tree file name */
+  FILE        *fp_in_constraint_tree; /*! pointer to the input constraint tree file */
 
   char                *out_tree_file; /*! name of the tree file */
   FILE                  *fp_out_tree;
@@ -747,6 +754,7 @@ typedef struct __Option { /*! mostly used in 'help.c' */
   char                  *out_ps_file; /*! name of the file in which tree(s) is(are) written */
   FILE                    *fp_out_ps;
 
+  char             *aa_rate_mat_file;
   FILE               *fp_aa_rate_mat;
 
   char              *clade_list_file;
@@ -784,6 +792,7 @@ typedef struct __Option { /*! mostly used in 'help.c' */
   int                          quiet; /*! 0 is the default. 1: no interactive question (for batch mode) */
   int                      lk_approx; /* EXACT or NORMAL */
   char                    **alphabet;
+  int                         codpos;
 
   char              **long_tax_names;
   char             **short_tax_names;
@@ -989,6 +998,7 @@ typedef struct __T_Rate {
   phydbl c_lnL_rates; /*! Prob(Br len | time stamps, model of rate evolution) */
   phydbl c_lnL_times; /*! Prob(time stamps) */
   phydbl c_lnL_jps; /*! Prob(# Jumps | time stamps, rates, model of rate evolution) */
+  phydbl c_lnL_linreg;
   phydbl clock_r; /*! Mean substitution rate, i.e., 'molecular clock' rate */
   phydbl min_clock;
   phydbl max_clock;
@@ -1043,6 +1053,7 @@ typedef struct __T_Rate {
   phydbl     *grad_l; /* gradient */
   phydbl     inflate_var;
   phydbl     *time_slice_lims;
+  phydbl     *linreg_par; /* [0]: slope; [1]: intercept; [2]: variance of residuals */
 
   int adjust_rates; /*! if = 1, branch rates are adjusted such that a modification of a given t_node time
 		       does not modify any branch lengths */
@@ -1078,6 +1089,8 @@ typedef struct __T_Rate {
 /*!********************************************************/
 
 typedef struct __Tmcmc {
+  struct __Option *io;
+
   phydbl *tune_move;
   phydbl *move_weight;
   
@@ -1103,6 +1116,8 @@ typedef struct __Tmcmc {
   int num_move_updown_nu_cr;
   int num_move_updown_t_cr;
   int num_move_ras;
+  int num_move_cov_rates;
+  int num_move_cov_switch;
 
   char *out_filename;
 
@@ -1186,7 +1201,7 @@ typedef struct __Tnexparm {
 /*!********************************************************/
 
 void Plim_Binom(phydbl pH0,int N,phydbl *pinf,phydbl *psup);
-t_tree *Read_Tree(char *s_tree);
+t_tree *Read_Tree(char **s_tree);
 void Make_All_Edges_Light(t_node *a,t_node *d);
 void Make_All_Edges_Lk(t_node *a,t_node *d,t_tree *tree);
 void R_rtree(char *s_tree_a, char *s_tree_d, t_node *a, t_tree *tree, int *n_int, int *n_ext);
@@ -1272,7 +1287,7 @@ void Get_Bip(t_node *a,t_node *d,t_tree *tree);
 void Alloc_Bip(t_tree *tree);
 int Sort_Phydbl_Increase(const void *a,const void *b);
 int Sort_String(const void *a,const void *b);
-void Compare_Bip(t_tree *tree1,t_tree *tree2);
+int Compare_Bip(t_tree *tree1,t_tree *tree2, int on_existing_edges_only);
 void Test_Multiple_Data_Set_Format(option *input);
 int Are_Compatible(char *statea,char *stateb,int stepsize,int datatype);
 void Hide_Ambiguities(calign *data);
@@ -1358,7 +1373,6 @@ void Print_Lk_And_Pars(t_tree *tree);
 void Check_Dirs(t_tree *tree);
 void Warn_And_Exit(char *s);
 void Print_Data_Set_Number(option *input, FILE *fp);
-phydbl Compare_Bip_On_Existing_Edges(phydbl thresh_len, t_tree *tree1, t_tree *tree2);
 void NNI_Pars(t_tree *tree, t_edge *b_fcus, int do_swap);
 void Evaluate_One_Regraft_Pos_Triple(spr *move, t_tree *tree);
 int Get_State_From_Ui(int ui, int datatype);
@@ -1495,6 +1509,12 @@ phydbl Unscale_Free_Rate_Tree(t_tree *tree);
 void Check_Br_Len_Bounds(t_tree *tree);
 phydbl Reflect(phydbl x, phydbl l, phydbl u);
 int Are_Equal(phydbl a, phydbl b, phydbl eps);
+void Restrict_To_Coding_Position(align **data, option *io);
+void Prune_Tree(t_tree *big_tree, t_tree *small_tree);
+void Check_Constraint_Tree_Taxa_Names(t_tree *tree, calign *cdata);
+int Check_Topo_Constraints(t_tree *big_tree, t_tree *small_tree);
+void Prune_Tree(t_tree *big_tree, t_tree *small_tree);
+void Match_Nodes_In_Small_Tree(t_tree *small_tree, t_tree *big_tree);
 
 
 #include "free.h"

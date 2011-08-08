@@ -79,6 +79,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
       {"quiet",             no_argument,NULL,48},
       {"version",           no_argument,NULL,49},
       {"calibration",       required_argument,NULL,50},
+      {"clade_file",       required_argument,NULL,50},
       {"boot_progress_every", required_argument,NULL,51},
       {"aa_rate_file",        required_argument,NULL,52},
       {"chain_len",           required_argument,NULL,53},
@@ -90,11 +91,16 @@ void Read_Command_Line(option *io, int argc, char **argv)
       {"no_data",             no_argument,NULL,59},      
       {"fastlk",              no_argument,NULL,60},      
       {"free_rates",          no_argument,NULL,61},
+      {"freerates",          no_argument,NULL,61},
       {"is",                  no_argument,NULL,62},
       {"constrained_lens",    no_argument,NULL,63},
       {"rate_model",          required_argument,NULL,64},
+      {"ratemodel",          required_argument,NULL,64},
       {"log_l",               no_argument,NULL,65},
       {"gamma_lens",          no_argument,NULL,66},
+      {"codpos",              required_argument,NULL,67},
+      {"constraint_file",     required_argument,NULL,68},
+      {"constraint_tree",     required_argument,NULL,68},
       {0,0,0,0}
     };
 
@@ -107,6 +113,57 @@ void Read_Command_Line(option *io, int argc, char **argv)
     {
       switch(c)
 	{
+	case 68:
+	  {
+	    char *tmp;
+	    tmp = (char *)mCalloc(T_MAX_FILE, sizeof(char));
+	    if(strlen(optarg) > T_MAX_FILE -11)
+	      {
+		char choix;
+		strcpy (tmp, "\n. The file name'");
+		strcat (tmp, optarg);
+		strcat (tmp, "' is too long.\n");
+		PhyML_Printf("%s",tmp);
+		PhyML_Printf("\n. Type any key to exit.\n");
+		if(!scanf("%c",&choix)) Exit("\n");
+		Exit("\n");
+	      }
+	    else if (!Filexists (optarg))
+	      {
+		char choix;
+		strcpy (tmp, "\n. The file '");
+		strcat (tmp, optarg);
+		strcat (tmp, "' doesn't exist.\n");
+		PhyML_Printf("%s",tmp);
+		PhyML_Printf("\n. Type any key to exit.\n");
+		if(!scanf("%c",&choix)) Exit("\n");
+		Exit("\n");
+	      }
+	    else
+	      {
+		strcpy(io->in_constraint_tree_file, optarg);
+		io->fp_in_constraint_tree = Openfile(io->in_constraint_tree_file,0);
+	      }
+	    Free(tmp);
+	    break;
+	  }
+	case 67:
+	  {
+	    phydbl pos;
+	    pos = atof(optarg);
+	    io->codpos = (int)pos;
+	    if(io->codpos < 1 || io->codpos > 3)
+	      {
+		char choix;
+		PhyML_Printf("\n. Coding position must be set to 1, 2 or 3.\n");
+		PhyML_Printf("\n. Type any key to exit.\n");
+		if(!scanf("%c",&choix)) Exit("\n");
+		Exit("\n");
+	      }
+	    break;
+	    
+	    break;
+	  }
 	case 66:
 	  {
 	    io->mod->gamma_mgf_bl = YES;
@@ -125,12 +182,15 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	    s = (char *)mCalloc(T_MAX_NAME,sizeof(char));
 	    i = 0;
 	    while(optarg[i++]) s[i]=tolower(optarg[i]);
-	    if(!strcmp(optarg,"thorne")) io->rates->model       = THORNE;
-	    else if(!strcmp(optarg,"guindon")) io->rates->model = GUINDON;
-	    else if(!strcmp(optarg,"gamma")) io->rates->model   = GAMMA;
+	    if(!strcmp(optarg,"thorne")) io->rates->model            = THORNE;
+	    else if(!strcmp(optarg,"guindon")) io->rates->model      = GUINDON;
+	    else if(!strcmp(optarg,"gamma")) io->rates->model        = GAMMA;
+	    else if(!strcmp(optarg,"clock")) io->rates->model        = STRICTCLOCK;
+	    else if(!strcmp(optarg,"strictclock")) io->rates->model  = STRICTCLOCK;
+	    else if(!strcmp(optarg,"strict_clock")) io->rates->model = STRICTCLOCK;
 	    else 
 	      {
-		PhyML_Printf("\n. rate_model should be 'thorne' or 'guindon'.");
+		PhyML_Printf("\n. rate_model should be 'thorne', 'guindon', 'gamma' or 'strictclock'.");
 		Exit("\n");
 	      }
 	    Free(s);
@@ -228,6 +288,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	    s = (char *)mCalloc(T_MAX_FILE, sizeof(char));
 	    strcpy(s,optarg);
 	    io->fp_aa_rate_mat = Openfile(s,0);
+	    strcpy(io->aa_rate_mat_file,s);
 	    Free(s);
 	    break;
 	  }
@@ -390,7 +451,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	    if(!strcmp(optarg,"e") || !strcmp(optarg,"E") ||
 	       !strcmp(optarg,"estimated") || !strcmp(optarg,"ESTIMATED"))
 	      {
-		io->mod->s_opt->opt_cov_delta = 1;
+		io->mod->s_opt->opt_cov_delta = YES;
 		io->mod->m4mod->delta         = 1.0;
 	      }
 	    else

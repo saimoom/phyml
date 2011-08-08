@@ -13,6 +13,24 @@ the GNU public licence.  See http://www.opensource.org for details.
 #include "draw.h"
 
 
+void DR_Draw_Tree(char *file_name, t_tree *tree)
+{
+  FILE *ps_tree;
+  
+  ps_tree = (FILE *)fopen(file_name,"w");  
+  DR_Print_Postscript_Header(1,ps_tree);
+  tree->ps_tree = DR_Make_Tdraw_Struct(tree);
+  DR_Init_Tdraw_Struct(tree->ps_tree);
+  DR_Get_Tree_Box_Width(tree->ps_tree,tree);
+  Dist_To_Root(tree->n_root,tree);
+  tree->ps_tree->max_dist_to_root = DR_Get_Max_Dist_To_Root(tree);
+  DR_Get_X_Coord(NO,tree->ps_tree,tree);
+  DR_Get_Y_Coord(NO,tree->ps_tree,tree);
+  DR_Print_Tree_Postscript(1,NO,ps_tree,tree);
+  DR_Print_Postscript_EOF(ps_tree);
+  fclose(ps_tree);
+}
+
 /*********************************************************/
 
 void DR_Get_Tree_Coord(t_tree *tree)
@@ -104,8 +122,9 @@ void DR_Print_Tree_Postscript(int page_num, int render_name, FILE *fp, t_tree *t
   PhyML_Fprintf(fp,"0 0 0 sc\n");
 /*   PhyML_Fprintf(fp,"clipbox\n"); */
 /*   PhyML_Fprintf(fp,"stroke\n"); */
-  PhyML_Fprintf(fp,"50 50 translate\n");
+  PhyML_Fprintf(fp,"0 0 translate\n");
   PhyML_Fprintf(fp,"newpath\n");
+
 
   draw->ycoord[n_root->num] = (draw->ycoord[n_root->v[0]->num] + draw->ycoord[n_root->v[1]->num])/2.; 
   draw->xcoord[n_root->num] = 0.0; 
@@ -114,7 +133,7 @@ void DR_Print_Tree_Postscript(int page_num, int render_name, FILE *fp, t_tree *t
 
 
   PhyML_Fprintf(fp,"closepath\n");
-  PhyML_Fprintf(fp,"-50 -50 translate\n");
+  PhyML_Fprintf(fp,"0 0 translate\n");
   PhyML_Fprintf(fp,"stroke\n");
   PhyML_Fprintf(fp,"showpage\n");
 }
@@ -125,8 +144,9 @@ void DR_Print_Tree_Postscript_Pre(t_node *a, t_node *d, int render_name, FILE *f
 {
   int i;
   phydbl R, G, B;
-  phydbl z;
   
+  R = G = B = 0.0;
+
   PhyML_Fprintf(fp,"gs\n");
   
   PhyML_Fprintf(fp,"%.1f %.1f mt\n",w->xcoord[a->num],w->ycoord[a->num]);
@@ -134,42 +154,63 @@ void DR_Print_Tree_Postscript_Pre(t_node *a, t_node *d, int render_name, FILE *f
 /*   PhyML_Fprintf(fp,"%.1f %.1f lt\n",w->xcoord[a->num],w->ycoord[d->num]); */
 /*   PhyML_Fprintf(fp,"%.1f %.1f lt\n",w->xcoord[d->num],w->ycoord[d->num]); */
 
-  PhyML_Fprintf(fp,"%.1f %.1f %.1f %.1f %.1f %.1f ct\n",
-		w->xcoord[a->num],
-		w->ycoord[d->num],
-		w->xcoord[d->num],
-		w->ycoord[d->num],
-		w->xcoord[d->num],
-		w->ycoord[d->num]);
+  phydbl min,max,step,val;
+  
+  min = 0.0;
+  max = 4.;
+  
+  step = (max-min)/13.;
+  
+  /* val = tree->rates->mean_r[d->num] / (phydbl)(tree->mcmc->run/tree->mcmc->sample_interval+1.); */
+  val = tree->rates->mean_r[d->num];
 
+  if(val <= min+1.*step)
+    {R=.0; G=1.; B=1.;}
+  else if(val > min+1.*step && val <= min+2.*step)
+    {R=.0; G=1.; B=.8;}
+  else if(val > min+2.*step && val <= min+3.*step)
+    {R=.0; G=1.; B=.5;} 
+  else if(val > min+3.*step && val <= min+4.*step)
+    {R=.0; G=1.; B=.3;} 
+  else if(val > min+4.*step && val <= min+5.*step)
+    {R=.0; G=1.; B=.0;} 
+  else if(val > min+5.*step && val <= min+6.*step)
+    {R=.25; G=1.; B=0.;} 
+  else if(val > min+6.*step && val <= min+7.*step)
+    {R=.5; G=1.; B=0.;} 
+  else if(val > min+7.*step && val <= min+8.*step)
+    {R=.75; G=1.; B=.0;} 
+  else if(val > min+8.*step && val <= min+9.*step)
+    {R=1.; G=1.; B=.0;} 
+  else if(val > min+9.*step && val <= min+10.*step)
+    {R=1.; G=.75; B=.0;} 
+  else if(val > min+10.*step && val <= min+11.*step)
+    {R=1.; G=.5; B=.0;} 
+  else if(val > min+11.*step && val <= min+12.*step)
+    {R=1.; G=.25; B=.0;} 
+  else if(val > min+12.*step)
+    {R=1.; G=.0; B=0.;} 
+
+  PhyML_Fprintf(fp,"%f %f %f sc\n",R,G,B);
+
+
+
+  PhyML_Fprintf(fp,"%.1f %.1f lt\n",w->xcoord[a->num],w->ycoord[d->num]);
+  PhyML_Fprintf(fp,"%.1f %.1f lt\n",w->xcoord[d->num],w->ycoord[d->num]);
+
+  /* PhyML_Fprintf(fp,"%.1f %.1f %.1f %.1f %.1f %.1f ct\n", */
+  /* 		w->xcoord[a->num], */
+  /* 		w->ycoord[d->num], */
+  /* 		w->xcoord[d->num], */
+  /* 		w->ycoord[d->num], */
+  /* 		w->xcoord[d->num], */
+  /* 		w->ycoord[d->num]); */
+
+
+  
+  
   if(d->tax) 
     {
-      R = .0; G = .0; B = .0;
-      if(tree->io->z_scores) z = tree->io->z_scores[d->num];
-      else z = 0.0;
-
-      if(z < 0.1)             { R = 1.; G = .0; B = .0; }
-      if(z > 0.1 && z < 0.4)  { R = .8; G = .2; B = .0; }
-      if(z > 0.4 && z < 0.45) { R = .6; G = .4; B = .0; }
-      if(z > 0.45 && z < 0.5) { R = .4; G = .6; B = .0; }
-      if(z > 0.5 && z < 0.55) { R = .2; G = .8; B = .0; }
-      if(z > 0.55 && z < 0.6) { R = .0; G = 1.; B = .0; }
-      if(z > 0.6 && z < 0.65) { R = .0; G = .8; B = .2; }
-      if(z > 0.65 && z < 0.7) { R = .0; G = .6; B = .4; }
-      if(z > 0.7 && z < 0.75) { R = .0; G = .4; B = .6; }
-      if(z > 0.75 && z < 1.0) { R = .0; G = .2; B = .8; }
-
-/*       if(z < 0.1)             { greylevel = 0.0; } */
-/*       if(z > 0.1 && z < 0.4)  { greylevel = 0.1; } */
-/*       if(z > 0.4 && z < 0.45) { greylevel = 0.2; } */
-/*       if(z > 0.45 && z < 0.5) { greylevel = 0.3; } */
-/*       if(z > 0.5 && z < 0.55) { greylevel = 0.4; } */
-/*       if(z > 0.55 && z < 0.6) { greylevel = 0.5; } */
-/*       if(z > 0.6 && z < 0.65) { greylevel = 0.6; } */
-/*       if(z > 0.65 && z < 0.7) { greylevel = 0.7; } */
-/*       if(z > 0.7 && z < 0.75) { greylevel = 0.8; } */
-/*       if(z > 0.75 && z < 1.0) { greylevel = 0.9; } */
-
       PhyML_Fprintf(fp,"stroke\n");
       PhyML_Fprintf(fp,"0 setgray\n");
       PhyML_Fprintf(fp,"0.1 setlinewidth\n");
@@ -180,7 +221,7 @@ void DR_Print_Tree_Postscript_Pre(t_node *a, t_node *d, int render_name, FILE *f
 
       PhyML_Fprintf(fp,"%.1f %.1f mt\n",w->xcoord[d->num]+3,w->ycoord[d->num]);
 /*       PhyML_Fprintf(fp,"([%.0f]-) show \n",d->y_rank_ori - d->y_rank); */
-      PhyML_Fprintf(fp,"(%.10s) show \n",tree->io->long_tax_names[d->num]);
+      PhyML_Fprintf(fp,"(%.10s) show \n",d->name);
 
       
 /*       if(render_name) */
@@ -193,12 +234,14 @@ void DR_Print_Tree_Postscript_Pre(t_node *a, t_node *d, int render_name, FILE *f
 
       PhyML_Fprintf(fp,"stroke\n");
       PhyML_Fprintf(fp,"gr\n");
+      PhyML_Fprintf(fp,"0 0 0 sc\n");
       return;
     }
   else
     {
       PhyML_Fprintf(fp,"stroke\n");
       PhyML_Fprintf(fp,"gr\n");
+      PhyML_Fprintf(fp,"0 0 0 sc\n");
       For(i,3)
 	if(d->v[i] != a && d->b[i] != tree->e_root) DR_Print_Tree_Postscript_Pre(d,d->v[i],render_name,fp,w,tree);
     }

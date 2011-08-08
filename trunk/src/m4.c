@@ -170,7 +170,6 @@ int M4_main(int argc, char **argv)
 		  M4_Compute_Proba_Hidden_States_On_Edges(tree);
 		  /* */
 
-
 		  Get_Best_Root_Position(tree);
 
 		  /* Print the tree estimated using the current random (or BioNJ) starting tree */
@@ -311,6 +310,8 @@ void M4_Make_Complete(int n_h, int n_o, m4 *m4mod)
 {
   int i;
 
+  printf("\n. n_h = %d",n_h);
+
   m4mod->n_h = n_h;
   m4mod->n_o = n_o;
   m4mod->n_o = n_o;
@@ -390,7 +391,7 @@ void M4_Init_Model(m4 *m4mod, calign *data, model *mod)
 
 /*********************************************************/
 
-/* Fill the (big) rate matrix of the M4 model */ 
+/* Fill in the (big) rate matrix of the M4 model */ 
 void M4_Update_Qmat(m4 *m4mod, model *mod)
 {
   int i,j;

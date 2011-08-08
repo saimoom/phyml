@@ -27,11 +27,10 @@ void Simu_Loop(t_tree *tree)
   do
     {
       lk_old = tree->c_lnL;
-      Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
+      Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));      
       if(!Simu(tree,10)) Check_NNI_Five_Branches(tree);
     }
   while(tree->c_lnL > lk_old + tree->mod->s_opt->min_diff_lk_global);
-
 
   do
     {
@@ -312,6 +311,20 @@ void Make_N_Swap(t_tree *tree,t_edge **b, int beg, int end)
 	   b[i]->nni->swap_node_v3->v[tree->t_dir[b[i]->nni->swap_node_v3->num*dim+b[i]->nni->swap_node_v4->num]],
 	   tree);
 
+      if(!Check_Topo_Constraints(tree,tree->io->cstr_tree))
+	{
+	  /* Undo this swap as it violates one of the topological constraints 
+	     defined in the input constraint tree 
+	  */
+	  Swap(b[i]->nni->swap_node_v2->v[tree->t_dir[b[i]->nni->swap_node_v2->num*dim+b[i]->nni->swap_node_v1->num]],
+	       b[i]->nni->swap_node_v2,
+	       b[i]->nni->swap_node_v3,
+	       b[i]->nni->swap_node_v3->v[tree->t_dir[b[i]->nni->swap_node_v3->num*dim+b[i]->nni->swap_node_v4->num]],
+	       tree);	 
+	}
+
+
+
       if(tree->n_root)
 	{
 	  tree->n_root->v[0] = tree->e_root->left;
@@ -357,6 +370,19 @@ int Make_Best_Swap(t_tree *tree)
 	   b->nni->swap_node_v3,
 	   b->nni->swap_node_v3->v[tree->t_dir[b->nni->swap_node_v3->num*dim+b->nni->swap_node_v4->num]],
 	   tree);
+
+      if(!Check_Topo_Constraints(tree,tree->io->cstr_tree))
+	{
+	  /* Undo this swap as it violates one of the topological constraints 
+	     defined in the input constraint tree 
+	  */
+	  Swap(b->nni->swap_node_v2->v[tree->t_dir[b->nni->swap_node_v2->num*dim+b->nni->swap_node_v1->num]],
+	       b->nni->swap_node_v2,
+	       b->nni->swap_node_v3,
+	       b->nni->swap_node_v3->v[tree->t_dir[b->nni->swap_node_v3->num*dim+b->nni->swap_node_v4->num]],
+	       tree);	 
+	}
+
 
 
       b->l = b->nni->best_l;
@@ -527,6 +553,18 @@ void Unswap_N_Branch(t_tree *tree, t_edge **b, int beg, int end)
 	       b[i]->nni->swap_node_v3->v[tree->t_dir[b[i]->nni->swap_node_v3->num*dim+b[i]->nni->swap_node_v4->num]],
 	       tree);
 
+	  if(!Check_Topo_Constraints(tree,tree->io->cstr_tree))
+	    {
+	      /* Undo this swap as it violates one of the topological constraints 
+		 defined in the input constraint tree 
+	      */
+	      Swap(b[i]->nni->swap_node_v2->v[tree->t_dir[b[i]->nni->swap_node_v2->num*dim+b[i]->nni->swap_node_v1->num]],
+		   b[i]->nni->swap_node_v2,
+		   b[i]->nni->swap_node_v3,
+		   b[i]->nni->swap_node_v3->v[tree->t_dir[b[i]->nni->swap_node_v3->num*dim+b[i]->nni->swap_node_v4->num]],
+		   tree);	 
+	    }
+
 
 /* 	  (b[i]->nni->best_conf == 1)? */
 /* 	    (Swap(b[i]->left->v[b[i]->l_v2],b[i]->left,b[i]->rght,b[i]->rght->v[b[i]->r_v1],tree)): */
@@ -544,6 +582,19 @@ void Unswap_N_Branch(t_tree *tree, t_edge **b, int beg, int end)
 	       b[i]->nni->swap_node_v3,
 	       b[i]->nni->swap_node_v3->v[tree->t_dir[b[i]->nni->swap_node_v3->num*dim+b[i]->nni->swap_node_v4->num]],
 	       tree);
+
+	  if(!Check_Topo_Constraints(tree,tree->io->cstr_tree))
+	    {
+	      /* Undo this swap as it violates one of the topological constraints 
+		 defined in the input constraint tree 
+	      */
+	      Swap(b[i]->nni->swap_node_v2->v[tree->t_dir[b[i]->nni->swap_node_v2->num*dim+b[i]->nni->swap_node_v1->num]],
+		   b[i]->nni->swap_node_v2,
+		   b[i]->nni->swap_node_v3,
+		   b[i]->nni->swap_node_v3->v[tree->t_dir[b[i]->nni->swap_node_v3->num*dim+b[i]->nni->swap_node_v4->num]],
+		   tree);	 
+	    }
+	  
 
 	  b[i]->l = b[i]->l_old;
 	}
@@ -569,6 +620,19 @@ void Swap_N_Branch(t_tree *tree,t_edge **b, int beg, int end)
 	       b[i]->nni->swap_node_v3->v[tree->t_dir[b[i]->nni->swap_node_v3->num*dim+b[i]->nni->swap_node_v4->num]],
 	       tree);
 
+	  if(!Check_Topo_Constraints(tree,tree->io->cstr_tree))
+	    {
+	      /* Undo this swap as it violates one of the topological constraints 
+		 defined in the input constraint tree 
+	      */
+	      Swap(b[i]->nni->swap_node_v2->v[tree->t_dir[b[i]->nni->swap_node_v2->num*dim+b[i]->nni->swap_node_v1->num]],
+		   b[i]->nni->swap_node_v2,
+		   b[i]->nni->swap_node_v3,
+		   b[i]->nni->swap_node_v3->v[tree->t_dir[b[i]->nni->swap_node_v3->num*dim+b[i]->nni->swap_node_v4->num]],
+		   tree);	 
+	    }
+
+	  
 
 	  b[i]->l = b[i]->nni->best_l;
 
@@ -583,6 +647,18 @@ void Swap_N_Branch(t_tree *tree,t_edge **b, int beg, int end)
 	       b[i]->nni->swap_node_v3,
 	       b[i]->nni->swap_node_v3->v[tree->t_dir[b[i]->nni->swap_node_v3->num*dim+b[i]->nni->swap_node_v4->num]],
 	       tree);
+
+	  if(!Check_Topo_Constraints(tree,tree->io->cstr_tree))
+	    {
+	      /* Undo this swap as it violates one of the topological constraints 
+		 defined in the input constraint tree 
+	      */
+	      Swap(b[i]->nni->swap_node_v2->v[tree->t_dir[b[i]->nni->swap_node_v2->num*dim+b[i]->nni->swap_node_v1->num]],
+		   b[i]->nni->swap_node_v2,
+		   b[i]->nni->swap_node_v3,
+		   b[i]->nni->swap_node_v3->v[tree->t_dir[b[i]->nni->swap_node_v3->num*dim+b[i]->nni->swap_node_v4->num]],
+		   tree);	 
+	    }
 
 	  b[i]->l = b[i]->nni->best_l;
 	}

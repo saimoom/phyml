@@ -401,6 +401,12 @@ phydbl RATES_Lk_Rates_Core(phydbl br_r_a, phydbl br_r_d, phydbl nd_r_a, phydbl n
 	log_dens = LOG(log_dens);
 	break;
       }
+    case STRICTCLOCK :
+      {
+	log_dens = 0.0;
+	break;
+      }
+
     default : 
       {
 	PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
@@ -775,6 +781,7 @@ t_rate *RATES_Make_Rate_Struct(int n_otu)
       rates->time_slice_lims      = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
       rates->n_time_slice_spans   = (int *)mCalloc(2*n_otu-1,sizeof(int));
       rates->curr_slice           = (int *)mCalloc(2*n_otu-1,sizeof(int));
+      rates->linreg_par           = (phydbl *)mCalloc(3,sizeof(phydbl));
     }
   return rates;
 }
@@ -830,6 +837,7 @@ void RATES_Free_Rates(t_rate *rates)
       Free(rates->time_slice_lims);
       Free(rates->n_time_slice_spans);
       Free(rates->curr_slice);
+      Free(rates->linreg_par);
     }
   Free(rates);
 }
@@ -857,6 +865,8 @@ void RATES_Init_Rate_Struct(t_rate *rates, t_rate *existing_rates, int n_otu)
     rates->model_log_rates = YES;
   else if(rates->model == GAMMA)
     rates->model_log_rates = NO;
+  else if(rates->model == STRICTCLOCK)
+    rates->model_log_rates = NO;
   else
     {
       PhyML_Printf("\n. Please initialize model properly.");
@@ -865,8 +875,9 @@ void RATES_Init_Rate_Struct(t_rate *rates, t_rate *existing_rates, int n_otu)
     }
 
   rates->met_within_gibbs = NO;
-  rates->c_lnL_rates            = UNLIKELY;
+  rates->c_lnL_rates      = UNLIKELY;
   rates->c_lnL_jps        = UNLIKELY;
+  rates->c_lnL_linreg     = UNLIKELY;
   rates->adjust_rates     = 0;
   rates->use_rates        = 1;
   rates->lexp             = 1.E-3;
@@ -964,6 +975,8 @@ void RATES_Init_Rate_Struct(t_rate *rates, t_rate *existing_rates, int n_otu)
 
 	  rates->br_do_updt[i] = YES;
 	}
+
+      For(i,3) rates->linreg_par[i] = 1.0;
     }
 }
 
@@ -3697,9 +3710,115 @@ void RATES_Write_Mean_R_On_Edge_Label(t_node *a, t_node *d, t_edge *b, t_tree *t
 }
 
 /*********************************************************/
+
+phydbl RATES_Lk_Linreg(t_tree *tree)
+{
+  int i;
+  phydbl log_lk;
+  phydbl mean,sd;
+  int err;
+
+  err    = NO;
+  mean   = 0.0;
+  sd     = SQRT(tree->rates->linreg_par[2]);
+  log_lk = 0.0;
+
+  For(i,tree->n_otu)
+    {
+      mean = tree->rates->br_r[i]*tree->rates->linreg_par[0] + tree->rates->linreg_par[1];
+      log_lk += Log_Dnorm_Trunc(FABS(tree->rates->nd_t[i]),mean,sd,0.,1000.,&err);
+      if(err == YES)
+	{
+	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  Exit("\n");
+	}
+    }
+  tree->rates->c_lnL_linreg = log_lk;
+  return log_lk;
+}
+
 /*********************************************************/
+
+phydbl RATES_Get_Mean_Rate_In_Subtree(t_node *root, t_tree *tree)
+{
+  phydbl sum;
+  int n;
+
+  sum = 0.0;
+  n   = 0;
+
+  if(root->tax == NO)
+    {
+      if(root == tree->n_root)
+	{
+	  RATES_Get_Mean_Rate_In_Subtree_Pre(root,root->v[0],&sum,&n,tree);
+	  RATES_Get_Mean_Rate_In_Subtree_Pre(root,root->v[1],&sum,&n,tree);
+	}
+      else
+	{
+	  int i;
+	  For(i,3)
+	    {
+	      if(root->v[i] != root->anc && root->b[i] != tree->e_root)
+		{
+		  RATES_Get_Mean_Rate_In_Subtree_Pre(root,root->v[i],&sum,&n,tree);
+		}
+	    }
+	}
+      return sum/(phydbl)n;
+    }
+  else
+    {
+      return 0.0;
+    }
+  
+  
+}
+
 /*********************************************************/
+
+void RATES_Get_Mean_Rate_In_Subtree_Pre(t_node *a, t_node *d, phydbl *sum, int *n, t_tree *tree)
+{
+  (*sum) += EXP(tree->rates->nd_r[d->num]);
+  (*n)   += 1;
+
+  if(d->tax == YES)  return;
+  else
+    {
+      int i;
+      For(i,3)
+	{
+	  if(d->v[i] != a && d->b[i] != tree->e_root)
+	    {
+	      RATES_Get_Mean_Rate_In_Subtree_Pre(d,d->v[i],sum,n,tree);
+	    }
+	}
+    }
+}
+
 /*********************************************************/
+
+char *RATES_Get_Model_Name(int model)
+{
+  char *s;
+
+  s = (char *)mCalloc(T_MAX_NAME,sizeof(char));
+
+  switch(model)
+    {
+    case GUINDON     : {strcpy(s,"guindon"); break;}
+    case THORNE      : {strcpy(s,"thorne"); break;}
+    case GAMMA       : {strcpy(s,"gamma"); break;}
+    case STRICTCLOCK : {strcpy(s,"strictclock"); break;}
+    default : 
+      {
+	PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	Exit("\n");
+      }
+    }
+  
+}
+
 /*********************************************************/
 /*********************************************************/
 /*********************************************************/

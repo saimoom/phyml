@@ -19,7 +19,12 @@ void Free_All_Nodes_Light(t_tree *tree)
 {
   int i;
   For(i,2*tree->n_otu-1) 
-    Free_Node(tree->noeud[i]);
+    {
+      if(tree->noeud[i])
+	{
+	  Free_Node(tree->noeud[i]);
+	}
+    }
   Free(tree->noeud);
 }
 
@@ -30,7 +35,9 @@ void Free_All_Edges_Light(t_tree *tree)
   int i;
   For(i,2*tree->n_otu-2) 
     if(tree->t_edges[i])
-      Free_Edge(tree->t_edges[i]);
+      {
+	Free_Edge(tree->t_edges[i]);
+      }
   Free(tree->t_edges);
 }
 
@@ -111,9 +118,13 @@ void Free_Bip(t_tree *tree)
 void Free_Edge_Labels(t_edge *b)
 {
   int i;
-  For(i,b->n_labels+b->n_labels%BLOCK_LABELS) Free(b->labels[i]);
-  Free(b->labels);
-  b->labels = NULL;
+  
+  if(b->labels)
+    {
+      For(i,b->n_labels+b->n_labels%BLOCK_LABELS) Free(b->labels[i]);
+      Free(b->labels);
+      b->labels = NULL;
+    }
 }
 
 /*********************************************************/
@@ -392,6 +403,7 @@ void Free_Input(option *io)
   MCMC_Free_MCMC(io->mcmc);
   Free(io->in_align_file);
   Free(io->in_tree_file);
+  Free(io->in_constraint_tree_file);
   Free(io->out_tree_file);
   Free(io->out_trees_file);
   Free(io->out_boot_tree_file);
@@ -400,6 +412,7 @@ void Free_Input(option *io)
   Free(io->out_lk_file); 
   Free(io->out_ps_file);
   Free(io->out_trace_file);
+  Free(io->aa_rate_mat_file);
   Free(io->nt_or_cd);
   Free(io->run_id_string);
   Free(io->clade_list_file);
