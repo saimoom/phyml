@@ -1149,6 +1149,7 @@ void Init_Tree(t_tree *tree, int n_otu)
   tree->bl_ndigits                = 8;
   tree->n_short_l                 = 100;
   tree->norm_scale                = 0.0;
+  tree->br_len_recorded           = NO;
 }
 
 /*********************************************************/
@@ -9084,6 +9085,14 @@ void Record_Br_Len(t_tree *tree)
 {
   int i;
   
+  if(tree->br_len_recorded == YES)
+    {
+      PhyML_Printf("\n. Overwriting recorded edge lengths.\n");
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");    
+    }
+
+
   For(i,2*tree->n_otu-3) 
     {
       tree->t_edges[i]->l_old                = tree->t_edges[i]->l;
@@ -9097,6 +9106,8 @@ void Record_Br_Len(t_tree *tree)
 void Restore_Br_Len(t_tree *tree)
 {
   int i;
+
+  tree->br_len_recorded = NO;
 
   For(i,2*tree->n_otu-3) 
     {

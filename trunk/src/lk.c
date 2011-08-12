@@ -288,7 +288,7 @@ void Post_Order_Lk(t_node *a, t_node *d, t_tree *tree)
 	    Post_Order_Lk(d,d->v[i],tree);
 	  else dir = i;
 	}      
-    Get_All_Partial_Lk_Scale(tree,d->b[dir],a,d);
+      Get_All_Partial_Lk_Scale(tree,d->b[dir],a,d);
     }
 }
 
@@ -329,7 +329,6 @@ phydbl Lk(t_tree *tree)
 #ifdef PHYTIME
   if((tree->rates) && (tree->rates->bl_from_rt)) RATES_Update_Cur_Bl(tree);
 #endif
-
 
   Check_Br_Len_Bounds(tree);
   
@@ -383,6 +382,8 @@ phydbl Lk_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
 #ifdef PHYTIME
   if((tree->rates) && (tree->rates->bl_from_rt)) RATES_Update_Cur_Bl(tree);
 #endif
+
+  Check_Br_Len_Bounds(tree);
 
   if(tree->rates && tree->io->lk_approx == NORMAL)
     {

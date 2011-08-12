@@ -473,6 +473,8 @@ typedef struct __Tree{
   phydbl                             *short_l; /* Vector of short branch length values */
   int                               n_short_l; /* Length of short_l */
   phydbl                           norm_scale;
+  
+  short int                   br_len_recorded;
 }t_tree;
 
 /*!********************************************************/
@@ -1081,8 +1083,10 @@ typedef struct __T_Rate {
   phydbl *cur_gamma_prior_mean;
   phydbl *cur_gamma_prior_var;
 
-
   int model_log_rates;
+  
+  short int nd_t_recorded;
+  short int br_r_recorded;
 
 }t_rate;
 

@@ -884,7 +884,8 @@ void RATES_Init_Rate_Struct(t_rate *rates, t_rate *existing_rates, int n_otu)
   rates->birth_rate       = 0.5;
   rates->norm_fact        = 1.0;
   rates->inflate_var      = 1.0;
-
+  rates->nd_t_recorded    = NO;
+  rates->br_r_recorded    = NO;
 
   if(rates->model_log_rates == YES)
     {
@@ -3594,6 +3595,14 @@ void RATES_Set_Mean_L(t_tree *tree)
 void RATES_Record_Times(t_tree *tree)
 {
   int i;
+
+  if(tree->rates->nd_t_recorded == YES)
+    {
+      PhyML_Printf("\n. Overwriting recorded times is forbidden.\n");
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");
+    }
+
   For(i,2*tree->n_otu-1) tree->rates->buff_t[i] = tree->rates->nd_t[i];
 }
 
@@ -3602,6 +3611,7 @@ void RATES_Record_Times(t_tree *tree)
 void RATES_Reset_Times(t_tree *tree)
 {
   int i;
+  tree->rates->nd_t_recorded = NO;
   For(i,2*tree->n_otu-1) tree->rates->nd_t[i] = tree->rates->buff_t[i];
 }
 
@@ -3610,6 +3620,14 @@ void RATES_Reset_Times(t_tree *tree)
 void RATES_Record_Rates(t_tree *tree)
 {
   int i;
+
+  if(tree->rates->br_r_recorded == YES)
+    {
+      PhyML_Printf("\n. Overwriting recorded rates is forbidden.\n");
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");
+    }
+
   For(i,2*tree->n_otu-2) tree->rates->buff_r[i] = tree->rates->br_r[i];
 }
 
@@ -3618,6 +3636,7 @@ void RATES_Record_Rates(t_tree *tree)
 void RATES_Reset_Rates(t_tree *tree)
 {
   int i;
+  tree->rates->br_r_recorded = NO;
   For(i,2*tree->n_otu-2) tree->rates->br_r[i] = tree->rates->buff_r[i];
 }
 
@@ -3814,9 +3833,10 @@ char *RATES_Get_Model_Name(int model)
       {
 	PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
 	Exit("\n");
-      }
+	break;
+     }
     }
-  
+  return s;
 }
 
 /*********************************************************/

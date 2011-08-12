@@ -61,7 +61,6 @@ int TIMES_main(int argc, char **argv)
 
   io = (option *)Get_Input(argc,argv);
   r_seed = (io->r_seed < 0)?(time(NULL)):(io->r_seed);
-  io->r_seed = r_seed;
   /* !!!!!!!!!!!!!!!!!!!!!!!! */
 /*   r_seed = 1289246338; */
 /*   r_seed = 1289266727; */
@@ -81,7 +80,9 @@ int TIMES_main(int argc, char **argv)
   /* r_seed =  1303970631; */
   /* r_seed = 1304059976; */
   /* r_seed = 1306315195; */
-  /* r_seed = 1308263660; */
+  r_seed = 1308263660;
+
+  io->r_seed = r_seed;
 
   srand(r_seed); rand();
   PhyML_Printf("\n. Seed: %d\n",r_seed);
