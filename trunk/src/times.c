@@ -80,7 +80,8 @@ int TIMES_main(int argc, char **argv)
   /* r_seed =  1303970631; */
   /* r_seed = 1304059976; */
   /* r_seed = 1306315195; */
-  r_seed = 1308263660;
+  /* r_seed = 1308263660; */
+  r_seed = 1313356025;
 
   io->r_seed = r_seed;
 

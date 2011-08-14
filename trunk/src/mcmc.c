@@ -2356,8 +2356,8 @@ void MCMC_Randomize_Rate_Across_Sites(t_tree *tree)
       int i;
       For(i,tree->mod->n_catg)
 	{
-	  tree->mod->gamma_r_proba_unscaled[i] = Uni()*20. - 10.;
-	  tree->mod->gamma_rr_unscaled[i] = Uni()*20. - 10.;
+	  tree->mod->gamma_r_proba_unscaled[i] = Uni()*100.;
+	  tree->mod->gamma_rr_unscaled[i] = Uni()*100.;
 	}
     }
   else
@@ -2967,21 +2967,40 @@ void MCMC_Free_Mixt_Rate(t_tree *tree)
 {
   int i, class;
   phydbl u;
+  phydbl min,max;
 
   For(i,2*tree->n_otu-2) tree->rates->br_do_updt[i] = NO;
 
   class = Rand_Int(0,tree->mod->n_catg-1);
 
+  min = 0.01;
+  max = +100.;
   u = Uni();
   if(u < .5)
     {
-      MCMC_Single_Param_Generic(&(tree->mod->gamma_rr_unscaled[class]),-100.,+100.,tree->mcmc->num_move_ras+class+tree->mod->n_catg,
+      if(!class)
+      	{
+      	  min = 0.01;
+      	  max = tree->mod->gamma_rr_unscaled[1];
+      	}
+      else if(class == tree->mod->n_catg-1)
+      	{
+      	  min = tree->mod->gamma_rr_unscaled[tree->mod->n_catg-2];
+      	  max = +100.;
+      	}
+      else
+      	{
+      	  min = MIN(tree->mod->gamma_rr_unscaled[class-1],tree->mod->gamma_rr_unscaled[class+1]);
+      	  max = MAX(tree->mod->gamma_rr_unscaled[class-1],tree->mod->gamma_rr_unscaled[class+1]);
+      	}
+            
+      MCMC_Single_Param_Generic(&(tree->mod->gamma_rr_unscaled[class]),min,max,tree->mcmc->num_move_ras+class+tree->mod->n_catg,
 				NULL,&(tree->c_lnL),
 				NULL,Wrap_Lk,tree->mcmc->move_type[tree->mcmc->num_move_ras+class+tree->mod->n_catg],NO,NULL,tree,NULL);
     }
   else
     {
-      MCMC_Single_Param_Generic(&(tree->mod->gamma_r_proba_unscaled[class]),-100.,+100.,tree->mcmc->num_move_ras+class,
+      MCMC_Single_Param_Generic(&(tree->mod->gamma_r_proba_unscaled[class]),0.01,+100.,tree->mcmc->num_move_ras+class,
 				NULL,&(tree->c_lnL),
 				NULL,Wrap_Lk,tree->mcmc->move_type[tree->mcmc->num_move_ras+class],NO,NULL,tree,NULL);
     }
@@ -2993,6 +3012,7 @@ void MCMC_Covarion_Rates(t_tree *tree)
 {
   int i, class;
   phydbl u;
+  phydbl min,max;
 
   if(tree->mod->use_m4mod == NO) return;
 
@@ -3002,10 +3022,29 @@ void MCMC_Covarion_Rates(t_tree *tree)
 
   class = Rand_Int(0,tree->mod->m4mod->n_h-1);
 
+
+  min = 0.01;
+  max = 100.;
   u = Uni();
   if(u < .5)
     {
-      MCMC_Single_Param_Generic(&(tree->mod->m4mod->multipl_unscaled[class]),0.01,+10.,tree->mcmc->num_move_cov_rates+class+tree->mod->m4mod->n_h,
+      if(!class)
+	{
+	  min = 0.01;
+	  max = tree->mod->m4mod->multipl_unscaled[1];
+	}
+      else if(class == tree->mod->m4mod->n_h-1)
+	{
+	  min = tree->mod->m4mod->multipl_unscaled[tree->mod->m4mod->n_h-2];
+	  max = +100.;
+	}
+      else
+	{
+	  min = MIN(tree->mod->m4mod->multipl_unscaled[class-1],tree->mod->m4mod->multipl_unscaled[class+1]);
+	  max = MAX(tree->mod->m4mod->multipl_unscaled[class-1],tree->mod->m4mod->multipl_unscaled[class+1]);
+	}
+
+      MCMC_Single_Param_Generic(&(tree->mod->m4mod->multipl_unscaled[class]),min,max,tree->mcmc->num_move_cov_rates+class+tree->mod->m4mod->n_h,
 				NULL,&(tree->c_lnL),
 				NULL,Wrap_Lk,tree->mcmc->move_type[tree->mcmc->num_move_cov_rates+class+tree->mod->m4mod->n_h],NO,NULL,tree,NULL);
     }
