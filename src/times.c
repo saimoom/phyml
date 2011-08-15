@@ -174,9 +174,6 @@ int TIMES_main(int argc, char **argv)
 		  /* Count the number of time slices */
 		  TIMES_Get_Number_Of_Time_Slices(tree);
 		  
-		  Print_CSeq_Select(stdout,NO,tree->data,tree);
-		  Exit("\n");
-
 		  /* Work with log of branch lengths? */
 		  if(tree->mod->log_l == YES) Log_Br_Len(tree);
 		  
