@@ -43,10 +43,10 @@ AC_CHECK_FUNCS([floor pow rint sqrt strchr strstr])
 #esac
 
 
-CFLAGS="-O3 -fomit-frame-pointer -funroll-loops -Wall ${ARCH_flag}"
+dnl CFLAGS="-O3 -fomit-frame-pointer -funroll-loops -Wall ${ARCH_flag}"
 dnl CFLAGS="-O3 -Wfloat-equal -fomit-frame-pointer -funroll-loops"
 dnl CFLAGS="-O3 -Wfloat-equal"
-dnl CFLAGS="-g"
+CFLAGS="-g"
 
 LDFLAGS="${ARGC_flag}"
 

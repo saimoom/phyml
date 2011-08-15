@@ -155,7 +155,6 @@ int TIMES_main(int argc, char **argv)
 		  Update_Ancestors(tree->n_root,tree->n_root->v[0],tree);
 		  Update_Ancestors(tree->n_root,tree->n_root->v[1],tree);		  
 
-
 		  RATES_Fill_Lca_Table(tree);
 
 		  tree->mod         = mod;
@@ -175,6 +174,9 @@ int TIMES_main(int argc, char **argv)
 		  /* Count the number of time slices */
 		  TIMES_Get_Number_Of_Time_Slices(tree);
 		  
+		  Print_CSeq_Select(stdout,NO,tree->data,tree);
+		  Exit("\n");
+
 		  /* Work with log of branch lengths? */
 		  if(tree->mod->log_l == YES) Log_Br_Len(tree);
 		  
@@ -239,7 +241,6 @@ int TIMES_main(int argc, char **argv)
 		  MCMC_Close_MCMC(tree->mcmc);
 		  MCMC_Free_MCMC(tree->mcmc);
 		  PhyML_Printf("\n");
-
 
 /* 		  tree->mcmc = MCMC_Make_MCMC_Struct(); */
 /* 		  MCMC_Copy_MCMC_Struct(tree->io->mcmc,tree->mcmc,"burnin"); */

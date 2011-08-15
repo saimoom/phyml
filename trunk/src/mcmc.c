@@ -3306,7 +3306,7 @@ void MCMC_Complete_MCMC(t_mcmc *mcmc, t_tree *tree)
     for(i=mcmc->num_move_br_r;i<mcmc->num_move_br_r+2*tree->n_otu-2;i++) mcmc->move_type[i] = MCMC_MOVE_SCALE_THORNE;  
 
   for(i=mcmc->num_move_nd_r;i<mcmc->num_move_nd_r+2*tree->n_otu-1;i++) mcmc->move_type[i] = MCMC_MOVE_SCALE_THORNE;
-  for(i=mcmc->num_move_nd_t;i<mcmc->num_move_nd_t+tree->n_otu-1;i++)   mcmc->move_type[i] = MCMC_MOVE_SCALE_THORNE;
+  for(i=mcmc->num_move_nd_t;i<mcmc->num_move_nd_t+tree->n_otu-1;i++)   mcmc->move_type[i] = MCMC_MOVE_RANDWALK_UNIFORM;
   mcmc->move_type[mcmc->num_move_nu] = MCMC_MOVE_SCALE_THORNE;
   mcmc->move_type[mcmc->num_move_clock_r] = MCMC_MOVE_SCALE_THORNE;
   mcmc->move_type[mcmc->num_move_tree_height] = MCMC_MOVE_SCALE_THORNE;
@@ -3551,9 +3551,9 @@ void MCMC_Make_Move(phydbl *cur, phydbl *new, phydbl inf, phydbl sup, phydbl *lo
     case MCMC_MOVE_RANDWALK_UNIFORM:
       {
 	u = Uni();
-	*new   = u * (2.*tune) + (*cur) - tune;
+	/* *new   = u * (2.*tune) + (*cur) - tune; */
 	/* *new   = Reflect(*new,inf,sup); */
-	/* *new   = u*(sup-inf)+inf; */
+	*new   = u*(sup-inf)+inf;
 	*loghr = 0.0;
 	break;
       }

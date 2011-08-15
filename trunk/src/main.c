@@ -136,7 +136,12 @@ int main(int argc, char **argv)
 		  
  		  if(io->fp_in_constraint_tree != NULL) 
 		    {
+		      char *s;
 		      io->cstr_tree = Read_Tree_File_Phylip(io->fp_in_constraint_tree);
+		      s = Add_Taxa_To_Constraint_Tree(io->fp_in_constraint_tree,cdata);
+		      tree = Read_Tree(&s);
+		      io->in_tree = 2;
+		      Free(s);
 		      Check_Constraint_Tree_Taxa_Names(io->cstr_tree,cdata);
 		      Alloc_Bip(io->cstr_tree);  
 		      Get_Bip(io->cstr_tree->noeud[0],
