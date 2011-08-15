@@ -132,7 +132,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  N_MAX_LABEL           10
 #define  BLOCK_LABELS         100
 
-#define  NODE_DEG_MAX          10
+#define  NODE_DEG_MAX         100
 #define  BRENT_ITMAX        10000
 #define  BRENT_CGOLD    0.3819660
 #define  BRENT_ZEPS        1.e-10
@@ -1244,7 +1244,8 @@ void Qksort(phydbl *A, phydbl *B, int ilo,int ihi);
 void Qksort_Int(int *A, int *B, int ilo,int ihi);
 void Print_Site(calign *cdata,int num,int n_otu,char *sep,int stepsize);
 void Print_Seq(align **data,int n_otu);
-void Print_CSeq(FILE *fp,calign *cdata);
+void Print_CSeq(FILE *fp,int compressed, calign *cdata);
+void Print_CSeq_Select(FILE *fp, int compressed, calign *cdata, t_tree *tree);
 void Order_Tree_Seq(t_tree *tree,align **data);
 void Order_Tree_CSeq(t_tree *tree,calign *data);
 matrix *Make_Mat(int n_otu);
@@ -1519,6 +1520,8 @@ void Check_Constraint_Tree_Taxa_Names(t_tree *tree, calign *cdata);
 int Check_Topo_Constraints(t_tree *big_tree, t_tree *small_tree);
 void Prune_Tree(t_tree *big_tree, t_tree *small_tree);
 void Match_Nodes_In_Small_Tree(t_tree *small_tree, t_tree *big_tree);
+char *Return_Tree_String_Phylip(FILE *fp_input_tree);
+char *Add_Taxa_To_Constraint_Tree(FILE *fp, calign *cdata);
 
 
 #include "free.h"

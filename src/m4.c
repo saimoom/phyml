@@ -310,8 +310,6 @@ void M4_Make_Complete(int n_h, int n_o, m4 *m4mod)
 {
   int i;
 
-  printf("\n. n_h = %d",n_h);
-
   m4mod->n_h = n_h;
   m4mod->n_o = n_o;
   m4mod->n_o = n_o;

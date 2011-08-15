@@ -3484,10 +3484,9 @@ t_tree *Read_Tree_File(option *io)
 
 /*********************************************************/
 
-t_tree *Read_Tree_File_Phylip(FILE *fp_input_tree)
+char *Return_Tree_String_Phylip(FILE *fp_input_tree)
 {
   char *line;
-  t_tree *tree;
   int i;
   char c;
   int open,maxopen;
@@ -3541,9 +3540,18 @@ t_tree *Read_Tree_File_Phylip(FILE *fp_input_tree)
   line[i] = '\0';
 
   /* if(maxopen == 1) return NULL; */
+  return line;
+}
 
-  tree = Read_Tree(&line);
-  
+/*********************************************************/
+
+t_tree *Read_Tree_File_Phylip(FILE *fp_input_tree)
+{
+  char *line;
+  t_tree *tree;
+
+  line = Return_Tree_String_Phylip(fp_input_tree);
+  tree = Read_Tree(&line);  
   Free(line);
   
   return tree;
@@ -4009,7 +4017,6 @@ void Print_Site_Lk(t_tree *tree, FILE *fp)
     }
 }
 
-
 /*********************************************************/
 
 void Print_Seq(align **data, int n_otu)
@@ -4036,7 +4043,7 @@ void Print_Seq(align **data, int n_otu)
 
 /*********************************************************/
 
-void Print_CSeq(FILE *fp, calign *cdata)
+void Print_CSeq(FILE *fp, int compressed, calign *cdata)
 {
   int i,j;
   int n_otu;
@@ -4054,6 +4061,7 @@ void Print_CSeq(FILE *fp, calign *cdata)
       PhyML_Fprintf(fp,"format sequential datatype=dna;\n");
       PhyML_Fprintf(fp,"matrix\n");
     }
+  
   For(i,n_otu)
     {
       For(j,50)
@@ -4063,10 +4071,76 @@ void Print_CSeq(FILE *fp, calign *cdata)
 	  else fputc(' ',fp);
 	}
       
-      PhyML_Fprintf(fp,"%s",cdata->c_seq[i]->state);
+      if(compressed == YES) /* Print out compressed sequences */
+	PhyML_Fprintf(fp,"%s",cdata->c_seq[i]->state);
+      else /* Print out uncompressed sequences */
+	{
+	  For(j,cdata->init_len)
+	    {
+	      PhyML_Fprintf(fp,"%c",cdata->c_seq[i]->state[cdata->sitepatt[j]]);
+	    }
+	}
       PhyML_Fprintf(fp,"\n");
     }
   PhyML_Fprintf(fp,"\n");
+
+  if(cdata->format == 1)
+    {
+      PhyML_Fprintf(fp,";\n");
+      PhyML_Fprintf(fp,"END;\n");
+    }
+
+
+/*   PhyML_Printf("\t"); */
+/*   For(j,cdata->crunch_len) */
+/*     PhyML_Printf("%.0f ",cdata->wght[j]); */
+/*   PhyML_Printf("\n"); */
+}
+
+/*********************************************************/
+
+void Print_CSeq_Select(FILE *fp, int compressed, calign *cdata, t_tree *tree)
+{
+  int i,j;
+  int n_otu;
+  phydbl eps;
+
+  int slice = 14;
+
+  eps = 1.E-6;
+  n_otu = 0;
+  For(i,cdata->n_otu)
+    if(tree->rates->nd_t[i] < tree->rates->time_slice_lims[slice] + eps)
+      n_otu++;
+  
+  PhyML_Fprintf(fp,"%d\t%d\n",n_otu,cdata->init_len);
+
+  n_otu = cdata->n_otu;
+
+  For(i,n_otu)
+    {
+      if(tree->rates->nd_t[i] < tree->rates->time_slice_lims[slice] + eps)
+	{
+
+	  For(j,50)
+	    {
+	      if(j<(int)strlen(cdata->c_seq[i]->name))
+		fputc(cdata->c_seq[i]->name[j],fp);
+	      else fputc(' ',fp);
+	    }
+	  
+	  if(compressed == YES) /* Print out compressed sequences */
+	    PhyML_Fprintf(fp,"%s",cdata->c_seq[i]->state);
+	  else /* Print out uncompressed sequences */
+	    {
+	      For(j,cdata->init_len)
+		{
+		  PhyML_Fprintf(fp,"%c",cdata->c_seq[i]->state[cdata->sitepatt[j]]);
+		}
+	    }
+	  PhyML_Fprintf(fp,"\n");
+	}
+    }
 
   if(cdata->format == 1)
     {
@@ -4105,6 +4179,47 @@ void Order_Tree_Seq(t_tree *tree, align **data)
 
 /*********************************************************/
 
+char *Add_Taxa_To_Constraint_Tree(FILE *fp, calign *cdata)
+{
+  char *line,*long_line;
+  t_tree *tree;
+  int i,j;
+
+  rewind(fp);
+
+  line = Return_Tree_String_Phylip(fp);
+  tree = Read_Tree(&line);
+
+  long_line = (char *)mCalloc(T_MAX_LINE,sizeof(char));
+  strcpy(long_line,line);
+
+  long_line[strlen(line)-2] = '\0';
+
+  For(i,cdata->n_otu)
+    {
+      For(j,tree->n_otu)
+	{
+	  if(!strcmp(tree->noeud[j]->name,cdata->c_seq[i]->name))
+	    break;
+	}
+
+      if(j == tree->n_otu)
+	{
+	  strcat(long_line,",");
+	  strcat(long_line,cdata->c_seq[i]->name);
+	}
+    }
+
+  strcat(long_line,");");
+  
+  Free_Tree(tree);
+  Free(line);
+
+  return long_line;
+}
+
+/*********************************************************/
+
 void Check_Constraint_Tree_Taxa_Names(t_tree *tree, calign *cdata)
 {
   int i,j,n_otu_tree,n_otu_cdata;
@@ -4138,9 +4253,9 @@ void Order_Tree_CSeq(t_tree *tree, calign *cdata)
     n_otu_tree  = tree->n_otu;
     n_otu_cdata = cdata->n_otu;
 
-    if(n_otu_tree != n_otu_cdata) 
+    if((n_otu_tree != n_otu_cdata) && (tree->io->fp_in_constraint_tree == NULL)) 
       {
-	PhyML_Printf("\n\n. Number of taxa in the tree: %d, number of sequences: %d.",n_otu_tree,n_otu_cdata);
+	PhyML_Printf("\n. Number of taxa in the tree: %d, number of sequences: %d.",n_otu_tree,n_otu_cdata);
 	Warn_And_Exit("\n. The number of tips in the tree is not the same as the number of sequences\n");
       }
 
@@ -12775,6 +12890,7 @@ int Check_Topo_Constraints(t_tree *big_tree, t_tree *small_tree)
   
   if(small_tree->n_otu > big_tree->n_otu)
     {
+      PhyML_Printf("\n");
       PhyML_Printf("\n. The tree that defines the topological constraints can not");
       PhyML_Printf("\n. display more taxa than %d",big_tree->n_otu);
       Exit("\n");
