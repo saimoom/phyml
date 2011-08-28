@@ -331,6 +331,8 @@ void Launch_Interface_Input(option *io)
       else             io->out_stats_file_open_mode = 2;
     }
 
+  printf("\n. MODE = %d",io->out_stats_file_open_mode);
+
   io->fp_out_stats = Openfile(io->out_stats_file,io->out_stats_file_open_mode);
 
 #ifdef WIN32

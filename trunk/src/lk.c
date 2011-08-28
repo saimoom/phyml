@@ -3044,8 +3044,9 @@ phydbl Wrap_Lk_Rates(t_edge *b, t_tree *tree, supert_tree *stree)
 
 phydbl Wrap_Lk_Linreg(t_edge *b, t_tree *tree, supert_tree *stree)
 {
-  RATES_Lk_Linreg(tree);
-  return tree->rates->c_lnL_linreg;
+  /* RATES_Lk_Linreg(tree); */
+  return -1.;
+  /* return tree->rates->c_lnL_linreg; */
 }
 
 /*********************************************************/

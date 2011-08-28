@@ -77,6 +77,9 @@ void TIMES_Allocate_Vectors_Time_Slice_Combin(t_tree *tree);
 void TIMES_Allocate_Vectors_Time_Slice_Combin_Post(t_node *a, t_node *d, t_tree *tree);
 void TIMES_Update_Curr_Slice(t_tree *tree);
 void TIMES_Lk_Uniform_Post(t_node *a, t_node *d, t_tree *tree);
+void TIMES_Set_Root_Given_Tip_Dates(t_tree *tree);
+void Get_Survival_Duration(t_tree *tree);
+void Get_Survival_Duration_Post(t_node *a, t_node *d, t_tree *tree);
 
 
 #endif

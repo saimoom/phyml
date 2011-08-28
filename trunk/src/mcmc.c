@@ -1,6 +1,6 @@
 /*
 
-PhyML:  a program that  computes maximum likelihood phyLOGenies from
+PhyML:  a program that  computes maximum likelihood phylogenies from
 DNA or AA homoLOGous sequences.
 
 Copyright (C) Stephane Guindon. Oct 2003 onward.
@@ -22,7 +22,6 @@ void MCMC(t_tree *tree)
   phydbl u;
   int first,secod;
   int i;
-
 
   RATES_Set_Clock_And_Nu_Max(tree);
 
@@ -57,6 +56,7 @@ void MCMC(t_tree *tree)
   tree->mod->update_eigen = NO;
   MCMC_Print_Param(tree->mcmc,tree);
       
+ 
 
   first = 0;
   secod = 1;
@@ -1604,6 +1604,7 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
 {
   int i;
   FILE *fp;
+  FILE *fp_pred;
   char *s;
   int orig_approx;
   phydbl orig_lnL;
@@ -1756,42 +1757,44 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
 	  	  else
 	  	    PhyML_Fprintf(fp," B%d[%d]\t",i,tree->noeud[i]->anc->num);
 
-
 /* 		  PhyML_Fprintf(fp," R%d[%f]\t",i,tree->rates->mean_l[i]); */
 	  	}
 	    }
+	  
+	  fp_pred = fopen("predict.txt","a");
+	  fprintf(fp_pred,"Branch\t Rate\t Survival\t Outcome\n");
+	  fclose(fp_pred);
+
+      /* 	  if(fp != stdout) */
+      /* 	    { */
+      /* 	      For(i,2*tree->n_otu-2) */
+      /* 	  	{ */
+      /* 	  	  if(tree->noeud[i] == tree->n_root->v[0]) */
+      /* 	  	    PhyML_Fprintf(fp,"G%d[LeftRoot]\t",i); */
+      /* 	  	  else if(tree->noeud[i] == tree->n_root->v[1]) */
+      /* 	  	    PhyML_Fprintf(fp,"G%d[RightRoot]\t",i); */
+      /* 	  	  else */
+      /* 	  	    PhyML_Fprintf(fp," G%d[%f]\t",i,tree->rates->ml_l[i]); */
 
 
-/* 	  if(fp != stdout) */
-/* 	    { */
-/* 	      For(i,2*tree->n_otu-2) */
-/* 	  	{ */
-/* 	  	  if(tree->noeud[i] == tree->n_root->v[0]) */
-/* 	  	    PhyML_Fprintf(fp,"G%d[LeftRoot]\t",i); */
-/* 	  	  else if(tree->noeud[i] == tree->n_root->v[1]) */
-/* 	  	    PhyML_Fprintf(fp,"G%d[RightRoot]\t",i); */
-/* 	  	  else */
-/* 	  	    PhyML_Fprintf(fp," G%d[%f]\t",i,tree->rates->ml_l[i]); */
+      /* /\* 		  PhyML_Fprintf(fp," R%d[%f]\t",i,tree->rates->mean_l[i]); *\/ */
+      /* 	  	} */
+      /* 	    } */
 
 
-/* /\* 		  PhyML_Fprintf(fp," R%d[%f]\t",i,tree->rates->mean_l[i]); *\/ */
-/* 	  	} */
-/* 	    } */
+		/* if(fp != stdout) */
+		/*   { */
+		/*     For(i,2*tree->n_otu-3) */
+		/* 	{ */
+		/* 	  if(tree->t_edges[i] == tree->e_root) */
+		/* 	    PhyML_Fprintf(fp,"*L[%f]%d\t",i,tree->rates->u_ml_l[i]); */
+		/* 	  else */
+		/* 	    PhyML_Fprintf(fp," L[%f]%d\t",i,tree->rates->u_ml_l[i]); */
+		/* 	} */
+		/*   } */
 
 
-	  /* if(fp != stdout) */
-	  /*   { */
-	  /*     For(i,2*tree->n_otu-3) */
-	  /* 	{ */
-	  /* 	  if(tree->t_edges[i] == tree->e_root) */
-	  /* 	    PhyML_Fprintf(fp,"*L[%f]%d\t",i,tree->rates->u_ml_l[i]); */
-	  /* 	  else */
-	  /* 	    PhyML_Fprintf(fp," L[%f]%d\t",i,tree->rates->u_ml_l[i]); */
-	  /* 	} */
-	  /*   } */
-
-
-	  PhyML_Fprintf(mcmc->out_fp_trees,"#NEXUS\n");
+	    PhyML_Fprintf(mcmc->out_fp_trees,"#NEXUS\n");
 	  PhyML_Fprintf(mcmc->out_fp_trees,"BEGIN TREES;\n");
 	  PhyML_Fprintf(mcmc->out_fp_trees,"\tTRANSLATE\n");
 	  For(i,tree->n_otu-1) PhyML_Fprintf(mcmc->out_fp_trees,"\t%3d\t%s,\n",tree->noeud[i]->num,tree->noeud[i]->name);
@@ -1865,6 +1868,12 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
 		      EXP(tree->rates->br_r[i]):
 		      tree->rates->br_r[i]);
 
+      fp_pred = fopen("predict.txt","a");      
+      for(i=0;i<2*tree->n_otu-2;i++) 
+	PhyML_Fprintf(fp_pred,"B%d\t%12f\t%12f\t%4d\n",i,EXP(tree->rates->br_r[i]),tree->rates->nd_t[i],tree->rates->has_survived[i]);
+      fclose(fp_pred);
+
+
       /* phydbl p,sd,mean; */
       
       /* for(i=0;i<2*tree->n_otu-2;i++) */
@@ -1885,6 +1894,7 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
       For(i,2*tree->n_otu-2) tree->rates->mean_r[i] = EXP(tree->rates->br_r[i]);
       For(i,2*tree->n_otu-1) tree->rates->mean_t[i] = tree->rates->nd_t[i];
       
+      Branch_Lengths_To_Time_Lengths(tree);
       char *s;
       s = (char *)mCalloc(T_MAX_NAME,sizeof(char));
       strcpy(s,mcmc->io->in_align_file);
@@ -1892,72 +1902,66 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
       strcat(s,mcmc->out_filename);
       strcat(s,".ps");
       DR_Draw_Tree(s,tree);
-      Free(s);		   
+      Free(s);	
 
-      FILE *fp;
-      int j;
-      t_node *d, *v1, *v2;
-      int n1, n2;
-      phydbl r1, r2;
+      /* FILE *fp; */
+      /* int j; */
+      /* t_node *d, *v1, *v2; */
+      /* int n1, n2; */
+      /* phydbl r1, r2; */
 
-      s = (char *)mCalloc(T_MAX_NAME,sizeof(char));
-      strcpy(s,mcmc->io->in_align_file);
-      strcat(s,"_");
-      strcat(s,mcmc->out_filename);
-      strcat(s,".corr");
-      fp = fopen(s,"w");
+      /* s = (char *)mCalloc(T_MAX_NAME,sizeof(char)); */
+      /* strcpy(s,mcmc->io->in_align_file); */
+      /* strcat(s,"_"); */
+      /* strcat(s,mcmc->out_filename); */
+      /* strcat(s,".corr"); */
+      /* fp = fopen(s,"w"); */
 
-      n1 = n2 = 0;
-      r1 = r2 = 0.f;
-      For(i,2*tree->n_otu-3)
-	{
-	  if(tree->noeud[i]->tax == NO)
-	    {
-	      d = tree->noeud[i];
-	      v1 = v2 = NULL;
-	      For(j,3)
-		{
-		  if(d->v[j] != d->anc && d->b[j] != tree->e_root)
-		    {
-		      if(!v1) v1 = d->v[j];
-		      else    v2 = d->v[j];
-		    }
-		}
+      /* n1 = n2 = 0; */
+      /* r1 = r2 = 0.f; */
+      /* For(i,2*tree->n_otu-3) */
+      /* 	{ */
+      /* 	  if(tree->noeud[i]->tax == NO) */
+      /* 	    { */
+      /* 	      d = tree->noeud[i]; */
+      /* 	      v1 = v2 = NULL; */
+      /* 	      For(j,3) */
+      /* 		{ */
+      /* 		  if(d->v[j] != d->anc && d->b[j] != tree->e_root) */
+      /* 		    { */
+      /* 		      if(!v1) v1 = d->v[j]; */
+      /* 		      else    v2 = d->v[j]; */
+      /* 		    } */
+      /* 		} */
 
-	      For(j,3)
-		{
-		  if(v1->v[j] && v1->v[j] == d)
-		    {
-		      n1 = v1->bip_size[j];
- 		      /* r1 = RATES_Get_Mean_Rate_In_Subtree(v1,tree); */
- 		      r1 = EXP(tree->rates->br_r[v1->num]);
-		      break;
-		    }
-		}
-
-
-	      For(j,3)
-		{
-		  if(v2->v[j] && v2->v[j] == d)
-		    {
-		      n2 = v2->bip_size[j];
-		      /* r2 = RATES_Get_Mean_Rate_In_Subtree(v2,tree); */
- 		      r2 = EXP(tree->rates->br_r[v2->num]);
-		      break;
-		    }
-		}
-
-	      fprintf(fp,"\n%4d %4d %15f %15f",n1,n2,r1,r2);
-	    }
-	}
-
-      fclose(fp);
-      Free(s);
+      /* 	      For(j,3) */
+      /* 		{ */
+      /* 		  if(v1->v[j] && v1->v[j] == d) */
+      /* 		    { */
+      /* 		      n1 = v1->bip_size[j]; */
+      /* 		      /\* r1 = RATES_Get_Mean_Rate_In_Subtree(v1,tree); *\/ */
+      /* 		      r1 = EXP(tree->rates->br_r[v1->num]); */
+      /* 		      break; */
+      /* 		    } */
+      /* 		} */
 
 
+      /* 	      For(j,3) */
+      /* 		{ */
+      /* 		  if(v2->v[j] && v2->v[j] == d) */
+      /* 		    { */
+      /* 		      n2 = v2->bip_size[j]; */
+      /* 		      /\* r2 = RATES_Get_Mean_Rate_In_Subtree(v2,tree); *\/ */
+      /* 		      r2 = EXP(tree->rates->br_r[v2->num]); */
+      /* 		      break; */
+      /* 		    } */
+      /* 		} */
 
+      /* 	      fprintf(fp,"\n%4d %4d %15f %15f",n1,n2,r1,r2); */
+      /* 	    } */
+      /* 	} */
 
-
+      /* fclose(fp); */
       
       // TREES
       Branch_Lengths_To_Time_Lengths(tree);
@@ -2357,7 +2361,7 @@ void MCMC_Randomize_Rate_Across_Sites(t_tree *tree)
       For(i,tree->mod->n_catg)
 	{
 	  tree->mod->gamma_r_proba_unscaled[i] = Uni()*100.;
-	  tree->mod->gamma_rr_unscaled[i] = Uni()*100.;
+	  tree->mod->gamma_rr_unscaled[i] = (phydbl)i+1.; /* Do not randomize those as their ordering matter */
 	}
     }
   else
@@ -2378,7 +2382,7 @@ void MCMC_Randomize_Covarion_Rates(t_tree *tree)
 
   For(i,tree->mod->m4mod->n_h)
     {
-      tree->mod->m4mod->multipl_unscaled[i] = Uni()*(10.-0.01) + 0.01;
+      tree->mod->m4mod->multipl_unscaled[i] = (phydbl)i+1.;
       tree->mod->m4mod->h_fq_unscaled[i] = Uni()*(100.-0.01) + 0.01;
     }
 }
@@ -2994,9 +2998,15 @@ void MCMC_Free_Mixt_Rate(t_tree *tree)
       	  max = MAX(tree->mod->gamma_rr_unscaled[class-1],tree->mod->gamma_rr_unscaled[class+1]);
       	}
             
+      /* int i; */
+      /* printf("\n %3d (%15f %15f)",class,min,max); */
+      /* For(i,tree->mod->n_catg) */
+      /* 	printf("%15f ",tree->mod->gamma_rr_unscaled[i]); */
+
       MCMC_Single_Param_Generic(&(tree->mod->gamma_rr_unscaled[class]),min,max,tree->mcmc->num_move_ras+class+tree->mod->n_catg,
 				NULL,&(tree->c_lnL),
 				NULL,Wrap_Lk,tree->mcmc->move_type[tree->mcmc->num_move_ras+class+tree->mod->n_catg],NO,NULL,tree,NULL);
+
     }
   else
     {

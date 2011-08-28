@@ -380,8 +380,8 @@ void M4_Init_Model(m4 *m4mod, calign *data, model *mod)
   if(mod->s_opt->opt_cov_alpha) m4mod->alpha = 1.0;
   For(i,m4mod->n_h) m4mod->h_fq[i] = fq;
   For(i,m4mod->n_h) m4mod->h_fq_unscaled[i] = 1.0;
-  For(i,m4mod->n_h) m4mod->multipl[i] = i;
-  For(i,m4mod->n_h) m4mod->multipl_unscaled[i] = i;
+  For(i,m4mod->n_h) m4mod->multipl[i] = (phydbl)i;
+  For(i,m4mod->n_h) m4mod->multipl_unscaled[i] = (phydbl)i;
 
   mod->update_eigen = 1;
   M4_Update_Qmat(m4mod,mod);

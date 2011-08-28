@@ -132,7 +132,7 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define  N_MAX_LABEL           10
 #define  BLOCK_LABELS         100
 
-#define  NODE_DEG_MAX         100
+#define  NODE_DEG_MAX       10000
 #define  BRENT_ITMAX        10000
 #define  BRENT_CGOLD    0.3819660
 #define  BRENT_ZEPS        1.e-10
@@ -293,6 +293,7 @@ typedef struct __Node {
   int                            *s_ingrp; /*! does the subtree beneath belong to the ingroup */
   int                           *s_outgrp; /*! does the subtree beneath belong to the outgroup */
 
+  int                             id_rank; /*! order taxa alphabetically and use id_rank to store the ranks */ 
   int                                rank;
   int                            rank_max;
 
@@ -385,6 +386,7 @@ typedef struct __Edge {
   phydbl             gamma_prior_mean_old; /* (Backup) Branch length has a gamma distributed prior with this mean */
   phydbl              gamma_prior_var_old; /* (Backup) Branch length has a gamma distributed prior with this var */
 
+  phydbl                      bin_cod_num;
 }t_edge;
 
 /*!********************************************************/
@@ -1000,7 +1002,6 @@ typedef struct __T_Rate {
   phydbl c_lnL_rates; /*! Prob(Br len | time stamps, model of rate evolution) */
   phydbl c_lnL_times; /*! Prob(time stamps) */
   phydbl c_lnL_jps; /*! Prob(# Jumps | time stamps, rates, model of rate evolution) */
-  phydbl c_lnL_linreg;
   phydbl clock_r; /*! Mean substitution rate, i.e., 'molecular clock' rate */
   phydbl min_clock;
   phydbl max_clock;
@@ -1055,7 +1056,8 @@ typedef struct __T_Rate {
   phydbl     *grad_l; /* gradient */
   phydbl     inflate_var;
   phydbl     *time_slice_lims;
-  phydbl     *linreg_par; /* [0]: slope; [1]: intercept; [2]: variance of residuals */
+  phydbl     *survival_rank;
+  phydbl     *survival_dur;
 
   int adjust_rates; /*! if = 1, branch rates are adjusted such that a modification of a given t_node time
 		       does not modify any branch lengths */
@@ -1087,6 +1089,8 @@ typedef struct __T_Rate {
   
   short int nd_t_recorded;
   short int br_r_recorded;
+
+  int *has_survived;
 
 }t_rate;
 
@@ -1522,6 +1526,10 @@ void Prune_Tree(t_tree *big_tree, t_tree *small_tree);
 void Match_Nodes_In_Small_Tree(t_tree *small_tree, t_tree *big_tree);
 char *Return_Tree_String_Phylip(FILE *fp_input_tree);
 char *Add_Taxa_To_Constraint_Tree(FILE *fp, calign *cdata);
+void Find_Surviving_Edges_In_Small_Tree_Post(t_node *a, t_node *d, t_tree *small_tree, t_tree *big_tree);
+void Find_Surviving_Edges_In_Small_Tree(t_tree *small_tree, t_tree *big_tree);
+void Set_Taxa_Id_Ranking(t_tree *tree);
+void Get_Edge_Binary_Coding_Number(t_tree *tree);
 
 
 #include "free.h"

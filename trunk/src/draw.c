@@ -163,37 +163,35 @@ void DR_Print_Tree_Postscript_Pre(t_node *a, t_node *d, int render_name, FILE *f
   
   /* val = tree->rates->mean_r[d->num] / (phydbl)(tree->mcmc->run/tree->mcmc->sample_interval+1.); */
   val = tree->rates->mean_r[d->num];
+  /* val = tree->rates->has_survived[d->num]; */
+  /* if(val > 0.5) {R=1.; G=.0; B=0.;} */
 
   if(val <= min+1.*step)
     {R=.0; G=1.; B=1.;}
   else if(val > min+1.*step && val <= min+2.*step)
     {R=.0; G=1.; B=.8;}
   else if(val > min+2.*step && val <= min+3.*step)
-    {R=.0; G=1.; B=.5;} 
+    {R=.0; G=1.; B=.5;}
   else if(val > min+3.*step && val <= min+4.*step)
-    {R=.0; G=1.; B=.3;} 
+    {R=.0; G=1.; B=.3;}
   else if(val > min+4.*step && val <= min+5.*step)
-    {R=.0; G=1.; B=.0;} 
+    {R=.0; G=1.; B=.0;}
   else if(val > min+5.*step && val <= min+6.*step)
-    {R=.25; G=1.; B=0.;} 
+    {R=.25; G=1.; B=0.;}
   else if(val > min+6.*step && val <= min+7.*step)
-    {R=.5; G=1.; B=0.;} 
+    {R=.5; G=1.; B=0.;}
   else if(val > min+7.*step && val <= min+8.*step)
-    {R=.75; G=1.; B=.0;} 
+    {R=.75; G=1.; B=.0;}
   else if(val > min+8.*step && val <= min+9.*step)
-    {R=1.; G=1.; B=.0;} 
+    {R=1.; G=1.; B=.0;}
   else if(val > min+9.*step && val <= min+10.*step)
-    {R=1.; G=.75; B=.0;} 
+    {R=1.; G=.75; B=.0;}
   else if(val > min+10.*step && val <= min+11.*step)
-    {R=1.; G=.5; B=.0;} 
+    {R=1.; G=.5; B=.0;}
   else if(val > min+11.*step && val <= min+12.*step)
-    {R=1.; G=.25; B=.0;} 
+    {R=1.; G=.25; B=.0;}
   else if(val > min+12.*step)
-    {R=1.; G=.0; B=0.;} 
-
-  PhyML_Fprintf(fp,"%f %f %f sc\n",R,G,B);
-
-
+    {R=1.; G=.0; B=0.;}
 
   PhyML_Fprintf(fp,"%.1f %.1f lt\n",w->xcoord[a->num],w->ycoord[d->num]);
   PhyML_Fprintf(fp,"%.1f %.1f lt\n",w->xcoord[d->num],w->ycoord[d->num]);
@@ -207,8 +205,17 @@ void DR_Print_Tree_Postscript_Pre(t_node *a, t_node *d, int render_name, FILE *f
   /* 		w->ycoord[d->num]); */
 
 
-  
-  
+   if(tree->rates->has_survived[d->num] == YES)
+    {
+      PhyML_Fprintf(fp," /Helvetica findfont 16 scalefont\n");
+      PhyML_Fprintf(fp,"setfont\n");
+      PhyML_Fprintf(fp,"%.1f %.1f mt\n",w->xcoord[d->num]-5,w->ycoord[d->num]);
+      PhyML_Fprintf(fp,"0 0 0 sc\n");
+      PhyML_Fprintf(fp,"(*) show \n");      
+    }
+
+  PhyML_Fprintf(fp,"%f %f %f sc\n",R,G,B);
+
   if(d->tax) 
     {
       PhyML_Fprintf(fp,"stroke\n");
@@ -219,9 +226,17 @@ void DR_Print_Tree_Postscript_Pre(t_node *a, t_node *d, int render_name, FILE *f
 /*       PhyML_Fprintf(fp,"%f setgray fill\n",greylevel); */
       PhyML_Fprintf(fp,"0 0 0 sc\n");
 
-      PhyML_Fprintf(fp,"%.1f %.1f mt\n",w->xcoord[d->num]+3,w->ycoord[d->num]);
-/*       PhyML_Fprintf(fp,"([%.0f]-) show \n",d->y_rank_ori - d->y_rank); */
-      PhyML_Fprintf(fp,"(%.10s) show \n",d->name);
+
+      PhyML_Fprintf(fp," /Helvetica findfont 8 scalefont\n");
+      PhyML_Fprintf(fp,"setfont\n");
+      PhyML_Fprintf(fp,"%.1f %.1f mt\n",w->xcoord[d->num]+2,w->ycoord[d->num]);
+      PhyML_Fprintf(fp,"(%d) show \n",d->num);
+      PhyML_Fprintf(fp," /Helvetica findfont 14 scalefont\n");
+      PhyML_Fprintf(fp,"setfont\n");
+
+
+      /* PhyML_Fprintf(fp,"%.1f %.1f mt\n",w->xcoord[d->num]+5,w->ycoord[d->num]); */
+      /* PhyML_Fprintf(fp,"(%.10s) show \n",d->name); */
 
       
 /*       if(render_name) */
@@ -239,6 +254,14 @@ void DR_Print_Tree_Postscript_Pre(t_node *a, t_node *d, int render_name, FILE *f
     }
   else
     {
+      PhyML_Fprintf(fp," /Helvetica findfont 8 scalefont\n");
+      PhyML_Fprintf(fp,"setfont\n");
+      PhyML_Fprintf(fp,"%.1f %.1f mt\n",w->xcoord[d->num]+2,w->ycoord[d->num]);
+      PhyML_Fprintf(fp,"(%d) show \n",d->num);
+      PhyML_Fprintf(fp,"%.1f %.1f mt\n",w->xcoord[d->num],w->ycoord[d->num]);
+      PhyML_Fprintf(fp," /Helvetica findfont 14 scalefont\n");
+      PhyML_Fprintf(fp,"setfont\n");
+
       PhyML_Fprintf(fp,"stroke\n");
       PhyML_Fprintf(fp,"gr\n");
       PhyML_Fprintf(fp,"0 0 0 sc\n");
