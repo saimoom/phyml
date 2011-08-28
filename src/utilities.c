@@ -378,7 +378,6 @@ void Read_Node_Name(t_node *d, char *s_tree_d, t_tree *tree)
 {
   int i;
   
-
   if(!tree->t_edges[tree->num_curr_branch_available]->n_labels)
     {
       d->name = (char *)mCalloc(strlen(s_tree_d)+1,sizeof(char ));
@@ -438,11 +437,11 @@ void Clean_Multifurcation(char **subtrees, int current_deg, int end_deg)
       char *s_tmp;
       int i;
 
-      s_tmp = (char *)mCalloc(T_MAX_LINE,sizeof(char));
-      /* s_tmp = (char *)mCalloc(10+ */
-      /* 			      (int)strlen(subtrees[0])+1+ */
-      /* 			      (int)strlen(subtrees[1])+1, */
-      /* 			      sizeof(char)); */
+      /* s_tmp = (char *)mCalloc(T_MAX_LINE,sizeof(char)); */
+      s_tmp = (char *)mCalloc(10+
+      			      (int)strlen(subtrees[0])+1+
+      			      (int)strlen(subtrees[1])+1,
+      			      sizeof(char));
       
       strcat(s_tmp,"(\0");
       strcat(s_tmp,subtrees[0]);
@@ -1167,7 +1166,7 @@ void Make_New_Edge_Label(t_edge *b)
     }
   else
     {
-      for(i=b->n_labels;i<b->n_labels+100;i++) b->labels[i] = (char *)mCalloc(T_MAX_LABEL,sizeof(char));
+      for(i=b->n_labels;i<b->n_labels+BLOCK_LABELS;i++) b->labels[i] = (char *)mCalloc(T_MAX_LABEL,sizeof(char));
     }
 }
 
@@ -1219,6 +1218,7 @@ void Init_Edge_Light(t_edge *b, int num)
   b->gamma_prior_var      = 1.E-1;
   b->does_exist           = YES;
   b->l                    = -1.;
+  b->bin_cod_num          = -1.;
 
   b->p_lk_left            = NULL;
   b->p_lk_rght            = NULL;
@@ -1246,6 +1246,7 @@ void Init_Node_Light(t_node *n, int num)
   n->anc                    = NULL;
   n->rank                   = 0;
   n->match_node             = NULL;
+  n->id_rank                = 0;
 }
 
 /*********************************************************/
@@ -3551,7 +3552,7 @@ t_tree *Read_Tree_File_Phylip(FILE *fp_input_tree)
   t_tree *tree;
 
   line = Return_Tree_String_Phylip(fp_input_tree);
-  tree = Read_Tree(&line);  
+  tree = Read_Tree(&line);
   Free(line);
   
   return tree;
@@ -4121,7 +4122,6 @@ void Print_CSeq_Select(FILE *fp, int compressed, calign *cdata, t_tree *tree)
     {
       if(tree->rates->nd_t[i] < tree->rates->time_slice_lims[slice] + eps)
 	{
-
 	  For(j,50)
 	    {
 	      if(j<(int)strlen(cdata->c_seq[i]->name))
@@ -4193,7 +4193,7 @@ char *Add_Taxa_To_Constraint_Tree(FILE *fp, calign *cdata)
   long_line = (char *)mCalloc(T_MAX_LINE,sizeof(char));
   strcpy(long_line,line);
 
-  long_line[strlen(line)-2] = '\0';
+  long_line[strlen(line)-1] = '\0';
 
   For(i,cdata->n_otu)
     {
@@ -4208,12 +4208,14 @@ char *Add_Taxa_To_Constraint_Tree(FILE *fp, calign *cdata)
 	  strcat(long_line,",");
 	  strcat(long_line,cdata->c_seq[i]->name);
 	}
+      
     }
 
   strcat(long_line,");");
   
   Free_Tree(tree);
   Free(line);
+
 
   return long_line;
 }
@@ -4237,7 +4239,7 @@ void Check_Constraint_Tree_Taxa_Names(t_tree *tree, calign *cdata)
       
       if(j==n_otu_cdata)
 	{
-	  PhyML_Printf("\n. Err: %s is not found in sequence data set\n",tree->noeud[i]->name);
+	  PhyML_Printf("\n. Err: '%s' is not found in sequence data set\n",tree->noeud[i]->name);
 	  Warn_And_Exit("");
 	}
     }
@@ -4269,7 +4271,7 @@ void Order_Tree_CSeq(t_tree *tree, calign *cdata)
 	
 	if(j==MIN(n_otu_tree,n_otu_cdata))
 	  {
-	    PhyML_Printf("\n. Err: %s is not found in sequence data set\n",tree->noeud[i]->name);
+	    PhyML_Printf("\n. Err: '%s' is not found in sequence data set\n",tree->noeud[i]->name);
 	    Warn_And_Exit("");
 	  }
 	
@@ -5389,6 +5391,7 @@ void Print_Fp_Out(FILE *fp_out, time_t t_beg, time_t t_end, t_tree *tree, option
 
   if((!n_data_set) || (!num_tree))
     {
+      rewind(fp_out);
       Print_Banner_Small(fp_out);
     }
 
@@ -7491,7 +7494,10 @@ int Compare_Bip(t_tree *tree1, t_tree *tree2, int on_existing_edges_only)
     }
   
   diffs = (tree1->n_otu-3);
-  For(i,2*tree1->n_otu-3) diffs -= tree1->t_edges[i]->bip_score;
+  For(i,2*tree1->n_otu-3) 
+    {
+      diffs -= tree1->t_edges[i]->bip_score;
+    }
   return diffs;
 }
 
@@ -8214,8 +8220,12 @@ void Copy_Tree(t_tree *ori, t_tree *cpy)
 
   For(i,ori->n_otu)
     {
-      cpy->noeud[i]->tax = 1;
-      if(!cpy->noeud[i]->name) cpy->noeud[i]->name = (char *)mCalloc(strlen(ori->noeud[i]->name)+1,sizeof(char));
+      cpy->noeud[i]->tax = YES;
+      if(!cpy->noeud[i]->name) 
+	{
+	  cpy->noeud[i]->name = (char *)mCalloc(strlen(ori->noeud[i]->name)+1,sizeof(char));
+	  cpy->noeud[i]->ori_name = cpy->noeud[i]->name ;
+	}
       strcpy(cpy->noeud[i]->name,ori->noeud[i]->name);
     }
 
@@ -11170,6 +11180,7 @@ t_tree *Dist_And_BioNJ(calign *cdata, model *mod, option *io)
   if(!io->quiet) PhyML_Printf("\n\n. Building BioNJ tree...");
 
   mat->tree = Make_Tree_From_Scratch(cdata->n_otu,cdata);
+
   Bionj(mat);
   tree      = mat->tree;
   tree->mat = mat;
@@ -11595,7 +11606,7 @@ void Branch_Lengths_To_Time_Lengths_Pre(t_node *a, t_node *d, t_tree *tree)
 {
   int i;
 
-  tree->rates->cur_l[d->num] = fabs(tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num]);
+  tree->rates->cur_l[d->num] = FABS(tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num]);
 
   if(d->tax) return;
   else
@@ -11643,8 +11654,11 @@ int Find_Clade(char **tax_name_list, int list_size, t_tree *tree)
   int n_matches;
 
   tax_num_list = (int *)mCalloc(list_size,sizeof(int));
+
+  For(i,list_size) tax_num_list[i] = -1;
   
   n_matches = 0;
+
   For(i,list_size)
     {
       For(j,tree->n_otu)
@@ -11657,13 +11671,7 @@ int Find_Clade(char **tax_name_list, int list_size, t_tree *tree)
 	}
     }
 
-  if(n_matches != list_size)
-    {
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-      Warn_And_Exit("");
-    }
-
-  if(list_size == tree->n_otu)
+  if(list_size == tree->n_otu) /* Root node */
     {
       int i,j;
       int score;
@@ -11779,7 +11787,7 @@ void Read_Clade_Priors(char *file_name, t_tree *tree)
 	      pos++;
 	    }
 	  s[i] = '\0';
-/* 	  PhyML_Printf("\n. s = %s\n",s); */
+	  /* PhyML_Printf("\n. s = %s\n",s); */
 	  
 	  if(line[pos] == '\n' || line[pos] == '#') break;
 	  pos++;
@@ -11793,6 +11801,7 @@ void Read_Clade_Priors(char *file_name, t_tree *tree)
 	}
       while(1);
 
+
       if(line[pos] != '#' && line[pos] != '\n')
 	{
 	  double val1, val2;
@@ -11803,7 +11812,7 @@ void Read_Clade_Priors(char *file_name, t_tree *tree)
 	  node_num = -1;
 	  if(!strcmp("@root@",clade_list[0])) node_num = tree->n_root->num;
 	  else node_num = Find_Clade(clade_list, clade_size, tree);
-	  
+
 	  n_clade_priors++;  
 
 	  if(node_num < 0)
@@ -11811,10 +11820,10 @@ void Read_Clade_Priors(char *file_name, t_tree *tree)
 	      PhyML_Printf("\n");
 	      PhyML_Printf("\n");
 	      PhyML_Printf("\n. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-	      PhyML_Printf("\n. Could not find any clade in the tree with the following taxa names:");
+	      PhyML_Printf("\n. WARNING: Could not find any clade in the tree with the following taxon names:");
 	      For(i,clade_size) PhyML_Printf("\n. \"%s\"",clade_list[i]);
 	      PhyML_Printf("\n. <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
-	      Exit("\n");
+	      /* Exit("\n"); */
 	    }
 	  else
 	    {	      
@@ -11825,13 +11834,13 @@ void Read_Clade_Priors(char *file_name, t_tree *tree)
 	      if(FABS(prior_low - prior_up) < 1.E-6 && tree->noeud[node_num]->tax == YES)
 		tree->rates->nd_t[node_num] = prior_low;
 
-/* 	      PhyML_Printf("\n"); */
-/* 	      PhyML_Printf("\n. [%3d]>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",n_clade_priors); */
-/* 	      PhyML_Printf("\n. Node %4d matches the clade with the following taxa names:",node_num); */
-/* 	      For(i,clade_size) PhyML_Printf("\n. - \"%s\"",clade_list[i]); */
-/* 	      PhyML_Printf("\n. Lower bound set to: %15f time units.",MIN(prior_low,prior_up));  */
-/* 	      PhyML_Printf("\n. Upper bound set to: %15f time units.",MAX(prior_low,prior_up));  */
-/* 	      PhyML_Printf("\n. <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"); */
+	      PhyML_Printf("\n");
+	      PhyML_Printf("\n. [%3d]>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",n_clade_priors);
+	      PhyML_Printf("\n. Node %4d matches the clade with the following taxon names:",node_num);
+	      For(i,clade_size) PhyML_Printf("\n. - \"%s\"",clade_list[i]);
+	      PhyML_Printf("\n. Lower bound set to: %15f time units.",MIN(prior_low,prior_up));
+	      PhyML_Printf("\n. Upper bound set to: %15f time units.",MAX(prior_low,prior_up));
+	      PhyML_Printf("\n. <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
 	    }
 	}
     }
@@ -12897,7 +12906,7 @@ int Check_Topo_Constraints(t_tree *big_tree, t_tree *small_tree)
     }
   
   t_tree *big_tree_cpy;
-  int diffs;
+  int diffs,i;
 
   big_tree_cpy = Make_Tree_From_Scratch(big_tree->n_otu,NULL);
   Copy_Tree(big_tree,big_tree_cpy);
@@ -12912,7 +12921,16 @@ int Check_Topo_Constraints(t_tree *big_tree, t_tree *small_tree)
   Alloc_Bip(big_tree_cpy);  
   Match_Tip_Numbers(small_tree,big_tree_cpy);
   Get_Bip(big_tree_cpy->noeud[0],big_tree_cpy->noeud[0]->v[0],big_tree_cpy);
+
+  For(i,2*big_tree_cpy->n_otu-3) big_tree_cpy->t_edges[i]->bip_score = 0;
+  For(i,2*small_tree->n_otu-3) small_tree->t_edges[i]->bip_score = 0;
+
   diffs = Compare_Bip(small_tree,big_tree_cpy,YES);
+
+  /* printf("\n"); */
+  /* printf("\n. %s",Write_Tree(big_tree_cpy,NO)); */
+  /* printf("\n. %s",Write_Tree(small_tree,NO)); */
+  /* printf("\n. diffs=%d",diffs); */
 
   Free_Tree(big_tree_cpy);
 
@@ -12993,8 +13011,8 @@ void Prune_Tree(t_tree *big_tree, t_tree *small_tree)
 
 /*********************************************************/
 /* For every node in small_tree, find which node in big_tree
-   they correspond to and initialize the variable match_node
-   accordingly
+   it corresponds to and initialize the variable match_node
+   accordingly (vice versa for big_tree)
 */
 void Match_Nodes_In_Small_Tree(t_tree *small_tree, t_tree *big_tree)
 {
@@ -13023,6 +13041,9 @@ void Match_Nodes_In_Small_Tree(t_tree *small_tree, t_tree *big_tree)
       Exit("\n");
     }
 
+  For(i,2*small_tree->n_otu-1) small_tree->noeud[i]->match_node = NULL;
+  For(i,2*big_tree->n_otu-1)   big_tree->noeud[i]->match_node   = NULL;
+
   score = (int *)mCalloc(3,sizeof(int));
 
   For(i,small_tree->n_otu)
@@ -13032,6 +13053,7 @@ void Match_Nodes_In_Small_Tree(t_tree *small_tree, t_tree *big_tree)
 	  if(!strcmp(small_tree->noeud[i]->name,big_tree->noeud[j]->name))
 	    {
 	      small_tree->noeud[i]->match_node = big_tree->noeud[j];
+	      big_tree->noeud[j]->match_node   = small_tree->noeud[i];
 	      break;
 	    }
 	}
@@ -13083,6 +13105,7 @@ void Match_Nodes_In_Small_Tree(t_tree *small_tree, t_tree *big_tree)
 		     )
 		    {
 		      small_tree->noeud[i]->match_node = big_tree->noeud[j];
+		      big_tree->noeud[j]->match_node   = small_tree->noeud[i];
 		      break;
 		    }
 		}
@@ -13094,6 +13117,116 @@ void Match_Nodes_In_Small_Tree(t_tree *small_tree, t_tree *big_tree)
 }
 
 /*********************************************************/
+
+void Find_Surviving_Edges_In_Small_Tree(t_tree *small_tree, t_tree *big_tree)
+{
+  int i;
+
+  Match_Nodes_In_Small_Tree(small_tree,big_tree);
+
+  For(i,2*small_tree->n_otu-1) small_tree->rates->has_survived[i] = NO;
+  
+  Find_Surviving_Edges_In_Small_Tree_Post(big_tree->n_root,big_tree->n_root->v[0],small_tree,big_tree);
+  Find_Surviving_Edges_In_Small_Tree_Post(big_tree->n_root,big_tree->n_root->v[1],small_tree,big_tree);
+}
+
 /*********************************************************/
+
+void Find_Surviving_Edges_In_Small_Tree_Post(t_node *a, t_node *d, t_tree *small_tree, t_tree *big_tree)
+{
+  if(d->match_node && !a->match_node)
+    {
+      small_tree->rates->has_survived[d->match_node->num] = YES;
+    }
+
+  if(d->tax == YES) return;
+  else
+    {
+      int i;
+     
+      For(i,3)
+	{
+	  if(d->v[i] != a && d->b[i] != big_tree->e_root)
+	    {
+	      Find_Surviving_Edges_In_Small_Tree_Post(d,d->v[i],small_tree,big_tree);
+	    }
+	}
+    }
+}
+
 /*********************************************************/
+
+void Set_Taxa_Id_Ranking(t_tree *tree)
+{
+  int i,j;
+
+  For(i,tree->n_otu) tree->noeud[i]->id_rank = 0;
+
+  For(i,tree->n_otu)
+    {
+      for(j=i+1;j<tree->n_otu;j++)
+	{
+	  if(strcmp(tree->noeud[i]->name,tree->noeud[j]->name) > 0)
+	    tree->noeud[i]->id_rank++;
+	  else
+	    tree->noeud[j]->id_rank++;
+	}
+    }
+  /* For(i,tree->n_otu) PhyML_Printf("\n. %20s %4d",tree->noeud[i]->name,tree->noeud[i]->id_rank); */
+}
+
 /*********************************************************/
+
+void Get_Edge_Binary_Coding_Number(t_tree *tree)
+{
+  int i,j;
+  int list_size;
+  t_node **list;
+  t_edge *b;
+  int max_left,max_rght;
+
+  if(tree->n_otu > 1000)
+    {
+      PhyML_Printf("\n. Can't work out edge binary code if the number of taxa >1000.");
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+
+  Free_Bip(tree);
+  Alloc_Bip(tree);
+  Get_Bip(tree->noeud[0],tree->noeud[0]->v[0],tree);
+  
+  Set_Taxa_Id_Ranking(tree);
+
+  b = NULL;
+  For(i,2*tree->n_otu-3)
+    {
+      b = tree->t_edges[i];
+
+      max_left = 0;
+      For(j,b->left->bip_size[b->l_r])
+	if(b->left->bip_node[b->l_r][j]->id_rank > max_left)
+	  max_left = b->left->bip_node[b->l_r][j]->id_rank;
+
+      max_rght = 0;
+      For(j,b->rght->bip_size[b->r_l])
+	if(b->rght->bip_node[b->r_l][j]->id_rank > max_rght)
+	  max_rght = b->rght->bip_node[b->r_l][j]->id_rank;
+      
+          
+      if(max_left < max_rght)
+	{
+	  list = b->left->bip_node[b->l_r];
+	  list_size = b->left->bip_size[b->l_r];
+	}
+      else
+	{
+	  list = b->rght->bip_node[b->r_l];
+	  list_size = b->rght->bip_size[b->r_l];
+	}
+
+      b->bin_cod_num = 0.;
+      For(j,list_size) b->bin_cod_num += POW(2,list[j]->id_rank);
+      /* printf("\n. %f",b->bin_cod_num); */
+    }
+}

@@ -82,10 +82,8 @@ int main(int argc, char **argv)
       Exit("\n");
     }
 
-
   mat = NULL;
   tree_line_number = 0;
-
 
   if((io->n_data_sets > 1) && (io->n_trees > 1))
     {
@@ -133,12 +131,15 @@ int main(int argc, char **argv)
 		    case 0 : case 1 : { tree = Dist_And_BioNJ(cdata,mod,io); break; }
 		    case 2 :          { tree = Read_User_Tree(cdata,mod,io); break; }
 		    }
-		  
+
  		  if(io->fp_in_constraint_tree != NULL) 
 		    {
 		      char *s;
 		      io->cstr_tree = Read_Tree_File_Phylip(io->fp_in_constraint_tree);
 		      s = Add_Taxa_To_Constraint_Tree(io->fp_in_constraint_tree,cdata);
+		      fflush(NULL);
+		      if(tree->mat) Free_Mat(tree->mat);
+		      Free_Tree(tree);
 		      tree = Read_Tree(&s);
 		      io->in_tree = 2;
 		      Free(s);
@@ -201,7 +202,7 @@ int main(int argc, char **argv)
 		  Lk(tree);
 		  Pars(tree);
 		  Get_Tree_Size(tree);
-		  PhyML_Printf("\n. Log likelihood of the current tree: %f.\n",tree->c_lnL);
+		  PhyML_Printf("\n\n. Log likelihood of the current tree: %f.\n",tree->c_lnL);
 
 		  Br_Len_Involving_Invar(tree);
 		  Rescale_Br_Len_Multiplier_Tree(tree);
@@ -242,6 +243,7 @@ int main(int argc, char **argv)
 		      tree->mod->s_opt->random_input_tree = 0;
 		    }
 		  
+ 		  if(io->fp_in_constraint_tree != NULL) Free_Tree(io->cstr_tree);
 		  Free_Spr_List(tree);
 		  Free_One_Spr(tree->best_spr);
 		  if(tree->mat) Free_Mat(tree->mat);
@@ -300,12 +302,13 @@ int main(int argc, char **argv)
   M4_Free_M4_Model(mod->m4mod);
   Free(mod);
 
-  if(io->fp_in_align)  fclose(io->fp_in_align);
-  if(io->fp_in_tree)   fclose(io->fp_in_tree);
-  if(io->fp_out_lk)    fclose(io->fp_out_lk);
-  if(io->fp_out_tree)  fclose(io->fp_out_tree);
-  if(io->fp_out_trees) fclose(io->fp_out_trees);
-  if(io->fp_out_stats) fclose(io->fp_out_stats);
+  if(io->fp_in_constraint_tree) fclose(io->fp_in_constraint_tree);
+  if(io->fp_in_align)           fclose(io->fp_in_align);
+  if(io->fp_in_tree)            fclose(io->fp_in_tree);
+  if(io->fp_out_lk)             fclose(io->fp_out_lk);
+  if(io->fp_out_tree)           fclose(io->fp_out_tree);
+  if(io->fp_out_trees)          fclose(io->fp_out_trees);
+  if(io->fp_out_stats)          fclose(io->fp_out_stats);
 
   Free_Input(io);
 

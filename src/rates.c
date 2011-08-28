@@ -781,7 +781,9 @@ t_rate *RATES_Make_Rate_Struct(int n_otu)
       rates->time_slice_lims      = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
       rates->n_time_slice_spans   = (int *)mCalloc(2*n_otu-1,sizeof(int));
       rates->curr_slice           = (int *)mCalloc(2*n_otu-1,sizeof(int));
-      rates->linreg_par           = (phydbl *)mCalloc(3,sizeof(phydbl));
+      rates->has_survived         = (int    *)mCalloc(2*n_otu-1,sizeof(int));
+      rates->survival_rank        = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
+      rates->survival_dur         = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
     }
   return rates;
 }
@@ -837,7 +839,9 @@ void RATES_Free_Rates(t_rate *rates)
       Free(rates->time_slice_lims);
       Free(rates->n_time_slice_spans);
       Free(rates->curr_slice);
-      Free(rates->linreg_par);
+      Free(rates->has_survived);
+      Free(rates->survival_rank);
+      Free(rates->survival_dur);
     }
   Free(rates);
 }
@@ -877,7 +881,6 @@ void RATES_Init_Rate_Struct(t_rate *rates, t_rate *existing_rates, int n_otu)
   rates->met_within_gibbs = NO;
   rates->c_lnL_rates      = UNLIKELY;
   rates->c_lnL_jps        = UNLIKELY;
-  rates->c_lnL_linreg     = UNLIKELY;
   rates->adjust_rates     = 0;
   rates->use_rates        = 1;
   rates->lexp             = 1.E-3;
@@ -975,9 +978,10 @@ void RATES_Init_Rate_Struct(t_rate *rates, t_rate *existing_rates, int n_otu)
 	    }
 
 	  rates->br_do_updt[i] = YES;
+	  rates->has_survived[i] = NO;
+
 	}
 
-      For(i,3) rates->linreg_par[i] = 1.0;
     }
 }
 
@@ -3730,31 +3734,6 @@ void RATES_Write_Mean_R_On_Edge_Label(t_node *a, t_node *d, t_edge *b, t_tree *t
 
 /*********************************************************/
 
-phydbl RATES_Lk_Linreg(t_tree *tree)
-{
-  int i;
-  phydbl log_lk;
-  phydbl mean,sd;
-  int err;
-
-  err    = NO;
-  mean   = 0.0;
-  sd     = SQRT(tree->rates->linreg_par[2]);
-  log_lk = 0.0;
-
-  For(i,tree->n_otu)
-    {
-      mean = tree->rates->br_r[i]*tree->rates->linreg_par[0] + tree->rates->linreg_par[1];
-      log_lk += Log_Dnorm_Trunc(FABS(tree->rates->nd_t[i]),mean,sd,0.,1000.,&err);
-      if(err == YES)
-	{
-	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-	  Exit("\n");
-	}
-    }
-  tree->rates->c_lnL_linreg = log_lk;
-  return log_lk;
-}
 
 /*********************************************************/
 
@@ -3840,6 +3819,27 @@ char *RATES_Get_Model_Name(int model)
 }
 
 /*********************************************************/
+
+void RATES_Get_Survival_Ranks(t_tree *tree)
+{
+  int i,j;
+  phydbl rank;
+
+
+  For(i,2*tree->n_otu-2)
+    {
+      rank = 0.;
+      For(j,2*tree->n_otu-2)
+	{
+	  if(tree->rates->br_r[i] > tree->rates->br_r[j]) rank += 1.0;
+	}
+
+      tree->rates->survival_rank[i] = rank;
+    }
+
+
+}
+
 /*********************************************************/
 /*********************************************************/
 /*********************************************************/

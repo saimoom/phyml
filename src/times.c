@@ -138,6 +138,13 @@ int TIMES_main(int argc, char **argv)
 		  /* A user-given tree is used here instead of BioNJ */
 		  else             tree = Read_User_Tree(cdata,mod,io);
 
+ 		  if(io->fp_in_constraint_tree != NULL) 
+		    {
+		      io->cstr_tree        = Read_Tree_File_Phylip(io->fp_in_constraint_tree);		      
+		      io->cstr_tree->rates = RATES_Make_Rate_Struct(io->cstr_tree->n_otu);
+		      RATES_Init_Rate_Struct(io->cstr_tree->rates,io->rates,io->cstr_tree->n_otu);
+		    }
+
 		  if(!tree) continue;
 
 		  if(!tree->n_root) 
@@ -163,6 +170,7 @@ int TIMES_main(int argc, char **argv)
 		  tree->both_sides  = 1;
 		  tree->n_pattern   = tree->data->crunch_len/tree->mod->state_len;
 
+
 		  Prepare_Tree_For_Lk(tree);
 
 		  /* Read node age priors */
@@ -174,6 +182,24 @@ int TIMES_main(int argc, char **argv)
 		  /* Count the number of time slices */
 		  TIMES_Get_Number_Of_Time_Slices(tree);
 		  
+		  /* Get_Edge_Binary_Coding_Number(tree); */
+		  /* Exit("\n"); */
+
+		  /* Print_CSeq_Select(stdout,NO,tree->data,tree); */
+		  /* Exit("\n"); */
+
+		  /* TIMES_Set_Root_Given_Tip_Dates(tree); */
+		  /* int i; */
+		  /* char *s; */
+		  /* FILE *fp; */
+		  /* For(i,2*tree->n_otu-2) tree->rates->cur_l[i] = 1.; */
+		  /* s = Write_Tree(tree,NO); */
+		  /* fp = fopen("rooted_tree","w"); */
+		  /* fprintf(fp,"%s\n",s); */
+		  /* fclose(fp); */
+		  /* Exit("\n"); */
+
+
 		  /* Work with log of branch lengths? */
 		  if(tree->mod->log_l == YES) Log_Br_Len(tree);
 		  
@@ -227,6 +253,8 @@ int TIMES_main(int argc, char **argv)
 		  if(tree->rates->model == GUINDON) tree->mod->gamma_mgf_bl = YES;
 		  
 		  tree->rates->bl_from_rt = YES;
+		  
+		  if(tree->io->cstr_tree) Find_Surviving_Edges_In_Small_Tree(tree,tree->io->cstr_tree);
 
 		  time(&t_beg);
 		  tree->mcmc = MCMC_Make_MCMC_Struct();
@@ -1020,7 +1048,7 @@ void TIMES_Get_Number_Of_Time_Slices(t_tree *tree)
   if(tree->rates->n_time_slices > 1)
     {
       PhyML_Printf("\n");
-      PhyML_Printf("\n. Sequence were collected at %d different time points.",tree->rates->n_time_slices);
+      PhyML_Printf("\n. Sequences were collected at %d different time points.",tree->rates->n_time_slices);
       For(i,tree->rates->n_time_slices) printf("\n+ [%3d] time point @ %12f ",i+1,tree->rates->time_slice_lims[i]);
     }
 }
@@ -1106,7 +1134,107 @@ void TIMES_Lk_Uniform_Post(t_node *a, t_node *d, t_tree *tree)
 }
 
 /*********************************************************/
+
+/* Set the root position so that most of the taxa in the outgroup 
+   correspond to the most ancient time point.
+*/
+void TIMES_Set_Root_Given_Tip_Dates(t_tree *tree)
+{
+  int i,j;
+  t_node *left,*rght;
+  int n_left_in, n_left_out;
+  int n_rght_in, n_rght_out;
+  t_edge *b,*best;
+  phydbl eps,score,max_score;
+  
+  Free_Bip(tree);
+  Alloc_Bip(tree);
+  Get_Bip(tree->noeud[0],tree->noeud[0]->v[0],tree);
+  
+  left = rght = NULL;
+  b = best = NULL;
+  n_left_in = n_left_out = -1;
+  n_rght_in = n_rght_out = -1;
+  eps = 1.E-6;
+  score = max_score = -1.;
+
+  For(i,2*tree->n_otu-3)
+    {
+      left = tree->t_edges[i]->left;
+      rght = tree->t_edges[i]->rght;
+      b    = tree->t_edges[i];
+
+      n_left_in = 0;
+      For(j,left->bip_size[b->l_r]) 
+	if(FABS(tree->rates->nd_t[left->bip_node[b->l_r][j]->num] - tree->rates->time_slice_lims[0]) < eps)
+	  n_left_in++;
+      
+      n_left_out = left->bip_size[b->l_r]-n_left_in;
+      
+      n_rght_in = 0;
+      For(j,rght->bip_size[b->r_l]) 
+	if(FABS(tree->rates->nd_t[rght->bip_node[b->r_l][j]->num] - tree->rates->time_slice_lims[0]) < eps)
+	  n_rght_in++;
+
+      n_rght_out = rght->bip_size[b->r_l]-n_rght_in;
+
+
+      /* score = POW((phydbl)(n_left_in)/(phydbl)(n_left_in+n_left_out)- */
+      /* 		  (phydbl)(n_rght_in)/(phydbl)(n_rght_in+n_rght_out),2); */
+      /* score = (phydbl)(n_left_in * n_rght_out + eps)/(n_left_out * n_rght_in + eps); */
+      /* score = (phydbl)(n_left_in * n_rght_out + eps); */
+      score = FABS((phydbl)((n_left_in+1.) * (n_rght_out+1.)) - (phydbl)((n_left_out+1.) * (n_rght_in+1.)));
+      
+      if(score > max_score)
+	{
+	  max_score = score;
+	  best = b;
+	}
+    }
+  
+  Add_Root(best,tree);
+}
+
 /*********************************************************/
+
+void Get_Survival_Duration(t_tree *tree)
+{
+  Get_Survival_Duration_Post(tree->n_root,tree->n_root->v[0],tree);
+  Get_Survival_Duration_Post(tree->n_root,tree->n_root->v[1],tree);
+}
+
 /*********************************************************/
+
+void Get_Survival_Duration_Post(t_node *a, t_node *d, t_tree *tree)
+{
+  if(d->tax)
+    {
+      tree->rates->survival_dur[d->num] = tree->rates->nd_t[d->num];
+      return;
+    }
+  else
+    {
+      int i;
+      t_node *v1, *v2;
+
+      For(i,3)
+	if(d->v[i] != a && d->b[i] != tree->e_root)
+	  Get_Survival_Duration_Post(d,d->v[i],tree);
+      
+      v1 = v2 = NULL;
+      For(i,3)
+	{
+	  if(d->v[i] != a && d->b[i] != tree->e_root)
+	    {
+	      if(!v1) v1 = d->v[i];
+	      else    v2 = d->v[i];
+	    }
+	}
+
+      tree->rates->survival_dur[d->num] = MAX(tree->rates->survival_dur[v1->num],
+					      tree->rates->survival_dur[v2->num]);
+    }
+}
+
 /*********************************************************/
 /*********************************************************/

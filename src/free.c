@@ -121,7 +121,7 @@ void Free_Edge_Labels(t_edge *b)
   
   if(b->labels)
     {
-      For(i,b->n_labels+b->n_labels%BLOCK_LABELS) Free(b->labels[i]);
+      For(i,b->n_labels-(b->n_labels%BLOCK_LABELS)+BLOCK_LABELS) Free(b->labels[i]);
       Free(b->labels);
       b->labels = NULL;
     }
@@ -145,7 +145,10 @@ void Free_Node(t_node *n)
   Free(n->score);
   Free(n->s_ingrp);
   Free(n->s_outgrp);
-  if(n->ori_name) Free(n->ori_name);
+  if(n->ori_name) { Free(n->ori_name); n->ori_name = NULL; }
+  /* if(n->name)     { Free(n->name);     n->name     = NULL; }  */
+  /* Don't do that: see Copy_Tax_Names_To_Tip_Labels       
+     tree->noeud[i]->ori_name = tree->noeud[i]->name; */
   Free(n);
 }
 
