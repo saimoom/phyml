@@ -399,6 +399,8 @@ typedef struct __Tree{
   struct __Edge                     **t_edges; /*! array of edges */
   struct __Model                         *mod; /*! substitution model */
   struct __Calign                       *data; /*! sequences */
+  struct __Calign                   *anc_data; /*! ancestral sequences */
+
   struct __Option                         *io; /*! input/output */
   struct __Matrix                        *mat; /*! pairwise distance matrix */
   struct __Node                   **curr_path; /*! list of nodes that form a path in the tree */
@@ -433,6 +435,7 @@ typedef struct __Tree{
   int                               s_mod_num; /*! Substitution model number */
   int                               lock_topo; /*! = 1 any subsequent topological modification will be banished */
   int                            print_labels;
+  int                                 *mutmap; /*! Mutational map */
 
   phydbl                              init_lnL;
   phydbl                              best_lnL; /*! highest value of the loglikelihood found so far */
@@ -1530,6 +1533,10 @@ void Find_Surviving_Edges_In_Small_Tree_Post(t_node *a, t_node *d, t_tree *small
 void Find_Surviving_Edges_In_Small_Tree(t_tree *small_tree, t_tree *big_tree);
 void Set_Taxa_Id_Ranking(t_tree *tree);
 void Get_Edge_Binary_Coding_Number(t_tree *tree);
+void Make_Ancestral_Seq(t_tree *tree);
+void Make_MutMap(t_tree *tree);
+int Get_Mutmap_Val(int edge, int site, int mut, t_tree *tree);
+void Get_Mutmap_Coord(int idx, int *edge, int *site, int *mut, t_tree *tree);
 
 
 #include "free.h"

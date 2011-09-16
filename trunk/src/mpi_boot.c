@@ -223,13 +223,13 @@ fflush(stderr);
               boot_tree->noeud[0]->v[0],
               boot_tree);
 
-      Compare_Bip(tree,boot_tree);
+      Compare_Bip(tree,boot_tree,NO);
       
       Br_Len_Involving_Invar(boot_tree);
 
       if(tree->io->print_boot_trees)
         {
-          s = Write_Tree(boot_tree);
+          s = Write_Tree(boot_tree,NO);
           t=(char *)mCalloc(T_MAX_LINE,sizeof(char));
           Print_Fp_Out_Lines_MPI(boot_tree, tree->io, replicate+1, t);
           

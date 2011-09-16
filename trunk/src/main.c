@@ -172,7 +172,9 @@ int main(int argc, char **argv)
 		      Exit("\n");
 		    }
 
+
 		  Prepare_Tree_For_Lk(tree);
+
 
 		  if(io->in_tree == 1) Spr_Pars(tree);
 		 
@@ -197,6 +199,7 @@ int main(int argc, char **argv)
 			 tree->mod->s_opt->opt_bl)                       Round_Optimize(tree,tree->data,ROUND_MAX);
 		      else                                               Lk(tree);
 		    }
+
 
 		  tree->both_sides = 1;
 		  Lk(tree);
@@ -228,6 +231,7 @@ int main(int argc, char **argv)
 /* 		  JF(tree); */
 
 		  time(&t_end);
+
 		  Print_Fp_Out(io->fp_out_stats,t_beg,t_end,tree,
 			       io,num_data_set+1,
 			       (tree->mod->s_opt->n_rand_starts > 1)?

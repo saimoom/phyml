@@ -21,7 +21,9 @@ the GNU public licence. See http://www.opensource.org for details.
 
 
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 phydbl RATES_Lk_Rates(t_tree *tree)
 {
@@ -40,7 +42,9 @@ phydbl RATES_Lk_Rates(t_tree *tree)
   return tree->rates->c_lnL_rates;
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Lk_Rates_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 {
@@ -97,7 +101,9 @@ void RATES_Lk_Rates_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 phydbl RATES_Lk_Change_One_Rate(t_node *d, phydbl new_rate, t_tree *tree)
 {
@@ -107,7 +113,9 @@ phydbl RATES_Lk_Change_One_Rate(t_node *d, phydbl new_rate, t_tree *tree)
   return(tree->rates->c_lnL_rates);
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 phydbl RATES_Lk_Change_One_Time(t_node *n, phydbl new_t, t_tree *tree)
 {  
@@ -134,7 +142,9 @@ phydbl RATES_Lk_Change_One_Time(t_node *n, phydbl new_t, t_tree *tree)
   return(tree->rates->c_lnL_rates);
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Update_Triplet(t_node *n, t_tree *tree)
 {
@@ -277,7 +287,9 @@ void RATES_Update_Triplet(t_node *n, t_tree *tree)
   tree->rates->triplet[n->num] = new_triplet;
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 /* Returns LOG(f(br_r_rght;br_r_left)) */
 phydbl RATES_Lk_Rates_Core(phydbl br_r_a, phydbl br_r_d, phydbl nd_r_a, phydbl nd_r_d, int n_a, int n_d, phydbl dt_a, phydbl dt_d, t_tree *tree)
 {
@@ -427,7 +439,9 @@ phydbl RATES_Lk_Rates_Core(phydbl br_r_a, phydbl br_r_d, phydbl nd_r_a, phydbl n
   return log_dens;
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 phydbl RATES_Compound_Core(phydbl mu1, phydbl mu2, int n1, int n2, phydbl dt1, phydbl dt2, phydbl alpha, phydbl beta, phydbl lexp, phydbl eps, int approx)
 {
@@ -441,7 +455,9 @@ phydbl RATES_Compound_Core(phydbl mu1, phydbl mu2, int n1, int n2, phydbl dt1, p
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 phydbl RATES_Compound_Core_Marginal(phydbl mu1, phydbl mu2, phydbl dt1, phydbl dt2, phydbl alpha, phydbl beta, phydbl lexp, phydbl eps, int approx)
 {
@@ -594,7 +610,9 @@ void RATES_Print_Rates(t_tree *tree)
   RATES_Print_Rates_Pre(tree->n_root,tree->n_root->v[1],NULL,tree);
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Print_Rates_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 {
@@ -641,7 +659,9 @@ void RATES_Print_Rates_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 phydbl RATES_Average_Rate(t_tree *tree)
 {
@@ -651,7 +671,9 @@ phydbl RATES_Average_Rate(t_tree *tree)
   For(i,2*tree->n_otu-2) sum += tree->rates->br_r[i];
   return sum/(2*tree->n_otu-2);
 }
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 
 
@@ -679,7 +701,9 @@ phydbl RATES_Average_Substitution_Rate(t_tree *tree)
   return(sum_r / sum_dt);
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 phydbl RATES_Check_Mean_Rates_True(t_tree *tree)
 {
@@ -691,7 +715,9 @@ phydbl RATES_Check_Mean_Rates_True(t_tree *tree)
   return(sum/(phydbl)(2*tree->n_otu-2));
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 int RATES_Check_Node_Times(t_tree *tree)
 {
@@ -702,7 +728,9 @@ int RATES_Check_Node_Times(t_tree *tree)
   return err;
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Check_Node_Times_Pre(t_node *a, t_node *d, int *err, t_tree *tree)
 {
@@ -723,7 +751,9 @@ void RATES_Check_Node_Times_Pre(t_node *a, t_node *d, int *err, t_tree *tree)
 	  RATES_Check_Node_Times_Pre(d,d->v[i],err,tree);
     }
 }
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 t_rate *RATES_Make_Rate_Struct(int n_otu)
 {
@@ -788,7 +818,9 @@ t_rate *RATES_Make_Rate_Struct(int n_otu)
   return rates;
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Free_Rates(t_rate *rates)
 {
@@ -846,7 +878,9 @@ void RATES_Free_Rates(t_rate *rates)
   Free(rates);
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Init_Rate_Struct(t_rate *rates, t_rate *existing_rates, int n_otu)
 {
@@ -985,7 +1019,9 @@ void RATES_Init_Rate_Struct(t_rate *rates, t_rate *existing_rates, int n_otu)
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Bracket_N_Jumps(int *up, int *down, phydbl param)
 {
@@ -1029,7 +1065,9 @@ void RATES_Bracket_N_Jumps(int *up, int *down, phydbl param)
   *down = a;
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 /* 
    mu   : average rate of the time period dt
    dt   : time period to be considered
@@ -1092,7 +1130,9 @@ phydbl RATES_Dmu(phydbl mu, int n_jumps, phydbl dt, phydbl a, phydbl b, phydbl l
     }
 }
   
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
   
 phydbl RATES_Dmu_One(phydbl mu, phydbl dt, phydbl a, phydbl b, phydbl lexp)
 {
@@ -1147,7 +1187,9 @@ phydbl RATES_Dmu_One(phydbl mu, phydbl dt, phydbl a, phydbl b, phydbl lexp)
   return(dens);
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 /* Given the times of nodes a (ta) and d (td), the shape of the gamma distribution of instantaneous
    rates, the parameter of the exponential distribution of waiting times between rate jumps and the 
    instantaneous rate at t_node a, this function works out an expected number of (amino-acids or 
@@ -1247,7 +1289,9 @@ void RATES_Expect_Number_Subst(phydbl t_beg, phydbl t_end, phydbl r_beg,  int *n
     }
 }
   
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Get_Mean_Rates_Pre(t_node *a, t_node *d, t_edge *b, phydbl r_a, t_tree *tree)
 {
@@ -1283,7 +1327,9 @@ void RATES_Get_Mean_Rates_Pre(t_node *a, t_node *d, t_edge *b, phydbl r_a, t_tre
 
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Random_Branch_Lengths(t_tree *tree)
 {
@@ -1307,7 +1353,9 @@ void RATES_Random_Branch_Lengths(t_tree *tree)
     (tree->rates->cur_l[tree->n_root->v[0]->num] + tree->rates->cur_l[tree->n_root->v[1]->num]);
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Set_Node_Times(t_tree *tree)
 {
@@ -1315,14 +1363,18 @@ void RATES_Set_Node_Times(t_tree *tree)
   RATES_Set_Node_Times_Pre(tree->n_root,tree->n_root->v[1],tree);
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Init_Triplets(t_tree *tree)
 {
   int i;
   For(i,2*tree->n_otu-1) tree->rates->triplet[i] = 0.0;
 }
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Set_Node_Times_Pre(t_node *a, t_node *d, t_tree *tree)
 {
@@ -1372,7 +1424,9 @@ void RATES_Set_Node_Times_Pre(t_node *a, t_node *d, t_tree *tree)
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 
 phydbl RATES_Dmu1_And_Mu2_One_Jump_Two_Intervals(phydbl mu1, phydbl mu2, phydbl dt1, phydbl dt2, phydbl alpha, phydbl beta)
@@ -1400,7 +1454,9 @@ phydbl RATES_Dmu1_And_Mu2_One_Jump_Two_Intervals(phydbl mu1, phydbl mu2, phydbl 
   return dens;
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 phydbl RATES_Dmu1_Given_V_And_N(phydbl mu1, phydbl v, int n, phydbl dt1, phydbl a, phydbl b)
 {
@@ -1471,7 +1527,9 @@ phydbl RATES_Dmu1_Given_V_And_N(phydbl mu1, phydbl v, int n, phydbl dt1, phydbl 
   return(dens);
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 /* Joint density of mu1 and a minimum number of jumps occuring in the interval dt1+dt2 given mu1. 
    1 jump occurs at the junction of the two intervals, which makes mu1 and mu2 independant */
 phydbl RATES_Dmu2_And_Mu1_Given_Min_N(phydbl mu1, phydbl mu2, phydbl dt1, phydbl dt2, int n_min, phydbl a, phydbl b, phydbl lexp)
@@ -1514,7 +1572,9 @@ phydbl RATES_Dmu2_And_Mu1_Given_Min_N(phydbl mu1, phydbl mu2, phydbl dt1, phydbl
   return(density);
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 /* Joint density of mu1 and mu2 given the number of jumps (n) in the interval dt1+dt2, which are considered
    as independant. Hence, for n jumps occuring in dt1+dt2, the number of jumps occuring in dt1 and dt2 are
    n and 0, or n-1 and 1, or n-2 and 2 ... or 0 and n. This function sums over all these scenarios, with
@@ -1567,14 +1627,18 @@ phydbl RATES_Dmu2_And_Mu1_Given_N(phydbl mu1, phydbl mu2, phydbl dt1, phydbl dt2
     return(density);
   }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Initialize_True_Rates(t_tree *tree)
 {
   int i;
   For(i,2*tree->n_otu-2) tree->rates->true_r[i] = tree->rates->br_r[i];
 }
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Get_Rates_From_Bl(t_tree *tree)
 {
@@ -1608,7 +1672,9 @@ void RATES_Get_Rates_From_Bl(t_tree *tree)
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 phydbl RATES_Lk_Jumps(t_tree *tree)
 {
@@ -1635,7 +1701,9 @@ phydbl RATES_Lk_Jumps(t_tree *tree)
   return dens;
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Posterior_Rates(t_tree *tree)
 {
@@ -1644,7 +1712,9 @@ void RATES_Posterior_Rates(t_tree *tree)
   RATES_Posterior_One_Rate(tree->noeud[node_num]->anc,tree->noeud[node_num],NO,tree);
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Posterior_Times(t_tree *tree)
 {
@@ -1653,7 +1723,9 @@ void RATES_Posterior_Times(t_tree *tree)
   RATES_Posterior_One_Time(tree->noeud[node_num]->anc,tree->noeud[node_num],NO,tree);
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Posterior_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree)
 {
@@ -1941,7 +2013,9 @@ void RATES_Posterior_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree)
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Posterior_One_Time(t_node *a, t_node *d, int traversal, t_tree *tree)
 {
@@ -2400,7 +2474,9 @@ void RATES_Posterior_One_Time(t_node *a, t_node *d, int traversal, t_tree *tree)
   
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Posterior_Time_Root(t_tree *tree)
 {
@@ -2559,7 +2635,9 @@ void RATES_Posterior_Time_Root(t_tree *tree)
 
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Update_Cur_Bl(t_tree *tree)
 {
@@ -2612,7 +2690,9 @@ void RATES_Update_Cur_Bl(t_tree *tree)
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Update_Cur_Bl_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 {
@@ -2752,7 +2832,9 @@ void RATES_Update_Cur_Bl_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Bl_To_Ml(t_tree *tree)
 {
@@ -2763,7 +2845,9 @@ void RATES_Bl_To_Ml(t_tree *tree)
   tree->rates->ml_l[tree->n_root->v[1]->num] = tree->rates->u_ml_l[tree->e_root->num] * (1. - tree->n_root_pos);
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Bl_To_Ml_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 {
@@ -2785,7 +2869,9 @@ void RATES_Bl_To_Ml_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Get_Cov_Matrix_Rooted(phydbl *unroot_cov, t_tree *tree)
 {
@@ -2803,7 +2889,9 @@ void RATES_Get_Cov_Matrix_Rooted(phydbl *unroot_cov, t_tree *tree)
 
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Get_Cov_Matrix_Rooted_Pre(t_node *a, t_node *d, t_edge *b, phydbl *cov, t_tree *tree)
 {
@@ -2858,7 +2946,9 @@ void RATES_Get_Cov_Matrix_Rooted_Pre(t_node *a, t_node *d, t_edge *b, phydbl *co
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Covariance_Mu(t_tree *tree)
 {
@@ -2907,7 +2997,9 @@ void RATES_Covariance_Mu(t_tree *tree)
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Variance_Mu_Pre(t_node *a, t_node *d, t_tree *tree)
 {
@@ -2955,7 +3047,9 @@ void RATES_Variance_Mu_Pre(t_node *a, t_node *d, t_tree *tree)
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Fill_Lca_Table(t_tree *tree)
 {
@@ -2974,7 +3068,9 @@ void RATES_Fill_Lca_Table(t_tree *tree)
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 /* Get V(L_{i} | L_{-i}) for all i */
 void RATES_Get_Conditional_Variances(t_tree *tree)
 {
@@ -3009,7 +3105,9 @@ void RATES_Get_Conditional_Variances(t_tree *tree)
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Get_All_Reg_Coeff(t_tree *tree)
 {
@@ -3037,7 +3135,9 @@ void RATES_Get_All_Reg_Coeff(t_tree *tree)
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 /* Get V(L_{i} | L_{-i}) for all i */
 void RATES_Get_Trip_Conditional_Variances(t_tree *tree)
@@ -3075,7 +3175,9 @@ void RATES_Get_Trip_Conditional_Variances(t_tree *tree)
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Get_All_Trip_Reg_Coeff(t_tree *tree)
 {
@@ -3107,7 +3209,9 @@ void RATES_Get_All_Trip_Reg_Coeff(t_tree *tree)
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Check_Lk_Rates(t_tree *tree, int *err)
 {
@@ -3135,7 +3239,9 @@ void RATES_Check_Lk_Rates(t_tree *tree, int *err)
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 phydbl RATES_Expected_Tree_Length(t_tree *tree)
 {
@@ -3157,7 +3263,9 @@ phydbl RATES_Expected_Tree_Length(t_tree *tree)
   return mean;
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Expected_Tree_Length_Pre(t_node *a, t_node *d, phydbl eranc, phydbl *mean, int *n, t_tree *tree)
 {
@@ -3200,7 +3308,9 @@ void RATES_Expected_Tree_Length_Pre(t_node *a, t_node *d, phydbl eranc, phydbl *
 	RATES_Expected_Tree_Length_Pre(d,d->v[i],erdes,mean,n,tree);
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Update_Norm_Fact(t_tree *tree)
 {
@@ -3226,8 +3336,12 @@ void RATES_Update_Norm_Fact(t_tree *tree)
   tree->rates->norm_fact = 1.0;
 }
 
-/*********************************************************/
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Normalise_Rates(t_tree *tree)
 {
@@ -3272,7 +3386,9 @@ void RATES_Normalise_Rates(t_tree *tree)
   RATES_Update_Cur_Bl(tree);
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 phydbl RATES_Find_Max_Dt_Bisec(phydbl r, phydbl r_mean, phydbl ta, phydbl tc, phydbl nu, phydbl threshp, int inf)
 {
@@ -3329,7 +3445,9 @@ phydbl RATES_Find_Max_Dt_Bisec(phydbl r, phydbl r_mean, phydbl ta, phydbl tc, ph
   return tb;
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 phydbl RATES_Find_Min_Dt_Bisec(phydbl r, phydbl r_mean, phydbl ta, phydbl tc, phydbl nu, phydbl threshp, int inf)
 {
@@ -3387,7 +3505,9 @@ phydbl RATES_Find_Min_Dt_Bisec(phydbl r, phydbl r_mean, phydbl ta, phydbl tc, ph
   return tb;
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Min_Max_Interval(phydbl u0, phydbl u1, phydbl u2, phydbl u3, phydbl t0, phydbl t2, phydbl t3, 
 			    phydbl *t_min, phydbl *t_max, phydbl nu, phydbl p_thresh, t_tree *tree)
@@ -3439,7 +3559,9 @@ void RATES_Min_Max_Interval(phydbl u0, phydbl u1, phydbl u2, phydbl u3, phydbl t
   Free(cdf);
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 phydbl RATES_Get_Correction_Factor(phydbl mode, phydbl sd, int *err, t_tree *tree)
 {
@@ -3518,7 +3640,9 @@ phydbl RATES_Get_Correction_Factor(phydbl mode, phydbl sd, int *err, t_tree *tre
   return X2 * sd;
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 phydbl Sample_Average_Rate(t_node *a, t_node *d, t_tree *tree)
 {
@@ -3535,7 +3659,9 @@ phydbl Sample_Average_Rate(t_node *a, t_node *d, t_tree *tree)
 
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Update_Mean_Br_Len(int iter, t_tree *tree)
 {
@@ -3555,7 +3681,9 @@ void RATES_Update_Mean_Br_Len(int iter, t_tree *tree)
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Update_Cov_Br_Len(int iter, t_tree *tree)
 {
@@ -3583,7 +3711,9 @@ void RATES_Update_Cov_Br_Len(int iter, t_tree *tree)
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Set_Mean_L(t_tree *tree)
 {
@@ -3594,7 +3724,9 @@ void RATES_Set_Mean_L(t_tree *tree)
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Record_Times(t_tree *tree)
 {
@@ -3610,7 +3742,9 @@ void RATES_Record_Times(t_tree *tree)
   For(i,2*tree->n_otu-1) tree->rates->buff_t[i] = tree->rates->nd_t[i];
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Reset_Times(t_tree *tree)
 {
@@ -3619,7 +3753,9 @@ void RATES_Reset_Times(t_tree *tree)
   For(i,2*tree->n_otu-1) tree->rates->nd_t[i] = tree->rates->buff_t[i];
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Record_Rates(t_tree *tree)
 {
@@ -3635,7 +3771,9 @@ void RATES_Record_Rates(t_tree *tree)
   For(i,2*tree->n_otu-2) tree->rates->buff_r[i] = tree->rates->br_r[i];
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Reset_Rates(t_tree *tree)
 {
@@ -3644,7 +3782,9 @@ void RATES_Reset_Rates(t_tree *tree)
   For(i,2*tree->n_otu-2) tree->rates->br_r[i] = tree->rates->buff_r[i];
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Set_Clock_And_Nu_Max(t_tree *tree)
 {
@@ -3703,7 +3843,9 @@ void RATES_Set_Clock_And_Nu_Max(t_tree *tree)
   PhyML_Printf("\n. Autocorrelation parameter upper bound set to %f",tree->rates->max_nu);
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Write_Mean_R_On_Edge_Label(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 {
@@ -3732,10 +3874,14 @@ void RATES_Write_Mean_R_On_Edge_Label(t_node *a, t_node *d, t_edge *b, t_tree *t
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
 
 
-/*********************************************************/
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 phydbl RATES_Get_Mean_Rate_In_Subtree(t_node *root, t_tree *tree)
 {
@@ -3773,7 +3919,9 @@ phydbl RATES_Get_Mean_Rate_In_Subtree(t_node *root, t_tree *tree)
   
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Get_Mean_Rate_In_Subtree_Pre(t_node *a, t_node *d, phydbl *sum, int *n, t_tree *tree)
 {
@@ -3794,7 +3942,9 @@ void RATES_Get_Mean_Rate_In_Subtree_Pre(t_node *a, t_node *d, phydbl *sum, int *
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 char *RATES_Get_Model_Name(int model)
 {
@@ -3818,7 +3968,9 @@ char *RATES_Get_Model_Name(int model)
   return s;
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void RATES_Get_Survival_Ranks(t_tree *tree)
 {
@@ -3840,10 +3992,20 @@ void RATES_Get_Survival_Ranks(t_tree *tree)
 
 }
 
-/*********************************************************/
-/*********************************************************/
-/*********************************************************/
-/*********************************************************/
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 
