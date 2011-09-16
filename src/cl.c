@@ -60,6 +60,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
       {"random_boot",       required_argument,NULL,29},
       {"print_trace",       no_argument,NULL,30},
       {"print_site_lnl",    no_argument,NULL,31},
+      {"print_site_lk",    no_argument,NULL,31},
       {"cov",               no_argument,NULL,32},
       {"cov_delta",         required_argument,NULL,33},
       {"cov_alpha",         required_argument,NULL,34},
@@ -90,6 +91,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
       {"no_colalias",         no_argument,NULL,57},
       {"alias_subpatt",       no_argument,NULL,58},      
       {"no_data",             no_argument,NULL,59},      
+      {"prior",               no_argument,NULL,59},      
       {"fastlk",              no_argument,NULL,60},      
       {"free_rates",          no_argument,NULL,61},
       {"freerates",           no_argument,NULL,61},
@@ -102,6 +104,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
       {"codpos",              required_argument,NULL,67},
       {"constraint_file",     required_argument,NULL,68},
       {"constraint_tree",     required_argument,NULL,68},
+      {"help",                no_argument,NULL,69},
       {0,0,0,0}
     };
 
@@ -229,7 +232,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	    break;
 	  }
 	case 57:
-	  {
+	  {	    
 	    io->colalias = NO;
 	    break;
 	  }
@@ -969,7 +972,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	    break;
 	  }
 	  
-	case 'h':
+	case 'h':case 69:
 	  {
 	    Usage();
 	    break;
@@ -1153,43 +1156,43 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	  {
 	    if(!strcmp(optarg,"tlr"))
 	      {
-		io->mod->s_opt->opt_topo        = 1;
-		io->mod->s_opt->opt_bl          = 1;
-		io->mod->s_opt->opt_subst_param = 1;
+		io->mod->s_opt->opt_topo        = YES;
+		io->mod->s_opt->opt_bl          = YES;
+		io->mod->s_opt->opt_subst_param = YES;
 	      }
 	    else if(!strcmp(optarg,"tl"))
 	      {
-		io->mod->s_opt->opt_topo        = 1;
-		io->mod->s_opt->opt_bl          = 1;
-		io->mod->s_opt->opt_subst_param = 0;
+		io->mod->s_opt->opt_topo        = YES;
+		io->mod->s_opt->opt_bl          = YES;
+		io->mod->s_opt->opt_subst_param = NO;
 	      }
 	    else if(!strcmp(optarg,"t"))
 	      {
-		Warn_And_Exit("\n. You can't optimize the topoLOGy without adjusting branch length too...\n");
+		Warn_And_Exit("\n. You can't optimize the topology without adjusting branch length too...\n");
 	      }
 	    else if(!strcmp(optarg,"lr"))
 	      {
-		io->mod->s_opt->opt_topo        = 0;
-		io->mod->s_opt->opt_bl          = 1;
-		io->mod->s_opt->opt_subst_param = 1;
+		io->mod->s_opt->opt_topo        = NO;
+		io->mod->s_opt->opt_bl          = YES;
+		io->mod->s_opt->opt_subst_param = YES;
 	      }
 	    else if(!strcmp(optarg,"l"))
 	      {
-		io->mod->s_opt->opt_topo        = 0;
-		io->mod->s_opt->opt_bl          = 1;
-		io->mod->s_opt->opt_subst_param = 0;
+		io->mod->s_opt->opt_topo        = NO;
+		io->mod->s_opt->opt_bl          = YES;
+		io->mod->s_opt->opt_subst_param = NO;
 	      }
 	    else if(!strcmp(optarg,"r"))
 	      {
-		io->mod->s_opt->opt_topo        = 0;
-		io->mod->s_opt->opt_bl          = 0;
-		io->mod->s_opt->opt_subst_param = 1;
+		io->mod->s_opt->opt_topo        = NO;
+		io->mod->s_opt->opt_bl          = NO;
+		io->mod->s_opt->opt_subst_param = YES;
 	      }
 	    else if(!strcmp(optarg,"none") || !strcmp(optarg,"n"))
 	      {
-		io->mod->s_opt->opt_topo        = 0;
-		io->mod->s_opt->opt_bl          = 0;
-		io->mod->s_opt->opt_subst_param = 0;
+		io->mod->s_opt->opt_topo        = NO;
+		io->mod->s_opt->opt_bl          = NO;
+		io->mod->s_opt->opt_subst_param = NO;
 	      }
 	    else
 	      {
@@ -1382,4 +1385,6 @@ void Read_Command_Line(option *io, int argc, char **argv)
   return;
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+

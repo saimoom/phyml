@@ -16,7 +16,9 @@ the GNU public licence. See http://www.opensource.org for details.
 
 #include "times.h"
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 #ifdef PHYTIME
 
 int TIMES_main(int argc, char **argv)
@@ -93,7 +95,7 @@ int TIMES_main(int argc, char **argv)
   if(io->in_tree == 2) Test_Multiple_Data_Set_Format(io);
   else io->n_trees = 1;
 
-  io->colalias = 1;  /* Do not compress sites if you're using Evolve function */
+  /* io->colalias = 1;  /\* Do not compress sites if you're using Evolve function *\/ */
 
   mat = NULL;
   tree_line_number = 0;
@@ -330,7 +332,9 @@ int TIMES_main(int argc, char **argv)
 
 #endif
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void TIMES_Least_Square_Node_Times(t_edge *e_root, t_tree *tree)
 {
@@ -417,7 +421,9 @@ void TIMES_Least_Square_Node_Times(t_edge *e_root, t_tree *tree)
 
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void TIMES_Least_Square_Node_Times_Pre(t_node *a, t_node *d, phydbl *A, phydbl *b, int n, t_tree *tree)
 {
@@ -450,7 +456,9 @@ void TIMES_Least_Square_Node_Times_Pre(t_node *a, t_node *d, phydbl *A, phydbl *
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 /* Adjust t_node times in order to have correct time stamp ranking with
  respect to the tree topology */
@@ -468,7 +476,9 @@ void TIMES_Adjust_Node_Times(t_tree *tree)
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void TIMES_Adjust_Node_Times_Pre(t_node *a, t_node *d, t_tree *tree)
 {
@@ -503,7 +513,9 @@ void TIMES_Adjust_Node_Times_Pre(t_node *a, t_node *d, t_tree *tree)
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
   /* Multiply each time stamp at each internal 
      t_node by  'tree->time_stamp_mult'.
@@ -516,7 +528,9 @@ void TIMES_Mult_Time_Stamps(t_tree *tree)
   tree->rates->nd_t[tree->n_root->num] *= FABS(tree->mod->s_opt->tree_size_mult);
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void TIMES_Print_Node_Times(t_node *a, t_node *d, t_tree *tree)
 {
@@ -544,7 +558,9 @@ void TIMES_Print_Node_Times(t_node *a, t_node *d, t_tree *tree)
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void TIMES_Set_All_Node_Priors(t_tree *tree)
 {
@@ -584,7 +600,9 @@ void TIMES_Set_All_Node_Priors(t_tree *tree)
   TIMES_Set_Floor(tree);
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void TIMES_Set_All_Node_Priors_Bottom_Up(t_node *a, t_node *d, t_tree *tree)
 {
@@ -636,7 +654,9 @@ void TIMES_Set_All_Node_Priors_Bottom_Up(t_node *a, t_node *d, t_tree *tree)
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void TIMES_Set_All_Node_Priors_Top_Down(t_node *a, t_node *d, t_tree *tree)
 {
@@ -672,7 +692,9 @@ void TIMES_Set_All_Node_Priors_Top_Down(t_node *a, t_node *d, t_tree *tree)
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void TIMES_Set_Floor(t_tree *tree)
 {
@@ -682,7 +704,9 @@ void TIMES_Set_Floor(t_tree *tree)
 						tree->rates->t_floor[tree->n_root->v[1]->num]);
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void TIMES_Set_Floor_Post(t_node *a, t_node *d, t_tree *tree)
 {
@@ -725,7 +749,9 @@ void TIMES_Set_Floor_Post(t_node *a, t_node *d, t_tree *tree)
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 /* Does it work for serial samples? */
 phydbl TIMES_Log_Conditional_Uniform_Density(t_tree *tree)
 {
@@ -751,7 +777,9 @@ phydbl TIMES_Log_Conditional_Uniform_Density(t_tree *tree)
   return dens;
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 /* Logarithm of Formula (9) in Rannala and Yang (1996) */
 /* Not sure that is works for serial samples */
@@ -778,7 +806,9 @@ phydbl TIMES_Log_Yule(t_tree *tree)
   return density;
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 phydbl TIMES_Lk_Times(t_tree *tree)
 {
@@ -817,7 +847,9 @@ phydbl TIMES_Lk_Times(t_tree *tree)
   return(condlogdens);
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void TIMES_Lk_Times_Trav(t_node *a, t_node *d, phydbl lim_inf, phydbl lim_sup, phydbl *logdens, t_tree *tree)
 {
@@ -860,7 +892,9 @@ void TIMES_Lk_Times_Trav(t_node *a, t_node *d, phydbl lim_inf, phydbl lim_sup, p
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 phydbl TIMES_Log_Number_Of_Ranked_Labelled_Histories(t_node *root, int per_slice, t_tree *tree)
 {
@@ -923,7 +957,9 @@ phydbl TIMES_Log_Number_Of_Ranked_Labelled_Histories(t_node *root, int per_slice
   return(logn);
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void TIMES_Log_Number_Of_Ranked_Labelled_Histories_Post(t_node *a, t_node *d, int per_slice, phydbl *logn, t_tree *tree)
 {
@@ -984,7 +1020,9 @@ void TIMES_Log_Number_Of_Ranked_Labelled_Histories_Post(t_node *a, t_node *d, in
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void TIMES_Update_Curr_Slice(t_tree *tree)
 {
@@ -1002,7 +1040,9 @@ void TIMES_Update_Curr_Slice(t_tree *tree)
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 phydbl TIMES_Lk_Uniform_Core(t_tree *tree)
 {  
@@ -1034,7 +1074,9 @@ phydbl TIMES_Lk_Uniform_Core(t_tree *tree)
   return(tree->rates->c_lnL_times);
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void TIMES_Get_Number_Of_Time_Slices(t_tree *tree)
 {
@@ -1053,7 +1095,9 @@ void TIMES_Get_Number_Of_Time_Slices(t_tree *tree)
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void TIMES_Get_Number_Of_Time_Slices_Post(t_node *a, t_node *d, t_tree *tree)
 {
@@ -1079,7 +1123,9 @@ void TIMES_Get_Number_Of_Time_Slices_Post(t_node *a, t_node *d, t_tree *tree)
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void TIMES_Get_N_Slice_Spans(t_tree *tree)
 {
@@ -1105,7 +1151,9 @@ void TIMES_Get_N_Slice_Spans(t_tree *tree)
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void TIMES_Lk_Uniform_Post(t_node *a, t_node *d, t_tree *tree)
 {
@@ -1133,7 +1181,9 @@ void TIMES_Lk_Uniform_Post(t_node *a, t_node *d, t_tree *tree)
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 /* Set the root position so that most of the taxa in the outgroup 
    correspond to the most ancient time point.
@@ -1195,7 +1245,9 @@ void TIMES_Set_Root_Given_Tip_Dates(t_tree *tree)
   Add_Root(best,tree);
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void Get_Survival_Duration(t_tree *tree)
 {
@@ -1203,7 +1255,9 @@ void Get_Survival_Duration(t_tree *tree)
   Get_Survival_Duration_Post(tree->n_root,tree->n_root->v[1],tree);
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void Get_Survival_Duration_Post(t_node *a, t_node *d, t_tree *tree)
 {
@@ -1236,5 +1290,9 @@ void Get_Survival_Duration_Post(t_node *a, t_node *d, t_tree *tree)
     }
 }
 
-/*********************************************************/
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+

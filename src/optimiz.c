@@ -13,7 +13,9 @@ the GNU public licence.  See http://www.opensource.org for details.
 #include "optimiz.h"
 
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void Optimize_Single_Param_Generic(t_tree *tree, phydbl *param, phydbl lim_inf, phydbl lim_sup, phydbl tol, int n_max_iter, int quickdirty)
 {
@@ -38,7 +40,9 @@ void Optimize_Single_Param_Generic(t_tree *tree, phydbl *param, phydbl lim_inf, 
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 int Generic_Brak(phydbl *param,
 		 phydbl *ax, phydbl *bx, phydbl *cx, 
@@ -157,7 +161,9 @@ int Generic_Brak(phydbl *param,
    return(0);
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 phydbl Generic_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, 
 		     phydbl *xmin, t_tree *tree, int n_iter_max, 
@@ -268,7 +274,9 @@ phydbl Generic_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
   /* Not Reached ??  return fx; */
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 phydbl RRparam_GTR_Golden(phydbl ax, phydbl bx, phydbl cx, phydbl tol, 
 			  phydbl *xmin, t_tree *tree, calign *cdata, phydbl *param, int n_iter_max)
@@ -333,7 +341,9 @@ phydbl RRparam_GTR_Golden(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
      }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 phydbl Br_Len_Golden(phydbl ax, phydbl bx, phydbl cx, phydbl tol, 
 		     phydbl *xmin, t_edge *b_fcus, t_tree *tree)
@@ -384,7 +394,9 @@ phydbl Br_Len_Golden(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
      }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 int Br_Len_Brak(phydbl *ax, phydbl *bx, phydbl *cx, 
 		phydbl *fa, phydbl *fb, phydbl *fc, 
@@ -472,14 +484,18 @@ int Br_Len_Brak(phydbl *ax, phydbl *bx, phydbl *cx,
    return(0);
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 phydbl Br_Len_Brent_Default(t_edge *b_fcus, t_tree *tree)
 {
   return Br_Len_Brent(10.*b_fcus->l,b_fcus->l,.10*b_fcus->l,tree->mod->s_opt->min_diff_lk_local,b_fcus,tree,1000,0);
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 phydbl Br_Len_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 		    t_edge *b_fcus, t_tree *tree, int n_iter_max, int quickdirty)
@@ -599,7 +615,9 @@ phydbl Br_Len_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
   /* Not Reached ??  return fx; */
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void Round_Optimize(t_tree *tree, calign *data, int n_round_max)
 {
@@ -629,6 +647,7 @@ void Round_Optimize(t_tree *tree, calign *data, int n_round_max)
 	  Optimize_Br_Len_Serie(root,root->v[0],root->b[0],tree,data);
 	}
 
+      
       tree->both_sides = 1;
       Lk(tree);
 
@@ -655,7 +674,9 @@ void Round_Optimize(t_tree *tree, calign *data, int n_round_max)
   Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void Optimize_Br_Len_Serie(t_node *a, t_node *d, t_edge *b_fcus, t_tree *tree, calign *cdata)
 {
@@ -688,11 +709,12 @@ void Optimize_Br_Len_Serie(t_node *a, t_node *d, t_edge *b_fcus, t_tree *tree, c
   l_infa = tree->mod->l_max;
   l_infb = tree->mod->l_min;
   
-  Br_Len_Brent(l_infa,l_max,l_infb,
-	       tree->mod->s_opt->min_diff_lk_local,
-	       b_fcus,tree,
-	       tree->mod->s_opt->brent_it_max,
-	       tree->mod->s_opt->quickdirty);
+  if(tree->io->mod->s_opt->opt_bl == YES)
+    Br_Len_Brent(l_infa,l_max,l_infb,
+		 tree->mod->s_opt->min_diff_lk_local,
+		 b_fcus,tree,
+		 tree->mod->s_opt->brent_it_max,
+		 tree->mod->s_opt->quickdirty);
 
   if(tree->mod->s_opt->opt_gamma_br_len == YES)
     {      
@@ -728,7 +750,9 @@ void Optimize_Br_Len_Serie(t_node *a, t_node *d, t_edge *b_fcus, t_tree *tree, c
   For(i,3) if((d->v[i] == a) && !(d->v[i]->tax)) Update_P_Lk(tree,d->b[i],d);
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void Optimiz_Ext_Br(t_tree *tree)
 {
@@ -771,7 +795,9 @@ void Optimiz_Ext_Br(t_tree *tree)
   tree->c_lnL = lk_init; 
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 {
@@ -1316,7 +1342,9 @@ void BFGS(t_tree *tree,
 #undef TOLX
 #undef STPMX
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 
 #define ALF 1.0e-4
@@ -1428,7 +1456,9 @@ int Lnsrch_RR_Param(t_tree *tree, int n, phydbl *xold, phydbl fold,
 #undef TOLX
 #undef NRANSI
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 #define ALF 1.0e-4
 #define TOLX 1.0e-7
@@ -1542,7 +1572,9 @@ int Lnsrch_RR_Cov_Param(t_tree *tree, int n, phydbl *xold, phydbl fold,
 #undef TOLX
 #undef NRANSI
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 #define ALF 1.0e-4
 #define TOLX 1.0e-7
@@ -1646,7 +1678,9 @@ int Lnsrch_Nucleotide_Frequencies(t_tree *tree, int n, phydbl *xold, phydbl fold
   return 1;
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 
 #define ALF 1.0e-4
@@ -1759,7 +1793,9 @@ int Lnsrch_Free_Mixt_Rates(t_tree *tree, int n, phydbl *xold, phydbl fold, phydb
 #undef TOLX
 #undef NRANSI
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 int Dist_F_Brak(phydbl *ax, phydbl *bx, phydbl *cx, phydbl *F, phydbl *param, model *mod)
 {
@@ -1832,7 +1868,9 @@ int Dist_F_Brak(phydbl *ax, phydbl *bx, phydbl *cx, phydbl *F, phydbl *param, mo
    return(0);
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 phydbl Dist_F_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, int n_iter_max, 
 		    phydbl *param, phydbl *F, model *mod)
@@ -1936,7 +1974,9 @@ phydbl Dist_F_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, int n_iter_max,
   return(-1);
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void Opt_Dist_F(phydbl *dist, phydbl *F, model *mod)
 {
@@ -1952,7 +1992,9 @@ void Opt_Dist_F(phydbl *dist, phydbl *F, model *mod)
   Dist_F_Brent(ax,bx,cx,1.E-10,1000,dist,F,mod);
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 int Missing_Dist_Brak(phydbl *ax, phydbl *bx, phydbl *cx, int x, int y, matrix *mat)
 {
@@ -2025,7 +2067,9 @@ int Missing_Dist_Brak(phydbl *ax, phydbl *bx, phydbl *cx, int x, int y, matrix *
    return(0);
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 phydbl Missing_Dist_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, int n_iter_max, 
 			  int x, int y, matrix *mat)
@@ -2125,7 +2169,9 @@ phydbl Missing_Dist_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, int n_ite
   return(-1);
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void Opt_Missing_Dist(int x, int y, matrix *mat)
 {
@@ -2139,7 +2185,9 @@ void Opt_Missing_Dist(int x, int y, matrix *mat)
   Missing_Dist_Brent(FABS(ax),FABS(bx),FABS(cx),1.E-5,100,x,y,mat);
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 int Optimiz_Alpha_And_Pinv(t_tree *tree)
 {
@@ -2179,16 +2227,17 @@ int Optimiz_Alpha_And_Pinv(t_tree *tree)
   
 
   tree->both_sides = 0;
-  Optimize_Single_Param_Generic(tree,&(tree->mod->pinvar),.0001,0.9999,
-				tree->mod->s_opt->min_diff_lk_global,
-				tree->mod->s_opt->brent_it_max,
-				tree->mod->s_opt->quickdirty);
 
   Optimize_Single_Param_Generic(tree,&(tree->mod->alpha),.01,100.,
 				tree->mod->s_opt->min_diff_lk_global,
 				tree->mod->s_opt->brent_it_max,
 				tree->mod->s_opt->quickdirty);
   
+  Optimize_Single_Param_Generic(tree,&(tree->mod->pinvar),.0001,0.9999,
+				tree->mod->s_opt->min_diff_lk_global,
+				tree->mod->s_opt->brent_it_max,
+				tree->mod->s_opt->quickdirty);
+
   pinv0  = tree->mod->pinvar;
   alpha0 = tree->mod->alpha;
   f0 = tree->c_lnL;
@@ -2202,15 +2251,15 @@ int Optimiz_Alpha_And_Pinv(t_tree *tree)
     
 
   tree->both_sides = 0;
-  Optimize_Single_Param_Generic(tree,&(tree->mod->pinvar),.0001,0.9999,
-				tree->mod->s_opt->min_diff_lk_global,
-				tree->mod->s_opt->brent_it_max,
-				tree->mod->s_opt->quickdirty);
   Optimize_Single_Param_Generic(tree,&(tree->mod->alpha),.01,100.,
 				tree->mod->s_opt->min_diff_lk_global,
 				tree->mod->s_opt->brent_it_max,
 				tree->mod->s_opt->quickdirty);
 
+  Optimize_Single_Param_Generic(tree,&(tree->mod->pinvar),.0001,0.9999,
+				tree->mod->s_opt->min_diff_lk_global,
+				tree->mod->s_opt->brent_it_max,
+				tree->mod->s_opt->quickdirty);
   lk_a = tree->c_lnL;
 
   pinv1  = tree->mod->pinvar;
@@ -2445,7 +2494,9 @@ int Optimiz_Alpha_And_Pinv(t_tree *tree)
   return 1;
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 phydbl Generic_Brent_Lk(phydbl *param, phydbl ax, phydbl cx, phydbl tol, 
 			int n_iter_max, int quickdirty,
@@ -2559,7 +2610,9 @@ phydbl Generic_Brent_Lk(phydbl *param, phydbl ax, phydbl cx, phydbl tol,
   /* Not Reached ??  return fx; */
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 /* find ML erstimates of node heights given fixed substitution
    rates on branches. Also optimizes the overall substitution
@@ -2600,7 +2653,9 @@ void Round_Optimize_Node_Heights(t_tree *tree)
     }
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void Opt_Node_Heights_Recurr(t_tree *tree)
 {
@@ -2618,7 +2673,9 @@ void Opt_Node_Heights_Recurr(t_tree *tree)
 		   Wrap_Lk,NULL,tree,NULL);
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void Opt_Node_Heights_Recurr_Pre(t_node *a, t_node *d, t_tree *tree)
 {
@@ -2676,15 +2733,39 @@ void Opt_Node_Heights_Recurr_Pre(t_node *a, t_node *d, t_tree *tree)
 }
 
 
-/*********************************************************/
-/*********************************************************/
-/*********************************************************/
-/*********************************************************/
-/*********************************************************/
-/*********************************************************/
-/*********************************************************/
-/*********************************************************/
-/*********************************************************/
-/*********************************************************/
-/*********************************************************/
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
