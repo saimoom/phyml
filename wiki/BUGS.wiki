@@ -1,4 +1,4 @@
-  * _19 September 2011._ Versions prior to phyml-20110919.tar.gz have an important bug affecting *`PhyTime`*. Priors on node ages are not recorded properly (except for the root node). Analysis conducted with versions of PhyML older that this one need to be re-run. Sorry for the inconvenience.
+  * _19 September 2011._ Versions prior to phyml-20110919.tar.gz have an important bug affecting PhyTime. *Priors on node ages are not recorded properly* (except for the root node). Analysis conducted with versions of PhyML older that this one need to be re-run. Sorry for the inconvenience.
 
   * _04 March 2011._ Due to a bug introduced in revision 568 (commited the 3rd of Nov. 2010), the bootstrap analysis would not complete. It has been fixed in revision 596.
 
