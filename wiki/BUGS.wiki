@@ -1,3 +1,5 @@
+  * _19 September 2011._ Versions prior to phyml-20110919.tar.gz have an important bug affecting PhyTime. Priors on node ages are not recorded properly (except for the root node). Analysis conducted with versions of PhyML older that this one need to be re-run. Sorry for the inconvenience.
+
   * _04 March 2011._ Due to a bug introduced in revision 568 (commited the 3rd of Nov. 2010), the bootstrap analysis would not complete. It has been fixed in revision 596.
 
   * _03 Feb 2010._ Bug found in *bootstrap calculation*. The comparison of bipartition of equal size could fail when the first character of taxon names were identical. I expect the impact of this bug to be minor.
