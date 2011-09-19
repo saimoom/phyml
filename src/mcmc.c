@@ -41,6 +41,7 @@ void MCMC(t_tree *tree)
       MCMC_Randomize_Covarion_Switch(tree);
     }
 
+
   tree->mod->update_eigen = YES;
 
   MCMC_Initialize_Param_Val(tree->mcmc,tree);
@@ -59,51 +60,53 @@ void MCMC(t_tree *tree)
   tree->mod->update_eigen = NO;
   MCMC_Print_Param(tree->mcmc,tree);
       
-  //////////////////
-  Make_Ancestral_Seq(tree);
-  Make_MutMap(tree);
  
-
-  int j;
-  char *s,*t;
-  FILE *fp;
-
-  For(j,tree->n_otu)
+  //////////////////
+  if(tree->io->mutmap == YES)
     {
-      s = (char *)mCalloc(T_MAX_NAME,sizeof(char));
-      strcpy(s,tree->noeud[j]->name);
-      tree->noeud[j]->name = s;
-    }
-
-  s = (char *)mCalloc(T_MAX_NAME,sizeof(char));
-  t = (char *)mCalloc(T_MAX_NAME,sizeof(char));
-
-  tree->write_tax_names = YES;
-  For(i,tree->n_pattern)
-    {
+      int j;
+      char *s,*t;
+      FILE *fp;
+      
+      Make_Ancestral_Seq(tree);
+      Make_MutMap(tree);
+ 
       For(j,tree->n_otu)
 	{
-	  strcpy(t,tree->noeud[j]->name);
-	  s[0]=tree->data->c_seq[j]->state[i];
-	  s[1]='\0';
-	  strcat(s,"--");
-	  sprintf(s+strlen(s),"%.0f",tree->rates->nd_t[j]);
-	  /* strcat(s,tree->noeud[j]->name); */
-	  strcpy(tree->noeud[j]->name,s);
+	  s = (char *)mCalloc(T_MAX_NAME,sizeof(char));
+	  strcpy(s,tree->noeud[j]->name);
+	  tree->noeud[j]->name = s;
 	}
-
-      strcpy(s,"rosettatree.");
-      sprintf(s+strlen(s),"%d",i);
-      fp = fopen(s,"w");
-      s = Write_Tree(tree,NO);
-      PhyML_Fprintf(fp,"%s",s);
-      fclose(fp);
-
-      For(j,tree->n_otu) strcpy(tree->noeud[j]->name,t);
+      
+      s = (char *)mCalloc(T_MAX_NAME,sizeof(char));
+      t = (char *)mCalloc(T_MAX_NAME,sizeof(char));
+      
+      tree->write_tax_names = YES;
+      For(i,tree->n_pattern)
+	{
+	  For(j,tree->n_otu)
+	    {
+	      strcpy(t,tree->noeud[j]->name);
+	      s[0]=tree->data->c_seq[j]->state[i];
+	      s[1]='\0';
+	      strcat(s,"--");
+	      sprintf(s+strlen(s),"%.0f",tree->rates->nd_t[j]);
+	      /* strcat(s,tree->noeud[j]->name); */
+	      strcpy(tree->noeud[j]->name,s);
+	    }
+	  
+	  strcpy(s,"rosettatree.");
+	  sprintf(s+strlen(s),"%d",i);
+	  fp = fopen(s,"w");
+	  s = Write_Tree(tree,NO);
+	  PhyML_Fprintf(fp,"%s",s);
+	  fclose(fp);
+	  
+	  For(j,tree->n_otu) strcpy(tree->noeud[j]->name,t);
+	}
+      Free(s);
+      Free(t);
     }
-  Free(s);
-  Free(t);
-
 
 
   first = 0;
@@ -317,37 +320,38 @@ void MCMC(t_tree *tree)
       MCMC_Print_Param(tree->mcmc,tree);
       MCMC_Print_Param_Stdin(tree->mcmc,tree);
 
-      if(!(tree->mcmc->run%tree->mcmc->sample_interval)) 
+      if(tree->io->mutmap == YES)
 	{
-	  Sample_Ancestral_Seq(YES,!tree->mcmc->use_data,tree);
-
-	  phydbl sum = 0.0;
-	  int edge,site,mut;
-	  char *s;
-	  FILE *fp;
-
-	  s = (char *)mCalloc(T_MAX_NAME,sizeof(char));
-
-	  strcpy(s,tree->mcmc->io->in_align_file);
-	  strcat(s,"_");
-	  strcat(s,tree->mcmc->out_filename);
-	  strcat(s,".mutmap");
-	  fp = fopen(s,"w");
-
-	  Free(s);
-	  
-	  For(i,(2*tree->n_otu-3)*(tree->n_pattern)*6) sum += tree->mutmap[i];
-	  PhyML_Fprintf(fp,"edge\t site\t mut\t count");
-	  For(i,(2*tree->n_otu-3)*(tree->n_pattern)*6) 
+	  if(!(tree->mcmc->run%tree->mcmc->sample_interval)) 
 	    {
-	      Get_Mutmap_Coord(i,&edge,&site,&mut,tree);
-	      PhyML_Fprintf(fp,"\n%4d\t %4d\t %4d\t %10f",edge,site,mut,(phydbl)tree->mutmap[i]/sum);
+	      Sample_Ancestral_Seq(YES,!tree->mcmc->use_data,tree);
+	      
+	      phydbl sum = 0.0;
+	      int edge,site,mut;
+	      char *s;
+	      FILE *fp;
+	      
+	      s = (char *)mCalloc(T_MAX_NAME,sizeof(char));
+	      
+	      strcpy(s,tree->mcmc->io->in_align_file);
+	      strcat(s,"_");
+	      strcat(s,tree->mcmc->out_filename);
+	      strcat(s,".mutmap");
+	      fp = fopen(s,"w");
+	      
+	      Free(s);
+	      
+	      For(i,(2*tree->n_otu-3)*(tree->n_pattern)*6) sum += tree->mutmap[i];
+	      PhyML_Fprintf(fp,"edge\t site\t mut\t count");
+	      For(i,(2*tree->n_otu-3)*(tree->n_pattern)*6) 
+		{
+		  Get_Mutmap_Coord(i,&edge,&site,&mut,tree);
+		  PhyML_Fprintf(fp,"\n%4d\t %4d\t %4d\t %10f",edge,site,mut,(phydbl)tree->mutmap[i]/sum);
+		}
+	      
+	      fclose(fp);	      
 	    }
-	  
-	  fclose(fp);
-
 	}
-
 
       (void)signal(SIGINT,MCMC_Terminate); 
     }
@@ -1776,17 +1780,17 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
 	  /* PhyML_Fprintf(fp,"MeanRate\t"); */
 /* 	  PhyML_Fprintf(fp,"NormFact\t"); */
 
-	  For(i,mcmc->n_moves)
-	    {
-	      strcpy(s,"Acc.");
-	      PhyML_Fprintf(fp,"%s%d\t",strcat(s,mcmc->move_name[i]),i);
-	    }
+	  /* For(i,mcmc->n_moves) */
+	  /*   { */
+	  /*     strcpy(s,"Acc."); */
+	  /*     PhyML_Fprintf(fp,"%s%d\t",strcat(s,mcmc->move_name[i]),i); */
+	  /*   } */
 
-	  For(i,mcmc->n_moves)
-	    {
-	      strcpy(s,"Tune.");
-	      PhyML_Fprintf(fp,"%s%d\t",strcat(s,mcmc->move_name[i]),i);
-	    }
+	  /* For(i,mcmc->n_moves) */
+	  /*   { */
+	  /*     strcpy(s,"Tune."); */
+	  /*     PhyML_Fprintf(fp,"%s%d\t",strcat(s,mcmc->move_name[i]),i); */
+	  /*   } */
 
 	  /* For(i,mcmc->n_moves) */
 	  /*   { */
@@ -1924,8 +1928,8 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
 /*       PhyML_Fprintf(fp,"%f\t",RATES_Check_Mean_Rates(tree)); */
 
 /*       PhyML_Fprintf(fp,"%f\t",tree->rates->norm_fact); */
-      For(i,tree->mcmc->n_moves) PhyML_Fprintf(fp,"%f\t",tree->mcmc->acc_rate[i]);
-      For(i,tree->mcmc->n_moves) PhyML_Fprintf(fp,"%f\t",(phydbl)(tree->mcmc->tune_move[i]));
+      /* For(i,tree->mcmc->n_moves) PhyML_Fprintf(fp,"%f\t",tree->mcmc->acc_rate[i]); */
+      /* For(i,tree->mcmc->n_moves) PhyML_Fprintf(fp,"%f\t",(phydbl)(tree->mcmc->tune_move[i])); */
 /*       For(i,tree->mcmc->n_moves) PhyML_Fprintf(fp,"%d\t",(int)(tree->mcmc->run_move[i])); */
 
       orig_approx = tree->io->lk_approx;
@@ -1979,10 +1983,10 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
 		      EXP(tree->rates->br_r[i]):
 		      tree->rates->br_r[i]);
 
-      fp_pred = fopen("predict.txt","a");      
-      for(i=0;i<2*tree->n_otu-2;i++) 
-	PhyML_Fprintf(fp_pred,"B%d\t%12f\t%12f\t%4d\n",i,EXP(tree->rates->br_r[i]),tree->rates->nd_t[i],tree->rates->has_survived[i]);
-      fclose(fp_pred);
+      /* fp_pred = fopen("predict.txt","a");       */
+      /* for(i=0;i<2*tree->n_otu-2;i++)  */
+      /* 	PhyML_Fprintf(fp_pred,"B%d\t%12f\t%12f\t%4d\n",i,EXP(tree->rates->br_r[i]),tree->rates->nd_t[i],tree->rates->has_survived[i]); */
+      /* fclose(fp_pred); */
 
 
       /* phydbl p,sd,mean; */
@@ -2005,15 +2009,15 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
       For(i,2*tree->n_otu-2) tree->rates->mean_r[i] = EXP(tree->rates->br_r[i]);
       For(i,2*tree->n_otu-1) tree->rates->mean_t[i] = tree->rates->nd_t[i];
       
-      Branch_Lengths_To_Time_Lengths(tree);
-      char *s;
-      s = (char *)mCalloc(T_MAX_NAME,sizeof(char));
-      strcpy(s,mcmc->io->in_align_file);
-      strcat(s,"_");
-      strcat(s,mcmc->out_filename);
-      strcat(s,".ps");
-      DR_Draw_Tree(s,tree);
-      Free(s);	
+      /* Branch_Lengths_To_Time_Lengths(tree); */
+      /* char *s; */
+      /* s = (char *)mCalloc(T_MAX_NAME,sizeof(char)); */
+      /* strcpy(s,mcmc->io->in_align_file); */
+      /* strcat(s,"_"); */
+      /* strcat(s,mcmc->out_filename); */
+      /* strcat(s,".ps"); */
+      /* DR_Draw_Tree(s,tree); */
+      /* Free(s);	 */
 
       /* FILE *fp; */
       /* int j; */

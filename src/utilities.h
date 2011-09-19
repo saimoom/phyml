@@ -800,6 +800,7 @@ typedef struct __Option { /*! mostly used in 'help.c' */
   int                      lk_approx; /* EXACT or NORMAL */
   char                    **alphabet;
   int                         codpos;
+  int                         mutmap;
 
   char              **long_tax_names;
   char             **short_tax_names;
