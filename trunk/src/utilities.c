@@ -7373,6 +7373,7 @@ void Set_Defaults_Input(option* io)
   io->do_alias_subpatt           = NO;
   io->lk_approx                  = EXACT;
   io->codpos                     = -1;
+  io->mutmap                     = NO;
 
   MCMC_Init_MCMC_Struct(NULL,io,io->mcmc);
   RATES_Init_Rate_Struct(io->rates,NULL,-1);

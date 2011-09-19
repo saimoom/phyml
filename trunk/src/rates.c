@@ -409,7 +409,11 @@ phydbl RATES_Lk_Rates_Core(phydbl br_r_a, phydbl br_r_d, phydbl nd_r_a, phydbl n
       }
     case GAMMA :
       {
- 	log_dens = Dgamma(br_r_d,1./tree->rates->nu,tree->rates->nu);
+	if(tree->rates->model_log_rates == YES)
+	  log_dens = Dgamma(EXP(br_r_d),1./tree->rates->nu,tree->rates->nu);
+	else
+	  log_dens = Dgamma(br_r_d,1./tree->rates->nu,tree->rates->nu);
+
 	log_dens = LOG(log_dens);
 	break;
       }
@@ -428,10 +432,10 @@ phydbl RATES_Lk_Rates_Core(phydbl br_r_a, phydbl br_r_d, phydbl nd_r_a, phydbl n
 
   if(isnan(log_dens) || isinf(FABS(log_dens)))
     {
-      PhyML_Printf("\n. Run=%4d br_r_d=%f br_r_a=%f dt_d=%f dt_a=%f nu=%f log_dens=%G sd=%f mean=%f %f\n",
+      PhyML_Printf("\n. Run=%4d br_r_d=%f br_r_a=%f dt_d=%f dt_a=%f nu=%f log_dens=%G sd=%f mean=%f\n",
 		   tree->mcmc->run,
-		   LOG(br_r_d),br_r_a,dt_d,dt_a,tree->rates->nu,log_dens,
-		   sd,mean,Dnorm(LOG(br_r_d),mean,sd));
+		   br_r_d,br_r_a,dt_d,dt_a,tree->rates->nu,log_dens,
+		   sd,mean);
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Exit("\n");
     }
@@ -948,9 +952,19 @@ void RATES_Init_Rate_Struct(t_rate *rates, t_rate *existing_rates, int n_otu)
   /* rates->max_clock     = 1.E-3; */
   /* rates->min_clock     = 1.E-5; */
 
-  rates->nu            = 1.E-3;
-  rates->min_nu        = 0.0;
-  rates->max_nu        = 1.0;
+  if(rates->model != GAMMA)
+    {
+      rates->nu            = 1.E-3;
+      rates->min_nu        = 0.0;
+      rates->max_nu        = 1.0;
+    }
+  else
+    {
+      rates->nu            = 1.E-1;
+      rates->min_nu        = 1.E-2;
+      rates->max_nu        = 100.0;
+    }
+
   /* rates->max_nu        = 2.0; */
 
   /* rates->nu            = 1.E-4; */
@@ -3799,48 +3813,52 @@ void RATES_Set_Clock_And_Nu_Max(t_tree *tree)
   phydbl tune;
   phydbl pa,pb;
 
-  tune = 1.1;
-
-  if(tree->rates->model_log_rates == NO)
+  if(tree->rates->model == THORNE || 
+     tree->rates->model == GUINDON)
     {
-      r_min = LOG(tree->rates->min_rate);
-      r_max = LOG(tree->rates->max_rate);
-    }
-  else
-    {
-      r_min = tree->rates->min_rate;
-      r_max = tree->rates->max_rate;
-    }
-
-  l_max = tree->mod->l_max;
-
-  min_t = .0;
-  For(i,2*tree->n_otu-1) if(tree->rates->t_prior_min[i] < min_t) min_t = tree->rates->t_prior_min[i];
-  
-  dt = FABS(min_t);
-  max_clock = l_max / dt; 
-
-  nu   = 1.E-10;
-  step = 1.E-1;
-  a    = 0.5;
-  do
-    {
+      tune = 1.1;
+      
+      if(tree->rates->model_log_rates == NO)
+	{
+	  r_min = LOG(tree->rates->min_rate);
+	  r_max = LOG(tree->rates->max_rate);
+	}
+      else
+	{
+	  r_min = tree->rates->min_rate;
+	  r_max = tree->rates->max_rate;
+	}
+      
+      l_max = tree->mod->l_max;
+      
+      min_t = .0;
+      For(i,2*tree->n_otu-1) if(tree->rates->t_prior_min[i] < min_t) min_t = tree->rates->t_prior_min[i];
+      
+      dt = FABS(min_t);
+      max_clock = l_max / dt; 
+      
+      nu   = 1.E-10;
+      step = 1.E-1;
+      a    = 0.5;
       do
 	{
-	  nu += step;
-	  pa = Dnorm(0.0,  0.0,SQRT(nu*dt)); 
-	  pb = Dnorm(r_max,0.0,SQRT(nu*dt));
-	}while(pa/pb > tune);
-      nu -= step;
-      step /= 10.;
-    }while(step > 1.E-10);
-  
-  tree->rates->max_nu    = nu;
-  /* tree->rates->max_nu    = 1.0; */
-  tree->rates->max_clock = max_clock;
-
-  PhyML_Printf("\n. Clock rate parameter upper bound set to %f expected subst./site/time unit",tree->rates->max_clock);
-  PhyML_Printf("\n. Autocorrelation parameter upper bound set to %f",tree->rates->max_nu);
+	  do
+	    {
+	      nu += step;
+	      pa = Dnorm(0.0,  0.0,SQRT(nu*dt)); 
+	      pb = Dnorm(r_max,0.0,SQRT(nu*dt));
+	    }while(pa/pb > tune);
+	  nu -= step;
+	  step /= 10.;
+	}while(step > 1.E-10);
+      
+      tree->rates->max_nu    = nu;
+      /* tree->rates->max_nu    = 1.0; */
+      tree->rates->max_clock = max_clock;
+      
+      PhyML_Printf("\n. Clock rate parameter upper bound set to %f expected subst./site/time unit",tree->rates->max_clock);
+      PhyML_Printf("\n. Autocorrelation parameter upper bound set to %f",tree->rates->max_nu);
+    }
 }
 
 //////////////////////////////////////////////////////////////

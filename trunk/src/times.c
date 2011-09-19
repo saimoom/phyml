@@ -184,6 +184,7 @@ int TIMES_main(int argc, char **argv)
 		  /* Count the number of time slices */
 		  TIMES_Get_Number_Of_Time_Slices(tree);
 		  
+
 		  /* Get_Edge_Binary_Coding_Number(tree); */
 		  /* Exit("\n"); */
 
@@ -231,6 +232,7 @@ int TIMES_main(int argc, char **argv)
 		  For(i,(2*tree->n_otu-3)*(2*tree->n_otu-3)) tree->rates->invcov[i] = tree->rates->cov_l[i];
 		  if(!Iter_Matinv(tree->rates->invcov,2*tree->n_otu-3,2*tree->n_otu-3,YES)) Exit("\n");
 		  tree->rates->grad_l = Gradient(tree);
+
 
 		  /* Pre-calculation of conditional variances to speed up calculations */
 		  RATES_Bl_To_Ml(tree);
@@ -629,7 +631,7 @@ void TIMES_Set_All_Node_Priors_Bottom_Up(t_node *a, t_node *d, t_tree *tree)
 	  else    v2 = d->v[i];
 	}
       
-      if(tree->rates->t_has_prior[d->num])
+      if(tree->rates->t_has_prior[d->num] == YES)
 	{
 	  t_sup = MIN(tree->rates->t_prior_max[d->num],
 		      MIN(tree->rates->t_prior_max[v1->num],
@@ -665,9 +667,9 @@ void TIMES_Set_All_Node_Priors_Top_Down(t_node *a, t_node *d, t_tree *tree)
     {
       int i;      
       
-      if(tree->rates->t_has_prior[d->num])
+      if(tree->rates->t_has_prior[d->num] == YES)
 	{
-	  tree->rates->t_prior_min[d->num] = MIN(tree->rates->t_prior_min[d->num],tree->rates->t_prior_min[a->num]);
+	  tree->rates->t_prior_min[d->num] = MAX(tree->rates->t_prior_min[d->num],tree->rates->t_prior_min[a->num]);
 	  
 	  if(tree->rates->t_prior_max[d->num] < tree->rates->t_prior_min[d->num])
 	    {

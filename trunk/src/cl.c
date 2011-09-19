@@ -105,6 +105,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
       {"constraint_file",     required_argument,NULL,68},
       {"constraint_tree",     required_argument,NULL,68},
       {"help",                no_argument,NULL,69},
+      {"mutmap",              no_argument,NULL,70},
       {0,0,0,0}
     };
 
@@ -117,6 +118,11 @@ void Read_Command_Line(option *io, int argc, char **argv)
     {
       switch(c)
 	{
+	case 70:
+	  {
+	    io->mutmap = YES;
+	    break;
+	  }
 	case 68:
 	  {
 	    char *tmp;
