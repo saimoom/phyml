@@ -639,7 +639,7 @@ void Round_Optimize(t_tree *tree, calign *data, int n_round_max)
     {
       (!((n_round+2)%2))?(root=tree->noeud[0]):(root=tree->noeud[tree->n_otu-1]);
       
-      if((tree->mod->s_opt->opt_bl) && 
+      if((tree->mod->s_opt->opt_bl || tree->mod->s_opt->constrained_br_len) && 
 	 (tree->mod->s_opt->print) && 
 	 (!tree->io->quiet)) 
 	{
@@ -687,6 +687,7 @@ void Optimize_Br_Len_Serie(t_node *a, t_node *d, t_edge *b_fcus, t_tree *tree, c
   lk_init = tree->c_lnL;
   if(tree->mod->s_opt->constrained_br_len == YES)
     {
+
       Generic_Brent_Lk(&(tree->mod->br_len_multiplier),
 		       1.E-2,1.E+2,
 		       tree->mod->s_opt->min_diff_lk_global,
