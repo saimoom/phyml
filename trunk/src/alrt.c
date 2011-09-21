@@ -239,12 +239,12 @@ int Compute_Likelihood_Ratio_Test(t_edge *tested_edge, t_tree *tree)
 	}
       else
 	{
-	  //aLRT statistic is valid, compute the wished support
-	  if (tree->io->ratio_test == 2)
+	  //aLRT statistic is valid, compute the branch support
+	  if (tree->io->ratio_test == ALRTCHI2)
 	    {
 	      tested_edge->ratio_test = Statistics_To_Probabilities(tested_edge->alrt_statistic);	  
 	    }
-	  else if(tree->io->ratio_test == 3)
+	  else if(tree->io->ratio_test == MINALRTCHI2SH)
 	    {
 	      phydbl sh_support;
 	      phydbl param_support;
@@ -256,15 +256,15 @@ int Compute_Likelihood_Ratio_Test(t_edge *tested_edge, t_tree *tree)
 	      else                           tested_edge->ratio_test = param_support;
 	    }
 	  
-	  else if(tree->io->ratio_test == 1) 
+	  else if(tree->io->ratio_test == ALRTSTAT) 
 	    {
 	      tested_edge->ratio_test=tested_edge->alrt_statistic;
 	    } 
-	  else if(tree->io->ratio_test == 4) 
+	  else if(tree->io->ratio_test == SH) 
 	    {
 	      tested_edge->ratio_test = Statistics_To_SH(tree);
 	    }
-	  else if(tree->io->ratio_test == 5)
+	  else if(tree->io->ratio_test == ABAYES)
 	    {
 	      phydbl Kp0,Kp1,Kp2,logK;
 	      

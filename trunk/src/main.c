@@ -273,7 +273,7 @@ int main(int argc, char **argv)
 	      else if(io->ratio_test) 
 		{
 		  /* Launch aLRT */
-		  if(!io->quiet) PhyML_Printf("\n. Compute aLRT branch supports on the most likely tree...\n");
+		  if(!io->quiet) PhyML_Printf("\n. Compute fast branch supports on the most likely tree...\n");
 		  most_likely_tree = aLRT_From_String(most_likely_tree,cdata,mod,io);
 		}
 
