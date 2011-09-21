@@ -205,6 +205,12 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define STRICTCLOCK    6
 #define NONE          -1
 
+#define ALRTSTAT       1
+#define ALRTCHI2       2
+#define MINALRTCHI2SH  3
+#define SH             4
+#define ABAYES         5
+
 /* #define USE_OLD_LK */
 
 /*  /\* Uncomment the lines below to switch to single precision *\/ */
