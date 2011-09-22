@@ -719,6 +719,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
       PhyML_Printf("\n. Lk = %G LOG(Lk) = %f < %G",site_lk,log_site_lk,-BIG);
       For(catg,tree->mod->n_catg) PhyML_Printf("\n. rr=%f p=%f",tree->mod->gamma_rr[catg],tree->mod->gamma_r_proba[catg]);
       PhyML_Printf("\n. pinv = %G",tree->mod->pinvar);
+      PhyML_Printf("\n. bl mult = %G",tree->mod->br_len_multiplier);
 
       /* int i; */
       /* For(i,2*tree->n_otu-3) */
