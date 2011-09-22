@@ -129,7 +129,7 @@ void MCMC(t_tree *tree)
       /* 	  RATES_Update_Cur_Bl(tree); */
       /* 	  printf("\n. %s",Write_Tree(tree,NO)); */
       /* 	  Evolve(tree->data,tree->mod,tree); */
-      /* 	  Print_CSeq(fp,tree->data); */
+      /* 	  Print_CSeq(fp,NO,tree->data); */
       /* 	  sprintf(s,"simul_par.%d",getpid()); */
       /* 	  rename(tree->mcmc->out_filename,s); */
       /* 	  fflush(NULL); */

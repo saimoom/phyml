@@ -686,9 +686,8 @@ void Optimize_Br_Len_Serie(t_node *a, t_node *d, t_edge *b_fcus, t_tree *tree, c
   lk_init = tree->c_lnL;
   if(tree->mod->s_opt->constrained_br_len == YES)
     {
-
       Generic_Brent_Lk(&(tree->mod->br_len_multiplier),
-		       1.E-2,1.E+2,
+		       1.E-2,1.E+1,
 		       tree->mod->s_opt->min_diff_lk_global,
 		       tree->mod->s_opt->brent_it_max,
 		       tree->mod->s_opt->quickdirty,
@@ -2211,10 +2210,10 @@ int Optimiz_Alpha_And_Pinv(t_tree *tree)
   lk_a     = UNLIKELY;
 
 
-/*   PhyML_Printf("\n\n. Init lnL = %f alpha=%f pinv=%f", */
-/* 	 tree->c_lnL, */
-/* 	 tree->mod->alpha, */
-/* 	 tree->mod->pinvar); */
+  /* PhyML_Printf("\n\n. Init lnL = %f alpha=%f pinv=%f", */
+  /* 	 tree->c_lnL, */
+  /* 	 tree->mod->alpha, */
+  /* 	 tree->mod->pinvar); */
     
   /* Two (full) steps to compute  pinv_alpha_slope & pinv_alpha_intercept */
 
@@ -2225,7 +2224,6 @@ int Optimiz_Alpha_And_Pinv(t_tree *tree)
   Optimize_Br_Len_Serie(tree->noeud[0],tree->noeud[0]->v[0],
 			tree->noeud[0]->b[0],tree,tree->data);
   
-
   tree->both_sides = 0;
 
   Optimize_Single_Param_Generic(tree,&(tree->mod->alpha),.01,100.,
