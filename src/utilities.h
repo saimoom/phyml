@@ -10,6 +10,8 @@ the GNU public licence. See http://www.opensource.org for details.
 
 */
 
+#include <config.h>
+
 #ifndef UTILITIES_H
 #define UTILITIES_H
 
@@ -24,7 +26,6 @@ the GNU public licence. See http://www.opensource.org for details.
 #include <limits.h>
 #include <errno.h>
 #include <float.h>
-
 
 #define For(i,n)                     for(i=0; i<n; i++)
 #define Fors(i,n,s)                  for(i=0; i<n; i+=s)
@@ -1576,6 +1577,5 @@ void Get_Mutmap_Coord(int idx, int *edge, int *site, int *mut, t_tree *tree);
 #include "m4.h"
 #endif
 
-#include <config.h>
 
 #endif

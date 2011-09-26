@@ -1,3 +1,5 @@
+#include <config.h>
+
 #ifndef DRAW_H
 #define DRAW_H
 

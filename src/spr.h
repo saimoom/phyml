@@ -4,6 +4,8 @@
 ** Wim Hordijk   Last modified: 28 August 2006
 */
 
+#include <config.h>
+
 #ifndef _SPR_H_
 #define _SPR_H_
 

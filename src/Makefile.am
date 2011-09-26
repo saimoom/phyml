@@ -2,15 +2,14 @@
 # the two lines below if you want to use MPI.
 
 # CC=mpicc
-# DEFS=-DUNIX -D$(PROG) -DDEBUG -DMPI
+# DEFS= -D$(PROG) -DMPI
 
 # Comment the line below if you want to use MPI.
 # Uncomment the line below if you don't want to use MPI.
 
-DEFS = -DUNIX -D$(PROG) -DDEBUG $(REVISION)
+DEFS = $(REVISION)
 
 # REVISION = $(shell if test -e .svn; then echo -DREV=\"`LC_ALL=C svn info | sed -n '/^Rev/p'| sed -e 's/^Revision:\ //'`\"; fi;)
-
 
 if WANT_PHYTIME
 bin_PROGRAMS = phytime
@@ -39,10 +38,13 @@ if WANT_RF
 bin_PROGRAMS = rf
 PROG = RF
 else 
-# if WANT_PHYML
+if WANT_MPI
+bin_PROGRAMS = phyml-mpi
+PROG = PHYML
+else
 bin_PROGRAMS = phyml
 PROG = PHYML
-# endif
+endif
 endif
 endif
 endif
@@ -235,8 +237,8 @@ tiporder.c tiporder.h\
 m4.c m4.h
 rf_LDADD = -lm
 else
-# if WANT_PHYML
-phyml_SOURCES = main.c \
+if WANT_MPI
+phyml_mpi_SOURCES = main.c \
 utilities.c  utilities.h\
 optimiz.c  optimiz.h\
 lk.c  lk.h\
@@ -260,9 +262,34 @@ times.c times.h\
 tiporder.c tiporder.h\
 mg.c mg.h\
 m4.c m4.h
+phyml_mpi_LDADD = -lm
+else
+phyml_SOURCES = main.c \
+utilities.c  utilities.h\
+optimiz.c  optimiz.h\
+lk.c  lk.h\
+bionj.c bionj.h\
+models.c  models.h\
+free.c  free.h\
+help.c  help.h\
+simu.c  simu.h\
+eigen.c  eigen.h\
+pars.c  pars.h\
+alrt.c  alrt.h\
+interface.c  interface.h\
+cl.c  cl.h\
+spr.c spr.h\
+draw.c  draw.h\
+stats.c stats.h\
+rates.c rates.h\
+mcmc.c mcmc.h\
+times.c times.h\
+tiporder.c tiporder.h\
+mg.c mg.h\
+m4.c m4.h
 phyml_LDADD = -lm
 # endif
-# endif
+endif
 endif
 endif
 endif
@@ -277,7 +304,7 @@ all-am:	intro $(bin_PROGRAMS)$(EXEEXT)
 intro:	
 	@echo ""
 	@echo ""
-	@echo ":: Building $(PROG). Version $(VERSION) ::"
+	@echo ":: Building [$(bin_PROGRAMS)]. Version $(VERSION) ::"
 	@echo ""
 	@echo ""
 
