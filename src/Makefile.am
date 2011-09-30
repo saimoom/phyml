@@ -1,15 +1,5 @@
-# Uncomment (i.e. remove the `#' character at the begining of) 
-# the two lines below if you want to use MPI.
-
-# CC=mpicc
-# DEFS= -D$(PROG) -DMPI
-
-# Comment the line below if you want to use MPI.
-# Uncomment the line below if you don't want to use MPI.
 
 DEFS = $(REVISION)
-
-# REVISION = $(shell if test -e .svn; then echo -DREV=\"`LC_ALL=C svn info | sed -n '/^Rev/p'| sed -e 's/^Revision:\ //'`\"; fi;)
 
 if WANT_PHYTIME
 bin_PROGRAMS = phytime
