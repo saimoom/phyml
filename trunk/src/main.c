@@ -126,6 +126,8 @@ int main(int argc, char **argv)
 
 		  Init_Model(cdata,mod,io);
 
+		  if(io->mod->use_m4mod) M4_Init_Model(mod->m4mod,cdata,mod);
+
 		  switch(io->in_tree)
 		    {
 		    case 0 : case 1 : { tree = Dist_And_BioNJ(cdata,mod,io); break; }
