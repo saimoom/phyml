@@ -30,7 +30,7 @@
 \setpapersize{A4}
 % \hypersetup{colorlinks=true,linkcolor=blue,urlcolor=red,linkbordercolor=000}
 \hypersetup{colorlinks=true,linkcolor=blue,urlcolor=red}
-\renewcommand{\baselinestretch}{1}
+\renewcommand{\baselinestretch}{1.2}
 \makeindex
 \begin{document}
 \sloppy
@@ -135,7 +135,7 @@ character  long.   For  larger  data  sets,  we  recommend using  other  softwar
 
 The sources of the  program are available free of charge by sending  an e-mail to St\'ephane Guindon
 at                      \href{mailto:guindon@lirmm.fr}{\x{guindon@lirmm.fr}}                      or
-\href{mailto:guindon@stat.auckland.ac.nz}{\x{guindon@stat.auckland.ac.nz}}.
+\href{mailto:s.guindon@auckland.ac.nz}{\x{s.guindon@auckland.ac.nz}}.
 
 The compilation on UNIX-like systems is fairly  standard. It is described in the `INSTALL' file that
 comes with the sources. In a command-line window,  go to the directory that contains the sources and
@@ -149,9 +149,21 @@ make;
 \end{verbatim}
 }
 
-{\em Note} -- when PhyML  is going to be used mostly of exclusively in  batch mode, it is preferable
-to turn on the batch mode option in the  Makefile. In order to do so, the file \x{Makefile.am} needs
-to be modified: add \x{-DBATCH} to the line with \x{DEFS=-DUNIX -D\$(PROG) -DDEBUG}.
+By default, PhyML will be compiled with optimization flags turned on. It is possible to generate a
+version of PhyML that can run through a debugging tool (such as \x{ddd}\label{ddd}) or a profiling
+tool (such as \x{gprof}\label{gprof}) using the following instructions:
+
+{\setlength{\baselineskip}{0.5\baselineskip}
+\begin{verbatim}
+./configure --enable-debug;
+make clean;
+make;
+\end{verbatim}
+}
+
+% {\em Note} -- when PhyML  is going to be used mostly of exclusively in  batch mode, it is preferable
+% to turn on the batch mode option in the  Makefile. In order to do so, the file \x{Makefile.am} needs
+% to be modified: add \x{-DBATCH} to the line with \x{DEFS=-DUNIX -D\$(PROG) -DDEBUG}.
 
 
 
@@ -179,24 +191,25 @@ processors available.
 This  feature of  PhyML relies  on the  MPI (Message  Passing Interface)  library. To  use  it, your
 computer must  have MPI  installed on  it. In case  MPI is  not installed, you  can dowload  it from
 \href{http://www.mcs.anl.gov/research/projects/mpich2/}{http://www.mcs.anl.gov/research/projects/mpich2/}.
-Once  MPI is  installed, a  few modification  of the  file `\x{Makefile.am}' (in the \x{src/}
-directory) must be  applied.  The
-relevant section  of this file  and the  instruction to add  or remove the  MPI option to  PhyML are
-printed below:
-
+Once MPI is  installed, it is necessary to launch  the MPI daemon. This can be  done by entering the
+following instruction: \x{mpd \&}.  Note however that in most cases, the  MPI daemon will already be
+running on your server so  that you most likely do not need to worry  about this. You can then just
+go in the \x{phyml/} directory (the directory that contains the \x{src/}, \x{examples/} and \x{doc/}
+folders) and enter the commands below: {\setlength{\baselineskip}{0.5\baselineskip}
 \begin{verbatim}
-# Uncomment (i.e. remove the `#' character at the begining of) 
-# the two lines below if you want to use MPI.
-# Comment the two lines below if you don't want to use MPI.
-
-# CC=mpicc
-# DEFS=-DUNIX -D$(PROG) -DDEBUG -DMPI
-
-# Comment the line below if you want to use MPI.
-# Uncomment the line below if you don't want to use MPI.
-
-DEFS=-DUNIX -D$(PROG) -DDEBUG
+./configure --enable-mpi;
+make clean;
+make;
 \end{verbatim}
+}
+A binary file named \x{phyml-mpi} has now been created in the \x{src/} directory and is ready to use
+with MPI. A typical MPI command-line which uses 4 CPUs is given below:
+{\setlength{\baselineskip}{0.5\baselineskip}
+\begin{verbatim}
+mpirun -n 4 ./phyml-mpi -i myseq -b 100
+\end{verbatim}
+}
+
 
 
 \section{Program usage.}\label{sec:phyml_new}
