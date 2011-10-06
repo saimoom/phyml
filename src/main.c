@@ -72,7 +72,6 @@ int main(int argc, char **argv)
   srand(r_seed);
   io->r_seed = r_seed;
 
-
   if(io->in_tree == 2) Test_Multiple_Data_Set_Format(io);
   else io->n_trees = 1;
 
