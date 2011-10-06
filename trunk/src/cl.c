@@ -610,9 +610,10 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	  {
 	    if(!strcmp(optarg,"nt"))
 	      {
-		io->datatype      = NT;
-		io->mod->ns = 4;
-		io->mod->state_len     = 1;
+		io->datatype        = NT;
+		io->mod->ns         = 4;
+		io->mod->state_len  = 1;
+		io->mod->m4mod->n_o = 4;
 		
 		if(
 		   (io->mod->whichmodel == LG)       ||
@@ -639,9 +640,11 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	    else if (!strcmp(optarg,"aa"))
 	      {
 		io->datatype              = AA;
-		io->mod->state_len             = 1;
+		io->mod->state_len        = 1;
 		io->mod->s_opt->opt_kappa = 0;
-		io->mod->ns         = 20;
+		io->mod->ns               = 20;
+		io->mod->m4mod->n_o       = 20;
+
 		if(
 		   (io->mod->whichmodel == JC69)   ||
 		   (io->mod->whichmodel == K80)    ||

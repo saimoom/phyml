@@ -12610,7 +12610,7 @@ option *Get_Input(int argc, char **argv)
       Read_Command_Line(io,argc,argv);
     }
 #endif
-
+  
   return io;
 }
 
