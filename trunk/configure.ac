@@ -67,59 +67,60 @@ AS_IF([test "x$enable_debug" = "xyes"],
 
 AC_DEFINE([PHYML],[1],[PHYML tag on])
 
-AC_ARG_ENABLE([tiporder],[  --enable-tiporder    Compile tiporder],[tiporder=yes])
-AM_CONDITIONAL([WANT_TIPORDER], [test "$tiporder" = yes]) 
-if test "$tiporder" = yes; then
-   AC_DEFINE([TIPORDER],[1],[TIPORDER tag on])
-fi
+AC_ARG_ENABLE([mpi],
+              [AS_HELP_STRING([--enable-mpi],
+                              [Compile with mpicc instead of gcc.])])
+AS_IF([test "x$enable_mpi" = "xyes"],[CC="mpicc"])
+AS_IF([test "x$enable_mpi" = "xyes"],AC_DEFINE([MPI],[1],[MPI tag on]))
+AM_CONDITIONAL([WANT_MPI], [test "x$enable_mpi" = "xyes"]) 
 
-AC_ARG_ENABLE([phytime],[  --enable-phytime    Compile PhyTime],[phytime=yes])
+AC_ARG_ENABLE([phytime],[AS_HELP_STRING([--enable-phytime],[Compile PhyTime])],[phytime=yes])
 AM_CONDITIONAL([WANT_PHYTIME], [test "$phytime" = yes]) 
 if test "$phytime" = yes; then
    AC_DEFINE([PHYTIME],[1],[PHYTIME tag on])
    AC_DEFINE([PHYML],[0],[PHYML tag on])
 fi
 
-AC_ARG_ENABLE([part],[  --enable-part    Compile Part],[part=yes])
+AC_ARG_ENABLE([tiporder],[AS_HELP_STRING([--enable-tiporder],[Compile tiporder])],[tiporder=yes])
+AM_CONDITIONAL([WANT_TIPORDER], [test "$tiporder" = yes]) 
+if test "$tiporder" = yes; then
+   AC_DEFINE([TIPORDER],[1],[TIPORDER tag on])
+fi
+
+AC_ARG_ENABLE([part],[AS_HELP_STRING([--enable-part],[Compile Part])],[part=yes])
 AM_CONDITIONAL([WANT_PART], [test "$part" = yes]) 
 if test "$part" = yes; then
    AC_DEFINE([PART],[1],[PART tag on])
    AC_DEFINE([PHYML],[0],[PHYML tag on])
 fi
 
-AC_ARG_ENABLE([rwrap],[  --enable-rwrap    Compile Rwrap],[rwrap=yes])
+AC_ARG_ENABLE([rwrap],[AS_HELP_STRING([--enable-rwrap],[Compile Rwrap])],[rwrap=yes])
 AM_CONDITIONAL([WANT_RWRAP], [test "$rwrap" = yes]) 
 if test "$rwrap" = yes; then
    AC_DEFINE([RWRAP],[1],[RWRAP tag on])
    AC_DEFINE([PHYML],[0],[PHYML tag on])
 fi
 
-AC_ARG_ENABLE([phycont],[  --enable-phycont    Compile PhyCont],[phycont=yes])
+AC_ARG_ENABLE([phycont],[AS_HELP_STRING([--enable-phycont],[Compile PhyCont])],[phycont=yes])
 AM_CONDITIONAL([WANT_PHYCONT], [test "$phycont" = yes]) 
 if test "$phycont" = yes; then
    AC_DEFINE([PHYCONT],[1],[PHYCONT tag on])
    AC_DEFINE([PHYML],[0],[PHYML tag on])
 fi
 
-AC_ARG_ENABLE([m4],[  --enable-m4    Compile M4],[m4=yes])
+AC_ARG_ENABLE([m4],[AS_HELP_STRING([--enable-m4],[Compile M4])],[m4=yes])
 AM_CONDITIONAL([WANT_M4], [test "$m4" = yes]) 
 if test "$m4" = yes; then
    AC_DEFINE([M4],[1],[m4 tag on])
    AC_DEFINE([PHYML],[0],[PHYML tag on])
 fi
 
-AC_ARG_ENABLE([rf],[  --enable-rf    Compile RF],[rf=yes])
+AC_ARG_ENABLE([rf],[AS_HELP_STRING([--enable-rf],[Compile RF])],[rf=yes])
 AM_CONDITIONAL([WANT_RF], [test "$rf" = yes]) 
 if test "$rf" = yes; then
    AC_DEFINE([RF],[1],[RF tag on])
    AC_DEFINE([PHYML],[0],[PHYML tag on])
 fi
-
-AM_CONDITIONAL([WANT_MPI], [test "$CC" = mpicc]) 
-if test "$CC" = mpicc; then
-   AC_DEFINE([MPI],[1],[MPI tag on])
-fi
-
 
 
 AC_CONFIG_FILES([Makefile src/Makefile])
