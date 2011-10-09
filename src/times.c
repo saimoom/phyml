@@ -185,6 +185,11 @@ int TIMES_main(int argc, char **argv)
 		  TIMES_Get_Number_Of_Time_Slices(tree);
 		  
 
+
+		  /* TIMES_Least_Square_Node_Times(tree->e_root,tree); */
+		  /* Exit("\n"); */
+
+
 		  /* Get_Edge_Binary_Coding_Number(tree); */
 		  /* Exit("\n"); */
 
