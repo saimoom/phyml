@@ -60,7 +60,6 @@ int main(int argc, char **argv)
   setvbuf(stdout,NULL,_IOFBF,2048);
 #endif
 
-
   tree             = NULL;
   mod              = NULL;
   best_lnL         = UNLIKELY;
