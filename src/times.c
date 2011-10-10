@@ -173,6 +173,25 @@ int TIMES_main(int argc, char **argv)
 		  tree->n_pattern   = tree->data->crunch_len/tree->mod->state_len;
 
 
+		  phydbl *l1,*l2,crit;
+		  int i;
+		  l1 = (phydbl *)mCalloc(2*tree->n_otu-1,sizeof(phydbl));
+		  l2 = (phydbl *)mCalloc(2*tree->n_otu-1,sizeof(phydbl));
+		  RATES_Bl_To_Bl(tree);
+		  For(i,2*tree->n_otu-2) l1[i] = tree->rates->cur_l[i];
+		  TIMES_Least_Square_Node_Times(tree->e_root,tree);
+		  Branch_Lengths_To_Time_Lengths(tree);
+		  printf("\n. %s",Write_Tree(tree,NO));
+		  For(i,2*tree->n_otu-2) l2[i] = tree->rates->cur_l[i];
+		  crit = .0;
+		  For(i,2*tree->n_otu-2) crit += POW(l1[i]-l2[i],2);
+		  PhyML_Printf("\n. crit = %f",crit);
+		  Exit("\n");
+
+
+
+
+
 		  Prepare_Tree_For_Lk(tree);
 
 		  /* Read node age priors */
@@ -186,8 +205,6 @@ int TIMES_main(int argc, char **argv)
 		  
 
 
-		  /* TIMES_Least_Square_Node_Times(tree->e_root,tree); */
-		  /* Exit("\n"); */
 
 
 		  /* Get_Edge_Binary_Coding_Number(tree); */
@@ -358,15 +375,13 @@ void TIMES_Least_Square_Node_Times(t_edge *e_root, t_tree *tree)
   int n;
   int i,j;
   t_node *root;
-  
-    
+
   n = 2*tree->n_otu-1;
   
   A = (phydbl *)mCalloc(n*n,sizeof(phydbl));
   b = (phydbl *)mCalloc(n,  sizeof(phydbl));
   x = (phydbl *)mCalloc(n,  sizeof(phydbl));
-  
-  
+    
   if(!tree->n_root && e_root) Add_Root(e_root,tree);
   else if(!e_root)            Add_Root(tree->t_edges[0],tree);
   
@@ -390,11 +405,13 @@ void TIMES_Least_Square_Node_Times(t_edge *e_root, t_tree *tree)
   For(i,n) x[i] = .0;
   For(i,n) For(j,n) x[i] += A[i*n+j] * b[j];
 
-  For(i,n-1) { tree->rates->nd_t[tree->noeud[i]->num] = x[i]; }
-  tree->rates->nd_t[root->num] = x[n-1];
-  tree->n_root->l[0] = tree->rates->nd_t[root->num] - tree->rates->nd_t[root->v[0]->num];
-  tree->n_root->l[1] = tree->rates->nd_t[root->num] - tree->rates->nd_t[root->v[1]->num];
-
+  For(i,n-1) { tree->rates->nd_t[tree->noeud[i]->num] = -x[i]; }
+  tree->rates->nd_t[root->num] = -x[n-1];
+  tree->n_root->l[0] = tree->rates->nd_t[root->v[0]->num] - tree->rates->nd_t[root->num];
+  tree->n_root->l[1] = tree->rates->nd_t[root->v[1]->num] - tree->rates->nd_t[root->num];
+  ////////////////////////////////////////
+  return;
+  ////////////////////////////////////////
 
   /* Rescale the t_node times such that the time at the root
      is -100. This constraint implies that the clock rate
@@ -406,7 +423,6 @@ void TIMES_Least_Square_Node_Times(t_edge *e_root, t_tree *tree)
   scale_f = -100./tree->rates->nd_t[root->num];
   For(i,2*tree->n_otu-1) tree->rates->nd_t[i] *= scale_f;
   For(i,2*tree->n_otu-1) if(tree->rates->nd_t[i] > .0) tree->rates->nd_t[i] = .0;
-
 
   time_tree_length = 0.0;
   For(i,2*tree->n_otu-3)
@@ -447,6 +463,7 @@ void TIMES_Least_Square_Node_Times_Pre(t_node *a, t_node *d, phydbl *A, phydbl *
     {
       int i;
       
+ 
       For(i,3)
 	if((d->v[i] != a) && (d->b[i] != tree->e_root))
 	  TIMES_Least_Square_Node_Times_Pre(d,d->v[i],A,b,n,tree);

@@ -176,5 +176,7 @@ phydbl RATES_Get_Mean_Rate_In_Subtree(t_node *root, t_tree *tree);
 void RATES_Get_Mean_Rate_In_Subtree_Pre(t_node *a, t_node *d, phydbl *sum, int *n, t_tree *tree);
 char *RATES_Get_Model_Name(int model);
 void RATES_Get_Survival_Ranks(t_tree *tree);
+void RATES_Bl_To_Bl(t_tree *tree);
+void RATES_Bl_To_Bl_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree);
 
 #endif

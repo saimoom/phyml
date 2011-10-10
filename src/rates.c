@@ -619,9 +619,7 @@ void RATES_Print_Rates(t_tree *tree)
 
 
 void RATES_Print_Rates_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
-{
-
-  
+{  
   if((d == tree->n_root->v[0] && d->tax) || (d == tree->n_root->v[1] && d->tax))
     PhyML_Printf("\n. a=%3d ++d=%3d rate=%12f t_left=%12f t_rght=%12f ml=%12f l=%12f %12f",
 	   a->num,d->num,
@@ -2849,6 +2847,40 @@ void RATES_Update_Cur_Bl_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
+void RATES_Bl_To_Bl(t_tree *tree)
+{
+  RATES_Bl_To_Bl_Pre(tree->n_root,tree->n_root->v[0],NULL,tree);
+  RATES_Bl_To_Bl_Pre(tree->n_root,tree->n_root->v[1],NULL,tree);
+  /* tree->rates->cur_l[tree->n_root->v[0]->num] = tree->t_edges[tree->e_root->num]->l * tree->n_root_pos; */
+  /* tree->rates->cur_l[tree->n_root->v[1]->num] = tree->t_edges[tree->e_root->num]->l * (1. - tree->n_root_pos); */
+  tree->rates->cur_l[tree->n_root->v[0]->num] = tree->t_edges[tree->e_root->num]->l * 0.5;
+  tree->rates->cur_l[tree->n_root->v[1]->num] = tree->t_edges[tree->e_root->num]->l * (1. - 0.5);
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void RATES_Bl_To_Bl_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
+{
+
+  if(b) 
+    {
+      tree->rates->cur_l[d->num] = b->l;
+    }
+
+  if(d->tax) return;
+  else
+    {
+      int i;
+
+      For(i,3) 
+	if((d->v[i] != a) && (d->b[i] != tree->e_root)) 
+	  RATES_Bl_To_Bl_Pre(d,d->v[i],d->b[i],tree);
+    }
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
 
 void RATES_Bl_To_Ml(t_tree *tree)
 {
@@ -2861,7 +2893,6 @@ void RATES_Bl_To_Ml(t_tree *tree)
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
-
 
 void RATES_Bl_To_Ml_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 {
