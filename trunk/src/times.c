@@ -173,20 +173,20 @@ int TIMES_main(int argc, char **argv)
 		  tree->n_pattern   = tree->data->crunch_len/tree->mod->state_len;
 
 
-		  phydbl *l1,*l2,crit;
-		  int i;
-		  l1 = (phydbl *)mCalloc(2*tree->n_otu-1,sizeof(phydbl));
-		  l2 = (phydbl *)mCalloc(2*tree->n_otu-1,sizeof(phydbl));
-		  RATES_Bl_To_Bl(tree);
-		  For(i,2*tree->n_otu-2) l1[i] = tree->rates->cur_l[i];
-		  TIMES_Least_Square_Node_Times(tree->e_root,tree);
-		  Branch_Lengths_To_Time_Lengths(tree);
-		  printf("\n. %s",Write_Tree(tree,NO));
-		  For(i,2*tree->n_otu-2) l2[i] = tree->rates->cur_l[i];
-		  crit = .0;
-		  For(i,2*tree->n_otu-2) crit += POW(l1[i]-l2[i],2);
-		  PhyML_Printf("\n. crit = %f",crit);
-		  Exit("\n");
+		  /* phydbl *l1,*l2,crit; */
+		  /* int i; */
+		  /* l1 = (phydbl *)mCalloc(2*tree->n_otu-1,sizeof(phydbl)); */
+		  /* l2 = (phydbl *)mCalloc(2*tree->n_otu-1,sizeof(phydbl)); */
+		  /* RATES_Bl_To_Bl(tree); */
+		  /* For(i,2*tree->n_otu-2) l1[i] = tree->rates->cur_l[i]; */
+		  /* TIMES_Least_Square_Node_Times(tree->e_root,tree); */
+		  /* Branch_Lengths_To_Time_Lengths(tree); */
+		  /* printf("\n. %s",Write_Tree(tree,NO)); */
+		  /* For(i,2*tree->n_otu-2) l2[i] = tree->rates->cur_l[i]; */
+		  /* crit = .0; */
+		  /* For(i,2*tree->n_otu-2) crit += POW(l1[i]-l2[i],2); */
+		  /* PhyML_Printf("\n. crit = %f",crit); */
+		  /* Exit("\n"); */
 
 
 
