@@ -621,6 +621,7 @@ char *Write_Tree(t_tree *tree, int custom)
 
   if(custom == NO)
     {
+
       if(!tree->n_root)
 	{
 	  i = 0;
@@ -12153,7 +12154,8 @@ void Branch_Lengths_To_Time_Lengths_Pre(t_node *a, t_node *d, t_tree *tree)
 {
   int i;
 
-  tree->rates->cur_l[d->num] = FABS(tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num]);
+  /* tree->rates->cur_l[d->num] = FABS(tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num]); */
+  tree->rates->cur_l[d->num] = tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num];
 
   if(d->tax) return;
   else
