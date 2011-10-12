@@ -405,7 +405,7 @@ void TIMES_Least_Square_Node_Times(t_edge *e_root, t_tree *tree)
   For(i,n) x[i] = .0;
   For(i,n) For(j,n) x[i] += A[i*n+j] * b[j];
 
-  For(i,n-1) { tree->rates->nd_t[tree->noeud[i]->num] = -x[i]; }
+  For(i,n-1) { tree->rates->nd_t[tree->t_nodes[i]->num] = -x[i]; }
   tree->rates->nd_t[root->num] = -x[n-1];
   tree->n_root->l[0] = tree->rates->nd_t[root->v[0]->num] - tree->rates->nd_t[root->num];
   tree->n_root->l[1] = tree->rates->nd_t[root->v[1]->num] - tree->rates->nd_t[root->num];
@@ -548,7 +548,7 @@ void TIMES_Adjust_Node_Times_Pre(t_node *a, t_node *d, t_tree *tree)
 void TIMES_Mult_Time_Stamps(t_tree *tree)
 {
   int i;
-  For(i,2*tree->n_otu-2) tree->rates->nd_t[tree->noeud[i]->num] *= FABS(tree->mod->s_opt->tree_size_mult);
+  For(i,2*tree->n_otu-2) tree->rates->nd_t[tree->t_nodes[i]->num] *= FABS(tree->mod->s_opt->tree_size_mult);
   tree->rates->nd_t[tree->n_root->num] *= FABS(tree->mod->s_opt->tree_size_mult);
 }
 
@@ -788,13 +788,13 @@ phydbl TIMES_Log_Conditional_Uniform_Density(t_tree *tree)
   dens = 0.0;
   For(i,2*tree->n_otu-1)
     {
-      if((tree->noeud[i]->tax == NO) && (tree->noeud[i] != tree->n_root))
+      if((tree->t_nodes[i]->tax == NO) && (tree->t_nodes[i] != tree->n_root))
 	{
 	  max = tree->rates->t_floor[i];
 
 	  dens += LOG(Dorder_Unif(tree->rates->nd_t[i],
-				  tree->noeud[i]->rank-1,
-				  tree->noeud[i]->rank_max-2,
+				  tree->t_nodes[i]->rank-1,
+				  tree->t_nodes[i]->rank_max-2,
 				  min,max));
 	}
     }
@@ -853,7 +853,7 @@ phydbl TIMES_Lk_Times(t_tree *tree)
   /* n_nodes = 0; */
   /* For(i,2*tree->n_otu-2) */
   /*   { */
-  /*     if(tree->noeud[i]->tax == NO && tree->noeud[i] != tree->n_root) */
+  /*     if(tree->t_nodes[i]->tax == NO && tree->t_nodes[i] != tree->n_root) */
   /* 	{ */
   /* 	  if(!(tree->rates->nd_t[i] > tree->rates->t_floor[tree->n_root->num])) */
   /* 	    { */
@@ -1157,7 +1157,7 @@ void TIMES_Get_N_Slice_Spans(t_tree *tree)
 
   For(i,2*tree->n_otu-2)
     {
-      if(tree->noeud[i]->tax == NO)
+      if(tree->t_nodes[i]->tax == NO)
 	{
 	  For(j,tree->rates->n_time_slices)
 	    {
@@ -1223,7 +1223,7 @@ void TIMES_Set_Root_Given_Tip_Dates(t_tree *tree)
   
   Free_Bip(tree);
   Alloc_Bip(tree);
-  Get_Bip(tree->noeud[0],tree->noeud[0]->v[0],tree);
+  Get_Bip(tree->t_nodes[0],tree->t_nodes[0]->v[0],tree);
   
   left = rght = NULL;
   b = best = NULL;

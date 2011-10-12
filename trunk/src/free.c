@@ -22,12 +22,12 @@ void Free_All_Nodes_Light(t_tree *tree)
   int i;
   For(i,2*tree->n_otu-1) 
     {
-      if(tree->noeud[i])
+      if(tree->t_nodes[i])
 	{
-	  Free_Node(tree->noeud[i]);
+	  Free_Node(tree->t_nodes[i]);
 	}
     }
-  Free(tree->noeud);
+  Free(tree->t_nodes);
 }
 
 //////////////////////////////////////////////////////////////
@@ -118,9 +118,9 @@ void Free_Bip(t_tree *tree)
     {
       For(i,2*tree->n_otu-2)
 	{
-	  Free(tree->noeud[i]->bip_size);
-	  For(j,3) Free(tree->noeud[i]->bip_node[j]);
-	  Free(tree->noeud[i]->bip_node);
+	  Free(tree->t_nodes[i]->bip_size);
+	  For(j,3) Free(tree->t_nodes[i]->bip_node[j]);
+	  Free(tree->t_nodes[i]->bip_node);
 	}
     }
   tree->has_bip = NO;
@@ -167,7 +167,7 @@ void Free_Node(t_node *n)
   if(n->ori_name) { Free(n->ori_name); n->ori_name = NULL; }
   /* if(n->name)     { Free(n->name);     n->name     = NULL; }  */
   /* Don't do that: see Copy_Tax_Names_To_Tip_Labels       
-     tree->noeud[i]->ori_name = tree->noeud[i]->name; */
+     tree->t_nodes[i]->ori_name = tree->t_nodes[i]->name; */
   Free(n);
 }
 

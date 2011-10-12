@@ -75,7 +75,6 @@ t_tree *Read_Tree(char **s_tree)
   For(i,(int)strlen((*s_tree))) if((*s_tree)[i] == ',') n_otu++;
   n_otu+=1;
 
-
   tree = Make_Tree_From_Scratch(n_otu,NULL);
   subs = Sub_Trees((*s_tree),&degree);
   Clean_Multifurcation(subs,degree,3);
@@ -84,15 +83,15 @@ t_tree *Read_Tree(char **s_tree)
     {
       /* Unroot_Tree(subs); */
       /* degree = 3; */
-      /* root_node = tree->noeud[n_otu]; */
-      root_node      = tree->noeud[2*n_otu-2];
+      /* root_node = tree->t_nodes[n_otu]; */
+      root_node      = tree->t_nodes[2*n_otu-2];
       root_node->num = 2*n_otu-2;
       tree->n_root   = root_node;
       n_int         -= 1;
     }
   else
     {      
-      root_node      = tree->noeud[n_otu];
+      root_node      = tree->t_nodes[n_otu];
       root_node->num = n_otu;
       tree->n_root   = NULL;
    }
@@ -193,7 +192,7 @@ void R_rtree(char *s_tree_a, char *s_tree_d, t_node *a, t_tree *tree, int *n_int
 	  Exit("\n");	  
 	}
 
-      d      = tree->noeud[n_otu+*n_int];
+      d      = tree->t_nodes[n_otu+*n_int];
       d->num = n_otu+*n_int;
       d->tax = 0;
       
@@ -231,7 +230,7 @@ void R_rtree(char *s_tree_a, char *s_tree_d, t_node *a, t_tree *tree, int *n_int
     {
       int i;
 
-      d      = tree->noeud[*n_ext];
+      d      = tree->t_nodes[*n_ext];
       d->tax = 1;
 
       Read_Node_Name(d,s_tree_d,tree);
@@ -588,7 +587,7 @@ void Print_Tree(FILE *fp, t_tree *tree)
       PhyML_Fprintf(fp,"#NEXUS\n");
       PhyML_Fprintf(fp,"BEGIN TREES;\n");
       PhyML_Fprintf(fp,"\tTRANSLATE\n");
-      For(i,tree->n_otu) PhyML_Fprintf(fp,"\t%3d\t%s,\n",i+1,tree->noeud[i]->name);
+      For(i,tree->n_otu) PhyML_Fprintf(fp,"\t%3d\t%s,\n",i+1,tree->t_nodes[i]->name);
       PhyML_Fprintf(fp,"\tUTREE PAUP_1=\n");
       PhyML_Fprintf(fp,"%s\n",s_tree);
       PhyML_Fprintf(fp,"ENDBLOCK;");
@@ -625,13 +624,13 @@ char *Write_Tree(t_tree *tree, int custom)
       if(!tree->n_root)
 	{
 	  i = 0;
-	  while((!tree->noeud[tree->n_otu+i]->v[0]) ||
-		(!tree->noeud[tree->n_otu+i]->v[1]) ||
-		(!tree->noeud[tree->n_otu+i]->v[2])) i++;
+	  while((!tree->t_nodes[tree->n_otu+i]->v[0]) ||
+		(!tree->t_nodes[tree->n_otu+i]->v[1]) ||
+		(!tree->t_nodes[tree->n_otu+i]->v[2])) i++;
 	  
-	  R_wtree(tree->noeud[tree->n_otu+i],tree->noeud[tree->n_otu+i]->v[0],&available,&s,&last_len,tree);
-	  R_wtree(tree->noeud[tree->n_otu+i],tree->noeud[tree->n_otu+i]->v[1],&available,&s,&last_len,tree);
-	  R_wtree(tree->noeud[tree->n_otu+i],tree->noeud[tree->n_otu+i]->v[2],&available,&s,&last_len,tree);
+	  R_wtree(tree->t_nodes[tree->n_otu+i],tree->t_nodes[tree->n_otu+i]->v[0],&available,&s,&last_len,tree);
+	  R_wtree(tree->t_nodes[tree->n_otu+i],tree->t_nodes[tree->n_otu+i]->v[1],&available,&s,&last_len,tree);
+	  R_wtree(tree->t_nodes[tree->n_otu+i],tree->t_nodes[tree->n_otu+i]->v[2],&available,&s,&last_len,tree);
 	}
       else
 	{
@@ -1181,6 +1180,7 @@ void Init_Tree(t_tree *tree, int n_otu)
   tree->ps_tree                   = NULL;
   tree->short_l                   = NULL;
   tree->mutmap                    = NULL;
+  tree->nextree                   = NULL;
 
   tree->depth_curr_path           = 0;
   tree->has_bip                   = NO;
@@ -3637,10 +3637,10 @@ t_tree *Read_Tree_File(option *io)
 
       For(i,tree->n_otu)
 	{
-	  io->long_tax_names[i] = (char *)mCalloc(strlen(tree->noeud[i]->name)+1,sizeof(char));
-	  io->short_tax_names[i] = (char *)mCalloc(strlen(tree->noeud[i]->name)+1,sizeof(char));
-	  strcpy(io->long_tax_names[i],tree->noeud[i]->name);
-	  strcpy(io->short_tax_names[i],tree->noeud[i]->name);
+	  io->long_tax_names[i] = (char *)mCalloc(strlen(tree->t_nodes[i]->name)+1,sizeof(char));
+	  io->short_tax_names[i] = (char *)mCalloc(strlen(tree->t_nodes[i]->name)+1,sizeof(char));
+	  strcpy(io->long_tax_names[i],tree->t_nodes[i]->name);
+	  strcpy(io->short_tax_names[i],tree->t_nodes[i]->name);
 	}
     }
   return NULL;
@@ -3865,14 +3865,14 @@ void *mRealloc(void *p,int nb, size_t size)
 
 /*   tree          = (t_tree *)mCalloc(1,sizeof(t_tree )); */
 /*   tree->t_edges = (t_edge **)mCalloc(2*n_otu-3,sizeof(t_edge *)); */
-/*   tree->noeud   = (t_node **)mCalloc(2*n_otu-2,sizeof(t_node *)); */
+/*   tree->t_nodes   = (t_node **)mCalloc(2*n_otu-2,sizeof(t_node *)); */
 /*   tree->n_otu   = n_otu; */
 
 /*   For(i,2*n_otu-3) */
 /*     tree->t_edges[i] = Make_Edge_Light(NULL,NULL,i); */
 
 /*   For(i,2*n_otu-2) */
-/*     tree->noeud[i] = Make_Node_Light(i); */
+/*     tree->t_nodes[i] = Make_Node_Light(i); */
 
 /*   return tree; */
 /* } */
@@ -4365,7 +4365,7 @@ void Order_Tree_Seq(t_tree *tree, align **data)
       {
 	For(j,n_otu)
 	  {
-	    if(!strcmp(tree->noeud[i]->name,data[j]->name))
+	    if(!strcmp(tree->t_nodes[i]->name,data[j]->name))
 	      break;
 	  }
 	buff = data[j];
@@ -4398,7 +4398,7 @@ char *Add_Taxa_To_Constraint_Tree(FILE *fp, calign *cdata)
     {
       For(j,tree->n_otu)
 	{
-	  if(!strcmp(tree->noeud[j]->name,cdata->c_seq[i]->name))
+	  if(!strcmp(tree->t_nodes[j]->name,cdata->c_seq[i]->name))
 	    break;
 	}
 
@@ -4434,13 +4434,13 @@ void Check_Constraint_Tree_Taxa_Names(t_tree *tree, calign *cdata)
     {
       For(j,n_otu_cdata)
 	{
-	  if(!strcmp(tree->noeud[i]->name,cdata->c_seq[j]->name))
+	  if(!strcmp(tree->t_nodes[i]->name,cdata->c_seq[j]->name))
 	    break;
 	}
       
       if(j==n_otu_cdata)
 	{
-	  PhyML_Printf("\n. Err: '%s' is not found in sequence data set\n",tree->noeud[i]->name);
+	  PhyML_Printf("\n. Err: '%s' is not found in sequence data set\n",tree->t_nodes[i]->name);
 	  Warn_And_Exit("");
 	}
     }
@@ -4468,13 +4468,13 @@ void Order_Tree_CSeq(t_tree *tree, calign *cdata)
       {
 	For(j,MIN(n_otu_tree,n_otu_cdata))
 	  {
-	    if(!strcmp(tree->noeud[i]->name,cdata->c_seq[j]->name))
+	    if(!strcmp(tree->t_nodes[i]->name,cdata->c_seq[j]->name))
 	      break;
 	  }
 	
 	if(j==MIN(n_otu_tree,n_otu_cdata))
 	  {
-	    PhyML_Printf("\n. Err: '%s' is not found in sequence data set\n",tree->noeud[i]->name);
+	    PhyML_Printf("\n. Err: '%s' is not found in sequence data set\n",tree->t_nodes[i]->name);
 	    Warn_And_Exit("");
 	  }
 	
@@ -4586,13 +4586,13 @@ void Make_All_Tree_Nodes(t_tree *tree)
 {
   int i;
 
-  tree->noeud = (t_node **)mCalloc(2*tree->n_otu-1,sizeof(t_node *));
+  tree->t_nodes = (t_node **)mCalloc(2*tree->n_otu-1,sizeof(t_node *));
 
   For(i,2*tree->n_otu-1)
     {
-      tree->noeud[i] = (t_node *)Make_Node_Light(i);
-      if(i < tree->n_otu) tree->noeud[i]->tax = 1;
-      else                tree->noeud[i]->tax = 0;
+      tree->t_nodes[i] = (t_node *)Make_Node_Light(i);
+      if(i < tree->n_otu) tree->t_nodes[i]->tax = 1;
+      else                tree->t_nodes[i]->tax = 0;
     }
 }
 
@@ -4617,11 +4617,11 @@ void Copy_Tax_Names_To_Tip_Labels(t_tree *tree, calign *data)
 
   For(i,tree->n_otu)
     {
-      tree->noeud[i]->name = (char *)mCalloc((int)strlen(data->c_seq[i]->name)+1,sizeof(char));
-      tree->noeud[i]->ori_name = tree->noeud[i]->name;
-      strcpy(tree->noeud[i]->name,data->c_seq[i]->name);
-      tree->noeud[i]->tax = 1;
-      tree->noeud[i]->num = i;
+      tree->t_nodes[i]->name = (char *)mCalloc((int)strlen(data->c_seq[i]->name)+1,sizeof(char));
+      tree->t_nodes[i]->ori_name = tree->t_nodes[i]->name;
+      strcpy(tree->t_nodes[i]->name,data->c_seq[i]->name);
+      tree->t_nodes[i]->tax = 1;
+      tree->t_nodes[i]->num = i;
     }
 }
 
@@ -4708,8 +4708,8 @@ void Share_Lk_Struct(t_tree *t_full, t_tree *t_empt)
 
   for(i=n_otu;i<2*n_otu-2;i++)
     {
-      n_f = t_full->noeud[i];
-      n_e = t_empt->noeud[i];
+      n_f = t_full->t_nodes[i];
+      n_e = t_empt->t_nodes[i];
             
       For(j,3)
 	{
@@ -4760,8 +4760,8 @@ void Share_Lk_Struct(t_tree *t_full, t_tree *t_empt)
 
   For(i,n_otu)
     {
-      n_f = t_full->noeud[i];
-      n_e = t_empt->noeud[i];
+      n_f = t_full->t_nodes[i];
+      n_e = t_empt->t_nodes[i];
 
       if(n_f->b[0]->rght == n_f)
 	{
@@ -5306,6 +5306,12 @@ void Swap(t_node *a, t_node *b, t_node *c, t_node *d, t_tree *tree)
    */
 
 
+  if(tree->nextree) Swap(tree->nextree->t_nodes[a->num],
+			 tree->nextree->t_nodes[b->num],
+			 tree->nextree->t_nodes[c->num],
+			 tree->nextree->t_nodes[d->num],
+			 tree->nextree);
+
 #ifdef DEBUG
   if(!a || !b || !c || !d)
     {
@@ -5383,6 +5389,7 @@ void Swap(t_node *a, t_node *b, t_node *c, t_node *d, t_tree *tree)
 	}
     }
   Update_Dirs(tree);
+  
 }
 
 //////////////////////////////////////////////////////////////
@@ -5413,6 +5420,10 @@ void Update_All_Partial_Lk(t_edge *b_fcus, t_tree *tree)
 			    tree);
 
   tree->c_lnL = Lk_At_Given_Edge(b_fcus,tree);
+
+
+  if(tree->nextree) Update_All_Partial_Lk(tree->nextree->t_edges[b_fcus->num],
+					  tree->nextree);
 }
 
 //////////////////////////////////////////////////////////////
@@ -5489,7 +5500,7 @@ void Copy_Seq_Names_To_Tip_Labels(t_tree *tree, calign *data)
   int i;
   For(i,tree->n_otu)
     {
-      strcpy(tree->noeud[i]->name,data->c_seq[i]->name);
+      strcpy(tree->t_nodes[i]->name,data->c_seq[i]->name);
     }
 }
 
@@ -6690,12 +6701,12 @@ void Clean_Tree_Connections(t_tree *tree)
   int i;
   For(i,2*tree->n_otu-2)
     {
-      tree->noeud[i]->v[0] = NULL;
-      tree->noeud[i]->v[1] = NULL;
-      tree->noeud[i]->v[2] = NULL;
-      tree->noeud[i]->b[0] = NULL;
-      tree->noeud[i]->b[1] = NULL;
-      tree->noeud[i]->b[2] = NULL;
+      tree->t_nodes[i]->v[0] = NULL;
+      tree->t_nodes[i]->v[1] = NULL;
+      tree->t_nodes[i]->v[2] = NULL;
+      tree->t_nodes[i]->b[0] = NULL;
+      tree->t_nodes[i]->b[1] = NULL;
+      tree->t_nodes[i]->b[2] = NULL;
     }
 }
 
@@ -6723,7 +6734,7 @@ void Bootstrap(t_tree *tree)
 
   Free_Bip(tree);
   Alloc_Bip(tree);
-  Get_Bip(tree->noeud[0],tree->noeud[0]->v[0],tree);
+  Get_Bip(tree->t_nodes[0],tree->t_nodes[0]->v[0],tree);
 
   n_site = 0;
   For(j,tree->data->crunch_len) For(k,tree->data->wght[j])
@@ -6843,8 +6854,8 @@ void Bootstrap(t_tree *tree)
 
       Match_Tip_Numbers(tree,boot_tree);
       
-      Get_Bip(boot_tree->noeud[0],
-	      boot_tree->noeud[0]->v[0],
+      Get_Bip(boot_tree->t_nodes[0],
+	      boot_tree->t_nodes[0]->v[0],
 	      boot_tree);
 
       Compare_Bip(tree,boot_tree,NO);
@@ -7521,7 +7532,7 @@ void Test_Node_Table_Consistency(t_tree *tree)
 
   For(i,2*tree->n_otu-2)
     {
-      if(tree->noeud[i]->num != i)
+      if(tree->t_nodes[i]->num != i)
 	{
 	  PhyML_Printf("\n. Node table is not consistent with node numbers.");
 	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
@@ -7557,10 +7568,10 @@ void Get_Bip(t_node *a, t_node *d, t_tree *tree)
 		  a->bip_size[i] = 0;
 		  For(j,tree->n_otu)
 		    {
-		      if(strcmp(tree->noeud[j]->name,d->name))
+		      if(strcmp(tree->t_nodes[j]->name,d->name))
 			{
 			  a->bip_node[i] = (t_node **)realloc(a->bip_node[i],(a->bip_size[i]+1)*sizeof(t_node *));
-			  a->bip_node[i][a->bip_size[i]] = tree->noeud[j];
+			  a->bip_node[i][a->bip_size[i]] = tree->t_nodes[j];
 			  a->bip_size[i]++;
 			}
 		    }
@@ -7644,14 +7655,14 @@ void Get_Bip(t_node *a, t_node *d, t_tree *tree)
 	      {
 		For(k,d->bip_size[d_a])
 		  {
-		    if(d->bip_node[d_a][k] == tree->noeud[j])
+		    if(d->bip_node[d_a][k] == tree->t_nodes[j])
 		      break;
 		  }
 		
-		if((k == d->bip_size[d_a]) && (tree->noeud[j]->common))
+		if((k == d->bip_size[d_a]) && (tree->t_nodes[j]->common))
 		  {
 		    a->bip_node[i] = (t_node **)realloc(a->bip_node[i],(a->bip_size[i]+1)*sizeof(t_node *));
-		    a->bip_node[i][a->bip_size[i]] = tree->noeud[j];
+		    a->bip_node[i][a->bip_size[i]] = tree->t_nodes[j];
 		    a->bip_size[i]++;
 		  }
 	      }
@@ -7695,12 +7706,12 @@ void Alloc_Bip(t_tree *tree)
 
   For(i,2*tree->n_otu-2)
     {
-      tree->noeud[i]->bip_size = (int *)mCalloc(3,sizeof(int));
-      tree->noeud[i]->bip_node = (t_node ***)mCalloc(3,sizeof(t_node **));
+      tree->t_nodes[i]->bip_size = (int *)mCalloc(3,sizeof(int));
+      tree->t_nodes[i]->bip_node = (t_node ***)mCalloc(3,sizeof(t_node **));
 
 /*       For(j,3) */
 /* 	{ */
-/* 	  tree->noeud[i]->bip_node[j] = (t_node **)mCalloc(tree->n_otu,sizeof(t_node *)); */
+/* 	  tree->t_nodes[i]->bip_node[j] = (t_node **)mCalloc(tree->n_otu,sizeof(t_node *)); */
 /* 	} */
     }
 }
@@ -7863,9 +7874,9 @@ void Match_Tip_Numbers(t_tree *tree1, t_tree *tree2)
     {
       For(j,tree2->n_otu)
 	{
-	  if(!strcmp(tree1->noeud[i]->name,tree2->noeud[j]->name))
+	  if(!strcmp(tree1->t_nodes[i]->name,tree2->t_nodes[j]->name))
 	    {
-	      tree2->noeud[j]->num = tree1->noeud[i]->num;
+	      tree2->t_nodes[j]->num = tree1->t_nodes[i]->num;
 	      break;
 	    }
 	}
@@ -8538,16 +8549,16 @@ void Copy_Tree(t_tree *ori, t_tree *cpy)
     {
       For(j,3)
 	{
-	  if(ori->noeud[i]->v[j])
+	  if(ori->t_nodes[i]->v[j])
 	    {
-	      cpy->noeud[i]->v[j] = cpy->noeud[ori->noeud[i]->v[j]->num];
-	      cpy->noeud[i]->l[j] = ori->noeud[i]->l[j];
-	      cpy->noeud[i]->b[j] = cpy->t_edges[ori->noeud[i]->b[j]->num];
+	      cpy->t_nodes[i]->v[j] = cpy->t_nodes[ori->t_nodes[i]->v[j]->num];
+	      cpy->t_nodes[i]->l[j] = ori->t_nodes[i]->l[j];
+	      cpy->t_nodes[i]->b[j] = cpy->t_edges[ori->t_nodes[i]->b[j]->num];
 	    }
 	  else
 	    {
-	      cpy->noeud[i]->v[j] = NULL;
-	      cpy->noeud[i]->b[j] = NULL;
+	      cpy->t_nodes[i]->v[j] = NULL;
+	      cpy->t_nodes[i]->b[j] = NULL;
 	    }
 	}
     }
@@ -8555,8 +8566,8 @@ void Copy_Tree(t_tree *ori, t_tree *cpy)
   For(i,2*ori->n_otu-3) 
     {
       cpy->t_edges[i]->l    = ori->t_edges[i]->l;
-      cpy->t_edges[i]->left = cpy->noeud[ori->t_edges[i]->left->num];
-      cpy->t_edges[i]->rght = cpy->noeud[ori->t_edges[i]->rght->num];
+      cpy->t_edges[i]->left = cpy->t_nodes[ori->t_edges[i]->left->num];
+      cpy->t_edges[i]->rght = cpy->t_nodes[ori->t_edges[i]->rght->num];
       cpy->t_edges[i]->l_v1 = ori->t_edges[i]->l_v1;
       cpy->t_edges[i]->l_v2 = ori->t_edges[i]->l_v2;
       cpy->t_edges[i]->r_v1 = ori->t_edges[i]->r_v1;
@@ -8568,13 +8579,13 @@ void Copy_Tree(t_tree *ori, t_tree *cpy)
 
   For(i,ori->n_otu)
     {
-      cpy->noeud[i]->tax = YES;
-      if(!cpy->noeud[i]->name) 
+      cpy->t_nodes[i]->tax = YES;
+      if(!cpy->t_nodes[i]->name) 
 	{
-	  cpy->noeud[i]->name = (char *)mCalloc(strlen(ori->noeud[i]->name)+1,sizeof(char));
-	  cpy->noeud[i]->ori_name = cpy->noeud[i]->name ;
+	  cpy->t_nodes[i]->name = (char *)mCalloc(strlen(ori->t_nodes[i]->name)+1,sizeof(char));
+	  cpy->t_nodes[i]->ori_name = cpy->t_nodes[i]->name ;
 	}
-      strcpy(cpy->noeud[i]->name,ori->noeud[i]->name);
+      strcpy(cpy->t_nodes[i]->name,ori->t_nodes[i]->name);
     }
 
   if(ori->n_root)
@@ -8584,7 +8595,7 @@ void Copy_Tree(t_tree *ori, t_tree *cpy)
     }
 
   cpy->num_curr_branch_available = 0;
-/*   Connect_Edges_To_Nodes_Recur(cpy->noeud[0],cpy->noeud[0]->v[0],cpy); */
+/*   Connect_Edges_To_Nodes_Recur(cpy->t_nodes[0],cpy->t_nodes[0]->v[0],cpy); */
 /*   Update_Dirs(cpy); */
 }
 
@@ -8604,6 +8615,13 @@ void Prune_Subtree(t_node *a, t_node *d, t_edge **target, t_edge **residual, t_t
   int *buff_p_pars, *buff_pars, *buff_p_lk_loc, *buff_patt_id;
   unsigned int *buff_ui;
   short int *buff_p_lk_tip;
+
+  if(tree->nextree)
+    Prune_Subtree(tree->nextree->t_nodes[a->num],
+		  tree->nextree->t_nodes[d->num],
+		  tree->nextree->t_edges + (*target)->num,
+		  tree->nextree->t_edges + (*residual)->num,
+		  tree->nextree);
 
   if(a->tax)
     {
@@ -8873,6 +8891,11 @@ void Graft_Subtree(t_edge *target, t_node *link, t_edge *residual, t_tree *tree)
   unsigned int *buff_ui;
   t_edge *b_up;
 
+  if(tree->nextree) Graft_Subtree(tree->nextree->t_edges[target->num],
+				  tree->nextree->t_nodes[link->num],
+				  tree->nextree->t_edges[residual->num],
+				  tree->nextree);
+
   dir_v1 = dir_v2 = -1;
   b_up = NULL;
   For(i,3)
@@ -8996,6 +9019,8 @@ void Graft_Subtree(t_edge *target, t_node *link, t_edge *residual, t_tree *tree)
   Make_Edge_Dirs(target,target->left,target->rght,tree);
   Make_Edge_Dirs(residual,residual->left,residual->rght,tree);
   Make_Edge_Dirs(b_up,b_up->left,b_up->rght,tree);
+
+  
 }
 
 //////////////////////////////////////////////////////////////
@@ -9009,9 +9034,9 @@ void Reassign_Node_Nums(t_node *a, t_node *d, int *curr_ext_node, int *curr_int_
 
   if(a->tax)
     {
-      buff = tree->noeud[*curr_ext_node];
-      tree->noeud[*curr_ext_node] = a;
-      tree->noeud[a->num] = buff;
+      buff = tree->t_nodes[*curr_ext_node];
+      tree->t_nodes[*curr_ext_node] = a;
+      tree->t_nodes[a->num] = buff;
       buff->num = a->num;
       a->num = *curr_ext_node;
       (*curr_ext_node)++;
@@ -9019,9 +9044,9 @@ void Reassign_Node_Nums(t_node *a, t_node *d, int *curr_ext_node, int *curr_int_
 
   if(d->tax)
     {
-      buff = tree->noeud[*curr_ext_node];
-      tree->noeud[*curr_ext_node] = d;
-      tree->noeud[d->num] = buff;
+      buff = tree->t_nodes[*curr_ext_node];
+      tree->t_nodes[*curr_ext_node] = d;
+      tree->t_nodes[d->num] = buff;
       buff->num = d->num;
       d->num = *curr_ext_node;
       (*curr_ext_node)++;
@@ -9029,9 +9054,9 @@ void Reassign_Node_Nums(t_node *a, t_node *d, int *curr_ext_node, int *curr_int_
     }
   else
     {
-      buff = tree->noeud[*curr_int_node];
-      tree->noeud[*curr_int_node] = d;
-      tree->noeud[d->num] = buff;
+      buff = tree->t_nodes[*curr_int_node];
+      tree->t_nodes[*curr_int_node] = d;
+      tree->t_nodes[d->num] = buff;
       buff->num = d->num;
       d->num = *curr_int_node;
       (*curr_int_node)++;
@@ -9174,7 +9199,7 @@ void Update_Dir_To_Tips(t_node *a, t_node *d, t_tree *tree)
 	{
 	  For(j,tree->n_otu) inout[j] = 1;
 	  For(k,a->bip_size[i]) inout[a->bip_node[i][k]->num] = 0;
-	  For(j,tree->n_otu) if(inout[tree->noeud[j]->num]) tree->t_dir[a->num*dim+tree->noeud[j]->num] = i;
+	  For(j,tree->n_otu) if(inout[tree->t_nodes[j]->num]) tree->t_dir[a->num*dim+tree->t_nodes[j]->num] = i;
 	  break;
 	}
     }
@@ -9193,7 +9218,7 @@ void Update_Dir_To_Tips(t_node *a, t_node *d, t_tree *tree)
 
       For(j,tree->n_otu) inout[j] = 1;
       For(k,d->bip_size[d_a]) inout[d->bip_node[d_a][k]->num] = 0;
-      For(j,tree->n_otu) if(inout[tree->noeud[j]->num]) tree->t_dir[d->num*dim+tree->noeud[j]->num] = d_a;
+      For(j,tree->n_otu) if(inout[tree->t_nodes[j]->num]) tree->t_dir[d->num*dim+tree->t_nodes[j]->num] = d_a;
     }
 
   Free(inout);
@@ -9212,14 +9237,14 @@ void Fill_Dir_Table(t_tree *tree)
   For(i,dim*dim) tree->t_dir[i] = 0;
   Free_Bip(tree);
   Alloc_Bip(tree);
-  Get_Bip(tree->noeud[0],tree->noeud[0]->v[0],tree);
-  Update_Dir_To_Tips(tree->noeud[0],tree->noeud[0]->v[0],tree);
+  Get_Bip(tree->t_nodes[0],tree->t_nodes[0]->v[0],tree);
+  Update_Dir_To_Tips(tree->t_nodes[0],tree->t_nodes[0]->v[0],tree);
 
 
   for(i=tree->n_otu;i<2*tree->n_otu-2;i++)
     for(j=i;j<2*tree->n_otu-2;j++)
       {
-	Find_Mutual_Direction(tree->noeud[i],tree->noeud[j],
+	Find_Mutual_Direction(tree->t_nodes[i],tree->t_nodes[j],
 			      &(tree->t_dir[i*dim+j]),
 			      &(tree->t_dir[j*dim+i]));
       }
@@ -9594,9 +9619,9 @@ void Fix_All(t_tree *tree)
 
   for(i=tree->n_otu;i<2*tree->n_otu-2;i++)
     {
-      tree->noeud[i]->b[0]->l_old = tree->noeud[i]->b[0]->l;
-      tree->noeud[i]->b[1]->l_old = tree->noeud[i]->b[1]->l;
-      tree->noeud[i]->b[2]->l_old = tree->noeud[i]->b[2]->l;
+      tree->t_nodes[i]->b[0]->l_old = tree->t_nodes[i]->b[0]->l;
+      tree->t_nodes[i]->b[1]->l_old = tree->t_nodes[i]->b[1]->l;
+      tree->t_nodes[i]->b[2]->l_old = tree->t_nodes[i]->b[2]->l;
     }
 }
 
@@ -9876,8 +9901,8 @@ void Random_Tree(t_tree *tree)
       n_available = 0;
       For(i,2*tree->n_otu-2) if(is_available[i]) {list_of_nodes[n_available++] = i;}
 
-      tree->noeud[node_num]->v[0] = tree->noeud[tree->n_otu+step];
-      tree->noeud[tree->n_otu+step]->v[1] = tree->noeud[node_num];
+      tree->t_nodes[node_num]->v[0] = tree->t_nodes[tree->n_otu+step];
+      tree->t_nodes[tree->n_otu+step]->v[1] = tree->t_nodes[node_num];
 
 /*       node_num = (int)RINT(rand()/(phydbl)(RAND_MAX+1.0)*(tree->n_otu-2-step)); */
       node_num = Rand_Int(0,tree->n_otu-2-step);
@@ -9887,8 +9912,8 @@ void Random_Tree(t_tree *tree)
       n_available = 0;
       For(i,2*tree->n_otu-2) if(is_available[i]) {list_of_nodes[n_available++] = i;}
 
-      tree->noeud[node_num]->v[0] = tree->noeud[tree->n_otu+step];
-      tree->noeud[tree->n_otu+step]->v[2] = tree->noeud[node_num];
+      tree->t_nodes[node_num]->v[0] = tree->t_nodes[tree->n_otu+step];
+      tree->t_nodes[tree->n_otu+step]->v[2] = tree->t_nodes[node_num];
 
       is_available[tree->n_otu+step] = 1;
       For(i,tree->n_otu) list_of_nodes[i] = -1;
@@ -9898,11 +9923,11 @@ void Random_Tree(t_tree *tree)
       step++;
     }while(step < tree->n_otu-2);
 
-  tree->noeud[list_of_nodes[0]]->v[0] = tree->noeud[list_of_nodes[1]];
-  tree->noeud[list_of_nodes[1]]->v[0] = tree->noeud[list_of_nodes[0]];
+  tree->t_nodes[list_of_nodes[0]]->v[0] = tree->t_nodes[list_of_nodes[1]];
+  tree->t_nodes[list_of_nodes[1]]->v[0] = tree->t_nodes[list_of_nodes[0]];
 
   tree->num_curr_branch_available = 0;
-  Connect_Edges_To_Nodes_Recur(tree->noeud[0],tree->noeud[0]->v[0],tree);
+  Connect_Edges_To_Nodes_Recur(tree->t_nodes[0],tree->t_nodes[0]->v[0],tree);
   
   For(i,2*tree->n_otu-3) if(tree->t_edges[i]->l < min_edge_len) tree->t_edges[i]->l = min_edge_len;
 
@@ -9928,7 +9953,7 @@ void Random_NNI(int n_moves, t_tree *tree)
   b = NULL;
   For(i,n_moves)
     {
-      n_target  = tree->noeud[tree->n_otu + (int)((phydbl)rand()/RAND_MAX * (2*tree->n_otu-3-tree->n_otu))];
+      n_target  = tree->t_nodes[tree->n_otu + (int)((phydbl)rand()/RAND_MAX * (2*tree->n_otu-3-tree->n_otu))];
       For(j,3) if(!n_target->v[j]->tax) {b = n_target->b[j]; break;}
 
 
@@ -10610,7 +10635,7 @@ void Add_Root(t_edge *target, t_tree *tree)
       tree->n_root = (t_node *)Make_Node_Light(2*tree->n_otu-2);
     }
 
-  tree->noeud[2*tree->n_otu-2] = tree->n_root;
+  tree->t_nodes[2*tree->n_otu-2] = tree->n_root;
 
   tree->n_root->tax = 0;
 
@@ -10682,8 +10707,8 @@ t_tree *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
 
   For(i,2*tree->n_otu-2) 
     {
-      tree->noeud[i]->v[1] = NULL;
-      tree->noeud[i]->v[2] = NULL;
+      tree->t_nodes[i]->v[1] = NULL;
+      tree->t_nodes[i]->v[2] = NULL;
     }
   
   root = (t_node *)Make_Node_Light(2*tree->n_otu-2);
@@ -10765,24 +10790,24 @@ t_tree *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
       n_nonconnected = 0;
       For(i,2*tree->n_otu-2) if(!connected[i]) {nonconnected[n_nonconnected++] = i;}
 
-      curr_n->v[1] = tree->noeud[n1];
-      curr_n->v[2] = tree->noeud[n2];
-      tree->noeud[n1]->v[0] = curr_n;
-      tree->noeud[n2]->v[0] = curr_n;
+      curr_n->v[1] = tree->t_nodes[n1];
+      curr_n->v[2] = tree->t_nodes[n2];
+      tree->t_nodes[n1]->v[0] = curr_n;
+      tree->t_nodes[n2]->v[0] = curr_n;
       
       tree->rates->nd_t[curr_n->num] = t[n_connected/2];
 
-      available_nodes[n_available] = tree->noeud[n1]->num;  
+      available_nodes[n_available] = tree->t_nodes[n1]->num;  
       For(i,n_available)
 	if(available_nodes[i] == curr_n->num) 
 	  {
-	    available_nodes[i] = tree->noeud[n2]->num;
+	    available_nodes[i] = tree->t_nodes[n2]->num;
 	    break;
 	  }
       n_available++;
       
       new_n = Rand_Int(0,n_available-1);
-      curr_n = tree->noeud[available_nodes[new_n]];
+      curr_n = tree->t_nodes[available_nodes[new_n]];
       
       n_connected+=2;
 
@@ -10797,8 +10822,8 @@ t_tree *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
   n_internal = n_external = 0;
   For(i,2*tree->n_otu-2)
     {
-      if(tree->noeud[i]->v[1]) internal_nodes[n_internal++] = tree->noeud[i];
-      else                     external_nodes[n_external++] = tree->noeud[i];
+      if(tree->t_nodes[i]->v[1]) internal_nodes[n_internal++] = tree->t_nodes[i];
+      else                     external_nodes[n_external++] = tree->t_nodes[i];
     }
 
 
@@ -10807,31 +10832,31 @@ t_tree *Generate_Random_Tree_From_Scratch(int n_otu, int rooted)
     { 
       if(i < tree->n_otu)
 	{
-	  tree->noeud[i]      = external_nodes[n_external++];
-	  tree->noeud[i]->tax = 1;	  
+	  tree->t_nodes[i]      = external_nodes[n_external++];
+	  tree->t_nodes[i]->tax = 1;	  
 	}
       else
 	{
 	  tree->rates->nd_t[i] = tmp[internal_nodes[n_internal]->num];
-	  tree->noeud[i]        = internal_nodes[n_internal++];
-	  tree->noeud[i]->tax   = 0;
+	  tree->t_nodes[i]        = internal_nodes[n_internal++];
+	  tree->t_nodes[i]->tax   = 0;
 	}
 
-      tree->noeud[i]->num = i;
+      tree->t_nodes[i]->num = i;
     }
 
   For(i,tree->n_otu) tree->rates->nd_t[i] = 0.0;
   
   For(i,tree->n_otu) 
     {
-      if(!tree->noeud[i]->name) tree->noeud[i]->name = (char *)mCalloc(T_MAX_NAME,sizeof(char));
-      strcpy(tree->noeud[i]->name,"x");
-      sprintf(tree->noeud[i]->name+1,"%d",i);
+      if(!tree->t_nodes[i]->name) tree->t_nodes[i]->name = (char *)mCalloc(T_MAX_NAME,sizeof(char));
+      strcpy(tree->t_nodes[i]->name,"x");
+      sprintf(tree->t_nodes[i]->name+1,"%d",i);
     }
 
 
   tree->num_curr_branch_available = 0;
-  Connect_Edges_To_Nodes_Recur(tree->noeud[0],tree->noeud[0]->v[0],tree);
+  Connect_Edges_To_Nodes_Recur(tree->t_nodes[0],tree->t_nodes[0]->v[0],tree);
   Fill_Dir_Table(tree);
   Update_Dirs(tree);
 
@@ -10993,10 +11018,10 @@ void Evolve(calign *data, model *mod, t_tree *tree)
       /* Pick the rate class */
       root_rate_class = Pick_State(mod->n_catg,mod->gamma_r_proba);
 
-      /* tree->noeud[0] is considered as the root t_node */
-      Evolve_Recur(tree->noeud[0],
-		   tree->noeud[0]->v[0],
-		   tree->noeud[0]->b[0],
+      /* tree->t_nodes[0] is considered as the root t_node */
+      Evolve_Recur(tree->t_nodes[0],
+		   tree->t_nodes[0]->v[0],
+		   tree->t_nodes[0]->b[0],
 		   root_state,
 		   root_rate_class,
 		   site,
@@ -11089,8 +11114,8 @@ void Site_Diversity(t_tree *tree)
 
   div = (int *)mCalloc(ns,sizeof(int));
 
-  Site_Diversity_Post(tree->noeud[0],tree->noeud[0]->v[0],tree->noeud[0]->b[0],tree);
-  Site_Diversity_Pre (tree->noeud[0],tree->noeud[0]->v[0],tree->noeud[0]->b[0],tree);
+  Site_Diversity_Post(tree->t_nodes[0],tree->t_nodes[0]->v[0],tree->t_nodes[0]->b[0],tree);
+  Site_Diversity_Pre (tree->t_nodes[0],tree->t_nodes[0]->v[0],tree->t_nodes[0]->b[0],tree);
 
   For(i,2*tree->n_otu-3)
     {
@@ -11273,9 +11298,9 @@ void Print_Diversity(FILE *fp, t_tree *tree)
   if(tree->io->datatype == NT)      ns = 4;
   else if(tree->io->datatype == AA) ns = 20;
 
-  Print_Diversity_Pre(tree->noeud[0],
-		      tree->noeud[0]->v[0],
-		      tree->noeud[0]->b[0],
+  Print_Diversity_Pre(tree->t_nodes[0],
+		      tree->t_nodes[0]->v[0],
+		      tree->t_nodes[0]->b[0],
 		      fp,
 		      tree);
 
@@ -11936,17 +11961,17 @@ void Find_Common_Tips(t_tree *tree1, t_tree *tree2)
 {
   int i,j;
 
-  For(i,tree1->n_otu) tree1->noeud[i]->common = 0;
-  For(i,tree2->n_otu) tree2->noeud[i]->common = 0;
+  For(i,tree1->n_otu) tree1->t_nodes[i]->common = 0;
+  For(i,tree2->n_otu) tree2->t_nodes[i]->common = 0;
 
   For(i,tree1->n_otu)
     {
       For(j,tree2->n_otu)
 	{
-	  if(!strcmp(tree1->noeud[i]->name,tree2->noeud[j]->name))
+	  if(!strcmp(tree1->t_nodes[i]->name,tree2->t_nodes[j]->name))
 	    {
-	      tree1->noeud[i]->common = 1;
-	      tree2->noeud[j]->common = 1;
+	      tree1->t_nodes[i]->common = 1;
+	      tree2->t_nodes[j]->common = 1;
 	      break;
 	    }
 	}
@@ -12218,9 +12243,9 @@ int Find_Clade(char **tax_name_list, int list_size, t_tree *tree)
     {
       For(j,tree->n_otu)
 	{
-	  if(!strcmp(tax_name_list[i],tree->noeud[j]->name))
+	  if(!strcmp(tax_name_list[i],tree->t_nodes[j]->name))
 	    {
-	      tax_num_list[i] = tree->noeud[j]->num;
+	      tax_num_list[i] = tree->t_nodes[j]->num;
 	      n_matches++;
 	    }
 	}
@@ -12236,8 +12261,8 @@ int Find_Clade(char **tax_name_list, int list_size, t_tree *tree)
 	{
 	  For(j,tree->n_otu)
 	    {
-/* 	      if(!strcmp(tax_name_list[i],tree->noeud[j]->name)) score++; */
-	      if(tax_num_list[i] == tree->noeud[j]->num) score++;
+/* 	      if(!strcmp(tax_name_list[i],tree->t_nodes[j]->name)) score++; */
+	      if(tax_num_list[i] == tree->t_nodes[j]->num) score++;
 	    }
 	}
 
@@ -12251,7 +12276,7 @@ int Find_Clade(char **tax_name_list, int list_size, t_tree *tree)
       num = -1;
       Free_Bip(tree);
       Alloc_Bip(tree);
-      Get_Bip(tree->noeud[0],tree->noeud[0]->v[0],tree);
+      Get_Bip(tree->t_nodes[0],tree->t_nodes[0]->v[0],tree);
       Find_Clade_Pre(tree->n_root,tree->n_root->v[0],tax_num_list,list_size,&num,tree);
       Find_Clade_Pre(tree->n_root,tree->n_root->v[1],tax_num_list,list_size,&num,tree);
       Free(tax_num_list);
@@ -12390,7 +12415,7 @@ void Read_Clade_Priors(char *file_name, t_tree *tree)
 	      tree->rates->t_prior_min[node_num] = MIN(prior_low,prior_up);
 	      tree->rates->t_prior_max[node_num] = MAX(prior_low,prior_up);
 
-	      if(FABS(prior_low - prior_up) < 1.E-6 && tree->noeud[node_num]->tax == YES)
+	      if(FABS(prior_low - prior_up) < 1.E-6 && tree->t_nodes[node_num]->tax == YES)
 		tree->rates->nd_t[node_num] = prior_low;
 
 	      PhyML_Printf("\n");
@@ -12475,7 +12500,7 @@ t_edge *Find_Root_Edge(FILE *fp_input_tree, t_tree *tree)
 
   Free_Bip(tree);
   Alloc_Bip(tree);
-  Get_Bip(tree->noeud[0],tree->noeud[0]->v[0],tree);
+  Get_Bip(tree->t_nodes[0],tree->t_nodes[0]->v[0],tree);
 
   subs = Sub_Trees(line,&degree);
   Clean_Multifurcation(subs,degree,3);
@@ -12536,16 +12561,16 @@ void Copy_Tree_Topology_With_Labels(t_tree *ori, t_tree *cpy)
     {
       For(j,3)
         {
-          if(ori->noeud[i]->v[j])
+          if(ori->t_nodes[i]->v[j])
             {
-              cpy->noeud[i]->v[j] = cpy->noeud[ori->noeud[i]->v[j]->num];
-              cpy->noeud[i]->l[j] = ori->noeud[i]->l[j];
+              cpy->t_nodes[i]->v[j] = cpy->t_nodes[ori->t_nodes[i]->v[j]->num];
+              cpy->t_nodes[i]->l[j] = ori->t_nodes[i]->l[j];
             }
           else
-            cpy->noeud[i]->v[j] = NULL;
+            cpy->t_nodes[i]->v[j] = NULL;
         }
-      cpy->noeud[i]->num = ori->noeud[i]->num;
-      cpy->noeud[i]->tax = 0;
+      cpy->t_nodes[i]->num = ori->t_nodes[i]->num;
+      cpy->t_nodes[i]->tax = 0;
     }
 
   For(i,2*ori->n_otu-3)
@@ -12555,8 +12580,8 @@ void Copy_Tree_Topology_With_Labels(t_tree *ori, t_tree *cpy)
 
   For(i,ori->n_otu)
     {
-      cpy->noeud[i]->tax = 1;
-      strcpy(cpy->noeud[i]->name,ori->noeud[i]->name);
+      cpy->t_nodes[i]->tax = 1;
+      strcpy(cpy->t_nodes[i]->name,ori->t_nodes[i]->name);
     }
 
 }
@@ -12793,7 +12818,7 @@ void Adjust_Min_Diff_Lk(t_tree *tree)
 
 
 /*!
-  tree->noeud[i]->name is initially a number. It is translated into
+  tree->t_nodes[i]->name is initially a number. It is translated into
   a string of characters using the names provided in the tax_name
   array.
  */
@@ -12804,8 +12829,8 @@ void Translate_Tax_Names(char **tax_names, t_tree *tree)
 
   For(i,tree->n_otu)
     {
-      tax_num = strtol(tree->noeud[i]->name,NULL,10);
-      tree->noeud[i]->name = tax_names[tax_num-1];
+      tax_num = strtol(tree->t_nodes[i]->name,NULL,10);
+      tree->t_nodes[i]->name = tax_names[tax_num-1];
     }
 }
 
@@ -12856,21 +12881,21 @@ void Get_Best_Root_Position(t_tree *tree)
       Warn_And_Exit("");
     }
 
-  if(strstr(tree->noeud[0]->name,"*"))
+  if(strstr(tree->t_nodes[0]->name,"*"))
     {
-      /* PhyML_Printf("\n. Found outgroup taxon: %s",tree->noeud[0]->name); */
-      tree->noeud[0]->s_ingrp[0]  = 0;
-      tree->noeud[0]->s_outgrp[0] = 1;
+      /* PhyML_Printf("\n. Found outgroup taxon: %s",tree->t_nodes[0]->name); */
+      tree->t_nodes[0]->s_ingrp[0]  = 0;
+      tree->t_nodes[0]->s_outgrp[0] = 1;
     }
   else
     {
-      tree->noeud[0]->s_ingrp[0]  = 1;
-      tree->noeud[0]->s_outgrp[0] = 0;
+      tree->t_nodes[0]->s_ingrp[0]  = 1;
+      tree->t_nodes[0]->s_outgrp[0] = 0;
     }
 
   has_outgrp = NO;
-  Get_Best_Root_Position_Post(tree->noeud[0],tree->noeud[0]->v[0],&has_outgrp,tree);  
-  Get_Best_Root_Position_Pre(tree->noeud[0],tree->noeud[0]->v[0],tree);  
+  Get_Best_Root_Position_Post(tree->t_nodes[0],tree->t_nodes[0]->v[0],&has_outgrp,tree);  
+  Get_Best_Root_Position_Pre(tree->t_nodes[0],tree->t_nodes[0]->v[0],tree);  
 
   if(has_outgrp == YES)
     {
@@ -12880,12 +12905,12 @@ void Get_Best_Root_Position(t_tree *tree)
 	{
 	  For(j,3)
 	    {
-	      s = (tree->noeud[i]->s_outgrp[j]+eps) / (tree->noeud[i]->s_ingrp[j] + eps) ;
-	      /* printf("\n. [%d %d] %d %d",i,j,tree->noeud[i]->s_outgrp[j],tree->noeud[i]->s_ingrp[j]); */
+	      s = (tree->t_nodes[i]->s_outgrp[j]+eps) / (tree->t_nodes[i]->s_ingrp[j] + eps) ;
+	      /* printf("\n. [%d %d] %d %d",i,j,tree->t_nodes[i]->s_outgrp[j],tree->t_nodes[i]->s_ingrp[j]); */
 	      if(s > s_max) 
 		{
 		  s_max = s;
-		  best_edge = tree->noeud[i]->b[j];
+		  best_edge = tree->t_nodes[i]->b[j];
 		}
 	    }
 	}
@@ -13552,12 +13577,12 @@ int Check_Topo_Constraints(t_tree *big_tree, t_tree *small_tree)
   
   Free_Bip(small_tree);
   Alloc_Bip(small_tree);
-  Get_Bip(small_tree->noeud[0],small_tree->noeud[0]->v[0],small_tree);
+  Get_Bip(small_tree->t_nodes[0],small_tree->t_nodes[0]->v[0],small_tree);
 
   Free_Bip(big_tree_cpy);
   Alloc_Bip(big_tree_cpy);  
   Match_Tip_Numbers(small_tree,big_tree_cpy);
-  Get_Bip(big_tree_cpy->noeud[0],big_tree_cpy->noeud[0]->v[0],big_tree_cpy);
+  Get_Bip(big_tree_cpy->t_nodes[0],big_tree_cpy->t_nodes[0]->v[0],big_tree_cpy);
 
   For(i,2*big_tree_cpy->n_otu-3) big_tree_cpy->t_edges[i]->bip_score = 0;
   For(i,2*small_tree->n_otu-3) small_tree->t_edges[i]->bip_score = 0;
@@ -13593,17 +13618,17 @@ void Prune_Tree(t_tree *big_tree, t_tree *small_tree)
   For(i,big_tree->n_otu)
     {
       For(j,small_tree->n_otu)
-	if(!strcmp(small_tree->noeud[j]->name,big_tree->noeud[i]->name))
+	if(!strcmp(small_tree->t_nodes[j]->name,big_tree->t_nodes[i]->name))
 	  break;
      
       if(j == small_tree->n_otu)
 	{
-	  Prune_Subtree(big_tree->noeud[i]->v[0],
-			big_tree->noeud[i],
+	  Prune_Subtree(big_tree->t_nodes[i]->v[0],
+			big_tree->t_nodes[i],
 			NULL,&(residual_edges[n_pruned_nodes]),
 			big_tree);
 
-	  pruned_nodes[n_pruned_nodes] = big_tree->noeud[i];
+	  pruned_nodes[n_pruned_nodes] = big_tree->t_nodes[i];
 	  n_pruned_nodes++;
 	}
     }
@@ -13618,18 +13643,18 @@ void Prune_Tree(t_tree *big_tree, t_tree *small_tree)
   For(i,big_tree->n_otu+n_pruned_nodes)
     {
       For(j,n_pruned_nodes)
-	if(!strcmp(pruned_nodes[j]->name,big_tree->noeud[i]->name))
+	if(!strcmp(pruned_nodes[j]->name,big_tree->t_nodes[i]->name))
 	  break;
 
       if(j == n_pruned_nodes) /* That t_node still belongs to the tree */
 	{
-	  Reassign_Node_Nums(big_tree->noeud[i],big_tree->noeud[i]->v[0], 
+	  Reassign_Node_Nums(big_tree->t_nodes[i],big_tree->t_nodes[i]->v[0], 
 			     &curr_ext_node,&curr_int_node,big_tree);
 	  break;
 	}
     }
   
-  Reassign_Edge_Nums(big_tree->noeud[0],big_tree->noeud[0]->v[0],&curr_br,big_tree);
+  Reassign_Edge_Nums(big_tree->t_nodes[0],big_tree->t_nodes[0]->v[0],&curr_br,big_tree);
 
   big_tree->t_dir = (short int *)mCalloc((2*big_tree->n_otu-2)*(2*big_tree->n_otu-2),sizeof(short int));
 
@@ -13644,7 +13669,7 @@ void Prune_Tree(t_tree *big_tree, t_tree *small_tree)
   Free(pruned_nodes);
   Free(residual_edges);
   big_tree->t_edges[2*big_tree->n_otu-3] = big_tree->t_edges[2*(big_tree->n_otu+n_pruned_nodes)-3];
-  big_tree->noeud[2*big_tree->n_otu-2] = big_tree->noeud[2*(big_tree->n_otu+n_pruned_nodes)-2];
+  big_tree->t_nodes[2*big_tree->n_otu-2] = big_tree->t_nodes[2*(big_tree->n_otu+n_pruned_nodes)-2];
 
 }
 
@@ -13669,11 +13694,11 @@ void Match_Nodes_In_Small_Tree(t_tree *small_tree, t_tree *big_tree)
 
   Free_Bip(big_tree);
   Alloc_Bip(big_tree);  
-  Get_Bip(big_tree->noeud[0],big_tree->noeud[0]->v[0],big_tree);
+  Get_Bip(big_tree->t_nodes[0],big_tree->t_nodes[0]->v[0],big_tree);
 
   Free_Bip(small_tree);
   Alloc_Bip(small_tree);
-  Get_Bip(small_tree->noeud[0],small_tree->noeud[0]->v[0],small_tree);
+  Get_Bip(small_tree->t_nodes[0],small_tree->t_nodes[0]->v[0],small_tree);
 
   if(!Check_Topo_Constraints(big_tree,small_tree))
     {
@@ -13682,8 +13707,8 @@ void Match_Nodes_In_Small_Tree(t_tree *small_tree, t_tree *big_tree)
       Exit("\n");
     }
 
-  For(i,2*small_tree->n_otu-1) small_tree->noeud[i]->match_node = NULL;
-  For(i,2*big_tree->n_otu-1)   big_tree->noeud[i]->match_node   = NULL;
+  For(i,2*small_tree->n_otu-1) small_tree->t_nodes[i]->match_node = NULL;
+  For(i,2*big_tree->n_otu-1)   big_tree->t_nodes[i]->match_node   = NULL;
 
   score = (int *)mCalloc(3,sizeof(int));
 
@@ -13691,10 +13716,10 @@ void Match_Nodes_In_Small_Tree(t_tree *small_tree, t_tree *big_tree)
     {
       For(j,big_tree->n_otu)
 	{
-	  if(!strcmp(small_tree->noeud[i]->name,big_tree->noeud[j]->name))
+	  if(!strcmp(small_tree->t_nodes[i]->name,big_tree->t_nodes[j]->name))
 	    {
-	      small_tree->noeud[i]->match_node = big_tree->noeud[j];
-	      big_tree->noeud[j]->match_node   = small_tree->noeud[i];
+	      small_tree->t_nodes[i]->match_node = big_tree->t_nodes[j];
+	      big_tree->t_nodes[j]->match_node   = small_tree->t_nodes[i];
 	      break;
 	    }
 	}
@@ -13702,11 +13727,11 @@ void Match_Nodes_In_Small_Tree(t_tree *small_tree, t_tree *big_tree)
 
   For(i,2*small_tree->n_otu-2)
     {
-      if(small_tree->noeud[i]->tax == NO)
+      if(small_tree->t_nodes[i]->tax == NO)
 	{
 	  For(j,2*big_tree->n_otu-2)
 	    {
-	      if(big_tree->noeud[j]->tax == NO)
+	      if(big_tree->t_nodes[j]->tax == NO)
 		{
 		  For(k,3) score[k] = 0;
 	  		  
@@ -13715,18 +13740,18 @@ void Match_Nodes_In_Small_Tree(t_tree *small_tree, t_tree *big_tree)
 		      For(l,3)
 			{
 			  identical = 0;
-			  For(m,small_tree->noeud[i]->bip_size[k])
+			  For(m,small_tree->t_nodes[i]->bip_size[k])
 			    {
-			      For(n,big_tree->noeud[j]->bip_size[l])
+			      For(n,big_tree->t_nodes[j]->bip_size[l])
 				{
-				  if(!strcmp(small_tree->noeud[i]->bip_node[k][m]->name,big_tree->noeud[j]->bip_node[l][n]->name))
+				  if(!strcmp(small_tree->t_nodes[i]->bip_node[k][m]->name,big_tree->t_nodes[j]->bip_node[l][n]->name))
 				    {
 				      identical++;
 				      break;
 				    }
 				}
 			    }
-			  if(identical == small_tree->noeud[i]->bip_size[k])
+			  if(identical == small_tree->t_nodes[i]->bip_size[k])
 			    {
 			      score[k]++;
 			    }
@@ -13735,9 +13760,9 @@ void Match_Nodes_In_Small_Tree(t_tree *small_tree, t_tree *big_tree)
 
 		  /* printf("\n. [%d] [%d] %d %d %d -- %d %d %d",i,j, */
 		  /* 	 score[0],score[1],score[2], */
-		  /* 	 small_tree->noeud[i]->bip_size[0], */
-		  /* 	 small_tree->noeud[i]->bip_size[1], */
-		  /* 	 small_tree->noeud[i]->bip_size[2]); */
+		  /* 	 small_tree->t_nodes[i]->bip_size[0], */
+		  /* 	 small_tree->t_nodes[i]->bip_size[1], */
+		  /* 	 small_tree->t_nodes[i]->bip_size[2]); */
 
 		  if(
 		     score[0] == 1 && 
@@ -13745,8 +13770,8 @@ void Match_Nodes_In_Small_Tree(t_tree *small_tree, t_tree *big_tree)
 		     score[2] == 1 
 		     )
 		    {
-		      small_tree->noeud[i]->match_node = big_tree->noeud[j];
-		      big_tree->noeud[j]->match_node   = small_tree->noeud[i];
+		      small_tree->t_nodes[i]->match_node = big_tree->t_nodes[j];
+		      big_tree->t_nodes[j]->match_node   = small_tree->t_nodes[i];
 		      break;
 		    }
 		}
@@ -13807,19 +13832,19 @@ void Set_Taxa_Id_Ranking(t_tree *tree)
 {
   int i,j;
 
-  For(i,tree->n_otu) tree->noeud[i]->id_rank = 0;
+  For(i,tree->n_otu) tree->t_nodes[i]->id_rank = 0;
 
   For(i,tree->n_otu)
     {
       for(j=i+1;j<tree->n_otu;j++)
 	{
-	  if(strcmp(tree->noeud[i]->name,tree->noeud[j]->name) > 0)
-	    tree->noeud[i]->id_rank++;
+	  if(strcmp(tree->t_nodes[i]->name,tree->t_nodes[j]->name) > 0)
+	    tree->t_nodes[i]->id_rank++;
 	  else
-	    tree->noeud[j]->id_rank++;
+	    tree->t_nodes[j]->id_rank++;
 	}
     }
-  /* For(i,tree->n_otu) PhyML_Printf("\n. %20s %4d",tree->noeud[i]->name,tree->noeud[i]->id_rank); */
+  /* For(i,tree->n_otu) PhyML_Printf("\n. %20s %4d",tree->t_nodes[i]->name,tree->t_nodes[i]->id_rank); */
 }
 
 //////////////////////////////////////////////////////////////
@@ -13843,7 +13868,7 @@ void Get_Edge_Binary_Coding_Number(t_tree *tree)
 
   Free_Bip(tree);
   Alloc_Bip(tree);
-  Get_Bip(tree->noeud[0],tree->noeud[0]->v[0],tree);
+  Get_Bip(tree->t_nodes[0],tree->t_nodes[0]->v[0],tree);
   
   Set_Taxa_Id_Ranking(tree);
 
@@ -13943,10 +13968,24 @@ void Get_Mutmap_Coord(int idx, int *edge, int *site, int *mut, t_tree *tree)
   (*site) = (int)(idx - (*mut)*dim1 - (*edge)*dim2);
 }
 
-
-
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
+
+void Make_Next_Tree(int *n_trees, int n_tot_trees, t_tree *tree)
+{
+  tree->nextree = Make_Tree_From_Scratch(tree->n_otu,NULL);
+  Copy_Tree(tree,tree->nextree);
+  tree->nextree->mod         = Copy_Model(tree->mod);
+  tree->nextree->mod->s_opt  = tree->mod->s_opt;
+  tree->nextree->mod->io     = tree->io;
+  tree->nextree->io          = tree->io;
+  tree->nextree->data        = tree->data;
+  tree->nextree->both_sides  = tree->both_sides;
+  tree->nextree->n_pattern   = tree->n_pattern;
+  Prepare_Tree_For_Lk(tree->nextree);
+  (*n_trees) = (*n_trees) + 1;
+  if(*n_trees < n_tot_trees) Make_Next_Tree(n_trees, n_tot_trees, tree->nextree);
+}
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////

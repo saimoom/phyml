@@ -145,8 +145,8 @@ int main(int argc, char **argv)
 		      Free(s);
 		      Check_Constraint_Tree_Taxa_Names(io->cstr_tree,cdata);
 		      Alloc_Bip(io->cstr_tree);  
-		      Get_Bip(io->cstr_tree->noeud[0],
-			      io->cstr_tree->noeud[0]->v[0],
+		      Get_Bip(io->cstr_tree->t_nodes[0],
+			      io->cstr_tree->t_nodes[0]->v[0],
 			      io->cstr_tree);
 		    }
 
@@ -172,9 +172,7 @@ int main(int argc, char **argv)
 		      Exit("\n");
 		    }
 
-
 		  Prepare_Tree_For_Lk(tree);
-
 
 		  if(io->in_tree == 1) Spr_Pars(tree);
 		 

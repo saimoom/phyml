@@ -632,24 +632,24 @@ void M4_Init_P_Lk_Tips_Double(t_tree *tree)
 	    {
 	      For(k,tree->mod->m4mod->n_o)
 		{
-		  tree->noeud[i]->b[0]->p_lk_rght[curr_site*dim1 + 0*dim2 + j*dim3+k] = 
-		    tree->noeud[i]->b[0]->p_lk_rght[curr_site*dim1 + 0*dim2 + 0*dim3+k];
+		  tree->t_nodes[i]->b[0]->p_lk_rght[curr_site*dim1 + 0*dim2 + j*dim3+k] = 
+		    tree->t_nodes[i]->b[0]->p_lk_rght[curr_site*dim1 + 0*dim2 + 0*dim3+k];
 		  
 		  printf("\n() i=%d plk=%f",
 			 curr_site*dim1 + 0*dim2 + j*dim3+k,
-			 tree->noeud[i]->b[0]->p_lk_rght[curr_site*dim1 + 0*dim2 + j*dim3+k]);
+			 tree->t_nodes[i]->b[0]->p_lk_rght[curr_site*dim1 + 0*dim2 + j*dim3+k]);
 
-		  /* tree->noeud[i]->b[0]->p_lk_rght[curr_site][0][j*tree->mod->m4mod->n_o+k] =  */
-		  /* tree->noeud[i]->b[0]->p_lk_rght[curr_site][0][k]; */
+		  /* tree->t_nodes[i]->b[0]->p_lk_rght[curr_site][0][j*tree->mod->m4mod->n_o+k] =  */
+		  /* tree->t_nodes[i]->b[0]->p_lk_rght[curr_site][0][k]; */
 		}
 
 
 	      For(k,tree->mod->m4mod->n_o)
 		for(l=1;l<tree->mod->n_catg;l++)
-		  tree->noeud[i]->b[0]->p_lk_rght[curr_site*dim1 + l*dim2 + j*dim3+k] = 
-		  tree->noeud[i]->b[0]->p_lk_rght[curr_site*dim1 + 0*dim2 + j*dim3+k];
-		  /* tree->noeud[i]->b[0]->p_lk_rght[curr_site][l][j*tree->mod->m4mod->n_o+k] =  */
-		  /* tree->noeud[i]->b[0]->p_lk_rght[curr_site][0][j*tree->mod->m4mod->n_o+k]; */
+		  tree->t_nodes[i]->b[0]->p_lk_rght[curr_site*dim1 + l*dim2 + j*dim3+k] = 
+		  tree->t_nodes[i]->b[0]->p_lk_rght[curr_site*dim1 + 0*dim2 + j*dim3+k];
+		  /* tree->t_nodes[i]->b[0]->p_lk_rght[curr_site][l][j*tree->mod->m4mod->n_o+k] =  */
+		  /* tree->t_nodes[i]->b[0]->p_lk_rght[curr_site][0][j*tree->mod->m4mod->n_o+k]; */
 	    }
 	}
     }
@@ -674,10 +674,10 @@ void M4_Init_P_Lk_Tips_Int(t_tree *tree)
 	    {
 	      For(k,tree->mod->m4mod->n_o)
 		{
-		  tree->noeud[i]->b[0]->p_lk_tip_r[curr_site*dim2 + j*dim3+k] = 
-		    tree->noeud[i]->b[0]->p_lk_tip_r[curr_site*dim2 + 0*dim3+k];
-		  /* tree->noeud[i]->b[0]->p_lk_tip_r[curr_site][j*tree->mod->m4mod->n_o+k] =  */
-		  /* tree->noeud[i]->b[0]->p_lk_tip_r[curr_site][k]; */
+		  tree->t_nodes[i]->b[0]->p_lk_tip_r[curr_site*dim2 + j*dim3+k] = 
+		    tree->t_nodes[i]->b[0]->p_lk_tip_r[curr_site*dim2 + 0*dim3+k];
+		  /* tree->t_nodes[i]->b[0]->p_lk_tip_r[curr_site][j*tree->mod->m4mod->n_o+k] =  */
+		  /* tree->t_nodes[i]->b[0]->p_lk_tip_r[curr_site][k]; */
 		}
 	    }
 	}

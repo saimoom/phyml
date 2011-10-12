@@ -402,12 +402,12 @@ typedef struct __Tree{
 
   struct __Node                       *n_root; /*! root t_node */
   struct __Edge                       *e_root; /*! t_edge on which lies the root */
-  struct __Node                       **noeud; /*! array of nodes that defines the tree topology */
+  struct __Node                     **t_nodes; /*! array of nodes that defines the tree topology */
   struct __Edge                     **t_edges; /*! array of edges */
   struct __Model                         *mod; /*! substitution model */
   struct __Calign                       *data; /*! sequences */
   struct __Calign                   *anc_data; /*! ancestral sequences */
-
+  struct __Tree                      *nextree; /* set to NULL by default. Used for mixture models */
   struct __Option                         *io; /*! input/output */
   struct __Matrix                        *mat; /*! pairwise distance matrix */
   struct __Node                   **curr_path; /*! list of nodes that form a path in the tree */
@@ -643,10 +643,10 @@ typedef struct __Matrix { /*! mostly used in BIONJ */
 /*!********************************************************/
 
 typedef struct __Model {
-  struct __Optimiz  *s_opt; /*! pointer to parameters to optimize */
-  struct __Eigen    *eigen;
-  struct __M4       *m4mod;
-  struct __Option      *io;
+  struct __Optimiz   *s_opt; /*! pointer to parameters to optimize */
+  struct __Eigen     *eigen;
+  struct __M4        *m4mod;
+  struct __Option       *io;
 
   char          *modelname;
   char  *custom_mod_string; /*! string of characters used to define custom models of substitution */
@@ -662,7 +662,6 @@ typedef struct __Model {
   int            bootstrap; /*! Number of bootstrap replicates (0 : no bootstrap analysis is launched) */
   int            use_m4mod; /*! Use a Makrkov modulated Markov model ? */
   int         gamma_median; /*! 1: use the median of each bin in the discrete gamma distribution. 0: the mean is used */
-
 
   phydbl               *pi; /*! states frequencies */
   phydbl      *pi_unscaled; /*! states frequencies (unscaled) */
@@ -1210,6 +1209,15 @@ typedef struct __Tnexparm {
   int (*fp)(char *, struct __Tnexparm *, struct __Option *);
   struct __Tnexcom *com;
 }nexparm;
+
+/*!********************************************************/
+
+typedef struct __DoubleVect {
+  int len; /*! number of elements in the vector */
+  int nr; /*! number of rows if vector is actually a matrix */
+  int nc; /*! number of columns if vector is actually a matrix */
+  phydbl *val;
+}dvect;
 
 
 /*!********************************************************/
