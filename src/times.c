@@ -83,7 +83,7 @@ int TIMES_main(int argc, char **argv)
   /* r_seed = 1304059976; */
   /* r_seed = 1306315195; */
   /* r_seed = 1308263660; */
-  r_seed = 1313356025;
+  /* r_seed = 1313356025; */
 
   io->r_seed = r_seed;
 
@@ -94,8 +94,6 @@ int TIMES_main(int argc, char **argv)
   mod = io->mod;
   if(io->in_tree == 2) Test_Multiple_Data_Set_Format(io);
   else io->n_trees = 1;
-
-  /* io->colalias = 1;  /\* Do not compress sites if you're using Evolve function *\/ */
 
   mat = NULL;
   tree_line_number = 0;
