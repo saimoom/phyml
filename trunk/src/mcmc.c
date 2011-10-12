@@ -892,7 +892,8 @@ void MCMC_One_Time(t_node *a, t_node *d, int traversal, t_tree *tree)
 
       if(tree->mcmc->use_data) ratio += (new_lnL_data - cur_lnL_data);
       ratio += (new_lnL_rate - cur_lnL_rate);
-      ratio += (new_lnL_time - cur_lnL_time);
+      /////
+      /* ratio += (new_lnL_time - cur_lnL_time); */
 
       ratio = EXP(ratio);
       alpha = MIN(1.,ratio);
@@ -907,7 +908,6 @@ void MCMC_One_Time(t_node *a, t_node *d, int traversal, t_tree *tree)
 	  Restore_Br_Len(tree);
 	  RATES_Reset_Rates(tree);
 	  RATES_Reset_Times(tree);
-
 
 	  if(tree->io->lk_approx == EXACT && tree->mcmc->use_data) 
 	    {
