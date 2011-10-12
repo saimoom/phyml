@@ -693,7 +693,7 @@ phydbl RATES_Average_Substitution_Rate(t_tree *tree)
   For(i,2*tree->n_otu-3) 
     {
       t     = tree->rates->nd_t[i];
-      t_anc = tree->rates->nd_t[tree->noeud[i]->anc->num];      
+      t_anc = tree->rates->nd_t[tree->t_nodes[i]->anc->num];      
       u = tree->t_edges[i]->l;
       if(tree->rates->model == GUINDON) u = tree->t_edges[i]->gamma_prior_mean;
       sum_r += u;	  
@@ -1702,7 +1702,7 @@ phydbl RATES_Lk_Jumps(t_tree *tree)
 
   For(i,2*tree->n_otu-2)
     {
-      n = tree->noeud[i];
+      n = tree->t_nodes[i];
       dt = FABS(tree->rates->nd_t[n->num]-tree->rates->nd_t[n->anc->num]);
       n_jps = tree->rates->n_jps[n->num];
       dens += LOG(Dpois(n_jps,lexp*dt));
@@ -1721,7 +1721,7 @@ void RATES_Posterior_Rates(t_tree *tree)
 {
   int node_num; 
   node_num = Rand_Int(0,2*tree->n_otu-3);      
-  RATES_Posterior_One_Rate(tree->noeud[node_num]->anc,tree->noeud[node_num],NO,tree);
+  RATES_Posterior_One_Rate(tree->t_nodes[node_num]->anc,tree->t_nodes[node_num],NO,tree);
 }
 
 //////////////////////////////////////////////////////////////
@@ -1732,7 +1732,7 @@ void RATES_Posterior_Times(t_tree *tree)
 {
   int node_num;
   node_num = Rand_Int(tree->n_otu,2*tree->n_otu-3);
-  RATES_Posterior_One_Time(tree->noeud[node_num]->anc,tree->noeud[node_num],NO,tree);
+  RATES_Posterior_One_Time(tree->t_nodes[node_num]->anc,tree->t_nodes[node_num],NO,tree);
 }
 
 //////////////////////////////////////////////////////////////
@@ -3107,7 +3107,7 @@ void RATES_Fill_Lca_Table(t_tree *tree)
     {
       for(j=i;j<dim;j++)
 	{
-	  tree->rates->lca[i*dim+j] = Find_Lca(tree->noeud[i],tree->noeud[j],tree);
+	  tree->rates->lca[i*dim+j] = Find_Lca(tree->t_nodes[i],tree->t_nodes[j],tree);
 	  tree->rates->lca[j*dim+i] = tree->rates->lca[i*dim+j];
 	}
     }
@@ -3205,7 +3205,7 @@ void RATES_Get_Trip_Conditional_Variances(t_tree *tree)
 
   For(i,2*n_otu-2)
     {
-      n = tree->noeud[i];
+      n = tree->t_nodes[i];
       if(!n->tax)
 	{
 	  For(j,2*n_otu-3) is_1[j] = 0;
@@ -3241,7 +3241,7 @@ void RATES_Get_All_Trip_Reg_Coeff(t_tree *tree)
 
   For(i,2*n_otu-2)
     {
-      n = tree->noeud[i];
+      n = tree->t_nodes[i];
       if(!n->tax)
 	{	  
 	  For(j,2*n_otu-3) is_1[j] = 0;
@@ -3271,13 +3271,13 @@ void RATES_Check_Lk_Rates(t_tree *tree, int *err)
   For(i,2*tree->n_otu-2)
     {
       u     = tree->rates->br_r[i];
-      u_anc = tree->rates->br_r[tree->noeud[i]->anc->num];
+      u_anc = tree->rates->br_r[tree->t_nodes[i]->anc->num];
       t     = tree->rates->nd_t[i];
-      t_anc = tree->rates->nd_t[tree->noeud[i]->anc->num];
+      t_anc = tree->rates->nd_t[tree->t_nodes[i]->anc->num];
 
       if(t_anc > t)
 	{
-	  PhyML_Printf("\n. %d %d u=%f u_anc=%f t=%f t_anc=%f",i,tree->noeud[i]->anc->num,u,u_anc,t,t_anc);
+	  PhyML_Printf("\n. %d %d u=%f u_anc=%f t=%f t_anc=%f",i,tree->t_nodes[i]->anc->num,u,u_anc,t,t_anc);
 	  PhyML_Printf("\n. %d %d %d",tree->n_root->num,tree->n_root->v[0]->num,tree->n_root->v[1]->num);
 	  *err = 1;
 	}
@@ -3369,7 +3369,7 @@ void RATES_Update_Norm_Fact(t_tree *tree)
     {
       r     = tree->rates->br_r[i];
       t     = tree->rates->nd_t[i];
-      t_anc = tree->rates->nd_t[tree->noeud[i]->anc->num];
+      t_anc = tree->rates->nd_t[tree->t_nodes[i]->anc->num];
 
       num   += (t-t_anc);
       denom += (t-t_anc) * r;

@@ -28,7 +28,7 @@ void Bionj(matrix *mat)
   phydbl vxy,lx,ly,lamda,score;
 
   Clean_Tree_Connections(mat->tree);  
-  For(i,mat->tree->n_otu) mat->tip_node[i] = mat->tree->noeud[i];
+  For(i,mat->tree->n_otu) mat->tip_node[i] = mat->tree->t_nodes[i];
   mat->tree->num_curr_branch_available = 0;
 
   while(mat->r > 3)
@@ -80,7 +80,7 @@ void Finish(matrix *mat)
   ny = mat->tip_node[y];
   nz = mat->tip_node[z];
 
-  new = mat->tree->noeud[mat->curr_int];
+  new = mat->tree->t_nodes[mat->curr_int];
   new->num = mat->curr_int;
   new->v[0] = nx;
   new->v[1] = ny;
@@ -148,7 +148,7 @@ void Update_Tree(matrix *mat, int x, int y, phydbl lx, phydbl ly, phydbl score)
 
   nx            = mat->tip_node[x];
   ny            = mat->tip_node[y];
-  new           = mat->tree->noeud[mat->curr_int];
+  new           = mat->tree->t_nodes[mat->curr_int];
   nx->v[0]      = new;
   ny->v[0]      = new;
   new->v[1]     = nx;
@@ -423,10 +423,10 @@ void Bionj_Br_Length(matrix *mat)
 {
   int x;
 
-  x = Bionj_Br_Length_Post(mat->tree->noeud[0],
-			   mat->tree->noeud[0]->v[0],
+  x = Bionj_Br_Length_Post(mat->tree->t_nodes[0],
+			   mat->tree->t_nodes[0]->v[0],
 			   mat);
-  mat->tree->noeud[0]->b[0]->l = Dist(mat,0,x);
+  mat->tree->t_nodes[0]->b[0]->l = Dist(mat,0,x);
 }
 
 //////////////////////////////////////////////////////////////

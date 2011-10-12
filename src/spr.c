@@ -390,7 +390,7 @@ void Optim_SPR (t_tree *tree, int max_size, int method)
   ** Optimize all t_edge lengths and calculate the new likelihood value.
   */
 /*   PhyML_Printf("\n. Optimizing t_edge lengths."); */
-  root = tree->noeud[0];
+  root = tree->t_nodes[0];
   Optimize_Br_Len_Serie (root, root->v[0], root->b[0], tree, tree->data);
   tree->both_sides = 1;
   cur_lk = Lk (tree);
@@ -484,7 +484,7 @@ int Perform_SPR_Moves (t_tree *tree, int max_size)
   /*
   ** Calculate the average subtree distances.
   */
-  root = tree->noeud[0];
+  root = tree->t_nodes[0];
   PostOrder_v (tree, root->v[0], root->b[0]);
 
   /*
@@ -621,7 +621,7 @@ int Perform_SPR_Moves (t_tree *tree, int max_size)
   */
   tree->both_sides = 1;
   cur_lk = Lk (tree);
-  root = tree->noeud[0];
+  root = tree->t_nodes[0];
   Optimize_Br_Len_Serie (root, root->v[0], root->b[0], tree, tree->data);
   tree->both_sides = 1;
   cur_lk = Lk (tree);
@@ -664,7 +664,7 @@ int Perform_Best_SPR (t_tree *tree, int max_size)
   /*
   ** Calculate the average subtree distances.
   */
-  root = tree->noeud[0];
+  root = tree->t_nodes[0];
   PostOrder_v (tree, root->v[0], root->b[0]);
 
   /*
@@ -780,7 +780,7 @@ int Perform_Best_SPR (t_tree *tree, int max_size)
   */
   tree->both_sides = 1;
   cur_lk = Lk (tree);
-  root = tree->noeud[0];
+  root = tree->t_nodes[0];
   Optimize_Br_Len_Serie (root, root->v[0], root->b[0], tree, tree->data);
   tree->both_sides = 1;
   cur_lk = Lk (tree);
@@ -824,7 +824,7 @@ int Perform_One_SPR(t_tree *tree, int max_size)
   ** Calculate the average subtree distances.
   */
   
-  root = tree->noeud[0];
+  root = tree->t_nodes[0];
   PostOrder_v (tree, root->v[0], root->b[0]);
 
   /*
@@ -959,7 +959,7 @@ int Perform_One_SPR(t_tree *tree, int max_size)
   */
   tree->both_sides = 1;
   cur_lk = Lk (tree);
-  root = tree->noeud[0];
+  root = tree->t_nodes[0];
   Optimize_Br_Len_Serie (root, root->v[0], root->b[0], tree, tree->data);
   tree->both_sides = 1;
   cur_lk = Lk (tree);
@@ -2382,7 +2382,7 @@ void Make_Move (_move_ *move, int type, t_tree *tree)
   /*
   ** Recalculate the average distances between all (non-overlapping) subtrees.
   */
-  root = tree->noeud[0];
+  root = tree->t_nodes[0];
   PostOrder_v (tree, root->v[0], root->b[0]);
 }
 
@@ -2603,7 +2603,7 @@ int Find_Optim_Globl (t_tree *tree)
       
       tree->both_sides = 1;
       Lk(tree);
-      root = tree->noeud[0];
+      root = tree->t_nodes[0];
       Optimize_Br_Len_Serie (root, root->v[0], root->b[0], tree, tree->data);
       tree->both_sides = 1;
       new_lk = Lk (tree);
@@ -3654,9 +3654,9 @@ void Speed_Spr(t_tree *tree, int max_cycles)
       if(!tree->mod->s_opt->spr_pars)
 	{	  
 	  /* Optimise branch lengths */
-	  Optimize_Br_Len_Serie(tree->noeud[0],
-				tree->noeud[0]->v[0],
-				tree->noeud[0]->b[0],
+	  Optimize_Br_Len_Serie(tree->t_nodes[0],
+				tree->t_nodes[0]->v[0],
+				tree->t_nodes[0]->b[0],
 				tree,
 				tree->data);
 	  
@@ -4007,9 +4007,9 @@ int Try_One_Spr_Move_Triple(spr *move, t_tree *tree)
 /*       if(!(tree->n_improvements % tree->mod->s_opt->br_len_in_spr)) */
 /* 	{ */
 /* 	  tree->mod->s_opt->brent_it_max = 10; */
-/* 	  Optimize_Br_Len_Serie(tree->noeud[0], */
-/* 				tree->noeud[0]->v[0], */
-/* 				tree->noeud[0]->b[0], */
+/* 	  Optimize_Br_Len_Serie(tree->t_nodes[0], */
+/* 				tree->t_nodes[0]->v[0], */
+/* 				tree->t_nodes[0]->b[0], */
 /* 				tree, */
 /* 				tree->data); */
 /* 	  tree->mod->s_opt->brent_it_max = 500; */
@@ -4078,9 +4078,9 @@ int Try_One_Spr_Move_Full(spr *move, t_tree *tree)
   Lk(tree);
   tree->update_alias_subpatt = NO;
 
-  Optimize_Br_Len_Serie(tree->noeud[0],
-			tree->noeud[0]->v[0],
-			tree->noeud[0]->b[0],
+  Optimize_Br_Len_Serie(tree->t_nodes[0],
+			tree->t_nodes[0]->v[0],
+			tree->t_nodes[0]->b[0],
 			tree,
 			tree->data);
   
