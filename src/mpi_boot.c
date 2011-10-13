@@ -44,7 +44,7 @@ void Bootstrap_MPI(t_tree *tree)
   
   Free_Bip(tree);
   Alloc_Bip(tree);
-  Get_Bip(tree->noeud[0],tree->noeud[0]->v[0],tree);
+  Get_Bip(tree->t_nodes[0],tree->t_nodes[0]->v[0],tree);
 
   n_site = 0;
   For(j,tree->data->crunch_len) For(k,tree->data->wght[j])
@@ -242,8 +242,8 @@ fflush(stderr);
 
       Match_Tip_Numbers(tree,boot_tree);
 
-      Get_Bip(boot_tree->noeud[0],
-              boot_tree->noeud[0]->v[0],
+      Get_Bip(boot_tree->t_nodes[0],
+              boot_tree->t_nodes[0]->v[0],
               boot_tree);
 
       Compare_Bip(tree,boot_tree,NO);
