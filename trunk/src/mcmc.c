@@ -142,7 +142,7 @@ void MCMC(t_tree *tree)
       /* 	} */
 
 
-      if(tree->mcmc->run > 1000000)
+      if(tree->mcmc->run > 300000)
       	{
       	  FILE *fp;
       	  char *s,*t;
@@ -3510,6 +3510,7 @@ void MCMC_Complete_MCMC(t_mcmc *mcmc, t_tree *tree)
 
   for(i=mcmc->num_move_nd_r;i<mcmc->num_move_nd_r+2*tree->n_otu-1;i++) mcmc->move_type[i] = MCMC_MOVE_SCALE_THORNE;
   for(i=mcmc->num_move_nd_t;i<mcmc->num_move_nd_t+tree->n_otu-1;i++)   mcmc->move_type[i] = MCMC_MOVE_RANDWALK_UNIFORM;
+  /* for(i=mcmc->num_move_nd_t;i<mcmc->num_move_nd_t+tree->n_otu-1;i++)   mcmc->move_type[i] = MCMC_MOVE_SCALE_THORNE; */
   mcmc->move_type[mcmc->num_move_nu] = MCMC_MOVE_SCALE_THORNE;
   mcmc->move_type[mcmc->num_move_clock_r] = MCMC_MOVE_SCALE_THORNE;
   mcmc->move_type[mcmc->num_move_tree_height] = MCMC_MOVE_SCALE_THORNE;
