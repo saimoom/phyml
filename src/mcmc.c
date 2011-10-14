@@ -3557,7 +3557,7 @@ void MCMC_Complete_MCMC(t_mcmc *mcmc, t_tree *tree)
   for(i=mcmc->num_move_nd_r;i<mcmc->num_move_nd_r+2*tree->n_otu-1;i++) mcmc->move_weight[i] = 0.0; /* Node rates */
   for(i=mcmc->num_move_nd_t;i<mcmc->num_move_nd_t+tree->n_otu-1;i++)   mcmc->move_weight[i] = (phydbl)(1./(tree->n_otu-1));  /* Times */
   mcmc->move_weight[mcmc->num_move_clock_r]         = 1.0;
-  mcmc->move_weight[mcmc->num_move_tree_height]     = 1.0;
+  mcmc->move_weight[mcmc->num_move_tree_height]     = 20.0;
   mcmc->move_weight[mcmc->num_move_subtree_height]  = 0.0;
   mcmc->move_weight[mcmc->num_move_nu]              = 1.0;
   mcmc->move_weight[mcmc->num_move_kappa]           = 0.5;
