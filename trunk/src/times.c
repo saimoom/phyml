@@ -848,21 +848,22 @@ phydbl TIMES_Lk_Times(t_tree *tree)
 
 
   /* Count the number of internal node (minus the root node) in the deepest slice */
-  /* n_nodes = 0; */
-  /* For(i,2*tree->n_otu-2) */
-  /*   { */
-  /*     if(tree->t_nodes[i]->tax == NO && tree->t_nodes[i] != tree->n_root) */
-  /* 	{ */
-  /* 	  if(!(tree->rates->nd_t[i] > tree->rates->t_floor[tree->n_root->num])) */
-  /* 	    { */
-  /* 	      n_nodes++; */
-  /* 	    } */
-  /* 	} */
-  /*   } */
+  int i;
+  int n_nodes = 0;
+  For(i,2*tree->n_otu-2)
+    {
+      if(tree->t_nodes[i]->tax == NO && tree->t_nodes[i] != tree->n_root)
+  	{
+  	  if(!(tree->rates->nd_t[i] > tree->rates->t_floor[tree->n_root->num]))
+  	    {
+  	      n_nodes++;
+  	    }
+  	}
+    }
    
-  /* condlogdens = -(phydbl)(n_nodes)*LOG(tree->rates->t_floor[tree->n_root->num] - tree->rates->nd_t[tree->n_root->num]); */
+  condlogdens = -(phydbl)(n_nodes)*LOG(tree->rates->t_floor[tree->n_root->num] - tree->rates->nd_t[tree->n_root->num]);
 
-  condlogdens = TIMES_Lk_Uniform_Core(tree);
+  /* condlogdens = TIMES_Lk_Uniform_Core(tree); */
 
   tree->rates->c_lnL_times = condlogdens;
 
