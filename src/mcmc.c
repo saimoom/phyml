@@ -112,54 +112,53 @@ void MCMC(t_tree *tree)
   first = 0;
   secod = 1;
   do
-    {      
-
-      /* if(tree->mcmc->run > 100000) */
-      /* 	{ */
-      /* 	  FILE *fp; */
-      /* 	  char *s; */
-
-      /* 	  s = (char *)mCalloc(100,sizeof(char)); */
-
-      /* 	  sprintf(s,"simul_par.%d",getpid()); */
-      /* 	  fclose(tree->mcmc->out_fp_stats); */
-      /* 	  tree->mcmc->out_fp_stats = fopen(s,"w"); */
-      /* 	  tree->mcmc->run = 0; */
-      /* 	  MCMC_Print_Param(tree->mcmc,tree); */
-
-      /* 	  RATES_Update_Cur_Bl(tree); */
-      /* 	  printf("\n. %s",Write_Tree(tree,NO)); */
-      /* 	  Evolve(tree->data,tree->mod,tree); */
-
-      /* 	  sprintf(s,"simul_seq.%d",getpid()); */
-      /* 	  fp = fopen(s,"w"); */
-      /* 	  Print_CSeq(fp,NO,tree->data); */
-      /* 	  fflush(NULL); */
-      /* 	  fclose(fp); */
-      /* 	  Free(s); */
-
-      /* 	  Exit("\n"); */
-      /* 	} */
-
-
+    {
       if(tree->mcmc->run > 500000)
       	{
       	  FILE *fp;
-      	  char *s,*t;
+      	  char *s;
 
       	  s = (char *)mCalloc(100,sizeof(char));
-	  
-      	  t = strrchr(tree->io->in_align_file,'.');
-      	  sprintf(s,"res%s",t);
-      	  fp = fopen(s,"w");
+
+      	  sprintf(s,"simul_par.%d",getpid());
       	  fclose(tree->mcmc->out_fp_stats);
       	  tree->mcmc->out_fp_stats = fopen(s,"w");
       	  tree->mcmc->run = 0;
       	  MCMC_Print_Param(tree->mcmc,tree);
+
+      	  RATES_Update_Cur_Bl(tree);
+      	  printf("\n. %s",Write_Tree(tree,NO));
+      	  Evolve(tree->data,tree->mod,tree);
+
+      	  sprintf(s,"simul_seq.%d",getpid());
+      	  fp = fopen(s,"w");
+      	  Print_CSeq(fp,NO,tree->data);
+      	  fflush(NULL);
       	  fclose(fp);
       	  Free(s);
+
       	  Exit("\n");
       	}
+
+
+      /* if(tree->mcmc->run > 500000) */
+      /* 	{ */
+      /* 	  FILE *fp; */
+      /* 	  char *s,*t; */
+
+      /* 	  s = (char *)mCalloc(100,sizeof(char)); */
+	  
+      /* 	  t = strrchr(tree->io->in_align_file,'.'); */
+      /* 	  sprintf(s,"res%s",t); */
+      /* 	  fp = fopen(s,"w"); */
+      /* 	  fclose(tree->mcmc->out_fp_stats); */
+      /* 	  tree->mcmc->out_fp_stats = fopen(s,"w"); */
+      /* 	  tree->mcmc->run = 0; */
+      /* 	  MCMC_Print_Param(tree->mcmc,tree); */
+      /* 	  fclose(fp); */
+      /* 	  Free(s); */
+      /* 	  Exit("\n"); */
+      /* 	} */
 
       /* if(tree->mcmc->run > 50000) */
       /* 	{ */
@@ -892,8 +891,7 @@ void MCMC_One_Time(t_node *a, t_node *d, int traversal, t_tree *tree)
 
       if(tree->mcmc->use_data) ratio += (new_lnL_data - cur_lnL_data);
       ratio += (new_lnL_rate - cur_lnL_rate);
-      /////
-      /* ratio += (new_lnL_time - cur_lnL_time); */
+      ratio += (new_lnL_time - cur_lnL_time);
 
       ratio = EXP(ratio);
       alpha = MIN(1.,ratio);
