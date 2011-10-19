@@ -1986,7 +1986,7 @@ int Init_Qmat_VT(phydbl *daa, phydbl *pi)
 
     /*
       Muller, T., and M. Vingron. 2000. Modeling amino acid replacement.         
-      Journal of Computational BioLOGy 7:761-776.                             
+      Journal of Computational Biology 7:761-776.                             
     */
 
     int i,j,naa;
