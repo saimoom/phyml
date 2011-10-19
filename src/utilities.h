@@ -197,6 +197,9 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define CUSTOMAA  24
 #define LG        25
 
+// Amino acid ordering:
+// Ala Arg Asn Asp Cys Gln Glu Gly His Ile Leu Lys Met Phe Pro Ser Thr Trp Tyr Val
+
 #define COMPOUND_COR   0
 #define COMPOUND_NOCOR 1
 #define EXPONENTIAL    2
