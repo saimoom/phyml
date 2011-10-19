@@ -3847,7 +3847,7 @@ void RATES_Set_Clock_And_Nu_Max(t_tree *tree)
   if(tree->rates->model == THORNE || 
      tree->rates->model == GUINDON)
     {
-      tune = 1.1;
+      tune = 1.05;
       
       if(tree->rates->model_log_rates == NO)
 	{
