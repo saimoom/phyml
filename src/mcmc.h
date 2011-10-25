@@ -138,5 +138,6 @@ void MCMC_Covarion_Rates(t_tree *tree);
 void MCMC_Covarion_Switch(t_tree *tree);
 void MCMC_Randomize_Covarion_Rates(t_tree *tree);
 void MCMC_Randomize_Covarion_Switch(t_tree *tree);
+void MCMC_Read_Param_Vals(t_tree *tree);
 
 #endif

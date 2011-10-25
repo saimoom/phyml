@@ -1151,6 +1151,7 @@ typedef struct __Tmcmc {
   FILE *out_fp_means;
   FILE *out_fp_last;
   FILE *out_fp_constree;
+  FILE *in_fp_par;
 
   int *adjust_tuning;
   int n_moves;
