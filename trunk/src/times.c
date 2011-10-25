@@ -284,7 +284,6 @@ int TIMES_main(int argc, char **argv)
 		  tree->mcmc = MCMC_Make_MCMC_Struct();
 		  MCMC_Copy_MCMC_Struct(tree->io->mcmc,tree->mcmc,"phytime");
 		  MCMC_Complete_MCMC(tree->mcmc,tree);
-		  tree->mcmc->randomize = YES;
 		  tree->mcmc->is_burnin = NO;
 		  MCMC(tree);
 		  MCMC_Close_MCMC(tree->mcmc);

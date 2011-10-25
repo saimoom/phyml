@@ -106,6 +106,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
       {"constraint_tree",     required_argument,NULL,68},
       {"help",                no_argument,NULL,69},
       {"mutmap",              no_argument,NULL,70},
+      {"parvals",             required_argument,NULL,71},
       {0,0,0,0}
     };
 
@@ -118,6 +119,12 @@ void Read_Command_Line(option *io, int argc, char **argv)
     {
       switch(c)
 	{
+	case 71:
+	  {
+	    io->mcmc->in_fp_par = fopen(optarg,"r");
+	    io->mcmc->randomize = NO;
+	    break;
+	  }
 	case 70:
 	  {
 	    io->mutmap = YES;
