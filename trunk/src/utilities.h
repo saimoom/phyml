@@ -1008,6 +1008,8 @@ typedef struct __T_Rate {
   phydbl alpha;
   phydbl less_likely;
   phydbl birth_rate;
+  phydbl birth_rate_min;
+  phydbl birth_rate_max;
   phydbl min_rate;
   phydbl max_rate;
   phydbl c_lnL1; 
@@ -1139,6 +1141,7 @@ typedef struct __Tmcmc {
   int num_move_ras;
   int num_move_cov_rates;
   int num_move_cov_switch;
+  int num_move_birth_rate;
 
   char *out_filename;
 

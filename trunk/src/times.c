@@ -834,6 +834,7 @@ phydbl TIMES_Log_Yule(t_tree *tree)
 phydbl TIMES_Lk_Times(t_tree *tree)
 {
   phydbl condlogdens;
+  phydbl birthr;
 
   condlogdens = 0.0;
 
@@ -847,22 +848,34 @@ phydbl TIMES_Lk_Times(t_tree *tree)
 
 
   /* Count the number of internal node (minus the root node) in the deepest slice */
+  /* int i; */
+  /* int n_nodes = 0; */
+  /* For(i,2*tree->n_otu-2) */
+  /*   { */
+  /*     if(tree->t_nodes[i]->tax == NO && tree->t_nodes[i] != tree->n_root) */
+  /* 	{ */
+  /* 	  if(!(tree->rates->nd_t[i] > tree->rates->t_floor[tree->n_root->num])) */
+  /* 	    { */
+  /* 	      n_nodes++; */
+  /* 	    } */
+  /* 	} */
+  /*   } */
+   
+  /* condlogdens = -(phydbl)(n_nodes)*LOG(tree->rates->t_floor[tree->n_root->num] - tree->rates->nd_t[tree->n_root->num]); */
+
+
   int i;
-  int n_nodes = 0;
-  For(i,2*tree->n_otu-2)
+  condlogdens = 0.0;
+  birthr = tree->rates->birth_rate;
+  For(i,2*tree->n_otu-1)
     {
       if(tree->t_nodes[i]->tax == NO && tree->t_nodes[i] != tree->n_root)
   	{
-  	  if(!(tree->rates->nd_t[i] > tree->rates->t_floor[tree->n_root->num]))
-  	    {
-  	      n_nodes++;
-  	    }
-  	}
+	      condlogdens -= birthr*(tree->rates->t_floor[i] - tree->rates->nd_t[i]);
+	      condlogdens -= LOG(1.-EXP(-birthr*(tree->rates->t_floor[i] - tree->rates->nd_t[tree->n_root->num])));
+	}
     }
-   
-  condlogdens = -(phydbl)(n_nodes)*LOG(tree->rates->t_floor[tree->n_root->num] - tree->rates->nd_t[tree->n_root->num]);
-
-  /* condlogdens = TIMES_Lk_Uniform_Core(tree); */
+  condlogdens += (tree->n_otu-2)*LOG(birthr);
 
   tree->rates->c_lnL_times = condlogdens;
 
@@ -1071,7 +1084,6 @@ phydbl TIMES_Lk_Uniform_Core(t_tree *tree)
   phydbl logn;
 
   logn = TIMES_Log_Number_Of_Ranked_Labelled_Histories(tree->n_root,YES,tree);
-
 
   tree->rates->c_lnL_times = 0.0;
   TIMES_Lk_Uniform_Post(tree->n_root,tree->n_root->v[0],tree);
