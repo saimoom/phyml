@@ -13127,7 +13127,7 @@ void Scale_Node_Heights_Post(t_node *a, t_node *d, phydbl K, phydbl floor, int *
 	     nodes. Therefore needs to count it in for 
 	     working out correct Hastings ratios
 	  */
-	  /* *n_nodes = *n_nodes+1;  */
+	  /* *n_nodes = *n_nodes+1; */
 	}
       return;
     }
