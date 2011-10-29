@@ -3888,6 +3888,9 @@ void MCMC_Read_Param_Vals(t_tree *tree)
   tree->rates->nu = val;
   /* PhyML_Printf("\n. Nu = %f",val); */
 
+  fscanf(in_fp,"%lf\t",&val); // Birth rate
+  tree->rates->birth_rate = val;
+
   fscanf(in_fp,"%lf\t",&val); // TsTv
   tree->mod->kappa = val;
   /* PhyML_Printf("\n. TsTv = %f",val); */
