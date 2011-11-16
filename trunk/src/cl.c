@@ -395,15 +395,6 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	  }
 	case 39 :
 	  {
-	    char choix;
-	    io->mod->n_rr_branch = (int)atoi(optarg);
-	    if(io->mod->n_rr_branch < 1)
-	      {
-		PhyML_Printf("\n. The number of classes must be an integer greater than 0.\n");
-		PhyML_Printf("\n. Type any key to exit.\n");
-		if(!scanf("%c",&choix)) Exit("\n");
-		Exit("\n");
-	      }
 	    break;
 	  }
 	case 38 :
@@ -850,7 +841,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	      }
 	    else
 	      {
-		io->mod->alpha = (phydbl)atof(optarg);
+		io->mod->alpha->v = (phydbl)atof(optarg);
 		io->mod->s_opt->opt_alpha  = 0;
 	      }
 	    break;
@@ -956,31 +947,31 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		/* 		       io->mod->user_b_freq+2, */
 		/* 		       io->mod->user_b_freq+3); */
 		sscanf(optarg,"%lf,%lf,%lf,%lf",&val1,&val2,&val3,&val4);
-		io->mod->user_b_freq[0] = (phydbl)val1;
-		io->mod->user_b_freq[1] = (phydbl)val2;
-		io->mod->user_b_freq[2] = (phydbl)val3;
-		io->mod->user_b_freq[3] = (phydbl)val4;
+		io->mod->user_b_freq->v[0] = (phydbl)val1;
+		io->mod->user_b_freq->v[1] = (phydbl)val2;
+		io->mod->user_b_freq->v[2] = (phydbl)val3;
+		io->mod->user_b_freq->v[3] = (phydbl)val4;
 		
 		sum =
-		  (io->mod->user_b_freq[0] +
-		   io->mod->user_b_freq[1] +
-		   io->mod->user_b_freq[2] +
-		   io->mod->user_b_freq[3]);
+		  (io->mod->user_b_freq->v[0] +
+		   io->mod->user_b_freq->v[1] +
+		   io->mod->user_b_freq->v[2] +
+		   io->mod->user_b_freq->v[3]);
 		
-		io->mod->user_b_freq[0] /= sum;
-		io->mod->user_b_freq[1] /= sum;
-		io->mod->user_b_freq[2] /= sum;
-		io->mod->user_b_freq[3] /= sum;
+		io->mod->user_b_freq->v[0] /= sum;
+		io->mod->user_b_freq->v[1] /= sum;
+		io->mod->user_b_freq->v[2] /= sum;
+		io->mod->user_b_freq->v[3] /= sum;
 		
 		
-		if(io->mod->user_b_freq[0] < .0 ||
-		   io->mod->user_b_freq[1] < .0 ||
-		   io->mod->user_b_freq[2] < .0 ||
-		   io->mod->user_b_freq[3] < .0 ||
-		   io->mod->user_b_freq[0] > 1. ||
-		   io->mod->user_b_freq[1] > 1. ||
-		   io->mod->user_b_freq[2] > 1. ||
-		   io->mod->user_b_freq[3] > 1.)
+		if(io->mod->user_b_freq->v[0] < .0 ||
+		   io->mod->user_b_freq->v[1] < .0 ||
+		   io->mod->user_b_freq->v[2] < .0 ||
+		   io->mod->user_b_freq->v[3] < .0 ||
+		   io->mod->user_b_freq->v[0] > 1. ||
+		   io->mod->user_b_freq->v[1] > 1. ||
+		   io->mod->user_b_freq->v[2] > 1. ||
+		   io->mod->user_b_freq->v[3] > 1.)
 		  {
 		    Warn_And_Exit("\n. Invalid base frequencies.\n");
 		  }
@@ -1059,7 +1050,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		    (strcmp(optarg, "estimated") == 0) ||
 		    (strcmp(optarg, "ESTIMATED") == 0))
 		  {
-		    io->mod->kappa                 = 4.0;
+		    io->mod->kappa->v                 = 4.0;
 		    io->mod->s_opt->opt_kappa      = 1;
 		    if (io->mod->whichmodel == TN93)
 		      io->mod->s_opt->opt_lambda   = 1;
@@ -1076,7 +1067,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		      }
 		    else
 		      {
-			io->mod->kappa = (phydbl)atof(optarg);
+			io->mod->kappa->v = (phydbl)atof(optarg);
 			io->mod->s_opt->opt_kappa  = 0;
 			io->mod->s_opt->opt_lambda = 0;
 		      }
@@ -1159,8 +1150,8 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	      }
 	    else
 	      {
-		io->mod->pinvar = (phydbl)atof(optarg);
-		if (io->mod->pinvar > 0.0+SMALL)
+		io->mod->pinvar->v = (phydbl)atof(optarg);
+		if (io->mod->pinvar->v > 0.0+SMALL)
 		  io->mod->invar = 1;
 		else
 		  io->mod->invar = 0;
@@ -1254,7 +1245,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
   if(io->mod->s_opt->constrained_br_len == YES)
     {
       io->mod->s_opt->opt_topo = NO;
-      io->mod->s_opt->opt_bl   = NO;
+      /* io->mod->s_opt->opt_bl   = NO; */
     }
 
 #ifndef PHYML

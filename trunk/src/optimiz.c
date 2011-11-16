@@ -43,7 +43,6 @@ void Optimize_Single_Param_Generic(t_tree *tree, phydbl *param, phydbl lim_inf, 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
 int Generic_Brak(phydbl *param,
 		 phydbl *ax, phydbl *bx, phydbl *cx, 
 		 phydbl *fa, phydbl *fb, phydbl *fc,
@@ -686,7 +685,7 @@ void Optimize_Br_Len_Serie(t_node *a, t_node *d, t_edge *b_fcus, t_tree *tree, c
   lk_init = tree->c_lnL;
   if(tree->mod->s_opt->constrained_br_len == YES)
     {
-      Generic_Brent_Lk(&(tree->mod->br_len_multiplier),
+      Generic_Brent_Lk(&(tree->mod->br_len_multiplier->v),
 		       1.E-2,1.E+1,
 		       tree->mod->s_opt->min_diff_lk_global,
 		       tree->mod->s_opt->brent_it_max,
@@ -817,7 +816,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
       failed = 0;
       
       tree->mod->update_eigen = 1;
-      BFGS(tree,tree->mod->rr_val,tree->mod->n_diff_rr,1.e-5,1.e-3,
+      BFGS(tree,tree->mod->rr_val->v,tree->mod->n_diff_rr,1.e-5,1.e-3,
 	   &Return_Abs_Lk,
 	   &Num_Derivative_Several_Param,
 	   &Lnsrch_RR_Param,&failed);
@@ -835,7 +834,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 /* 					      tree->mod->s_opt->brent_it_max, */
 /* 					      tree->mod->s_opt->quickdirty); */
 
-		Generic_Brent_Lk(&(tree->mod->rr_val[i]),
+		Generic_Brent_Lk(&(tree->mod->rr_val->v[i]),
 				 1.E-2,1.E+2,
 				 tree->mod->s_opt->min_diff_lk_global,
 				 tree->mod->s_opt->brent_it_max,
@@ -853,7 +852,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
     {
       tree->mod->update_eigen = 1;
 
-      Generic_Brent_Lk(&(tree->mod->kappa),
+      Generic_Brent_Lk(&(tree->mod->kappa->v),
 		       0.1,100.,
 		       tree->mod->s_opt->min_diff_lk_global,
 		       tree->mod->s_opt->brent_it_max,
@@ -863,18 +862,18 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
       if(verbose) 
 	{
 	  Print_Lk(tree,"[Ts/ts ratio        ]");
-	  PhyML_Printf("[%10f]",tree->mod->kappa);
+	  PhyML_Printf("[%10f]",tree->mod->kappa->v);
 	}
       tree->mod->update_eigen = 0;
     }
 
   if(tree->mod->s_opt->opt_lambda) 
     {
-/*       Optimize_Single_Param_Generic(tree,&(tree->mod->lambda),.001,100., */
+/*       Optimize_Single_Param_Generic(tree,&(tree->mod->lambda->v),.001,100., */
 /* 				    tree->mod->s_opt->min_diff_lk_global, */
 /* 				    tree->mod->s_opt->brent_it_max, */
 /* 				    tree->mod->s_opt->quickdirty); */
-      Generic_Brent_Lk(&(tree->mod->lambda),
+      Generic_Brent_Lk(&(tree->mod->lambda->v),
 		       0.001,100.,
 		       tree->mod->s_opt->min_diff_lk_global,
 		       tree->mod->s_opt->brent_it_max,
@@ -884,7 +883,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
       if(verbose) 
 	{
 	  Print_Lk(tree,"[Lambda             ]");
-	  PhyML_Printf("[%10f]",tree->mod->lambda);
+	  PhyML_Printf("[%10f]",tree->mod->lambda->v);
 	}
     }
   
@@ -894,22 +893,22 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
       if(verbose) 
 	{
 	  Print_Lk(tree,"[Alpha              ]"); 
-	  PhyML_Printf("[%10f]",tree->mod->alpha);
+	  PhyML_Printf("[%10f]",tree->mod->alpha->v);
 	  Print_Lk(tree,"[P-inv              ]"); 
-	  PhyML_Printf("[%10f]",tree->mod->pinvar);
+	  PhyML_Printf("[%10f]",tree->mod->pinvar->v);
 	}
     }
   else
     {
       if(tree->mod->s_opt->opt_pinvar)
 	{
-/*  	  Optimize_Single_Param_Generic(tree,&(tree->mod->pinvar), */
+/*  	  Optimize_Single_Param_Generic(tree,&(tree->mod->pinvar->v), */
 /* 					.0001,0.9999, */
 /* 					tree->mod->s_opt->min_diff_lk_global, */
 /* 					tree->mod->s_opt->brent_it_max, */
 /* 					tree->mod->s_opt->quickdirty); */
 
-	  Generic_Brent_Lk(&(tree->mod->pinvar),
+	  Generic_Brent_Lk(&(tree->mod->pinvar->v),
 			   0.0001,0.9999,
 			   tree->mod->s_opt->min_diff_lk_global,
 			   tree->mod->s_opt->brent_it_max,
@@ -919,22 +918,22 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 	  if(verbose) 
 	    {
 	      Print_Lk(tree,"[P-inv              ]");
-	      PhyML_Printf("[%10f]",tree->mod->pinvar);
+	      PhyML_Printf("[%10f]",tree->mod->pinvar->v);
 	    }
 	}
       
       if(tree->mod->s_opt->opt_alpha && tree->mod->free_mixt_rates == NO)
 	{
 	  if(tree->mod->n_catg > 1)
-/* 	    Optimize_Single_Param_Generic(tree,&(tree->mod->alpha), */
+/* 	    Optimize_Single_Param_Generic(tree,&(tree->mod->alpha->v), */
 /* /\* 					  .01,100., *\/ */
 /* 					  tree->mod->alpha/2.,tree->mod->alpha*2., */
 /* 					  tree->mod->s_opt->min_diff_lk_global, */
 /* 					  tree->mod->s_opt->brent_it_max, */
 /* 					  tree->mod->s_opt->quickdirty); */
 
-	    Generic_Brent_Lk(&(tree->mod->alpha),
-			     tree->mod->alpha/2.,tree->mod->alpha*2.,
+	    Generic_Brent_Lk(&(tree->mod->alpha->v),
+			     tree->mod->alpha->v/2.,tree->mod->alpha->v*2.,
 			     tree->mod->s_opt->min_diff_lk_global,
 			     tree->mod->s_opt->brent_it_max,
 			     tree->mod->s_opt->quickdirty,
@@ -942,7 +941,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 	  if(verbose) 
 	    {
 	      Print_Lk(tree,"[Alpha              ]");
-	      PhyML_Printf("[%10f]",tree->mod->alpha);
+	      PhyML_Printf("[%10f]",tree->mod->alpha->v);
 	    }
 	}
     }
@@ -953,7 +952,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
         
         failed = 0;
         tree->mod->update_eigen = 1;
-        BFGS(tree,tree->mod->pi_unscaled,tree->mod->ns,1.e-5,1.e-5,
+        BFGS(tree,tree->mod->pi_unscaled->v,tree->mod->ns,1.e-5,1.e-5,
 	     &Return_Abs_Lk,
 	     &Num_Derivative_Several_Param,
 	     &Lnsrch_Nucleotide_Frequencies,&failed);
@@ -967,7 +966,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 /* 					      tree->mod->s_opt->min_diff_lk_global, */
 /* 					      tree->mod->s_opt->brent_it_max, */
 /* 					      tree->mod->s_opt->quickdirty); */
- 		Generic_Brent_Lk(&(tree->mod->pi_unscaled[i]),
+ 		Generic_Brent_Lk(&(tree->mod->pi_unscaled->v[i]),
 				 -1000.,1000.,
 				 tree->mod->s_opt->min_diff_lk_global,
 				 tree->mod->s_opt->brent_it_max,
@@ -998,7 +997,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
       /* 	{ */
       	  For(i,tree->mod->n_catg)
       	    {
-      	      Generic_Brent_Lk(&(tree->mod->gamma_r_proba_unscaled[i]),
+      	      Generic_Brent_Lk(&(tree->mod->gamma_r_proba_unscaled->v[i]),
       			       -1000.,1000.,
       			       tree->mod->s_opt->min_diff_lk_global,
       			       tree->mod->s_opt->brent_it_max,
@@ -1012,7 +1011,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 
       For(i,tree->mod->n_catg) 
 	{
-	  Generic_Brent_Lk(&(tree->mod->gamma_rr_unscaled[i]),
+	  Generic_Brent_Lk(&(tree->mod->gamma_rr_unscaled->v[i]),
 			   -1000.,1000.,
 			   tree->mod->s_opt->min_diff_lk_global,
 			   tree->mod->s_opt->brent_it_max,
@@ -1169,6 +1168,8 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
   tree->both_sides = init_both_sides;
 
   if(tree->both_sides) Lk(tree); /* Needed to update all partial likelihoods */
+
+  /* if(tree->nextree) Optimiz_All_Free_Param(tree->nextree,verbose); */
 }
 
 
@@ -1381,7 +1382,7 @@ int Lnsrch_RR_Param(t_tree *tree, int n, phydbl *xold, phydbl fold,
       /**/
       for(i=0;i<n;i++)
 	{
-	  tree->mod->rr_val[i] = FABS(local_xold[i]+alam*p[i]);
+	  tree->mod->rr_val->v[i] = FABS(local_xold[i]+alam*p[i]);
 	}
       /**/
 
@@ -1399,7 +1400,7 @@ int Lnsrch_RR_Param(t_tree *tree, int n, phydbl *xold, phydbl fold,
 	  /**/      
 	  for(i=0;i<n;i++)
 	    {
-	      tree->mod->rr_val[i] = FABS(local_xold[i]);
+	      tree->mod->rr_val->v[i] = FABS(local_xold[i]);
 	    }
 	  /**/
 
@@ -1606,7 +1607,7 @@ int Lnsrch_Nucleotide_Frequencies(t_tree *tree, int n, phydbl *xold, phydbl fold
       /**/      
       for(i=0;i<n;i++) 
 	{
-	  tree->mod->pi_unscaled[i]=FABS(local_xold[i]+alam*p[i]);
+	  tree->mod->pi_unscaled->v[i]=FABS(local_xold[i]+alam*p[i]);
 /* 	  if( */
 /* 	     (tree->mod->pi[i] < 0.001) || */
 /* 	     (tree->mod->pi[i] > 0.999) */
@@ -1622,7 +1623,7 @@ int Lnsrch_Nucleotide_Frequencies(t_tree *tree, int n, phydbl *xold, phydbl fold
       if (alam < alamin)
 	{
 	  for (i=0;i<n;i++) x[i]=local_xold[i];
-	  for (i=0;i<n;i++) tree->mod->pi_unscaled[i]=local_xold[i];
+	  for (i=0;i<n;i++) tree->mod->pi_unscaled->v[i]=local_xold[i];
 	  *check=1;
 	  For(i,n) xold[i] = local_xold[i];
 	  Free(local_xold);
@@ -1713,7 +1714,7 @@ int Lnsrch_Free_Mixt_Rates(t_tree *tree, int n, phydbl *xold, phydbl fold, phydb
       /**/      
       for(i=0;i<n;i++) 
 	{
-	  tree->mod->gamma_r_proba[i]=FABS(local_xold[i]+alam*p[i]);
+	  tree->mod->gamma_r_proba->v[i]=FABS(local_xold[i]+alam*p[i]);
 	}
       /**/
       if(i==n) 
@@ -1724,7 +1725,7 @@ int Lnsrch_Free_Mixt_Rates(t_tree *tree, int n, phydbl *xold, phydbl fold, phydb
       if (alam < alamin)
 	{
 	  for (i=0;i<n;i++) x[i]=local_xold[i];
-	  for (i=0;i<n;i++) tree->mod->gamma_r_proba[i]=local_xold[i];
+	  for (i=0;i<n;i++) tree->mod->gamma_r_proba->v[i]=local_xold[i];
 	  *check=1;
 	  For(i,n) xold[i] = local_xold[i];
 	  Free(local_xold);
@@ -2207,7 +2208,7 @@ int Optimiz_Alpha_And_Pinv(t_tree *tree)
   /* PhyML_Printf("\n\n. Init lnL = %f alpha=%f pinv=%f", */
   /* 	 tree->c_lnL, */
   /* 	 tree->mod->alpha, */
-  /* 	 tree->mod->pinvar); */
+  /* 	 tree->mod->pinvar->v); */
     
   /* Two (full) steps to compute  pinv_alpha_slope & pinv_alpha_intercept */
 
@@ -2220,18 +2221,18 @@ int Optimiz_Alpha_And_Pinv(t_tree *tree)
   
   tree->both_sides = 0;
 
-  Optimize_Single_Param_Generic(tree,&(tree->mod->alpha),.01,100.,
+  Optimize_Single_Param_Generic(tree,&(tree->mod->alpha->v),.01,100.,
 				tree->mod->s_opt->min_diff_lk_global,
 				tree->mod->s_opt->brent_it_max,
 				tree->mod->s_opt->quickdirty);
   
-  Optimize_Single_Param_Generic(tree,&(tree->mod->pinvar),.0001,0.9999,
+  Optimize_Single_Param_Generic(tree,&(tree->mod->pinvar->v),.0001,0.9999,
 				tree->mod->s_opt->min_diff_lk_global,
 				tree->mod->s_opt->brent_it_max,
 				tree->mod->s_opt->quickdirty);
 
-  pinv0  = tree->mod->pinvar;
-  alpha0 = tree->mod->alpha;
+  pinv0  = tree->mod->pinvar->v;
+  alpha0 = tree->mod->alpha->v;
   f0 = tree->c_lnL;
 
 
@@ -2243,19 +2244,19 @@ int Optimiz_Alpha_And_Pinv(t_tree *tree)
     
 
   tree->both_sides = 0;
-  Optimize_Single_Param_Generic(tree,&(tree->mod->alpha),.01,100.,
+  Optimize_Single_Param_Generic(tree,&(tree->mod->alpha->v),.01,100.,
 				tree->mod->s_opt->min_diff_lk_global,
 				tree->mod->s_opt->brent_it_max,
 				tree->mod->s_opt->quickdirty);
 
-  Optimize_Single_Param_Generic(tree,&(tree->mod->pinvar),.0001,0.9999,
+  Optimize_Single_Param_Generic(tree,&(tree->mod->pinvar->v),.0001,0.9999,
 				tree->mod->s_opt->min_diff_lk_global,
 				tree->mod->s_opt->brent_it_max,
 				tree->mod->s_opt->quickdirty);
   lk_a = tree->c_lnL;
 
-  pinv1  = tree->mod->pinvar;
-  alpha1 = tree->mod->alpha;
+  pinv1  = tree->mod->pinvar->v;
+  alpha1 = tree->mod->alpha->v;
   f1 = tree->c_lnL;
   best_lnL = f1;
 
@@ -2271,9 +2272,9 @@ int Optimiz_Alpha_And_Pinv(t_tree *tree)
     }
     
   Record_Br_Len(tree);
-  best_alpha = tree->mod->alpha;
-  best_pinv  = tree->mod->pinvar;
-  best_mult  = tree->mod->br_len_multiplier;
+  best_alpha = tree->mod->alpha->v;
+  best_pinv  = tree->mod->pinvar->v;
+  best_mult  = tree->mod->br_len_multiplier->v;
   lk_init    = tree->c_lnL;
 
   /* PhyML_Printf("\n\n. Init lnL after std opt = %f [%f] best_alpha=%f best_pinv=%f",tree->c_lnL,Lk(tree),best_alpha,best_pinv); */
@@ -2297,10 +2298,10 @@ int Optimiz_Alpha_And_Pinv(t_tree *tree)
 	  fb = f1;
 	  
 	  a = (0.1 < alpha1)?(0.1):(0.5*alpha1);
-	  tree->mod->alpha = a;
-	  tree->mod->pinvar = slope * tree->mod->alpha + intercept;
-	  if(tree->mod->pinvar > 1.0) tree->mod->pinvar = 0.9;
-	  if(tree->mod->pinvar < 0.0) tree->mod->pinvar = 0.001;
+	  tree->mod->alpha->v = a;
+	  tree->mod->pinvar->v = slope * tree->mod->alpha->v + intercept;
+	  if(tree->mod->pinvar->v > 1.0) tree->mod->pinvar->v = 0.9;
+	  if(tree->mod->pinvar->v < 0.0) tree->mod->pinvar->v = 0.001;
 	  tree->both_sides = 1;
 	  Lk(tree);
 
@@ -2312,15 +2313,15 @@ int Optimiz_Alpha_And_Pinv(t_tree *tree)
 	  
 	  iter = 0;	
 
-	  /* PhyML_Printf("\n. a=%f, b=%f, c=%f, fa=%f, fb=%f, fc=%f (alpha=%f pinv=%f)",a,b,c,fa,fb,fc,tree->mod->alpha,tree->mod->pinvar); */
+	  /* PhyML_Printf("\n. a=%f, b=%f, c=%f, fa=%f, fb=%f, fc=%f (alpha=%f pinv=%f)",a,b,c,fa,fb,fc,tree->mod->alpha->v,tree->mod->pinvar->v); */
 
 	  while(fa > fb)
 	    {
 	      a = a/5.;
-	      tree->mod->alpha = a;
-	      tree->mod->pinvar = slope * tree->mod->alpha + intercept;
-	      if(tree->mod->pinvar > 1.0) tree->mod->pinvar = 0.9;
-	      if(tree->mod->pinvar < 0.0) tree->mod->pinvar = 0.001;
+	      tree->mod->alpha->v = a;
+	      tree->mod->pinvar->v = slope * tree->mod->alpha->v + intercept;
+	      if(tree->mod->pinvar->v > 1.0) tree->mod->pinvar->v = 0.9;
+	      if(tree->mod->pinvar->v < 0.0) tree->mod->pinvar->v = 0.001;
 	      tree->both_sides = 1;
 	      Lk(tree);
 	      Optimize_Br_Len_Serie(tree->t_nodes[0],tree->t_nodes[0]->v[0],
@@ -2338,26 +2339,26 @@ int Optimiz_Alpha_And_Pinv(t_tree *tree)
 	  fb = f1;
 	  
 	  c = (alpha1 < 2.)?(2.0):(2.*alpha1);
-	  tree->mod->alpha = c;
-	  tree->mod->pinvar = slope * tree->mod->alpha + intercept;
-	  if(tree->mod->pinvar > 1.0) tree->mod->pinvar = 0.9;
-	  if(tree->mod->pinvar < 0.0) tree->mod->pinvar = 0.001;
+	  tree->mod->alpha->v = c;
+	  tree->mod->pinvar->v = slope * tree->mod->alpha->v + intercept;
+	  if(tree->mod->pinvar->v > 1.0) tree->mod->pinvar->v = 0.9;
+	  if(tree->mod->pinvar->v < 0.0) tree->mod->pinvar->v = 0.001;
 	  tree->both_sides = 1;
 	  Lk(tree);
 	  Optimize_Br_Len_Serie(tree->t_nodes[0],tree->t_nodes[0]->v[0],
 				tree->t_nodes[0]->b[0],tree,tree->data);
 	  fc = tree->c_lnL;
 
-	  /* PhyML_Printf("\n. a=%f, b=%f, c=%f, fa=%f, fb=%f, fc=%f (alpha=%f pinv=%f)",a,b,c,fa,fb,fc,tree->mod->alpha,tree->mod->pinvar); */
+	  /* PhyML_Printf("\n. a=%f, b=%f, c=%f, fa=%f, fb=%f, fc=%f (alpha=%f pinv=%f)",a,b,c,fa,fb,fc,tree->mod->alpha->v,tree->mod->pinvar->v); */
 
 	  iter = 0;
 	  while(fc > fb)
 	    {
 	      c = c*2.;
-	      tree->mod->alpha = c;
-	      tree->mod->pinvar = slope * tree->mod->alpha + intercept;
-	      if(tree->mod->pinvar > 1.0) tree->mod->pinvar = 0.9;
-	      if(tree->mod->pinvar < 0.0) tree->mod->pinvar = 0.001;
+	      tree->mod->alpha->v = c;
+	      tree->mod->pinvar->v = slope * tree->mod->alpha->v + intercept;
+	      if(tree->mod->pinvar->v > 1.0) tree->mod->pinvar->v = 0.9;
+	      if(tree->mod->pinvar->v < 0.0) tree->mod->pinvar->v = 0.001;
 	      tree->both_sides = 1;
 	      Lk(tree);
 	      Optimize_Br_Len_Serie(tree->t_nodes[0],tree->t_nodes[0]->v[0],
@@ -2377,10 +2378,10 @@ int Optimiz_Alpha_And_Pinv(t_tree *tree)
 	  f0 = fa;
 	  f1 = fb;
 	  f3 = fc;
-	  tree->mod->alpha = x2;
-	  tree->mod->pinvar = slope * tree->mod->alpha + intercept;
-	  if(tree->mod->pinvar > 1.0) tree->mod->pinvar = 0.9;
-	  if(tree->mod->pinvar < 0.0) tree->mod->pinvar = 0.001;
+	  tree->mod->alpha->v = x2;
+	  tree->mod->pinvar->v = slope * tree->mod->alpha->v + intercept;
+	  if(tree->mod->pinvar->v > 1.0) tree->mod->pinvar->v = 0.9;
+	  if(tree->mod->pinvar->v < 0.0) tree->mod->pinvar->v = 0.001;
 	  tree->both_sides = 1;
 	  Lk(tree);
 	  Optimize_Br_Len_Serie(tree->t_nodes[0],tree->t_nodes[0]->v[0],
@@ -2395,10 +2396,10 @@ int Optimiz_Alpha_And_Pinv(t_tree *tree)
 	  f0 = fa;
 	  f2 = fb;
 	  f3 = fc;
-	  tree->mod->alpha = x1;
-	  tree->mod->pinvar = slope * tree->mod->alpha + intercept;
-	  if(tree->mod->pinvar > 1.0) tree->mod->pinvar = 0.9;
-	  if(tree->mod->pinvar < 0.0) tree->mod->pinvar = 0.001;
+	  tree->mod->alpha->v = x1;
+	  tree->mod->pinvar->v = slope * tree->mod->alpha->v + intercept;
+	  if(tree->mod->pinvar->v > 1.0) tree->mod->pinvar->v = 0.9;
+	  if(tree->mod->pinvar->v < 0.0) tree->mod->pinvar->v = 0.001;
 	  tree->both_sides = 1;
 	  Lk(tree);
 	  Optimize_Br_Len_Serie(tree->t_nodes[0],tree->t_nodes[0]->v[0],
@@ -2421,10 +2422,10 @@ int Optimiz_Alpha_And_Pinv(t_tree *tree)
 	      f3 = f2;
 	      f2 = f1;
 	      
-	      tree->mod->alpha = x1;
-	      tree->mod->pinvar = slope * tree->mod->alpha + intercept;
-	      if(tree->mod->pinvar > 1.0) tree->mod->pinvar = 0.9;
-	      if(tree->mod->pinvar < 0.0) tree->mod->pinvar = 0.001;
+	      tree->mod->alpha->v = x1;
+	      tree->mod->pinvar->v = slope * tree->mod->alpha->v + intercept;
+	      if(tree->mod->pinvar->v > 1.0) tree->mod->pinvar->v = 0.9;
+	      if(tree->mod->pinvar->v < 0.0) tree->mod->pinvar->v = 0.001;
 	      tree->both_sides = 1;
 	      Lk(tree);
 	      Optimize_Br_Len_Serie(tree->t_nodes[0],tree->t_nodes[0]->v[0],
@@ -2433,9 +2434,9 @@ int Optimiz_Alpha_And_Pinv(t_tree *tree)
 	      if(f1 > best_lnL) 
 		{
 		  Record_Br_Len(tree);
-		  best_alpha = tree->mod->alpha;
-		  best_pinv  = tree->mod->pinvar;
-		  best_mult  = tree->mod->br_len_multiplier;
+		  best_alpha = tree->mod->alpha->v;
+		  best_pinv  = tree->mod->pinvar->v;
+		  best_mult  = tree->mod->br_len_multiplier->v;
 		  /* PhyML_Printf("\n>.< New alpha=%f pinv=%f",best_alpha,best_pinv); */
 		}
 	      /* PhyML_Printf("\n> f1=%f",f1); */
@@ -2449,10 +2450,10 @@ int Optimiz_Alpha_And_Pinv(t_tree *tree)
 	      f0 = f1;
 	      f1 = f2;
 	      
-	      tree->mod->alpha = x2;
-	      tree->mod->pinvar = slope * tree->mod->alpha + intercept;
-	      if(tree->mod->pinvar > 1.0) tree->mod->pinvar = 0.9;
-	      if(tree->mod->pinvar < 0.0) tree->mod->pinvar = 0.001;
+	      tree->mod->alpha->v = x2;
+	      tree->mod->pinvar->v = slope * tree->mod->alpha->v + intercept;
+	      if(tree->mod->pinvar->v > 1.0) tree->mod->pinvar->v = 0.9;
+	      if(tree->mod->pinvar->v < 0.0) tree->mod->pinvar->v = 0.001;
 	      tree->both_sides = 1;
 	      Lk(tree);
 	      Optimize_Br_Len_Serie(tree->t_nodes[0],tree->t_nodes[0]->v[0],
@@ -2461,9 +2462,9 @@ int Optimiz_Alpha_And_Pinv(t_tree *tree)
 	      if(f2 > best_lnL) 
 		{
 		  Record_Br_Len(tree);
-		  best_alpha = tree->mod->alpha;
-		  best_pinv  = tree->mod->pinvar;
-		  best_mult  = tree->mod->br_len_multiplier;
+		  best_alpha = tree->mod->alpha->v;
+		  best_pinv  = tree->mod->pinvar->v;
+		  best_mult  = tree->mod->br_len_multiplier->v;
 		  /* PhyML_Printf("\n>o< New alpha=%f pinv=%f",best_alpha,best_pinv); */
 		}
 	      /* PhyML_Printf("\n> f2=%f",f2); */
@@ -2476,9 +2477,9 @@ int Optimiz_Alpha_And_Pinv(t_tree *tree)
 	}while(iter < 100);
     }
   
-  tree->mod->alpha = best_alpha;
-  tree->mod->pinvar = best_pinv;
-  tree->mod->br_len_multiplier = best_mult;
+  tree->mod->alpha->v  = best_alpha;
+  tree->mod->pinvar->v = best_pinv;
+  tree->mod->br_len_multiplier->v = best_mult;
   Restore_Br_Len(tree);      
   tree->both_sides = 1;
   Lk(tree);
