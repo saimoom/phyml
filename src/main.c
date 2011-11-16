@@ -174,6 +174,12 @@ int main(int argc, char **argv)
 
 		  Prepare_Tree_For_Lk(tree);
 
+		  
+		  /* ///////////////////////////////////////// */
+		  /* Make_Mixtmod(3,tree); */
+		  
+
+
 		  if(io->in_tree == 1) Spr_Pars(tree);
 		 
 		  if(io->do_alias_subpatt)
@@ -183,6 +189,7 @@ int main(int argc, char **argv)
 		      tree->update_alias_subpatt = NO;
 		    }
 		  
+
 		  if(tree->mod->s_opt->opt_topo)
 		    {
 		      if(tree->mod->s_opt->topo_search      == NNI_MOVE) Simu_Loop(tree);
@@ -299,8 +306,8 @@ int main(int argc, char **argv)
   if(mod->s_opt->n_rand_starts > 1) PhyML_Printf("\n. Best log likelihood: %f\n",best_lnL);
 
   Free_Optimiz(mod->s_opt);
-  Free_Model_Basic(mod);
   Free_Custom_Model(mod);
+  Free_Model_Basic(mod);
   M4_Free_M4_Model(mod->m4mod);
   Free(mod);
 

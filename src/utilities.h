@@ -273,6 +273,39 @@ typedef	double phydbl;
 #define  P_LK_LIM_INF   3.054936e-151 /* 2^-500 */
 #define  P_LK_LIM_SUP   3.273391e+150 /* 2^500 */
 
+
+/*!********************************************************/
+
+typedef struct __Scalar_Int {
+  int v;
+  short int reflect;
+}scalar_int;
+
+
+/*!********************************************************/
+
+typedef struct __Scalar_Dbl {
+  phydbl v;
+  short int reflect;
+}scalar_dbl;
+
+/*!********************************************************/
+
+typedef struct __Vect_Int {
+  int *v;
+  short int reflect;
+  int len;
+}vect_int;
+
+
+/*!********************************************************/
+
+typedef struct __Vect_Dbl {
+  phydbl *v;
+  short int reflect;
+  int len;
+}vect_dbl;
+
 /*!********************************************************/
 
 typedef struct __Node {
@@ -411,6 +444,7 @@ typedef struct __Tree{
   struct __Calign                       *data; /*! sequences */
   struct __Calign                   *anc_data; /*! ancestral sequences */
   struct __Tree                      *nextree; /* set to NULL by default. Used for mixture models */
+  struct __Tree                     *prevtree; /* set to NULL by default. Used for mixture models */
   struct __Option                         *io; /*! input/output */
   struct __Matrix                        *mat; /*! pairwise distance matrix */
   struct __Node                   **curr_path; /*! list of nodes that form a path in the tree */
@@ -421,6 +455,7 @@ typedef struct __Tree{
   struct __Tmcmc                        *mcmc;
   struct __Triplet            *triplet_struct;
 
+  int                                tree_num; /*! tree number. Used for mixture models */
   int                          ps_page_number; /*! when multiple trees are printed, this variable give the current page number */
   int                         depth_curr_path; /*! depth of the t_node path defined by curr_path */
   int                                 has_bip; /*!if has_bip=1, then the structure to compare
@@ -451,6 +486,7 @@ typedef struct __Tree{
   phydbl                              best_lnL; /*! highest value of the loglikelihood found so far */
   int                                best_pars; /*! highest value of the parsimony found so far */
   phydbl                                 c_lnL; /*! loglikelihood */
+  phydbl                            c_lnL_mixt; /*! loglikelihood */
   phydbl                               old_lnL; /*! old loglikelihood */
   phydbl                     sum_min_sum_scale; /*! common factor of scaling factors */
   phydbl                         *c_lnL_sorted; /*! used to compute c_lnL by adding sorted terms to minimize CPU errors */
@@ -650,61 +686,70 @@ typedef struct __Model {
   struct __Eigen     *eigen;
   struct __M4        *m4mod;
   struct __Option       *io;
+  struct __Model   *nextmod;
 
   char          *modelname;
   char  *custom_mod_string; /*! string of characters used to define custom models of substitution */
 
-  int              *rr_num; 
-  int        *n_rr_per_cat; /*! number of rate parameters in each category */
+  int              mod_num; /*! model number */
+
   int            n_diff_rr; /*! number of different relative substitution rates in the custom model */
+
   int         update_eigen; /*! update_eigen=1-> eigen values/vectors need to be updated */
+
   int           whichmodel;
+
   int               n_catg; /*! number of categories in the discrete gamma distribution */
+
+
   int                invar; /*! =1 iff the substitution model takes into account invariable sites */
+
   int                   ns; /*! number of states (4 for ADN, 20 for AA) */
+
   int            bootstrap; /*! Number of bootstrap replicates (0 : no bootstrap analysis is launched) */
   int            use_m4mod; /*! Use a Makrkov modulated Markov model ? */
   int         gamma_median; /*! 1: use the median of each bin in the discrete gamma distribution. 0: the mean is used */
 
-  phydbl               *pi; /*! states frequencies */
-  phydbl      *pi_unscaled; /*! states frequencies (unscaled) */
+  vect_dbl               *pi; /*! states frequencies */
+  vect_dbl      *pi_unscaled; /*! states frequencies (unscaled) */
+  
+  vect_dbl          *gamma_r_proba; /*! probabilities of the substitution rates defined by the discrete gamma distribution */
+  vect_dbl *gamma_r_proba_unscaled; 
+  vect_dbl               *gamma_rr; /*! substitution rates defined by the RAS distribution */
+  vect_dbl      *gamma_rr_unscaled; /*! substitution rates defined by the RAS distribution (unscaled) */
 
-  phydbl    *gamma_r_proba; /*! probabilities of the substitution rates defined by the discrete gamma distribution */
-  phydbl    *gamma_r_proba_unscaled; 
-  phydbl         *gamma_rr; /*! substitution rates defined by the RAS distribution */
-  phydbl         *gamma_rr_unscaled; /*! substitution rates defined by the RAS distribution (unscaled) */
-  phydbl             kappa; /*! transition/transversion rate */
-  phydbl            lambda; /*! parameter used to define the ts/tv ratios in the F84 and TN93 models */
-  phydbl             alpha; /*! gamma shapa parameter */
-  phydbl            pinvar; /*! proportion of invariable sites */
-  phydbl         alpha_old;
-  phydbl         kappa_old;
-  phydbl        lambda_old;
-  phydbl        pinvar_old;
+  scalar_dbl                *kappa; /*! transition/transversion rate */
+  scalar_dbl               *lambda; /*! parameter used to define the ts/tv ratios in the F84 and TN93 models */
+  scalar_dbl                *alpha; /*! gamma shapa parameter */
+  scalar_dbl               *pinvar; /*! proportion of invariable sites */
+  scalar_dbl            *alpha_old;
+  scalar_dbl            *kappa_old;
+  scalar_dbl           *lambda_old;
+  scalar_dbl           *pinvar_old;
+  scalar_dbl    *br_len_multiplier;
 
-  phydbl               *rr; /*! relative rate parameters of the GTR or custom model (given by rr_val[rr_num[i]]) */
-  phydbl           *rr_val; /*! relative rate parameters of the GTR or custom model */
-  phydbl           *Pij_rr; /*! matrix of change probabilities */
-  phydbl                mr; /*! mean rate = branch length/time interval  mr = -sum(i)(vct_pi[i].mat_Q[ii]) */
-  phydbl      *user_b_freq; /*! user-defined nucleotide frequencies */
-  phydbl             *qmat;
-  phydbl        *qmat_buff;
+  vect_dbl                     *rr; /*! relative rate parameters of the GTR or custom model (given by rr_val[rr_num[i]]) */
+  vect_dbl                 *rr_val; /*! relative rate parameters of the GTR or custom model */
+  vect_int                 *rr_num; 
+  vect_int           *n_rr_per_cat; /*! number of rate parameters in each category */
 
-  phydbl        *rr_branch; /*! relative substitution rates on each branch, for the whole set of sites */
-  phydbl      *p_rr_branch; /*! corresponding frequencies */
-  int          n_rr_branch; /*! number of classes */
-  phydbl   rr_branch_alpha; /*! Shape of the gamma distribution that defines the rr_branch and p_rr_branch values */
+  vect_dbl                 *Pij_rr; /*! matrix of change probabilities */
+  scalar_dbl                   *mr; /*! mean rate = branch length/time interval  mr = -sum(i)(vct_pi[i].mat_Q[ii]) */
+  vect_dbl            *user_b_freq; /*! user-defined nucleotide frequencies */
+  vect_dbl                   *qmat;
+  vect_dbl              *qmat_buff;
 
-  int            state_len;
-  short int          log_l; /*! Edge lengths are actually log(Edge lengths) if log_l == YES !*/
-  phydbl             l_min; /*! Minimum branch length !*/
-  phydbl             l_max; /*! Maximum branch length !*/
 
-  int      free_mixt_rates;
+  int                   state_len;
+  short int                 log_l; /*! Edge lengths are actually log(Edge lengths) if log_l == YES !*/
+  phydbl                    l_min; /*! Minimum branch length !*/
+  phydbl                    l_max; /*! Maximum branch length !*/
 
-  int         gamma_mgf_bl; /*! P = \int_0^inf exp(QL) p(L) where L=\int_0^t R(s) ds and p(L) is the gamma density. Set to NO by default !*/
+  int             free_mixt_rates;
+  int                gamma_mgf_bl; /*! P = \int_0^inf exp(QL) p(L) where L=\int_0^t R(s) ds and p(L) is the gamma density. Set to NO by default !*/
 
-  phydbl br_len_multiplier;
+  phydbl                     prob; /*! model probability !*/
+  phydbl            unscaled_prob; /*! model probability (not normalised to sum to 1.0) !*/
 }model;
 
 /*!********************************************************/
@@ -719,6 +764,7 @@ typedef struct __Eigen{
   phydbl      *r_e_vect; /*! right eigen vector (matrix), real part */
   phydbl   *r_e_vect_im; /*! right eigen vector (matrix), imaginary part */
   phydbl      *l_e_vect; /*! left eigen vector (matrix), real part */
+  short int     reflect;
 }eigen;
 
 /*!********************************************************/
@@ -1219,14 +1265,20 @@ typedef struct __Tnexparm {
 
 /*!********************************************************/
 
-typedef struct __DoubleVect {
-  int len; /*! number of elements in the vector */
-  int nr; /*! number of rows if vector is actually a matrix */
-  int nc; /*! number of columns if vector is actually a matrix */
-  phydbl *val;
-}dvect;
+typedef struct __ParamInt {
+  short int reflect;
+  int val;
+}t_param_int;
 
+/*!********************************************************/
 
+typedef struct __ParamDbl {
+  short int reflect;
+  phydbl val;
+}t_param_dbl;
+
+/*!********************************************************/
+/*!********************************************************/
 /*!********************************************************/
 /*!********************************************************/
 /*!********************************************************/
@@ -1243,7 +1295,7 @@ void Clean_Multifurcation(char **subtrees,int current_deg,int end_deg);
 char **Sub_Trees(char *tree,int *degree);
 int Next_Par(char *s,int pos);
 char *Write_Tree(t_tree *tree, int custom);
-void R_wtree(t_node *pere,t_node *fils,int *available,char **s_tree, int *last_len, t_tree *tree);
+void R_wtree(t_node *pere,t_node *fils,int *available,char **s_tree, t_tree *tree);
 void R_wtree_Custom(t_node *pere,t_node *fils,int *available,char **s_tree, int *pos,t_tree *tree);
 void Init_Tree(t_tree *tree, int n_otu);
 t_edge *Make_Edge_Light(t_node *a, t_node *d, int num);
@@ -1560,7 +1612,15 @@ void Make_Ancestral_Seq(t_tree *tree);
 void Make_MutMap(t_tree *tree);
 int Get_Mutmap_Val(int edge, int site, int mut, t_tree *tree);
 void Get_Mutmap_Coord(int idx, int *edge, int *site, int *mut, t_tree *tree);
-
+void Make_Nextrees(int *n_trees, int n_tot_trees, t_tree *tree);
+void Make_Mixtmod(int n_classes, t_tree *tree);
+void Make_Nextmods(int *n_mods, int n_tot_mods, model *mod);
+void Copy_Edge_Lengths(t_tree *to, t_tree *from);
+void Init_Scalar_Dbl(scalar_dbl *p);
+void Init_Scalar_Int(scalar_int *p);
+void Init_Vect_Dbl(int len, vect_dbl *p);
+void Init_Vect_Int(int len, vect_int *p);
+void Init_Eigen_Struct(eigen *this);
 
 #include "free.h"
 #include "spr.h"

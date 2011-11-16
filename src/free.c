@@ -381,22 +381,16 @@ void Free_Edge_Lk(t_tree *tree, t_edge *b)
 
 void Free_Model_Complete(model *mod)
 {
-  Free(mod->pi);
-  Free(mod->gamma_r_proba);
-  Free(mod->gamma_r_proba_unscaled);
-  Free(mod->gamma_rr);
-  Free(mod->gamma_rr_unscaled);
-  Free(mod->pi_unscaled);
-  Free(mod->Pij_rr);
-  Free(mod->qmat);
-  Free(mod->qmat_buff);
+  Free(mod->pi->v);
+  Free(mod->pi_unscaled->v);
+  Free(mod->gamma_r_proba->v);
+  Free(mod->gamma_r_proba_unscaled->v);
+  Free(mod->gamma_rr->v);
+  Free(mod->gamma_rr_unscaled->v);
+  Free(mod->Pij_rr->v);
+  Free(mod->qmat->v);
+  Free(mod->qmat_buff->v);
   Free_Eigen(mod->eigen);
-
-  if(mod->n_rr_branch) 
-    {
-      Free(mod->rr_branch);
-      Free(mod->p_rr_branch);
-    }
 }
 
 //////////////////////////////////////////////////////////////
@@ -407,7 +401,31 @@ void Free_Model_Basic(model *mod)
 {
   Free(mod->modelname);
   Free(mod->custom_mod_string);
+  Free(mod->user_b_freq->v);
   Free(mod->user_b_freq);
+  Free(mod->kappa);
+  Free(mod->lambda);
+  Free(mod->alpha);
+  Free(mod->pinvar);
+  Free(mod->alpha_old);
+  Free(mod->kappa_old);
+  Free(mod->lambda_old);
+  Free(mod->pinvar_old);
+  Free(mod->rr);
+  Free(mod->rr_val);
+  Free(mod->rr_num);
+  Free(mod->n_rr_per_cat);
+  Free(mod->Pij_rr);
+  Free(mod->mr);
+  Free(mod->qmat);
+  Free(mod->qmat_buff);
+  Free(mod->pi);
+  Free(mod->pi_unscaled);
+  Free(mod->gamma_r_proba);
+  Free(mod->gamma_r_proba_unscaled);
+  Free(mod->gamma_rr);
+  Free(mod->gamma_rr_unscaled);
+  Free(mod->br_len_multiplier);
 }
 
 //////////////////////////////////////////////////////////////
@@ -416,12 +434,12 @@ void Free_Model_Basic(model *mod)
 
 void Free_Custom_Model(model *mod)
 {
-  if(mod->rr)
+  if(mod->rr->v)
     {
-      Free(mod->rr_num);
-      Free(mod->rr);
-      Free(mod->rr_val);
-      Free(mod->n_rr_per_cat);
+      Free(mod->rr_num->v);
+      Free(mod->rr->v);
+      Free(mod->rr_val->v);
+      Free(mod->n_rr_per_cat->v);
     }
 }
 
@@ -430,9 +448,9 @@ void Free_Custom_Model(model *mod)
 
 void Free_Model(model *mod)
 {
+  Free_Custom_Model(mod);
   Free_Model_Complete(mod);
   Free_Model_Basic(mod);
-  Free_Custom_Model(mod);
   M4_Free_M4_Model(mod->m4mod);
   Free(mod);
 }

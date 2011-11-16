@@ -377,7 +377,7 @@ void M4_Init_Model(m4 *m4mod, calign *data, model *mod)
 
   mod->ns = m4mod->n_o * m4mod->n_h;
 
-  For(i,m4mod->n_o) m4mod->o_fq[i] = mod->pi[i]; /*! At that stage, the mod->pi vector as been initialized
+  For(i,m4mod->n_o) m4mod->o_fq[i] = mod->pi->v[i]; /*! At that stage, the mod->pi vector as been initialized
 						     under a standard non covarion type of model. Use these
 						     frequencies as they have been set according to the 
 						     nucleotide substitution model chosen (e.g., 1/4 for JC69). !*/
@@ -483,7 +483,7 @@ void M4_Update_Qmat(m4 *m4mod, model *mod)
 
 
   /* Set up the stationary frequency vector */
-  For(i,n_s) mod->pi[i] = m4mod->o_fq[i%n_o] * m4mod->h_fq[i/n_o];
+  For(i,n_s) mod->pi->v[i] = m4mod->o_fq[i%n_o] * m4mod->h_fq[i/n_o];
 
 
   if(mod->whichmodel != CUSTOM &&
@@ -491,14 +491,14 @@ void M4_Update_Qmat(m4 *m4mod, model *mod)
     {
       phydbl kappa1,kappa2;
 
-      if((mod->whichmodel != F84) && (mod->whichmodel != TN93)) mod->lambda = 1.; 
+      if((mod->whichmodel != F84) && (mod->whichmodel != TN93)) mod->lambda->v = 1.; 
       else if(mod->whichmodel == F84)
 	{
-	  mod->lambda = Get_Lambda_F84(mod->pi,&mod->kappa);
+	  mod->lambda->v = Get_Lambda_F84(mod->pi->v,&(mod->kappa->v));
 	}
 
-      kappa2 = mod->kappa*2./(1.+mod->lambda);
-      kappa1 = kappa2 * mod->lambda;
+      kappa2 = mod->kappa->v*2./(1.+mod->lambda->v);
+      kappa1 = kappa2 * mod->lambda->v;
 
       /* A <-> C */ m4mod->o_rr[0] = 1.0;
       /* A <-> G */ m4mod->o_rr[1] = kappa2;
@@ -518,7 +518,7 @@ void M4_Update_Qmat(m4 *m4mod, model *mod)
   for(i=1;i<m4mod->n_h;i++) For(j,n_o*n_o) m4mod->o_mats[i][j] = m4mod->o_mats[0][j]*m4mod->multipl[i];
   For(j,n_o*n_o) m4mod->o_mats[0][j] *= m4mod->multipl[0];
 
-  For(i,n_s*n_s) mod->qmat[i] = .0;
+  For(i,n_s*n_s) mod->qmat->v[i] = .0;
 
   /* Diagonal blocks (i.e, nucleotide substitutions), symmetric */
   For(i,n_s)
@@ -527,8 +527,8 @@ void M4_Update_Qmat(m4 *m4mod, model *mod)
 	{
 	  if((int)(j/n_o) == (int)(i/n_o))
 	    {
-	      mod->qmat[i*n_s+j] = m4mod->o_mats[(int)(i/n_o)][(i%n_o)*n_o+j%n_o];
-	      mod->qmat[j*n_s+i] = mod->qmat[i*n_s+j] * m4mod->o_fq[i%n_o] / m4mod->o_fq[j%n_o];
+	      mod->qmat->v[i*n_s+j] = m4mod->o_mats[(int)(i/n_o)][(i%n_o)*n_o+j%n_o];
+	      mod->qmat->v[j*n_s+i] = mod->qmat->v[i*n_s+j] * m4mod->o_fq[i%n_o] / m4mod->o_fq[j%n_o];
 	    }
 	}
     }
@@ -538,12 +538,12 @@ void M4_Update_Qmat(m4 *m4mod, model *mod)
   For(i,n_s)
     {
       sum = .0;
-      For(j,n_s) sum += mod->qmat[i*n_s+j];
+      For(j,n_s) sum += mod->qmat->v[i*n_s+j];
       mr += sum * m4mod->o_fq[i%n_o] * m4mod->h_fq[(int)(i/n_o)]; 
     }
   
   /* Scale the diagonal blocks */
-  For(i,n_s*n_s) mod->qmat[i] /= mr;
+  For(i,n_s*n_s) mod->qmat->v[i] /= mr;
   
   /* We are done with the diagonal blocks. Let's fill the non-diagonal ones now. */
 
@@ -564,8 +564,8 @@ void M4_Update_Qmat(m4 *m4mod, model *mod)
 	    {
 	      if(i%n_o == j%n_o)
 		{
-		  mod->qmat[i*n_s+j] = m4mod->h_mat[(int)(i/n_o)*n_h+(int)(j/n_o)];
-		  mod->qmat[j*n_s+i] = mod->qmat[i*n_s+j] * m4mod->h_fq[(int)(i/n_o)] / m4mod->h_fq[(int)(j/n_o)]; 
+		  mod->qmat->v[i*n_s+j] = m4mod->h_mat[(int)(i/n_o)*n_h+(int)(j/n_o)];
+		  mod->qmat->v[j*n_s+i] = mod->qmat->v[i*n_s+j] * m4mod->h_fq[(int)(i/n_o)] / m4mod->h_fq[(int)(j/n_o)]; 
 		}
 	    }
 	}
@@ -588,12 +588,12 @@ void M4_Update_Qmat(m4 *m4mod, model *mod)
 	      scale += 
 		m4mod->h_fq[(int)(j/n_o)] *
 		m4mod->o_fq[i%n_o] *
-		mod->qmat[i*n_s+j];
+		mod->qmat->v[i*n_s+j];
 	    }
 	}
     }
   
-  For(i,n_s*n_s) mod->qmat[i] /= scale;
+  For(i,n_s*n_s) mod->qmat->v[i] /= scale;
 
 
   /* Diagonal cells */
@@ -603,12 +603,12 @@ void M4_Update_Qmat(m4 *m4mod, model *mod)
       For(j,n_s)
 	{
 	  if(j != i)
-	    sum += mod->qmat[i*n_s+j];
+	    sum += mod->qmat->v[i*n_s+j];
 	}
-      mod->qmat[i*n_s+i] = -sum;
+      mod->qmat->v[i*n_s+i] = -sum;
     }
 
-  For(i,n_s*n_s) mod->eigen->q[i] = mod->qmat[i];
+  For(i,n_s*n_s) mod->eigen->q[i] = mod->qmat->v[i];
 }
 
 //////////////////////////////////////////////////////////////
@@ -722,8 +722,8 @@ phydbl ****M4_Integral_Term_On_One_Edge(t_edge *b, t_tree *tree)
     {
       For(g,tree->mod->n_catg)
 	{
-	  PMat(((phydbl)(i+0.5)/step)*b->l*tree->mod->gamma_rr[g],tree->mod,g*ns*ns,P1);
-	  PMat(((phydbl)(step-i-0.5)/step)*b->l*tree->mod->gamma_rr[g],tree->mod,g*ns*ns,P2);
+	  PMat(((phydbl)(i+0.5)/step)*b->l*tree->mod->gamma_rr->v[g],tree->mod,g*ns*ns,P1);
+	  PMat(((phydbl)(step-i-0.5)/step)*b->l*tree->mod->gamma_rr->v[g],tree->mod,g*ns*ns,P2);
 
 	  For(j,ns)
 	    {
@@ -787,7 +787,7 @@ void M4_Post_Prob_H_Class_Edge_Site(t_edge *b, phydbl ****integral, phydbl *post
 			  postprob[i] +=
 
 			    (1./site_lk) *
-			    tree->mod->gamma_r_proba[g] *
+			    tree->mod->gamma_r_proba->v[g] *
 			    tree->mod->m4mod->h_fq[i] *
 			    tree->mod->m4mod->o_fq[j] *
 			    b->p_lk_left[tree->curr_site*dim1 + g*dim2 + k] *
@@ -830,7 +830,7 @@ void M4_Post_Prob_H_Class_Edge_Site(t_edge *b, phydbl ****integral, phydbl *post
 			  postprob[i] +=
 
 			    (1./site_lk) *
-			    tree->mod->gamma_r_proba[g] *
+			    tree->mod->gamma_r_proba->v[g] *
 			    tree->mod->m4mod->h_fq[i] *
 			    tree->mod->m4mod->o_fq[j] *
 			    b->p_lk_left[tree->curr_site*dim1 + g*dim2 + k] *
