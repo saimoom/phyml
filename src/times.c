@@ -801,30 +801,124 @@ phydbl TIMES_Log_Conditional_Uniform_Density(t_tree *tree)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
-/* Logarithm of Formula (9) in Rannala and Yang (1996) */
-/* Not sure that is works for serial samples */
-phydbl TIMES_Log_Yule(t_tree *tree)
+phydbl TIMES_Lk_Yule_Root_Marginal(t_tree *tree)
 {
-  phydbl sumti,density,lambda;
-  int n,i;
+  int n;
+  int j;
+  t_node *nd;
+  phydbl *t,*ts;
+  phydbl lbda;
+  phydbl T;
 
-  sumti = 0.0;
-  for(i=tree->n_otu;i<2*tree->n_otu-1;i++) sumti += tree->rates->nd_t[i];
-  sumti -= tree->rates->nd_t[i-1];
+  lbda = tree->rates->birth_rate;
+  t    = tree->rates->nd_t;
+  ts   = tree->rates->time_slice_lims;
+  T    = ts[0] - t[tree->n_root->num];
 
-  lambda = tree->rates->birth_rate;
-  n = tree->n_otu;
-  
-  density = 
-    (n-1.)*LOG(2.) + 
-    (n-2.)*LOG(lambda) - 
-    lambda*sumti - 
-    Factln(n) - 
-    LOG(n-1.) - 
-    (n-2.)*LOG(1.-EXP(-lambda));
-  
-  return density;
+  n = 0;
+  nd = NULL;
+  For(j,2*tree->n_otu-2) 
+    {
+      nd = tree->t_nodes[j];
+
+      if((t[nd->num] > ts[0] && t[nd->anc->num] < ts[0]) || // lineage that is crossing ts[0]
+	 (nd->tax == YES && Are_Equal(t[nd->num],ts[0],1.E-6) == YES)) // tip that is lying on ts[0]
+	n++;
+    }
+
+  return LOG(lbda) - 2.*lbda*T + (n-2.)*LOG(1. - EXP(-lbda*T));
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+phydbl TIMES_Lk_Yule_Joint(t_tree *tree)
+{
+  int i,j;
+  phydbl loglk;
+  phydbl *t;
+  phydbl dt;
+  int n; // number of lineages at a given time point
+  phydbl lbda;
+  t_node *nd;
+  phydbl *ts,*tf;
+  int *tr;
+  phydbl eps;
+  int curr_ts;
+  phydbl top_t;
+  short int *interrupted;
+  phydbl sumdt;
+
+  interrupted = (short int *)mCalloc(tree->n_otu,sizeof(short int));
+
+  eps = 1.E-10;
+  t = tree->rates->nd_t;
+  ts = tree->rates->time_slice_lims;
+  tf = tree->rates->t_floor;
+  tr = tree->rates->t_ranked;
+  lbda = tree->rates->birth_rate;
+  curr_ts = 0;
+
+  TIMES_Update_Node_Ordering(tree);
+
+  For(j,tree->n_otu) interrupted[j] = NO;
+
+  loglk = .0;
+
+  sumdt = .0;
+  n = 1;
+  For(i,2*tree->n_otu-2) // t[tr[0]] is the oldest node, t[tr[1]], the second oldest and so on...
+    {
+
+      For(j,tree->n_otu)
+	if((t[j] < t[tr[i]]) && (interrupted[j] == NO)) 
+	  {
+	    interrupted[j] = YES;
+	    n--; // How many lineages have stopped above t[tr[i]]?
+	  }
+      
+      top_t = t[tr[i+1]];
+      dt = top_t - t[tr[i]];
+      sumdt += dt;
+
+      /* printf("\n. %d node up=%d [%f] node do=%d [%f] dt=%f",i,tr[i],t[tr[i]],tr[i+1],t[tr[i+1]],dt); */
+
+      if(n<1)
+	{
+	  PhyML_Printf("\n. i=%d tr[i]=%f",i,t[tr[i]]);
+	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  Exit("\n");
+	}
+
+      if(dt > 1.E-10) loglk += LOG((n+1)*lbda) - (n+1)*lbda*dt;
+      n++;      
+    }
+
+  /* printf("\n. sumdt = %f th=%f",sumdt,tree->rates->nd_t[tree->n_root->num]); */
+  /* printf("\n0 loglk = %f",loglk); */
+
+  For(i,tree->rates->n_time_slices-1)
+    {
+      n = 0;
+      dt = 0.;
+      For(j,2*tree->n_otu-2)
+  	{
+  	  nd = tree->t_nodes[j];
+  	  if(t[nd->num] > ts[i] && t[nd->anc->num] < ts[i]) // How many lineages are crossing this time slice limit?
+  	    {
+  	      n++;
+  	      if(t[nd->num] < dt) dt = t[nd->num]; // take the oldest node younger than the time slice
+  	    }
+  	}
+      dt -= ts[i];
+      loglk += LOG(n*lbda) - n*lbda*dt;
+    }
+
+  /* printf("\n1 loglk = %f",loglk); */
+
+  Free(interrupted);
+
+  return loglk;
 }
 
 //////////////////////////////////////////////////////////////
@@ -864,22 +958,87 @@ phydbl TIMES_Lk_Times(t_tree *tree)
   /* condlogdens = -(phydbl)(n_nodes)*LOG(tree->rates->t_floor[tree->n_root->num] - tree->rates->nd_t[tree->n_root->num]); */
 
 
-  int i;
-  condlogdens = 0.0;
-  birthr = tree->rates->birth_rate;
-  For(i,2*tree->n_otu-1)
-    {
-      if(tree->t_nodes[i]->tax == NO && tree->t_nodes[i] != tree->n_root)
-  	{
-	      condlogdens -= birthr*(tree->rates->t_floor[i] - tree->rates->nd_t[i]);
-	      condlogdens -= LOG(1.-EXP(-birthr*(tree->rates->t_floor[i] - tree->rates->nd_t[tree->n_root->num])));
-	}
-    }
-  condlogdens += (tree->n_otu-2)*LOG(birthr);
+  /* int i; */
+  /* condlogdens = 0.0; */
+  /* birthr = tree->rates->birth_rate; */
+  /* For(i,2*tree->n_otu-1) */
+  /*   { */
+  /*     if(tree->t_nodes[i]->tax == NO && tree->t_nodes[i] != tree->n_root) */
+  /* 	{ */
+  /* 	      /\* condlogdens -= birthr*(tree->rates->t_floor[i] - tree->rates->nd_t[i]); *\/ */
+  /* 	      /\* condlogdens -= LOG(1.-EXP(-birthr*(tree->rates->t_floor[i] - tree->rates->nd_t[tree->n_root->num]))); *\/ */
+  /* 	  condlogdens -= birthr*( tree->rates->nd_t[i] - tree->rates->nd_t[tree->n_root->num]); */
+  /* 	  /\* condlogdens -= LOG((1.-EXP(-birthr*( - tree->rates->nd_t[tree->n_root->num])))- *\/ */
+  /* 	  /\* 		     (1.-EXP(-birthr*( - tree->rates->t_floor[i] )))); *\/ */
+  /* 	  condlogdens -= LOG((1.-EXP(-birthr*( - tree->rates->nd_t[tree->n_root->num])))); */
+  /* 	} */
+  /*   } */
 
-  tree->rates->c_lnL_times = condlogdens;
+  /* condlogdens += (tree->n_otu-2)*LOG(birthr); */
 
-  return(condlogdens);
+  tree->rates->c_lnL_times  = TIMES_Lk_Yule_Joint(tree);
+  tree->rates->c_lnL_times -= TIMES_Lk_Yule_Root_Marginal(tree);
+
+  /* phydbl loglk; */
+  /* phydbl lbda = tree->rates->birth_rate; */
+  /* phydbl *t = tree->rates->nd_t; */
+  /* phydbl num,denom; */
+  /* phydbl num1,num2; */
+  /* phydbl t0,t1,x,y; */
+  
+  /* t0 = t[tree->n_root->num]; */
+  /* t1 = t[tree->n_otu]; */
+
+  /* x = t1 - t0; */
+  /* y = -t1; */
+
+  /* num1 = LOG(2*lbda) - 2*lbda*x; */
+  /* num2 = LOG(3*lbda) - 3*lbda*y; */
+  
+  /* num = num1+num2; */
+  /* printf("\n. num = %f %f x=%f y=%f lbda=%f",num,TIMES_Lk_Yule_Joint(tree),x,y,lbda); */
+
+  /* denom = LOG(lbda)  + LOG(1.-EXP(-lbda*(x+y))) - 2.*lbda*(x+y); */
+  /* printf("\n. denom = %f %f",denom,TIMES_Lk_Yule_Root_Marginal(tree)); */
+    
+  /* loglk = LOG(lbda) - lbda*FABS(t1) - LOG(1.-EXP(-lbda*FABS(t0)));  */
+  /* printf("\n. %f %f %f", */
+  /* 	 tree->rates->c_lnL_times,loglk,num-denom); */
+
+  /* printf("\n. %f",tree->rates->c_lnL_times); */
+
+  /* int i; */
+  /* phydbl loglk; */
+  /* phydbl lbda = tree->rates->birth_rate; */
+  /* phydbl *t = tree->rates->nd_t; */
+  /* phydbl t0,t1,t2; */
+  /* phydbl x,y,z; */
+  /* phydbl num,denom; */
+
+  /* t0 = FABS(t[tree->n_root->num]); */
+  /* t1 = FABS(MIN(t[tree->n_otu],t[tree->n_otu+1])); */
+  /* t2 = FABS(MAX(t[tree->n_otu],t[tree->n_otu+1])); */
+  /* x = t0 - t1; */
+  /* y = t1 - t2; */
+  /* z = t2; */
+
+  /* num = LOG(2*lbda*EXP(-2.*lbda*x) * 3*lbda*EXP(-3.*lbda*y) * 4*lbda*EXP(-4.*lbda*z));   */
+
+  /* denom = LOG(lbda*(1.-EXP(-lbda*t0))*(EXP(-lbda*t0*3))); */
+
+  /* printf("\n. num = %f %f",num, TIMES_Lk_Yule_Joint(tree)); */
+
+  /* printf("\n. denom = %f %f",denom, TIMES_Lk_Yule_Root_Marginal(tree)); */
+
+
+  /* loglk = 0.; */
+  /* For(i,2*tree->n_otu-2) if(tree->t_nodes[i]->tax == NO)  loglk -= lbda * FABS(t[i]); */
+  /* loglk += (tree->n_otu-2.)*LOG(lbda); */
+  /* loglk -= (tree->n_otu-2.)*LOG(1.-EXP(lbda*t[tree->n_root->num])); */
+
+  /* printf("\n. loglk=%f %f %f [%f %f]",loglk,tree->rates->c_lnL_times,loglk-tree->rates->c_lnL_times,lbda,t[tree->n_root->num]); */
+
+  return(tree->rates->c_lnL_times);
 }
 
 //////////////////////////////////////////////////////////////
@@ -1324,9 +1483,50 @@ void Get_Survival_Duration_Post(t_node *a, t_node *d, t_tree *tree)
     }
 }
 
-//////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
+/* Update the ranking of node heights. Use bubble sort algorithm */
+
+void TIMES_Update_Node_Ordering(t_tree *tree)
+{
+  int buff;
+  int i;
+  phydbl *t;
+  int swap = NO;
+
+  t = tree->rates->nd_t;
+
+  do
+    {
+      swap = NO;
+      For(i,2*tree->n_otu-2)
+	{
+	  if(t[tree->rates->t_ranked[i]] > t[tree->rates->t_ranked[i+1]]) // Sort in ascending order
+	    {
+	      swap = YES;
+	      buff                       = tree->rates->t_ranked[i];
+	      tree->rates->t_ranked[i]   = tree->rates->t_ranked[i+1];
+	      tree->rates->t_ranked[i+1] = buff;
+	    }	    
+	}
+    }
+  while(swap == YES);
+
+  /* For(i,2*tree->n_otu-1) */
+  /*   { */
+  /*     printf("\n. ..... %f",t[tree->rates->t_ranked[i]]); */
+  /*   } */
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////

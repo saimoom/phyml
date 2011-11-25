@@ -82,6 +82,9 @@ void TIMES_Lk_Uniform_Post(t_node *a, t_node *d, t_tree *tree);
 void TIMES_Set_Root_Given_Tip_Dates(t_tree *tree);
 void Get_Survival_Duration(t_tree *tree);
 void Get_Survival_Duration_Post(t_node *a, t_node *d, t_tree *tree);
+phydbl TIMES_Lk_Yule_Root_Marginal(t_tree *tree);
+phydbl TIMES_Lk_Yule_Joint(t_tree *tree);
+void TIMES_Update_Node_Ordering(t_tree *tree);
 
 
 #endif

@@ -779,6 +779,7 @@ t_rate *RATES_Make_Rate_Struct(int n_otu)
       rates->t_prior_min          = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
       rates->t_prior_max          = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
       rates->t_floor              = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
+      rates->t_ranked             = (int *)mCalloc(2*n_otu-1,sizeof(int));
       rates->t_has_prior          = (short int *)mCalloc(2*n_otu-1,sizeof(short int));
       rates->dens                 = (phydbl *)mCalloc(2*n_otu-2,sizeof(phydbl));
       rates->triplet              = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
@@ -841,6 +842,7 @@ void RATES_Free_Rates(t_rate *rates)
       Free(rates->t_prior_max);
       Free(rates->t_floor);
       Free(rates->t_has_prior);
+      Free(rates->t_ranked);
       Free(rates->dens);   
       Free(rates->triplet);    
       Free(rates->n_jps);  
@@ -926,8 +928,8 @@ void RATES_Init_Rate_Struct(t_rate *rates, t_rate *existing_rates, int n_otu)
   rates->nd_t_recorded    = NO;
   rates->br_r_recorded    = NO;
 
-  rates->birth_rate_min   = 1.E-2;
-  rates->birth_rate_max   = 1.;
+  rates->birth_rate_min   = 1.E-3;
+  rates->birth_rate_max   = 1.E+1;
 
   if(rates->model_log_rates == YES)
     {
@@ -1028,9 +1030,9 @@ void RATES_Init_Rate_Struct(t_rate *rates, t_rate *existing_rates, int n_otu)
 
 	  rates->br_do_updt[i] = YES;
 	  rates->has_survived[i] = NO;
-
+	  
+	  rates->t_ranked[i] = i;
 	}
-
     }
 }
 
