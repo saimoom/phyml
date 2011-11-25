@@ -1112,6 +1112,7 @@ typedef struct __T_Rate {
   phydbl     *t_prior_max;
   phydbl     *t_floor;
   phydbl     *t_mean;
+  int        *t_ranked;
   phydbl     *mean_l;
   phydbl     *cov_l;
   phydbl     *grad_l; /* gradient */

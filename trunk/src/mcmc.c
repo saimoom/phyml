@@ -117,52 +117,52 @@ void MCMC(t_tree *tree)
   secod = 1;
   do
     {
-      /* if(tree->mcmc->run > 200000) */
-      /* 	{ */
-      /* 	  FILE *fp; */
-      /* 	  char *s; */
-
-      /* 	  s = (char *)mCalloc(100,sizeof(char)); */
-
-      /* 	  sprintf(s,"simul_par.%d",getpid()); */
-      /* 	  fclose(tree->mcmc->out_fp_stats); */
-      /* 	  tree->mcmc->out_fp_stats = fopen(s,"w"); */
-      /* 	  tree->mcmc->run = 0; */
-      /* 	  MCMC_Print_Param(tree->mcmc,tree); */
-
-      /* 	  RATES_Update_Cur_Bl(tree); */
-      /* 	  printf("\n. %s",Write_Tree(tree,NO)); */
-      /* 	  Evolve(tree->data,tree->mod,tree); */
-
-      /* 	  sprintf(s,"simul_seq.%d",getpid()); */
-      /* 	  fp = fopen(s,"w"); */
-      /* 	  Print_CSeq(fp,NO,tree->data); */
-      /* 	  fflush(NULL); */
-      /* 	  fclose(fp); */
-      /* 	  Free(s); */
-
-      /* 	  Exit("\n"); */
-      /* 	} */
-
-
-      if(tree->mcmc->run > 500000)
+      if(tree->mcmc->run > 200000)
       	{
       	  FILE *fp;
-      	  char *s,*t;
+      	  char *s;
 
       	  s = (char *)mCalloc(100,sizeof(char));
-	  
-      	  t = strrchr(tree->io->in_align_file,'.');
-      	  sprintf(s,"res%s",t);
-      	  fp = fopen(s,"w");
+
+      	  sprintf(s,"simul_par.%d",getpid());
       	  fclose(tree->mcmc->out_fp_stats);
       	  tree->mcmc->out_fp_stats = fopen(s,"w");
       	  tree->mcmc->run = 0;
       	  MCMC_Print_Param(tree->mcmc,tree);
+
+      	  RATES_Update_Cur_Bl(tree);
+      	  printf("\n. %s",Write_Tree(tree,NO));
+      	  Evolve(tree->data,tree->mod,tree);
+
+      	  sprintf(s,"simul_seq.%d",getpid());
+      	  fp = fopen(s,"w");
+      	  Print_CSeq(fp,NO,tree->data);
+      	  fflush(NULL);
       	  fclose(fp);
       	  Free(s);
+
       	  Exit("\n");
       	}
+
+
+      /* if(tree->mcmc->run > 500000) */
+      /* 	{ */
+      /* 	  FILE *fp; */
+      /* 	  char *s,*t; */
+
+      /* 	  s = (char *)mCalloc(100,sizeof(char)); */
+	  
+      /* 	  t = strrchr(tree->io->in_align_file,'.'); */
+      /* 	  sprintf(s,"res%s",t); */
+      /* 	  fp = fopen(s,"w"); */
+      /* 	  fclose(tree->mcmc->out_fp_stats); */
+      /* 	  tree->mcmc->out_fp_stats = fopen(s,"w"); */
+      /* 	  tree->mcmc->run = 0; */
+      /* 	  MCMC_Print_Param(tree->mcmc,tree); */
+      /* 	  fclose(fp); */
+      /* 	  Free(s); */
+      /* 	  Exit("\n"); */
+      /* 	} */
 
       /* if(tree->mcmc->run > 50000) */
       /* 	{ */
@@ -1018,7 +1018,6 @@ void MCMC_Tree_Height(t_tree *tree)
   u = Uni();
   mult = EXP(K*(u-0.5));
 
-
  /* WARNING: It must not be floor = tree->rates->t_prior_max[tree->n_root->num]; 
      floor is the maximum value a node height can take when one ignores the 
      calibration nodes, i.e., floor is set by the height of the tips
@@ -1272,7 +1271,8 @@ void MCMC_Subtree_Height(t_tree *tree)
   	  return;
   	}
     }
-  
+
+     
   For(i,2*tree->n_otu-2) tree->rates->br_do_updt[i] = YES;
   RATES_Update_Cur_Bl(tree);
   if(tree->mcmc->use_data) new_lnL_data = Lk(tree);
@@ -3598,7 +3598,6 @@ void MCMC_Complete_MCMC(t_mcmc *mcmc, t_tree *tree)
     }
   
   for(i=mcmc->num_move_br_r;i<mcmc->num_move_br_r+2*tree->n_otu-2;i++) mcmc->move_weight[i] = (phydbl)(1./(2.*tree->n_otu-2)); /* Rates */
-  /* for(i=mcmc->num_move_br_r;i<mcmc->num_move_br_r+2*tree->n_otu-2;i++) mcmc->move_weight[i] = 0.0; /\* Rates *\/ */
   for(i=mcmc->num_move_nd_r;i<mcmc->num_move_nd_r+2*tree->n_otu-1;i++) mcmc->move_weight[i] = 0.0; /* Node rates */
   for(i=mcmc->num_move_nd_t;i<mcmc->num_move_nd_t+tree->n_otu-1;i++)   mcmc->move_weight[i] = (phydbl)(1./(tree->n_otu-1));  /* Times */
   mcmc->move_weight[mcmc->num_move_clock_r]         = 1.0;
