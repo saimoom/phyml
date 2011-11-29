@@ -85,6 +85,7 @@ void Get_Survival_Duration_Post(t_node *a, t_node *d, t_tree *tree);
 phydbl TIMES_Lk_Yule_Root_Marginal(t_tree *tree);
 phydbl TIMES_Lk_Yule_Joint(t_tree *tree);
 void TIMES_Update_Node_Ordering(t_tree *tree);
+phydbl TIMES_Lk_Yule_Order(t_tree *tree);
 
 
 #endif

@@ -7247,6 +7247,9 @@ model *Make_Model_Basic()
   mod->br_len_multiplier      = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
   Init_Scalar_Dbl(mod->br_len_multiplier);
 
+  mod->mr                     = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
+  Init_Scalar_Dbl(mod->mr);
+
 
 
   mod->user_b_freq->v         = (phydbl *)mCalloc(T_MAX_OPTION,sizeof(phydbl));
