@@ -363,7 +363,7 @@ void M4_Free_M4_Model(m4 *m4mod)
 
 void M4_Init_Model(m4 *m4mod, calign *data, model *mod)
 {
-  int i;
+  int i,j,ct;
   phydbl fq;
 
   if(mod->io->datatype == NT)      m4mod->n_o = 4;
@@ -377,12 +377,23 @@ void M4_Init_Model(m4 *m4mod, calign *data, model *mod)
 
   mod->ns = m4mod->n_o * m4mod->n_h;
 
+
   For(i,m4mod->n_o) m4mod->o_fq[i] = mod->pi->v[i]; /*! At that stage, the mod->pi vector as been initialized
 						     under a standard non covarion type of model. Use these
 						     frequencies as they have been set according to the 
 						     nucleotide substitution model chosen (e.g., 1/4 for JC69). !*/
   For(i,(int)(m4mod->n_h)) m4mod->multipl[i] = 1.;
-  For(i,(int)(m4mod->n_o*(m4mod->n_o-1)/2)) m4mod->o_rr[i] = 1.;
+
+  ct = 0;
+  For(i,m4mod->n_o-1)
+    {
+      for(j=i+1;j<m4mod->n_o;j++)
+	{
+	  m4mod->o_rr[ct] = MAX(mod->qmat->v[i*m4mod->n_o+j],1.E-5); 	  
+	  ct++;
+	}
+    }
+  
   For(i,(int)(m4mod->n_h*(m4mod->n_h-1)/2)) m4mod->h_rr[i] = 1.;
   fq = (phydbl)(1./m4mod->n_h);
 
@@ -393,7 +404,7 @@ void M4_Init_Model(m4 *m4mod, calign *data, model *mod)
   For(i,m4mod->n_h) m4mod->multipl[i] = (phydbl)i;
   For(i,m4mod->n_h) m4mod->multipl_unscaled[i] = (phydbl)i;
 
-  mod->update_eigen = 1;
+  mod->update_eigen = YES;
   M4_Update_Qmat(m4mod,mod);
 }
 
@@ -487,7 +498,8 @@ void M4_Update_Qmat(m4 *m4mod, model *mod)
 
 
   if(mod->whichmodel != CUSTOM &&
-     mod->whichmodel != GTR)
+     mod->whichmodel != GTR    &&
+     mod->io->datatype == NT)    
     {
       phydbl kappa1,kappa2;
 
@@ -507,12 +519,10 @@ void M4_Update_Qmat(m4 *m4mod, model *mod)
       /* C <-> T */ m4mod->o_rr[4] = kappa1;
     }
 
-
-  /* Fill the matrices of nucleotide substitution rates here */
+  /* Fill in the matrices of nucleotide or amino-acid substitution rates here */
   Update_Qmat_Generic(m4mod->o_rr, m4mod->o_fq, m4mod->n_o, m4mod->o_mats[0]);
 
-  /* Print_Square_Matrix_Generic(4,m4mod->o_mats[0]); */
-
+  /* Print_Square_Matrix_Generic(n_o,m4mod->o_mats[0]); */
 
   /* Multiply each of these matrix by a relative substitution rate */
   for(i=1;i<m4mod->n_h;i++) For(j,n_o*n_o) m4mod->o_mats[i][j] = m4mod->o_mats[0][j]*m4mod->multipl[i];

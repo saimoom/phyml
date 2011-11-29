@@ -800,7 +800,8 @@ phydbl TIMES_Log_Conditional_Uniform_Density(t_tree *tree)
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
-
+// Returns the marginal density of tree height assuming the
+// Yule model of speciation. 
 phydbl TIMES_Lk_Yule_Root_Marginal(t_tree *tree)
 {
   int n;
@@ -826,12 +827,13 @@ phydbl TIMES_Lk_Yule_Root_Marginal(t_tree *tree)
 	n++;
     }
 
-  return LOG(lbda) - 2.*lbda*T + (n-2.)*LOG(1. - EXP(-lbda*T));
+  return LnGamma(n+1) + LOG(lbda) - 2.*lbda*T + (n-2.)*LOG(1. - EXP(-lbda*T));
 }
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
-
+// Returns the joint density of internal node heights assuming
+// the Yule model of speciation.
 phydbl TIMES_Lk_Yule_Joint(t_tree *tree)
 {
   int i,j;
@@ -923,7 +925,61 @@ phydbl TIMES_Lk_Yule_Joint(t_tree *tree)
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
+// Returns the conditional density of internal node heights 
+// given the tree height under the Yule model. Uses the order
+// statistics 'simplification' as described in Yang and Rannala, 2005. 
+phydbl TIMES_Lk_Yule_Order(t_tree *tree)
+{
+  int i,j;
+  phydbl *ts,*t;
+  phydbl ceil;
+  t_node *n;
+  phydbl loglk,loglk_slice;
+  phydbl loglbda;
+  phydbl lbda,v;
+  int n_nodes_in_slice;
+  phydbl multinom,sum_multinom;
 
+  ts = tree->rates->time_slice_lims;
+  t  = tree->rates->nd_t;
+  ceil = -1.;
+  v = -1.;
+  n = NULL;
+  loglbda = LOG(tree->rates->birth_rate);
+  lbda = tree->rates->birth_rate;
+  sum_multinom = 0.0;
+
+
+  loglk = 0.0;
+  For(i,tree->rates->n_time_slices)
+    {
+      if(!i) ceil = t[tree->n_root->num];
+      else   ceil = ts[i-1];
+
+      n_nodes_in_slice = 0;
+      loglk_slice = 0.0;
+      For(j,2*tree->n_otu-1)
+	{
+	  n = tree->t_nodes[j];
+	  if(n->tax == NO && t[n->num] < ts[i] && t[n->num] > ceil)
+	    {
+	      n_nodes_in_slice++;
+	      v  = (loglbda - lbda * FABS(t[j] - ts[i]));
+	      v -= LOG(1. - EXP(-lbda*FABS(ceil - ts[i]))); // incorporate calibration boundaries here.
+	      loglk_slice += v;
+	    }
+	}
+
+      multinom = (1.-EXP(-lbda*FABS(ceil))) - (1.-EXP(-lbda*FABS(ts[i])));
+      sum_multinom += multinom;
+      loglk += (n_nodes_in_slice * LOG(multinom) + loglk_slice);
+    }
+  loglk -= (tree->n_otu-2)*LOG(sum_multinom);
+  return(loglk);
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
 
 phydbl TIMES_Lk_Times(t_tree *tree)
 {
@@ -976,8 +1032,28 @@ phydbl TIMES_Lk_Times(t_tree *tree)
 
   /* condlogdens += (tree->n_otu-2)*LOG(birthr); */
 
-  tree->rates->c_lnL_times  = TIMES_Lk_Yule_Joint(tree);
-  tree->rates->c_lnL_times -= TIMES_Lk_Yule_Root_Marginal(tree);
+  /* tree->rates->c_lnL_times  = TIMES_Lk_Yule_Joint(tree); */
+  /* tree->rates->c_lnL_times -= TIMES_Lk_Yule_Root_Marginal(tree); */
+  /* phydbl v1 = tree->rates->c_lnL_times; */
+
+
+  /* tree->rates->nd_t[tree->n_root->num] = -5.; */
+  /* tree->rates->nd_t[4] = -2.0; */
+  /* tree->rates->nd_t[5] = -0.5; */
+  /* tree->rates->birth_rate = 2.; */
+
+  tree->rates->c_lnL_times =  TIMES_Lk_Yule_Order(tree);
+
+  phydbl v2 = tree->rates->c_lnL_times;
+
+  /* printf("\n. == %f [t1=%f; t2=%f; t0=%f; lbda=%f]", */
+  /* 	 v2, */
+  /* 	 tree->rates->nd_t[4], */
+  /* 	 tree->rates->nd_t[5], */
+  /* 	 tree->rates->nd_t[tree->n_root->num], */
+  /* 	 tree->rates->birth_rate); */
+
+  /* Exit("\n"); */
 
   /* phydbl loglk; */
   /* phydbl lbda = tree->rates->birth_rate; */
