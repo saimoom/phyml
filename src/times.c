@@ -930,51 +930,39 @@ phydbl TIMES_Lk_Yule_Joint(t_tree *tree)
 // statistics 'simplification' as described in Yang and Rannala, 2005. 
 phydbl TIMES_Lk_Yule_Order(t_tree *tree)
 {
-  int i,j;
-  phydbl *ts,*t;
-  phydbl ceil;
+  int j;
+  phydbl *ts,*t,*tf;
   t_node *n;
-  phydbl loglk,loglk_slice;
+  phydbl loglk;
   phydbl loglbda;
-  phydbl lbda,v;
-  int n_nodes_in_slice;
-  phydbl multinom,sum_multinom;
+  phydbl lbda;
+  phydbl *tp_min,*tp_max;
+  phydbl lower_bound,upper_bound;
 
+  tp_min = tree->rates->t_prior_min;
+  tp_max = tree->rates->t_prior_max;
+  tf = tree->rates->t_floor;
   ts = tree->rates->time_slice_lims;
   t  = tree->rates->nd_t;
-  ceil = -1.;
-  v = -1.;
   n = NULL;
   loglbda = LOG(tree->rates->birth_rate);
   lbda = tree->rates->birth_rate;
-  sum_multinom = 0.0;
-
-
+  lower_bound = -1.;
+  upper_bound = -1.;
+  
   loglk = 0.0;
-  For(i,tree->rates->n_time_slices)
+  For(j,2*tree->n_otu-2)
     {
-      if(!i) ceil = t[tree->n_root->num];
-      else   ceil = ts[i-1];
+      n = tree->t_nodes[j];
+      lower_bound = MAX(FABS(tf[j]),FABS(tp_max[j]));
+      upper_bound = MIN(FABS(t[tree->n_root->num]),FABS(tp_min[j]));
 
-      n_nodes_in_slice = 0;
-      loglk_slice = 0.0;
-      For(j,2*tree->n_otu-1)
+      if(n->tax == NO)
 	{
-	  n = tree->t_nodes[j];
-	  if(n->tax == NO && t[n->num] < ts[i] && t[n->num] > ceil)
-	    {
-	      n_nodes_in_slice++;
-	      v  = (loglbda - lbda * FABS(t[j] - ts[i]));
-	      v -= LOG(1. - EXP(-lbda*FABS(ceil - ts[i]))); // incorporate calibration boundaries here.
-	      loglk_slice += v;
-	    }
+	  loglk  += (loglbda - lbda * FABS(t[j]));
+	  loglk -= LOG(EXP(-lbda*lower_bound) - EXP(-lbda*upper_bound)); // incorporate calibration boundaries here.
 	}
-
-      multinom = (1.-EXP(-lbda*FABS(ceil))) - (1.-EXP(-lbda*FABS(ts[i])));
-      sum_multinom += multinom;
-      loglk += (n_nodes_in_slice * LOG(multinom) + loglk_slice);
     }
-  loglk -= (tree->n_otu-2)*LOG(sum_multinom);
   return(loglk);
 }
 
@@ -984,7 +972,6 @@ phydbl TIMES_Lk_Yule_Order(t_tree *tree)
 phydbl TIMES_Lk_Times(t_tree *tree)
 {
   phydbl condlogdens;
-  phydbl birthr;
 
   condlogdens = 0.0;
 
@@ -1043,8 +1030,6 @@ phydbl TIMES_Lk_Times(t_tree *tree)
   /* tree->rates->birth_rate = 2.; */
 
   tree->rates->c_lnL_times =  TIMES_Lk_Yule_Order(tree);
-
-  phydbl v2 = tree->rates->c_lnL_times;
 
   /* printf("\n. == %f [t1=%f; t2=%f; t0=%f; lbda=%f]", */
   /* 	 v2, */
