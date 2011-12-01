@@ -117,32 +117,32 @@ void MCMC(t_tree *tree)
   secod = 1;
   do
     {
-      /* if(tree->mcmc->run > 200000) */
-      /* 	{ */
-      /* 	  FILE *fp; */
-      /* 	  char *s; */
+      if(tree->mcmc->run > 200000)
+      	{
+      	  FILE *fp;
+      	  char *s;
 
-      /* 	  s = (char *)mCalloc(100,sizeof(char)); */
+      	  s = (char *)mCalloc(100,sizeof(char));
 
-      /* 	  sprintf(s,"simul_par.%d",getpid()); */
-      /* 	  fclose(tree->mcmc->out_fp_stats); */
-      /* 	  tree->mcmc->out_fp_stats = fopen(s,"w"); */
-      /* 	  tree->mcmc->run = 0; */
-      /* 	  MCMC_Print_Param(tree->mcmc,tree); */
+      	  sprintf(s,"simul_par.%d",getpid());
+      	  fclose(tree->mcmc->out_fp_stats);
+      	  tree->mcmc->out_fp_stats = fopen(s,"w");
+      	  tree->mcmc->run = 0;
+      	  MCMC_Print_Param(tree->mcmc,tree);
 
-      /* 	  RATES_Update_Cur_Bl(tree); */
-      /* 	  printf("\n. %s",Write_Tree(tree,NO)); */
-      /* 	  Evolve(tree->data,tree->mod,tree); */
+      	  RATES_Update_Cur_Bl(tree);
+      	  printf("\n. %s",Write_Tree(tree,NO));
+      	  Evolve(tree->data,tree->mod,tree);
 
-      /* 	  sprintf(s,"simul_seq.%d",getpid()); */
-      /* 	  fp = fopen(s,"w"); */
-      /* 	  Print_CSeq(fp,NO,tree->data); */
-      /* 	  fflush(NULL); */
-      /* 	  fclose(fp); */
-      /* 	  Free(s); */
+      	  sprintf(s,"simul_seq.%d",getpid());
+      	  fp = fopen(s,"w");
+      	  Print_CSeq(fp,NO,tree->data);
+      	  fflush(NULL);
+      	  fclose(fp);
+      	  Free(s);
 
-      /* 	  Exit("\n"); */
-      /* 	} */
+      	  Exit("\n");
+      	}
 
 
       /* if(tree->mcmc->run > 500000) */
@@ -2923,8 +2923,8 @@ void MCMC_Adjust_Tuning_Parameter(int move, t_mcmc *mcmc)
 
       if(!strcmp(mcmc->move_name[move],"tree_height"))
 	{
-	  rate_inf = 0.1;
-	  rate_sup = 0.1;
+	  rate_inf = 0.5;
+	  rate_sup = 0.5;
 	}
       else if(!strcmp(mcmc->move_name[move],"subtree_height"))
 	{
