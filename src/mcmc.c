@@ -26,6 +26,7 @@ void MCMC(t_tree *tree)
   int i;
 
   RATES_Set_Clock_And_Nu_Max(tree);
+  RATES_Set_Birth_Rate_Boundaries(tree);
 
   if(tree->mcmc->randomize == YES)
     {
@@ -117,52 +118,52 @@ void MCMC(t_tree *tree)
   secod = 1;
   do
     {
-      /* if(tree->mcmc->run > 200000) */
-      /* 	{ */
-      /* 	  FILE *fp; */
-      /* 	  char *s; */
-
-      /* 	  s = (char *)mCalloc(100,sizeof(char)); */
-
-      /* 	  sprintf(s,"simul_par.%d",getpid()); */
-      /* 	  fclose(tree->mcmc->out_fp_stats); */
-      /* 	  tree->mcmc->out_fp_stats = fopen(s,"w"); */
-      /* 	  tree->mcmc->run = 0; */
-      /* 	  MCMC_Print_Param(tree->mcmc,tree); */
-
-      /* 	  RATES_Update_Cur_Bl(tree); */
-      /* 	  printf("\n. %s",Write_Tree(tree,NO)); */
-      /* 	  Evolve(tree->data,tree->mod,tree); */
-
-      /* 	  sprintf(s,"simul_seq.%d",getpid()); */
-      /* 	  fp = fopen(s,"w"); */
-      /* 	  Print_CSeq(fp,NO,tree->data); */
-      /* 	  fflush(NULL); */
-      /* 	  fclose(fp); */
-      /* 	  Free(s); */
-
-      /* 	  Exit("\n"); */
-      /* 	} */
-
-
       if(tree->mcmc->run > 500000)
       	{
       	  FILE *fp;
-      	  char *s,*t;
+      	  char *s;
 
       	  s = (char *)mCalloc(100,sizeof(char));
-	  
-      	  t = strrchr(tree->io->in_align_file,'.');
-      	  sprintf(s,"res%s",t);
-      	  fp = fopen(s,"w");
+
+      	  sprintf(s,"simul_par.%d",getpid());
       	  fclose(tree->mcmc->out_fp_stats);
       	  tree->mcmc->out_fp_stats = fopen(s,"w");
       	  tree->mcmc->run = 0;
       	  MCMC_Print_Param(tree->mcmc,tree);
+
+      	  RATES_Update_Cur_Bl(tree);
+      	  printf("\n. %s",Write_Tree(tree,NO));
+      	  Evolve(tree->data,tree->mod,tree);
+
+      	  sprintf(s,"simul_seq.%d",getpid());
+      	  fp = fopen(s,"w");
+      	  Print_CSeq(fp,NO,tree->data);
+      	  fflush(NULL);
       	  fclose(fp);
       	  Free(s);
+
       	  Exit("\n");
       	}
+
+
+      /* if(tree->mcmc->run > 500000) */
+      /* 	{ */
+      /* 	  FILE *fp; */
+      /* 	  char *s,*t; */
+
+      /* 	  s = (char *)mCalloc(100,sizeof(char)); */
+	  
+      /* 	  t = strrchr(tree->io->in_align_file,'.'); */
+      /* 	  sprintf(s,"res%s",t); */
+      /* 	  fp = fopen(s,"w"); */
+      /* 	  fclose(tree->mcmc->out_fp_stats); */
+      /* 	  tree->mcmc->out_fp_stats = fopen(s,"w"); */
+      /* 	  tree->mcmc->run = 0; */
+      /* 	  MCMC_Print_Param(tree->mcmc,tree); */
+      /* 	  fclose(fp); */
+      /* 	  Free(s); */
+      /* 	  Exit("\n"); */
+      /* 	} */
 
       /* if(tree->mcmc->run > 50000) */
       /* 	{ */
@@ -1710,6 +1711,7 @@ void MCMC_Print_Param_Stdin(t_mcmc *mcmc, t_tree *tree)
       PhyML_Printf("\t%15s","TreeHeight[ESS]");    
       if(tree->rates->model == THORNE || tree->rates->model == GUINDON) PhyML_Printf("\t%9s","AutoCor");    
       else PhyML_Printf("\t%9s","RateVar");
+      PhyML_Printf("\t%9s","BirthR");
       PhyML_Printf("\t%7s","MinESS");    
     }
 
@@ -1725,6 +1727,7 @@ void MCMC_Print_Param_Stdin(t_mcmc *mcmc, t_tree *tree)
       /* PhyML_Printf("\t%12.6f[%4.0f]",tree->rates->clock_r,tree->mcmc->ess[tree->mcmc->num_move_clock_r]); */
       PhyML_Printf("\t%9.1f[%4.0f]",tree->rates->nd_t[tree->n_root->num],tree->mcmc->ess[tree->mcmc->num_move_nd_t+tree->n_root->num-tree->n_otu]);
       PhyML_Printf("\t%9.4G",tree->rates->nu);
+      PhyML_Printf("\t%9.4G",tree->rates->birth_rate);
       PhyML_Printf("\t%7.0f",min);
     }
 }
@@ -2923,8 +2926,8 @@ void MCMC_Adjust_Tuning_Parameter(int move, t_mcmc *mcmc)
 
       if(!strcmp(mcmc->move_name[move],"tree_height"))
 	{
-	  rate_inf = 0.5;
-	  rate_sup = 0.5;
+	  rate_inf = 0.1;
+	  rate_sup = 0.1;
 	}
       else if(!strcmp(mcmc->move_name[move],"subtree_height"))
 	{

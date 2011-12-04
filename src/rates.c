@@ -929,7 +929,7 @@ void RATES_Init_Rate_Struct(t_rate *rates, t_rate *existing_rates, int n_otu)
 
   rates->birth_rate       = 1.E-2;
   rates->birth_rate_min   = 1.E-3;
-  rates->birth_rate_max   = 1.E-1;
+  rates->birth_rate_max   = 1.E+1;
 
   if(rates->model_log_rates == YES)
     {
@@ -3835,7 +3835,6 @@ void RATES_Reset_Rates(t_tree *tree)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
 void RATES_Set_Clock_And_Nu_Max(t_tree *tree)
 {
   phydbl dt,nu;
@@ -3895,7 +3894,44 @@ void RATES_Set_Clock_And_Nu_Max(t_tree *tree)
       PhyML_Printf("\n. Clock rate parameter upper bound set to %f expected subst./site/time unit",tree->rates->max_clock);
       PhyML_Printf("\n. Autocorrelation parameter upper bound set to %f",tree->rates->max_nu);
     }
+
 }
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void RATES_Set_Birth_Rate_Boundaries(t_tree *tree)
+{
+  phydbl lbda;
+  phydbl p_above_min,p_below_max;
+  phydbl min,max;
+  int assign = YES;
+
+  min = -tree->rates->t_prior_max[tree->n_root->num];
+  max = -tree->rates->t_prior_min[tree->n_root->num];
+
+  for(lbda = 0.001; lbda < 10; lbda+=0.001)
+    {
+      p_above_min = 1. - POW(1.-EXP(-lbda*min),tree->n_otu);
+      p_below_max = POW(1.-EXP(-lbda*max),tree->n_otu);
+ 
+      if(p_above_min < 1.E-5) 
+	{ 
+	  tree->rates->birth_rate_max = lbda;
+	  break;
+	}
+      if(p_below_max > 1.E-5 && assign==YES)
+	{
+	  assign = NO;
+	  tree->rates->birth_rate_min = lbda;
+	}
+    }
+  
+  PhyML_Printf("\n. Birth rate lower bound set to %f.",tree->rates->birth_rate_min);
+  PhyML_Printf("\n. Birth rate upper bound set to %f.",tree->rates->birth_rate_max);
+
+}
+
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
