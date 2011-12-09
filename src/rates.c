@@ -305,6 +305,8 @@ phydbl RATES_Lk_Rates_Core(phydbl br_r_a, phydbl br_r_d, phydbl nd_r_a, phydbl n
   min_r     = tree->rates->min_rate;
   max_r     = tree->rates->max_rate;
 
+  dt_d = MAX(0.5,dt_d); // We give only one decimal when printing out node heights. It is therefore a fair approximation
+
   switch(tree->rates->model)
     {
     case THORNE :
@@ -402,6 +404,7 @@ phydbl RATES_Lk_Rates_Core(phydbl br_r_a, phydbl br_r_d, phydbl nd_r_a, phydbl n
 	if(err)
 	  {
 	    PhyML_Printf("\n. Run: %d",tree->mcmc->run);
+	    PhyML_Printf("\n. br_r_d=%f mean=%f sd=%f min_r=%f max_r=%f dt_d=%f",br_r_d,mean,sd,min_r,max_r,dt_d);
 	    PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
 	    Exit("\n");
 	  }
