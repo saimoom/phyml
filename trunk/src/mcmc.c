@@ -129,6 +129,7 @@ void MCMC(t_tree *tree)
       	  fclose(tree->mcmc->out_fp_stats);
       	  tree->mcmc->out_fp_stats = fopen(s,"w");
       	  tree->mcmc->run = 0;
+	  tree->mcmc->nd_t_digits = 4;
       	  MCMC_Print_Param(tree->mcmc,tree);
 
       	  RATES_Update_Cur_Bl(tree);
@@ -1992,7 +1993,12 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
 	  PhyML_Fprintf(fp,"%G\t",tree->mod->m4mod->delta);
 	}
 
-      for(i=tree->n_otu;i<2*tree->n_otu-1;i++) PhyML_Fprintf(fp,"%.1f\t",tree->rates->nd_t[i]);
+
+      char *format = (char *)mCalloc(100,sizeof(char));
+      sprintf(format,"%%.%df\t",tree->mcmc->nd_t_digits);
+      for(i=tree->n_otu;i<2*tree->n_otu-1;i++) PhyML_Fprintf(fp,format,tree->rates->nd_t[i]);
+      Free(format);
+
       /* for(i=0;i<2*tree->n_otu-1;i++) PhyML_Fprintf(fp,"%.4f\t",LOG(tree->rates->nd_r[i])); */
 
       for(i=0;i<2*tree->n_otu-2;i++) 
@@ -2348,6 +2354,7 @@ void MCMC_Init_MCMC_Struct(char *filename, option *io, t_mcmc *mcmc)
   mcmc->min_tune         = 1.E-10;
   mcmc->print_every      = 2;
   mcmc->is_burnin        = NO;
+  mcmc->nd_t_digits      = 1;
 
   if(filename)
     {
@@ -2417,6 +2424,7 @@ void MCMC_Copy_MCMC_Struct(t_mcmc *ori, t_mcmc *cpy, char *filename)
   cpy->is                 = ori->is              ;
   cpy->io                 = ori->io              ;
   cpy->in_fp_par          = ori->in_fp_par       ;
+  cpy->nd_t_digits        = ori->nd_t_digits     ;
 
   For(i,cpy->n_moves) 
     {

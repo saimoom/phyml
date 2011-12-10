@@ -1190,6 +1190,8 @@ typedef struct __Tmcmc {
   int num_move_cov_switch;
   int num_move_birth_rate;
 
+  int         nd_t_digits;
+
   char *out_filename;
 
   time_t t_beg;
