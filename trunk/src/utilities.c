@@ -620,7 +620,6 @@ char *Write_Tree(t_tree *tree, int custom)
 
   if(custom == NO)
     {
-
       if(!tree->n_root)
 	{
 	  i = 0;
