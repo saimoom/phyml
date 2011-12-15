@@ -147,7 +147,7 @@ void MCMC(t_tree *tree)
       /* 	} */
 
 
-      if(tree->mcmc->run > 200000)
+      if(tree->mcmc->ess[tree->mcmc->num_move_tree_height] > 100 && tree->mcmc->run > 1000)
       	{
       	  FILE *fp;
       	  char *s,*t;
