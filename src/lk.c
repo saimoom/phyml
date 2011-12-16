@@ -694,6 +694,8 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
       site_lk += tree->site_lk_cat[catg] * tree->mod->gamma_r_proba->v[catg];
     }
 
+  inv_site_lk = 0.;
+  
   /* The substitution model does include invariable sites */
   if(tree->mod->invar)
     {
@@ -714,9 +716,21 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
 	  while(exponent != 0);
 	  inv_site_lk *= tree->mod->pinvar->v;
 	  /* Update the value of site_lk */
-	  site_lk *= (1. - tree->mod->pinvar->v);
-	  site_lk += inv_site_lk;
-        }
+	  if(isinf(inv_site_lk)) // P(D|r=0) >> P(D|r>0) => assume P(D) = P(D|r=0)P(r=0)
+	    {
+	      PhyML_Printf("\n== Numerical precision issue alert.");
+	      PhyML_Printf("\n== P(D|r=0)=%G P(D|r>0)=%G",
+			   tree->mod->pi->v[tree->data->invar[site]],
+			   EXP(LOG(site_lk) - (phydbl)LOG2 * fact_sum_scale));	      
+	      site_lk = (1. - tree->mod->pinvar->v)*tree->mod->pi->v[tree->data->invar[site]];
+	      fact_sum_scale = 0.0;
+	    }
+	  else
+	    {
+	      site_lk *= (1. - tree->mod->pinvar->v);
+	      site_lk += inv_site_lk;	      
+	    }
+	}
       else
         {
           /* Same formula as above with P(D | subs, rate = 0) = 0 */
@@ -733,6 +747,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
       PhyML_Printf("\n. Site = %d",site);
       PhyML_Printf("\n. invar = %d",tree->data->invar[site]);
       PhyML_Printf("\n. scale_left = %d scale_rght = %d",sum_scale_left,sum_scale_rght);
+      PhyML_Printf("\n. inv_site_lk = %f",inv_site_lk);
       PhyML_Printf("\n. Lk = %G LOG(Lk) = %f < %G",site_lk,log_site_lk,-BIG);
       For(catg,tree->mod->n_catg) PhyML_Printf("\n. rr=%f p=%f",tree->mod->gamma_rr->v[catg],tree->mod->gamma_r_proba->v[catg]);
       PhyML_Printf("\n. pinv = %G",tree->mod->pinvar->v);
