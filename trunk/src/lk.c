@@ -2177,6 +2177,8 @@ void Update_PMat_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
   phydbl len;
   phydbl l_min, l_max;
 
+  l_min = tree->mod->l_min;
+  l_max = tree->mod->l_max;
 
   if(tree->mod->gamma_mgf_bl == YES)
     {
@@ -2185,18 +2187,22 @@ void Update_PMat_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
       mean = b_fcus->gamma_prior_mean;
       var  = b_fcus->gamma_prior_var;
       
+      if(mean < l_min) mean = l_min;
+      if(mean > l_max) mean = l_max;
+
       shape = mean*mean/var;
       scale = var/mean;
 
-      For(i,tree->mod->n_catg) PMat_MGF_Gamma(b_fcus->Pij_rr+tree->mod->ns*tree->mod->ns*i,
-					      shape,scale,tree->mod->gamma_rr->v[i],tree->mod);
+      For(i,tree->mod->n_catg) 
+	{
+	  PMat_MGF_Gamma(b_fcus->Pij_rr+tree->mod->ns*tree->mod->ns*i,
+			 shape,scale,tree->mod->gamma_rr->v[i],tree->mod);
+	}
     }
   else
     {
       len = -1.0;
       
-      l_min = tree->mod->l_min;
-      l_max = tree->mod->l_max;
             
       if(tree->mod->log_l == YES) b_fcus->l = EXP(b_fcus->l);
       
