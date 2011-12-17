@@ -2751,79 +2751,16 @@ void RATES_Update_Cur_Bl_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
       
       if(tree->rates->model == GUINDON)
 	{
-	  phydbl logcr;
-	  phydbl shift;
 	  phydbl m,v;
-
-	  logcr = LOG(cr);
-
-	  ra += logcr;
-	  rd += logcr;
-
-	  /* ra = -2.; */
-	  /* rd = 2.; */
-	  /* dt = 10.0; */
-	  /* nu = 0.1; */
-
-	  /* ra=LOG(1.E-9); */
-	  /* rd=LOG(1.E-6); */
-
-	  shift = MAX(ra,rd);
-
-	  ra -= shift;
-	  rd -= shift;
 
 	  Integrated_Geometric_Brownian_Bridge_Moments(dt,ra,rd,nu,&m,&v);
 	  
-	  m *= EXP(shift);
-	  v *= EXP(2.*shift);
-
-	  /* printf("\n. m=%G;v=%G",m,v); */
-	  /* printf("\n. shape=%G;scale=%G",m*m/v,v/m); */
-	  /* Exit("\n"); */
+	  m *= cr*dt;
+	  v *= (cr*cr)*(dt*dt);
 
 	  tree->rates->cur_gamma_prior_mean[d->num] = m;
 	  tree->rates->cur_gamma_prior_var[d->num]  = v;
-
-	  tree->rates->cur_gamma_prior_mean[d->num] *= (dt);
-	  tree->rates->cur_gamma_prior_var[d->num]  *= (dt*dt);
-
-	  /* if(tree->rates->cur_gamma_prior_var[d->num] < 1.E-20)  */
-	  /*   { */
-	  /*     printf("\n. SMALL %f, %f, %f, %f var=%G mean=%f",dt,rd,ra,nu, */
-	  /*     	     tree->rates->cur_gamma_prior_var[d->num]/(dt*dt), */
-	  /*     	     tree->rates->cur_gamma_prior_mean[d->num]/dt); */
-	  /*     tree->rates->cur_gamma_prior_var[d->num] = 1.E-20; */
-	  /*   } */
-
-	  /* else  */
-	    if(tree->rates->cur_gamma_prior_var[d->num] > 1.E+02) 
-	      {
-		printf("\n. LARGE a=%d[%d] d=%d dt=%f, rd=%f, ra=%f, nu=%f var=%G mean=%f",
-		       a->num,(a==tree->n_root)?(1):(0),d->num,dt,EXP(rd),EXP(ra),nu,
-		       tree->rates->cur_gamma_prior_var[d->num]/(dt*dt),
-		       tree->rates->cur_gamma_prior_mean[d->num]/dt);
-		tree->rates->cur_gamma_prior_var[d->num] = 1.E+02;
-	      }
-	  /* else if(tree->rates->cur_gamma_prior_var[d->num] > 1.E-02) */
-	  else
-	    {
-	      /* printf("\n. NORMAL %f, %f, %f, %f var=%G mean=%f",dt,rd,ra,nu, */
-	      /* 	     tree->rates->cur_gamma_prior_var[d->num], */
-	      /* 	     tree->rates->cur_gamma_prior_mean[d->num]); */
-	    }
-	  
-	  /* if(tree->rates->cur_gamma_prior_mean[d->num] < tree->mod->l_min) tree->rates->cur_gamma_prior_mean[d->num] = EXP(rd) * dt; */
-	  /* if(tree->rates->cur_gamma_prior_mean[d->num] > tree->mod->l_max) tree->rates->cur_gamma_prior_mean[d->num] = EXP(rd) * dt; */
-
-	  /* if(tree->rates->cur_gamma_prior_mean[d->num] < tree->mod->l_min) tree->rates->cur_gamma_prior_mean[d->num] = tree->mod->l_min; */
-	  if(tree->rates->cur_gamma_prior_mean[d->num] > tree->mod->l_max) 
-	    {
-	      /* printf("\n. LARGE mean=%f nu=%f dt=%f ra=%f rd=%f m=%f cr=%f", */
-	      /* 	     tree->rates->cur_gamma_prior_mean[d->num]/(dt*cr),nu,dt,ra,rd,EXP((ra+rd)/2.),tree->rates->clock_r); */
-	      tree->rates->cur_gamma_prior_mean[d->num] = tree->mod->l_max;
-	    }
-	  
+	  	  
 	  tree->rates->cur_l[d->num] = tree->rates->cur_gamma_prior_mean[d->num]; // Required for having proper branch lengths in Write_Tree function
 	}
       
@@ -3880,7 +3817,6 @@ void RATES_Set_Clock_And_Nu_Max(t_tree *tree)
       
       dt = FABS(min_t);
       max_clock = l_max / dt; 
-
       
       nu   = 1.E-10;
       step = 1.E-1;
