@@ -693,16 +693,35 @@ phydbl RATES_Average_Substitution_Rate(t_tree *tree)
   sum_r  = 0.0;
   sum_dt = 0.0;
 
-  For(i,2*tree->n_otu-3) 
-    {
-      t     = tree->rates->nd_t[i];
-      t_anc = tree->rates->nd_t[tree->t_nodes[i]->anc->num];      
-      u = tree->t_edges[i]->l;
-      if(tree->rates->model == GUINDON) u = tree->t_edges[i]->gamma_prior_mean;
-      sum_r += u;	  
-      sum_dt += FABS(t-t_anc);
-    }
+  /* For(i,2*tree->n_otu-3)  */
+  /*   { */
+  /*     t     = tree->rates->nd_t[i]; */
+  /*     t_anc = tree->rates->nd_t[tree->t_nodes[i]->anc->num];       */
+  /*     u = tree->t_edges[i]->l; */
+  /*     if(tree->rates->model == GUINDON) u = tree->t_edges[i]->gamma_prior_mean; */
+  /*     sum_r += u;	   */
+  /*     sum_dt += FABS(t-t_anc); */
+  /*   } */
 
+  For(i,2*tree->n_otu-3)  
+    {
+      if(tree->t_edges[i] != tree->e_root)
+	{
+	  t     = tree->rates->nd_t[tree->t_edges[i]->left->num];
+	  t_anc = tree->rates->nd_t[tree->t_edges[i]->rght->num];
+	  u = tree->t_edges[i]->l;
+	  if(tree->rates->model == GUINDON) u = tree->t_edges[i]->gamma_prior_mean;
+	  sum_r += u;
+	  sum_dt += FABS(t-t_anc);
+	}
+      
+      sum_dt += FABS(tree->rates->nd_t[tree->n_root->v[0]->num] - tree->rates->nd_t[tree->n_root->num]);
+      sum_dt += FABS(tree->rates->nd_t[tree->n_root->v[1]->num] - tree->rates->nd_t[tree->n_root->num]);
+
+      u = tree->e_root->l;
+      if(tree->rates->model == GUINDON) u = tree->e_root->gamma_prior_mean;
+      sum_r += u;	 
+    }
   return(sum_r / sum_dt);
 }
 
