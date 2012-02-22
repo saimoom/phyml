@@ -119,18 +119,18 @@ t_tree *Read_Tree(char **s_tree)
       
       For(i,NODE_DEG_MAX) Free(subs[i]);
       Free(subs);
+
       subs = Sub_Trees((*s_tree),&degree);
     }
-
 
   root_node->tax = 0;
 
   tree->has_branch_lengths = 0;
   tree->num_curr_branch_available = 0;
-  For(i,degree) 
-    {
-      R_rtree((*s_tree),subs[i],root_node,tree,&n_int,&n_ext);
-    }
+  For(i,degree) R_rtree((*s_tree),subs[i],root_node,tree,&n_int,&n_ext);
+
+  for(i=degree;i<NODE_DEG_MAX;i++) Free(subs[i]);
+  Free(subs);
 
   if(tree->n_root)
     {
@@ -151,15 +151,8 @@ t_tree *Read_Tree(char **s_tree)
 	tree->n_root_pos = .5;
     }
   
-  For(i,NODE_DEG_MAX) Free(subs[i]);
-  Free(subs);
   return tree;
 }
-
-//////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
-
-
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
@@ -181,6 +174,7 @@ void R_rtree(char *s_tree_a, char *s_tree_d, t_node *a, t_tree *tree, int *n_int
     {
       char **subs;
       int degree;
+      t_edge *b;
 
       (*n_int)+=1;
 
@@ -195,7 +189,8 @@ void R_rtree(char *s_tree_a, char *s_tree_d, t_node *a, t_tree *tree, int *n_int
       d      = tree->t_nodes[n_otu+*n_int];
       d->num = n_otu+*n_int;
       d->tax = 0;
-      
+      b      = tree->t_edges[tree->num_curr_branch_available];
+
       Read_Branch_Label(s_tree_d,s_tree_a,tree->t_edges[tree->num_curr_branch_available]);
       Read_Branch_Length(s_tree_d,s_tree_a,tree);      
 
@@ -218,11 +213,36 @@ void R_rtree(char *s_tree_a, char *s_tree_d, t_node *a, t_tree *tree, int *n_int
 	}
       
       subs=Sub_Trees(s_tree_d,&degree);
-      Clean_Multifurcation(subs,degree,2);
+
+      if(degree > 2)
+	{
+	  Clean_Multifurcation(subs,degree,2);
+
+	  Free(s_tree_d);
+
+	  s_tree_d = (char *)mCalloc(strlen(subs[0])+strlen(subs[1])+5,sizeof(char));
+
+	  strcat(s_tree_d,"(");
+	  strcat(s_tree_d,subs[0]);
+	  strcat(s_tree_d,",");
+	  strcat(s_tree_d,subs[1]);
+	  strcat(s_tree_d,")");
+	  For(i,b->n_labels)
+	    {
+	      strcat(s_tree_d,"#");
+	      strcat(s_tree_d,b->labels[i]);
+	    }
+	  
+	  For(i,NODE_DEG_MAX) Free(subs[i]);
+	  Free(subs);
+
+	  subs=Sub_Trees(s_tree_d,&degree);
+	}
 
       R_rtree(s_tree_d,subs[0],d,tree,n_int,n_ext);
       R_rtree(s_tree_d,subs[1],d,tree,n_int,n_ext);
-      For(i,NODE_DEG_MAX) Free(subs[i]);
+  
+      for(i=2;i<NODE_DEG_MAX;i++) Free(subs[i]);
       Free(subs);
     }
 
@@ -258,6 +278,9 @@ void R_rtree(char *s_tree_a, char *s_tree_d, t_node *a, t_tree *tree, int *n_int
       d->num=*n_ext;
       (*n_ext)+=1;
     }
+  
+  Free(s_tree_d);
+
 }
 
 //////////////////////////////////////////////////////////////
@@ -315,9 +338,9 @@ void Read_Branch_Label(char *s_d, char *s_a, t_edge *b)
 	      posl=0;
 	    }
 	}
-      while((p[posp] != ':') && 
-	    (p[posp] != ',') && 
-	    (p[posp] != '('));
+      while((p[posp] != ':') &&
+      	    (p[posp] != ',') &&
+      	    (p[posp] != '('));
 
       b->labels[b->n_labels-1][posl] = '\0';
     }
@@ -325,10 +348,10 @@ void Read_Branch_Label(char *s_d, char *s_a, t_edge *b)
   if(p)
     {
       if(b->n_labels == 1)
-	PhyML_Printf("\n\n. Label '%s' on t_edge %3d.",b->labels[0],b->num);
+	PhyML_Printf("\n. Read label '%s' on t_edge %3d.",b->labels[0],b->num);
       else
 	{
-	  PhyML_Printf("\n\n. Labels ");
+	  PhyML_Printf("\n. Read labels ");
 	  For(i,b->n_labels) PhyML_Printf("'%s' ",b->labels[i]);
 	  PhyML_Printf("on t_edge %3d.",b->num);
 	}
@@ -338,7 +361,10 @@ void Read_Branch_Label(char *s_d, char *s_a, t_edge *b)
 	  b->does_exist = NO;
 	}
     }
-
+  /* else */
+  /*   { */
+  /*     PhyML_Printf("\n. No label found on %s",s_d); */
+  /*   } */
   Free(sub_tp);
 }
 
@@ -378,6 +404,7 @@ void Read_Branch_Length(char *s_d, char *s_a, t_tree *tree)
       strcat(sub_tp,":");
       p = strstr(s_a,sub_tp);
     }
+
 
   if(p)
     {
@@ -1529,6 +1556,7 @@ void Init_NNI(nni *a_nni)
 t_node *Make_Node_Light(int num)
 {
   t_node *n;
+  
   n           = (t_node *)mCalloc(1,sizeof(t_node));
   n->v        = (t_node **)mCalloc(3,sizeof(t_node *));
   n->l        = (phydbl *)mCalloc(3,sizeof(phydbl));
@@ -7830,12 +7858,15 @@ int Compare_Bip(t_tree *tree1, t_tree *tree2, int on_existing_edges_only)
 /*   int *bip1,*bip2; */
   t_node **bip1, **bip2;
   int bip_size1, bip_size2, bip_size;
-  int diffs;
+  int different,identical;
 
   /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
   /* WARNING: call Match_Tip_Numbers and Get_Bip before using this function. */
   /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
   
+  
+  identical = 0;
+  different = 0;
   For(i,2*tree1->n_otu-3)
     {
       b1 = tree1->t_edges[i];     
@@ -7853,7 +7884,7 @@ int Compare_Bip(t_tree *tree1, t_tree *tree2, int on_existing_edges_only)
 		  if(bip_size1 == bip_size2)
 		    {
 		      bip_size = bip_size1;
-
+		      
 		      if(b1->left->bip_size[b1->l_r] == b1->rght->bip_size[b1->r_l])
 			{
 /* 			  if(b1->left->bip_name[b1->l_r][0][0] < b1->rght->bip_name[b1->r_l][0][0]) */
@@ -7917,20 +7948,18 @@ int Compare_Bip(t_tree *tree1, t_tree *tree2, int on_existing_edges_only)
 			{
 			  b1->bip_score++;
 			  b2->bip_score++;
+			  identical++;			  
 			  break;
 			}
+		      else different++; // Bipartitions has identical size but distinct elements
 		    }
+		  else different++; // Biparition have different sizes
 		}
 	    }
 	}
     }
   
-  diffs = (tree1->n_otu-3);
-  For(i,2*tree1->n_otu-3) 
-    {
-      diffs -= tree1->t_edges[i]->bip_score;
-    }
-  return diffs;
+  return different;
 }
 
 //////////////////////////////////////////////////////////////
@@ -8647,15 +8676,16 @@ void Copy_Tree(t_tree *ori, t_tree *cpy)
 
   For(i,2*ori->n_otu-3) 
     {
-      cpy->t_edges[i]->l    = ori->t_edges[i]->l;
-      cpy->t_edges[i]->left = cpy->t_nodes[ori->t_edges[i]->left->num];
-      cpy->t_edges[i]->rght = cpy->t_nodes[ori->t_edges[i]->rght->num];
-      cpy->t_edges[i]->l_v1 = ori->t_edges[i]->l_v1;
-      cpy->t_edges[i]->l_v2 = ori->t_edges[i]->l_v2;
-      cpy->t_edges[i]->r_v1 = ori->t_edges[i]->r_v1;
-      cpy->t_edges[i]->r_v2 = ori->t_edges[i]->r_v2;
-      cpy->t_edges[i]->l_r  = ori->t_edges[i]->l_r;
-      cpy->t_edges[i]->r_l  = ori->t_edges[i]->r_l;
+      cpy->t_edges[i]->l           = ori->t_edges[i]->l;
+      cpy->t_edges[i]->left        = cpy->t_nodes[ori->t_edges[i]->left->num];
+      cpy->t_edges[i]->rght        = cpy->t_nodes[ori->t_edges[i]->rght->num];
+      cpy->t_edges[i]->l_v1        = ori->t_edges[i]->l_v1;
+      cpy->t_edges[i]->l_v2        = ori->t_edges[i]->l_v2;
+      cpy->t_edges[i]->r_v1        = ori->t_edges[i]->r_v1;
+      cpy->t_edges[i]->r_v2        = ori->t_edges[i]->r_v2;
+      cpy->t_edges[i]->l_r         = ori->t_edges[i]->l_r;
+      cpy->t_edges[i]->r_l         = ori->t_edges[i]->r_l;
+      cpy->t_edges[i]->does_exist  = ori->t_edges[i]->does_exist;
     }
 
 
@@ -8673,6 +8703,7 @@ void Copy_Tree(t_tree *ori, t_tree *cpy)
   if(ori->n_root)
     {
       cpy->e_root = cpy->t_edges[ori->e_root->num];
+      cpy->n_root = cpy->t_nodes[ori->n_root->num];
       Add_Root(cpy->e_root,cpy);
     }
 
@@ -11844,10 +11875,10 @@ t_tree *Read_User_Tree(calign *cdata, model *mod, option *io)
   t_tree *tree;
 
   
-  PhyML_Printf("\n. Reading tree...\n"); fflush(NULL);
+  PhyML_Printf("\n. Reading tree..."); fflush(NULL);
   if(io->n_trees == 1) rewind(io->fp_in_tree);
   tree = Read_Tree_File_Phylip(io->fp_in_tree);
-  if(!tree) Exit("\n. Input tree not found...\n");
+  if(!tree) Exit("\n. Input tree not found...");
   /* Add branch lengths if necessary */
   if(!tree->has_branch_lengths) Add_BioNJ_Branch_Lengths(tree,cdata,mod);
 
@@ -13666,6 +13697,11 @@ int Check_Topo_Constraints(t_tree *big_tree, t_tree *small_tree)
 
   Prune_Tree(big_tree_cpy,small_tree);
   
+  /* For(i,2*small_tree->n_otu-3) printf("\nz %d . %d . %d", */
+  /* 				      big_tree->t_edges[i]->does_exist, */
+  /* 				      big_tree_cpy->t_edges[i]->does_exist, */
+  /* 				      small_tree->t_edges[i]->does_exist); */
+
   Free_Bip(small_tree);
   Alloc_Bip(small_tree);
   Get_Bip(small_tree->t_nodes[0],small_tree->t_nodes[0]->v[0],small_tree);
@@ -13686,6 +13722,11 @@ int Check_Topo_Constraints(t_tree *big_tree, t_tree *small_tree)
   /* printf("\n. diffs=%d",diffs); */
 
   Free_Tree(big_tree_cpy);
+
+  t_tree *big_tree_cpy_bis;
+  big_tree_cpy_bis = Make_Tree_From_Scratch(big_tree->n_otu,NULL);
+  Copy_Tree(big_tree,big_tree_cpy_bis);
+  Free_Tree(big_tree_cpy_bis);
 
   if(diffs == 0) return 1; /* Constraint is satisfied */
   else           return 0;
@@ -13724,6 +13765,13 @@ void Prune_Tree(t_tree *big_tree, t_tree *small_tree)
 	}
     }
 
+  if(!n_pruned_nodes)
+    {
+      Free(pruned_nodes);
+      Free(residual_edges);
+      return;
+    }
+
   Free(big_tree->t_dir);
 
   big_tree->n_otu -= n_pruned_nodes;
@@ -13736,15 +13784,15 @@ void Prune_Tree(t_tree *big_tree, t_tree *small_tree)
       For(j,n_pruned_nodes)
 	if(!strcmp(pruned_nodes[j]->name,big_tree->t_nodes[i]->name))
 	  break;
-
+      
       if(j == n_pruned_nodes) /* That t_node still belongs to the tree */
 	{
 	  Reassign_Node_Nums(big_tree->t_nodes[i],big_tree->t_nodes[i]->v[0], 
 			     &curr_ext_node,&curr_int_node,big_tree);
 	  break;
-	}
+	}    
     }
-  
+
   Reassign_Edge_Nums(big_tree->t_nodes[0],big_tree->t_nodes[0]->v[0],&curr_br,big_tree);
 
   big_tree->t_dir = (short int *)mCalloc((2*big_tree->n_otu-2)*(2*big_tree->n_otu-2),sizeof(short int));
