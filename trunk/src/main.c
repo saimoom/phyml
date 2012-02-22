@@ -148,6 +148,7 @@ int main(int argc, char **argv)
 		      Get_Bip(io->cstr_tree->t_nodes[0],
 			      io->cstr_tree->t_nodes[0]->v[0],
 			      io->cstr_tree);
+
 		    }
 
 		  if(!tree) continue;

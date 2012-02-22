@@ -23,6 +23,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
   int open_ps_file;
   int use_gamma;
   int writemode;
+  int idx;
 
   if(argc == 1) Exit("\n. No argument was passed to the program. Please check the documentation. \n");
 
@@ -96,7 +97,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
       {"free_rates",          no_argument,NULL,61},
       {"freerates",           no_argument,NULL,61},
       {"is",                  no_argument,NULL,62},
-      {"constrained_lens",    no_argument,NULL,63},
+      // no 63 since it corresponds to character '?' 
       {"rate_model",          required_argument,NULL,64},
       {"ratemodel",           required_argument,NULL,64},
       {"log_l",               no_argument,NULL,65},
@@ -107,6 +108,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
       {"help",                no_argument,NULL,69},
       {"mutmap",              no_argument,NULL,70},
       {"parvals",             required_argument,NULL,71},
+      {"constrained_lens",    no_argument,NULL,72},
       {0,0,0,0}
     };
 
@@ -115,10 +117,20 @@ void Read_Command_Line(option *io, int argc, char **argv)
   writemode = 1;
   open_ps_file = 0;
   use_gamma = 0;
-  while((c = getopt_long(argc,argv,"qi:d:m:b:n:t:f:zk:v:c:a:u:ho:s:x:g:l:ep",longopts,NULL)) != -1)
-    {
+  idx=-1;
+
+    do
+    {     
+
+      c = getopt_long(argc,argv,"qi:d:m:b:n:t:f:zk:v:c:a:u:ho:s:x:g:l:ep",longopts,&idx);
+
       switch(c)
 	{
+	case 72:
+	  {
+	    io->mod->s_opt->constrained_br_len = YES;
+	    break;
+	  }
 	case 71:
 	  {
 	    io->mcmc->in_fp_par = fopen(optarg,"r");
@@ -134,6 +146,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	  {
 	    char *tmp;
 	    tmp = (char *)mCalloc(T_MAX_FILE, sizeof(char));
+
 	    if(strlen(optarg) > T_MAX_FILE -11)
 	      {
 		char choix;
@@ -213,11 +226,8 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	    Free(s);
 	    break;
 	  }
-	case 63:
-	  {
-	    io->mod->s_opt->constrained_br_len = YES;
-	    break;
-	  }
+	
+	
 	case 62:
 	  {
 	    io->mcmc->is = YES;
@@ -1211,23 +1221,26 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	      }
 	    break;
 	  }
-	/* case '?': */
-	/*   { */
-	/*     char choix; */
-	/*     if (isprint (optopt)) */
-	/*       PhyML_Printf ("\n. Unknown option `-%c'.\n", optopt); */
-	/*     else */
-	/*       PhyML_Printf ("\n. Unknown option character `\\x%x'.\n", optopt); */
-	/*     PhyML_Printf("\n. Type any key to exit.\n"); */
-	/*     if(!scanf("%c",&choix)) Exit("\n"); */
-	/*     Exit("\n"); */
-	/*     break; */
-	/*   } */
+	
+	case '?':
+	  {      
+	    Exit("\n");
+	    break;
+	  }
 	  
+	case -1:
+	  {      
+	    break;
+	  }
+
 	default:
-	  Usage();
+	  {
+	    Usage();
+	    break;
+	  }
 	}
-    }
+    }while(c != -1);
+
   
   /*   if((io->mod->whichmodel == K80) || (io->mod->whichmodel == JC69)) */
   /*     { */
