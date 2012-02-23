@@ -1858,9 +1858,9 @@ matrix *ML_Dist(calign *data, model *mod)
 	  	  
 	  sum = 0.;
 	  For(i,mod->ns*mod->ns) sum += F[i];
-	  	      
-	      
-	  if(sum < .001) d_max = -1.;
+
+	  /* if(sum < .001) d_max = -1.; */
+	  if(sum < .001) d_max = init;
 	  else if((sum > 1. - .001) && (sum < 1. + .001)) Opt_Dist_F(&(d_max),F,mod);
 	  else
 	    {
@@ -1875,7 +1875,6 @@ matrix *ML_Dist(calign *data, model *mod)
 	  /* Do not correct for dist < BL_MIN, otherwise Fill_Missing_Dist
 	   *  will not be called
 	   */
-	  
 	  mat->dist[j][k] = d_max;
 	  mat->dist[k][j] = mat->dist[j][k];
 	  Free_Cseq(twodata);

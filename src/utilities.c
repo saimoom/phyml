@@ -347,14 +347,14 @@ void Read_Branch_Label(char *s_d, char *s_a, t_edge *b)
 
   if(p)
     {
-      if(b->n_labels == 1)
-	PhyML_Printf("\n. Read label '%s' on t_edge %3d.",b->labels[0],b->num);
-      else
-	{
-	  PhyML_Printf("\n. Read labels ");
-	  For(i,b->n_labels) PhyML_Printf("'%s' ",b->labels[i]);
-	  PhyML_Printf("on t_edge %3d.",b->num);
-	}
+      /* if(b->n_labels == 1) */
+      /* 	PhyML_Printf("\n. Read label '%s' on t_edge %3d.",b->labels[0],b->num); */
+      /* else */
+      /* 	{ */
+      /* 	  PhyML_Printf("\n. Read labels "); */
+      /* 	  For(i,b->n_labels) PhyML_Printf("'%s' ",b->labels[i]); */
+      /* 	  PhyML_Printf("on t_edge %3d.",b->num); */
+      /* 	} */
 
       if(!strcmp(b->labels[0],"NULL"))
 	{
@@ -669,7 +669,6 @@ char *Write_Tree(t_tree *tree, int custom)
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Exit("\n");
     }
-
 
   s[(int)strlen(s)-1]=')';
   s[(int)strlen(s)]=';';
@@ -11854,7 +11853,8 @@ t_tree *Dist_And_BioNJ(calign *cdata, model *mod, option *io)
 void Add_BioNJ_Branch_Lengths(t_tree *tree, calign *cdata, model *mod)
 {
   matrix *mat;
-
+  
+  PhyML_Printf("\n");
   PhyML_Printf("\n. Computing branch length estimates...\n");
 
   Order_Tree_CSeq(tree,cdata);
