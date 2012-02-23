@@ -148,7 +148,7 @@ int main(int argc, char **argv)
 		      Get_Bip(io->cstr_tree->t_nodes[0],
 			      io->cstr_tree->t_nodes[0]->v[0],
 			      io->cstr_tree);
-
+		      if(!tree->has_branch_lengths) Add_BioNJ_Branch_Lengths(tree,cdata,mod);
 		    }
 
 		  if(!tree) continue;
@@ -164,7 +164,7 @@ int main(int argc, char **argv)
 
 		  if(mod->s_opt->random_input_tree) Random_Tree(tree);
 
-		  if((!num_data_set) && (!num_tree) && (!num_rand_tree)) Check_Memory_Amount(tree);		  
+		  if((!num_data_set) && (!num_tree) && (!num_rand_tree)) Check_Memory_Amount(tree);
 
 		  if(io->cstr_tree && !Check_Topo_Constraints(tree,io->cstr_tree))
 		    {
@@ -188,8 +188,7 @@ int main(int argc, char **argv)
 		      tree->update_alias_subpatt = YES;
 		      Lk(tree);
 		      tree->update_alias_subpatt = NO;
-		    }
-		  
+		    }		  
 
 		  if(tree->mod->s_opt->opt_topo)
 		    {
