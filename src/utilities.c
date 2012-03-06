@@ -12183,10 +12183,8 @@ char *Basename(char *path)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
-
 /* Find the Last Common Ancestor of n1 and n2 */
-t_node *Find_Lca(t_node *n1, t_node *n2, t_tree *tree)
+t_node *Find_Lca_Pair_Of_Nodes(t_node *n1, t_node *n2, t_tree *tree)
 {
   t_node **list1, **list2, *lca;
   int size1, size2;
@@ -12217,38 +12215,59 @@ t_node *Find_Lca(t_node *n1, t_node *n2, t_tree *tree)
   Free(list1);
   Free(list2);
 
-
-/*   t_node *lca; */
-/*   int score; */
-/*   int i,j; */
-
-/*   lca = n1->anc; */
-/*   do */
-/*     { */
-/*       if(lca == tree->n_root) break; */
-/*       else */
-/* 	{ */
-/* 	  score = 0; */
-/* 	  For(i,3) if(lca->v[i] == lca->anc) break; */
-/* 	  For(j,lca->bip_size[i]) */
-/* 	    { */
-/* 	      if(lca->bip_node[i][j] == n1 || lca->bip_node[i][j] == n2) */
-/* 		{ */
-/* 		  score++; */
-/* 		  if(score == 2) break; */
-/* 		} */
-/* 	    } */
-/* 	  if(score != 2) lca = lca->anc; */
-/* 	} */
-/*     }while(score != 2); */
-  
-
   return lca;
 }
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
+/* Find the Last Common Ancestor of n1 and n2 */
+t_node *Find_Lca_Clade(t_node **node_list, int node_list_size, t_tree *tree)
+{
+  t_node ***list, *lca;
+  int *size;
+  int i;
+
+  if(!tree->n_root)
+    {
+      PhyML_Printf("\n. The tree must be rooted in this function.");
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+
+  list = (t_node ***)mCalloc(node_list_size,sizeof(t_node **));
+  For(i,node_list_size) list[i] = (t_node **)mCalloc(2*tree->n_otu-1,sizeof(t_node *));
+  size = (int *)mCalloc(node_list_size,sizeof(int));
+
+  For(i,node_list_size) Get_List_Of_Ancestors(node_list[i],list[i],size+i,tree);
+
+  do
+    {
+      For(i,node_list_size-1) 
+	if(list[i][size[i]] != list[i+1][size[i+1]])
+	  break;
+
+      if(i != node_list_size-1) break;
+
+      For(i,node_list_size) 
+	{
+	  size[i]--; 
+	  if(size[i] < 0) break;
+	}
+    }while(1);
+
+  
+  lca = list[0][size[0]+1];
+
+  For(i,node_list_size) Free(list[i]);
+  Free(list);
+  Free(size);
+
+  return lca;
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
 
 /* Returns the list of the ancestors of ref_t_node from ref_t_node to the root included */
 void Get_List_Of_Ancestors(t_node *ref_node, t_node **list, int *size, t_tree *tree)
@@ -12352,10 +12371,12 @@ void Branch_Lengths_To_Rate_Lengths_Pre(t_node *a, t_node *d, t_tree *tree)
 int Find_Clade(char **tax_name_list, int list_size, t_tree *tree)
 {
   int *tax_num_list;
+  t_node **tax_node_list;
   int i,j;
   int n_matches;
 
   tax_num_list = (int *)mCalloc(list_size,sizeof(int));
+  tax_node_list = (t_node **)mCalloc(list_size,sizeof(t_node *));
 
   For(i,list_size) tax_num_list[i] = -1;
   
@@ -12368,43 +12389,50 @@ int Find_Clade(char **tax_name_list, int list_size, t_tree *tree)
 	  if(!strcmp(tax_name_list[i],tree->t_nodes[j]->name))
 	    {
 	      tax_num_list[i] = tree->t_nodes[j]->num;
+	      tax_node_list[i] = tree->t_nodes[j];
 	      n_matches++;
 	    }
 	}
     }
 
-  if(list_size == tree->n_otu) /* Root node */
-    {
-      int i,j;
-      int score;
-      
-      score = 0;
-      For(i,list_size)
-	{
-	  For(j,tree->n_otu)
-	    {
-/* 	      if(!strcmp(tax_name_list[i],tree->t_nodes[j]->name)) score++; */
-	      if(tax_num_list[i] == tree->t_nodes[j]->num) score++;
-	    }
-	}
+  t_node *lca;
+  lca = Find_Lca_Clade(tax_node_list,n_matches,tree);
+  if(lca) return lca->num;
+  else    return -1;
 
-      Free(tax_num_list);
-      if(score == tree->n_otu) return tree->n_root->num;
-      else return -1;
-    }
-  else
-    {
-      int num;
-      num = -1;
-      Free_Bip(tree);
-      Alloc_Bip(tree);
-      Get_Bip(tree->t_nodes[0],tree->t_nodes[0]->v[0],tree);
-      Find_Clade_Pre(tree->n_root,tree->n_root->v[0],tax_num_list,list_size,&num,tree);
-      Find_Clade_Pre(tree->n_root,tree->n_root->v[1],tax_num_list,list_size,&num,tree);
-      Free(tax_num_list);
-      return num;
-    }
-  
+/*   if(list_size == tree->n_otu) /\* Root node *\/ */
+/*     { */
+/*       int i,j; */
+/*       int score; */
+      
+/*       score = 0; */
+/*       For(i,list_size) */
+/* 	{ */
+/* 	  For(j,tree->n_otu) */
+/* 	    { */
+/* /\* 	      if(!strcmp(tax_name_list[i],tree->t_nodes[j]->name)) score++; *\/ */
+/* 	      if(tax_num_list[i] == tree->t_nodes[j]->num) score++; */
+/* 	    } */
+/* 	} */
+
+/*       Free(tax_num_list); */
+/*       if(score == tree->n_otu) return tree->n_root->num; */
+/*       else return -1; */
+/*     } */
+/*   else */
+/*     { */
+/*       int num; */
+/*       num = -1; */
+/*       Free_Bip(tree); */
+/*       Alloc_Bip(tree); */
+/*       Get_Bip(tree->t_nodes[0],tree->t_nodes[0]->v[0],tree); */
+/*       Find_Clade_Pre(tree->n_root,tree->n_root->v[0],tax_num_list,list_size,&num,tree); */
+/*       Find_Clade_Pre(tree->n_root,tree->n_root->v[1],tax_num_list,list_size,&num,tree); */
+/*       Free(tax_num_list); */
+/*       return num; */
+/*     } */
+
+  Free(tax_node_list);
   Free(tax_num_list);
   return -1;
 }
@@ -12525,11 +12553,11 @@ void Read_Clade_Priors(char *file_name, t_tree *tree)
 	    {
 	      PhyML_Printf("\n");
 	      PhyML_Printf("\n");
-	      PhyML_Printf("\n. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-	      PhyML_Printf("\n. WARNING: Could not find any clade in the tree with the following taxon names:");
-	      For(i,clade_size) PhyML_Printf("\n. \"%s\"",clade_list[i]);
-	      PhyML_Printf("\n. <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
-	      /* Exit("\n"); */
+	      PhyML_Printf("\n. .................................................................");
+	      PhyML_Printf("\n. WARNING: could not find any clade in the tree referred to with the following taxon names:");
+	      For(i,clade_size) PhyML_Printf("\n. \"%s\"",clade_list[i]);	      
+	      PhyML_Printf("\n. .................................................................");
+	      sleep(3);
 	    }
 	  else
 	    {	      
@@ -12541,12 +12569,12 @@ void Read_Clade_Priors(char *file_name, t_tree *tree)
 		tree->rates->nd_t[node_num] = prior_low;
 
 	      PhyML_Printf("\n");
-	      PhyML_Printf("\n. [%3d]>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",n_clade_priors);
-	      PhyML_Printf("\n. Node %4d matches the clade with the following taxon names:",node_num);
+	      PhyML_Printf("\n. [%3d]..................................................................",n_clade_priors);
+	      PhyML_Printf("\n. Node %4d matches the clade referred to with the following taxon names:",node_num);
 	      For(i,clade_size) PhyML_Printf("\n. - \"%s\"",clade_list[i]);
 	      PhyML_Printf("\n. Lower bound set to: %15f time units.",MIN(prior_low,prior_up));
 	      PhyML_Printf("\n. Upper bound set to: %15f time units.",MAX(prior_low,prior_up));
-	      PhyML_Printf("\n. <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+	      PhyML_Printf("\n. .......................................................................");
 	    }
 	}
     }

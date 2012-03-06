@@ -2114,8 +2114,8 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
       /* fclose(fp); */
       
       // TREES
-      Branch_Lengths_To_Time_Lengths(tree);
-      tree->bl_ndigits = 3;
+      /* Branch_Lengths_To_Time_Lengths(tree); */
+      /* tree->bl_ndigits = 3; */
       s_tree = Write_Tree(tree,NO);
       tree->bl_ndigits = 7;
       PhyML_Fprintf(mcmc->out_fp_trees,"TREE %8d [%f] = [&R] %s\n",mcmc->run,tree->c_lnL,s_tree);
@@ -2380,6 +2380,7 @@ void MCMC_Init_MCMC_Struct(char *filename, option *io, t_mcmc *mcmc)
       strcpy(s,mcmc->io->in_align_file);
       strcat(s,"_");
       strcat(s,mcmc->out_filename);
+      strcat(s,".stats");
       mcmc->out_fp_stats = fopen(s,"w");
 
       strcpy(s,mcmc->io->in_align_file);
@@ -2474,17 +2475,18 @@ void MCMC_Copy_MCMC_Struct(t_mcmc *ori, t_mcmc *cpy, char *filename)
       strcpy(s,cpy->io->in_align_file);
       strcat(s,"_");
       strcat(s,cpy->out_filename);
+      strcat(s,".stats");
       cpy->out_fp_stats = fopen(s,"w");
 
       strcpy(s,cpy->io->in_align_file);
       strcat(s,"_");
-      strcpy(s,cpy->out_filename);
+      strcat(s,cpy->out_filename);
       strcat(s,".trees");
       cpy->out_fp_trees = fopen(s,"w");
 
       strcpy(s,cpy->io->in_align_file);
       strcat(s,"_");
-      strcpy(s,cpy->out_filename);
+      strcat(s,cpy->out_filename);
       strcat(s,".constree");
       cpy->out_fp_constree = fopen(s,"w");
 
