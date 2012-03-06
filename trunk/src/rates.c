@@ -3077,7 +3077,7 @@ void RATES_Fill_Lca_Table(t_tree *tree)
     {
       for(j=i;j<dim;j++)
 	{
-	  tree->rates->lca[i*dim+j] = Find_Lca(tree->t_nodes[i],tree->t_nodes[j],tree);
+	  tree->rates->lca[i*dim+j] = Find_Lca_Pair_Of_Nodes(tree->t_nodes[i],tree->t_nodes[j],tree);
 	  tree->rates->lca[j*dim+i] = tree->rates->lca[i*dim+j];
 	}
     }

@@ -262,6 +262,12 @@ fflush(stderr);
             fprintf(tree->io->fp_out_boot_stats,"%s\n",t);
             bootRecv++;
             PhyML_Printf(".");
+	    if(!((bootRecv)%tree->io->boot_prog_every)) {
+	      PhyML_Printf("] %4d/%4d\n  ",bootRecv,tree->mod->bootstrap);
+	      if(bootRecv != tree->mod->bootstrap) PhyML_Printf("[");
+	    }
+	    
+
             // Compute number of bootstraps to receive
             if (tree->mod->bootstrap - bootRecv > Global_numTask)
               nbElem = Global_numTask;
@@ -456,31 +462,31 @@ void Print_Fp_Out_Lines_MPI(t_tree *tree, option *io, int n_data_set, char *boot
   if(tree->mod->n_catg > 1)
     {
       snprintf(tmp, T_MAX_LINE, "%d        \t",tree->mod->n_catg); strncat (s, tmp, T_MAX_LINE);
-      snprintf(tmp, T_MAX_LINE, "%.3f    \t",tree->mod->alpha); strncat (s, tmp, T_MAX_LINE);
+      snprintf(tmp, T_MAX_LINE, "%.3f    \t",tree->mod->alpha->v); strncat (s, tmp, T_MAX_LINE);
     }
   
-  snprintf(tmp, T_MAX_LINE, "%.3f    \t",tree->mod->pinvar); strncat (s, tmp, T_MAX_LINE);
+  snprintf(tmp, T_MAX_LINE, "%.3f    \t",tree->mod->pinvar->v); strncat (s, tmp, T_MAX_LINE);
   
   if(tree->mod->whichmodel <= 5)
     {
-      snprintf(tmp, T_MAX_LINE, "%.3f     \t",tree->mod->kappa); strncat (s, tmp, T_MAX_LINE);
+      snprintf(tmp, T_MAX_LINE, "%.3f     \t",tree->mod->kappa->v); strncat (s, tmp, T_MAX_LINE);
     }
   else if(tree->mod->whichmodel == TN93)
     {
       snprintf(tmp, T_MAX_LINE, "%.3f   ",
-              tree->mod->kappa*2.*tree->mod->lambda/(1.+tree->mod->lambda));
+              tree->mod->kappa->v*2.*tree->mod->lambda->v/(1.+tree->mod->lambda->v));
       strncat (s, tmp, T_MAX_LINE);
       snprintf(tmp, T_MAX_LINE, "%.3f\t",
-              tree->mod->kappa*2./(1.+tree->mod->lambda));
+              tree->mod->kappa->v*2./(1.+tree->mod->lambda->v));
       strncat (s, tmp, T_MAX_LINE);
     }
 
   if(tree->mod->io->datatype == NT)
     {
-      snprintf(tmp, T_MAX_LINE, "%8.5f  ",tree->mod->pi[0]); strncat (s, tmp, T_MAX_LINE);
-      snprintf(tmp, T_MAX_LINE, "%8.5f  ",tree->mod->pi[1]); strncat (s, tmp, T_MAX_LINE);
-      snprintf(tmp, T_MAX_LINE, "%8.5f  ",tree->mod->pi[2]); strncat (s, tmp, T_MAX_LINE);
-      snprintf(tmp, T_MAX_LINE, "%8.5f\t",tree->mod->pi[3]); strncat (s, tmp, T_MAX_LINE);
+      snprintf(tmp, T_MAX_LINE, "%8.5f  ",tree->mod->pi->v[0]); strncat (s, tmp, T_MAX_LINE);
+      snprintf(tmp, T_MAX_LINE, "%8.5f  ",tree->mod->pi->v[1]); strncat (s, tmp, T_MAX_LINE);
+      snprintf(tmp, T_MAX_LINE, "%8.5f  ",tree->mod->pi->v[2]); strncat (s, tmp, T_MAX_LINE);
+      snprintf(tmp, T_MAX_LINE, "%8.5f\t",tree->mod->pi->v[3]); strncat (s, tmp, T_MAX_LINE);
     }
     
   if((tree->mod->whichmodel == GTR) || (tree->mod->whichmodel == CUSTOM))
@@ -501,7 +507,7 @@ void Print_Fp_Out_Lines_MPI(t_tree *tree, option *io, int n_data_set, char *boot
             strncat (s, tmp, T_MAX_LINE);
           }
           For(j,4) {
-            snprintf(tmp, T_MAX_LINE, "%8.5f  ",tree->mod->qmat[i*4+j]);
+            snprintf(tmp, T_MAX_LINE, "%8.5f  ",tree->mod->qmat->v[i*4+j]);
             strncat (s, tmp, T_MAX_LINE);
           }
           if (i<3) {
