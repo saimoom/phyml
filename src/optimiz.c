@@ -642,7 +642,6 @@ void Round_Optimize(t_tree *tree, calign *data, int n_round_max)
 	 (tree->mod->s_opt->print) && 
 	 (!tree->io->quiet)) Print_Lk(tree,"[Branch lengths     ]");
 
-
       if(tree->mod->s_opt->opt_bl || tree->mod->s_opt->constrained_br_len)
 	Optimize_Br_Len_Serie(root,root->v[0],root->b[0],tree,data);
 
@@ -990,13 +989,14 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
       /* 	   &Num_Derivative_Several_Param, */
       /* 	   &Lnsrch_Free_Mixt_Rates,&failed); */
 
+      if(verbose) Print_Lk(tree,"[Rate class freqs.  ]");
 
       /* if(failed) */
       /* 	{ */
       	  For(i,tree->mod->n_catg)
       	    {
       	      Generic_Brent_Lk(&(tree->mod->gamma_r_proba_unscaled->v[i]),
-      			       -1000.,1000.,
+      			       0.,100.,
       			       tree->mod->s_opt->min_diff_lk_global,
       			       tree->mod->s_opt->brent_it_max,
       			       tree->mod->s_opt->quickdirty,
@@ -1005,19 +1005,18 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
       	/* } */
       
       
-      if(verbose) Print_Lk(tree,"[Rate class freqs.  ]");
+      if(verbose) Print_Lk(tree,"[Rate class values  ]");
 
       For(i,tree->mod->n_catg) 
 	{
 	  Generic_Brent_Lk(&(tree->mod->gamma_rr_unscaled->v[i]),
-			   -1000.,1000.,
+			   0.,100.,
 			   tree->mod->s_opt->min_diff_lk_global,
 			   tree->mod->s_opt->brent_it_max,
 			   tree->mod->s_opt->quickdirty,
 			   Wrap_Lk,NULL,tree,NULL);
 	}
 
-      if(verbose) Print_Lk(tree,"[Rate class values  ]");
 
       tree->mod->update_eigen = 0;
     }

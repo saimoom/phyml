@@ -2114,8 +2114,8 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
       /* fclose(fp); */
       
       // TREES
-      /* Branch_Lengths_To_Time_Lengths(tree); */
-      /* tree->bl_ndigits = 3; */
+      Branch_Lengths_To_Time_Lengths(tree);
+      tree->bl_ndigits = 3;
       s_tree = Write_Tree(tree,NO);
       tree->bl_ndigits = 7;
       PhyML_Fprintf(mcmc->out_fp_trees,"TREE %8d [%f] = [&R] %s\n",mcmc->run,tree->c_lnL,s_tree);
