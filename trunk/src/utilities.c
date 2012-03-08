@@ -10219,7 +10219,7 @@ void Print_Settings(option *io)
     }
   else
     if(!io->mod->s_opt->random_input_tree)
-      PhyML_Printf("\n                . Evaluted tree:\t\t\t\t file \"%s\"",s);
+      PhyML_Printf("\n                . Evaluated tree:\t\t\t\t file \"%s\"",s);
 
   PhyML_Printf("\n                . Optimise branch lengths:\t\t\t %s", (io->mod->s_opt->opt_bl) ? "yes": "no");
 

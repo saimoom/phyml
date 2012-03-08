@@ -262,12 +262,12 @@ fflush(stderr);
             fprintf(tree->io->fp_out_boot_stats,"%s\n",t);
             bootRecv++;
             PhyML_Printf(".");
-	    if(!((bootRecv)%tree->io->boot_prog_every)) {
-	      PhyML_Printf("] %4d/%4d\n  ",bootRecv,tree->mod->bootstrap);
-	      if(bootRecv != tree->mod->bootstrap) PhyML_Printf("[");
-	    }
+	    if(!((bootRecv)%tree->io->boot_prog_every)) 
+	      {
+		PhyML_Printf("] %4d/%4d\n  ",bootRecv,tree->mod->bootstrap);
+		if(bootRecv != tree->mod->bootstrap) PhyML_Printf("[");
+	      }
 	    
-
             // Compute number of bootstraps to receive
             if (tree->mod->bootstrap - bootRecv > Global_numTask)
               nbElem = Global_numTask;
@@ -275,34 +275,35 @@ fflush(stderr);
               nbElem = tree->mod->bootstrap - bootRecv + 1;
               
             bootStr=(char *)mCalloc(T_MAX_LINE,sizeof(char));
-            for (i=1; i<nbElem; i++) {
-              MPI_Recv (bootStr, T_MAX_LINE, MPI_CHAR, i, MPI_ANY_TAG, MPI_COMM_WORLD, &Stat);
+            for (i=1; i<nbElem; i++) 
+	      {
+		MPI_Recv (bootStr, T_MAX_LINE, MPI_CHAR, i, MPI_ANY_TAG, MPI_COMM_WORLD, &Stat);
 #ifdef MPI_DEBUG
-PhyML_Fprintf (stderr, "\ntask %d, receiving bootstrap from task %d tag %d done\n", Global_myRank, Stat.MPI_SOURCE, Stat.MPI_TAG);
-fflush(stderr);
+		PhyML_Fprintf (stderr, "\ntask %d, receiving bootstrap from task %d tag %d done\n", Global_myRank, Stat.MPI_SOURCE, Stat.MPI_TAG);
+		fflush(stderr);
 #endif
-              if (Stat.MPI_TAG == BootTreeTag)
-                fprintf(tree->io->fp_out_boot_tree,"%s\n", bootStr);
-              if (Stat.MPI_TAG == BootStatTag)
-                fprintf(tree->io->fp_out_boot_stats,"%s\n", bootStr);
-
-              MPI_Recv (bootStr, T_MAX_LINE, MPI_CHAR, i, MPI_ANY_TAG, MPI_COMM_WORLD, &Stat);
+		if (Stat.MPI_TAG == BootTreeTag)
+		  fprintf(tree->io->fp_out_boot_tree,"%s\n", bootStr);
+		if (Stat.MPI_TAG == BootStatTag)
+		  fprintf(tree->io->fp_out_boot_stats,"%s\n", bootStr);
+		
+		MPI_Recv (bootStr, T_MAX_LINE, MPI_CHAR, i, MPI_ANY_TAG, MPI_COMM_WORLD, &Stat);
 #ifdef MPI_DEBUG
-fprintf (stderr, "\ntask %d, receiving bootstrap from task %d tag %d done\n", Global_myRank, Stat.MPI_SOURCE, Stat.MPI_TAG);
-fflush(stderr);
+		fprintf (stderr, "\ntask %d, receiving bootstrap from task %d tag %d done\n", Global_myRank, Stat.MPI_SOURCE, Stat.MPI_TAG);
+		fflush(stderr);
 #endif
-              if (Stat.MPI_TAG == BootTreeTag)
-                fprintf(tree->io->fp_out_boot_tree,"%s\n", bootStr);
-              if (Stat.MPI_TAG == BootStatTag)
-                fprintf(tree->io->fp_out_boot_stats,"%s\n", bootStr);
-
-              bootRecv++;
-              PhyML_Printf(".");
-              if(!((bootRecv)%tree->io->boot_prog_every)) {
-                PhyML_Printf("] %4d/%4d\n  ",bootRecv,tree->mod->bootstrap);
-                if(bootRecv != tree->mod->bootstrap) PhyML_Printf("[");
-              }
-            }
+		if (Stat.MPI_TAG == BootTreeTag)
+		  fprintf(tree->io->fp_out_boot_tree,"%s\n", bootStr);
+		if (Stat.MPI_TAG == BootStatTag)
+		  fprintf(tree->io->fp_out_boot_stats,"%s\n", bootStr);
+		
+		bootRecv++;
+		PhyML_Printf(".");
+		if(!((bootRecv)%tree->io->boot_prog_every)) {
+		  PhyML_Printf("] %4d/%4d\n  ",bootRecv,tree->mod->bootstrap);
+		  if(bootRecv != tree->mod->bootstrap) PhyML_Printf("[");
+		}
+	      }
             Free(bootStr);
           }
           else {
