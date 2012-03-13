@@ -991,18 +991,38 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 
       if(verbose) Print_Lk(tree,"[Rate class freqs.  ]");
 
-      /* if(failed) */
+
+      /* For(i,tree->mod->n_catg-1) */
       /* 	{ */
-      	  For(i,tree->mod->n_catg)
-      	    {
-      	      Generic_Brent_Lk(&(tree->mod->gamma_r_proba_unscaled->v[i]),
-      			       0.,100.,
-      			       tree->mod->s_opt->min_diff_lk_global,
-      			       tree->mod->s_opt->brent_it_max,
-      			       tree->mod->s_opt->quickdirty,
-      			       Wrap_Lk,NULL,tree,NULL);
-      	    }
-      	/* } */
+      /* 	  Generic_Brent_Lk(&(tree->mod->gamma_r_proba_unscaled->v[i]), */
+      /* 			   0., */
+      /* 			   100, */
+      /* 			   tree->mod->s_opt->min_diff_lk_global, */
+      /* 			   tree->mod->s_opt->brent_it_max, */
+      /* 			   tree->mod->s_opt->quickdirty, */
+      /* 			   Wrap_Lk,NULL,tree,NULL); */
+      /* 	} */
+
+      tree->mod->gamma_r_proba_unscaled->v[tree->mod->n_catg-1] = 100.;
+      For(i,tree->mod->n_catg-1)
+      	{
+      	  if(!i)
+      	    Generic_Brent_Lk(&(tree->mod->gamma_r_proba_unscaled->v[i]),
+      			     0.,
+      			     tree->mod->gamma_r_proba_unscaled->v[i+1],
+      			     tree->mod->s_opt->min_diff_lk_global,
+      			     tree->mod->s_opt->brent_it_max,
+      			     tree->mod->s_opt->quickdirty,
+      			     Wrap_Lk,NULL,tree,NULL);
+      	  else
+      	    Generic_Brent_Lk(&(tree->mod->gamma_r_proba_unscaled->v[i]),
+      			     tree->mod->gamma_r_proba_unscaled->v[i-1],
+      			     tree->mod->gamma_r_proba_unscaled->v[i+1],
+      			     tree->mod->s_opt->min_diff_lk_global,
+      			     tree->mod->s_opt->brent_it_max,
+      			     tree->mod->s_opt->quickdirty,
+      			     Wrap_Lk,NULL,tree,NULL);
+      	}
       
       
       if(verbose) Print_Lk(tree,"[Rate class values  ]");
