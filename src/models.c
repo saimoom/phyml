@@ -2925,6 +2925,7 @@ void Set_Model_Parameters(model *mod)
 
       Qksort(mod->gamma_r_proba_unscaled->v,NULL,0,mod->n_catg-1); // Unscaled class frequencies sorted in increasing order
 
+
       // Update class frequencies
       For(i,mod->n_catg)
       	{

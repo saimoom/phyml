@@ -12221,7 +12221,7 @@ t_node *Find_Lca_Pair_Of_Nodes(t_node *n1, t_node *n2, t_tree *tree)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-/* Find the Last Common Ancestor of n1 and n2 */
+/* Find the Last Common Ancestor of all the nodes in node_list */
 t_node *Find_Lca_Clade(t_node **node_list, int node_list_size, t_tree *tree)
 {
   t_node ***list, *lca;
@@ -12238,31 +12238,35 @@ t_node *Find_Lca_Clade(t_node **node_list, int node_list_size, t_tree *tree)
   list = (t_node ***)mCalloc(node_list_size,sizeof(t_node **));
   For(i,node_list_size) list[i] = (t_node **)mCalloc(2*tree->n_otu-1,sizeof(t_node *));
   size = (int *)mCalloc(node_list_size,sizeof(int));
+      
 
   For(i,node_list_size) Get_List_Of_Ancestors(node_list[i],list[i],size+i,tree);
-
+  
   do
     {
       For(i,node_list_size-1) 
 	if(list[i][size[i]] != list[i+1][size[i+1]])
 	  break;
-
+      
       if(i != node_list_size-1) break;
-
+      
       For(i,node_list_size) 
 	{
 	  size[i]--; 
-	  if(size[i] < 0) break;
+	  if(size[i] == 1) break; // We have reached the tip corresponding to node_list[i]
 	}
-    }while(1);
 
+      if(node_list_size == 1) break;
+
+    }while(1);
+  
   
   lca = list[0][size[0]+1];
-
+  
   For(i,node_list_size) Free(list[i]);
   Free(list);
   Free(size);
-
+    
   return lca;
 }
 
@@ -12274,7 +12278,7 @@ void Get_List_Of_Ancestors(t_node *ref_node, t_node **list, int *size, t_tree *t
 {
   t_node *n;
 
-  *size = 0;
+  *size = 1;
   n = ref_node;
   list[0] = n;
 
@@ -12374,6 +12378,7 @@ int Find_Clade(char **tax_name_list, int list_size, t_tree *tree)
   t_node **tax_node_list;
   int i,j;
   int n_matches;
+  t_node *lca;
 
   tax_num_list = (int *)mCalloc(list_size,sizeof(int));
   tax_node_list = (t_node **)mCalloc(list_size,sizeof(t_node *));
@@ -12395,7 +12400,6 @@ int Find_Clade(char **tax_name_list, int list_size, t_tree *tree)
 	}
     }
 
-  t_node *lca;
   lca = Find_Lca_Clade(tax_node_list,n_matches,tree);
   if(lca) return lca->num;
   else    return -1;
@@ -12491,6 +12495,7 @@ void Read_Clade_Priors(char *file_name, t_tree *tree)
   phydbl prior_low,prior_up;
   int node_num;
 
+  PhyML_Printf("\n");
   PhyML_Printf("\n. Reading prior on node ages.\n");
 
   line = (char *)mCalloc(T_MAX_LINE,sizeof(char));
@@ -12521,6 +12526,7 @@ void Read_Clade_Priors(char *file_name, t_tree *tree)
 	      pos++;
 	    }
 	  s[i] = '\0';
+
 	  /* PhyML_Printf("\n. s = %s\n",s); */
 	  
 	  if(line[pos] == '\n' || line[pos] == '#') break;
@@ -12531,11 +12537,12 @@ void Read_Clade_Priors(char *file_name, t_tree *tree)
 	      strcpy(clade_list[clade_size],s);
 	      clade_size++;
 	    }
-	  else break;	    
+	  else 
+	    break;	    
 	}
       while(1);
 
-
+      
       if(line[pos] != '#' && line[pos] != '\n')
 	{
 	  double val1, val2;
