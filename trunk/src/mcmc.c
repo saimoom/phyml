@@ -2533,11 +2533,9 @@ void MCMC_Randomize_Rate_Across_Sites(t_tree *tree)
   if(tree->mod->free_mixt_rates == YES)
     {
       int i;
-      For(i,tree->mod->n_catg)
-	{
-	  tree->mod->gamma_r_proba_unscaled->v[i] = Uni()*100.;
-	  tree->mod->gamma_rr_unscaled->v[i] = (phydbl)i+1.; /* Do not randomize those as their ordering matter */
-	}
+      For(i,tree->mod->n_catg-1) tree->mod->gamma_r_proba_unscaled->v[i] = Uni()*100.;
+      tree->mod->gamma_r_proba_unscaled->v[tree->mod->n_catg-1] = 100.;
+      For(i,tree->mod->n_catg) tree->mod->gamma_rr_unscaled->v[i] = (phydbl)i+1.; /* Do not randomize those as their ordering matter */
     }
   else
     {
@@ -3202,51 +3200,153 @@ void MCMC_Alpha(t_tree *tree)
 
 void MCMC_Free_Mixt_Rate(t_tree *tree)
 {
-  int i, class;
+  phydbl num,denom;
+  phydbl Jnow,Jthen;
+  phydbl *z,*y;
+  phydbl y_cur,z_cur;
+  phydbl low_bound,up_bound;
+  int c,i;
+  int c2updt; 
+  int K;
   phydbl u;
-  phydbl min,max;
+  phydbl hr;
+  int n_moves;
+  phydbl cur_lnL_data, new_lnL_data;
+  phydbl ratio,alpha;
+  phydbl mult;
 
-  For(i,2*tree->n_otu-2) tree->rates->br_do_updt[i] = NO;
+  cur_lnL_data = tree->c_lnL;
+  new_lnL_data = tree->c_lnL;
 
-  class = Rand_Int(0,tree->mod->n_catg-1);
+  c = tree->mod->n_catg;
 
-  min = 0.01;
-  max = +100.;
-  u = Uni();
-  if(u < .5)
+  z = tree->mod->gamma_rr_unscaled->v;
+  y = tree->mod->gamma_r_proba_unscaled->v;
+
+  num = z[c-1]*(y[c-1]-y[c-2]);
+  denom = z[0]*y[0];
+  for(i=1;i<c;i++) denom += z[i]*(y[i]-y[i-1]);
+  denom = POW(denom,c);
+  Jthen = num/denom;
+
+  n_moves = 0;
+  do
     {
-      if(!class)
-      	{
-      	  min = 0.01;
-      	  max = tree->mod->gamma_rr_unscaled->v[1];
-      	}
-      else if(class == tree->mod->n_catg-1)
-      	{
-      	  min = tree->mod->gamma_rr_unscaled->v[tree->mod->n_catg-2];
-      	  max = +100.;
-      	}
+      n_moves++;
+
+      // Update frequencies
+
+      // Choose the class freq to update at random.
+      c2updt = Rand_Int(0,c-2); 
+
+      // Proposal is uniform. Determine upper and lower bounds.
+      u = Uni();
+      low_bound = (c2updt==0)?(.0):(y[c2updt-1]);
+      up_bound = (c2updt==c-1)?(100.0):(y[c2updt+1]);
+      y_cur = y[c2updt];
+      y[c2updt] = low_bound + u*(up_bound - low_bound);
+      
+      // Calculate the Jacobian for the change of variable from unscaled 
+      // frequencies to the frequencies themselves.
+      num = z[c-1]*(y[c-1]-y[c-2]);
+      denom = z[0]*y[0];
+      for(i=1;i<c;i++) denom += z[i]*(y[i]-y[i-1]);
+      denom = POW(denom,c);
+      Jnow = num/denom;
+ 
+      hr = Jnow/Jthen;
+
+      new_lnL_data = Lk(tree);
+
+      // Metropolis-Hastings step
+      ratio = 0.;
+      if(tree->mcmc->use_data == YES) ratio += (new_lnL_data - cur_lnL_data);
+      ratio += LOG(hr);
+      ratio = EXP(ratio);
+      alpha = MIN(1.,ratio);
+      
+      /* printf("\n. class=%d new_val=%f cur_val=%f ratio=%f hr=%f y=%f denom=%f",c2updt,y[c2updt],y_cur,ratio,Jthen/Jnow,y[c-1],denom); */
+
+      u = Uni();
+      if(u > alpha) // Reject
+ 	{
+	  y[c2updt] = y_cur;
+	  tree->c_lnL = cur_lnL_data;
+	}
+      else // Accept
+	{
+	  cur_lnL_data = new_lnL_data;
+	  // Update the Jacobian
+	  num = z[c-1]*(y[c-1]-y[c-2]);
+	  denom = z[0]*y[0];
+	  for(i=1;i<c;i++) denom += z[i]*(y[i]-y[i-1]);
+	  denom = POW(denom,c);
+	  Jthen = num/denom;
+	}
+      
+
+
+
+      // Update rates
+
+      // Choose the class freq to update at random.
+      c2updt = Rand_Int(0,tree->mod->n_catg-1);
+
+      // Proposal move.
+      u = Uni();
+
+      /* K = tree->mcmc->tune_move[tree->mcmc->num_move_ras+c2updt+c]; */
+      /* z_cur = z[c2updt]; */
+      /* mult = EXP(K*(u-0.5)); */
+      /* z[c2updt] *= mult; */
+
+      u = Uni();
+      low_bound = (c2updt==0)?(.0):(z[c2updt-1]);
+      up_bound = (c2updt==c-1)?(100.0):(z[c2updt+1]);
+      z_cur = z[c2updt];
+      z[c2updt] = low_bound + u*(up_bound - low_bound);
+
+      
+      // Calculate the Jacobian for the change of variable from unscaled 
+      // frequencies to the frequencies themselves.
+      num = z[c-1]*(y[c-1]-y[c-2]);
+      denom = z[0]*y[0];
+      for(i=1;i<c;i++) denom += z[i]*(y[i]-y[i-1]);
+      denom = POW(denom,c);
+      Jnow = num/denom;
+
+      hr = Jnow/Jthen;
+      
+      new_lnL_data = Lk(tree);
+
+      // Metropolis-Hastings step
+      ratio = 0.;
+      if(tree->mcmc->use_data == YES) ratio += (new_lnL_data - cur_lnL_data);
+      ratio += LOG(hr);
+      /* ratio += LOG(mult); */
+
+      ratio = EXP(ratio);
+      alpha = MIN(1.,ratio);
+
+      u = Uni();
+      if(u > alpha)
+	{
+	  z[c2updt] = z_cur;
+	  tree->c_lnL = cur_lnL_data;
+	}
       else
-      	{
-      	  min = MIN(tree->mod->gamma_rr_unscaled->v[class-1],tree->mod->gamma_rr_unscaled->v[class+1]);
-      	  max = MAX(tree->mod->gamma_rr_unscaled->v[class-1],tree->mod->gamma_rr_unscaled->v[class+1]);
-      	}
-            
-      /* int i; */
-      /* printf("\n %3d (%15f %15f)",class,min,max); */
-      /* For(i,tree->mod->n_catg) */
-      /* 	printf("%15f ",tree->mod->gamma_rr_unscaled[i]); */
+	{
+	  cur_lnL_data = new_lnL_data;
 
-      MCMC_Single_Param_Generic(&(tree->mod->gamma_rr_unscaled->v[class]),min,max,tree->mcmc->num_move_ras+class+tree->mod->n_catg,
-				NULL,&(tree->c_lnL),
-				NULL,Wrap_Lk,tree->mcmc->move_type[tree->mcmc->num_move_ras+class+tree->mod->n_catg],NO,NULL,tree,NULL);
+	  // Update the Jacobian
+	  num = z[c-1]*(y[c-1]-y[c-2]);
+	  denom = z[0]*y[0];
+	  for(i=1;i<c;i++) denom += z[i]*(y[i]-y[i-1]);
+	  denom = POW(denom,c);
+	  Jthen = num/denom;
+	}
 
-    }
-  else
-    {
-      MCMC_Single_Param_Generic(&(tree->mod->gamma_r_proba_unscaled->v[class]),0.01,+100.,tree->mcmc->num_move_ras+class,
-				NULL,&(tree->c_lnL),
-				NULL,Wrap_Lk,tree->mcmc->move_type[tree->mcmc->num_move_ras+class],NO,NULL,tree,NULL);
-    }
+    }while(n_moves != c);
 }
 
 //////////////////////////////////////////////////////////////
