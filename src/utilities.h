@@ -1625,6 +1625,8 @@ void Init_Scalar_Int(scalar_int *p);
 void Init_Vect_Dbl(int len, vect_dbl *p);
 void Init_Vect_Int(int len, vect_int *p);
 void Init_Eigen_Struct(eigen *this);
+void Swap_Nodes_On_Edges(t_edge *e1, t_edge *e2, int swap, t_tree *tree);
+void Reorganize_Edges_Given_Lk_Struct(t_tree *tree);
 
 #include "free.h"
 #include "spr.h"

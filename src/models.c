@@ -2955,6 +2955,11 @@ void Set_Model_Parameters(model *mod)
       For(i,mod->n_catg) sum += mod->gamma_r_proba->v[i] * FABS(mod->gamma_rr_unscaled->v[i]);
       For(i,mod->n_catg) mod->gamma_rr->v[i] = FABS(mod->gamma_rr_unscaled->v[i])/sum;
 
+
+      /* sum = .0; */
+      /* For(i,mod->n_catg) sum += mod->gamma_r_proba->v[i] * FABS(mod->gamma_rr->v[i]); */
+      /* printf("\n. sum=%f",sum); */
+
     }
 
 

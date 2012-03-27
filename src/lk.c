@@ -1710,7 +1710,7 @@ void Update_P_Lk_AA(t_tree *tree, t_edge *b, t_node *d)
 		    }
 		  
 		  p_lk[site*dim1+catg*dim2+i] = p1_lk1 * p2_lk2;	    
-		  
+
 		  if(p_lk[site*dim1+catg*dim2+i] < smallest_p_lk) smallest_p_lk = p_lk[site*dim1+catg*dim2+i] ; 
 		}
 	      

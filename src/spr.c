@@ -384,7 +384,7 @@ void Optim_SPR (t_tree *tree, int max_size, int method)
   tree->both_sides = 1;
   cur_lk = Lk (tree);
   time(&(tree->t_current));
-  if(tree->mod->s_opt->print) Print_Lk(tree,"topoLOGy");
+  if(tree->mod->s_opt->print) Print_Lk(tree,"topology");
 
   /*
   ** Optimize all t_edge lengths and calculate the new likelihood value.
@@ -395,7 +395,7 @@ void Optim_SPR (t_tree *tree, int max_size, int method)
   tree->both_sides = 1;
   cur_lk = Lk (tree);
   time(&(tree->t_current));
-  if(tree->mod->s_opt->print) Print_Lk(tree,"topoLOGy");
+  if(tree->mod->s_opt->print) Print_Lk(tree,"topology");
 
   /*
   ** While improvements were found, perform another round of SPR moves.
@@ -964,7 +964,7 @@ int Perform_One_SPR(t_tree *tree, int max_size)
   tree->both_sides = 1;
   cur_lk = Lk (tree);
   time(&(tree->t_current));
-  if(tree->mod->s_opt->print) Print_Lk(tree,"topoLOGy");
+  if(tree->mod->s_opt->print) Print_Lk(tree,"topology");
 
   /*
   ** Return the result.
@@ -3549,16 +3549,19 @@ void Speed_Spr_Loop(t_tree *tree)
   tree->mod->s_opt->quickdirty     = 0;
 
   if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n\n. Maximizing likelihood (using SPR moves)...\n");
-  
+
+  SPR_Shuffle(tree);
+	  
   Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
   tree->best_lnL = tree->c_lnL;
 
-
+ 
   /*****************************/
   lk_old = UNLIKELY;
-  tree->mod->s_opt->max_delta_lnL_spr = (tree->io->datatype == NT)?(50.):(0.);
+  tree->mod->s_opt->max_delta_lnL_spr = (tree->io->datatype == NT)?(10.):(0.);
   tree->mod->s_opt->br_len_in_spr     = 10;
-  tree->mod->s_opt->max_depth_path    = 2*tree->n_otu-3;
+  /* tree->mod->s_opt->max_depth_path    = 2*tree->n_otu-3; */
+  tree->mod->s_opt->max_depth_path    = 5;
   tree->mod->s_opt->spr_lnL           = 0;
   do
     {
@@ -3581,12 +3584,12 @@ void Speed_Spr_Loop(t_tree *tree)
       tree->mod->s_opt->max_depth_path    = 10;
       tree->mod->s_opt->spr_lnL           = 1;
       do
-	{
-	  lk_old = tree->c_lnL;
-	  Speed_Spr(tree,1);
-	  if(tree->n_improvements) Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
-	  if((!tree->n_improvements) || (FABS(lk_old-tree->c_lnL) < 1.)) break;
-	}
+  	{
+  	  lk_old = tree->c_lnL;
+  	  Speed_Spr(tree,1);
+  	  if(tree->n_improvements) Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
+  	  if((!tree->n_improvements) || (FABS(lk_old-tree->c_lnL) < 1.)) break;
+  	}
       while(1);
     }
   /*****************************/
@@ -4324,7 +4327,6 @@ void Spr_Pars(t_tree *tree)
 
 /*********************************************************/
 
-
 int Check_Lk_At_Given_Edge(t_tree *tree)
 {
   int res;
@@ -4350,7 +4352,79 @@ int Check_Lk_At_Given_Edge(t_tree *tree)
 }
 
 
+/*********************************************************/
 
+void SPR_Shuffle(t_tree *tree)
+{
+  int n_rand_cycles  = 0;
+  phydbl best_lnL    = UNLIKELY;
+  t_tree *best_tree  = Make_Tree_From_Scratch(tree->n_otu,tree->data);
+  t_tree *start_tree = Make_Tree_From_Scratch(tree->n_otu,tree->data);
+  int ori_catg = tree->mod->n_catg;
+  phydbl lk_old;
+
+  start_tree->mod                = tree->mod;
+  start_tree->io                 = tree->io;
+  start_tree->data               = tree->data;
+  start_tree->both_sides         = YES;
+  start_tree->mod->s_opt->print  = YES;
+  start_tree->n_pattern          = tree->data->crunch_len;
+  start_tree->t_beg              = tree->t_beg;
+  start_tree->mod->n_catg        = MIN(2,ori_catg);
+  
+  printf("\n. Beginning of randomization cycles...\n");
+
+  do
+    {
+      n_rand_cycles++;
+
+      Random_Tree(start_tree);
+      Share_Lk_Struct(tree,start_tree);
+      Share_Spr_Struct(tree,start_tree);
+      Share_Pars_Struct(tree,start_tree);
+      Fill_Dir_Table(start_tree);
+      Update_Dirs(start_tree);
+      Init_P_Lk_Tips_Int(start_tree);
+      Init_Ui_Tips(start_tree);
+      Init_P_Pars_Tips(start_tree);
+      Br_Len_Not_Involving_Invar(start_tree);
+      if(n_rand_cycles == 1) Optimiz_All_Free_Param(start_tree,(start_tree->io->quiet)?(0):(start_tree->mod->s_opt->print));
+      else Lk(start_tree);
+      start_tree->best_pars = start_tree->c_pars;
+      start_tree->best_lnL  = start_tree->c_lnL;
+      start_tree->mod->s_opt->max_delta_lnL_spr = 0.;
+      start_tree->mod->s_opt->br_len_in_spr     = 1;
+      start_tree->mod->s_opt->max_depth_path    = 2*tree->n_otu-3;
+      start_tree->mod->s_opt->spr_lnL           = NO;
+
+      Spr(UNLIKELY,start_tree);
+
+      Optimize_Br_Len_Serie(start_tree->t_nodes[0],
+			    start_tree->t_nodes[0]->v[0],
+			    start_tree->t_nodes[0]->b[0],
+			    start_tree,
+			    start_tree->data);
+
+      if(start_tree->c_lnL > best_lnL)
+      	{
+      	  best_lnL = start_tree->c_lnL;
+  	  Copy_Tree(start_tree,best_tree);
+  	}
+
+
+    }while(n_rand_cycles < 3);
+  
+  Copy_Tree(best_tree,tree);
+  Reorganize_Edges_Given_Lk_Struct(tree);
+  Fill_Dir_Table(tree);
+  Update_Dirs(tree);
+  Init_P_Lk_Tips_Int(tree);
+  Init_Ui_Tips(tree);
+  Init_P_Pars_Tips(tree);
+
+  tree->mod->n_catg = ori_catg;
+
+}
 
 
 
