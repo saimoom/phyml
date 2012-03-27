@@ -4009,10 +4009,10 @@ char *RATES_Get_Model_Name(int model)
 
   switch(model)
     {
-    case GUINDON     : {strcpy(s,"guindon"); break;}
-    case THORNE      : {strcpy(s,"thorne"); break;}
+    case GUINDON     : {strcpy(s,"gbs"); break;}
+    case THORNE      : {strcpy(s,"gbd"); break;}
     case GAMMA       : {strcpy(s,"gamma"); break;}
-    case STRICTCLOCK : {strcpy(s,"strictclock"); break;}
+    case STRICTCLOCK : {strcpy(s,"clock"); break;}
     default : 
       {
 	PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);

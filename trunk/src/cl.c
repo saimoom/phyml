@@ -212,15 +212,15 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	    s = (char *)mCalloc(T_MAX_NAME,sizeof(char));
 	    i = 0;
 	    while(optarg[i++]) s[i]=tolower(optarg[i]);
-	    if(!strcmp(optarg,"thorne")) io->rates->model            = THORNE;
-	    else if(!strcmp(optarg,"guindon")) io->rates->model      = GUINDON;
+	    if(!strcmp(optarg,"gbd")) io->rates->model               = THORNE;
+	    else if(!strcmp(optarg,"gbs")) io->rates->model          = GUINDON;
 	    else if(!strcmp(optarg,"gamma")) io->rates->model        = GAMMA;
 	    else if(!strcmp(optarg,"clock")) io->rates->model        = STRICTCLOCK;
 	    else if(!strcmp(optarg,"strictclock")) io->rates->model  = STRICTCLOCK;
 	    else if(!strcmp(optarg,"strict_clock")) io->rates->model = STRICTCLOCK;
 	    else 
 	      {
-		PhyML_Printf("\n. rate_model should be 'thorne', 'guindon', 'gamma' or 'strictclock'.");
+		PhyML_Printf("\n. rate_model should be 'gbs', 'gbd', 'gamma' or 'clock'.");
 		Exit("\n");
 	      }
 	    Free(s);

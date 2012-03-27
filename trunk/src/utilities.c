@@ -3767,7 +3767,48 @@ t_tree *Read_Tree_File_Phylip(FILE *fp_input_tree)
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
+// Swap the nodes on the left and right of e1 with the nodes
+// on the left and right of e2 respectively, or on the 
+// right and left of e2 if swap == YES
 
+void Swap_Nodes_On_Edges(t_edge *e1, t_edge *e2, int swap, t_tree *tree)
+{
+  t_node *buff;
+
+  e1->left->l[e1->l_r] = e1->l;
+  e1->rght->l[e1->r_l] = e1->l;
+
+  e2->left->l[e2->l_r] = e2->l;
+  e2->rght->l[e2->r_l] = e2->l;
+
+  if(swap == NO)
+    {
+      buff = e1->left;
+      e1->left = e2->left;
+      e2->left = buff;
+      
+      buff = e1->rght;
+      e1->rght = e2->rght;
+      e2->rght = buff;
+
+    }
+  else
+    {
+      buff = e1->left;
+      e1->left = e2->rght;
+      e2->rght = buff;
+      
+      buff = e1->rght;
+      e1->rght = e2->left;
+      e2->left = buff;
+    }
+      
+  Connect_One_Edge_To_Two_Nodes(e1->left,e1->rght,e1,tree);
+  Connect_One_Edge_To_Two_Nodes(e2->left,e2->rght,e2,tree);
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
 
 void Connect_Edges_To_Nodes_Recur(t_node *a, t_node *d, t_tree *tree)
 {
@@ -7516,7 +7557,7 @@ void Set_Defaults_Input(option* io)
 
   MCMC_Init_MCMC_Struct(NULL,io,io->mcmc);
   RATES_Init_Rate_Struct(io->rates,NULL,-1);
-  io->rates->model               = THORNE;
+  io->rates->model               = GUINDON;
 }
 
 //////////////////////////////////////////////////////////////
@@ -10003,7 +10044,7 @@ void Random_Tree(t_tree *tree)
 
   min_edge_len = 1.E-3;
 
-  PhyML_Printf("\n. Randomising the tree...\n");
+  if(tree->mod->s_opt && tree->mod->s_opt->print == YES) PhyML_Printf("\n. Randomising the tree...\n");
 
   is_available  = (int *)mCalloc(2*tree->n_otu-2,sizeof(int));
   list_of_nodes = (int *)mCalloc(tree->n_otu,    sizeof(int));
@@ -10061,8 +10102,54 @@ void Random_Tree(t_tree *tree)
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
+// Make sure internal edges have likelihood vectors on both
+// sides and external edges have one likelihood vector on the
+// lefthand side only
 
+void Reorganize_Edges_Given_Lk_Struct(t_tree *tree)
+{
+  int j,i;
+  
+  For(i,2*tree->n_otu-3)
+    {
+      if(tree->t_edges[i]->p_lk_left && tree->t_edges[i]->left->tax == YES)
+	{
+	  For(j,2*tree->n_otu-3)
+	    {
+	      if(!tree->t_edges[j]->p_lk_left && tree->t_edges[j]->left->tax == NO)
+		{
+		  Swap_Nodes_On_Edges(tree->t_edges[i],tree->t_edges[j],NO,tree);		  
+		  break;
+		}
+	      if(!tree->t_edges[j]->p_lk_rght && tree->t_edges[j]->rght->tax == NO)
+		{
+		  Swap_Nodes_On_Edges(tree->t_edges[i],tree->t_edges[j],YES,tree);
+		  break;
+		}
+	    }
+	}
+      
+      if(tree->t_edges[i]->p_lk_rght && tree->t_edges[i]->rght->tax == YES)
+	{
+	  For(j,2*tree->n_otu-3)
+	    {
+	      if(!tree->t_edges[j]->p_lk_left && tree->t_edges[j]->left->tax == NO)
+		{
+		  Swap_Nodes_On_Edges(tree->t_edges[i],tree->t_edges[j],YES,tree);
+		  break;
+		}
+	      if(!tree->t_edges[j]->p_lk_rght && tree->t_edges[j]->rght->tax == NO)
+		{
+		  Swap_Nodes_On_Edges(tree->t_edges[i],tree->t_edges[j],NO,tree);
+		  break;
+		}
+	    }
+	}
+    }
+}
 
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
 
 void Random_NNI(int n_moves, t_tree *tree)
 {
@@ -12564,7 +12651,7 @@ void Read_Clade_Priors(char *file_name, t_tree *tree)
 	      PhyML_Printf("\n. WARNING: could not find any clade in the tree referred to with the following taxon names:");
 	      For(i,clade_size) PhyML_Printf("\n. \"%s\"",clade_list[i]);	      
 	      PhyML_Printf("\n. .................................................................");
-	      sleep(3);
+	      /* sleep(3); */
 	    }
 	  else
 	    {	      

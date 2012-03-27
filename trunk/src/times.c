@@ -226,52 +226,56 @@ int TIMES_main(int argc, char **argv)
 		  /* Work with log of branch lengths? */
 		  if(tree->mod->log_l == YES) Log_Br_Len(tree);
 		  
-		  /* Force the exact likelihood score */
-		  user_lk_approx = tree->io->lk_approx;
-		  tree->io->lk_approx = EXACT;
+		  if(io->mcmc->use_data == YES)
+		    {
+		      /* Force the exact likelihood score */
+		      user_lk_approx = tree->io->lk_approx;
+		      tree->io->lk_approx = EXACT;
+		      
+		      /* MLE for branch lengths */
+		      PhyML_Printf("\n");
+		      Round_Optimize(tree,tree->data,ROUND_MAX);
+		      
+		      /* Set vector of mean branch lengths for the Normal approximation
+			 of the likelihood */
+		      RATES_Set_Mean_L(tree);
+		      
+		      /* Estimate the matrix of covariance for the Normal approximation of
+			 the likelihood */
+		      PhyML_Printf("\n");
+		      PhyML_Printf("\n. Computing Hessian...");
+		      tree->rates->bl_from_rt = 0;
+		      Free(tree->rates->cov_l);
+		      tree->rates->cov_l = Hessian_Seo(tree);
+		      /* tree->rates->cov_l = Hessian_Log(tree); */
+		      For(i,(2*tree->n_otu-3)*(2*tree->n_otu-3)) tree->rates->cov_l[i] *= -1.0;
+		      if(!Iter_Matinv(tree->rates->cov_l,2*tree->n_otu-3,2*tree->n_otu-3,YES)) Exit("\n");
+		      tree->rates->covdet = Matrix_Det(tree->rates->cov_l,2*tree->n_otu-3,YES);
+		      For(i,(2*tree->n_otu-3)*(2*tree->n_otu-3)) tree->rates->invcov[i] = tree->rates->cov_l[i];
+		      if(!Iter_Matinv(tree->rates->invcov,2*tree->n_otu-3,2*tree->n_otu-3,YES)) Exit("\n");
+		      tree->rates->grad_l = Gradient(tree);
+		      
+		      
+		      /* Pre-calculation of conditional variances to speed up calculations */
+		      RATES_Bl_To_Ml(tree);
+		      RATES_Get_Conditional_Variances(tree);
+		      RATES_Get_All_Reg_Coeff(tree);
+		      RATES_Get_Trip_Conditional_Variances(tree);
+		      RATES_Get_All_Trip_Reg_Coeff(tree);
+		      
+		      Lk(tree);
+		      PhyML_Printf("\n");
+		      PhyML_Printf("\n. p(data|model) [exact ] ~ %.2f",tree->c_lnL);
+		      
+		      tree->io->lk_approx = NORMAL;
+		      For(i,2*tree->n_otu-3) tree->rates->u_cur_l[i] = tree->rates->mean_l[i] ;
+		      tree->c_lnL = Lk(tree);
+		      PhyML_Printf("\n. p(data|model) [approx] ~ %.2f",tree->c_lnL);
 
-		  /* MLE for branch lengths */
-		  PhyML_Printf("\n");
-		  Round_Optimize(tree,tree->data,ROUND_MAX);
-
-		  /* Set vector of mean branch lengths for the Normal approximation
-		     of the likelihood */
-		  RATES_Set_Mean_L(tree);
-
-		  /* Estimate the matrix of covariance for the Normal approximation of
-		     the likelihood */
-		  PhyML_Printf("\n");
-		  PhyML_Printf("\n. Computing Hessian...");
-		  tree->rates->bl_from_rt = 0;
-		  Free(tree->rates->cov_l);
-		  tree->rates->cov_l = Hessian_Seo(tree);
-		  /* tree->rates->cov_l = Hessian_Log(tree); */
-		  For(i,(2*tree->n_otu-3)*(2*tree->n_otu-3)) tree->rates->cov_l[i] *= -1.0;
-		  if(!Iter_Matinv(tree->rates->cov_l,2*tree->n_otu-3,2*tree->n_otu-3,YES)) Exit("\n");
-		  tree->rates->covdet = Matrix_Det(tree->rates->cov_l,2*tree->n_otu-3,YES);
-		  For(i,(2*tree->n_otu-3)*(2*tree->n_otu-3)) tree->rates->invcov[i] = tree->rates->cov_l[i];
-		  if(!Iter_Matinv(tree->rates->invcov,2*tree->n_otu-3,2*tree->n_otu-3,YES)) Exit("\n");
-		  tree->rates->grad_l = Gradient(tree);
-
-
-		  /* Pre-calculation of conditional variances to speed up calculations */
-		  RATES_Bl_To_Ml(tree);
-		  RATES_Get_Conditional_Variances(tree);
-		  RATES_Get_All_Reg_Coeff(tree);
-		  RATES_Get_Trip_Conditional_Variances(tree);
-		  RATES_Get_All_Trip_Reg_Coeff(tree);
-
-		  Lk(tree);
-		  PhyML_Printf("\n");
-		  PhyML_Printf("\n. p(data|model) [exact ] ~ %.2f",tree->c_lnL);
-
-		  tree->io->lk_approx = NORMAL;
-		  For(i,2*tree->n_otu-3) tree->rates->u_cur_l[i] = tree->rates->mean_l[i] ;
-		  tree->c_lnL = Lk(tree);
-		  PhyML_Printf("\n. p(data|model) [approx] ~ %.2f",tree->c_lnL);
-
-		  tree->io->lk_approx = user_lk_approx;
-
+		      tree->io->lk_approx = user_lk_approx;
+		    }
+		  
+		      
 		  tree->rates->model = io->rates->model;		  
 		  PhyML_Printf("\n. Selected model '%s'",RATES_Get_Model_Name(io->rates->model));
 		  if(tree->rates->model == GUINDON) tree->mod->gamma_mgf_bl = YES;

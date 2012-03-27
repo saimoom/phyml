@@ -150,35 +150,28 @@ void MCMC(t_tree *tree)
       /* 	} */
 
 
-      if(tree->mcmc->ess[tree->mcmc->num_move_tree_height] > 100 &&
-      	 tree->mcmc->ess[tree->mcmc->num_move_nu] > 100          &&
-      	 tree->mcmc->ess[tree->mcmc->num_move_clock_r] > 100     &&
-      	 tree->mcmc->run > 1000)
-      	{
-      	  FILE *fp;
-      	  char *s,*t;
-
-      	  s = (char *)mCalloc(100,sizeof(char));
-	  
-      	  t = strrchr(tree->io->in_align_file,'.');
-      	  sprintf(s,"res%s",t);
-      	  fp = fopen(s,"w");
-      	  fclose(tree->mcmc->out_fp_stats);
-      	  tree->mcmc->out_fp_stats = fopen(s,"w");
-      	  tree->mcmc->run = 0;
-      	  MCMC_Print_Param(tree->mcmc,tree);
-      	  fclose(fp);
-      	  Free(s);
-      	  Exit("\n");
-      	}
-
-      /* if(tree->mcmc->run > 50000) */
+      /* if(tree->mcmc->ess[tree->mcmc->num_move_tree_height] > 100 && */
+      /* 	 tree->mcmc->ess[tree->mcmc->num_move_nu] > 100          && */
+      /* 	 tree->mcmc->ess[tree->mcmc->num_move_clock_r] > 100     && */
+      /* 	 tree->mcmc->run > 1000) */
       /* 	{ */
-      /* 	  int i; */
-      /* 	  For(i,tree->n_otu) */
-      /* 	    printf("\n %15f %15f %15f",tree->rates->nd_t[i],EXP(tree->rates->br_r[i]),tree->rates->br_r[i]); */
+      /* 	  FILE *fp; */
+      /* 	  char *s,*t; */
+
+      /* 	  s = (char *)mCalloc(100,sizeof(char)); */
+	  
+      /* 	  t = strrchr(tree->io->in_align_file,'.'); */
+      /* 	  sprintf(s,"res%s",t); */
+      /* 	  fp = fopen(s,"w"); */
+      /* 	  fclose(tree->mcmc->out_fp_stats); */
+      /* 	  tree->mcmc->out_fp_stats = fopen(s,"w"); */
+      /* 	  tree->mcmc->run = 0; */
+      /* 	  MCMC_Print_Param(tree->mcmc,tree); */
+      /* 	  fclose(fp); */
+      /* 	  Free(s); */
       /* 	  Exit("\n"); */
       /* 	} */
+
 
       u = Uni();
 
@@ -2008,12 +2001,11 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
       Free(format);
 
       /* for(i=0;i<2*tree->n_otu-1;i++) PhyML_Fprintf(fp,"%.4f\t",LOG(tree->rates->nd_r[i])); */
-
-      for(i=0;i<2*tree->n_otu-2;i++) 
+      
+      // Average rate along edges: length divided by elapsed time
+      For(i,2*tree->n_otu-2)
 	PhyML_Fprintf(fp,"%.4f\t",
-		      (tree->rates->model_log_rates == YES)?
-		      EXP(tree->rates->br_r[i]):
-		      tree->rates->br_r[i]);
+		      tree->rates->cur_l[i]/(tree->rates->nd_t[tree->t_nodes[i]->num] - tree->rates->nd_t[tree->t_nodes[i]->anc->num]));
 
       /* fp_pred = fopen("predict.txt","a");       */
       /* for(i=0;i<2*tree->n_otu-2;i++)  */
@@ -2947,6 +2939,8 @@ void MCMC_Adjust_Tuning_Parameter(int move, t_mcmc *mcmc)
 	{
 	  rate_inf = 0.3;
 	  rate_sup = 0.3;
+	  /* rate_inf = 0.7; */
+	  /* rate_sup = 0.7; */
 	}
       else if(!strcmp(mcmc->move_name[move],"subtree_height"))
 	{
@@ -3207,14 +3201,12 @@ void MCMC_Free_Mixt_Rate(t_tree *tree)
   phydbl low_bound,up_bound;
   int c,i;
   int c2updt; 
-  int K;
   phydbl u;
   phydbl hr;
   int n_moves;
   phydbl cur_lnL_data, new_lnL_data;
   phydbl ratio,alpha;
-  phydbl mult;
-
+  
   cur_lnL_data = tree->c_lnL;
   new_lnL_data = tree->c_lnL;
 

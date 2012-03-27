@@ -287,7 +287,8 @@ endif
 endif
 endif
 
-all-am:	intro $(bin_PROGRAMS)$(EXEEXT)
+# all-am:	intro $(bin_PROGRAMS)$(EXEEXT)
+all-am:	intro $(bin_PROGRAMS)
 	@echo ""
 	@echo "Done."
 
