@@ -124,6 +124,7 @@ int main(int argc, char **argv)
 
 		  Init_Model(cdata,mod,io);
 
+
 		  if(io->mod->use_m4mod) M4_Init_Model(mod->m4mod,cdata,mod);
 
 		  switch(io->in_tree)
@@ -179,7 +180,6 @@ int main(int argc, char **argv)
 		  /* ///////////////////////////////////////// */
 		  /* Make_Mixtmod(3,tree); */
 		  
-
 
 		  if(io->in_tree == 1) Spr_Pars(tree);
 		 
@@ -261,7 +261,7 @@ int main(int argc, char **argv)
 		  Free_Tree_Lk(tree);
 		  Free_Tree(tree);
 		}
-
+	      
 
 	      /* Launch bootstrap analysis */
 	      if(mod->bootstrap) 
