@@ -694,6 +694,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
       site_lk += tree->site_lk_cat[catg] * tree->mod->gamma_r_proba->v[catg];
     }
 
+
   inv_site_lk = 0.;
   
   /* The substitution model does include invariable sites */
@@ -739,6 +740,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
     }
 
   log_site_lk = LOG(site_lk) - (phydbl)LOG2 * fact_sum_scale;
+
 
   For(catg,tree->mod->n_catg) tree->log_site_lk_cat[catg][site] = LOG(tree->site_lk_cat[catg]) - (phydbl)LOG2 * fact_sum_scale;
   

@@ -1247,6 +1247,7 @@ void Init_Tree(t_tree *tree, int n_otu)
   tree->n_short_l                 = 100;
   tree->norm_scale                = 0.0;
   tree->br_len_recorded           = NO;
+  tree->max_spr_depth             = 0;
 }
 
 //////////////////////////////////////////////////////////////
@@ -4898,6 +4899,117 @@ void Share_Pars_Struct(t_tree *t_full, t_tree *t_empt)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
+void Print_Model(model *mod)
+{
+  int i,j,k;
+
+  PhyML_Printf("\n. name=%s",mod->modelname);
+  PhyML_Printf("\n. string=%s",mod->custom_mod_string);
+  PhyML_Printf("\n. mod_num=%d",mod->mod_num);
+  PhyML_Printf("\n. ns=%d",mod->ns);
+  PhyML_Printf("\n. n_catg=%d",mod->n_catg);
+  PhyML_Printf("\n. kappa=%f",mod->kappa->v);
+  PhyML_Printf("\n. alpha=%f",mod->alpha->v);
+  PhyML_Printf("\n. lambda=%f",mod->lambda->v);
+  PhyML_Printf("\n. pinvar=%f",mod->pinvar->v);
+  PhyML_Printf("\n. br_len_multiplier=%f",mod->br_len_multiplier->v);
+  PhyML_Printf("\n. whichmodel=%d",mod->whichmodel);
+  PhyML_Printf("\n. update_eigen=%d",mod->update_eigen);
+  PhyML_Printf("\n. bootstrap=%d",mod->bootstrap);
+  PhyML_Printf("\n. n_diff_rr=%d",mod->n_diff_rr);
+  PhyML_Printf("\n. invar=%d",mod->invar);
+  PhyML_Printf("\n. use_m4mod=%d",mod->use_m4mod);
+  PhyML_Printf("\n. gamma_median=%d",mod->gamma_median);
+  PhyML_Printf("\n. state_len=%d",mod->state_len);
+  PhyML_Printf("\n. log_l=%d",mod->log_l);
+  PhyML_Printf("\n. l_min=%f",mod->l_min);
+  PhyML_Printf("\n. l_max=%f",mod->l_max);
+  PhyML_Printf("\n. free_mixt_rates=%d",mod->free_mixt_rates);
+  PhyML_Printf("\n. gamma_mgf_bl=%d",mod->gamma_mgf_bl);
+  
+  PhyML_Printf("\n. Pi\n");
+  For(i,mod->ns) PhyML_Printf(" %f ",mod->pi->v[i]);
+  PhyML_Printf("\n");
+  For(i,mod->ns) PhyML_Printf(" %f ",mod->pi_unscaled->v[i]);
+  
+  PhyML_Printf("\n. Rates\n");
+  For(i,mod->n_catg) PhyML_Printf(" %f ",mod->gamma_r_proba->v[i]);
+  PhyML_Printf("\n");
+  For(i,mod->n_catg) PhyML_Printf(" %f ",mod->gamma_r_proba_unscaled->v[i]);
+  PhyML_Printf("\n");
+  For(i,mod->n_catg) PhyML_Printf(" %f ",mod->gamma_rr->v[i]);
+  PhyML_Printf("\n");
+  For(i,mod->n_catg) PhyML_Printf(" %f ",mod->gamma_rr_unscaled->v[i]);
+  
+  
+  
+  PhyML_Printf("\n. Qmat \n");
+  if(mod->whichmodel == CUSTOM)
+    {
+      fflush(NULL);
+      For(i,6) {PhyML_Printf(" %12f ",mod->rr->v[i]); fflush(NULL);}
+      For(i,6) {PhyML_Printf(" %12f ",mod->rr_val->v[i]); fflush(NULL);}
+      For(i,6) {PhyML_Printf(" %12d ",mod->rr_num->v[i]); fflush(NULL);}
+      For(i,6) {PhyML_Printf(" %12d ",mod->n_rr_per_cat->v[i]); fflush(NULL);}
+    }
+  For(i,mod->ns)
+    {
+      PhyML_Printf("  ");
+      For(j,4)
+	PhyML_Printf("%8.5f  ",mod->qmat->v[i*4+j]);
+      PhyML_Printf("\n");
+    }
+
+  PhyML_Printf("\n. Freqs");
+  PhyML_Printf("\n");
+  For(i,mod->ns) PhyML_Printf(" %12f ",mod->user_b_freq->v[i]);
+  PhyML_Printf("\n");
+  For(i,mod->ns) PhyML_Printf(" %12f ",mod->pi->v[i]);
+  PhyML_Printf("\n");
+  For(i,mod->ns) PhyML_Printf(" %12f ",mod->pi_unscaled->v[i]);
+
+  PhyML_Printf("\n. Eigen\n");
+  For(i,2*mod->ns)       PhyML_Printf(" %f ",mod->eigen->space[i]);      
+  PhyML_Printf("\n");
+  For(i,2*mod->ns)       PhyML_Printf(" %f ",mod->eigen->space_int[i]); 
+  PhyML_Printf("\n");
+  For(i,mod->ns)         PhyML_Printf(" %f ",mod->eigen->e_val[i]);      
+  PhyML_Printf("\n");
+  For(i,mod->ns)         PhyML_Printf(" %f ",mod->eigen->e_val_im[i]);   
+  PhyML_Printf("\n");
+  For(i,mod->ns*mod->ns) PhyML_Printf(" %f ",mod->eigen->r_e_vect[i]);   
+  PhyML_Printf("\n");
+  For(i,mod->ns*mod->ns) PhyML_Printf(" %f ",mod->eigen->r_e_vect[i]);   
+  PhyML_Printf("\n");
+  For(i,mod->ns*mod->ns) PhyML_Printf(" %f ",mod->eigen->r_e_vect_im[i]);
+  PhyML_Printf("\n");
+  For(i,mod->ns*mod->ns) PhyML_Printf(" %f ",mod->eigen->l_e_vect[i]);   
+  PhyML_Printf("\n");
+  For(i,mod->ns*mod->ns) PhyML_Printf(" %f ",mod->eigen->q[i]);          
+  PhyML_Printf("\n");
+  
+  PhyML_Printf("\n. Pij");
+  For(k,mod->n_catg)
+    {
+      PMat(0.01*mod->gamma_rr->v[k],mod,mod->ns*mod->ns*k,mod->Pij_rr->v);
+      PhyML_Printf("\n. l=%f\n",0.01*mod->gamma_rr->v[k]);
+      For(i,mod->ns)
+	{
+	  PhyML_Printf("  ");
+	  For(j,mod->ns)
+	    PhyML_Printf("%8.5f  ",mod->Pij_rr->v[k*mod->ns*mod->ns+i*mod->ns+j]);
+	  PhyML_Printf("\n");
+	}
+    }
+  
+
+  PhyML_Printf("\n");
+
+  fflush(NULL);
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
 
 void Print_Mat(matrix *mat)
 {
@@ -6853,14 +6965,15 @@ void Bootstrap(t_tree *tree)
       if(tree->io->random_boot_seq_order) Randomize_Sequence_Order(boot_data);
 
       boot_mod        = Copy_Model(tree->mod);
+          
       boot_mod->s_opt = tree->mod->s_opt; /* WARNING: re-using the same address here instead of creating a copying
 					     requires to leave the value of s_opt unchanged during the boostrap. */
       boot_mod->io    = tree->io; /* WARNING: re-using the same address here instead of creating a copying
 				     requires to leave the value of io unchanged during the boostrap. */
+
       Init_Model(boot_data,boot_mod,tree->io);
 
       if(tree->io->mod->use_m4mod) M4_Init_Model(boot_mod->m4mod,boot_data,boot_mod);
-
 
       if(tree->io->in_tree == 2)
 	{
@@ -6900,7 +7013,7 @@ void Bootstrap(t_tree *tree)
       Init_P_Pars_Tips(boot_tree);
       Br_Len_Not_Involving_Invar(boot_tree);
 
-      
+
       if(boot_tree->io->do_alias_subpatt)
 	{
 	  boot_tree->update_alias_subpatt = YES;
@@ -6928,6 +7041,7 @@ void Bootstrap(t_tree *tree)
 	    Lk(boot_tree);
 	}
       
+
       Free_Bip(boot_tree);
 
       Alloc_Bip(boot_tree);
@@ -7317,8 +7431,6 @@ model *Make_Model_Basic()
   mod->mr                     = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
   Init_Scalar_Dbl(mod->mr);
 
-
-
   mod->user_b_freq->v         = (phydbl *)mCalloc(T_MAX_OPTION,sizeof(phydbl));
 
   return mod;
@@ -7397,6 +7509,33 @@ void Record_Model(model *ori, model *cpy)
   cpy->ns     = ori->ns;
   cpy->n_catg = ori->n_catg;
   
+  cpy->pi->reflect                 = ori->pi->reflect;
+  cpy->pi_unscaled->reflect        = ori->pi_unscaled->reflect;
+  cpy->gamma_r_proba->reflect      = ori->gamma_r_proba->reflect;
+  cpy->gamma_r_proba_unscaled->reflect = ori->gamma_r_proba_unscaled->reflect;
+  cpy->gamma_rr->reflect           = ori->gamma_rr->reflect;
+  cpy->gamma_rr_unscaled->reflect  = ori->gamma_rr_unscaled->reflect;
+  cpy->kappa->reflect              = ori->kappa->reflect            ;
+  cpy->lambda->reflect             = ori->lambda->reflect           ;
+  cpy->alpha->reflect              = ori->alpha->reflect            ;
+  cpy->pinvar->reflect             = ori->pinvar->reflect           ;
+  cpy->alpha_old->reflect          = ori->alpha_old->reflect        ;
+  cpy->kappa_old->reflect          = ori->kappa_old->reflect        ;
+  cpy->lambda_old->reflect         = ori->lambda_old->reflect       ;
+  cpy->pinvar_old->reflect         = ori->pinvar_old->reflect       ;
+  cpy->br_len_multiplier->reflect  = ori->br_len_multiplier->reflect       ;
+  cpy->rr->reflect                 = ori->rr->reflect       ;
+  cpy->rr_val->reflect             = ori->rr_val->reflect       ;
+  cpy->rr_num->reflect             = ori->rr_num->reflect       ;
+  cpy->n_rr_per_cat->reflect       = ori->n_rr_per_cat->reflect       ;
+  cpy->Pij_rr->reflect             = ori->Pij_rr->reflect       ;
+  cpy->mr->reflect                 = ori->mr->reflect       ;
+  cpy->user_b_freq->reflect        = ori->user_b_freq->reflect       ;
+  cpy->qmat->reflect               = ori->qmat->reflect       ;
+  cpy->qmat_buff->reflect          = ori->qmat_buff->reflect       ;
+  cpy->eigen->reflect              = ori->eigen->reflect;
+
+
   if(cpy->alpha_old->reflect         == YES)   { cpy->alpha_old->v         = ori->alpha_old->v;}
   if(cpy->kappa_old->reflect         == YES)   { cpy->kappa_old->v         = ori->alpha_old->v;}
   if(cpy->lambda_old->reflect        == YES)   { cpy->lambda_old->v        = ori->lambda_old->v;}
@@ -7407,6 +7546,10 @@ void Record_Model(model *ori, model *cpy)
   if(cpy->pinvar->reflect            == YES)   { cpy->pinvar->v            = ori->pinvar->v;}
   if(cpy->br_len_multiplier->reflect == YES)   { cpy->br_len_multiplier->v = ori->br_len_multiplier->v;}
 
+  strcpy(cpy->modelname,ori->modelname);
+  strcpy(cpy->custom_mod_string,ori->custom_mod_string);
+  
+  cpy->mod_num              = ori->mod_num;
   cpy->whichmodel           = ori->whichmodel;
   cpy->update_eigen         = ori->update_eigen;
   cpy->bootstrap            = ori->bootstrap;
@@ -7417,7 +7560,10 @@ void Record_Model(model *ori, model *cpy)
   cpy->log_l                = ori->log_l;
   cpy->free_mixt_rates      = ori->free_mixt_rates;
   cpy->state_len            = ori->state_len;
-  
+  cpy->gamma_median         = ori->gamma_median;
+  cpy->prob                 = ori->prob;
+  cpy->unscaled_prob        = ori->unscaled_prob;
+
   if((ori->whichmodel == CUSTOM) || (ori->whichmodel == GTR))
     {
       For(i,ori->ns*(ori->ns-1)/2)
@@ -7435,6 +7581,8 @@ void Record_Model(model *ori, model *cpy)
       if(cpy->pi_unscaled->reflect == YES) cpy->pi_unscaled->v[i] = ori->pi_unscaled->v[i];
       if(cpy->user_b_freq->reflect == YES) cpy->user_b_freq->v[i] = ori->user_b_freq->v[i];
     }
+  
+
   
   if(cpy->qmat->reflect == YES)
     For(i,cpy->ns*cpy->ns) cpy->qmat->v[i] = ori->qmat->v[i];
@@ -9543,6 +9691,8 @@ eigen *Make_Eigen_Struct(int ns)
   eig->r_e_vect_im = (phydbl *)mCalloc(ns*ns,sizeof(phydbl));
   eig->l_e_vect    = (phydbl *)mCalloc(ns*ns,sizeof(phydbl));
   eig->q           = (phydbl *)mCalloc(ns*ns,sizeof(phydbl));
+
+  Init_Eigen_Struct(eig);
 
   return eig;
 }
@@ -11706,7 +11856,6 @@ void Best_Of_NNI_And_SPR(t_tree *tree)
       ori_mod   = Copy_Model(tree->mod);
       best_mod  = Copy_Model(tree->mod);
       
-
       ori_tree = Make_Tree_From_Scratch(tree->n_otu,tree->data);
 
 /*       ori_tree = Make_Tree(tree->n_otu); */
@@ -11725,9 +11874,11 @@ void Best_Of_NNI_And_SPR(t_tree *tree)
       Record_Br_Len(tree);
       For(i,2*tree->n_otu-3) ori_bl[i] = tree->t_edges[i]->l;
 
+
       best_lnL = UNLIKELY;
       Lk(tree);
       ori_lnL = tree->c_lnL; /* Record likelihood of the starting tree */
+
 
 
       Simu_Loop(tree); /* Perform simultaneous NNIs */
@@ -11745,6 +11896,7 @@ void Best_Of_NNI_And_SPR(t_tree *tree)
       
       /* Make sure the tree is in its original form */
       Lk(tree);
+
 
       if(FABS(tree->c_lnL - ori_lnL) > tree->mod->s_opt->min_diff_lk_global)
 	{
@@ -11766,6 +11918,11 @@ void Best_Of_NNI_And_SPR(t_tree *tree)
 	}
       
       Copy_Tree(best_tree,tree);
+      Fill_Dir_Table(tree);
+      Update_Dirs(tree);
+      Init_P_Lk_Tips_Int(tree);
+      Init_Ui_Tips(tree);
+      Init_P_Pars_Tips(tree);
       For(i,2*tree->n_otu-3) tree->t_edges[i]->l = best_bl[i];
       Record_Model(best_mod,tree->mod);
       

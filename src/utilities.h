@@ -526,6 +526,7 @@ typedef struct __Tree{
   phydbl                           norm_scale;
   
   short int                   br_len_recorded;
+  int                           max_spr_depth;
 }t_tree;
 
 /*!********************************************************/
@@ -1627,6 +1628,7 @@ void Init_Vect_Int(int len, vect_int *p);
 void Init_Eigen_Struct(eigen *this);
 void Swap_Nodes_On_Edges(t_edge *e1, t_edge *e2, int swap, t_tree *tree);
 void Reorganize_Edges_Given_Lk_Struct(t_tree *tree);
+void Print_Model(model *mod);
 
 #include "free.h"
 #include "spr.h"
