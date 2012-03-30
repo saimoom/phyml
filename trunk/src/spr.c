@@ -3659,7 +3659,6 @@ void Speed_Spr(t_tree *tree, int max_cycles)
       tree->perform_spr_right_away = 1;
       Spr(UNLIKELY,tree);
       
-
       if(!tree->mod->s_opt->spr_pars)
 	{	  
 	  /* Optimise branch lengths */
@@ -4427,12 +4426,15 @@ void SPR_Shuffle(t_tree *tree)
     }while(n_rand_cycles < 1);
   
   Copy_Tree(best_tree,tree);
-  Reorganize_Edges_Given_Lk_Struct(tree);
+  Share_Lk_Struct(start_tree,tree);
   Fill_Dir_Table(tree);
   Update_Dirs(tree);
   Init_P_Lk_Tips_Int(tree);
   Init_Ui_Tips(tree);
   Init_P_Pars_Tips(tree);
+
+  Free_Tree(start_tree);
+  Free_Tree(best_tree);
 
   tree->mod->n_catg = ori_catg;
 
