@@ -3782,6 +3782,8 @@ void Swap_Nodes_On_Edges(t_edge *e1, t_edge *e2, int swap, t_tree *tree)
   e2->left->l[e2->l_r] = e2->l;
   e2->rght->l[e2->r_l] = e2->l;
 
+  printf("\n. Swap edge %d (%d %d) with %d (%d %d)",e1->num,e1->left->num,e1->rght->num,e2->num,e2->left->num,e2->rght->num);
+
   if(swap == NO)
     {
       buff = e1->left;

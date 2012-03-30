@@ -20,17 +20,51 @@ the GNU public licence.  See http://www.opensource.org for details.
 void Simu_Loop(t_tree *tree)
 {
   phydbl lk_old;
+  phydbl ori_catg;
+  int ori_print;
 
   tree->both_sides = 0;
   Lk(tree);
 
-  if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n. Maximizing likelihood (using NNI moves)...\n");
+
+  if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n. Refining the input tree...\n");
+
+  ori_catg                            = tree->mod->n_catg;
+  ori_print                           = tree->mod->s_opt->print;
+  tree->mod->n_catg                   = MIN(2,ori_catg);
+  tree->mod->s_opt->print             = NO;
+  Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
+  tree->best_pars                     = 1E+8;
+  tree->mod->s_opt->spr_pars          = 0;
+  tree->mod->s_opt->quickdirty        = 0;
+  tree->best_lnL                      = tree->c_lnL;
+  tree->mod->s_opt->max_delta_lnL_spr = 0.;
+  tree->mod->s_opt->br_len_in_spr     = 1;
+  tree->mod->s_opt->max_depth_path    = 2*tree->n_otu-3;
+  tree->mod->s_opt->spr_lnL           = NO;
+
+
+  do
+    {
+      lk_old = tree->c_lnL;
+      Speed_Spr(tree,1);
+      if((tree->n_improvements < 20) ||
+  	 (tree->max_spr_depth  < 5) ||
+  	 (FABS(lk_old-tree->c_lnL) < 1.)) break;
+    }while(1);
   
+  tree->mod->n_catg = ori_catg;
+  tree->mod->s_opt->print = ori_print;
+  
+  if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n. Maximizing likelihood (using NNI moves)...\n");
+
+  int n_tot_moves = 0;
   do
     {
       lk_old = tree->c_lnL;
       Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));      
-      if(!Simu(tree,10)) Check_NNI_Five_Branches(tree);
+      n_tot_moves = Simu(tree,10);
+      if(!n_tot_moves) break;
     }
   while(tree->c_lnL > lk_old + tree->mod->s_opt->min_diff_lk_global);
 
@@ -62,7 +96,8 @@ int Simu(t_tree *tree, int n_step_max)
   old_loglk           = UNLIKELY;
   tree->c_lnL         = UNLIKELY;
   n_iter              = 1.0;
-  it_lim_without_swap = (tree->mod->invar)?(5):(2);
+  /* it_lim_without_swap = (tree->mod->invar)?(5):(2); */
+  it_lim_without_swap = (tree->mod->invar)?(1):(1);
   n_tested            = 0;
   n_without_swap      = 0;
   step                = 0;
@@ -153,7 +188,7 @@ int Simu(t_tree *tree, int n_step_max)
   Free(sorted_b);
   Free(tested_b);
 
-  return n_tested;
+  return n_tot_swap;
 }
 
 //////////////////////////////////////////////////////////////
