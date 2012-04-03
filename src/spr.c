@@ -4421,8 +4421,7 @@ void SPR_Shuffle(t_tree *tree)
 				start_tree,
 				start_tree->data);
 
-	  if((start_tree->n_improvements < 20) ||
-	     /* (start_tree->max_spr_depth  < 5) ||  */
+	  if((start_tree->n_improvements < 20 && start_tree->max_spr_depth  < 5) ||
 	     (FABS(lk_old-start_tree->c_lnL) < 1.)) break;
 	}while(1);
 
