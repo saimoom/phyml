@@ -4387,7 +4387,8 @@ void SPR_Shuffle(t_tree *tree)
     {
       n_rand_cycles++;
 
-      Random_Tree(start_tree);
+      /* Random_Tree(start_tree); */
+      Copy_Tree(tree,start_tree);
       Share_Lk_Struct(tree,start_tree);
       Share_Spr_Struct(tree,start_tree);
       Share_Pars_Struct(tree,start_tree);
