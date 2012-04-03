@@ -3554,7 +3554,7 @@ void Speed_Spr_Loop(t_tree *tree)
 
   if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n\n. Maximizing likelihood (using SPR moves)...\n");
 
-  /* SPR_Shuffle(tree); */
+  SPR_Shuffle(tree);
 	  
   Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
   tree->best_lnL = tree->c_lnL;
@@ -3563,10 +3563,10 @@ void Speed_Spr_Loop(t_tree *tree)
   /*****************************/
   lk_old = UNLIKELY;
   tree->mod->s_opt->br_len_in_spr     = 10;
-  tree->mod->s_opt->max_delta_lnL_spr = (tree->io->datatype == NT)?(50.):(0.);
-  tree->mod->s_opt->max_depth_path    = 2*tree->n_otu-3;
-  /* tree->mod->s_opt->max_delta_lnL_spr = (tree->io->datatype == NT)?(10.):(0.); */
-  /* tree->mod->s_opt->max_depth_path    = 5; */
+  /* tree->mod->s_opt->max_delta_lnL_spr = (tree->io->datatype == NT)?(50.):(0.); */
+  /* tree->mod->s_opt->max_depth_path    = 2*tree->n_otu-3; */
+  tree->mod->s_opt->max_delta_lnL_spr = (tree->io->datatype == NT)?(10.):(0.);
+  tree->mod->s_opt->max_depth_path    = 5;
   tree->mod->s_opt->spr_lnL           = NO;
   do
     {
@@ -3575,6 +3575,8 @@ void Speed_Spr_Loop(t_tree *tree)
       if(tree->n_improvements) Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
       if((tree->io->datatype == NT) && ((tree->max_spr_depth < 4) || (tree->n_improvements < 10) || (FABS(lk_old-tree->c_lnL) < 1.))) break;
       if((tree->io->datatype == AA) && ((tree->max_spr_depth < 4) || (tree->n_improvements < 1)  || (FABS(lk_old-tree->c_lnL) < 1.))) break;
+      /* if((tree->io->datatype == NT) & (tree->n_improvements < 10) || (FABS(lk_old-tree->c_lnL) < 1.)) break; */
+      /* if((tree->io->datatype == AA) & (tree->n_improvements < 1) || (FABS(lk_old-tree->c_lnL) < 1.)) break; */
     }
   while(1);
   /*****************************/
@@ -3594,6 +3596,7 @@ void Speed_Spr_Loop(t_tree *tree)
   	  Speed_Spr(tree,1);
   	  if(tree->n_improvements) Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
   	  if((!tree->n_improvements) || (FABS(lk_old-tree->c_lnL) < 1.) || (tree->max_spr_depth < 3)) break;
+	  /* if((!tree->n_improvements) || (FABS(lk_old-tree->c_lnL) < 1.)) break; */
   	}
       while(1);
     }
@@ -4388,8 +4391,8 @@ void SPR_Shuffle(t_tree *tree)
     {
       n_rand_cycles++;
 
-      /* Random_Tree(start_tree); */
-      Copy_Tree(tree,start_tree);
+      Random_Tree(start_tree);
+      /* Copy_Tree(tree,start_tree); */
       Share_Lk_Struct(tree,start_tree);
       Share_Spr_Struct(tree,start_tree);
       Share_Pars_Struct(tree,start_tree);
@@ -4401,7 +4404,7 @@ void SPR_Shuffle(t_tree *tree)
       Br_Len_Not_Involving_Invar(start_tree);
       start_tree->best_pars = start_tree->c_pars;
       start_tree->best_lnL  = start_tree->c_lnL;
-      start_tree->mod->s_opt->max_delta_lnL_spr = 0.;
+      start_tree->mod->s_opt->max_delta_lnL_spr = 10.;
       start_tree->mod->s_opt->br_len_in_spr     = 1;
       start_tree->mod->s_opt->max_depth_path    = 2*tree->n_otu-3;
       start_tree->mod->s_opt->spr_lnL           = NO;
@@ -4419,7 +4422,7 @@ void SPR_Shuffle(t_tree *tree)
 				start_tree->data);
 
 	  if((start_tree->n_improvements < 20) ||
-	     (start_tree->max_spr_depth  < 5) || 
+	     /* (start_tree->max_spr_depth  < 5) ||  */
 	     (FABS(lk_old-start_tree->c_lnL) < 1.)) break;
 	}while(1);
 
