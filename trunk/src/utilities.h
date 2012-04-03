@@ -512,7 +512,7 @@ typedef struct __Tree{
   phydbl                        sum_y_dist_sq;
   phydbl                           sum_y_dist;
   phydbl                      tip_order_score;
-
+  phydbl                                 temp; /*! temperature for the simulated annealing algo */
   int                         write_tax_names;
   int                    update_alias_subpatt;
 
