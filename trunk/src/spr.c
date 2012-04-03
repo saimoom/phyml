@@ -3565,9 +3565,9 @@ void Speed_Spr_Loop(t_tree *tree)
   lk_old = UNLIKELY;
   tree->mod->s_opt->br_len_in_spr     = 10;
   /* tree->mod->s_opt->max_delta_lnL_spr = (tree->io->datatype == NT)?(50.):(0.); */
-  /* tree->mod->s_opt->max_depth_path    = 2*tree->n_otu-3; */
+  tree->mod->s_opt->max_depth_path    = 2*tree->n_otu-3;
   tree->mod->s_opt->max_delta_lnL_spr = (tree->io->datatype == NT)?(10.):(0.);
-  tree->mod->s_opt->max_depth_path    = 5;
+  /* tree->mod->s_opt->max_depth_path    = 5; */
   tree->mod->s_opt->spr_lnL           = NO;
   do
     {
@@ -4420,7 +4420,7 @@ void SPR_Shuffle(t_tree *tree)
       Br_Len_Not_Involving_Invar(start_tree);
       start_tree->best_pars = start_tree->c_pars;
       start_tree->best_lnL  = start_tree->c_lnL;
-      start_tree->mod->s_opt->max_delta_lnL_spr = 20.;
+      start_tree->mod->s_opt->max_delta_lnL_spr = 10.;
       start_tree->mod->s_opt->br_len_in_spr     = 1;
       start_tree->mod->s_opt->max_depth_path    = 2*tree->n_otu-3;
       start_tree->mod->s_opt->spr_lnL           = NO;
