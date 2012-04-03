@@ -4425,7 +4425,8 @@ void SPR_Shuffle(t_tree *tree)
       start_tree->mod->s_opt->max_depth_path    = 2*tree->n_otu-3;
       start_tree->mod->s_opt->spr_lnL           = NO;
 
-      start_tree->temp = 6.;
+      /* start_tree->temp = 6.; */
+      start_tree->temp = 0.;
       do
 	{
 
