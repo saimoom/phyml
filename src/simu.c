@@ -70,11 +70,11 @@ void Simu_Loop(t_tree *tree)
 
   do
     {
-      if(!Check_NNI_Five_Branches(tree)) break;
+      Round_Optimize(tree,tree->data,ROUND_MAX);
+      if(!Check_NNI_Five_Branches(tree)) break;      
     }while(1);
   /*****************************/
   
-  Round_Optimize(tree,tree->data,ROUND_MAX);
 
   if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n");
 
