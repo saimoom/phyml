@@ -3567,7 +3567,7 @@ void Speed_Spr_Loop(t_tree *tree)
   tree->mod->s_opt->max_depth_path    = 2*tree->n_otu-3;
   /* tree->mod->s_opt->max_delta_lnL_spr = (tree->io->datatype == NT)?(10.):(0.); */
   /* tree->mod->s_opt->max_depth_path    = 5; */
-  tree->mod->s_opt->spr_lnL           = 0;
+  tree->mod->s_opt->spr_lnL           = NO;
   do
     {
       lk_old = tree->c_lnL;
@@ -3585,9 +3585,9 @@ void Speed_Spr_Loop(t_tree *tree)
     {
       lk_old = UNLIKELY;
       tree->mod->s_opt->max_delta_lnL_spr = 20.;
-      tree->mod->s_opt->br_len_in_spr     = 1;
       tree->mod->s_opt->max_depth_path    = 10;
-      tree->mod->s_opt->spr_lnL           = 1;
+      tree->mod->s_opt->br_len_in_spr     = 1;
+      tree->mod->s_opt->spr_lnL           = YES;
       do
   	{
   	  lk_old = tree->c_lnL;
