@@ -3554,7 +3554,6 @@ void Speed_Spr_Loop(t_tree *tree)
 
   if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n\n. Maximizing likelihood (using SPR moves)...\n");
 
-
   SPR_Shuffle(tree);
 	  
   Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
@@ -3563,9 +3562,10 @@ void Speed_Spr_Loop(t_tree *tree)
  
   /*****************************/
   lk_old = UNLIKELY;
-  tree->mod->s_opt->max_delta_lnL_spr = (tree->io->datatype == NT)?(10.):(0.);
   tree->mod->s_opt->br_len_in_spr     = 10;
+  /* tree->mod->s_opt->max_delta_lnL_spr = (tree->io->datatype == NT)?(50.):(0.); */
   /* tree->mod->s_opt->max_depth_path    = 2*tree->n_otu-3; */
+  tree->mod->s_opt->max_delta_lnL_spr = (tree->io->datatype == NT)?(10.):(0.);
   tree->mod->s_opt->max_depth_path    = 5;
   tree->mod->s_opt->spr_lnL           = 0;
   do
@@ -3618,6 +3618,7 @@ void Speed_Spr_Loop(t_tree *tree)
     }while(1);
   /*****************************/
 
+  Round_Optimize(tree,tree->data,ROUND_MAX);
 /*   if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n"); */
 
 }
@@ -4387,8 +4388,8 @@ void SPR_Shuffle(t_tree *tree)
     {
       n_rand_cycles++;
 
-      Random_Tree(start_tree);
-      /* Copy_Tree(tree,start_tree); */
+      /* Random_Tree(start_tree); */
+      Copy_Tree(tree,start_tree);
       Share_Lk_Struct(tree,start_tree);
       Share_Spr_Struct(tree,start_tree);
       Share_Pars_Struct(tree,start_tree);
@@ -4398,8 +4399,6 @@ void SPR_Shuffle(t_tree *tree)
       Init_Ui_Tips(start_tree);
       Init_P_Pars_Tips(start_tree);
       Br_Len_Not_Involving_Invar(start_tree);
-      if(n_rand_cycles == 1) Optimiz_All_Free_Param(start_tree,(start_tree->io->quiet)?(0):(start_tree->mod->s_opt->print));
-      else Lk(start_tree);
       start_tree->best_pars = start_tree->c_pars;
       start_tree->best_lnL  = start_tree->c_lnL;
       start_tree->mod->s_opt->max_delta_lnL_spr = 0.;
@@ -4411,6 +4410,13 @@ void SPR_Shuffle(t_tree *tree)
 	{
 	  lk_old = tree->c_lnL;
 	  Speed_Spr(start_tree,1);
+
+	  Optimiz_All_Free_Param(start_tree,(start_tree->io->quiet)?(0):(start_tree->mod->s_opt->print));
+	  Optimize_Br_Len_Serie(start_tree->t_nodes[0],
+				start_tree->t_nodes[0]->v[0],
+				start_tree->t_nodes[0]->b[0],
+				start_tree,
+				start_tree->data);
 
 	  if((start_tree->n_improvements < 20) ||
 	     (start_tree->max_spr_depth  < 5) || 
@@ -4424,7 +4430,7 @@ void SPR_Shuffle(t_tree *tree)
   	  Copy_Tree(start_tree,best_tree);
   	}
 
-    }while(n_rand_cycles < 3);
+    }while(n_rand_cycles < 1);
   
   Copy_Tree(best_tree,tree);
   Share_Lk_Struct(start_tree,tree);
