@@ -74,6 +74,8 @@ void Simu_Loop(t_tree *tree)
     }while(1);
   /*****************************/
   
+  Round_Optimize(tree,tree->data,ROUND_MAX);
+
   if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n");
 
 }
