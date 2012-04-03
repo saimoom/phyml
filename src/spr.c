@@ -3573,7 +3573,7 @@ void Speed_Spr_Loop(t_tree *tree)
       lk_old = tree->c_lnL;
       Speed_Spr(tree,1);
       if(tree->n_improvements) Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
-      if((tree->io->datatype == NT) && ((tree->max_spr_depth < 4) || (tree->n_improvements < 10) || (FABS(lk_old-tree->c_lnL) < 1.))) break;
+      if((tree->io->datatype == NT) && ((tree->max_spr_depth < 4 && tree->n_improvements < 10) || (FABS(lk_old-tree->c_lnL) < 1.))) break;
       if((tree->io->datatype == AA) && ((tree->max_spr_depth < 4) || (tree->n_improvements < 1)  || (FABS(lk_old-tree->c_lnL) < 1.))) break;
       /* if((tree->io->datatype == NT) & (tree->n_improvements < 10) || (FABS(lk_old-tree->c_lnL) < 1.)) break; */
       /* if((tree->io->datatype == AA) & (tree->n_improvements < 1) || (FABS(lk_old-tree->c_lnL) < 1.)) break; */
@@ -3595,7 +3595,7 @@ void Speed_Spr_Loop(t_tree *tree)
   	  lk_old = tree->c_lnL;
   	  Speed_Spr(tree,1);
   	  if(tree->n_improvements) Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
-  	  if((!tree->n_improvements) || (FABS(lk_old-tree->c_lnL) < 1.) || (tree->max_spr_depth < 3)) break;
+  	  if((!tree->n_improvements) || (FABS(lk_old-tree->c_lnL) < 1. && tree->max_spr_depth < 3)) break;
 	  /* if((!tree->n_improvements) || (FABS(lk_old-tree->c_lnL) < 1.)) break; */
   	}
       while(1);
