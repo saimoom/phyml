@@ -4387,8 +4387,8 @@ void SPR_Shuffle(t_tree *tree)
     {
       n_rand_cycles++;
 
-      /* Random_Tree(start_tree); */
-      Copy_Tree(tree,start_tree);
+      Random_Tree(start_tree);
+      /* Copy_Tree(tree,start_tree); */
       Share_Lk_Struct(tree,start_tree);
       Share_Spr_Struct(tree,start_tree);
       Share_Pars_Struct(tree,start_tree);
@@ -4424,7 +4424,7 @@ void SPR_Shuffle(t_tree *tree)
   	  Copy_Tree(start_tree,best_tree);
   	}
 
-    }while(n_rand_cycles < 1);
+    }while(n_rand_cycles < 3);
   
   Copy_Tree(best_tree,tree);
   Share_Lk_Struct(start_tree,tree);
