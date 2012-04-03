@@ -3255,7 +3255,8 @@ void Spr_Subtree(t_edge *b, t_node *link, t_tree *tree)
 	      /* printf("\n. 2"); fflush(NULL); */
 	      /* if(!Check_Lk_At_Given_Edge(tree)) Exit("\n"); */
 
-	      if((best_move > -1) && (tree->spr_list[best_move]->lnL > tree->best_lnL + tree->mod->s_opt->min_diff_lk_move)) 
+	      /* if((best_move > -1) && (tree->spr_list[best_move]->lnL > tree->best_lnL + tree->mod->s_opt->min_diff_lk_move))  */
+	      if((best_move > -1) && (tree->spr_list[best_move]->lnL > tree->best_lnL - tree->mod->s_opt->max_delta_lnL_spr)) 
 		{
 		  Try_One_Spr_Move_Triple(tree->spr_list[best_move],tree);
 		  ret_val = 1;
@@ -3962,7 +3963,8 @@ int Try_One_Spr_Move_Triple(spr *move, t_tree *tree)
   t_edge *init_target, *b_residual;
   int j;
   int dir_v0, dir_v1, dir_v2;
-
+  int accept;
+  phydbl u;
 
   Record_Br_Len(tree);
 
@@ -3997,8 +3999,22 @@ int Try_One_Spr_Move_Triple(spr *move, t_tree *tree)
       move->n_link->b[dir_v2]->l = move->l2;
     }
 
-  if((move->lnL > tree->best_lnL + tree->mod->s_opt->min_diff_lk_move) &&
-     Check_Topo_Constraints(tree,tree->io->cstr_tree)) /* Apply the move */
+
+  accept = YES;
+  if(!Check_Topo_Constraints(tree,tree->io->cstr_tree)) accept = NO;
+  if(accept)
+    {
+      u = Uni();
+      if(!(u < EXP((move->lnL - tree->best_lnL)/tree->temp)))
+	accept = NO;      
+
+      if(FABS(move->lnL -tree->best_lnL) < tree->mod->s_opt->min_diff_lk_move)
+	accept = NO;
+    }
+  
+  /* printf("\n. %d %15f %15f",accept,move->lnL - tree->best_lnL,tree->temp); */
+
+  if(accept == YES) /* Apply the move */
     {
       time(&(tree->t_current));
       Pars(tree);
@@ -4404,15 +4420,32 @@ void SPR_Shuffle(t_tree *tree)
       Br_Len_Not_Involving_Invar(start_tree);
       start_tree->best_pars = start_tree->c_pars;
       start_tree->best_lnL  = start_tree->c_lnL;
-      start_tree->mod->s_opt->max_delta_lnL_spr = 10.;
+      start_tree->mod->s_opt->max_delta_lnL_spr = 20.;
       start_tree->mod->s_opt->br_len_in_spr     = 1;
       start_tree->mod->s_opt->max_depth_path    = 2*tree->n_otu-3;
       start_tree->mod->s_opt->spr_lnL           = NO;
 
+      start_tree->temp = 6.;
       do
 	{
+
+	  start_tree->both_sides = YES;
+	  Lk(start_tree);
+	  Pars(start_tree);
+	  Record_Br_Len(start_tree);
+
+	  start_tree->n_improvements            = 0;
+	  start_tree->max_spr_depth             = 0;
+	  start_tree->best_pars                 = start_tree->c_pars;
+	  start_tree->best_lnL                  = start_tree->c_lnL;
+	  
 	  lk_old = tree->c_lnL;
-	  Speed_Spr(start_tree,1);
+	  Spr(UNLIKELY,start_tree);
+	  
+	  start_tree->temp -= 3.;
+	  if(start_tree->temp < .0) start_tree->temp = .0;
+
+	  /* printf("\n. temp=%f n_improv=%d max_depth=%d",start_tree->temp,start_tree->n_improvements,start_tree->max_spr_depth); */
 
 	  Optimiz_All_Free_Param(start_tree,(start_tree->io->quiet)?(0):(start_tree->mod->s_opt->print));
 	  Optimize_Br_Len_Serie(start_tree->t_nodes[0],
@@ -4421,7 +4454,7 @@ void SPR_Shuffle(t_tree *tree)
 				start_tree,
 				start_tree->data);
 
-	  if((start_tree->n_improvements < 20 && start_tree->max_spr_depth  < 5) ||
+	  if(start_tree->n_improvements < 20 || start_tree->max_spr_depth  < 5 ||
 	     (FABS(lk_old-start_tree->c_lnL) < 1.)) break;
 	}while(1);
 
