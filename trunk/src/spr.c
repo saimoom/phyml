@@ -3196,7 +3196,8 @@ void Spr_Subtree(t_edge *b, t_node *link, t_tree *tree)
 	  For(i,tree->n_moves)
 	    {
 	      n_moves++;
-	      if(n_moves > 15) break;
+	      /* if(n_moves > 15) break; */
+	      if(n_moves > 5) break;
 	      if(tree->spr_list[i]->lnL < tree->best_lnL - 2. * tree->mod->s_opt->max_delta_lnL_spr) break;
 	    }
 
@@ -3255,8 +3256,8 @@ void Spr_Subtree(t_edge *b, t_node *link, t_tree *tree)
 	      /* printf("\n. 2"); fflush(NULL); */
 	      /* if(!Check_Lk_At_Given_Edge(tree)) Exit("\n"); */
 
-	      /* if((best_move > -1) && (tree->spr_list[best_move]->lnL > tree->best_lnL + tree->mod->s_opt->min_diff_lk_move))  */
-	      if((best_move > -1) && (tree->spr_list[best_move]->lnL > tree->best_lnL - tree->mod->s_opt->max_delta_lnL_spr)) 
+	      if((best_move > -1) && (tree->spr_list[best_move]->lnL > tree->best_lnL + tree->mod->s_opt->min_diff_lk_move))
+	      /* if((best_move > -1) && (tree->spr_list[best_move]->lnL > tree->best_lnL - tree->mod->s_opt->max_delta_lnL_spr))  */
 		{
 		  Try_One_Spr_Move_Triple(tree->spr_list[best_move],tree);
 		  ret_val = 1;
@@ -3596,8 +3597,7 @@ void Speed_Spr_Loop(t_tree *tree)
   	  lk_old = tree->c_lnL;
   	  Speed_Spr(tree,1);
   	  if(tree->n_improvements) Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
-  	  if((!tree->n_improvements) || (FABS(lk_old-tree->c_lnL) < 1. && tree->max_spr_depth < 3)) break;
-	  /* if((!tree->n_improvements) || (FABS(lk_old-tree->c_lnL) < 1.)) break; */
+	  if((!tree->n_improvements) || (FABS(lk_old-tree->c_lnL) < 1.)) break;
   	}
       while(1);
     }
@@ -4400,7 +4400,7 @@ void SPR_Shuffle(t_tree *tree)
   start_tree->t_beg              = tree->t_beg;
   start_tree->mod->n_catg        = MIN(2,ori_catg);
   
-  if(tree->mod->s_opt->print) PhyML_Printf("\n. Beginning of randomization cycles...\n");
+  if(tree->mod->s_opt->print) PhyML_Printf("\n. Refining the tree...\n");
 
 
   do
@@ -4420,7 +4420,7 @@ void SPR_Shuffle(t_tree *tree)
       Br_Len_Not_Involving_Invar(start_tree);
       start_tree->best_pars = start_tree->c_pars;
       start_tree->best_lnL  = start_tree->c_lnL;
-      start_tree->mod->s_opt->max_delta_lnL_spr = 10.;
+      start_tree->mod->s_opt->max_delta_lnL_spr = 0.;
       start_tree->mod->s_opt->br_len_in_spr     = 1;
       start_tree->mod->s_opt->max_depth_path    = 2*tree->n_otu-3;
       start_tree->mod->s_opt->spr_lnL           = NO;
