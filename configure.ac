@@ -65,6 +65,7 @@ AS_IF([test "x$enable_debug" = "xyes"],
       dnl [CFLAGS="-ansi -pedantic -Wall -std=c99 -O2 -msse -fomit-frame-pointer -funroll-loops ${ARCH_flag}"]) 
       [CFLAGS="-Wall -O2 -msse -fomit-frame-pointer -funroll-loops ${ARCH_flag}"]) 
 
+AM_SILENT_RULES([yes])
 
 
 AC_ARG_ENABLE([mpi],
