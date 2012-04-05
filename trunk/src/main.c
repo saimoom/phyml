@@ -181,6 +181,8 @@ int main(int argc, char **argv)
 		  /* Make_Mixtmod(3,tree); */
 		  
 
+
+
 		  if(io->in_tree == 1) Spr_Pars(tree);
 		 
 		  if(io->do_alias_subpatt)
