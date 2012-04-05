@@ -26,6 +26,7 @@ the GNU public licence. See http://www.opensource.org for details.
 #include <limits.h>
 #include <errno.h>
 #include <float.h>
+#include <mxml.h>
 
 #define For(i,n)                     for(i=0; i<n; i++)
 #define Fors(i,n,s)                  for(i=0; i<n; i+=s)
