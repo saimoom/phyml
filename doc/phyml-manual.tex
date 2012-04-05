@@ -37,7 +37,10 @@
 \begin{center}
 \thispagestyle{empty}
 \vfill\vfill
-{\Huge \textbf{ PhyML~~--~~Manual}}
+% \rule{\linewidth}{0.02cm}\\
+{\Huge \textbf{ P~h~y~M~L~~--~~M~a~n~u~a~l}}
+\vspace{-0.4cm}\\
+% \rule{\linewidth}{0.02cm}\\
 \vfill
 {\huge Version 3.0 \\
 \today
@@ -127,6 +130,15 @@ computers, the  ``comfort zone'' for PhyML generally  lies around 100-200 sequen
 character  long.   For  larger  data  sets,  we  recommend using  other  software's  such  as  RAxML
 \cite{raxml}\index{RAxML}      or       GARLI      \cite{garli}\index{GARLI}      or      Treefinder
 (\href{http://www.treefinder.de}{http://www.treefinder.de}).
+
+
+\section{Bug report}\index{bug}
+
+While PhyML is, of  course, bug-free (!) (please read the disclaimer  carefuly...), if you ever come
+across an  issue, please feel free to  report it using the  discuss group web site  at the following
+address:  \url{https://groups.google.com/forum/?fromgroups#!forum/phyml-forum}.  Alternatively,  you
+can send an email  to \url{s.guindon@auckland.ac.nz}. Do not forget to mention  the version of PhyML
+and program options you are using.
 
 
 \section{Installing PhyML}
@@ -597,6 +609,14 @@ time to complete.
 When an input tree with branch lengths is provided, this option will find the branch multiplier that
 maximises the likelihood (i.e., the relative branch lengths remain constant)
 
+\item  \x{--constraint\_file}  \x{file\_name} \index{command-line  options!\x{--constraint\_file}}\\
+\x{file\_name}  lists  the  topological  constraints   under  which  the  tree  topology  search  is
+conducted.  This option  should  be used  in  conjunction with  \x{-u}  \x{file\_name}. See  Section
+\ref{sec:topoconstraints} for more information.
+
+\item \x{--quiet} \index{command-line options!\x{--quiet}}\\
+Runs PhyML in quiet mode. The program will not pause if the memory required to run the analysis
+exceeds 256MB and will not output the log-likelihood score to the output.
 
 \end{itemize}
 
@@ -920,6 +940,35 @@ frequencies and must be separated from the rate  matrix by one line. The orderin
 is alphabetical,  i.e, Ala, Arg, Asn, Asp,  Cys, Gln, Glu, Gly,  His, Ile, Leu, Lys,  Met, Phe, Pro,
 Ser, Thr, Trp, Tyr and Val.
 
+
+\subsection{Topological constraint file}\label{sec:topoconstraints}
+
+PhyML can perform phylogenetic tree estimation under user-specified topological constraints. In
+order to do so, one should use the \x{--constraint\_file}  \x{file\_name} command-line option where 
+\x{file\_name} lists the topological constraints. Such constraints are  straightforward to
+define. For instance, the following constraints: 
+\begin{Verbatim}
+((A,B,C),(D,E,F));
+\end{Verbatim} 
+indicate that taxa A, B and C belong to the same clade. D, E and F also belong to the
+same  clade and the  two clades  hence defined  should not  overlap. For  instance, under  these two
+constraints, the tree ((A,B),D,((E,F),C)) is not valid. From the example above, you will notice that
+the constraints are defined  using a multifurcating tree in NEWICK format.  Note that this tree does
+not need to display the whole list of taxa. For instance, while the only taxa involved in specifying
+topological constraints above  are A, B, C, D, E  \& F, the actual data set  could include more than
+these six taxa only.
+
+PhyML tree topology  search algorithms all rely on  improving a starting tree. By  default, BioNJ is
+the method  of choice  for building this  tree. However,  there is no  guarantee that  the phylogeny
+estimated with PhyML does comply with the  topological constraints. While it is probably possible to
+implement  BioNJ  with  topological constraints,  we  have  not  done  so  yet.  Instead,  the  same
+multifurcating tree  that defines the topological constraints  should also be used  as starting tree
+using  the \x{-u}  (\x{--inputtree})  option. Altogether,  the  command line  should  look like  the
+following: \x{-u}=\x{file\_name} \x{--constraint\_file}=\x{file\_name}.
+
+
+
+
 \subsection{Output files}
 
 \begin{table}
@@ -995,14 +1044,14 @@ following sections.
 estimates node  ages and substitution rates  using a fast Bayesian  approach.  It relies  on a Gibbs
 sampler which outperforms the ``standard''  Metropolis-Hastings algorithm implemented in a number of
 phylogenetic softwares.  The details and performance of this approach are described in the following
-article:  Guindon  S.   ``Bayesian  estimation  of  divergence times  from  large  data  sets'',  {\it
+article:  Guindon  S.  ``Bayesian  estimation  of  divergence times  from  large  data sets'',  {\it
 Mol. Biol. Evol.}, 2010, 27(8):1768:81.
 
 \subsubsection{Installing PhyTime}
 
 Compiling PhyTime is straightforward on Unix-like  machines (i.e., linux and MacOS systems). PhyTime
 is not readily available for Windows machines but  compilation should be easy on this system too. In
-the `phyml' directory, where the `src/' and `doc/' directories stand, enter the following commands:
+the `phyml' directory, where the `src/'  and `doc/' directories stand, enter the following commands:
 {\setlength{\baselineskip}{0.5\baselineskip}
 \begin{verbatim}
 ./configure --enable-phytime;
@@ -1041,7 +1090,26 @@ list of taxa  is followed by the character  `\x{|}' and two real numbers corresp
 and upper bounds of the  calibration interval for the node at the root of  the clade. In the example
 given  here,  the  clade  grouping  the three  taxa  ``Dugong\_dugon'',  ``Procavia\_capensis''  and
 ``Elephantida'' has  -65 as lower  bound and -54  as upper bound.  Node  ages (or node  heights) are
-relative to the most recent tip node in the phylogeny, which age is set to 0. 
+relative to the most recent tip node in the phylogeny, which age is set to 0. It is also possible to
+define a  clade using  only two taxon  names. PhyTime will  then search  for the most  recent common
+ancestor  of these  two  taxa  in the  user-defined  phylogeny and  assign  time  boundaries to  the
+corresponding node. For serially-sampled data, the calibration nodes correspond to tips in the tree.
+A calibration file will then look as follows:
+\begin{figure}[h]
+\begin{small}
+\begin{Verbatim}[frame=single, label=Calibration node file (serially-sampled sequences), samepage=true, baselinestretch=0.5]
+taxaA | -65 -65
+taxaB | -65 -65
+taxaC | -20 -20
+taxaD | -30 -30
+taxaE | -30 -30
+taxaF | -60 -60
+taxaG | -61 -51
+@root@ | -100 -120
+\end{Verbatim}
+\end{small}
+\end{figure}
+
 
 % The maximum  value the average substitution rate  along a branch of  a phylogeny can take  is set to
 % $10^{-2}$ substitution per site per time unit. It  is therefore important that the time unit used to
@@ -1137,22 +1205,36 @@ likelihood values that are sampled. Please read Section \ref{sec:recomphytime} f
 the appropriate steps to take.
 \item \x{--no\_data}\index{command-line options!\x{--no\_data}}\\
 Use this option to sample from the priors only (rather from the posterior joint density of the model parameters).
+\item \x{--rate\_model=gbs/gbd/gamma/clock}\index{command-line options!\x{--rate\_model}}\\
+This option is to select the model of evolution of the rate of evolution. \x{gbs} (default) stands
+for Geometric Brownian + Stochastic. This model considers that rates evolve along the tree
+according to a geometric Brownian process \cite{kishino01} and the average rate of substitution
+along a branch is a gamma distributed random variable. This model is described in \cite{guindon12}.
+The \x{gbd} model (Geometric Browninan with Deterministic calculation of edge lengths) assumes the
+same Geometric Brownian model of rates. However, as opposed to \x{gbs}, this model uses a
+deterministic approximation to calculate the average rates of evolution along edges. This model
+corresponds to the one described in \cite{kishino01} and implemented in the program Multidivtime\index{Multidivtime}.
+\x{gamma} is a less sophisticated model that assumes that average rates along edges are distributed a
+priori according to a gamma distribution. It is analogous to the uncorrelated clock model
+implemented in BEAST\index{BEAST} with a gamma distribution replacing the exponential one. The \x{clock} option
+corresponds to the strict clock model where all the lineages in the tree evolve at the same pace.
 
 
 \end{itemize}
 
 \subsubsection{PhyTime output}
 
-The program PhyTime generates two output files.  The file called `\x{phytime.XXXX}', where XXXX is a
-randomly generated integer, lists the node times and branch relative rates sampled during the
-estimation process.  It also gives the sampled values for other parameters, such as the
-autocorrelation of rates (parameter `Nu'), and the rate of evolution (parameter `EvolRate') amongst
-others.  This output file can be analysed with the program Tracer\index{Tracer} from the
-BEAST\index{BEAST} package (\url{http://beast.bio.ed.ac.uk/Main_Page}). The second file is called
-`\x{phytime.XXXX.trees}'. It is the list of trees that were collected during the estimation process,
-i.e., phylogenies sampled from the posterior density of trees.  This file can be processed using the
-software TreeAnnotator, also part of the BEAST package (see
-\url{http://beast.bio.ed.ac.uk/Main_Page}) in order to generate confidence sets for the node time
+The     program     PhyTime     generates     two     output     files.      The     file     called
+`\x{your\_seqfile\_phytime.XXXX.stats}', where XXXX is a  randomly generated integer, lists the node
+times and branch  relative rates sampled during  the estimation process.  It also  gives the sampled
+values for other parameters, such as the  autocorrelation of rates (parameter `Nu'), and the rate of
+evolution (parameter `EvolRate') amongst others.  This  output file can be analysed with the program
+Tracer\index{Tracer}            from            the            BEAST\index{BEAST}            package
+(\url{http://beast.bio.ed.ac.uk/Main_Page}).       The       second       file       is       called
+`\x{your\_seqfile\_phytime.XXXX.trees}'.  It is the  list of  trees that  were collected  during the
+estimation process, i.e., phylogenies sampled from the posterior density of trees.  This file can be
+processed   using   the   software   TreeAnnotator,   also   part  of   the   BEAST   package   (see
+\url{http://beast.bio.ed.ac.uk/Main_Page}) in  order to generate  confidence sets for the  node time
 estimates.
 
 Important  information is also  displayed on  the standard  output of  PhyTime (the  standard output
@@ -1160,31 +1242,17 @@ generally corresponds to the terminal window from  which PhyTime was launched). 
 this output gives the current  generation, or run, of the chain. It starts at  1 and goes up to 1E+6
 by default (use \x{--chain\_len} to change this value, see above).  The second column gives the time
 elapsed  in seconds since  the sampling  began. The  third column  gives the  log likelihood  of the
-phylogenetic model (i.e.,  `Felsenstein's likelihood'). The fourth column  gives the current sampled
-value of the  EvolRate parameter along with  the corresponding Effective Sample Size  (ESS) for this
-parameter.  The fifth column  gives the tree height and the corresponding  ESS. The EvolRate and the
-tree height parameters are generally considered as  important parameters of the model. They are also
-difficult to  estimate independently if  the signal conveyed  by the calibration intervals  is weak.
-The MCMC technique  generates samples from a  target distribution (in our case,  the joint posterior
-density  of  parameters).  Due  to  the  Markovian  nature of  the  method,  these samples  are  not
-independent.  The  ESS is the estimated  number of independent  measurements obtained from a  set of
-(usually dependent) measurements. It is calculated using the following formula:
-\begin{eqnarray*}
-\mathrm{ESS} = N\left(\frac{1-r}{1+r}\right),
-\end{eqnarray*}
-where  $N$  is the  length  of  the  chain  (i.e., the  `raw'  or `correlated' sample  size)  and $r$  is  the
-autocorrelation value, which is obtained using the following formula:
-\begin{eqnarray*}
-r = \frac{1}{(N-k)\sigma_x^2} \sum_{i=1}^{N-k} (X_i - \mu_x)(X_{i+k}-\mu_x),
-\end{eqnarray*} where $\mu_x$ and $\sigma_x$ are the mean and standard deviation of the $X_i$ values
-respectively and $k$ is the lag. The value of $r$ that is used in PhyTime corresponds to the case where $k=1$,
-which therefore gives a first order  approximation of the `average' autocorrelation value (i.e., the
-autocorrelation averaged over the set of possible values of the lag).
-
-The last column of the standard output gives the  minimum of the ESS values taken over the whole set
-of node height estimates.  It provides useful information when one has to  decide whether or not the
-sample size  is large enough to  draw valid conclusion, i.e.,  decide whether the chain  was run for
-long enough (see Section \ref{sec:recomphytime} for more detail about adequate chain length).
+phylogenetic model (i.e., `Felsenstein's likelihood'). The  fourth column gives the logarithm of the
+joint prior  probability of substitution  rates along  the tree and  node heights. The  fifth column
+gives the  current sampled value  of the EvolRate  parameter along with the  corresponding Effective
+Sample Size (ESS) (see  Section \ref{sec:ess}) for this parameter.  The sixth  column gives the tree
+height  and the  corresponding  ESS.  The seventh  column  gives the  value  of the  autocorrelation
+parameter followed by the  corresponding ESS. The eightth column gives the  values of the birth rate
+parameter that  governs the birth-rate model  of species divergence  dates.  The last column  of the
+standard  output gives  the minimum  of the  ESS  values taken  over the  whole set  of node  height
+estimates.  It provides useful information when one has  to decide whether or not the sample size is
+large enough to draw  valid conclusion, i.e., decide whether the chain was  run for long enough (see
+Section \ref{sec:recomphytime} for more detail about adequate chain length).
 
 \subsubsection{ClockRate vs. EvolRate}
 
@@ -1207,8 +1275,26 @@ ClockRate when referring to the estimate of the substitution rate}}.
 
 
 
+\subsubsection{Effective sample size}\label{sec:ess}
 
-\section{Recommendations on program usage.}\label{sec:progusage}
+The MCMC technique  generates samples from a  target distribution (in our case,  the joint posterior
+density  of  parameters).  Due  to  the  Markovian  nature of  the  method,  these samples  are  not
+independent.  The  ESS is the estimated  number of independent  measurements obtained from a  set of
+(usually dependent) measurements. It is calculated using the following formula:
+\begin{eqnarray*}
+\mathrm{ESS} = N\left(\frac{1-r}{1+r}\right),
+\end{eqnarray*}
+where  $N$  is the  length  of  the  chain  (i.e., the  `raw'  or `correlated' sample  size)  and $r$  is  the
+autocorrelation value, which is obtained using the following formula:
+\begin{eqnarray*}
+r = \frac{1}{(N-k)\sigma_x^2} \sum_{i=1}^{N-k} (X_i - \mu_x)(X_{i+k}-\mu_x),
+\end{eqnarray*} where $\mu_x$ and $\sigma_x$ are the mean and standard deviation of the $X_i$ values
+respectively and $k$ is the lag. The value of $r$ that is used in PhyTime corresponds to the case where $k=1$,
+which therefore gives a first order  approximation of the `average' autocorrelation value (i.e., the
+autocorrelation averaged over the set of possible values of the lag).
+
+
+\section{Recommendations on program usage}\label{sec:progusage}
 
 \subsection{PhyML}
 
