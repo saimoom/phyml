@@ -277,7 +277,7 @@ times.c times.h\
 tiporder.c tiporder.h\
 mg.c mg.h\
 m4.c m4.h
-phyml_LDADD = -lm
+phyml_LDADD = -lm -lmxml -lpthread
 # endif
 endif
 endif
