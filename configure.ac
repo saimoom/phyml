@@ -3,6 +3,10 @@
 
 dnl AC_PREREQ(2.61)
 AC_INIT([PhyML],esyscmd([sh -c "date \"+%Y%m%d\" | tr -d '\n'"]),[s.guindon@auckland.ac.nz])
+AM_SILENT_RULES([yes])
+dnl AM_INIT_AUTOMAKE([foreign])
+dnl m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES])
+
 dnl AC_INIT([PhyML],[beta],[guindon@stat.auckland.ac.nz])
 dnl AC_CONFIG_SRCDIR([simu.c])
 AC_CONFIG_SRCDIR([src/simu.c])
@@ -63,8 +67,6 @@ AS_IF([test "x$enable_debug" = "xyes"],
       [CFLAGS="-ansi -pedantic -Wall -std=c99 -O0 -g"],
       dnl [CFLAGS="-ansi -pedantic -Wall -std=c99 -O2 -msse -fomit-frame-pointer -funroll-loops ${ARCH_flag}"]) 
       [CFLAGS="-Wall -O2 -msse -fomit-frame-pointer -funroll-loops ${ARCH_flag}"]) 
-
-dnl AM_SILENT_RULES([yes])
 
 
 AC_ARG_ENABLE([mpi],
