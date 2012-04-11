@@ -12,10 +12,10 @@ the GNU public licence. See http://www.opensource.org for details.
 
 #include <config.h>
 
-#ifdef MPI
+#ifndef MPI_H
+#define MPI_H
 
 #include "mpi.h"
-
 #include "utilities.h"
 #include "bionj.h"
 #include "lk.h"

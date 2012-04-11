@@ -339,7 +339,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	  }
 	case 49:
 	  {
-	    PhyML_Printf("%s\n",VERSION);
+	    PhyML_Printf("\n. This is PhyML version %s.\n\n",VERSION);
 	    Exit("");
 	    break;
 	  }	  

@@ -1,7 +1,7 @@
 /*
 
 PhyML:  a program that  computes maximum likelihood phyLOGenies from
-DNA or AA homoLOGous sequences.
+DNA or AA homologous sequences.
 
 Copyright (C) Stephane Guindon. Oct 2003 onward.
 
@@ -12,8 +12,7 @@ the GNU public licence. See http://www.opensource.org for details.
 
 #include "mpi_boot.h"
 
-
-#ifdef MPI
+/* #ifdef MPI */
 
 /*********************************************************/
 
@@ -524,4 +523,4 @@ void Print_Fp_Out_Lines_MPI(t_tree *tree, option *io, int n_data_set, char *boot
 
   return;
 }
-#endif
+/* #endif */

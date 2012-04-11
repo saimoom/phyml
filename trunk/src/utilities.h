@@ -1629,6 +1629,8 @@ void Init_Eigen_Struct(eigen *this);
 void Swap_Nodes_On_Edges(t_edge *e1, t_edge *e2, int swap, t_tree *tree);
 void Reorganize_Edges_Given_Lk_Struct(t_tree *tree);
 void Print_Model(model *mod);
+char *To_Lower_String(char *in);
+
 
 #include "free.h"
 #include "spr.h"

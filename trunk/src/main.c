@@ -479,5 +479,22 @@ int main(int argc, char **argv)
   return 1;
 }
 
+
+#elif(TEST)
+#include "xml.h"
+int main(int argc, char **argv)
+{
+  FILE *fp;
+  xml_node *root;
+
+  root = XML_New_Node(NULL,NULL);
+  
+  fp = fopen(argv[1],"r");
+  
+  XML_Load_File(fp,root);
+
+  return 1;
+}
+
 #endif
 
