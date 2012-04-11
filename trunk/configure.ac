@@ -3,9 +3,9 @@
 
 dnl AC_PREREQ(2.61)
 AC_INIT([PhyML],esyscmd([sh -c "date \"+%Y%m%d\" | tr -d '\n'"]),[s.guindon@auckland.ac.nz])
-AM_SILENT_RULES([yes])
-dnl AM_INIT_AUTOMAKE([foreign])
-dnl m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES])
+dnl AM_SILENT_RULES([yes])
+AM_INIT_AUTOMAKE([foreign])
+m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES])
 
 dnl AC_INIT([PhyML],[beta],[guindon@stat.auckland.ac.nz])
 dnl AC_CONFIG_SRCDIR([simu.c])
