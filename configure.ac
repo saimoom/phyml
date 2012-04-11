@@ -2,7 +2,6 @@
 # Process this file with autoconf to produce a configure script.
 
 dnl AC_PREREQ(2.61)
-dnl AC_INIT([PhyML(beta)],m4_esyscmd([sh -c "head -n 1 version | sed -e 's|^|v3.0-|g' | sed -e 's|$||g' | tr -d '\n'"]), [guindon@stat.auckland.ac.nz])
 AC_INIT([PhyML],esyscmd([sh -c "date \"+%Y%m%d\" | tr -d '\n'"]),[s.guindon@auckland.ac.nz])
 dnl AC_INIT([PhyML],[beta],[guindon@stat.auckland.ac.nz])
 dnl AC_CONFIG_SRCDIR([simu.c])
@@ -117,12 +116,19 @@ if test "$rf" = yes; then
    AC_DEFINE([RF],[1],[RF tag on])
 fi
 
+AC_ARG_ENABLE([test],[AS_HELP_STRING([--enable-test],[Compile test])],[test=yes],[test=no])
+AM_CONDITIONAL([WANT_TEST], [test "$test" = yes]) 
+if test "$test" = yes; then
+   AC_DEFINE([TEST],[1],[TEST tag on])
+fi
+
 if test "$phytime" = no; then
 if test "$tiporder" = no; then
 if test "$part" = no; then
 if test "$rwrap" = no; then
 if test "$phycont" = no; then
 if test "$m4" = no; then
+if test "$test" = no; then
    AC_DEFINE([PHYML],[1],[PHYML tag on])
 fi
 fi
@@ -130,6 +136,6 @@ fi
 fi
 fi
 fi
-
+fi
 AC_CONFIG_FILES([Makefile src/Makefile])
 AC_OUTPUT
