@@ -20,6 +20,7 @@ the GNU public licence.  See http://www.opensource.org for details.
 #include "models.h"
 #include "free.h"
 #include "times.h"
+#include "mixtlk.h"
 
 void Init_Tips_At_One_Site_Nucleotides_Float(char state, int pos, phydbl *p_lk);
 void Init_Tips_At_One_Site_AA_Float(char aa, int pos, phydbl *p_lk);
@@ -31,8 +32,8 @@ phydbl Lk(t_tree *tree);
 void Site_Lk(t_tree *tree);
 phydbl Lk_At_Given_Edge(t_edge *b_fcus,t_tree *tree);
 phydbl Return_Abs_Lk(t_tree *tree);
-matrix *ML_Dist(calign *data, model *mod);
-phydbl Lk_Given_Two_Seq(calign *data, int numseq1, int numseq2, phydbl dist, model *mod, phydbl *loglk);
+matrix *ML_Dist(calign *data, t_mod *mod);
+phydbl Lk_Given_Two_Seq(calign *data, int numseq1, int numseq2, phydbl dist, t_mod *mod, phydbl *loglk);
 void Unconstraint_Lk(t_tree *tree);
 void Update_P_Lk(t_tree *tree,t_edge *b_fcus,t_node *n);
 void Update_P_Lk_Generic(t_tree *tree,t_edge *b_fcus,t_node *n);
@@ -49,7 +50,7 @@ void Get_Partial_Lk(t_tree *tree, t_edge *b_fcus, t_node *a, t_node *d);
 void Init_Tips_At_One_Site_Nucleotides_Int(char state, int pos, short int *p_pars);
 void Init_Tips_At_One_Site_AA_Int(char aa, int pos, short int *p_pars);
 void Update_P_Lk_Along_A_Path(t_node **path, int path_length, t_tree *tree);
-phydbl Lk_Dist(phydbl *F, phydbl dist, model *mod);
+phydbl Lk_Dist(phydbl *F, phydbl dist, t_mod *mod);
 phydbl Update_Lk_At_Given_Edge(t_edge *b_fcus, t_tree *tree);
 void Update_P_Lk_Greedy(t_tree *tree, t_edge *b_fcus, t_node *n);
 void Get_All_Partial_Lk_Scale_Greedy(t_tree *tree, t_edge *b_fcus, t_node *a, t_node *d);
@@ -84,6 +85,8 @@ void Sample_Ancestral_Seq_Pre(t_node *a, t_node *d, t_edge *b,
 			      int mutmap, int fromprior, t_tree *tree);
 phydbl Wrap_Lk_Times(t_edge *b, t_tree *tree, supert_tree *stree);
 phydbl Lk_LastFirst(t_tree *tree);
+void Invariant_Correction(phydbl *site_lk, int fact_sum_scale, int site, t_tree *tree);
+void Rate_Correction(int exponent, phydbl *site_lk_cat, t_tree *tree);
 
 #endif
 

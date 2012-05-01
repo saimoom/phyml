@@ -3,19 +3,18 @@
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-void XML_Load_File(FILE *fp, xml_node *top)
+xml_node *XML_Load_File(FILE *fp)
 {
   int c;
   char *buffer,*bufptr;
   int bufsize;
-  xml_node *parent;
-  xml_node *node;
+  xml_node *parent,*node;
 
   buffer = (char *)mCalloc(T_MAX_XML_TAG,sizeof(char));
 
   bufsize = T_MAX_XML_TAG;
   bufptr  = buffer;
-  parent  = top;
+  parent  = NULL;
   node    = NULL;
 
   while((c = fgetc(fp)) != EOF)
@@ -24,8 +23,9 @@ void XML_Load_File(FILE *fp, xml_node *top)
 	{
 	  *bufptr = '\0';
 
-	  PhyML_Printf("\n. Read value '%s' for node '%s'",buffer,node->name);
-	  fflush(NULL);
+	  /* PhyML_Printf("\n. Read value '%s' for node '%s'",buffer,node->name); */
+	  /* fflush(NULL); */
+
 	  XML_Set_Node_Value(node,buffer);
 	  bufptr = buffer;
 	}
@@ -39,11 +39,11 @@ void XML_Load_File(FILE *fp, xml_node *top)
 	      if(isspace(c) != NO || c == '>' || (c == '/' && bufptr > buffer)) break; // End of open or close tag
 	      else if(c == '<')
 		{
-		  Exit("\n. Bare < in element!");
+		  Exit("\n== Bare < in element!");
 		}	      
 	      else if(XML_Add_Character(c,&bufptr,&buffer,&bufsize))
 		{
-		  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+		  PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
 		  Exit("\n");	  
 		}
 	    }
@@ -59,7 +59,7 @@ void XML_Load_File(FILE *fp, xml_node *top)
 		     bufptr[-2] == '-' && bufptr[-1] == '-') break;
 		  else if(XML_Add_Character(c,&bufptr,&buffer,&bufsize))
 		    {
-		      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+		      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
 		      Exit("\n");	  
 		    }
 		}
@@ -67,7 +67,7 @@ void XML_Load_File(FILE *fp, xml_node *top)
 
 	      if(c != '>')
 		{
-		  PhyML_Printf("\n. Early EOF in comment node.");
+		  PhyML_Printf("\n== Early EOF in comment node.");
 		  Exit("\n");	  
 		}	      
 	    }	  
@@ -75,14 +75,18 @@ void XML_Load_File(FILE *fp, xml_node *top)
 	    {
 	      if(strcmp(buffer+1,parent->name))
 		{
-		  PhyML_Printf("\n. Opened tag with name '%s' and closed it with '%s'...",node->name,buffer+1);
-		  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+		  PhyML_Printf("\n== Opened tag with name '%s' and closed it with '%s'...",node->name,buffer+1);
+		  PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
 		  Exit("\n");
 		}
 
-	      printf("\n. Closing node with name '%s'",node->name);
-	      parent = parent->parent;
-	      node   = parent;
+	      /* printf("\n. Closing node with name '%s'",node->name); */
+
+	      if(node->parent)
+		{
+		  parent = parent->parent;
+		  node   = parent;
+		}
 	    }
 	  else if(buffer[0] == '?')
 	    {
@@ -92,15 +96,15 @@ void XML_Load_File(FILE *fp, xml_node *top)
 		    break;
 		  else if (XML_Add_Character(c, &bufptr, &buffer, &bufsize))
 		    {
-		      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+		      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
 		      Exit("\n");	  
 		    }
 		}
 
 	      if(c != '>')
 		{
-		  PhyML_Printf("\n. An error occurred when reading the processing instruction.");
-		  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+		  PhyML_Printf("\n== An error occurred when reading the processing instruction.");
+		  PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
 		  Exit("\n");	  
 		}
 
@@ -109,14 +113,16 @@ void XML_Load_File(FILE *fp, xml_node *top)
 	    }
 	  else // Open tag
 	    {
-	      printf("\n. Create node with name '%s'",buffer);
-	      node = XML_New_Node(parent,buffer);
+	      node = XML_Make_Node(buffer);
+	      XML_Init_Node(parent,node,buffer);
+	      if(!parent) parent = node;
+
 	      if(isspace(c) != NO) c=XML_Parse_Element(fp,node);
 	      else if(c == '/')
 		{
 		  if((c=fgetc(fp)) != '>')
 		    {
-		      PhyML_Printf("\n. Expected '>' but read '%c' instead",c);
+		      PhyML_Printf("\n== Expected '>' but read '%c' instead",c);
 		      Exit("\n");
 		    }
 		  c = '/';
@@ -132,11 +138,13 @@ void XML_Load_File(FILE *fp, xml_node *top)
 	{
 	  if(XML_Add_Character(c,&bufptr,&buffer,&bufsize))
 	    {
-	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
 	      Exit("\n");
 	    }
-	} 
+	}
     }
+  Free(buffer);
+  return node;
 }
 
 //////////////////////////////////////////////////////////////
@@ -193,19 +201,19 @@ int XML_Parse_Element(FILE *fp, xml_node *n)
 
       if(c == '/') // End of tag
 	{
-	  printf("\n. Closing node '%s'.",n->name);
+	  /* printf("\n. Closing node '%s'.",n->name); */
 
 	  quote = fgetc(fp);
 	  if(quote != '>')
 	    {
-	      PhyML_Printf("\n. Expected '>' after '%c' but read '%c' instead",c,quote);
+	      PhyML_Printf("\n== Expected '>' after '%c' but read '%c' instead",c,quote);
 	      Exit("\n");
 	    }
 	  break;
 	}
       else if(c == '<')
 	{
-	  Exit("\n. Bare < in element!");	  
+	  Exit("\n== Bare < in element!");	  
 	}
       else if(c == '>') // End of tag
 	{
@@ -223,7 +231,7 @@ int XML_Parse_Element(FILE *fp, xml_node *n)
 	    {
 	      if(XML_Add_Character(c,&ptr,&name,&namesize))
 		{
-		  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+		  PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
 		  Exit("\n");
 		}
 	      if(c == quote) break;
@@ -239,7 +247,7 @@ int XML_Parse_Element(FILE *fp, xml_node *n)
 		{
 		  if(XML_Add_Character(c,&ptr,&name,&namesize))
 		    {
-		      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+		      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
 		      Exit("\n");
 		    }
 		}	  
@@ -256,8 +264,8 @@ int XML_Parse_Element(FILE *fp, xml_node *n)
 
 	  if(c == EOF)
 	    {
-	      PhyML_Printf("\n. Missing value in attribute.");
-	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	      PhyML_Printf("\n== Missing value in attribute.");
+	      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
 	      Exit("\n");
 	    }
 
@@ -273,7 +281,7 @@ int XML_Parse_Element(FILE *fp, xml_node *n)
 		    {
 		      if(XML_Add_Character(c,&ptr,&value,&valsize))
 			{
-			  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+			  PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
 			  Exit("\n");
 			}
 		    }
@@ -293,7 +301,7 @@ int XML_Parse_Element(FILE *fp, xml_node *n)
 		    {
 		      if(XML_Add_Character(c,&ptr,&value,&valsize))
 			{
-			  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+			  PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
 			  Exit("\n");
 			}		      
 		    }
@@ -301,7 +309,7 @@ int XML_Parse_Element(FILE *fp, xml_node *n)
 	    }
 	}
 
-      printf("\n. Setting attribute '%s=%s' to node '%s'",name,value,n->name);
+      /* printf("\n. Setting attribute '%s=%s' to node '%s'",name,value,n->name); */
       XML_Set_Attribute(n,name,value);
 
       if(c == '>') break;
@@ -311,50 +319,8 @@ int XML_Parse_Element(FILE *fp, xml_node *n)
   Free(name);
   Free(value);
 
-  printf("\n. Return '%c'\n",c);
+  /* printf("\n. Return '%c'\n",c); */
   return(c);
-}
-
-//////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
-
-xml_node *XML_New_Node(xml_node *parent, char *name)
-{
-  xml_node *new_node;
-
-  new_node = (xml_node *)mCalloc(1,sizeof(xml_node));
-
-  if(name)
-    {
-      new_node->name = (char *)mCalloc(strlen(name)+1,sizeof(char));
-      strcpy(new_node->name,name);
-    }
-
-  new_node->parent =  parent ? parent : NULL;
-
-  new_node->next   = NULL;
-  new_node->prev   = NULL;
-  new_node->child  = NULL;
-
-  if(parent)
-    { 
-      xml_node *prev;
-
-      prev = NULL;
-
-      while(parent->child) 
-	{
-	  prev          = parent->child;
-	  parent->child = parent->child->next;
-	}
-      parent->child = new_node;
-      new_node->prev = prev;
-      if(prev) new_node->prev->next = new_node;
-    }
-
-  new_node->attr   = NULL;
-  
-  return new_node;
 }
 
 //////////////////////////////////////////////////////////////
@@ -368,23 +334,21 @@ int XML_Set_Attribute(xml_node *n, char *attr_name, char *attr_value)
   prev = NULL;
   while(n->attr != NULL) 
     {
-      n->attr = n->attr->next;
       prev    = n->attr;
+      n->attr = n->attr->next;
     }
 
   n->attr = XML_Make_Attribute(prev,attr_name,attr_value);
   n->n_attr++;
 
-  while(n->attr->prev != NULL) 
-    {
-      n->attr = n->attr->prev;
-    }
+  // rewind
+  while(n->attr->prev != NULL) n->attr = n->attr->prev; 
 
   s = To_Lower_String(attr_name);
   if(!strcmp(s,"id"))
     {
       XML_Set_Node_Id(n,attr_value);
-      printf("\n. Node '%s' id is '%s'",n->name,n->id);
+      /* printf("\n. Node '%s' id is '%s'",n->name,n->id); */
     }
   Free(s);
 
@@ -393,25 +357,6 @@ int XML_Set_Attribute(xml_node *n, char *attr_name, char *attr_value)
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
-
-xml_attr *XML_Make_Attribute(xml_attr *prev, char *attr_name, char *attr_value)
-{
-  xml_attr *new_attr;
-
-  new_attr = (xml_attr *)mCalloc(1,sizeof(xml_attr));
-  
-  new_attr->prev = prev;
-  new_attr->next = NULL;
-  if(prev != NULL) prev->next = new_attr;
-  
-  new_attr->name = (char *)mCalloc(strlen(attr_name)+1,sizeof(char));
-  strcpy(new_attr->name,attr_name);
-
-  new_attr->value = (char *)mCalloc(strlen(attr_value)+1,sizeof(char));
-  strcpy(new_attr->value,attr_value);
-
-  return new_attr;
-}
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
@@ -422,17 +367,10 @@ int XML_Set_Node_Id(xml_node *n, char *id)
   strcpy(n->id,id);
   return(0);
 }
- 
-//////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
-
-void XML_Make_Node_Id(xml_node *n, char *id)
-{
-  n->id = (char *)mCalloc(strlen(id)+1,sizeof(char));
-}
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
+
 
 int XML_Set_Node_Value(xml_node *n, char *val)
 {
@@ -444,7 +382,319 @@ int XML_Set_Node_Value(xml_node *n, char *val)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-void XML_Make_Node_Value(xml_node *n, char *val)
+xml_node *XML_Search_Node_Name(char *name, int skip, xml_node *node)
 {
-  n->value = (char *)mCalloc(strlen(val)+1,sizeof(char));
+
+  xml_node *match;
+  
+  /* printf("\n. name:%s child:%s next:%s ", */
+  /* 	 node?node->name:"xx", */
+  /* 	 node->child?node->child->name:"xx", */
+  /* 	 node->next?node->next->name:"xx"); fflush(NULL); */
+
+
+  match = NULL;
+  if(skip == NO && !strcmp(node->name,name)) match = node;
+  else
+    {
+      // If node has a child, node = child, else if node has next, node = next, else if node
+      // has parent, node = parent->next else node = NULL
+      if(node->child)
+	{
+	  match = XML_Search_Node_Name(name,NO,node->child);
+	}
+      if(match == NULL && node->next)
+	{
+	  match = XML_Search_Node_Name(name,NO,node->next);
+	}
+      if(match == NULL && node->parent)
+	{
+	  if(node->parent == NULL) // Reached the root
+	    {
+	      PhyML_Printf("\n== Could not find a node with name '%s'.",name);
+	      Exit("\n");
+	    }
+	  return NULL;
+	}
+    }
+  return match;
 }
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+xml_node *XML_Search_Node_ID(char *id, int skip, xml_node *node)
+{
+
+  xml_node *match;
+  
+  if(!node)
+    {
+      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");	  
+    }
+      
+
+  match = NULL;
+  if(skip == NO && node->id && !strcmp(node->id,id)) match = node;
+  else
+    {
+      // If node has a child, node = child, else if node has next, node = next, else if node
+      // has parent, node = parent->next else node = NULL
+      if(node->child)
+	{
+	  match = XML_Search_Node_ID(id,NO,node->child);
+	}
+      if(match == NULL && node->next)
+	{
+	  match = XML_Search_Node_ID(id,NO,node->next);
+	}
+      if(match == NULL && node->parent)
+	{
+	  if(node->parent == NULL) // Reached the root
+	    {
+	      PhyML_Printf("\n== Could not find a node with id '%s'.",id);
+	      Exit("\n");
+	    }
+	  return NULL;
+	}
+    }
+  return match;
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+xml_node *XML_Search_Node_Attribute_Value(char *attr_name, char *value, int skip, xml_node *node)
+{
+  xml_node *match;
+  
+  if(!node)
+    {
+      PhyML_Printf("\n== node: %p attr: %p",node,node?node->attr:NULL);
+      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");	  
+    }
+
+
+  match = NULL;
+  if(skip == NO && node->attr)
+    {
+      xml_attr *attr;
+
+      attr = node->attr;
+      do
+	{
+	  if(!strcmp(attr->name,attr_name) && 
+	     !strcmp(attr->value,value)) 
+	    {
+	      match = node;
+	      break;
+	    }
+	  attr = attr->next;
+	  if(!attr) break;
+	}
+      while(1);
+    }
+
+  if(!match) 
+    {
+      // If node has a child, node = child, else if node has next, node = next, else if node
+      // has parent, node = parent->next else node = NULL
+      if(node->child)
+	{
+	  match = XML_Search_Node_Attribute_Value(attr_name,value,NO,node->child);
+	}
+      if(match == NULL && node->next)
+	{
+	  match = XML_Search_Node_Attribute_Value(attr_name,value,NO,node->next);
+	}
+      if(match == NULL && node->parent)
+	{
+	  if(node->parent == NULL) // Reached the root
+	    {
+	      PhyML_Printf("\n== Could not find a node with attribute '%s' and value '%s'.",attr_name,value);
+	      Exit("\n");
+	    }
+	  return NULL;
+	}
+    }
+  return match;
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+char *XML_Get_Attribute_Value(xml_node *node, char *attr_name)
+{
+  xml_attr *attr;
+  
+  attr = node->attr;
+
+  while(strcmp(attr->name,attr_name))
+    {
+      attr = attr->next;
+      
+      /* if(attr == NULL) */
+      /* 	{ */
+      /* 	  PhyML_Printf("\n== Could not find an attribute with name '%s' in node with name '%s'.",id,node->name); */
+      /* 	  Exit("\n"); */
+      /* 	} */
+    }
+
+  return(attr?attr->value:NULL);
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+int XML_Validate_Attr_Int(char *target, int num, ...)
+{
+  va_list args;                     
+  int i;
+  char *s;
+
+  va_start(args,num);           
+  For(i,num)
+    {
+      s = va_arg(args, char *); 
+      if(!strcmp(s,target)) break;
+    }
+  va_end(args);
+
+  if(i == num) i = -1;
+
+  return(i);
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void XML_Check_Siterates_Node(xml_node *parent)
+{
+  xml_node *n;
+  int n_weights_nodes;
+  char *rate_value = NULL;
+  phydbl buff;
+  int n_zeros;
+  char *endptr;
+
+  if(!parent)
+    {
+      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");	  
+    }
+  if(strcmp(parent->name,"siterates"))
+    {
+      PhyML_Printf("\n. Node name '%s' should be 'siterates'",parent->name);
+      Exit("\n");
+    }
+  
+  // Check that only one 'weights' node is present
+  n_weights_nodes = 0;
+  n = parent->child;
+  do
+    {
+      if(!strcmp(n->name,"weights")) n_weights_nodes++;
+      if(n_weights_nodes > 1)
+	{
+	  PhyML_Printf("\n== Only one distribution is authorized for 'siterates' nodes.");
+	  Exit("\n");
+	}
+      n = n->next;
+      if(!n) break;
+    }
+  while(1);
+
+  // Check that one rate value is set to zero if gamma+inv model is used
+  n = XML_Search_Node_Attribute_Value("family","gamma+inv",YES,parent);
+  if(!n) return;
+  else
+    {
+      n_zeros = 0;
+      n = parent->child;
+      do
+	{
+	  if(!strcmp(n->name,"instance"))
+	    {
+	      rate_value = NULL;
+	      rate_value = XML_Get_Attribute_Value(n,"value");  
+
+	      if(rate_value)
+		{
+		  errno = 0;
+		  buff = strtod(rate_value,&endptr);
+		  
+		  if(rate_value == endptr || errno == ERANGE)
+		    {
+		      PhyML_Printf("\n== value: %s",rate_value);
+		      PhyML_Printf("\n== Error in reading attribute 'value' in node 'instance'.");
+		      Exit("\n");
+		    }
+		  
+		  if(buff < 1.E-20) n_zeros++;		 
+		}
+	    }
+	  n = n->next;
+	  if(!n) break;
+	}
+      while(1);
+      
+      if(n_zeros != 1)
+	{
+	  PhyML_Printf("\n== # of zero-rates: %d",n_zeros);
+	  PhyML_Printf("\n== Exactly one rate value has to be set to zero when using the 'gamma+inv' model.");
+	  Exit("\n");
+	}
+    }
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+int XML_Get_Number_Of_Classes_Siterates(xml_node *parent)
+{
+  xml_node *n;
+  int n_classes;
+
+  if(!parent)
+    {
+      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");	  
+    }
+
+  n_classes = 0;
+  n = parent->child;
+  do
+    {
+      if(!strcmp(n->name,"instance")) n_classes++;	  
+      n = n->next;
+      if(!n) break;
+    }
+  while(1);
+      
+  n = XML_Search_Node_Attribute_Value("family","gamma+inv",YES,parent);
+
+  if(!n) return n_classes;
+  else return n_classes-1;
+}
+
+//////////////////////////////////////////////////////////////
+
+int XML_Siterates_Has_Invariants(xml_node *parent)
+{
+  xml_node *n;
+
+  if(!parent)
+    {
+      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");	  
+    }
+      
+  n = XML_Search_Node_Attribute_Value("family","gamma+inv",YES,parent);
+
+  if(!n) return NO;
+  else return YES;
+}
+
+//////////////////////////////////////////////////////////////

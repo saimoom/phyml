@@ -343,6 +343,11 @@ phydbl Lk(t_tree *tree)
   int br;
   int n_patterns;
 
+  if(tree->is_mixt_tree)
+    {
+      /* return Lk_Meta_Tree(NULL,tree); */
+    }
+  
   tree->old_lnL = tree->c_lnL;
 
 #ifdef PHYTIME
@@ -387,13 +392,6 @@ phydbl Lk(t_tree *tree)
 
   tree->c_lnL_mixt = tree->c_lnL;
 
-  if(tree->nextree) 
-    {
-      Copy_Edge_Lengths(tree->nextree,tree);
-      Lk(tree->nextree);
-    }
-  else Lk_LastFirst(tree);
-
   return tree->c_lnL;
 }
 
@@ -405,6 +403,11 @@ phydbl Lk_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
 {
   int n_patterns;
   
+  if(tree->is_mixt_tree)
+    {
+      /* return Lk_Meta_Tree(b_fcus,tree); */
+    }
+
   n_patterns = tree->n_pattern;
 
 #ifdef PHYTIME
@@ -447,13 +450,6 @@ phydbl Lk_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
 
   tree->c_lnL_mixt = tree->c_lnL;
   
-  if(tree->nextree) 
-    {
-      tree->nextree->t_edges[b_fcus->num]->l = b_fcus->l;
-      Lk_At_Given_Edge(tree->nextree->t_edges[b_fcus->num],tree->nextree);
-    }
-  else Lk_LastFirst(tree);
-
   return tree->c_lnL;
 }
 
@@ -470,22 +466,19 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
 {
   phydbl log_site_lk;
   phydbl site_lk_cat, site_lk;
-  int sum_scale_left, sum_scale_rght;
   int fact_sum_scale;
-  phydbl max_sum_scale;
+  phydbl max_sum_scale,min_sum_scale;
   phydbl sum;
   int ambiguity_check,state;
   int catg,ns,k,l,site;
   int dim1,dim2,dim3;
   int *sum_scale_left_cat,*sum_scale_rght_cat;
-  phydbl multiplier;
-  int exponent, piecewise_exponent;
+  int exponent;
   phydbl tmp;
-  phydbl logbig;
-  phydbl inv_site_lk;
+  phydbl logbig,logsmall;
 
-
-  logbig = LOG((phydbl)BIG);
+  logbig   = LOG((phydbl)BIG);
+  logsmall = LOG((phydbl)SMALL);
 
   dim1 = tree->mod->n_catg * tree->mod->ns;
   dim2 = tree->mod->ns;
@@ -505,8 +498,6 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
       if(!ambiguity_check) state = Get_State_From_P_Pars(b->p_lk_tip_r,site*dim2,tree);
     }
 
-  sum_scale_left = .0;
-  sum_scale_rght = .0;
   
   if(tree->mod->use_m4mod) ambiguity_check = 1;
 
@@ -539,7 +530,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
 		  /* 				  b->p_lk_left[site*dim1+catg*dim2+l],b->left->num); */
                 }
 
-              site_lk_cat += sum * tree->mod->pi->v[state];	
+              site_lk_cat += sum * tree->mod->e_frq->pi->v[state];	
 	    }
           /* If the character observed at the tip is ambiguous: ns x ns terms to consider */
           else
@@ -558,7 +549,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
 
                       site_lk_cat +=
                         sum *
-                        tree->mod->pi->v[k] *
+                        tree->mod->e_frq->pi->v[k] *
                         b->p_lk_tip_r[site*dim2+k];
 		    }
                 }
@@ -581,7 +572,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
 
                   site_lk_cat +=
                     sum *
-                    tree->mod->pi->v[k] *
+                    tree->mod->e_frq->pi->v[k] *
                     b->p_lk_rght[site*dim1+catg*dim2+k];
 		}
             }
@@ -606,14 +597,28 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
 
       if(sum < .0)
 	{
-	  PhyML_Printf("\n. sum = %G",sum);
-	  PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
+	  PhyML_Printf("\n== sum = %G",sum);
+	  PhyML_Printf("\n== Err in file %s at line %d\n\n",__FILE__,__LINE__);
 	  Warn_And_Exit("\n");
 	}
 
       tmp = sum + (logbig - LOG(tree->site_lk_cat[catg]))/(phydbl)LOG2;
       if(tmp < max_sum_scale) max_sum_scale = tmp; /* min of the maxs */
+
+      tmp = sum + (logsmall - LOG(tree->site_lk_cat[catg]))/(phydbl)LOG2;
+      if(tmp > min_sum_scale) min_sum_scale = tmp; /* max of the mins */
     }
+
+  if(min_sum_scale > max_sum_scale)
+    {
+      /* PhyML_Printf("\n== Numerical precision issue alert."); */
+      /* PhyML_Printf("\n== min_sum_scale = %G max_sum_scale = %G",min_sum_scale,max_sum_scale); */
+      /* PhyML_Printf("\n== Err in file %s at line %d\n\n",__FILE__,__LINE__); */
+      /* Warn_And_Exit("\n"); */
+      min_sum_scale = max_sum_scale;
+    }
+
+  fact_sum_scale = (int)((max_sum_scale + min_sum_scale) / 2);
 
 /*   fact_sum_scale = (int)((max_sum_scale + min_sum_scale) / 2); */
 
@@ -623,124 +628,20 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
   For(catg,tree->mod->n_catg)
     {
       exponent = -(sum_scale_left_cat[catg]+sum_scale_rght_cat[catg])+fact_sum_scale;
-
-      site_lk_cat = tree->site_lk_cat[catg];
-     
-      if(exponent > 0)
-	{
-	  do
-	    {
-	      piecewise_exponent = MIN(exponent,63);
-	      multiplier = (phydbl)((unsigned long long)(1) << piecewise_exponent);
-	      site_lk_cat *= multiplier;
-	      exponent -= piecewise_exponent;
-	    }
-	  while(exponent != 0);
-	}
-      else
-	{
-	  do
-	    {
-	      piecewise_exponent = MAX(exponent,-63);
-	      multiplier = 1. / (phydbl)((unsigned long long)(1) << -piecewise_exponent);
-	      site_lk_cat *= multiplier;
-	      exponent -= piecewise_exponent;
-	    }
-	  while(exponent != 0);
-	}
-
-      if(isinf(site_lk_cat))
-	{
-	  PhyML_Printf("\n+ site=%4d cat=%4d site_lk_cat=%G sum_scale=%d max=%G fact=%d expo=%d dbl=%G",
-		       tree->curr_site,
-		       catg,
-		       tree->site_lk_cat[catg],
-		       sum_scale_left_cat[catg]+sum_scale_rght_cat[catg],
-		       max_sum_scale,
-		       fact_sum_scale,
-		       -(sum_scale_left_cat[catg]+sum_scale_rght_cat[catg])+fact_sum_scale,
-		       (double)tree->site_lk_cat[catg] * pow(2.,-(sum_scale_left_cat[catg]+sum_scale_rght_cat[catg])+fact_sum_scale));
-
-	  site_lk_cat = BIG / 10;
-	}
-
-      
-      if(site_lk_cat < SMALL)
-	{
-	  if(tree->mod->n_catg == 1)
-	    {
-	      PhyML_Printf("\n- site=%4d cat=%4d site_lk_cat=%G sum_scale=%d max=%G fact=%d expo=%d dbl=%G",
-			   tree->curr_site,
-			   catg,
-			   tree->site_lk_cat[catg],
-			   sum_scale_left_cat[catg]+sum_scale_rght_cat[catg],
-			   max_sum_scale,
-			   fact_sum_scale,
-			   -(sum_scale_left_cat[catg]+sum_scale_rght_cat[catg])+fact_sum_scale,
-			   (double)tree->site_lk_cat[catg] * pow(2.,-(sum_scale_left_cat[catg]+sum_scale_rght_cat[catg])+fact_sum_scale));
-
-	      Exit("\n");
-	    }
-
-	  site_lk_cat = .0;
-	}
-
+      site_lk_cat = tree->site_lk_cat[catg];     
+      Rate_Correction(exponent,&site_lk_cat,tree);
       tree->site_lk_cat[catg] = site_lk_cat;
     }
 
   site_lk = .0;
-  For(catg,tree->mod->n_catg)
-    {
-      site_lk += tree->site_lk_cat[catg] * tree->mod->gamma_r_proba->v[catg];
-    }
+  For(catg,tree->mod->n_catg) 
+    site_lk += 
+    tree->site_lk_cat[catg] * 
+    tree->mod->gamma_r_proba->v[catg];
 
-
-  inv_site_lk = 0.;
-  
-  /* The substitution model does include invariable sites */
-  if(tree->mod->invar)
-    {
-      /* The site is invariant */
-      if(tree->data->invar[site] > -0.5)
-        {
-	  /* Multiply P(D|r=0) by 2^(fact_sum_scale) */
-
-	  inv_site_lk = tree->mod->pi->v[tree->data->invar[site]];
-	  exponent = fact_sum_scale;
-	  do
-	    {
-	      piecewise_exponent = MIN(exponent,63);
-	      multiplier = (phydbl)((unsigned long long)(1) << piecewise_exponent);
-	      inv_site_lk *= multiplier;
-	      exponent -= piecewise_exponent;
-	    }
-	  while(exponent != 0);
-	  inv_site_lk *= tree->mod->pinvar->v;
-	  /* Update the value of site_lk */
-	  if(isinf(inv_site_lk)) // P(D|r=0) >> P(D|r>0) => assume P(D) = P(D|r=0)P(r=0)
-	    {
-	      PhyML_Printf("\n== Numerical precision issue alert.");
-	      PhyML_Printf("\n== P(D|r=0)=%G P(D|r>0)=%G",
-			   tree->mod->pi->v[tree->data->invar[site]],
-			   EXP(LOG(site_lk) - (phydbl)LOG2 * fact_sum_scale));	      
-	      site_lk = (1. - tree->mod->pinvar->v)*tree->mod->pi->v[tree->data->invar[site]];
-	      fact_sum_scale = 0.0;
-	    }
-	  else
-	    {
-	      site_lk *= (1. - tree->mod->pinvar->v);
-	      site_lk += inv_site_lk;	      
-	    }
-	}
-      else
-        {
-          /* Same formula as above with P(D | subs, rate = 0) = 0 */
-	  site_lk *= (1. - tree->mod->pinvar->v);
-        }
-    }
+  Invariant_Correction(&site_lk,fact_sum_scale,site,tree);
 
   log_site_lk = LOG(site_lk) - (phydbl)LOG2 * fact_sum_scale;
-
 
   For(catg,tree->mod->n_catg) tree->log_site_lk_cat[catg][site] = LOG(tree->site_lk_cat[catg]) - (phydbl)LOG2 * fact_sum_scale;
   
@@ -748,8 +649,6 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
     {
       PhyML_Printf("\n. Site = %d",site);
       PhyML_Printf("\n. invar = %d",tree->data->invar[site]);
-      PhyML_Printf("\n. scale_left = %d scale_rght = %d",sum_scale_left,sum_scale_rght);
-      PhyML_Printf("\n. inv_site_lk = %f",inv_site_lk);
       PhyML_Printf("\n. Lk = %G LOG(Lk) = %f < %G",site_lk,log_site_lk,-BIG);
       For(catg,tree->mod->n_catg) PhyML_Printf("\n. rr=%f p=%f",tree->mod->gamma_rr->v[catg],tree->mod->gamma_r_proba->v[catg]);
       PhyML_Printf("\n. pinv = %G",tree->mod->pinvar->v);
@@ -758,8 +657,8 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
       /* int i; */
       /* For(i,2*tree->n_otu-3) */
       /* 	{ */
-      /* 	  PhyML_Printf("\n. b%3d->l = %f %f [%G] %f %f %f %f [%s]",i, */
-      /* 		       tree->t_edges[i]->l, */
+      /* 	  PhyML_Printf("\n. b%3d->l->v = %f %f [%G] %f %f %f %f [%s]",i, */
+      /* 		       tree->t_edges[i]->l->v, */
       /* 		       tree->t_edges[i]->gamma_prior_mean, */
       /* 		       tree->t_edges[i]->gamma_prior_var, */
       /* 		       tree->rates->nd_t[tree->t_edges[i]->left->num], */
@@ -785,6 +684,112 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
   
   return log_site_lk;
 }
+
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void Rate_Correction(int exponent, phydbl *site_lk_cat, t_tree *tree)
+{
+  int piecewise_exponent;
+  phydbl multiplier;
+
+  if(exponent > 0)
+    {
+      do
+	{
+	  piecewise_exponent = MIN(exponent,63);
+	  multiplier = (phydbl)((unsigned long long)(1) << piecewise_exponent);
+	  (*site_lk_cat) *= multiplier;
+	  exponent -= piecewise_exponent;
+	}
+      while(exponent != 0);
+    }
+  else
+    {
+      do
+	{
+	  piecewise_exponent = MAX(exponent,-63);
+	  multiplier = 1. / (phydbl)((unsigned long long)(1) << -piecewise_exponent);
+	  (*site_lk_cat) *= multiplier;
+	  exponent -= piecewise_exponent;
+	}
+      while(exponent != 0);
+    }
+  
+  if(isinf(*site_lk_cat))
+    {
+      PhyML_Printf("\n== Numerical precision issue alert.");
+      PhyML_Printf("\n== File %s at line %d\n\n",__FILE__,__LINE__);
+      (*site_lk_cat) = BIG / 10;
+    }
+    
+  if(*site_lk_cat < SMALL)
+    {
+      if(tree->mod->n_catg == 1)
+	{
+	  PhyML_Printf("\n== Numerical precision issue alert.");
+	  PhyML_Printf("\n== File %s at line %d\n\n",__FILE__,__LINE__);
+	  Exit("\n");
+	}
+      (*site_lk_cat) = .0;
+    }
+}
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void Invariant_Correction(phydbl *site_lk, int fact_sum_scale, int site, t_tree *tree)
+{
+  int exponent,piecewise_exponent;
+  phydbl multiplier;
+  phydbl inv_site_lk = 0.;
+  
+  /* The substitution model does include invariable sites */
+  if(tree->mod->invar)
+    {
+      /* The site is invariant */
+      if(tree->data->invar[site] > -0.5)
+        {
+	  /* Multiply P(D|r=0) by 2^(fact_sum_scale) */
+	  inv_site_lk = tree->mod->e_frq->pi->v[tree->data->invar[site]];
+	  exponent = fact_sum_scale;
+	  do
+	    {
+	      piecewise_exponent = MIN(exponent,63);
+	      multiplier = (phydbl)((unsigned long long)(1) << piecewise_exponent);
+	      inv_site_lk *= multiplier;
+	      exponent -= piecewise_exponent;
+	    }
+	  while(exponent != 0);
+
+	  inv_site_lk *= tree->mod->pinvar->v;
+
+	  /* Update the value of site_lk */
+	  if(isinf(inv_site_lk)) // P(D|r=0) >> P(D|r>0) => assume P(D) = P(D|r=0)P(r=0)
+	    {
+	      PhyML_Printf("\n== Numerical precision issue alert.");
+	      PhyML_Printf("\n== File %s at line %d\n\n",__FILE__,__LINE__);
+	      PhyML_Printf("\n== P(D|r=0)=%G P(D|r>0)=%G",
+			   tree->mod->e_frq->pi->v[tree->data->invar[site]],
+			   EXP(LOG(*site_lk) - (phydbl)LOG2 * fact_sum_scale));	      
+	      (*site_lk) = (1. - tree->mod->pinvar->v)*tree->mod->e_frq->pi->v[tree->data->invar[site]];
+	      fact_sum_scale = 0.0;
+	    }
+	  else
+	    {
+	      (*site_lk) *= (1. - tree->mod->pinvar->v);
+	      (*site_lk) += inv_site_lk;	      
+	    }
+	}
+      else
+        {
+          /* Same formula as above with P(D | subs, rate = 0) = 0 */
+	  (*site_lk) *= (1. - tree->mod->pinvar->v);
+        }
+    }
+}
+
+
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
@@ -819,9 +824,9 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
       Update_P_Lk_Generic(tree,b,d);
     }
 
-  if(tree->nextree) Update_P_Lk(tree->nextree,
-				tree->nextree->t_edges[b->num],
-				tree->nextree->t_nodes[d->num]);
+  if(tree->next) Update_P_Lk(tree->next,
+			     tree->next->t_edges[b->num],
+			     tree->next->t_nodes[d->num]);
   
 }
 
@@ -1779,7 +1784,7 @@ phydbl Return_Abs_Lk(t_tree *tree)
 //////////////////////////////////////////////////////////////
 
 
-matrix *ML_Dist(calign *data, model *mod)
+matrix *ML_Dist(calign *data, t_mod *mod)
 {
   int i,j,k,l;
   phydbl init;
@@ -1833,7 +1838,7 @@ matrix *ML_Dist(calign *data, model *mod)
 
 	  twodata = Compact_Cdata(tmpdata,mod->io);
 
-	  Check_Ambiguities(twodata,mod->io->datatype,mod->io->mod->state_len);
+	  Check_Ambiguities(twodata,mod->io->datatype,mod->io->state_len);
 	  
 	  Hide_Ambiguities(twodata);
 	  
@@ -1847,8 +1852,8 @@ matrix *ML_Dist(calign *data, model *mod)
 	  len = 0;
  	  For(l,twodata->c_seq[0]->len)
 	    {
-	      state0 = Assign_State(twodata->c_seq[0]->state+l*mod->io->mod->state_len,mod->io->datatype,mod->io->mod->state_len);
-	      state1 = Assign_State(twodata->c_seq[1]->state+l*mod->io->mod->state_len,mod->io->datatype,mod->io->mod->state_len);
+	      state0 = Assign_State(twodata->c_seq[0]->state+l*mod->io->state_len,mod->io->datatype,mod->io->state_len);
+	      state1 = Assign_State(twodata->c_seq[1]->state+l*mod->io->state_len,mod->io->datatype,mod->io->state_len);
 
 	      if((state0 > -1) && (state1 > -1))
 		{
@@ -1900,7 +1905,7 @@ matrix *ML_Dist(calign *data, model *mod)
 //////////////////////////////////////////////////////////////
 
 
-phydbl Lk_Given_Two_Seq(calign *data, int numseq1, int numseq2, phydbl dist, model *mod, phydbl *loglk)
+phydbl Lk_Given_Two_Seq(calign *data, int numseq1, int numseq2, phydbl dist, t_mod *mod, phydbl *loglk)
 {
   align *seq1,*seq2;
   phydbl site_lk,log_site_lk;
@@ -1972,7 +1977,7 @@ phydbl Lk_Given_Two_Seq(calign *data, int numseq1, int numseq2, phydbl dist, mod
 		{
 		  site_lk +=
 		    mod->gamma_r_proba->v[j] *
-		    mod->pi->v[k] *
+		    mod->e_frq->pi->v[k] *
 		    p_lk_l[i*dim1+k] *
 		    mod->Pij_rr->v[j*dim2+k*dim1+l] *
 		    p_lk_r[i*dim1+l];
@@ -1988,7 +1993,7 @@ phydbl Lk_Given_Two_Seq(calign *data, int numseq1, int numseq2, phydbl dist, mod
 			{
 			  site_lk +=
 			    mod->gamma_r_proba->v[j] *
-			    mod->pi->v[k] *
+			    mod->e_frq->pi->v[k] *
 			    p_lk_l[i*dim1+k] *
 			    mod->Pij_rr->v[j*dim2+k*dim1+l] *
 			    p_lk_r[i*dim1+l];
@@ -2105,9 +2110,9 @@ void Init_P_Lk_Tips_Double(t_tree *tree)
 					   tree->t_nodes[i]->b[0]->p_lk_rght);
 
 	  else if(tree->io->datatype == GENERIC)
-	    Init_Tips_At_One_Site_Generic_Float(tree->data->c_seq[i]->state+curr_site*tree->mod->state_len,
+	    Init_Tips_At_One_Site_Generic_Float(tree->data->c_seq[i]->state+curr_site*tree->mod->io->state_len,
 						tree->mod->ns,
-						tree->mod->state_len,
+						tree->mod->io->state_len,
 						curr_site*dim1+0*dim2,
 						tree->t_nodes[i]->b[0]->p_lk_rght);
 
@@ -2154,9 +2159,9 @@ void Init_P_Lk_Tips_Int(t_tree *tree)
 
 	  else if(tree->io->datatype == GENERIC)
 	    {
-	      Init_Tips_At_One_Site_Generic_Int(tree->data->c_seq[i]->state+curr_site*tree->mod->state_len,
+	      Init_Tips_At_One_Site_Generic_Int(tree->data->c_seq[i]->state+curr_site*tree->mod->io->state_len,
 						tree->mod->ns,
-						tree->mod->state_len,
+						tree->mod->io->state_len,
 						curr_site*dim1,
 						tree->t_nodes[i]->b[0]->p_lk_tip_r);
 	    }
@@ -2205,7 +2210,7 @@ void Update_PMat_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
       len = -1.0;
       
             
-      if(tree->mod->log_l == YES) b_fcus->l = EXP(b_fcus->l);
+      if(tree->mod->log_l == YES) b_fcus->l->v = EXP(b_fcus->l->v);
       
       For(i,tree->mod->n_catg)
 	{
@@ -2215,7 +2220,7 @@ void Update_PMat_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
 	    }
 	  else
 	    {
-	      len = b_fcus->l*tree->mod->gamma_rr->v[i];	  
+	      len = b_fcus->l->v*tree->mod->gamma_rr->v[i];	  
 	      if(len < l_min)      len = l_min;
 	      else if(len > l_max) len = l_max;
 	    }
@@ -2225,7 +2230,7 @@ void Update_PMat_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
 	  PMat(len,tree->mod,tree->mod->ns*tree->mod->ns*i,b_fcus->Pij_rr);
 	}
 
-      if(tree->mod->log_l == YES) b_fcus->l = LOG(b_fcus->l);
+      if(tree->mod->log_l == YES) b_fcus->l->v = LOG(b_fcus->l->v);
     }
 }
 
@@ -2308,7 +2313,7 @@ void Update_P_Lk_Along_A_Path(t_node **path, int path_length, t_tree *tree)
 //////////////////////////////////////////////////////////////
 
 
-phydbl Lk_Dist(phydbl *F, phydbl dist, model *mod)
+phydbl Lk_Dist(phydbl *F, phydbl dist, t_mod *mod)
 {
   int i,j,k;
   phydbl lnL,len;
@@ -2349,12 +2354,12 @@ phydbl Lk_Dist(phydbl *F, phydbl dist, model *mod)
 	    {
  	      lnL +=
 		(F[dim1*k+dim2*i+j] + F[dim1*k+dim2*j+i])*
-		LOG(mod->pi->v[i] * mod->Pij_rr->v[dim1*k+dim2*i+j]);
+		LOG(mod->e_frq->pi->v[i] * mod->Pij_rr->v[dim1*k+dim2*i+j]);
 	    }
 	}
     }
 
-  For(i,mod->ns) For(k,mod->n_catg) lnL += F[dim1*k+dim2*i+i]* LOG(mod->pi->v[i] * mod->Pij_rr->v[dim1*k+dim2*i+i]);
+  For(i,mod->ns) For(k,mod->n_catg) lnL += F[dim1*k+dim2*i+i]* LOG(mod->e_frq->pi->v[i] * mod->Pij_rr->v[dim1*k+dim2*i+i]);
 
   return lnL;
 }
@@ -2489,7 +2494,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
                     b->Pij_rr[catg*dim3+state*dim2+l] *
                     (phydbl)b->p_lk_left[site*dim1+catg*dim2+l];
                 }
-              site_lk_cat += sum * tree->mod->pi->v[state];
+              site_lk_cat += sum * tree->mod->e_frq->pi->v[state];
             }
           /* If the character observed at the tip is ambiguous: ns x ns terms to consider */
           else
@@ -2507,7 +2512,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
                         }
                       site_lk_cat +=
                         sum *
-                        tree->mod->pi->v[k] *
+                        tree->mod->e_frq->pi->v[k] *
                         (phydbl)b->p_lk_tip_r[site*dim2+k];
                     }
                 }
@@ -2529,7 +2534,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
                     }
                   site_lk_cat +=
                     sum *
-                    tree->mod->pi->v[k] *
+                    tree->mod->e_frq->pi->v[k] *
                     (phydbl)b->p_lk_rght[site*dim1+catg*dim2+k];
                 }
             }
@@ -2556,7 +2561,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
             site_lk *= (phydbl)EXP(scale_left + scale_rght);
           
           log_site_lk =
-            (phydbl)LOG(site_lk*(1.0-tree->mod->pinvar->v) + tree->mod->pinvar->v*tree->mod->pi->v[tree->data->invar[site]]);
+            (phydbl)LOG(site_lk*(1.0-tree->mod->pinvar->v) + tree->mod->pinvar->v*tree->mod->e_frq->pi->v[tree->data->invar[site]]);
           /* LOG(P(D)) = LOG(P(D | subst. rate > 0) * P(subst. rate > 0) + P(D | subst. rate = 0) * P(subst. rate = 0)) */
         }
       else
@@ -2814,8 +2819,8 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
 /*                    PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__); */
 /*                    PhyML_Printf("\n. p_lk[%3d][%2d][%3d] = %G max_p_lk = %G",site,catg,i,p_lk[site][catg][i],max_p_lk); */
 /*                    PhyML_Printf("\n. alpha=%f pinv=%f",tree->mod->alpha->v,tree->mod->pinvar->v); */
-/*                    For(i,tree->mod->n_catg) PhyML_Printf("\n. rr[%2d] = %G",i,tree->mod->rr[i]); */
-/*                    PhyML_Printf("\n. d->b[dir1]->l = %f, d->b[dir2]->l = %f",d->b[dir1]->l,d->b[dir2]->l); */
+/*                    For(i,tree->mod->n_catg) PhyML_Printf("\n. rr[%2d] = %G",i,tree->mod->r_mat->rr[i]); */
+/*                    PhyML_Printf("\n. d->b[dir1]->l->v = %f, d->b[dir2]->l->v = %f",d->b[dir1]->l->v,d->b[dir2]->l->v); */
 /*                    PhyML_Printf("\n. d->v[dir1]->num = %d, d->v[dir2]->num = %d",d->v[dir1]->num,d->v[dir2]->num); */
 /*                    if(d->v[dir1]->tax) */
 /*                      { */
@@ -3117,14 +3122,14 @@ phydbl Lk_Normal_Approx(t_tree *tree)
 /*       if((tree->rates->mean_l[i] / tree->mod->l_min < 1.1) &&  */
 /* 	 (tree->rates->mean_l[i] / tree->mod->l_min > 0.9)) */
 /* 	{	   */
-/* 	  lnL -= Log_Dnorm(tree->t_edges[i]->l,tree->rates->mean_l[i],SQRT(tree->rates->cov_l[i*dim+i]),&err); */
+/* 	  lnL -= Log_Dnorm(tree->t_edges[i]->l->v,tree->rates->mean_l[i],SQRT(tree->rates->cov_l[i*dim+i]),&err); */
 /* 	  if(err) */
 /* 	    { */
 /* 	      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__); */
 /* 	      Warn_And_Exit(""); */
 /* 	    } */
 /* 	  lambda = 1./SQRT(tree->rates->cov_l[i*dim+i]); */
-/* 	  l = (tree->mod->log_l == YES)?(EXP(tree->t_edges[i]->l)):(tree->t_edges[i]->l); */
+/* 	  l = (tree->mod->log_l == YES)?(EXP(tree->t_edges[i]->l->v)):(tree->t_edges[i]->l->v); */
 /* 	  lnL += LOG(Dexp(l,lambda)); */
 /* /\* 	  printf("\n. lambda = %f",lambda); *\/ */
 /* 	} */
@@ -3370,17 +3375,17 @@ void Sample_Ancestral_Seq_Pre(t_node *a, t_node *d, t_edge *b,
   probs = (phydbl *)mCalloc(tree->mod->ns,sizeof(phydbl));
       
   if(a->tax) 
-    c = tree->data->c_seq[a->num]->state+site*tree->mod->state_len;
+    c = tree->data->c_seq[a->num]->state+site*tree->mod->io->state_len;
   else
-    c = tree->anc_data->c_seq[a->num-tree->n_otu]->state+site*tree->mod->state_len;
+    c = tree->anc_data->c_seq[a->num-tree->n_otu]->state+site*tree->mod->io->state_len;
   
   sa = Assign_State(c,
 		    tree->mod->io->datatype,
-		    tree->mod->state_len);
+		    tree->mod->io->state_len);
   
   if(sa == -1) // c is an indel
     {
-      For(j,tree->mod->ns) probs[j] = tree->mod->pi->v[j];
+      For(j,tree->mod->ns) probs[j] = tree->mod->e_frq->pi->v[j];
       
       for(j=1;j<tree->mod->ns;j++) probs[j] += probs[j-1];
       
@@ -3425,7 +3430,7 @@ void Sample_Ancestral_Seq_Pre(t_node *a, t_node *d, t_edge *b,
 
       /* if(site == 92) */
       /* 	printf("\n. l=%f pr[%f %f %f %f] Pij[%f %f %f %f] plk[%f %f %f %f]", */
-      /* 	       b->l * tree->mod->gamma_rr->v[rate_cat], */
+      /* 	       b->l->v * tree->mod->gamma_rr->v[rate_cat], */
       /* 	       probs[0],probs[1],probs[2],probs[3], */
       /* 	       Pij[rate_cat*dim3+sa*dim2+0], */
       /* 	       Pij[rate_cat*dim3+sa*dim2+1], */
@@ -3460,15 +3465,15 @@ void Sample_Ancestral_Seq_Pre(t_node *a, t_node *d, t_edge *b,
     }
   else
     {
-      c = tree->data->c_seq[d->num]->state+site*tree->mod->state_len;
+      c = tree->data->c_seq[d->num]->state+site*tree->mod->io->state_len;
         
       sd = Assign_State(c,
 			tree->mod->io->datatype,
-			tree->mod->state_len);
+			tree->mod->io->state_len);
 
       if(sd == -1) // c is an indel
 	{
-	  For(j,tree->mod->ns) probs[j] = tree->mod->pi->v[j];
+	  For(j,tree->mod->ns) probs[j] = tree->mod->e_frq->pi->v[j];
 	  
 	  for(j=1;j<tree->mod->ns;j++) probs[j] += probs[j-1];
 	  
@@ -3484,8 +3489,8 @@ void Sample_Ancestral_Seq_Pre(t_node *a, t_node *d, t_edge *b,
 
   /* if(site == 92) */
   /*   { */
-  /*     printf("\n. sa=%d (%s,%d) sd=%d (%s,%d) b->l=%f", */
-  /* 	     sa,a->tax?a->name:"",a->num,sd,d->tax?d->name:"",d->num,b->l); */
+  /*     printf("\n. sa=%d (%s,%d) sd=%d (%s,%d) b->l->v=%f", */
+  /* 	     sa,a->tax?a->name:"",a->num,sd,d->tax?d->name:"",d->num,b->l->v); */
   /*   } */
 	       
   if(mutmap == YES) Map_Mutations(a,d,sa,sd,b,site,rate_cat,muttype,muttime,n_mut,tree);
@@ -3543,11 +3548,11 @@ void Map_Mutations(t_node *a, t_node *d, int sa, int sd, t_edge *b, int site, in
 
 
   // Rate matrix
-  Q = tree->mod->qmat->v;
+  Q = tree->mod->r_mat->qmat->v;
   
   // Length of the 'time' interval considered: product of the branch length by the 
   // current relative rate at that site (set when sampling ancestral sequences)
-  td = b->l * gr;
+  td = b->l->v * gr;
   
   // Matrix of change probabilities
   For(i,tree->mod->ns)
@@ -3678,54 +3683,15 @@ void Map_Mutations(t_node *a, t_node *d, int sa, int sd, t_edge *b, int site, in
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-phydbl Lk_LastFirst(t_tree *tree)
-{
-  phydbl c_lnL;
-  t_tree *buff;
-  phydbl sum;
-
-  c_lnL = 0.0;
-
-  // Normalise the mixture model class proba
-  buff = tree;
-  sum  = 0.0;
-  do
-    {      
-      sum += buff->mod->unscaled_prob;
-      buff   = buff->prevtree;      
-    }while(buff);
-
-
-  buff = tree;
-  do
-    {
-      buff->mod->prob = buff->mod->unscaled_prob/sum;
-      buff   = buff->prevtree;      
-    }while(buff);
-
-
-
-  // Calculate the likelihood
-  buff = tree;
-  do
-    {
-      c_lnL += buff->c_lnL_mixt * buff->mod->prob;
-      /* printf("\n. lk tree %d: %f %f",buff->tree_num,buff->c_lnL_mixt,buff->mod->kappa->v); */
-      buff   = buff->prevtree;
-   }while(buff);
-
-  buff = tree;
-  do
-    {
-      buff->c_lnL = c_lnL; // Overrides the values of c_lnL;
-      buff   = buff->prevtree;
-    }while(buff);
-
-  return(c_lnL);
-}
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
+
+
+
+
+
+
 
 
 //////////////////////////////////////////////////////////////

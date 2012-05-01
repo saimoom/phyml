@@ -284,6 +284,10 @@ times.c times.h\
 tiporder.c tiporder.h\
 mg.c mg.h\
 m4.c m4.h\
+io.c io.h\
+make.c make.h\
+nexus.c nexus.h\
+init.c init.h\
 xml.c xml.h
 test_LDADD = -lm
 else
@@ -309,7 +313,14 @@ mcmc.c mcmc.h\
 times.c times.h\
 tiporder.c tiporder.h\
 mg.c mg.h\
-m4.c m4.h
+m4.c m4.h\
+io.c io.h\
+make.c make.h\
+nexus.c nexus.h\
+init.c init.h\
+xml.c xml.h
+# mixt.c mixt.h\
+# mixtlk.c mixtlk.h
 phyml_LDADD = -lm 
 endif
 endif
@@ -319,6 +330,7 @@ endif
 endif
 endif
 endif
+
 
 # all-am:	intro $(bin_PROGRAMS)$(EXEEXT)
 all-am:	intro $(bin_PROGRAMS)

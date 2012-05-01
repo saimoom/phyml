@@ -362,22 +362,22 @@ phydbl Br_Len_Golden(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
        x1=bx-GOLDEN_C*(bx-ax);
      }
    
-   b_fcus->l=x1;
+   b_fcus->l->v=x1;
    f1 = -Lk_At_Given_Edge(b_fcus,tree);
-   b_fcus->l=x2;
+   b_fcus->l->v=x2;
    f2 = -Lk_At_Given_Edge(b_fcus,tree);
    while (FABS(x3-x0) > tol*(FABS(x1)+FABS(x2))) 
      {
        if (f2 < f1) 
 	 {
 	   SHFT3(x0,x1,x2,GOLDEN_R*x1+GOLDEN_C*x3)
-	   b_fcus->l=x2;
+	   b_fcus->l->v=x2;
 	   SHFT2(f1,f2,-Lk_At_Given_Edge(b_fcus,tree))
 	 } 
        else 
 	 {
 	   SHFT3(x3,x2,x1,GOLDEN_R*x2+GOLDEN_C*x0)
-	   b_fcus->l=x1;
+	   b_fcus->l->v=x1;
 	   SHFT2(f2,f1,-Lk_At_Given_Edge(b_fcus,tree))
 	 }
      }
@@ -403,16 +403,16 @@ int Br_Len_Brak(phydbl *ax, phydbl *bx, phydbl *cx,
 {
    phydbl ulim,u,r,q,fu,dum;
 
-   b_fcus->l = *ax;
+   b_fcus->l->v = *ax;
    *fa=-Lk_At_Given_Edge(b_fcus,tree);
-   b_fcus->l = *bx;
+   b_fcus->l->v = *bx;
    *fb=-Lk_At_Given_Edge(b_fcus,tree);
    if (*fb > *fa) {
       SHFT(dum,*ax,*bx,dum)
       SHFT(dum,*fb,*fa,dum)
    }
    *cx=(*bx)+MNBRAK_GOLD*(*bx-*ax);
-   b_fcus->l = *cx;
+   b_fcus->l->v = *cx;
    *fc=-Lk_At_Given_Edge(b_fcus,tree);
    while (*fb > *fc + tree->mod->s_opt->min_diff_lk_local) 
      {
@@ -425,7 +425,7 @@ int Br_Len_Brak(phydbl *ax, phydbl *bx, phydbl *cx,
        
        if ((*bx-u)*(u-*cx) > 0.0) 
 	 {
-	   b_fcus->l = u;
+	   b_fcus->l->v = u;
 	   fu=-Lk_At_Given_Edge(b_fcus,tree);
 	   if (fu < *fc) 
 	     {
@@ -448,30 +448,30 @@ int Br_Len_Brak(phydbl *ax, phydbl *bx, phydbl *cx,
 	       return(0);
 	     }
 	   u=(*cx)+MNBRAK_GOLD*(*cx-*bx);
-	   b_fcus->l = u;
+	   b_fcus->l->v = u;
 	   fu=-Lk_At_Given_Edge(b_fcus,tree);
 	 } 
        else if ((*cx-u)*(u-ulim) > 0.0) 
 	 {
-	   b_fcus->l = FABS(u);
+	   b_fcus->l->v = FABS(u);
 	   fu=-Lk_At_Given_Edge(b_fcus,tree);
 	   if (fu < *fc) 
 	     {
 	       SHFT(*bx,*cx,u,*cx+MNBRAK_GOLD*(*cx-*bx))
-	       b_fcus->l = u; 
+	       b_fcus->l->v = u; 
 	       SHFT(*fb,*fc,fu,-Lk_At_Given_Edge(b_fcus,tree))
 	     }
 	 } 
        else if ((u-ulim)*(ulim-*cx) >= 0.0) 
 	 {
 	   u=ulim;
-	   b_fcus->l = u;
+	   b_fcus->l->v = u;
 	   fu=-Lk_At_Given_Edge(b_fcus,tree);
 	 } 
        else 
 	 {
 	   u=(*cx)+MNBRAK_GOLD*(*cx-*bx);
-	   b_fcus->l = u;
+	   b_fcus->l->v = u;
 	   fu=-Lk_At_Given_Edge(b_fcus,tree);
 	 }
        SHFT(*ax,*bx,*cx,u)
@@ -489,7 +489,7 @@ int Br_Len_Brak(phydbl *ax, phydbl *bx, phydbl *cx,
 
 phydbl Br_Len_Brent_Default(t_edge *b_fcus, t_tree *tree)
 {
-  return Br_Len_Brent(10.*b_fcus->l,b_fcus->l,.10*b_fcus->l,tree->mod->s_opt->min_diff_lk_local,b_fcus,tree,1000,0);
+  return Br_Len_Brent(10.*b_fcus->l->v,b_fcus->l->v,.10*b_fcus->l->v,tree->mod->s_opt->min_diff_lk_local,b_fcus,tree,1000,0);
 }
 
 //////////////////////////////////////////////////////////////
@@ -520,11 +520,11 @@ phydbl Br_Len_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
   b=((ax > cx) ? ax : cx);
   x=w=v=bx;
   old_lnL = UNLIKELY;
-  b_fcus->l = bx;
+  b_fcus->l->v = bx;
   fw=fv=fx=fu=-Lk_At_Given_Edge(b_fcus,tree);
   init_lnL = -fw;
   
-  /* PhyML_Printf("\n. INIT BRENT t_edge %3d l=%f lnL=%20f",b_fcus->num,b_fcus->l,fu); */
+  /* PhyML_Printf("\n. INIT BRENT t_edge %3d l=%f lnL=%20f",b_fcus->num,b_fcus->l->v,fu); */
   
   for(iter=1;iter<=BRENT_ITMAX;iter++)
     {
@@ -533,7 +533,7 @@ phydbl Br_Len_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
       
       if((tree->c_lnL > init_lnL + tol) && (quickdirty))
 	{
-	  b_fcus->l = x;
+	  b_fcus->l->v = x;
 	  Lk_At_Given_Edge(b_fcus,tree);
 	  /* 	  PhyML_Printf("\n> iter=%3d max=%3d v=%f lnL=%f init_lnL=%f tol=%f",iter,n_iter_max,(*xmin),tree->c_lnL,init_lnL,tol); */
 	  /* 	  Exit("\n"); */
@@ -543,9 +543,9 @@ phydbl Br_Len_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
       /*       if(((FABS(tree->c_lnL-old_lnL) < tol) && (tree->c_lnL > init_lnL - tol)) || (iter > n_iter_max - 1)) */
       if((FABS(tree->c_lnL-old_lnL) < tol) || (iter > n_iter_max - 1))
 	{
-	  b_fcus->l=x;
+	  b_fcus->l->v=x;
 	  Lk_At_Given_Edge(b_fcus,tree);
-	  /* 	  PhyML_Printf("\n. iter=%3d max=%3d l=%f lnL=%f init_lnL=%f",iter,n_iter_max,b_fcus->l,tree->c_lnL,init_lnL); */
+	  /* 	  PhyML_Printf("\n. iter=%3d max=%3d l=%f lnL=%f init_lnL=%f",iter,n_iter_max,b_fcus->l->v,tree->c_lnL,init_lnL); */
 	  /* 	  Exit("\n"); */
 	  return tree->c_lnL;
 	}
@@ -575,11 +575,11 @@ phydbl Br_Len_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 	}
       u=(FABS(d) >= tol1 ? x+d : x+SIGN(tol1,d));
       /*       if(u<tree->l_min) u = tree->l_min; */
-      b_fcus->l=u;
+      b_fcus->l->v=u;
       old_lnL = tree->c_lnL;
       fu=-Lk_At_Given_Edge(b_fcus,tree);
       
-      /* PhyML_Printf("\n. BRENT t_edge %3d l=%f lnL=%20f iter=%3d",b_fcus->num,b_fcus->l,fu,iter); */
+      /* PhyML_Printf("\n. BRENT t_edge %3d l=%f lnL=%20f iter=%3d",b_fcus->num,b_fcus->l->v,fu,iter); */
       
       /*       if(fu <= fx) */
       if(fu < fx)
@@ -608,7 +608,7 @@ phydbl Br_Len_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 	    }
 	}
     }
-  if(iter > BRENT_ITMAX) PhyML_Printf("\n. Too many iterations in BRENT (%d) (%f)",iter,b_fcus->l);      
+  if(iter > BRENT_ITMAX) PhyML_Printf("\n. Too many iterations in BRENT (%d) (%f)",iter,b_fcus->l->v);      
   return(-1);
   /* Not Reached ??  *xmin=x;   */
   /* Not Reached ??  return fx; */
@@ -703,7 +703,7 @@ void Optimize_Br_Len_Serie(t_node *a, t_node *d, t_edge *b_fcus, t_tree *tree, c
     }
     
   
-  l_max  = b_fcus->l;
+  l_max  = b_fcus->l->v;
   l_infa = tree->mod->l_max;
   l_infb = tree->mod->l_min;
   
@@ -726,7 +726,7 @@ void Optimize_Br_Len_Serie(t_node *a, t_node *d, t_edge *b_fcus, t_tree *tree, c
 		       Wrap_Lk_At_Given_Edge,b_fcus,tree,NULL);
     }
 
-/*   Generic_Brent_Lk(&(b_fcus->l), */
+/*   Generic_Brent_Lk(&(b_fcus->l->v), */
 /* 		   l_infa,l_infb, */
 /* 		   tree->mod->s_opt->min_diff_lk_local, */
 /* 		   tree->mod->s_opt->brent_it_max, */
@@ -736,7 +736,7 @@ void Optimize_Br_Len_Serie(t_node *a, t_node *d, t_edge *b_fcus, t_tree *tree, c
 
   if(tree->c_lnL < lk_init - tree->mod->s_opt->min_diff_lk_local)
     {
-      PhyML_Printf("\n. %f %f %f %f",l_infa,l_max,l_infb,b_fcus->l);
+      PhyML_Printf("\n. %f %f %f %f",l_infa,l_max,l_infb,b_fcus->l->v);
       PhyML_Printf("\n. %f -- %f",lk_init,tree->c_lnL);
       Warn_And_Exit("\n. Err. in Optimize_Br_Len_Serie\n");
     }
@@ -770,13 +770,13 @@ void Optimiz_Ext_Br(t_tree *tree)
       if((b->left->tax) || (b->rght->tax))
 	{
 
-	  l_init = b->l;
+	  l_init = b->l->v;
 
 /* 	  Fast_Br_Len(b,tree); */
 /* 	  lk = Lk_At_Given_Edge(tree,b); */
 
-	  l_infa = 10.*b->l;
-	  l_max  = b->l;
+	  l_infa = 10.*b->l->v;
+	  l_max  = b->l->v;
 	  l_infb = tree->mod->l_min;
 
 	  lk = Br_Len_Brent(l_infa,l_max,l_infb,
@@ -785,10 +785,10 @@ void Optimiz_Ext_Br(t_tree *tree)
 			    tree->mod->s_opt->brent_it_max,
 			    tree->mod->s_opt->quickdirty);
 
-	  b->nni->best_l    = b->l;
-	  b->nni->l0        = b->l;
+	  b->nni->best_l    = b->l->v;
+	  b->nni->l0        = b->l->v;
 	  b->nni->best_conf = 0;
-	  b->l              = l_init;
+	  b->l->v              = l_init;
 
 	}
     }
@@ -811,14 +811,14 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
   if((tree->mod->whichmodel == GTR) ||
      ((tree->mod->whichmodel == CUSTOM) && 
       (tree->mod->s_opt->opt_rr) && 
-      (tree->mod->n_diff_rr > 1)))
+      (tree->mod->r_mat->n_diff_rr > 1)))
     {
       int failed;
       
       failed = 0;
       
       tree->mod->update_eigen = 1;
-      BFGS(tree,tree->mod->rr_val->v,tree->mod->n_diff_rr,1.e-5,1.e-3,
+      BFGS(tree,tree->mod->r_mat->rr_val->v,tree->mod->r_mat->n_diff_rr,1.e-5,1.e-3,
 	   &Return_Abs_Lk,
 	   &Num_Derivative_Several_Param,
 	   &Lnsrch_RR_Param,&failed);
@@ -827,16 +827,16 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 	{
 	  int i;
 	  
-	  For(i,tree->mod->n_diff_rr)
+	  For(i,tree->mod->r_mat->n_diff_rr)
 	    if(i != 5)
 	      {
-/* 		Optimize_Single_Param_Generic(tree,&(tree->mod->rr_val[i]), */
+/* 		Optimize_Single_Param_Generic(tree,&(tree->mod->r_mat->rr_val[i]), */
 /* 					      1.E-2,1.E+2, */
 /* 					      tree->mod->s_opt->min_diff_lk_global, */
 /* 					      tree->mod->s_opt->brent_it_max, */
 /* 					      tree->mod->s_opt->quickdirty); */
 
-		Generic_Brent_Lk(&(tree->mod->rr_val->v[i]),
+		Generic_Brent_Lk(&(tree->mod->r_mat->rr_val->v[i]),
 				 1.E-2,1.E+2,
 				 tree->mod->s_opt->min_diff_lk_global,
 				 tree->mod->s_opt->brent_it_max,
@@ -949,7 +949,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
         
         failed = 0;
         tree->mod->update_eigen = 1;
-        BFGS(tree,tree->mod->pi_unscaled->v,tree->mod->ns,1.e-5,1.e-5,
+        BFGS(tree,tree->mod->e_frq->pi_unscaled->v,tree->mod->ns,1.e-5,1.e-5,
 	     &Return_Abs_Lk,
 	     &Num_Derivative_Several_Param,
 	     &Lnsrch_Nucleotide_Frequencies,&failed);
@@ -958,13 +958,13 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 	  {
 	    For(i,tree->mod->ns) 
 	      {
-/* 		Optimize_Single_Param_Generic(tree,&(tree->mod->pi_unscaled[i]), */
+/* 		Optimize_Single_Param_Generic(tree,&(tree->mod->e_frq->pi_unscaled[i]), */
 /* 					      -1000.,1000., */
 /* 					      tree->mod->s_opt->min_diff_lk_global, */
 /* 					      tree->mod->s_opt->brent_it_max, */
 /* 					      tree->mod->s_opt->quickdirty); */
- 		Generic_Brent_Lk(&(tree->mod->pi_unscaled->v[i]),
-				 -1000.,1000.,
+ 		Generic_Brent_Lk(&(tree->mod->e_frq->pi_unscaled->v[i]),
+				 0.,100.,
 				 tree->mod->s_opt->min_diff_lk_global,
 				 tree->mod->s_opt->brent_it_max,
 				 tree->mod->s_opt->quickdirty,
@@ -1409,7 +1409,7 @@ int Lnsrch_RR_Param(t_tree *tree, int n, phydbl *xold, phydbl fold,
       /**/
       for(i=0;i<n;i++)
 	{
-	  tree->mod->rr_val->v[i] = FABS(local_xold[i]+alam*p[i]);
+	  tree->mod->r_mat->rr_val->v[i] = FABS(local_xold[i]+alam*p[i]);
 	}
       /**/
 
@@ -1427,7 +1427,7 @@ int Lnsrch_RR_Param(t_tree *tree, int n, phydbl *xold, phydbl fold,
 	  /**/      
 	  for(i=0;i<n;i++)
 	    {
-	      tree->mod->rr_val->v[i] = FABS(local_xold[i]);
+	      tree->mod->r_mat->rr_val->v[i] = FABS(local_xold[i]);
 	    }
 	  /**/
 
@@ -1634,10 +1634,10 @@ int Lnsrch_Nucleotide_Frequencies(t_tree *tree, int n, phydbl *xold, phydbl fold
       /**/      
       for(i=0;i<n;i++) 
 	{
-	  tree->mod->pi_unscaled->v[i]=FABS(local_xold[i]+alam*p[i]);
+	  tree->mod->e_frq->pi_unscaled->v[i]=FABS(local_xold[i]+alam*p[i]);
 /* 	  if( */
-/* 	     (tree->mod->pi[i] < 0.001) || */
-/* 	     (tree->mod->pi[i] > 0.999) */
+/* 	     (tree->mod->e_frq->pi[i] < 0.001) || */
+/* 	     (tree->mod->e_frq->pi[i] > 0.999) */
 /* 	     ) */
 /* 	    break; */
 	}
@@ -1650,7 +1650,7 @@ int Lnsrch_Nucleotide_Frequencies(t_tree *tree, int n, phydbl *xold, phydbl fold
       if (alam < alamin)
 	{
 	  for (i=0;i<n;i++) x[i]=local_xold[i];
-	  for (i=0;i<n;i++) tree->mod->pi_unscaled->v[i]=local_xold[i];
+	  for (i=0;i<n;i++) tree->mod->e_frq->pi_unscaled->v[i]=local_xold[i];
 	  *check=1;
 	  For(i,n) xold[i] = local_xold[i];
 	  Free(local_xold);
@@ -1818,7 +1818,7 @@ int Lnsrch_Free_Mixt_Rates(t_tree *tree, int n, phydbl *xold, phydbl fold, phydb
 //////////////////////////////////////////////////////////////
 
 
-int Dist_F_Brak(phydbl *ax, phydbl *bx, phydbl *cx, phydbl *F, phydbl *param, model *mod)
+int Dist_F_Brak(phydbl *ax, phydbl *bx, phydbl *cx, phydbl *F, phydbl *param, t_mod *mod)
 {
    phydbl ulim,u,r,q,dum;
    phydbl fa, fb, fc, fu;
@@ -1894,7 +1894,7 @@ int Dist_F_Brak(phydbl *ax, phydbl *bx, phydbl *cx, phydbl *F, phydbl *param, mo
 
 
 phydbl Dist_F_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, int n_iter_max, 
-		    phydbl *param, phydbl *F, model *mod)
+		    phydbl *param, phydbl *F, t_mod *mod)
 {
   int iter;
   phydbl a,b,d,etemp,fu,fv,fw,fx,p,q,r,tol1,tol2,u,v,w,x,xm;
@@ -1999,7 +1999,7 @@ phydbl Dist_F_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, int n_iter_max,
 //////////////////////////////////////////////////////////////
 
 
-void Opt_Dist_F(phydbl *dist, phydbl *F, model *mod)
+void Opt_Dist_F(phydbl *dist, phydbl *F, t_mod *mod)
 {
   phydbl ax,bx,cx;
 

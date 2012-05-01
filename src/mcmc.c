@@ -888,7 +888,7 @@ void MCMC_One_Time(t_node *a, t_node *d, int traversal, t_tree *tree)
 	  /* /\* !!!!!!!!!!!!!!!!!!!!1 *\/ */
 	  /* if(FABS(Lk(tree) - new_lnL_data) > 1.E-5) */
 	  /*   { */
-	  /*     PhyML_Printf("\n. b1->l=%f b2->l=%f b3->l=%f",b1->l,b2->l,b3->l); */
+	  /*     PhyML_Printf("\n. b1->l->v=%f b2->l->v=%f b3->l->v=%f",b1->l->v,b2->l->v,b3->l->v); */
 	  /*     PhyML_Printf("\n. a->num=%d d->num=%d root=%d (%d %d)",a->num,d->num,a==tree->n_root,tree->n_root->v[0]->num,tree->n_root->v[1]->num); */
 	  /*     PhyML_Printf("\n. t_min=%f t_max=%f",t_min,t_max); */
 	  /*     PhyML_Printf("\n. t1_new=%f t1_cur=%f",t1_new,t1_cur); */
@@ -2026,11 +2026,11 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
 
       /* for(i=0;i<2*tree->n_otu-2;i++) PhyML_Fprintf(fp,"%.4f\t",tree->rates->cur_gamma_prior_mean[i]); */
       /* if(fp != stdout) for(i=tree->n_otu;i<2*tree->n_otu-1;i++) PhyML_Fprintf(fp,"%G\t",tree->rates->t_prior[i]); */
-/*       For(i,2*tree->n_otu-3) PhyML_Fprintf(fp,"%f\t",EXP(tree->t_edges[i]->l)); */
+/*       For(i,2*tree->n_otu-3) PhyML_Fprintf(fp,"%f\t",EXP(tree->t_edges[i]->l->v)); */
 
 
       RATES_Update_Cur_Bl(tree);
-      For(i,2*tree->n_otu-3) PhyML_Fprintf(fp,"%f\t",tree->t_edges[i]->l);
+      For(i,2*tree->n_otu-3) PhyML_Fprintf(fp,"%f\t",tree->t_edges[i]->l->v);
 
 
       For(i,2*tree->n_otu-2) tree->rates->mean_r[i] = EXP(tree->rates->br_r[i]);
@@ -2574,9 +2574,9 @@ void MCMC_Randomize_Branch_Lengths(t_tree *tree)
   int i;
 
   if(tree->mod->log_l == NO)
-    For(i,2*tree->n_otu-3) tree->t_edges[i]->l = Rexp(10.);
+    For(i,2*tree->n_otu-3) tree->t_edges[i]->l->v = Rexp(10.);
   else
-    For(i,2*tree->n_otu-3) tree->t_edges[i]->l = -4* Uni();
+    For(i,2*tree->n_otu-3) tree->t_edges[i]->l->v = -4* Uni();
 }
 
 //////////////////////////////////////////////////////////////
@@ -2995,7 +2995,7 @@ void MCMC_One_Length(t_edge *b, t_tree *tree)
   phydbl K,mult;
 
 
-  cur_l        = b->l;
+  cur_l        = b->l->v;
   cur_lnL_data = tree->c_lnL;
   K            = 0.1;
   
@@ -3006,7 +3006,7 @@ void MCMC_One_Length(t_edge *b, t_tree *tree)
 
   if(new_l < tree->mod->l_min || new_l > tree->mod->l_max) return;
 
-  b->l = new_l;
+  b->l->v = new_l;
   new_lnL_data = Lk_At_Given_Edge(b,tree);
 /*   tree->both_sides = NO; */
 /*   new_lnL_data = Lk(tree); */
@@ -3024,7 +3024,7 @@ void MCMC_One_Length(t_edge *b, t_tree *tree)
   
   if(u > alpha) /* Reject */
     {
-      b->l = cur_l;
+      b->l->v = cur_l;
       Update_PMat_At_Given_Edge(b,tree);
       tree->c_lnL = cur_lnL_data;
     }
@@ -3053,9 +3053,9 @@ void MCMC_Scale_Br_Lens(t_tree *tree)
 
   For(i,2*tree->n_otu-3) 
     {
-      tree->t_edges[i]->l *= mult;
-      if(tree->t_edges[i]->l < tree->mod->l_min || 
-	 tree->t_edges[i]->l > tree->mod->l_max) return;
+      tree->t_edges[i]->l->v *= mult;
+      if(tree->t_edges[i]->l->v < tree->mod->l_min || 
+	 tree->t_edges[i]->l->v > tree->mod->l_max) return;
     }
 
   tree->both_sides = NO;

@@ -391,7 +391,7 @@ void TIMES_Least_Square_Node_Times(t_edge *e_root, t_tree *tree)
   TIMES_Least_Square_Node_Times_Pre(root,root->v[0],A,b,n,tree);
   TIMES_Least_Square_Node_Times_Pre(root,root->v[1],A,b,n,tree);
   
-  b[root->num] = tree->e_root->l/2.;
+  b[root->num] = tree->e_root->l->v/2.;
   
   A[root->num * n + root->num]       = 1.0;
   A[root->num * n + root->v[0]->num] = -.5;
@@ -435,7 +435,7 @@ void TIMES_Least_Square_Node_Times(t_edge *e_root, t_tree *tree)
   time_tree_length += FABS(tree->rates->nd_t[root->num] - tree->rates->nd_t[root->v[1]->num]);
   
   tree_length = 0.0;
-  For(i,2*tree->n_otu-3) tree_length += tree->t_edges[i]->l;
+  For(i,2*tree->n_otu-3) tree_length += tree->t_edges[i]->l->v;
 
   tree->rates->clock_r = tree_length / time_tree_length;
 
@@ -474,8 +474,8 @@ void TIMES_Least_Square_Node_Times_Pre(t_node *a, t_node *d, phydbl *A, phydbl *
       For(i,3)
 	{
 	  A[d->num * n + d->v[i]->num] = -1./3.;
-	  if(d->v[i] != a) b[d->num] += d->b[i]->l;
-	  else             b[d->num] -= d->b[i]->l;
+	  if(d->v[i] != a) b[d->num] += d->b[i]->l->v;
+	  else             b[d->num] -= d->b[i]->l->v;
 	}
       b[d->num] /= 3.;
     }
@@ -565,12 +565,12 @@ void TIMES_Print_Node_Times(t_node *a, t_node *d, t_tree *tree)
   b = NULL;
   For(i,3) if((d->v[i]) && (d->v[i] == a)) {b = d->b[i]; break;}
 
-  PhyML_Printf("\n. (%3d %3d) a->t = %12f d->t = %12f (#=%12f) b->l = %12f [%12f;%12f]",
+  PhyML_Printf("\n. (%3d %3d) a->t = %12f d->t = %12f (#=%12f) b->l->v = %12f [%12f;%12f]",
 	       a->num,d->num,
 	       tree->rates->nd_t[a->num],
 	       tree->rates->nd_t[d->num],
 	       tree->rates->nd_t[a->num]-tree->rates->nd_t[d->num],
-	       (b)?(b->l):(-1.0),
+	       (b)?(b->l->v):(-1.0),
 	       tree->rates->t_prior_min[d->num],
 	       tree->rates->t_prior_max[d->num]);
   if(d->tax) return;

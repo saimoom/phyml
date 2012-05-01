@@ -355,7 +355,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	  }
 	case 46 : 
 	  {
-	    io->appebr_run_ID = 1;
+	    io->append_run_ID = YES;
 	    strcpy(io->run_id_string,optarg);
 	    break;
 	  }
@@ -620,11 +620,10 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	      {
 		io->datatype        = NT;
 		io->mod->ns         = 4;
-		io->mod->state_len  = 1;
 		io->mod->m4mod->n_o = 4;
 		
 		if(
-		   (io->mod->whichmodel == LG)       ||
+		   (io->mod->whichmodel == LG)        ||
 		   (io->mod->whichmodel == WAG)       ||
 		   (io->mod->whichmodel == DAYHOFF)   ||
 		   (io->mod->whichmodel == JTT)       ||
@@ -648,8 +647,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	    else if (!strcmp(optarg,"aa"))
 	      {
 		io->datatype              = AA;
-		io->mod->state_len        = 1;
-		io->mod->s_opt->opt_kappa = 0;
+		io->mod->s_opt->opt_kappa = NO;
 		io->mod->ns               = 20;
 		io->mod->m4mod->n_o       = 20;
 
@@ -699,15 +697,15 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		  }
 		else
 		  {
-		    Make_Custom_Model(io->mod);
-		    Translate_Custom_Mod_String(io->mod);
+		    /* Make_Custom_Model(io->mod); */
+		    /* Translate_Custom_Mod_String(io->mod); */
 		  }
 		
 		io->datatype              = NT;
 		io->mod->whichmodel       = CUSTOM;
 		strcpy(io->mod->modelname, "custom");
-		io->mod->s_opt->opt_kappa = 0;
-		io->mod->s_opt->opt_rr    = 1;
+		io->mod->s_opt->opt_kappa = NO;
+		io->mod->s_opt->opt_rr    = YES;
 	      }
 	    
 	    else if (strcmp(optarg, "JC69") == 0)
@@ -839,7 +837,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		(strcmp (optarg, "estimated") == 0) ||
 		(strcmp (optarg, "ESTIMATED") == 0))
 	      {
-		io->mod->s_opt->opt_alpha     = 1;
+		io->mod->s_opt->opt_alpha = YES;
 	      }
 	    else if (atof(optarg) < 1.E-10)
 	      {
@@ -1146,8 +1144,8 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		(strcmp (optarg, "estimated") == 0) ||
 		(strcmp (optarg, "ESTIMATED") == 0)) 
 	      {
-		io->mod->s_opt->opt_pinvar    = 1;
-		io->mod->invar                = 1;
+		io->mod->s_opt->opt_pinvar    = YES;
+		io->mod->invar                = YES;
 	      }
 	    
 	    else if ((atof(optarg) < 0.0) || (atof(optarg) > 1.0))
@@ -1319,7 +1317,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
     {
       strcpy(io->out_lk_file,io->in_align_file);
       strcat(io->out_lk_file, "_phyml_lk");
-      if(io->appebr_run_ID) { strcat(io->out_lk_file,"_"); strcat(io->out_lk_file,io->run_id_string); }
+      if(io->append_run_ID) { strcat(io->out_lk_file,"_"); strcat(io->out_lk_file,io->run_id_string); }
       strcat(io->out_lk_file, ".txt");
       io->fp_out_lk = Openfile(io->out_lk_file,1);
     }
@@ -1328,7 +1326,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
     {
       strcpy(io->out_trace_file,io->in_align_file);
       strcat(io->out_trace_file,"_phyml_trace");
-      if(io->appebr_run_ID) { strcat(io->out_trace_file,"_"); strcat(io->out_trace_file,io->run_id_string); }
+      if(io->append_run_ID) { strcat(io->out_trace_file,"_"); strcat(io->out_trace_file,io->run_id_string); }
       strcat(io->out_trace_file,".txt");
       io->fp_out_trace = Openfile(io->out_trace_file,1);
     }
@@ -1337,7 +1335,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
     {
       strcpy(io->out_trees_file,io->in_align_file);
       strcat(io->out_trees_file,"_phyml_rand_trees");
-      if(io->appebr_run_ID) { strcat(io->out_trees_file,"_"); strcat(io->out_trees_file,io->run_id_string); }
+      if(io->append_run_ID) { strcat(io->out_trees_file,"_"); strcat(io->out_trees_file,io->run_id_string); }
       strcat(io->out_trees_file,".txt");
       io->fp_out_trees = Openfile(io->out_trees_file,1);
     }
@@ -1346,18 +1344,18 @@ void Read_Command_Line(option *io, int argc, char **argv)
     {
       strcpy(io->out_boot_tree_file,io->in_align_file);
       strcat(io->out_boot_tree_file,"_phyml_boot_trees");
-      if(io->appebr_run_ID) { strcat(io->out_boot_tree_file,"_"); strcat(io->out_boot_tree_file,io->run_id_string); }
+      if(io->append_run_ID) { strcat(io->out_boot_tree_file,"_"); strcat(io->out_boot_tree_file,io->run_id_string); }
       strcat(io->out_boot_tree_file,".txt");
       io->fp_out_boot_tree = Openfile(io->out_boot_tree_file,1);
       
       strcpy(io->out_boot_stats_file,io->in_align_file);
       strcat(io->out_boot_stats_file,"_phyml_boot_stats");
-      if(io->appebr_run_ID) { strcat(io->out_boot_stats_file,"_"); strcat(io->out_boot_stats_file,io->run_id_string); }
+      if(io->append_run_ID) { strcat(io->out_boot_stats_file,"_"); strcat(io->out_boot_stats_file,io->run_id_string); }
       strcat(io->out_boot_stats_file,".txt");
       io->fp_out_boot_stats = Openfile(io->out_boot_stats_file,1);
     }
   
-  if(io->appebr_run_ID)
+  if(io->append_run_ID)
     {
       strcat(io->out_tree_file,"_");
       strcat(io->out_stats_file,"_");
@@ -1398,7 +1396,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
   
   if(io->mod->whichmodel == GTR) 
     {
-      Make_Custom_Model(io->mod);
+      /* Make_Custom_Model(io->mod); */
       io->mod->s_opt->opt_rr = 1;
     }
   

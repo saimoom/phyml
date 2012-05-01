@@ -327,7 +327,7 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
   result = 0;
 
   //Initialization
-  bl_init = b_fcus->l;
+  bl_init = b_fcus->l->v;
   lk_init = tree->c_lnL;
   lk_temp = UNLIKELY;
   n_patterns = tree->n_pattern;
@@ -361,7 +361,7 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
 
 
   l1 = l2 = l3 = -1.;
-  l1 = b_fcus->l;
+  l1 = b_fcus->l->v;
 
   //edges
   e1 = b_fcus->left->b[b_fcus->l_v1];
@@ -370,10 +370,10 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
   e4 = b_fcus->rght->b[b_fcus->r_v2];
 
   //record initial branch lengths
-  len_e1 = e1->l;
-  len_e2 = e2->l;
-  len_e3 = e3->l;
-  len_e4 = e4->l;
+  len_e1 = e1->l->v;
+  len_e2 = e2->l->v;
+  len_e3 = e3->l->v;
+  len_e4 = e4->l->v;
 
   //Optimize branch lengths and update likelihoods for
   //the original configuration.
@@ -387,8 +387,8 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
 	  {
 	    Update_P_Lk(tree,b_fcus->left->b[i],b_fcus->left);
 
-	    l_infa  = 10.*b_fcus->left->b[i]->l;
-	    l_max   = b_fcus->left->b[i]->l;
+	    l_infa  = 10.*b_fcus->left->b[i]->l->v;
+	    l_max   = b_fcus->left->b[i]->l->v;
 	    l_infb  = tree->mod->l_min;
 	    lk_temp = Br_Len_Brent(l_infa,l_max,l_infb,
 				   tree->mod->s_opt->min_diff_lk_local,
@@ -398,8 +398,8 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
 
       Update_P_Lk(tree,b_fcus,b_fcus->left);
 
-      l_infa  = 10.*b_fcus->l;
-      l_max   = b_fcus->l;
+      l_infa  = 10.*b_fcus->l->v;
+      l_max   = b_fcus->l->v;
       l_infb  = tree->mod->l_min;
       lk_temp = Br_Len_Brent(l_infa,l_max,l_infb,
 			     tree->mod->s_opt->min_diff_lk_local,
@@ -412,8 +412,8 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
 	  {
 	    Update_P_Lk(tree,b_fcus->rght->b[i],b_fcus->rght);
 
-	    l_infa  = 10.*b_fcus->rght->b[i]->l;
-	    l_max   = b_fcus->rght->b[i]->l;
+	    l_infa  = 10.*b_fcus->rght->b[i]->l->v;
+	    l_max   = b_fcus->rght->b[i]->l->v;
 	    l_infb  = tree->mod->l_min;
 	    lk_temp = Br_Len_Brent(l_infa,l_max,l_infb,
 				   tree->mod->s_opt->min_diff_lk_local,
@@ -446,11 +446,11 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
     }
 
   /* Go back to initial branch lengths */
-  e1->l     = len_e1;
-  e2->l     = len_e2;
-  e3->l     = len_e3;
-  e4->l     = len_e4;
-  b_fcus->l = bl_init;
+  e1->l->v     = len_e1;
+  e2->l->v     = len_e2;
+  e3->l->v     = len_e3;
+  e4->l->v     = len_e4;
+  b_fcus->l->v = bl_init;
   Update_PMat_At_Given_Edge(e1,tree);
   Update_PMat_At_Given_Edge(e2,tree);
   Update_PMat_At_Given_Edge(e3,tree);
@@ -486,8 +486,8 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
 	  {
 	    Update_P_Lk(tree,b_fcus->left->b[i],b_fcus->left);
 
-	    l_infa  = 10.*b_fcus->left->b[i]->l;
-	    l_max   = b_fcus->left->b[i]->l;
+	    l_infa  = 10.*b_fcus->left->b[i]->l->v;
+	    l_max   = b_fcus->left->b[i]->l->v;
 	    l_infb  = tree->mod->l_min;
 	    lk_temp = Br_Len_Brent(l_infa,l_max,l_infb,
 				   tree->mod->s_opt->min_diff_lk_local,
@@ -498,8 +498,8 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
 
       Update_P_Lk(tree,b_fcus,b_fcus->left);
 
-      l_infa  = 10.*b_fcus->l;
-      l_max   = b_fcus->l;
+      l_infa  = 10.*b_fcus->l->v;
+      l_max   = b_fcus->l->v;
       l_infb  = tree->mod->l_min;
       lk_temp = Br_Len_Brent(l_infa,l_max,l_infb,
 			     tree->mod->s_opt->min_diff_lk_local,
@@ -513,8 +513,8 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
 	  {
 	    Update_P_Lk(tree,b_fcus->rght->b[i],b_fcus->rght);
 
-	    l_infa  = 10.*b_fcus->rght->b[i]->l;
-	    l_max   = b_fcus->rght->b[i]->l;
+	    l_infa  = 10.*b_fcus->rght->b[i]->l->v;
+	    l_max   = b_fcus->rght->b[i]->l->v;
 	    l_infb  = tree->mod->l_min;
 	    lk_temp = Br_Len_Brent(l_infa,l_max,l_infb,
 				   tree->mod->s_opt->min_diff_lk_local,
@@ -550,17 +550,17 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
     }
 
   //save current length
-  l2  = b_fcus->l;
+  l2  = b_fcus->l->v;
 
   //undo the swap
   Swap(v3,b_fcus->left,b_fcus->rght,v2,tree);
 
   /* Go back to initial branch lengths */
-  e1->l     = len_e1;
-  e2->l     = len_e2;
-  e3->l     = len_e3;
-  e4->l     = len_e4;
-  b_fcus->l = bl_init;
+  e1->l->v     = len_e1;
+  e2->l->v     = len_e2;
+  e3->l->v     = len_e3;
+  e4->l->v     = len_e4;
+  b_fcus->l->v = bl_init;
 
   Update_PMat_At_Given_Edge(e1,tree);
   Update_PMat_At_Given_Edge(e2,tree);
@@ -571,7 +571,7 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
   /***********/
   //do the second possible swap
   Swap(v2,b_fcus->left,b_fcus->rght,v4,tree);
-  b_fcus->l = bl_init;
+  b_fcus->l->v = bl_init;
   tree->both_sides = 1;
 
   tree->update_alias_subpatt = YES;
@@ -598,8 +598,8 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
 	  {
 	    Update_P_Lk(tree,b_fcus->left->b[i],b_fcus->left);
 
-	    l_infa  = 10.*b_fcus->left->b[i]->l;
-	    l_max   = b_fcus->left->b[i]->l;
+	    l_infa  = 10.*b_fcus->left->b[i]->l->v;
+	    l_max   = b_fcus->left->b[i]->l->v;
 	    l_infb  = tree->mod->l_min;
 	    lk_temp = Br_Len_Brent(l_infa,l_max,l_infb,
 				   tree->mod->s_opt->min_diff_lk_local,
@@ -610,8 +610,8 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
 
       Update_P_Lk(tree,b_fcus,b_fcus->left);
 
-      l_infa  = 10.*b_fcus->l;
-      l_max   = b_fcus->l;
+      l_infa  = 10.*b_fcus->l->v;
+      l_max   = b_fcus->l->v;
       l_infb  = tree->mod->l_min;
       lk_temp = Br_Len_Brent(l_infa,l_max,l_infb,
 			     tree->mod->s_opt->min_diff_lk_local,
@@ -623,8 +623,8 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
 	  {
 	    Update_P_Lk(tree,b_fcus->rght->b[i],b_fcus->rght);
 
-	    l_infa  = 10.*b_fcus->rght->b[i]->l;
-	    l_max   = b_fcus->rght->b[i]->l;
+	    l_infa  = 10.*b_fcus->rght->b[i]->l->v;
+	    l_max   = b_fcus->rght->b[i]->l->v;
 	    l_infb  = tree->mod->l_min;
 	    lk_temp = Br_Len_Brent(l_infa,l_max,l_infb,
 				   tree->mod->s_opt->min_diff_lk_local,
@@ -659,17 +659,17 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
     }
 
   //save current length
-  l3  = b_fcus->l;
+  l3  = b_fcus->l->v;
   //undo the swap
   Swap(v4,b_fcus->left,b_fcus->rght,v2,tree);
   /***********/
 
   //restore the initial branch length values
-  e1->l     = len_e1;
-  e2->l     = len_e2;
-  e3->l     = len_e3;
-  e4->l     = len_e4;
-  b_fcus->l = bl_init;
+  e1->l->v     = len_e1;
+  e2->l->v     = len_e2;
+  e3->l->v     = len_e3;
+  e4->l->v     = len_e4;
+  b_fcus->l->v = bl_init;
 
   //recompute likelihoods
   Update_PMat_At_Given_Edge(e1,tree);
@@ -768,7 +768,7 @@ void Make_Target_Swap(t_tree *tree, t_edge *b_fcus, int swaptodo)
     }
 
   //Initialization
-  bl_init = b_fcus->l;
+  bl_init = b_fcus->l->v;
   lk_init = tree->c_lnL;
 
   b_fcus->nni->score = .0;
@@ -841,8 +841,8 @@ void Make_Target_Swap(t_tree *tree, t_edge *b_fcus, int swaptodo)
 	  {
 	    Update_P_Lk(tree,b_fcus->left->b[i],b_fcus->left);
 
-	    l_infa  = 10.*b_fcus->left->b[i]->l;
-	    l_max   = b_fcus->left->b[i]->l;
+	    l_infa  = 10.*b_fcus->left->b[i]->l->v;
+	    l_max   = b_fcus->left->b[i]->l->v;
 	    l_infb  = tree->mod->l_min;
 	    lk_temp = Br_Len_Brent(l_infa,l_max,l_infb,
 				   tree->mod->s_opt->min_diff_lk_local,
@@ -853,8 +853,8 @@ void Make_Target_Swap(t_tree *tree, t_edge *b_fcus, int swaptodo)
 
       Update_P_Lk(tree,b_fcus,b_fcus->left);
 
-      l_infa  = 10.*b_fcus->l;
-      l_max   = b_fcus->l;
+      l_infa  = 10.*b_fcus->l->v;
+      l_max   = b_fcus->l->v;
       l_infb  = tree->mod->l_min;
       lk_temp = Br_Len_Brent(l_infa,l_max,l_infb,
 			     tree->mod->s_opt->min_diff_lk_local,
@@ -868,8 +868,8 @@ void Make_Target_Swap(t_tree *tree, t_edge *b_fcus, int swaptodo)
 	  {
 	    Update_P_Lk(tree,b_fcus->rght->b[i],b_fcus->rght);
 
-	    l_infa  = 10.*b_fcus->rght->b[i]->l;
-	    l_max   = b_fcus->rght->b[i]->l;
+	    l_infa  = 10.*b_fcus->rght->b[i]->l->v;
+	    l_max   = b_fcus->rght->b[i]->l->v;
 	    l_infb  = tree->mod->l_min;
 	    lk_temp = Br_Len_Brent(l_infa,l_max,l_infb,
 				   tree->mod->s_opt->min_diff_lk_local,
@@ -892,7 +892,7 @@ void Make_Target_Swap(t_tree *tree, t_edge *b_fcus, int swaptodo)
 
 /*   PhyML_Printf("\n.<< [%3d] l=%f lk_init=%f tree->c_lnL=%f score=%12f v1=%3d v2=%3d v3=%3d v4=%3d >>", */
 /* 	 b_fcus->num, */
-/* 	 b_fcus->l, */
+/* 	 b_fcus->l->v, */
 /* 	 lk_init, */
 /* 	 tree->c_lnL, */
 /* 	 lk_init-tree->c_lnL, */

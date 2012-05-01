@@ -20,6 +20,7 @@ the GNU public licence.  See http://www.opensource.org for details.
 void Free_All_Nodes_Light(t_tree *tree)
 {
   int i;
+
   For(i,2*tree->n_otu-1) 
     {
       if(tree->t_nodes[i])
@@ -27,6 +28,7 @@ void Free_All_Nodes_Light(t_tree *tree)
 	  Free_Node(tree->t_nodes[i]);
 	}
     }
+
   Free(tree->t_nodes);
 }
 
@@ -48,7 +50,6 @@ void Free_All_Edges_Light(t_tree *tree)
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
-
 
 void Free_Mat(matrix *mat)
 {
@@ -149,6 +150,8 @@ void Free_Edge_Labels(t_edge *b)
 void Free_Edge(t_edge *b)
 {
   Free_Edge_Labels(b);
+  Free(b->l);
+  Free(b->l_old);
   Free(b);
 }
 
@@ -379,25 +382,23 @@ void Free_Edge_Lk(t_tree *tree, t_edge *b)
 //////////////////////////////////////////////////////////////
 
 
-void Free_Model_Complete(model *mod)
+void Free_Model_Complete(t_mod *mod)
 {
-  Free(mod->pi->v);
-  Free(mod->pi_unscaled->v);
   Free(mod->gamma_r_proba->v);
   Free(mod->gamma_r_proba_unscaled->v);
   Free(mod->gamma_rr->v);
   Free(mod->gamma_rr_unscaled->v);
   Free(mod->Pij_rr->v);
-  Free(mod->qmat->v);
-  Free(mod->qmat_buff->v);
   Free_Eigen(mod->eigen);
+  Free_Rmat(mod->r_mat);
+  Free_Efrq(mod->e_frq);
 }
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
 
-void Free_Model_Basic(model *mod)
+void Free_Model_Basic(t_mod *mod)
 {
   Free(mod->modelname);
   Free(mod->custom_mod_string);
@@ -411,16 +412,8 @@ void Free_Model_Basic(model *mod)
   Free(mod->kappa_old);
   Free(mod->lambda_old);
   Free(mod->pinvar_old);
-  Free(mod->rr);
-  Free(mod->rr_val);
-  Free(mod->rr_num);
-  Free(mod->n_rr_per_cat);
   Free(mod->Pij_rr);
   Free(mod->mr);
-  Free(mod->qmat);
-  Free(mod->qmat_buff);
-  Free(mod->pi);
-  Free(mod->pi_unscaled);
   Free(mod->gamma_r_proba);
   Free(mod->gamma_r_proba_unscaled);
   Free(mod->gamma_rr);
@@ -432,21 +425,74 @@ void Free_Model_Basic(model *mod)
 //////////////////////////////////////////////////////////////
 
 
-void Free_Custom_Model(model *mod)
+void Free_Custom_Model(t_mod *mod)
 {
-  if(mod->rr->v)
-    {
-      Free(mod->rr_num->v);
-      Free(mod->rr->v);
-      Free(mod->rr_val->v);
-      Free(mod->n_rr_per_cat->v);
-    }
+  /* if(mod->r_mat->rr->v) */
+  /*   { */
+  /*     Free(mod->r_mat->rr_num->v); */
+  /*     Free(mod->r_mat->rr->v); */
+  /*     Free(mod->r_mat->rr_val->v); */
+  /*     Free(mod->r_mat->n_rr_per_cat->v); */
+  /*   } */
 }
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-void Free_Model(model *mod)
+void Free_Efrq(t_efrq *e_frq)
+{
+  if(!e_frq)
+    {
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");      
+    }
+
+  Free(e_frq->pi->v);
+  Free(e_frq->pi);
+
+  Free(e_frq->pi_unscaled->v);
+  Free(e_frq->pi_unscaled);
+
+  Free(e_frq);  
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void Free_Rmat(t_rmat *r_mat)
+{
+  if(!r_mat)
+    {
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+  
+  if(r_mat->rr->v)
+    {
+      Free(r_mat->rr_num->v);
+      Free(r_mat->rr->v);
+      Free(r_mat->rr_val->v);
+      Free(r_mat->n_rr_per_cat->v);
+    }
+  
+  Free(r_mat->rr_val);
+  Free(r_mat->n_rr_per_cat);
+  Free(r_mat->rr);
+  Free(r_mat->rr_num);
+
+  Free(r_mat->qmat->v);
+  Free(r_mat->qmat);
+
+  Free(r_mat->qmat_buff->v);
+  Free(r_mat->qmat_buff);
+
+  Free(r_mat);
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void Free_Model(t_mod *mod)
 {
   Free_Custom_Model(mod);
   Free_Model_Complete(mod);
@@ -710,12 +756,47 @@ void Free_Nexus_Com(nexcom **com)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
 void Free_Nexus_Parm(nexparm *parm)
 {
   Free(parm->value);
   Free(parm->name);
   Free(parm);
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void XML_Free_XML_Tree(xml_node *node)
+{
+  if(node->child) XML_Free_XML_Tree(node->child);
+  if(node->next)  XML_Free_XML_Tree(node->next);
+  XML_Free_XML_Node(node);
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void XML_Free_XML_Node(xml_node *node)
+{
+  Free(node->id);
+  Free(node->name);
+  Free(node->value);
+  XML_Free_XML_Attr(node->attr);
+  Free(node);
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void XML_Free_XML_Attr(xml_attr *attr)
+{
+  if(attr)
+    {
+      Free(attr->name);
+      Free(attr->value);
+      if(attr->next) XML_Free_XML_Attr(attr->next);
+      Free(attr);
+    }
 }
 
 //////////////////////////////////////////////////////////////
