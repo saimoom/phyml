@@ -49,7 +49,7 @@ void Launch_Interface(option *io)
 	  }
 	default :
 	  {
-	    PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
+	    PhyML_Printf("\n== Err in file %s at line %d\n\n",__FILE__,__LINE__);
 	    Exit("");
 	    break;
 	  }
@@ -91,7 +91,7 @@ void Launch_Interface(option *io)
   if ((io->datatype == NT) && (io->mod->whichmodel > 10))
     {
       char choix;
-      PhyML_Printf("\n. Err: model incompatible with the data type. Please use JC69, K80, F81, HKY, F84, TN93 or GTR\n");
+      PhyML_Printf("\n== Err: model incompatible with the data type. Please use JC69, K80, F81, HKY, F84, TN93 or GTR\n");
       PhyML_Printf("\n. Type any key to exit.\n");
       if(!scanf("%c",&choix)) Exit("\n");
       Warn_And_Exit("\n");
@@ -99,7 +99,7 @@ void Launch_Interface(option *io)
   else if ((io->datatype == AA) && (io->mod->whichmodel < 11))
     {
       char choix;
-      PhyML_Printf("\n. Err: model incompatible with the data type. Please use LG, Dayhoff, JTT, MtREV, WAG, DCMut, RtREV, CpREV, VT, Blosum62, MtMam, MtArt, HIVw or HIVb.\n");
+      PhyML_Printf("\n== Err: model incompatible with the data type. Please use LG, Dayhoff, JTT, MtREV, WAG, DCMut, RtREV, CpREV, VT, Blosum62, MtMam, MtArt, HIVw or HIVb.\n");
       PhyML_Printf("\n. Type any key to exit.\n");
       if(!scanf("%c",&choix)) Exit("\n");
       Exit("\n");
@@ -134,7 +134,7 @@ void Launch_Interface(option *io)
     {
       strcpy(io->out_lk_file,io->in_align_file);
       strcat(io->out_lk_file, "_phyml_lk");
-      if(io->appebr_run_ID) { strcat(io->out_lk_file,"_"); strcat(io->out_lk_file,io->run_id_string); }
+      if(io->append_run_ID) { strcat(io->out_lk_file,"_"); strcat(io->out_lk_file,io->run_id_string); }
       strcat(io->out_lk_file, ".txt");
       io->fp_out_lk = Openfile(io->out_lk_file,1);
     }
@@ -143,7 +143,7 @@ void Launch_Interface(option *io)
     {
       strcpy(io->out_trace_file,io->in_align_file);
       strcat(io->out_trace_file,"_phyml_trace");
-      if(io->appebr_run_ID) { strcat(io->out_trace_file,"_"); strcat(io->out_trace_file,io->run_id_string); }
+      if(io->append_run_ID) { strcat(io->out_trace_file,"_"); strcat(io->out_trace_file,io->run_id_string); }
       strcat(io->out_trace_file,".txt");
       io->fp_out_trace = Openfile(io->out_trace_file,1);
     }
@@ -152,7 +152,7 @@ void Launch_Interface(option *io)
     {
       strcpy(io->out_trees_file,io->in_align_file);
       strcat(io->out_trees_file,"_phyml_trees");
-      if(io->appebr_run_ID) { strcat(io->out_trees_file,"_"); strcat(io->out_trees_file,io->run_id_string); }
+      if(io->append_run_ID) { strcat(io->out_trees_file,"_"); strcat(io->out_trees_file,io->run_id_string); }
       strcat(io->out_trees_file,".txt");
       io->fp_out_trees = Openfile(io->out_trees_file,1);
     }
@@ -161,18 +161,18 @@ void Launch_Interface(option *io)
     {
       strcpy(io->out_boot_tree_file,io->in_align_file);
       strcat(io->out_boot_tree_file,"_phyml_boot_trees");
-      if(io->appebr_run_ID) { strcat(io->out_boot_tree_file,"_"); strcat(io->out_boot_tree_file,io->run_id_string); }
+      if(io->append_run_ID) { strcat(io->out_boot_tree_file,"_"); strcat(io->out_boot_tree_file,io->run_id_string); }
       strcat(io->out_boot_tree_file,".txt");
       io->fp_out_boot_tree = Openfile(io->out_boot_tree_file,1);
       
       strcpy(io->out_boot_stats_file,io->in_align_file);
       strcat(io->out_boot_stats_file,"_phyml_boot_stats");
-      if(io->appebr_run_ID) { strcat(io->out_boot_stats_file,"_"); strcat(io->out_boot_stats_file,io->run_id_string); }
+      if(io->append_run_ID) { strcat(io->out_boot_stats_file,"_"); strcat(io->out_boot_stats_file,io->run_id_string); }
       strcat(io->out_boot_stats_file,".txt");
       io->fp_out_boot_stats = Openfile(io->out_boot_stats_file,1);
     }
   
-  if(io->appebr_run_ID)
+  if(io->append_run_ID)
     {
       strcat(io->out_tree_file,"_");
       strcat(io->out_stats_file,"_");
@@ -249,7 +249,7 @@ void Launch_Interface_Input(option *io)
   n_trial = 0;
   while((!atoi(n_data_sets)) || (atoi(n_data_sets) < 0))
     {
-      if(++n_trial > 10) Exit("\n. Err : the number of sets must be a positive integer");
+      if(++n_trial > 10) Exit("\n== Err : the number of sets must be a positive integer");
       PhyML_Printf("\n. The number of sets must be a positive integer");
       PhyML_Printf("\n. Enter a new value > ");
       Getstring_Stdin(n_data_sets);
@@ -441,7 +441,7 @@ void Launch_Interface_Data_Type(option *io)
 	 "....................... Analyze multiple data sets "
 	 " %-15s \n",buff);
 
-  if(!io->appebr_run_ID) strcpy(s,"none");
+  if(!io->append_run_ID) strcpy(s,"none");
   else strcpy(s,io->run_id_string);
   PhyML_Printf("                [R] "
 	 "........................................... Run ID "
@@ -467,7 +467,7 @@ void Launch_Interface_Data_Type(option *io)
 /*       } */
     case 'R' :
       {
-	io->appebr_run_ID = (io->appebr_run_ID)?(0):(1);
+	io->append_run_ID = (io->append_run_ID)?(0):(1);
 	PhyML_Printf("\n. Enter a run ID (any string of characters) > ");
 	Getstring_Stdin(io->run_id_string);
 	break;
@@ -485,7 +485,7 @@ void Launch_Interface_Data_Type(option *io)
 	n_trial = 0;
 	while((!atoi(c)) || (atoi(c) < 0))
 	  {
-	    if(++n_trial > 10) Exit("\n. Err : The number of data sets must be a positive integer");
+	    if(++n_trial > 10) Exit("\n== Err : The number of data sets must be a positive integer");
 	    PhyML_Printf("\n. The number of data sets must be a positive integer");
 	    PhyML_Printf("\n. Enter a new value > ");
 	    Getstring_Stdin(c);
@@ -522,8 +522,7 @@ void Launch_Interface_Data_Type(option *io)
 	if(io->datatype == NT)
 	  {
 	    io->datatype              = AA;
-	    io->mod->state_len             = 1;
-	    io->mod->ns         = 20;
+	    io->mod->ns               = 20;
 	    io->mod->s_opt->opt_kappa = 0;
 	    io->mod->whichmodel       = LG;
 	    strcpy(io->mod->modelname,"LG");
@@ -538,8 +537,7 @@ void Launch_Interface_Data_Type(option *io)
 	else if(io->datatype == GENERIC)
 	  {
 	    io->datatype              = NT;
-	    io->mod->state_len             = 1;
-	    io->mod->ns         = 4;
+	    io->mod->ns               = 4;
 	    io->mod->whichmodel       = HKY85;
 	    strcpy(io->mod->modelname,"HKY85");
 	    strcpy(io->nt_or_cd,"nucleotides");
@@ -794,7 +792,7 @@ void Launch_Interface_Model(option *io)
       {
 	int i,j;
 	char **rr_param,*rr;
-	model *mod;
+	t_mod *mod;
 	int curr_param;
 	int n_trial;
 
@@ -818,7 +816,7 @@ void Launch_Interface_Model(option *io)
 		      {
 			while(!isdigit((int)io->mod->custom_mod_string[i]))
 			  {
-			    if(++n_trial > 10) Exit("\n. Err : this string is not valid !\n");
+			    if(++n_trial > 10) Exit("\n== Err : this string is not valid !\n");
 			    PhyML_Printf("\n. This string is not valid\n");
 			    PhyML_Printf("\n. Enter a new model > ");
 			    Getstring_Stdin(io->mod->custom_mod_string);
@@ -835,7 +833,7 @@ void Launch_Interface_Model(option *io)
 	    if(n_trial == 10) Exit("");
 
 
-	    if(!mod->rr->v) Make_Custom_Model(mod);
+	    if(!mod->r_mat->rr->v) Make_Custom_Model(mod);
 	    Translate_Custom_Mod_String(io->mod);
 
 	    strcpy(rr_param[0],"A<->C");
@@ -847,12 +845,12 @@ void Launch_Interface_Model(option *io)
 
 	    PhyML_Printf("\n. Set the relative rate values\n");
 	    curr_param = 0;
-	    For(i,mod->n_diff_rr)
+	    For(i,mod->r_mat->n_diff_rr)
 	      {
 		sprintf(rr,"\n. [");
 		For(j,6)
 		  {
-		    if(mod->rr_num->v[j] == i) 
+		    if(mod->r_mat->rr_num->v[j] == i) 
 		      {
 			sprintf(rr+strlen(rr),"%s = ",rr_param[j]);
 		      }
@@ -860,7 +858,7 @@ void Launch_Interface_Model(option *io)
 		sprintf(rr+strlen(rr)-3,"]");
 		PhyML_Printf("%s",rr);
 
-		PhyML_Printf("  (current=%.2f) > ",mod->rr_val->v[i]);
+		PhyML_Printf("  (current=%.2f) > ",mod->r_mat->rr_val->v[i]);
 		
 		Getstring_Stdin(rr);
 		
@@ -870,12 +868,12 @@ void Launch_Interface_Model(option *io)
 		    while((atof(rr) < .0))
 		      {
 			if(++n_trial > 10)
-			  Exit("\n. Err : the value of this parameter must be a positive number\n");
+			  Exit("\n== Err : the value of this parameter must be a positive number\n");
 			PhyML_Printf("\n. The value of this parameter must be a positive number\n");
 			PhyML_Printf("\n. Enter a new value > ");
 			Getstring_Stdin(rr);
 		      }
-		    io->mod->rr_val->v[i] = (phydbl)atof(rr);
+		    io->mod->r_mat->rr_val->v[i] = (phydbl)atof(rr);
 		  }
 	      }
 
@@ -922,7 +920,7 @@ void Launch_Interface_Model(option *io)
 			while((atof(bs) < .0001) || (bs[0] == '\0'))
 			  {
 			    if(++n_trial > 10)
-			      Exit("\n. Err : the value of this parameter must be a positive number\n");
+			      Exit("\n== Err : the value of this parameter must be a positive number\n");
 			    PhyML_Printf("\n. The value of this parameter must be a positive number\n");
 			    PhyML_Printf("\n. Enter a new value > ");
 			    Getstring_Stdin(bs);
@@ -987,7 +985,7 @@ void Launch_Interface_Model(option *io)
 	while((answer != 'Y') && (answer != 'y') &&
 	      (answer != 'N') && (answer != 'n'))
 	  {
-	    if(++n_trial > 10) Exit("\n. Err : wrong answers !");
+	    if(++n_trial > 10) Exit("\n== Err : wrong answers !");
 	    PhyML_Printf("\n. Optimise alpha ? [N/y] ");
 	    if(!scanf("%c",&answer)) Exit("\n");
 	    if(answer == '\n') answer = 'N';
@@ -1013,7 +1011,7 @@ void Launch_Interface_Model(option *io)
 	      n_trial = 0;
 	      while(atof(a) < 1.E-10)
 		{
-		  if(++n_trial > 10) Exit("\n. Err : alpha must be > 1.E-10\n");
+		  if(++n_trial > 10) Exit("\n== Err : alpha must be > 1.E-10\n");
 		  PhyML_Printf("\n. Alpha must be 1.E-10\n");
 		  PhyML_Printf("\n. Enter a new value > ");
 		  Getstring_Stdin(a);
@@ -1038,7 +1036,7 @@ void Launch_Interface_Model(option *io)
 	n_trial = 0;
 	while((!atoi(c)) || (atoi(c) < 0))
 	  {
-	    if(++n_trial > 10) Exit("\n. Err : the number of categories must be a positive integer\n");
+	    if(++n_trial > 10) Exit("\n== Err : the number of categories must be a positive integer\n");
 	    PhyML_Printf("\n. The number of categories must be a positive integer\n");
 	    PhyML_Printf("\n. Enter a new value > ");
 	    Getstring_Stdin(c);
@@ -1084,7 +1082,7 @@ void Launch_Interface_Model(option *io)
 	while((answer != 'Y') && (answer != 'y') &&
 	      (answer != 'N') && (answer != 'n'))
 	  {
-	    if(++n_trial > 10) Exit("\n. Err : wrong answers !");
+	    if(++n_trial > 10) Exit("\n== Err : wrong answers !");
 	    PhyML_Printf("\n. Optimise p-invar ? [N/y] ");
 	    if(!scanf("%c", &answer)) Exit("\n");
 	    if(answer == '\n') answer = 'N';
@@ -1111,7 +1109,7 @@ void Launch_Interface_Model(option *io)
 	      while((atof(p) < 0.0) || (atof(p) > 1.0))
 		{
 		  if(++n_trial > 10)
-		    Exit("\n. Err : the proportion of invariable sites must be a positive number between 0.0 and 1.0");
+		    Exit("\n== Err : the proportion of invariable sites must be a positive number between 0.0 and 1.0");
 		  PhyML_Printf("\n. The proportion must be a positive number between 0.0 and 1.0\n");
 		  PhyML_Printf("\n. Enter a new value > ");
 		  Getstring_Stdin(p);
@@ -1172,7 +1170,7 @@ void Launch_Interface_Model(option *io)
 	while((answer != 'Y') && (answer != 'y') &&
 	      (answer != 'N') && (answer != 'n'))
 	  {
-	    if(++n_trial > 10) Exit("\n. Err : wrong answers !");
+	    if(++n_trial > 10) Exit("\n== Err : wrong answers !");
 	    PhyML_Printf("\n. Optimise ts/tv ratio ? [N/y] ");
 	    if(!scanf("%c", &answer)) Exit("\n");
 	    if(answer == '\n') answer = 'N';
@@ -1200,7 +1198,7 @@ void Launch_Interface_Model(option *io)
 	      n_trial = 0;
 	      while(atof(t) < .0)
 		{
-		  if(++n_trial > 10) Exit("\n. Err : the ts/tv ratio must be a positive number\n");
+		  if(++n_trial > 10) Exit("\n== Err : the ts/tv ratio must be a positive number\n");
 		  PhyML_Printf("\n. The ratio must be a positive number");
 		  PhyML_Printf("\n. Enter a new value > ");
 		  Getstring_Stdin(t);
@@ -1532,7 +1530,7 @@ void Launch_Interface_Topo_Search(option *io)
 	n_trial = 0;
 	while(atoi(n) < 1)
 	  {
-	    if(++n_trial > 10) Exit("\n. Err : the number of starting trees must be a positive integer\n");
+	    if(++n_trial > 10) Exit("\n== Err : the number of starting trees must be a positive integer\n");
 	    PhyML_Printf("\n. The number of starting trees must be a positive integer\n");
 	    PhyML_Printf("\n. Enter a new value > ");
 	    Getstring_Stdin(n);
@@ -1725,7 +1723,7 @@ void Launch_Interface_Branch_Support(option *io)
 	    n_trial = 0;
 	    while((!atoi(r)) || (atoi(r) < 0))
 	      {
-		if(++n_trial > 10) Exit("\n. Err : the number of replicates must be a positive integer\n");
+		if(++n_trial > 10) Exit("\n== Err : the number of replicates must be a positive integer\n");
 		PhyML_Printf("\n. The number of replicates must be a positive integer");
 		PhyML_Printf("\n. Enter a new value > ");
 		Getstring_Stdin(r);
@@ -1865,7 +1863,7 @@ void Launch_Interface_Multigene(option *io)
       while((choix != 'Y') && (choix != 'y') &&
 	    (choix != 'N') && (choix != 'n'))  
 	{
-	  if(++n_trial > 10) Exit("\n. Err : wrong answers !");
+	  if(++n_trial > 10) Exit("\n== Err : wrong answers !");
 	  PhyML_Printf("\n. Do you want to use your own initial tree ? [N/y] ? ");
 	  if(!scanf("%c", &choix)) Exit("\n");
 	  if(choix == '\n') choix = 'N';
@@ -1912,7 +1910,7 @@ void Launch_Interface_Multigene(option *io)
 		  }
 		default : 
 		  {
-		    PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
+		    PhyML_Printf("\n== Err in file %s at line %d\n\n",__FILE__,__LINE__);
 		    Exit("");
 		    break;		  
 		  }

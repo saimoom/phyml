@@ -22,6 +22,7 @@ the GNU public licence. See http://www.opensource.org for details.
 #include "eigen.h"
 #include "pars.h"
 #include "alrt.h"
+#include "mixtlk.h"
 
 #ifdef MPI
 #include "mpi_boot.h"
@@ -38,7 +39,7 @@ int main(int argc, char **argv)
   int n_otu, num_data_set;
   int num_tree,tree_line_number,num_rand_tree;
   matrix *mat;
-  model *mod;
+  t_mod *mod;
   time_t t_beg,t_end;
   phydbl best_lnL,most_likely_size,tree_size;
   int r_seed;
@@ -106,7 +107,7 @@ int main(int argc, char **argv)
 
 	  Free_Seq(io->data,cdata->n_otu);
 	  
-	  if(cdata) Check_Ambiguities(cdata,io->datatype,io->mod->state_len);
+	  if(cdata) Check_Ambiguities(cdata,io->datatype,io->state_len);
 	  else
 	    {
 	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
@@ -485,13 +486,505 @@ int main(int argc, char **argv)
 int main(int argc, char **argv)
 {
   FILE *fp;
-  xml_node *root;
+  xml_node *root,*p_elem,*m_elem,*d_elem,*parent,*n;
 
-  root = XML_New_Node(NULL,NULL);
-  
   fp = fopen(argv[1],"r");
   
-  XML_Load_File(fp,root);
+  root = XML_Load_File(fp);  
+  
+
+  option *io;
+  void *buff;
+  t_mod *mod;
+  t_tree *tree,*mixt_tree,*root_tree;
+  char *alignment;
+  int select;
+  char *component;
+  int i,j,n_components;
+  int first_m_elem;
+
+  component = (char *)mCalloc(T_MAX_NAME,sizeof(char));
+
+  d_elem    = NULL;
+  m_elem    = NULL;
+  p_elem    = root;
+  io        = NULL;
+  mod       = NULL;
+  mixt_tree = NULL;
+  tree      = NULL;
+  root_tree = NULL;
+  select = -1;
+
+
+
+  // Read all partitionelem nodes and mixturelem nodes in each of them
+  do
+    {
+      p_elem = XML_Search_Node_Name("partitionelem",YES,p_elem);
+      if(p_elem == NULL) break;
+      
+      buff = (option *)Make_Input();
+      Set_Defaults_Input(buff);
+      if(io) 
+	{
+	  io->next = buff;
+	  io->next->prev = io;
+	  io = io->next;
+	}
+      else io = buff;
+
+      // Attach a model to this io struct
+      io->mod = (t_mod *)Make_Model_Basic();
+      Set_Defaults_Model(io->mod);
+      io->mod->n_catg = 0;
+
+      // Attach an optimization structure to this model
+      io->mod->s_opt = (optimiz *)Make_Optimiz();
+      Set_Defaults_Optimiz(io->mod->s_opt);
+
+
+      // Input file
+      alignment = XML_Get_Attribute_Value(p_elem,"filename");  
+      
+      strcpy(io->in_align_file,alignment);
+      io->fp_in_align = Openfile(io->in_align_file,0);
+      strcpy(io->out_tree_file,alignment);
+      strcat(io->out_tree_file,"_phyml_tree");
+      strcpy(io->out_stats_file,alignment);
+      strcat(io->out_stats_file,"_phyml_stats");      
+
+      // Load sequence file
+      io->data  = Get_Seq(io);
+
+      // Compress alignment
+      io->cdata = Compact_Data(io->data,io);
+
+      // Create new mixture tree
+      buff = (t_tree *)Make_Tree_From_Scratch(io->cdata->n_otu,
+					      io->cdata);
+
+      if(mixt_tree)
+	{
+	  mixt_tree->next = buff;
+	  mixt_tree->next->prev = mixt_tree;
+	  mixt_tree = mixt_tree->next;
+	}
+      else mixt_tree = buff;
+      
+      // mixt_tree is a mixture tree
+      mixt_tree->is_mixt_tree = YES;
+     
+      // Connect last tree of the mixture for the
+      // previous partition element to the next mixture tree
+      if(tree) tree->next = mixt_tree;
+	
+
+      if(!root_tree) root_tree = mixt_tree;
+
+      // First tree of the list of trees for this partition element
+      tree = NULL;
+
+      printf("\n. read partitionelem %s",XML_Get_Attribute_Value(p_elem,"id"));
+
+      // Process all the mixtureelem tags in this partition element
+      n_components = 0;
+      m_elem = p_elem;
+      first_m_elem  = 0;
+      do
+	{
+	  m_elem = XML_Search_Node_Name("mixtureelem",YES,m_elem);
+	  if(m_elem == NULL) break;
+	  
+	  if(!strcmp(m_elem->name,"mixtureelem"))
+	    {
+	      first_m_elem++;
+	      
+	      // Rewind tree and model when processing a new mixtureelem node
+	      
+	      if(first_m_elem > 1) 
+		{
+		  while(tree->prev) { tree = tree->prev; } 
+		  while(mod->prev)  { mod  = mod->prev;  } 
+		}
+
+	      // Read and process model components
+	      char *list;
+	      list = XML_Get_Attribute_Value(m_elem,"list");
+
+	      j = 0;
+	      For(i,(int)strlen(list)) if(list[i] == ',') j++;
+	      
+	      if(j != n_components && first_m_elem > 1)
+		{
+		  PhyML_Printf("\n== Discrepancy in the number of elements in nodes 'mixtureelem' partitionelem id '%s'",p_elem->id);
+		  PhyML_Printf("\n== Check 'mixturelem' node with list '%s'",list);
+		  Exit("\n");
+		}
+	      n_components = j;
+
+	      i = j = 0;
+	      component[0] = '\0';	      
+	      while(1)
+	      {
+		if(list[j] == ',' || j == (int)strlen(list))
+		  {
+		    // Reading a new component
+
+		    if(first_m_elem == YES) // Only true when processing the first mixtureelem node
+		      {
+			// Create new tree
+			buff = (t_tree *)Make_Tree_From_Scratch(io->cdata->n_otu,
+								io->cdata);
+			
+			if(tree)
+			  {
+			    tree->next = buff;
+			    tree->next->prev = tree;
+			    tree = tree->next;
+			  }
+			else 
+			  {
+			    tree = buff;
+			    mixt_tree->child = tree;
+			  }
+			
+			tree->parent = mixt_tree;
+			
+			// Create a new model
+			buff = (t_mod *)Make_Model_Basic();
+			Set_Defaults_Model(buff);
+			
+			if(mod)
+			  {
+			    mod->next = buff;
+			    mod->next->prev = mod;
+			    mod = mod->next;
+			  }
+			else 
+			  {
+			    mod = buff;
+			  }
+			
+			mod->s_opt = (optimiz *)Make_Optimiz();
+			Set_Defaults_Optimiz(mod->s_opt);
+		      }
+
+		    // Read a component
+		    component[i] = '\0';		    
+		    if(j != (int)strlen(list)-1) i = 0;
+
+		    
+		    // Find which node this ID corresponds to
+		    n = XML_Search_Node_ID(component,YES,root);
+		  
+		    if(!n)
+		      {
+			PhyML_Printf("\n== Could not find a node with id:'%s'.",component);
+			PhyML_Printf("\n== Problem with 'mixtureelem' node, list '%s'.",list);
+			Exit("\n");
+		      }
+		    if(!n->parent)
+		      {
+			PhyML_Printf("\n== Node '%s' with id:'%s' has no parent.",n->name,component);
+			Exit("\n");
+		      }
+		      
+		    parent = n->parent;
+
+		    if(!strcmp(parent->name,"ratematrices"))
+		      {
+			// Init substitution model here
+			char *model = NULL;
+
+			model = XML_Get_Attribute_Value(n,"model");  
+			
+			if(model == NULL)
+			  {
+			    PhyML_Printf("\n== Poorly formated XML file.");
+			    PhyML_Printf("\n== Attribute 'model' is mandatory in a <ratematrix> node.");
+			    Exit("\n");
+			  }
+
+			PhyML_Printf("\n. Found model '%s'",model);
+
+			select = XML_Validate_Attr_Int(model,26,
+						       "xxxxx",    //0
+						       "JC69",     //1
+						       "K80",      //2
+						       "F81",      //3
+						       "HKY85",    //4
+						       "F84",      //5
+						       "TN93",     //6
+						       "GTR",      //7
+						       "CUSTOM",   //8
+						       "xxxxx",    //9
+						       "xxxxx",    //10
+						       "WAG",      //11
+						       "DAYHOFF",  //12
+						       "JTT",      //13
+						       "BLOSUM62", //14
+						       "MTREV",    //15
+						       "RTREV",    //16
+						       "CPREV",    //17
+						       "DCMUT",    //18
+						       "VT",       //19
+						       "MTMAM",    //20
+						       "MTART",    //21
+						       "HIVW",     //22
+						       "HIVB",     //23
+						       "CUSTOMAA", //24
+						       "LG");      //25
+
+			if(select < 9)
+			  {
+			    io->datatype   = NT;
+			    mod->ns        = 4;
+			  }
+			else
+			  {
+			    io->datatype   = AA;
+			    mod->ns        = 20;
+			  }
+
+			// If n->ds == NULL, the corrresponding node data structure, n->ds, has not
+			// been initialized. If not, do nothing.
+			if(n->ds == NULL)  n->ds = (t_rmat *)Make_Rmat(mod->ns);
+
+			// Connect the data structure n->ds to mod->r_mat
+			mod->r_mat = (t_rmat *)n->ds;
+
+			// Set model number
+			mod->whichmodel = Set_Whichmodel(select);
+
+			// Optimize rate model parameters?
+			char *optimize = NULL;			
+			optimize = XML_Get_Attribute_Value(n,"optimize");	
+			
+			if(optimize)
+			  {
+			    select = XML_Validate_Attr_Int(optimize,6,
+							   "true","yes","y",
+							   "false","no","n");
+			    if(select < 0)
+			      {
+				PhyML_Printf("\n== Attribute value '%s' is not a valid choice.",optimize);
+				Exit("\n");
+			      }
+
+			    if(select < 3)
+			      {
+				if(io->datatype == AA)
+				  {
+				    PhyML_Printf("\n== Attribute 'optimize' should be set to 'false' with model '%s'",model);
+				  }
+
+				if(mod->whichmodel == CUSTOM)
+				  {
+				    mod->s_opt->opt_kappa = NO;
+				    mod->s_opt->opt_rr    = YES;
+				  }
+			      }
+			    else
+			      {
+				mod->s_opt->opt_kappa = NO;
+			      }
+			  }
+		      }
+		    else if(!strcmp(n->name,"statefreqs"))
+		      {
+			// Stationary frequencies
+
+			// If n->ds == NULL, the corrresponding node data structure, n->ds, has not
+			// been initialized. If not, do nothing.
+			if(n->ds == NULL)  n->ds = (t_efrq *)Make_Efrq(mod->ns);
+
+			// Connect the data structure n->ds to mod->e_frq
+			mod->e_frq = (t_efrq *)n->ds;		      	      
+		      }
+		    else if(!strcmp(parent->name,"topologies"))
+		      {
+			// Starting tree
+			
+		      }
+		    else if(!strcmp(parent->name,"siterates"))
+		      {
+			char *rate_value = NULL;			
+			scalar_dbl *r;
+			
+			
+			// First time we process a 'siterates' node, check that its format is valid.
+			// and process afterwards.
+			if(parent->ds == NULL)
+			  {
+			    int phoney;
+			    xml_node *w;
+			    char *family;
+			    int select;
+
+			    XML_Check_Siterates_Node(parent);
+			    parent->ds = &phoney;			    			   
+			    
+			    w = XML_Search_Node_Name("weights",YES,parent);
+			    if(w)
+			      {
+				family = XML_Get_Attribute_Value(w,"family");
+				select = XML_Validate_Attr_Int(family,3,"gamma","gamma+inv","free");
+				switch(select)
+				  {
+				  case 0: // Gamma model
+				    {
+				      char *alpha;
+
+				      io->mod->s_opt->opt_pinvar = NO;
+				      io->mod->invar             = NO;
+
+				      alpha = XML_Get_Attribute_Value(w,"alpha");
+				      if(!strcmp(alpha,"estimate") || !strcmp(alpha,"estimated") || 
+					 !strcmp(alpha,"optimize") || !strcmp(alpha,"optimized"))
+					{
+					  io->mod->s_opt->opt_alpha = YES;
+					}
+				      else
+					{					  
+					  io->mod->s_opt->opt_alpha = NO;
+					  io->mod->alpha->v = String_To_Dbl(alpha);
+					}
+				      break;
+				    }
+				  case 1: // Gamma+Inv model
+				    {
+				      char *alpha,*pinv;
+
+				      io->mod->invar = YES;
+
+				      alpha = XML_Get_Attribute_Value(w,"alpha");
+				      if(!strcmp(alpha,"estimate") || !strcmp(alpha,"estimated") || 
+					 !strcmp(alpha,"optimize") || !strcmp(alpha,"optimized"))
+					{
+					  io->mod->s_opt->opt_alpha = YES;
+					}
+				      else
+					{
+					  io->mod->s_opt->opt_alpha = NO;
+					  io->mod->alpha->v = String_To_Dbl(alpha);;
+					}
+
+				      pinv = XML_Get_Attribute_Value(w,"pinv");
+				      if(!strcmp(pinv,"estimate") || !strcmp(pinv,"estimated") || 
+					 !strcmp(pinv,"optimize") || !strcmp(pinv,"optimized"))
+					{
+					  io->mod->s_opt->opt_pinvar = YES;
+					}
+				      else
+					{
+					  io->mod->s_opt->opt_pinvar = NO;
+					  io->mod->pinvar->v = String_To_Dbl(pinv);					  
+					}
+				      break;
+				    }
+				  case 2: // FreeRate model
+				    {
+				      break;
+				    }
+				  default:
+				    {
+				      PhyML_Printf("\n== family: %s",family);
+				      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+				      Warn_And_Exit("");
+				    }
+				  }
+			      }
+			  }
+			
+			rate_value = XML_Get_Attribute_Value(n,"value");
+
+			if(n->ds == NULL) 
+			  {
+			    r = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
+			    Init_Scalar_Dbl(r);
+			    r->v = String_To_Dbl(rate_value);
+			    n->ds = (scalar_dbl *)r;
+			    
+			    if(r->v > 0.0)
+			      {
+				io->mod->n_catg++;
+			      }
+			    else
+			      {
+				io->mod->invar = YES;				
+			      }
+			  }
+			else
+			  {
+			    r = (scalar_dbl *)n->ds;
+			  }
+			mod->br_len_multiplier = r;		      
+		      }
+		    else if(!strcmp(parent->name,"branchlengths"))
+		      {
+			int i;
+			scalar_dbl **lens;
+			int n_otu;
+
+
+			if(n->ds == NULL)
+			  {
+			    n_otu = tree->n_otu;
+			    lens = (scalar_dbl **)mCalloc(2*tree->n_otu-3,sizeof(scalar_dbl *));
+			    For(i,2*tree->n_otu-3)
+			      {
+			    	lens[i] = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
+			    	Init_Scalar_Dbl(lens[i]);
+			      }
+			    			    
+			    n->ds = (scalar_dbl **)lens;
+			    For(i,2*tree->n_otu-3) Free(tree->t_edges[i]->l);
+			  }
+			else
+			  {
+			    lens = (scalar_dbl **)n->ds;
+			  }
+			
+			if(n_otu != tree->n_otu)
+			  {
+			    PhyML_Printf("\n== All the data sets should display the same number of sequences.");
+			    PhyML_Printf("\n== Found at least one data set with %d sequences and one with %d sequences.",n_otu,tree->n_otu);
+			    Exit("\n");
+			  }
+
+			For(i,2*tree->n_otu-3) tree->t_edges[i]->l = lens[i];
+		      }
+
+		    if(first_m_elem > 1) // Done with this compoenent, move to the next tree and model
+		      {
+			if(tree->next) tree = tree->next;
+			if(mod->next)  mod  = mod->next;
+		      }		    
+		  }
+		else if(list[j] != ' ')
+		  {
+		    component[i] = list[j];
+		    i++;
+		  }
+		j++;
+		if(j == (int)strlen(list)+1) break;
+	      
+	      } // end of mixtureelem processing
+	      	      
+	    } // end of partitionelem processing
+	
+	}
+      while(1);
+    }
+  while(1);
+
+  while(io->prev != NULL) io = io->prev;
+
+  Free(component);
+
+  XML_Free_XML_Tree(root);
+
+  fclose(fp);
 
   return 1;
 }

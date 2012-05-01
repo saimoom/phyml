@@ -24,7 +24,7 @@ int M4_main(int argc, char **argv)
   int n_otu, num_data_set;
   int num_tree,tree_line_number,num_rand_tree;
   matrix *mat;
-  model *mod;
+  t_mod *mod;
   time_t t_beg,t_end;
   phydbl best_lnL,most_likely_size,tree_size;
   int r_seed;
@@ -91,7 +91,7 @@ int M4_main(int argc, char **argv)
 
 	  Free_Seq(io->data,cdata->n_otu);
 	  
-	  if(cdata) Check_Ambiguities(cdata,io->datatype,io->mod->state_len);
+	  if(cdata) Check_Ambiguities(cdata,io->datatype,io->state_len);
 	  else
 	    {
 	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
@@ -361,7 +361,7 @@ void M4_Free_M4_Model(m4 *m4mod)
 //////////////////////////////////////////////////////////////
 
 
-void M4_Init_Model(m4 *m4mod, calign *data, model *mod)
+void M4_Init_Model(m4 *m4mod, calign *data, t_mod *mod)
 {
   int i,j,ct;
   phydbl fq;
@@ -377,11 +377,10 @@ void M4_Init_Model(m4 *m4mod, calign *data, model *mod)
 
   mod->ns = m4mod->n_o * m4mod->n_h;
 
-
-  For(i,m4mod->n_o) m4mod->o_fq[i] = mod->pi->v[i]; /*! At that stage, the mod->pi vector as been initialized
-						     under a standard non covarion type of model. Use these
-						     frequencies as they have been set according to the 
-						     nucleotide substitution model chosen (e.g., 1/4 for JC69). !*/
+  For(i,m4mod->n_o) m4mod->o_fq[i] = mod->e_frq->pi->v[i]; /*! At that stage, the mod->pi vector as been initialized
+							     under a standard non covarion type of model. Use these
+							     frequencies as they have been set according to the 
+							     nucleotide substitution model chosen (e.g., 1/4 for JC69). !*/
   For(i,(int)(m4mod->n_h)) m4mod->multipl[i] = 1.;
 
   ct = 0;
@@ -389,7 +388,7 @@ void M4_Init_Model(m4 *m4mod, calign *data, model *mod)
     {
       for(j=i+1;j<m4mod->n_o;j++)
 	{
-	  m4mod->o_rr[ct] = MAX(mod->qmat->v[i*m4mod->n_o+j],1.E-5); 	  
+	  m4mod->o_rr[ct] = MAX(mod->r_mat->qmat->v[i*m4mod->n_o+j],1.E-5); 	  
 	  ct++;
 	}
     }
@@ -412,8 +411,8 @@ void M4_Init_Model(m4 *m4mod, calign *data, model *mod)
 //////////////////////////////////////////////////////////////
 
 
-/* Fill in the (big) rate matrix of the M4 model */ 
-void M4_Update_Qmat(m4 *m4mod, model *mod)
+/* Fill in the (big) rate matrix of the M4 t_mod */ 
+void M4_Update_Qmat(m4 *m4mod, t_mod *mod)
 {
   int i,j;
   int n_s, n_o, n_h;
@@ -494,7 +493,7 @@ void M4_Update_Qmat(m4 *m4mod, model *mod)
 
 
   /* Set up the stationary frequency vector */
-  For(i,n_s) mod->pi->v[i] = m4mod->o_fq[i%n_o] * m4mod->h_fq[i/n_o];
+  For(i,n_s) mod->e_frq->pi->v[i] = m4mod->o_fq[i%n_o] * m4mod->h_fq[i/n_o];
 
 
   if(mod->whichmodel != CUSTOM &&
@@ -506,7 +505,7 @@ void M4_Update_Qmat(m4 *m4mod, model *mod)
       if((mod->whichmodel != F84) && (mod->whichmodel != TN93)) mod->lambda->v = 1.; 
       else if(mod->whichmodel == F84)
 	{
-	  mod->lambda->v = Get_Lambda_F84(mod->pi->v,&(mod->kappa->v));
+	  mod->lambda->v = Get_Lambda_F84(mod->e_frq->pi->v,&(mod->kappa->v));
 	}
 
       kappa2 = mod->kappa->v*2./(1.+mod->lambda->v);
@@ -528,7 +527,7 @@ void M4_Update_Qmat(m4 *m4mod, model *mod)
   for(i=1;i<m4mod->n_h;i++) For(j,n_o*n_o) m4mod->o_mats[i][j] = m4mod->o_mats[0][j]*m4mod->multipl[i];
   For(j,n_o*n_o) m4mod->o_mats[0][j] *= m4mod->multipl[0];
 
-  For(i,n_s*n_s) mod->qmat->v[i] = .0;
+  For(i,n_s*n_s) mod->r_mat->qmat->v[i] = .0;
 
   /* Diagonal blocks (i.e, nucleotide substitutions), symmetric */
   For(i,n_s)
@@ -537,8 +536,8 @@ void M4_Update_Qmat(m4 *m4mod, model *mod)
 	{
 	  if((int)(j/n_o) == (int)(i/n_o))
 	    {
-	      mod->qmat->v[i*n_s+j] = m4mod->o_mats[(int)(i/n_o)][(i%n_o)*n_o+j%n_o];
-	      mod->qmat->v[j*n_s+i] = mod->qmat->v[i*n_s+j] * m4mod->o_fq[i%n_o] / m4mod->o_fq[j%n_o];
+	      mod->r_mat->qmat->v[i*n_s+j] = m4mod->o_mats[(int)(i/n_o)][(i%n_o)*n_o+j%n_o];
+	      mod->r_mat->qmat->v[j*n_s+i] = mod->r_mat->qmat->v[i*n_s+j] * m4mod->o_fq[i%n_o] / m4mod->o_fq[j%n_o];
 	    }
 	}
     }
@@ -548,12 +547,12 @@ void M4_Update_Qmat(m4 *m4mod, model *mod)
   For(i,n_s)
     {
       sum = .0;
-      For(j,n_s) sum += mod->qmat->v[i*n_s+j];
+      For(j,n_s) sum += mod->r_mat->qmat->v[i*n_s+j];
       mr += sum * m4mod->o_fq[i%n_o] * m4mod->h_fq[(int)(i/n_o)]; 
     }
   
   /* Scale the diagonal blocks */
-  For(i,n_s*n_s) mod->qmat->v[i] /= mr;
+  For(i,n_s*n_s) mod->r_mat->qmat->v[i] /= mr;
   
   /* We are done with the diagonal blocks. Let's fill the non-diagonal ones now. */
 
@@ -574,8 +573,8 @@ void M4_Update_Qmat(m4 *m4mod, model *mod)
 	    {
 	      if(i%n_o == j%n_o)
 		{
-		  mod->qmat->v[i*n_s+j] = m4mod->h_mat[(int)(i/n_o)*n_h+(int)(j/n_o)];
-		  mod->qmat->v[j*n_s+i] = mod->qmat->v[i*n_s+j] * m4mod->h_fq[(int)(i/n_o)] / m4mod->h_fq[(int)(j/n_o)]; 
+		  mod->r_mat->qmat->v[i*n_s+j] = m4mod->h_mat[(int)(i/n_o)*n_h+(int)(j/n_o)];
+		  mod->r_mat->qmat->v[j*n_s+i] = mod->r_mat->qmat->v[i*n_s+j] * m4mod->h_fq[(int)(i/n_o)] / m4mod->h_fq[(int)(j/n_o)]; 
 		}
 	    }
 	}
@@ -598,12 +597,12 @@ void M4_Update_Qmat(m4 *m4mod, model *mod)
 	      scale += 
 		m4mod->h_fq[(int)(j/n_o)] *
 		m4mod->o_fq[i%n_o] *
-		mod->qmat->v[i*n_s+j];
+		mod->r_mat->qmat->v[i*n_s+j];
 	    }
 	}
     }
   
-  For(i,n_s*n_s) mod->qmat->v[i] /= scale;
+  For(i,n_s*n_s) mod->r_mat->qmat->v[i] /= scale;
 
 
   /* Diagonal cells */
@@ -613,12 +612,12 @@ void M4_Update_Qmat(m4 *m4mod, model *mod)
       For(j,n_s)
 	{
 	  if(j != i)
-	    sum += mod->qmat->v[i*n_s+j];
+	    sum += mod->r_mat->qmat->v[i*n_s+j];
 	}
-      mod->qmat->v[i*n_s+i] = -sum;
+      mod->r_mat->qmat->v[i*n_s+i] = -sum;
     }
 
-  For(i,n_s*n_s) mod->eigen->q[i] = mod->qmat->v[i];
+  For(i,n_s*n_s) mod->eigen->q[i] = mod->r_mat->qmat->v[i];
 }
 
 //////////////////////////////////////////////////////////////
@@ -634,7 +633,7 @@ void M4_Init_P_Lk_Tips_Double(t_tree *tree)
   dim3 = tree->mod->m4mod->n_o;
 
 
-  Fors(curr_site,tree->data->crunch_len,tree->mod->state_len)
+  Fors(curr_site,tree->data->crunch_len,tree->mod->io->state_len)
     {
       For(i,tree->n_otu)
 	{
@@ -676,7 +675,7 @@ void M4_Init_P_Lk_Tips_Int(t_tree *tree)
   dim2 = tree->mod->m4mod->n_h * tree->mod->m4mod->n_o;
   dim3 = tree->mod->m4mod->n_o;
 
-  Fors(curr_site,tree->data->crunch_len,tree->mod->state_len)
+  Fors(curr_site,tree->data->crunch_len,tree->mod->io->state_len)
     {
       For(i,tree->n_otu)
 	{
@@ -732,8 +731,8 @@ phydbl ****M4_Integral_Term_On_One_Edge(t_edge *b, t_tree *tree)
     {
       For(g,tree->mod->n_catg)
 	{
-	  PMat(((phydbl)(i+0.5)/step)*b->l*tree->mod->gamma_rr->v[g],tree->mod,g*ns*ns,P1);
-	  PMat(((phydbl)(step-i-0.5)/step)*b->l*tree->mod->gamma_rr->v[g],tree->mod,g*ns*ns,P2);
+	  PMat(((phydbl)(i+0.5)/step)*b->l->v*tree->mod->gamma_rr->v[g],tree->mod,g*ns*ns,P1);
+	  PMat(((phydbl)(step-i-0.5)/step)*b->l->v*tree->mod->gamma_rr->v[g],tree->mod,g*ns*ns,P2);
 
 	  For(j,ns)
 	    {
@@ -1008,7 +1007,7 @@ void M4_Compute_Posterior_Mean_Rates(phydbl ***post_probs, t_tree *tree)
 	{
 	  mrr[br] += mean_post_probs[br][rcat] * tree->mod->m4mod->multipl[rcat];
 	}
-      tree->t_edges[br]->l *= mrr[br];
+      tree->t_edges[br]->l->v *= mrr[br];
     }
 
   PhyML_Fprintf(tree->io->fp_out_stats,"\n. Mean posterior probabilities & rates\n");
@@ -1020,7 +1019,7 @@ void M4_Compute_Posterior_Mean_Rates(phydbl ***post_probs, t_tree *tree)
 	{
 	  PhyML_Fprintf(tree->io->fp_out_stats,"%2.4f ",mean_post_probs[br][rcat]);
 	}
-/*       PhyML_Fprintf(tree->io->fp_out_stats," -- %f -> %f x %f = %f",mrr[br],tree->t_edges[br]->l,mrr[br],tree->t_edges[br]->l*mrr[br]); */
+/*       PhyML_Fprintf(tree->io->fp_out_stats," -- %f -> %f x %f = %f",mrr[br],tree->t_edges[br]->l->v,mrr[br],tree->t_edges[br]->l->v*mrr[br]); */
 
       PhyML_Fprintf(tree->io->fp_out_stats," mrr=%f ",mrr[br]);
 
@@ -1043,7 +1042,7 @@ void M4_Compute_Posterior_Mean_Rates(phydbl ***post_probs, t_tree *tree)
   DR_Print_Tree_Postscript(tree->ps_page_number++,YES,tree->io->fp_out_ps,tree);
 
   /* Go back to the initial scaled branch lengths */
-  For(br,2*tree->n_otu-3) tree->t_edges[br]->l /= mrr[br];
+  For(br,2*tree->n_otu-3) tree->t_edges[br]->l->v /= mrr[br];
 
   /* Compute the posterior mean relative rate at each site, for each branch
      and each rate category. Scale branch lengths using these factors and
@@ -1065,10 +1064,10 @@ void M4_Compute_Posterior_Mean_Rates(phydbl ***post_probs, t_tree *tree)
 		}
 	    }
 /* 	  mrr[br] = tree->mod->m4mod->multipl[best_r]; /\* Use the most probable relative rate instead of mean *\/ */
-	  tree->t_edges[br]->l *= mrr[br];
+	  tree->t_edges[br]->l->v *= mrr[br];
 	}
 
-      For(br,2*tree->n_otu-3) mean_br_len[br] += tree->t_edges[br]->l * tree->data->wght[patt];
+      For(br,2*tree->n_otu-3) mean_br_len[br] += tree->t_edges[br]->l->v * tree->data->wght[patt];
 
       PhyML_Fprintf(tree->io->fp_out_stats,"\n. Posterior probabilities site %4d (weight=%d, is_inv=%d)\n",
 	     patt,
@@ -1098,7 +1097,7 @@ void M4_Compute_Posterior_Mean_Rates(phydbl ***post_probs, t_tree *tree)
 	      else               PhyML_Fprintf(tree->io->fp_out_stats,"  ");
 	    }
 
-/* 	  PhyML_Fprintf(tree->io->fp_out_stats," -- %f -> %f x %f = %f",mrr[br],tree->t_edges[br]->l,mrr[br],tree->t_edges[br]->l*mrr[br]); */
+/* 	  PhyML_Fprintf(tree->io->fp_out_stats," -- %f -> %f x %f = %f",mrr[br],tree->t_edges[br]->l->v,mrr[br],tree->t_edges[br]->l->v*mrr[br]); */
 	  
 	  if(mrr[br] > 1.01)      PhyML_Fprintf(tree->io->fp_out_stats," %s ","FAST");
 	  else if(mrr[br] < 0.99) PhyML_Fprintf(tree->io->fp_out_stats," %s ","SLOW");
@@ -1114,7 +1113,7 @@ void M4_Compute_Posterior_Mean_Rates(phydbl ***post_probs, t_tree *tree)
       DR_Print_Tree_Postscript(tree->ps_page_number++,YES,tree->io->fp_out_ps,tree);
 
       /* Go back to the initial scaled branch lengths */
-      For(br,2*tree->n_otu-3) tree->t_edges[br]->l /= mrr[br];
+      For(br,2*tree->n_otu-3) tree->t_edges[br]->l->v /= mrr[br];
 
       For(br,2*tree->n_otu-3) 
 	{
@@ -1137,7 +1136,7 @@ void M4_Compute_Posterior_Mean_Rates(phydbl ***post_probs, t_tree *tree)
   For(br,2*tree->n_otu-3)
     {
       mean_br_len[br] /= (phydbl)tree->data->init_len;
-      tree->t_edges[br]->l = mean_br_len[br];
+      tree->t_edges[br]->l->v = mean_br_len[br];
     }
   PhyML_Fprintf(tree->io->fp_out_tree,"Mean branch lengths=");
   s = Write_Tree(tree,NO);
@@ -1409,7 +1408,7 @@ void M4_Scale_Br_Len(t_tree *tree)
   scale_fact = 1.0 + tree->mod->m4mod->delta * mrs;
 
   /* (3) Scale branch lengths */
-  For(i,2*tree->n_otu-3) tree->t_edges[i]->l /= scale_fact;
+  For(i,2*tree->n_otu-3) tree->t_edges[i]->l->v /= scale_fact;
 }
 
 //////////////////////////////////////////////////////////////
@@ -1441,7 +1440,7 @@ void M4_Free_Integral_Term_On_One_Edge(phydbl ****integral, t_tree *tree)
 
 void M4_Detect_Site_Switches_Experiment(t_tree *tree)
 {
-  model *nocov_mod,*cov_mod,*ori_mod;
+  t_mod *nocov_mod,*cov_mod,*ori_mod;
   calign *ori_data,*cpy_data;
   int i,n_iter,ns;
   phydbl *nocov_bl,*cov_bl;
@@ -1469,16 +1468,16 @@ void M4_Detect_Site_Switches_Experiment(t_tree *tree)
   PhyML_Printf("\n. Estimate model parameters under non-switching substitution model.\n");
   Switch_From_M4mod_To_Mod(tree->mod);
   Simu_Loop(tree);
-  nocov_mod = (model *)Copy_Model(tree->mod); /* Record model parameters */
-  For(i,2*tree->n_otu-3) nocov_bl[i] = tree->t_edges[i]->l; /* Record branch lengths */
+  nocov_mod = (t_mod *)Copy_Model(tree->mod); /* Record model parameters */
+  For(i,2*tree->n_otu-3) nocov_bl[i] = tree->t_edges[i]->l->v; /* Record branch lengths */
   For(i,tree->data->crunch_len) site_lnl_nocov[i] = tree->cur_site_lk[i];
   Print_Lk(tree,"[LnL under non-switching substitution model]");
   
   PhyML_Printf("\n. Estimate model parameters under switching substitution model.\n");
   Switch_From_Mod_To_M4mod(tree->mod);
   Simu_Loop(tree);
-  cov_mod = (model *)Copy_Model(tree->mod); /* Record model parameters */
-  For(i,2*tree->n_otu-3) cov_bl[i] = tree->t_edges[i]->l; /* Record branch lengths */
+  cov_mod = (t_mod *)Copy_Model(tree->mod); /* Record model parameters */
+  For(i,2*tree->n_otu-3) cov_bl[i] = tree->t_edges[i]->l->v; /* Record branch lengths */
   For(i,tree->data->crunch_len) site_lnl_cov[i] = tree->cur_site_lk[i];
   Print_Lk(tree,"[LnL under switching substitution model]");
   
@@ -1513,7 +1512,7 @@ void M4_Detect_Site_Switches_Experiment(t_tree *tree)
     {
       /* Get the transition proba right to generate sequences */
       tree->mod = nocov_mod;
-      For(i,2*tree->n_otu-3) tree->t_edges[i]->l = nocov_bl[i];
+      For(i,2*tree->n_otu-3) tree->t_edges[i]->l->v = nocov_bl[i];
       For(i,2*tree->n_otu-3) Update_PMat_At_Given_Edge(tree->t_edges[i],tree);
       
       /* Generate sequences */
@@ -1524,13 +1523,13 @@ void M4_Detect_Site_Switches_Experiment(t_tree *tree)
       else Init_P_Lk_Tips_Int(tree);
       
       tree->mod = nocov_mod;
-      For(i,2*tree->n_otu-3) tree->t_edges[i]->l = nocov_bl[i];
+      For(i,2*tree->n_otu-3) tree->t_edges[i]->l->v = nocov_bl[i];
       Lk(tree);
       For(i,tree->data->crunch_len) site_lnl_nocov[i] = tree->cur_site_lk[i];
       Print_Lk(tree,"[CPY LnL under non-switching substitution model]");
 
       tree->mod = cov_mod;
-      For(i,2*tree->n_otu-3) tree->t_edges[i]->l = cov_bl[i];
+      For(i,2*tree->n_otu-3) tree->t_edges[i]->l->v = cov_bl[i];
       Lk(tree);
       For(i,tree->data->crunch_len) site_lnl_cov[i] = tree->cur_site_lk[i];
       Print_Lk(tree,"[CPY LnL under switching substitution model]");
@@ -1551,12 +1550,12 @@ void M4_Detect_Site_Switches_Experiment(t_tree *tree)
   Make_Tree_4_Lk(tree,ori_data,ori_data->init_len);
 
   tree->mod = nocov_mod;
-  For(i,2*tree->n_otu-3) tree->t_edges[i]->l = nocov_bl[i];  
+  For(i,2*tree->n_otu-3) tree->t_edges[i]->l->v = nocov_bl[i];  
   Lk(tree);
   Print_Lk(tree,"[FINAL LnL under non-switching substitution model]");
   
   tree->mod = cov_mod;
-  For(i,2*tree->n_otu-3) tree->t_edges[i]->l = cov_bl[i];  
+  For(i,2*tree->n_otu-3) tree->t_edges[i]->l->v = cov_bl[i];  
   Lk(tree);
   Print_Lk(tree,"[FINAL LnL under switching substitution model]");
 
@@ -1578,7 +1577,7 @@ void M4_Detect_Site_Switches_Experiment(t_tree *tree)
 
 void M4_Posterior_Prediction_Experiment(t_tree *tree)
 {
-  model *ori_mod;
+  t_mod *ori_mod;
   calign *ori_data,*cpy_data;
   int i,n_iter,n_simul,ns;
   FILE *fp_nocov,*fp_cov,*fp_obs;
@@ -1726,7 +1725,7 @@ void M4_Posterior_Prediction_Experiment(t_tree *tree)
 //////////////////////////////////////////////////////////////
 
 
-m4 *M4_Copy_M4_Model(model *ori_mod, m4 *ori_m4mod)
+m4 *M4_Copy_M4_Model(t_mod *ori_mod, m4 *ori_m4mod)
 {
   int i,j,n_h, n_o;
   m4 *cpy_m4mod;

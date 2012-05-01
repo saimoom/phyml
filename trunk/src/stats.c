@@ -1510,7 +1510,7 @@ phydbl *Covariance_Matrix(t_tree *tree)
   tree->mod->s_opt->print = 0;
   For(replicate,sample_size)
     {
-      For(i,2*tree->n_otu-3) tree->t_edges[i]->l = .1;
+      For(i,2*tree->n_otu-3) tree->t_edges[i]->l->v = .1;
 
       For(i,tree->data->crunch_len) tree->data->wght[i] = 0;
 
@@ -1522,14 +1522,14 @@ phydbl *Covariance_Matrix(t_tree *tree)
 
       Round_Optimize(tree,tree->data,ROUND_MAX);
       
-      For(i,2*tree->n_otu-3) For(j,2*tree->n_otu-3) cov[i*dim+j] += LOG(tree->t_edges[i]->l) * LOG(tree->t_edges[j]->l);  
-      For(i,2*tree->n_otu-3) mean[i] += LOG(tree->t_edges[i]->l);
+      For(i,2*tree->n_otu-3) For(j,2*tree->n_otu-3) cov[i*dim+j] += LOG(tree->t_edges[i]->l->v) * LOG(tree->t_edges[j]->l->v);  
+      For(i,2*tree->n_otu-3) mean[i] += LOG(tree->t_edges[i]->l->v);
 
       PhyML_Printf("[%3d/%3d]",replicate,sample_size); fflush(NULL);
 /*       PhyML_Printf("\n. %3d %12f %12f %12f ", */
 /* 	     replicate, */
 /*  	     cov[1*dim+1]/(replicate+1)-mean[1]*mean[1]/POW(replicate+1,2), */
-/* 	     tree->t_edges[1]->l, */
+/* 	     tree->t_edges[1]->l->v, */
 /* 	     mean[1]/(replicate+1)); */
    }
 
@@ -1540,7 +1540,7 @@ phydbl *Covariance_Matrix(t_tree *tree)
   
 
 /*   PhyML_Printf("\n"); */
-/*   For(i,2*tree->n_otu-3) PhyML_Printf("%f %f\n",mean[i],tree->t_edges[i]->l); */
+/*   For(i,2*tree->n_otu-3) PhyML_Printf("%f %f\n",mean[i],tree->t_edges[i]->l->v); */
 /*   PhyML_Printf("\n"); */
 /*   PhyML_Printf("\n"); */
 /*   For(i,2*tree->n_otu-3) */
@@ -1602,7 +1602,7 @@ phydbl *Hessian(t_tree *tree)
   ori_lnL = tree->c_lnL;
 
 
-  For(i,dim) ori_bl[i] = tree->t_edges[i]->l;
+  For(i,dim) ori_bl[i] = tree->t_edges[i]->l->v;
 
   if(tree->mod->log_l == NO)
     l_inf = MAX(tree->mod->l_min,1./(phydbl)tree->data->init_len);
@@ -1613,9 +1613,9 @@ phydbl *Hessian(t_tree *tree)
   n_ok_edges = 0;
   For(i,dim) 
     {
-      if(tree->t_edges[i]->l*(1.-eps) > l_inf)
+      if(tree->t_edges[i]->l->v*(1.-eps) > l_inf)
 	{
-	  inc[i] = eps * tree->t_edges[i]->l;
+	  inc[i] = eps * tree->t_edges[i]->l->v;
 	  ok_edges[n_ok_edges] = i;
 	  n_ok_edges++;
 	  is_ok[i] = 1;
@@ -1633,12 +1633,12 @@ phydbl *Hessian(t_tree *tree)
     {
       do
 	{
-	  tree->t_edges[i]->l += inc[i];
+	  tree->t_edges[i]->l->v += inc[i];
 	  lnL1 = Lk_At_Given_Edge(tree->t_edges[i],tree);
-	  tree->t_edges[i]->l = ori_bl[i];
+	  tree->t_edges[i]->l->v = ori_bl[i];
 	  inc[i] *= 1.1;
 	}while((FABS(lnL1 - ori_lnL) < 1.E-1) && 
-	       (tree->t_edges[i]->l+inc[i] < tree->mod->l_max));
+	       (tree->t_edges[i]->l->v+inc[i] < tree->mod->l_max));
       inc[i] /= 1.1;
     }
 
@@ -1652,10 +1652,10 @@ phydbl *Hessian(t_tree *tree)
     {
       if(is_ok[i])
 	{
-	  tree->t_edges[i]->l += inc[i];
+	  tree->t_edges[i]->l->v += inc[i];
 	  lk = Lk_At_Given_Edge(tree->t_edges[i],tree);
 	  plus_zero[i] = lk;
-	  tree->t_edges[i]->l = ori_bl[i];
+	  tree->t_edges[i]->l->v = ori_bl[i];
 	}
     }
 
@@ -1665,10 +1665,10 @@ phydbl *Hessian(t_tree *tree)
     {
       if(is_ok[i])
 	{
-	  tree->t_edges[i]->l -= inc[i];
+	  tree->t_edges[i]->l->v -= inc[i];
 	  lk = Lk_At_Given_Edge(tree->t_edges[i],tree);
 	  minus_zero[i] = lk;
-	  tree->t_edges[i]->l = ori_bl[i];
+	  tree->t_edges[i]->l->v = ori_bl[i];
 	}
     }
 
@@ -1680,7 +1680,7 @@ phydbl *Hessian(t_tree *tree)
     {
       if(is_ok[i])
 	{
-	  tree->t_edges[i]->l += inc[i];
+	  tree->t_edges[i]->l->v += inc[i];
 	  Update_PMat_At_Given_Edge(tree->t_edges[i],tree);
 
 	  For(j,3)
@@ -1691,7 +1691,7 @@ phydbl *Hessian(t_tree *tree)
 	    if((!tree->t_edges[i]->rght->tax) && (tree->t_edges[i]->rght->v[j] != tree->t_edges[i]->left))
 	      Recurr_Hessian(tree->t_edges[i]->rght,tree->t_edges[i]->rght->v[j],1,inc,plus_plus+i*dim,is_ok,tree);
 		      
-	  tree->t_edges[i]->l = ori_bl[i];
+	  tree->t_edges[i]->l->v = ori_bl[i];
 	  Lk(tree);
 	}
     }
@@ -1702,7 +1702,7 @@ phydbl *Hessian(t_tree *tree)
     {
       if(is_ok[i])
 	{
-	  tree->t_edges[i]->l += inc[i];
+	  tree->t_edges[i]->l->v += inc[i];
 	  Update_PMat_At_Given_Edge(tree->t_edges[i],tree);
 	  
 	  For(j,3)
@@ -1713,7 +1713,7 @@ phydbl *Hessian(t_tree *tree)
 	    if((!tree->t_edges[i]->rght->tax) && (tree->t_edges[i]->rght->v[j] != tree->t_edges[i]->left))
 	      Recurr_Hessian(tree->t_edges[i]->rght,tree->t_edges[i]->rght->v[j],-1,inc,plus_minus+i*dim,is_ok,tree);
 	  
-	  tree->t_edges[i]->l = ori_bl[i];
+	  tree->t_edges[i]->l->v = ori_bl[i];
 	  Lk(tree);
 	}
     }
@@ -1724,7 +1724,7 @@ phydbl *Hessian(t_tree *tree)
     {
       if(is_ok[i])
 	{
-	  tree->t_edges[i]->l -= inc[i];
+	  tree->t_edges[i]->l->v -= inc[i];
 	  
 	  Update_PMat_At_Given_Edge(tree->t_edges[i],tree);
 	  
@@ -1736,7 +1736,7 @@ phydbl *Hessian(t_tree *tree)
 	    if((!tree->t_edges[i]->rght->tax) && (tree->t_edges[i]->rght->v[j] != tree->t_edges[i]->left))
 	      Recurr_Hessian(tree->t_edges[i]->rght,tree->t_edges[i]->rght->v[j],-1,inc,minus_minus+i*dim,is_ok,tree);
 	  
-	  tree->t_edges[i]->l = ori_bl[i];
+	  tree->t_edges[i]->l->v = ori_bl[i];
 	  Lk(tree);
 	}
     }
@@ -1790,19 +1790,19 @@ phydbl *Hessian(t_tree *tree)
   For(i,dim)
     if(inc[i] < 0.0 || hessian[i*dim+i] < MIN_VAR_BL)
       {	
-	eps = 0.2 * tree->t_edges[i]->l;
+	eps = 0.2 * tree->t_edges[i]->l->v;
 	do
 	  {
 	    lnL  = Lk_At_Given_Edge(tree->t_edges[i],tree);	
-	    tree->t_edges[i]->l += eps;
+	    tree->t_edges[i]->l->v += eps;
 	    lnL1 = Lk_At_Given_Edge(tree->t_edges[i],tree);
-	    tree->t_edges[i]->l += eps;
+	    tree->t_edges[i]->l->v += eps;
 	    lnL2 = Lk_At_Given_Edge(tree->t_edges[i],tree);
-	    tree->t_edges[i]->l -= 2.*eps;
+	    tree->t_edges[i]->l->v -= 2.*eps;
 	    
 	    hessian[i*dim+i] = (lnL2 - 2.*lnL1 + lnL) / POW(eps,2);
 	
-/* 	    printf("\n* l=%G eps=%f lnL=%f lnL1=%f lnL2=%f var=%f",tree->t_edges[i]->l,eps,lnL,lnL1,lnL2,hessian[i*dim+i]); */
+/* 	    printf("\n* l=%G eps=%f lnL=%f lnL1=%f lnL2=%f var=%f",tree->t_edges[i]->l->v,eps,lnL,lnL1,lnL2,hessian[i*dim+i]); */
 	    eps *= 5.;
 	  }while(FABS(lnL2 - lnL) < 1.E-3);
 
@@ -1814,22 +1814,22 @@ phydbl *Hessian(t_tree *tree)
   /* Fit a straight line to the log-likelihood (i.e., an exponential to the likelihood) */
   /* It is only a straight line when considering branch length (rather than log(branch lengths)) */
   For(i,dim)
-    if((tree->t_edges[i]->l / tree->mod->l_min < 1.1) &&
-       (tree->t_edges[i]->l / tree->mod->l_min > 0.9))
+    if((tree->t_edges[i]->l->v / tree->mod->l_min < 1.1) &&
+       (tree->t_edges[i]->l->v / tree->mod->l_min > 0.9))
       {
 	phydbl *x,*y,l;
 	phydbl cov,var;
 	
 	x=plus_plus;
 	y=minus_minus;
-	l=(tree->mod->log_l == YES)?(EXP(tree->t_edges[i]->l)):(tree->t_edges[i]->l); /* Get actual branch length */
+	l=(tree->mod->log_l == YES)?(EXP(tree->t_edges[i]->l->v)):(tree->t_edges[i]->l->v); /* Get actual branch length */
 	
 	For(j,dim)
 	  {
 	    x[j] = l + (100.*l-l)*((phydbl)j/dim);
-	    tree->t_edges[i]->l = (tree->mod->log_l)?(LOG(x[j])):(x[j]); /* Transform to log if necessary */
+	    tree->t_edges[i]->l->v = (tree->mod->log_l)?(LOG(x[j])):(x[j]); /* Transform to log if necessary */
 	    y[j] = Lk_At_Given_Edge(tree->t_edges[i],tree);
-	    tree->t_edges[i]->l = (tree->mod->log_l)?(LOG(l)):(l); /* Go back to initial edge length */
+	    tree->t_edges[i]->l->v = (tree->mod->log_l)?(LOG(l)):(l); /* Go back to initial edge length */
 	  }
 	
 	cov = Covariance(x,y,dim);
@@ -1847,7 +1847,7 @@ phydbl *Hessian(t_tree *tree)
   For(i,dim)
     if(hessian[i*dim+i] < 0.0)
       {
-	PhyML_Printf("\n. l=%G var=%G",tree->t_edges[i]->l,hessian[i*dim+i]);
+	PhyML_Printf("\n. l=%G var=%G",tree->t_edges[i]->l->v,hessian[i*dim+i]);
 /* 	PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__); */
 /* 	Exit("\n"); */
 	hessian[i*dim+i] = MIN_VAR_BL;
@@ -1858,13 +1858,13 @@ phydbl *Hessian(t_tree *tree)
       if(hessian[i*dim+i] < MIN_VAR_BL)
 	{
 	  PhyML_Printf("\n. l=%10G var(l)=%12G. WARNING: numerical precision issues may affect this analysis.",
-		       tree->t_edges[i]->l,hessian[i*dim+i]);
+		       tree->t_edges[i]->l->v,hessian[i*dim+i]);
 	  hessian[i*dim+i] = MIN_VAR_BL;
 	}
       if(hessian[i*dim+i] > MAX_VAR_BL)
 	{
 	  PhyML_Printf("\n. l=%10G var(l)=%12G. WARNING: numerical precision issues may affect this analysis.",
-		       tree->t_edges[i]->l,hessian[i*dim+i]);
+		       tree->t_edges[i]->l->v,hessian[i*dim+i]);
 	  hessian[i*dim+i] = MAX_VAR_BL;
 	}
     }
@@ -1892,7 +1892,7 @@ phydbl *Hessian(t_tree *tree)
 /*   printf("HESSIAN\n"); */
 /*   For(i,dim) */
 /*     { */
-/*       PhyML_Printf("[%f] ",tree->t_edges[i]->l); */
+/*       PhyML_Printf("[%f] ",tree->t_edges[i]->l->v); */
 /*       For(j,dim) */
 /* 	{ */
 /* 	  PhyML_Printf("%12lf ",hessian[i*dim+j]); */
@@ -1906,7 +1906,7 @@ phydbl *Hessian(t_tree *tree)
 
   /* For(i,dim) */
   /*   { */
-  /*     PhyML_Printf("[%f] ",tree->t_edges[i]->l); */
+  /*     PhyML_Printf("[%f] ",tree->t_edges[i]->l->v); */
   /*     For(j,dim) */
   /* 	{ */
   /* 	  PhyML_Printf("%12G ",-hessian[i*dim+j]); */
@@ -1970,7 +1970,7 @@ phydbl *Gradient(t_tree *tree)
   tree->both_sides = 1;
   Lk(tree);
 
-  For(i,dim) ori_bl[i] = tree->t_edges[i]->l;
+  For(i,dim) ori_bl[i] = tree->t_edges[i]->l->v;
 
   if(tree->mod->log_l == NO)
     l_inf = MAX(tree->mod->l_min,1./(phydbl)tree->data->init_len);
@@ -1980,9 +1980,9 @@ phydbl *Gradient(t_tree *tree)
   n_ok_edges = 0;
   For(i,dim) 
     {
-      if(tree->t_edges[i]->l*(1.-eps) > l_inf)
+      if(tree->t_edges[i]->l->v*(1.-eps) > l_inf)
 	{
-	  inc[i] = eps * tree->t_edges[i]->l;
+	  inc[i] = eps * tree->t_edges[i]->l->v;
 	  is_ok[i] = YES;
 	}
       else
@@ -1997,10 +1997,10 @@ phydbl *Gradient(t_tree *tree)
     {
       if(is_ok[i] == YES)
 	{
-	  tree->t_edges[i]->l += inc[i];
+	  tree->t_edges[i]->l->v += inc[i];
 	  lk = Lk_At_Given_Edge(tree->t_edges[i],tree);
 	  plus[i] = lk;
-	  tree->t_edges[i]->l = ori_bl[i];
+	  tree->t_edges[i]->l->v = ori_bl[i];
 	}
     }
 
@@ -2010,10 +2010,10 @@ phydbl *Gradient(t_tree *tree)
     {
       if(is_ok[i] == YES)
 	{
-	  tree->t_edges[i]->l -= inc[i];
+	  tree->t_edges[i]->l->v -= inc[i];
 	  lk = Lk_At_Given_Edge(tree->t_edges[i],tree);
 	  minus[i] = lk;
-	  tree->t_edges[i]->l = ori_bl[i];
+	  tree->t_edges[i]->l->v = ori_bl[i];
 	}
     }
 
@@ -2031,14 +2031,14 @@ phydbl *Gradient(t_tree *tree)
     {
       if(is_ok[i] == NO)
 	{
-	  eps = FABS(0.2 * tree->t_edges[i]->l);
+	  eps = FABS(0.2 * tree->t_edges[i]->l->v);
 	  lnL  = Lk_At_Given_Edge(tree->t_edges[i],tree);	
-	  tree->t_edges[i]->l += eps;
+	  tree->t_edges[i]->l->v += eps;
 	  lnL1 = Lk_At_Given_Edge(tree->t_edges[i],tree);
-	  tree->t_edges[i]->l += eps;
+	  tree->t_edges[i]->l->v += eps;
 	  lnL2 = Lk_At_Given_Edge(tree->t_edges[i],tree);
-	  tree->t_edges[i]->l -= eps;
-	  tree->t_edges[i]->l -= eps;
+	  tree->t_edges[i]->l->v -= eps;
+	  tree->t_edges[i]->l->v -= eps;
 	  gradient[i] = (4.*lnL1 - lnL2 - 3.*lnL) / (2.*eps);
 	}
     }
@@ -2058,7 +2058,7 @@ phydbl *Gradient(t_tree *tree)
 /*   printf("GRADIENT\n"); */
 /*   For(i,dim) */
 /*     { */
-/*       PhyML_Printf("[%f] ",tree->t_edges[i]->l); */
+/*       PhyML_Printf("[%f] ",tree->t_edges[i]->l->v); */
 /*       For(j,dim) */
 /* 	{ */
 /* 	  printf("%12lf ",gradient[i]*gradient[j]); */
@@ -2068,7 +2068,7 @@ phydbl *Gradient(t_tree *tree)
 /*   printf("\n"); */
 /*   For(i,dim) */
 /*     { */
-/*       PhyML_Printf("[%f] [%f]\n",tree->t_edges[i]->l,gradient[i]); */
+/*       PhyML_Printf("[%f] [%f]\n",tree->t_edges[i]->l->v,gradient[i]); */
 /*     } */
 
 /*   Exit("\n"); */
@@ -2122,7 +2122,7 @@ phydbl *Hessian_Seo(t_tree *tree)
   Lk(tree);
   ori_lnL = tree->c_lnL;
 
-  For(i,dim) ori_bl[i] = tree->t_edges[i]->l;
+  For(i,dim) ori_bl[i] = tree->t_edges[i]->l->v;
 
   if(tree->mod->log_l == NO)
     l_inf = MAX(tree->mod->l_min,1./(phydbl)tree->data->init_len);
@@ -2132,16 +2132,16 @@ phydbl *Hessian_Seo(t_tree *tree)
   n_ok_edges = 0;
   For(i,dim) 
     {
-      if(tree->t_edges[i]->l*(1.-eps) > l_inf)
+      if(tree->t_edges[i]->l->v*(1.-eps) > l_inf)
 	{
-	  inc_plus[i]  = FABS(eps * tree->t_edges[i]->l);
-	  inc_minus[i] = FABS(eps * tree->t_edges[i]->l);
+	  inc_plus[i]  = FABS(eps * tree->t_edges[i]->l->v);
+	  inc_minus[i] = FABS(eps * tree->t_edges[i]->l->v);
 	  is_ok[i]     = YES;
 	}
       else
 	{
-	  inc_plus[i]  = FABS(0.2 * tree->t_edges[i]->l);
-	  inc_minus[i] = FABS(0.2 * tree->t_edges[i]->l);
+	  inc_plus[i]  = FABS(0.2 * tree->t_edges[i]->l->v);
+	  inc_minus[i] = FABS(0.2 * tree->t_edges[i]->l->v);
 	  is_ok[i]     = NO;
 	}
     }
@@ -2152,12 +2152,12 @@ phydbl *Hessian_Seo(t_tree *tree)
     {
       do
 	{
-	  tree->t_edges[i]->l += inc_plus[i];	  
+	  tree->t_edges[i]->l->v += inc_plus[i];	  
 	  lnL1 = Lk_At_Given_Edge(tree->t_edges[i],tree);
-	  tree->t_edges[i]->l = ori_bl[i];
+	  tree->t_edges[i]->l->v = ori_bl[i];
 	  inc_plus[i] *= 1.1;
 	}while((FABS(lnL1 - ori_lnL) < 1.E-1) && 
-	       (tree->t_edges[i]->l+inc_plus[i] < tree->mod->l_max));
+	       (tree->t_edges[i]->l->v+inc_plus[i] < tree->mod->l_max));
       inc_plus[i] /= 1.1;
     }
 
@@ -2165,12 +2165,12 @@ phydbl *Hessian_Seo(t_tree *tree)
     {
       do
 	{
-	  tree->t_edges[i]->l -= inc_minus[i];
+	  tree->t_edges[i]->l->v -= inc_minus[i];
 	  lnL1 = Lk_At_Given_Edge(tree->t_edges[i],tree);
-	  tree->t_edges[i]->l = ori_bl[i];
+	  tree->t_edges[i]->l->v = ori_bl[i];
 	  inc_minus[i] *= 1.1;
 	}while((FABS(lnL1 - ori_lnL) < 1.E-1) && 
-	       (tree->t_edges[i]->l-inc_minus[i] > tree->mod->l_min));
+	       (tree->t_edges[i]->l->v -inc_minus[i] > tree->mod->l_min));
       inc_minus[i] /= 1.1;
     }
 
@@ -2184,10 +2184,10 @@ phydbl *Hessian_Seo(t_tree *tree)
     {
       if(is_ok[i] == YES)
 	{
-	  tree->t_edges[i]->l += inc[i];
+	  tree->t_edges[i]->l->v += inc[i];
 	  lnL = Lk_At_Given_Edge(tree->t_edges[i],tree);
 	  For(j,tree->n_pattern) plus[i*tree->n_pattern+j] = tree->cur_site_lk[j];
-	  tree->t_edges[i]->l = ori_bl[i];
+	  tree->t_edges[i]->l->v = ori_bl[i];
 	}
     }
 
@@ -2197,10 +2197,10 @@ phydbl *Hessian_Seo(t_tree *tree)
     {
       if(is_ok[i] == YES)
 	{
-	  tree->t_edges[i]->l -= inc[i];
+	  tree->t_edges[i]->l->v -= inc[i];
 	  lnL = Lk_At_Given_Edge(tree->t_edges[i],tree);
 	  For(j,tree->n_pattern) minus[i*tree->n_pattern+j] = tree->cur_site_lk[j];
-	  tree->t_edges[i]->l = ori_bl[i];
+	  tree->t_edges[i]->l->v = ori_bl[i];
 	}
     }
 
@@ -2212,15 +2212,15 @@ phydbl *Hessian_Seo(t_tree *tree)
 	  lnL = Lk_At_Given_Edge(tree->t_edges[i],tree);	
 	  For(j,tree->n_pattern) zero[i*tree->n_pattern+j] = tree->cur_site_lk[j];
 	  
-	  tree->t_edges[i]->l += inc[i];
+	  tree->t_edges[i]->l->v += inc[i];
 	  lnL1 = Lk_At_Given_Edge(tree->t_edges[i],tree);
 	  For(j,tree->n_pattern) plus[i*tree->n_pattern+j] = tree->cur_site_lk[j];
 	  
-	  tree->t_edges[i]->l += inc[i];
+	  tree->t_edges[i]->l->v += inc[i];
 	  lnL2 = Lk_At_Given_Edge(tree->t_edges[i],tree);
 	  For(j,tree->n_pattern) plusplus[i*tree->n_pattern+j] = tree->cur_site_lk[j];
 	  
-	  tree->t_edges[i]->l = ori_bl[i];	
+	  tree->t_edges[i]->l->v = ori_bl[i];	
 	}
     }
 
@@ -2237,7 +2237,7 @@ phydbl *Hessian_Seo(t_tree *tree)
 	  
 	  /* if(is_ok[i] == NO) */
 	  /*   printf("\n. i=%d site=%d l=%G plus=%G plusplus=%G zero=%G num=%f grad=%G", */
-	  /* 	   i,k,tree->t_edges[i]->l, */
+	  /* 	   i,k,tree->t_edges[i]->l->v, */
 	  /* 	   plus[i*tree->n_pattern+k],plusplus[i*tree->n_pattern+k],zero[i*tree->n_pattern+k], */
 	  /* 	   (4.*plus[i*tree->n_pattern+k] - plusplus[i*tree->n_pattern+k] - 3.*zero[i*tree->n_pattern+k]), */
 	  /* 	   gradient[i]); */
@@ -2267,7 +2267,7 @@ phydbl *Hessian_Seo(t_tree *tree)
 
 	if(tree->mod->log_l == YES) 
 	  {
-	    hessian[i*dim+i] = small_var * POW(EXP(tree->t_edges[i]->l),-2); 
+	    hessian[i*dim+i] = small_var * POW(EXP(tree->t_edges[i]->l->v),-2); 
 	    hessian[i*dim+i] = -1./hessian[i*dim+i];
 	  }
       }
@@ -2284,7 +2284,7 @@ phydbl *Hessian_Seo(t_tree *tree)
 
   	if(tree->mod->log_l == YES)
   	  {
-  	    hessian[i*dim+i] = small_var * POW(EXP(tree->t_edges[i]->l),-2);
+  	    hessian[i*dim+i] = small_var * POW(EXP(tree->t_edges[i]->l->v),-2);
   	    hessian[i*dim+i] = -1./hessian[i*dim+i];
   	  }
       }
@@ -2309,7 +2309,7 @@ phydbl *Hessian_Seo(t_tree *tree)
   /* printf("HESSIAN SEO\n"); */
   /* For(i,dim) */
   /*   { */
-  /*     PhyML_Printf("[%f] ",tree->t_edges[i]->l); */
+  /*     PhyML_Printf("[%f] ",tree->t_edges[i]->l->v); */
   /*     For(j,dim) */
   /* 	{ */
   /* 	  PhyML_Printf("%12lf ",hessian[i*dim+j]); */
@@ -2347,13 +2347,13 @@ void Recurr_Hessian(t_node *a, t_node *d, int plus_minus, phydbl *inc, phydbl *r
       {
 	Update_P_Lk(tree,a->b[i],a);
 
-	ori_l = a->b[i]->l;
+	ori_l = a->b[i]->l->v;
 	if(is_ok[a->b[i]->num])
 	  {
-	    if(plus_minus > 0) a->b[i]->l += inc[a->b[i]->num];
-	    else               a->b[i]->l -= inc[a->b[i]->num];
+	    if(plus_minus > 0) a->b[i]->l->v += inc[a->b[i]->num];
+	    else               a->b[i]->l->v -= inc[a->b[i]->num];
 	    res[a->b[i]->num] = Lk_At_Given_Edge(a->b[i],tree);
-	    a->b[i]->l = ori_l;
+	    a->b[i]->l->v = ori_l;
 	    Update_PMat_At_Given_Edge(a->b[i],tree);
 	  }
 	break;
@@ -2403,14 +2403,14 @@ phydbl *Hessian_Log(t_tree *tree)
   tree->both_sides = 1;
   Lk(tree);
 
-  For(i,dim) ori_bl[i] = tree->t_edges[i]->l;
+  For(i,dim) ori_bl[i] = tree->t_edges[i]->l->v;
 
   n_ok_edges = 0;
   For(i,dim) 
     {
-      if(tree->t_edges[i]->l > 3.0/(phydbl)tree->data->init_len)
+      if(tree->t_edges[i]->l->v > 3.0/(phydbl)tree->data->init_len)
 	{
-	  inc[i] = FABS(eps * tree->t_edges[i]->l);
+	  inc[i] = FABS(eps * tree->t_edges[i]->l->v);
 	  ok_edges[n_ok_edges] = i;
 	  n_ok_edges++;
 	  is_ok[i] = 1;
@@ -2427,10 +2427,10 @@ phydbl *Hessian_Log(t_tree *tree)
     {
       if(is_ok[i])
 	{
-	  tree->t_edges[i]->l += inc[i];
+	  tree->t_edges[i]->l->v += inc[i];
 	  lk = Lk_At_Given_Edge(tree->t_edges[i],tree);
 	  plus_zero[i] = lk+Log_Det(is_ok,tree);
-	  tree->t_edges[i]->l = ori_bl[i];
+	  tree->t_edges[i]->l->v = ori_bl[i];
 	}
     }
 
@@ -2440,10 +2440,10 @@ phydbl *Hessian_Log(t_tree *tree)
     {
       if(is_ok[i])
 	{
-	  tree->t_edges[i]->l -= inc[i];
+	  tree->t_edges[i]->l->v -= inc[i];
 	  lk = Lk_At_Given_Edge(tree->t_edges[i],tree);
 	  minus_zero[i] = lk+Log_Det(is_ok,tree);
-	  tree->t_edges[i]->l = ori_bl[i];
+	  tree->t_edges[i]->l->v = ori_bl[i];
 	}
     }
 
@@ -2454,7 +2454,7 @@ phydbl *Hessian_Log(t_tree *tree)
     {
       if(is_ok[i])
 	{
-	  tree->t_edges[i]->l += inc[i];
+	  tree->t_edges[i]->l->v += inc[i];
 	  Update_PMat_At_Given_Edge(tree->t_edges[i],tree);
 
 	  For(j,3)
@@ -2470,14 +2470,14 @@ phydbl *Hessian_Log(t_tree *tree)
 /* 	      { */
 /* 		if(inc[j] > 0.0) */
 /* 		  { */
-/* 		    tree->t_edges[j]->l += inc[j]; */
+/* 		    tree->t_edges[j]->l->v += inc[j]; */
 /* 		    Lk(tree); */
 /* 		    plus_plus[i*dim+j]=tree->c_lnL; */
-/* 		    tree->t_edges[j]->l = ori_bl[j]; */
+/* 		    tree->t_edges[j]->l->v = ori_bl[j]; */
 /* 		  } */
 /* 	      } */
 		      
-	  tree->t_edges[i]->l = ori_bl[i];
+	  tree->t_edges[i]->l->v = ori_bl[i];
 	  Lk(tree);
 	}
     }
@@ -2487,7 +2487,7 @@ phydbl *Hessian_Log(t_tree *tree)
     {
       if(is_ok[i])
 	{
-	  tree->t_edges[i]->l += inc[i];
+	  tree->t_edges[i]->l->v += inc[i];
 	  Update_PMat_At_Given_Edge(tree->t_edges[i],tree);
 	  
 	  For(j,3)
@@ -2503,14 +2503,14 @@ phydbl *Hessian_Log(t_tree *tree)
 /* 	      { */
 /* 		if(inc[j] > 0.0) */
 /* 		  { */
-/* 		    tree->t_edges[j]->l -= inc[j]; */
+/* 		    tree->t_edges[j]->l->v -= inc[j]; */
 /* 		    Lk(tree); */
 /* 		    plus_minus[i*dim+j] = tree->c_lnL; */
-/* 		    tree->t_edges[j]->l = ori_bl[j]; */
+/* 		    tree->t_edges[j]->l->v = ori_bl[j]; */
 /* 		  } */
 /* 	      } */
 
-	  tree->t_edges[i]->l = ori_bl[i];
+	  tree->t_edges[i]->l->v = ori_bl[i];
 	  Lk(tree);
 	}
     }
@@ -2521,7 +2521,7 @@ phydbl *Hessian_Log(t_tree *tree)
     {
       if(is_ok[i])
 	{
-	  tree->t_edges[i]->l -= inc[i];
+	  tree->t_edges[i]->l->v -= inc[i];
 	  
 	  Update_PMat_At_Given_Edge(tree->t_edges[i],tree);
 	  
@@ -2538,22 +2538,22 @@ phydbl *Hessian_Log(t_tree *tree)
 /* 	      { */
 /* 		if(inc[j] > 0.0) */
 /* 		  { */
-/* 		    tree->t_edges[j]->l -= inc[j]; */
+/* 		    tree->t_edges[j]->l->v -= inc[j]; */
 /* 		    Lk(tree); */
 /* 		    minus_minus[i*dim+j] = tree->c_lnL; */
-/* 		    tree->t_edges[j]->l = ori_bl[j]; */
+/* 		    tree->t_edges[j]->l->v = ori_bl[j]; */
 /* 		  } */
 /* 	      } */
 
-	  tree->t_edges[i]->l = ori_bl[i];
+	  tree->t_edges[i]->l->v = ori_bl[i];
 	  Lk(tree);
 	}
     }
 
-/*   For(i,dim) if(is_ok[i]) inc[i] = POW(tree->t_edges[i]->l+inc[i],2)-POW(tree->t_edges[i]->l,2); */
-  For(i,dim) if(is_ok[i]) inc[i] = LOG(tree->t_edges[i]->l+inc[i])-LOG(tree->t_edges[i]->l);
+/*   For(i,dim) if(is_ok[i]) inc[i] = POW(tree->t_edges[i]->l->v+inc[i],2)-POW(tree->t_edges[i]->l->v,2); */
+  For(i,dim) if(is_ok[i]) inc[i] = LOG(tree->t_edges[i]->l->v+inc[i])-LOG(tree->t_edges[i]->l->v);
 /*   For(i,dim) inc[i] = 2.*inc[i]; */
-/*   For(i,dim) if(is_ok[i]) inc[i] = SQRT(tree->t_edges[i]->l+inc[i])-SQRT(tree->t_edges[i]->l); */
+/*   For(i,dim) if(is_ok[i]) inc[i] = SQRT(tree->t_edges[i]->l->v+inc[i])-SQRT(tree->t_edges[i]->l->v); */
   
   For(i,dim)
     {
@@ -2614,7 +2614,7 @@ phydbl *Hessian_Log(t_tree *tree)
 
 /*   For(i,dim) */
 /*     { */
-/*       PhyML_Printf("[%f] ",tree->t_edges[i]->l); */
+/*       PhyML_Printf("[%f] ",tree->t_edges[i]->l->v); */
 /*       For(j,i+1) */
 /* 	{ */
 /* 	  PhyML_Printf("%12lf ",hessian[i*dim+j]); */
@@ -2628,7 +2628,7 @@ phydbl *Hessian_Log(t_tree *tree)
 
   For(i,dim)
     {
-      PhyML_Printf("[%f] ",tree->t_edges[i]->l);
+      PhyML_Printf("[%f] ",tree->t_edges[i]->l->v);
       For(j,i+1)
 	{
 	  PhyML_Printf("%12lf ",hessian[i*dim+j]);
@@ -2668,14 +2668,14 @@ void Recurr_Hessian_Log(t_node *a, t_node *d, int plus_minus, phydbl *inc, phydb
       {
 	Update_P_Lk(tree,a->b[i],a);
 
-	ori_l = a->b[i]->l;
+	ori_l = a->b[i]->l->v;
 	if(is_ok[a->b[i]->num])
 	  {
-	    if(plus_minus > 0) a->b[i]->l += inc[a->b[i]->num];
-	    else               a->b[i]->l -= inc[a->b[i]->num];
+	    if(plus_minus > 0) a->b[i]->l->v += inc[a->b[i]->num];
+	    else               a->b[i]->l->v -= inc[a->b[i]->num];
 	    res[a->b[i]->num]  = Lk_At_Given_Edge(a->b[i],tree);
 	    res[a->b[i]->num] += Log_Det(is_ok,tree);
-	    a->b[i]->l = ori_l;
+	    a->b[i]->l->v = ori_l;
 	    Update_PMat_At_Given_Edge(a->b[i],tree);
 	  }
 	break;
@@ -2698,9 +2698,9 @@ phydbl Log_Det(int *is_ok, t_tree *tree)
   phydbl ldet;
 
   ldet = 0.0;
-/*   For(i,2*tree->n_otu-3) if(is_ok[i]) ldet += LOG(2.*SQRT(tree->t_edges[i]->l)); */
-  For(i,2*tree->n_otu-3) if(is_ok[i]) ldet += LOG(tree->t_edges[i]->l);
-/*   For(i,2*tree->n_otu-3) if(is_ok[i]) ldet -= LOG(2*tree->t_edges[i]->l); */
+/*   For(i,2*tree->n_otu-3) if(is_ok[i]) ldet += LOG(2.*SQRT(tree->t_edges[i]->l->v)); */
+  For(i,2*tree->n_otu-3) if(is_ok[i]) ldet += LOG(tree->t_edges[i]->l->v);
+/*   For(i,2*tree->n_otu-3) if(is_ok[i]) ldet -= LOG(2*tree->t_edges[i]->l->v); */
   
   return ldet;
 
@@ -3559,7 +3559,7 @@ void VarCov_Approx_Likelihood(t_tree *tree)
 
   MCMC_Randomize_Branch_Lengths(tree);
   
-  /* For(i,2*tree->n_otu-3) tree->t_edges[i]->l *= Rgamma(5.,1./5.); */
+  /* For(i,2*tree->n_otu-3) tree->t_edges[i]->l->v *= Rgamma(5.,1./5.); */
   
   tree->both_sides = YES;
   Lk(tree);
@@ -3579,13 +3579,13 @@ void VarCov_Approx_Likelihood(t_tree *tree)
 	  cur_mean = mean[i];
 
 	  mean[i] *= (phydbl)iter;
-	  mean[i] += tree->t_edges[i]->l;
+	  mean[i] += tree->t_edges[i]->l->v;
 	  mean[i] /= (phydbl)(iter+1);
 
 	  new_mean = mean[i];	  
 	  diff_mean = MAX(cur_mean,new_mean)/MIN(cur_mean,new_mean);
 	  if(diff_mean > max_diff_mean) max_diff_mean = diff_mean;
-	  /* printf("\n. %d diff_mean = %f %f %f %f",i,diff_mean,cur_mean,new_mean,tree->t_edges[i]->l); */
+	  /* printf("\n. %d diff_mean = %f %f %f %f",i,diff_mean,cur_mean,new_mean,tree->t_edges[i]->l->v); */
 	}
 
       max_diff_cov = 0.0;
@@ -3596,7 +3596,7 @@ void VarCov_Approx_Likelihood(t_tree *tree)
 	      cur_cov = cov[i*dim+j];
 
 	      cov[i*dim+j] *= (phydbl)iter;
-	      cov[i*dim+j] += tree->t_edges[i]->l * tree->t_edges[j]->l;
+	      cov[i*dim+j] += tree->t_edges[i]->l->v * tree->t_edges[j]->l->v;
 	      cov[i*dim+j] /= (phydbl)(iter+1);
 
 	      new_cov = cov[i*dim+j];
@@ -3616,7 +3616,7 @@ void VarCov_Approx_Likelihood(t_tree *tree)
 	  fprintf(fp,"\n");
 	  fprintf(fp,"%d\t",iter);
 	  fprintf(fp,"%f\t",tree->c_lnL);
- 	  For(i,dim) fprintf(fp,"%f\t",tree->t_edges[i]->l);
+ 	  For(i,dim) fprintf(fp,"%f\t",tree->t_edges[i]->l->v);
 	  fflush(NULL);
 	}
 
@@ -3781,7 +3781,7 @@ phydbl *Rnorm_Multid_Trunc_Constraint(phydbl *mu, phydbl *cov, phydbl *min, phyd
 //////////////////////////////////////////////////////////////
 
 
-void PMat_MGF_Gamma(phydbl *Pij, phydbl shape, phydbl scale, phydbl scaling_fact, model *mod)
+void PMat_MGF_Gamma(phydbl *Pij, phydbl shape, phydbl scale, phydbl scaling_fact, t_mod *mod)
 {
   int dim;
   int i,j,k;

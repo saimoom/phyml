@@ -697,7 +697,7 @@ phydbl RATES_Average_Substitution_Rate(t_tree *tree)
   /*   { */
   /*     t     = tree->rates->nd_t[i]; */
   /*     t_anc = tree->rates->nd_t[tree->t_nodes[i]->anc->num];       */
-  /*     u = tree->t_edges[i]->l; */
+  /*     u = tree->t_edges[i]->l->v; */
   /*     if(tree->rates->model == GUINDON) u = tree->t_edges[i]->gamma_prior_mean; */
   /*     sum_r += u;	   */
   /*     sum_dt += FABS(t-t_anc); */
@@ -709,7 +709,7 @@ phydbl RATES_Average_Substitution_Rate(t_tree *tree)
 	{
 	  t     = tree->rates->nd_t[tree->t_edges[i]->left->num];
 	  t_anc = tree->rates->nd_t[tree->t_edges[i]->rght->num];
-	  u = tree->t_edges[i]->l;
+	  u = tree->t_edges[i]->l->v;
 	  if(tree->rates->model == GUINDON) u = tree->t_edges[i]->gamma_prior_mean;
 	  sum_r += u;
 	  sum_dt += FABS(t-t_anc);
@@ -718,7 +718,7 @@ phydbl RATES_Average_Substitution_Rate(t_tree *tree)
       sum_dt += FABS(tree->rates->nd_t[tree->n_root->v[0]->num] - tree->rates->nd_t[tree->n_root->num]);
       sum_dt += FABS(tree->rates->nd_t[tree->n_root->v[1]->num] - tree->rates->nd_t[tree->n_root->num]);
 
-      u = tree->e_root->l;
+      u = tree->e_root->l->v;
       if(tree->rates->model == GUINDON) u = tree->e_root->gamma_prior_mean;
       sum_r += u;	 
     }
@@ -1691,9 +1691,9 @@ void RATES_Get_Rates_From_Bl(t_tree *tree)
   if(tree->n_root)
     {
       dt = FABS(tree->rates->nd_t[tree->n_root->num] - tree->rates->nd_t[tree->n_root->v[0]->num]);
-      tree->rates->br_r[tree->n_root->v[0]->num] = 0.5 * tree->e_root->l / (dt*cr);
+      tree->rates->br_r[tree->n_root->v[0]->num] = 0.5 * tree->e_root->l->v / (dt*cr);
       dt = FABS(tree->rates->nd_t[tree->n_root->num] - tree->rates->nd_t[tree->n_root->v[1]->num]);
-      tree->rates->br_r[tree->n_root->v[1]->num] = 0.5 * tree->e_root->l / (dt*cr);
+      tree->rates->br_r[tree->n_root->v[1]->num] = 0.5 * tree->e_root->l->v / (dt*cr);
     }
   
 
@@ -1705,8 +1705,8 @@ void RATES_Get_Rates_From_Bl(t_tree *tree)
 	  rght = tree->t_edges[i]->rght;
 	  dt = FABS(tree->rates->nd_t[left->num] - tree->rates->nd_t[rght->num]);	  
 	  
-	  if(left->anc == rght) tree->rates->br_r[left->num] = tree->t_edges[i]->l / (dt*cr);
-	  else                  tree->rates->br_r[rght->num] = tree->t_edges[i]->l / (dt*cr);
+	  if(left->anc == rght) tree->rates->br_r[left->num] = tree->t_edges[i]->l->v / (dt*cr);
+	  else                  tree->rates->br_r[rght->num] = tree->t_edges[i]->l->v / (dt*cr);
 	}
     }
 }
@@ -2547,7 +2547,7 @@ void RATES_Posterior_Time_Root(t_tree *tree)
   dim    = 2*tree->n_otu-3;
   b      = tree->e_root;
   root   = tree->n_root;
-  cur_l  = b->l;
+  cur_l  = b->l->v;
   t0     = tree->rates->nd_t[root->num];
   t1     = tree->rates->nd_t[root->v[0]->num];
   t2     = tree->rates->nd_t[root->v[1]->num];
@@ -2687,20 +2687,20 @@ void RATES_Update_Cur_Bl(t_tree *tree)
 
   if(tree->mod->log_l == YES)
     {
-      tree->e_root->l = 
+      tree->e_root->l->v = 
 	EXP(tree->rates->cur_l[tree->n_root->v[0]->num]) +
 	EXP(tree->rates->cur_l[tree->n_root->v[1]->num]) ;
-      tree->e_root->l = LOG(tree->e_root->l);
+      tree->e_root->l->v = LOG(tree->e_root->l->v);
     }
   else
     {
-      tree->e_root->l = 
+      tree->e_root->l->v = 
 	tree->rates->cur_l[tree->n_root->v[0]->num] +
 	tree->rates->cur_l[tree->n_root->v[1]->num] ;
     }
 
-  tree->rates->u_cur_l[tree->e_root->num] = tree->e_root->l;
-  tree->n_root_pos = tree->rates->cur_l[tree->n_root->v[0]->num] / tree->e_root->l;
+  tree->rates->u_cur_l[tree->e_root->num] = tree->e_root->l->v;
+  tree->n_root_pos = tree->rates->cur_l[tree->n_root->v[0]->num] / tree->e_root->l->v;
 
   if(tree->rates->model == GUINDON)
     {
@@ -2721,7 +2721,7 @@ void RATES_Update_Cur_Bl(t_tree *tree)
 	POW((t1-t0)/(t1+t2-2.*t0),2)*tree->rates->cur_gamma_prior_var[n0->num] +
 	POW((t2-t0)/(t1+t2-2.*t0),2)*tree->rates->cur_gamma_prior_var[n1->num];
 
-      tree->e_root->l = tree->e_root->gamma_prior_mean; // Required for having proper branch lengths in Write_Tree function
+      tree->e_root->l->v = tree->e_root->gamma_prior_mean; // Required for having proper branch lengths in Write_Tree function
 
       /* printf("\n. ROOT: %f %f %f %f", */
       /* 	     tree->rates->cur_gamma_prior_mean[n0->num], */
@@ -2787,13 +2787,13 @@ void RATES_Update_Cur_Bl_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
       
       if(b)
 	{
-	  b->l                         = tree->rates->cur_l[d->num];
+	  b->l->v                         = tree->rates->cur_l[d->num];
 	  tree->rates->u_cur_l[b->num] = tree->rates->cur_l[d->num];
 	  b->gamma_prior_mean          = tree->rates->cur_gamma_prior_mean[d->num];
 	  b->gamma_prior_var           = tree->rates->cur_gamma_prior_var[d->num];
 	}
       
-      if(b && (isnan(b->l) || isnan(b->gamma_prior_var) || isnan(b->gamma_prior_mean)))
+      if(b && (isnan(b->l->v) || isnan(b->gamma_prior_var) || isnan(b->gamma_prior_mean)))
 	{
 	  PhyML_Printf("\n. dt=%G rr=%G cr=%G ra=%G rd=%G nu=%G %f %f ",dt,rr,cr,ra,rd,nu,b->gamma_prior_var,b->gamma_prior_mean);	  
 	  PhyML_Printf("\n. ta=%G td=%G ra*cr=%G rd*cr=%G sd=%G",
@@ -2821,10 +2821,10 @@ void RATES_Bl_To_Bl(t_tree *tree)
 {
   RATES_Bl_To_Bl_Pre(tree->n_root,tree->n_root->v[0],NULL,tree);
   RATES_Bl_To_Bl_Pre(tree->n_root,tree->n_root->v[1],NULL,tree);
-  /* tree->rates->cur_l[tree->n_root->v[0]->num] = tree->t_edges[tree->e_root->num]->l * tree->n_root_pos; */
-  /* tree->rates->cur_l[tree->n_root->v[1]->num] = tree->t_edges[tree->e_root->num]->l * (1. - tree->n_root_pos); */
-  tree->rates->cur_l[tree->n_root->v[0]->num] = tree->t_edges[tree->e_root->num]->l * 0.5;
-  tree->rates->cur_l[tree->n_root->v[1]->num] = tree->t_edges[tree->e_root->num]->l * (1. - 0.5);
+  /* tree->rates->cur_l[tree->n_root->v[0]->num] = tree->t_edges[tree->e_root->num]->l->v * tree->n_root_pos; */
+  /* tree->rates->cur_l[tree->n_root->v[1]->num] = tree->t_edges[tree->e_root->num]->l->v * (1. - tree->n_root_pos); */
+  tree->rates->cur_l[tree->n_root->v[0]->num] = tree->t_edges[tree->e_root->num]->l->v * 0.5;
+  tree->rates->cur_l[tree->n_root->v[1]->num] = tree->t_edges[tree->e_root->num]->l->v * (1. - 0.5);
 }
 
 //////////////////////////////////////////////////////////////
@@ -2835,7 +2835,7 @@ void RATES_Bl_To_Bl_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 
   if(b) 
     {
-      tree->rates->cur_l[d->num] = b->l;
+      tree->rates->cur_l[d->num] = b->l->v;
     }
 
   if(d->tax) return;
@@ -2856,7 +2856,7 @@ void RATES_Bl_To_Ml(t_tree *tree)
 {
   RATES_Bl_To_Ml_Pre(tree->n_root,tree->n_root->v[0],NULL,tree);
   RATES_Bl_To_Ml_Pre(tree->n_root,tree->n_root->v[1],NULL,tree);
-  tree->rates->u_ml_l[tree->e_root->num] = tree->t_edges[tree->e_root->num]->l;
+  tree->rates->u_ml_l[tree->e_root->num] = tree->t_edges[tree->e_root->num]->l->v;
   tree->rates->ml_l[tree->n_root->v[0]->num] = tree->rates->u_ml_l[tree->e_root->num] * tree->n_root_pos;
   tree->rates->ml_l[tree->n_root->v[1]->num] = tree->rates->u_ml_l[tree->e_root->num] * (1. - tree->n_root_pos);
 }
@@ -2869,8 +2869,8 @@ void RATES_Bl_To_Ml_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 
   if(b) 
     {
-      tree->rates->u_ml_l[b->num] = b->l;
-      tree->rates->ml_l[d->num]   = b->l;
+      tree->rates->u_ml_l[b->num] = b->l->v;
+      tree->rates->ml_l[d->num]   = b->l->v;
     }
 
   if(d->tax) return;
@@ -3691,7 +3691,7 @@ void RATES_Update_Mean_Br_Len(int iter, t_tree *tree)
   For(i,dim)
     {      
      mean[i] *= (phydbl)iter;
-     mean[i] += tree->t_edges[i]->l;
+     mean[i] += tree->t_edges[i]->l->v;
      mean[i] /= (phydbl)(iter+1);
     }
 }
@@ -3717,7 +3717,7 @@ void RATES_Update_Cov_Br_Len(int iter, t_tree *tree)
 	{
 	  cov[i*dim+j] += mean[i]*mean[j];
 	  cov[i*dim+j] *= (phydbl)tree->mcmc->run;
-	  cov[i*dim+j] += tree->t_edges[i]->l * tree->t_edges[j]->l;
+	  cov[i*dim+j] += tree->t_edges[i]->l->v * tree->t_edges[j]->l->v;
 	  cov[i*dim+j] /= (phydbl)(tree->mcmc->run+1);
 	  cov[i*dim+j] -= mean[i]*mean[j];
 
@@ -3735,7 +3735,7 @@ void RATES_Set_Mean_L(t_tree *tree)
   int i;
   For(i,2*tree->n_otu-3) 
     {
-      tree->rates->mean_l[i] = tree->t_edges[i]->l;
+      tree->rates->mean_l[i] = tree->t_edges[i]->l->v;
     }
 }
 

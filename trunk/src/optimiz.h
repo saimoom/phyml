@@ -33,10 +33,10 @@ void      Optimize_After_Hide(t_tree *tree, calign *cdata, t_node *h);
 void      Round_Optimize(t_tree *tree, calign *data, int n_round_max);
 int       Dist_Seq_Brak(phydbl *ax, phydbl *bx, phydbl *cx, 
 			phydbl *fa, phydbl *fb, phydbl *fc, 
-			calign *data, int num1, int num2, model *mod);
+			calign *data, int num1, int num2, t_mod *mod);
 phydbl    Dist_Seq_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, 
 			 phydbl *xmin, calign *data, 
-			 int num1, int num2, model *mod);
+			 int num1, int num2, t_mod *mod);
 phydbl    Kappa_Golden(phydbl ax, phydbl bx, phydbl cx, phydbl tol, 
 		       phydbl *xmin, t_tree *tree, calign *cdata);
 phydbl    Lambda_Golden(phydbl ax, phydbl bx, phydbl cx, phydbl tol, 
@@ -53,11 +53,11 @@ phydbl    Br_Len_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 int       Br_Len_Brak(phydbl *ax, phydbl *bx, phydbl *cx, 
 		      phydbl *fa, phydbl *fb, phydbl *fc, 
 		      t_edge *b_fcus, t_tree *tree);
-phydbl    Optimize_Path_Length(model *mod, calign *cdata, t_edge *a, 
+phydbl    Optimize_Path_Length(t_mod *mod, calign *cdata, t_edge *a, 
 			       int lra, t_edge *b, int lrb, phydbl i_len);
 void      Optimize_Param_Serie(t_node *a, t_node *d, t_edge *b_fcus, t_tree *tree, 
 			       calign *cdata, int n_passes);
-phydbl    Optimize_Dist(model *mod, phydbl init, calign *twoseqs);
+phydbl    Optimize_Dist(t_mod *mod, phydbl init, calign *twoseqs);
 phydbl    Pinvar_Golden(phydbl ax, phydbl bx, phydbl cx, phydbl tol, 
 			phydbl *xmin, t_tree *tree, calign *cdata, int n_iter_max);
 void      Optimize_Pinvar(t_tree *tree);
@@ -119,11 +119,11 @@ int Lnsrch_Nucleotide_Frequencies(t_tree *tree, int n, phydbl *xold,
 void Optimize_Global_Rate(t_tree *tree);
 phydbl Br_Len_Brent_Default(t_edge *b_fcus, t_tree *tree);
 
-void EM_Dist(model *mod, calign *data);
+void EM_Dist(t_mod *mod, calign *data);
 phydbl Dist_F_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, int n_iter_max, 
-		    phydbl *param, phydbl *F, model *mod);
-int Dist_F_Brak(phydbl *ax, phydbl *bx, phydbl *cx, phydbl *F, phydbl *param, model *mod);
-void Opt_Dist_F(phydbl *dist, phydbl *F, model *mod);
+		    phydbl *param, phydbl *F, t_mod *mod);
+int Dist_F_Brak(phydbl *ax, phydbl *bx, phydbl *cx, phydbl *F, phydbl *param, t_mod *mod);
+void Opt_Dist_F(phydbl *dist, phydbl *F, t_mod *mod);
 phydbl Missing_Dist_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, int n_iter_max, 
 			  int x, int y, matrix *mat);
 int Missing_Dist_Brak(phydbl *ax, phydbl *bx, phydbl *cx, int x, int y, matrix *mat);

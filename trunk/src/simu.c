@@ -135,7 +135,7 @@ int Simu(t_tree *tree, int n_step_max)
 	    Exit("\n. Err: mov_back failed\n");
 	  if(!tree->n_swap) n_neg = 0;
 	  
-	  For(i,2*tree->n_otu-3) tree->t_edges[i]->l_old = tree->t_edges[i]->l;	    
+	  For(i,2*tree->n_otu-3) tree->t_edges[i]->l_old->v = tree->t_edges[i]->l->v;	    
 	  tree->both_sides = 1;
 	  Lk(tree);
 	}
@@ -328,7 +328,7 @@ void Update_Bl(t_tree *tree, phydbl fact)
   For(i,2*tree->n_otu-3)
     {
       b = tree->t_edges[i];
-      b->l = b->l_old + (b->nni->l0 - b->l_old)*fact;      
+      b->l->v = b->l_old->v + (b->nni->l0 - b->l_old->v)*fact;      
     }
 }
 
@@ -380,7 +380,7 @@ void Make_N_Swap(t_tree *tree,t_edge **b, int beg, int end)
 	  tree->n_root->v[1] = tree->e_root->rght;
 	}
 
-      b[i]->l = b[i]->nni->best_l;
+      b[i]->l->v = b[i]->nni->best_l;
 
       tree->n_swap++;
     }
@@ -436,13 +436,13 @@ int Make_Best_Swap(t_tree *tree)
 
 
 
-      b->l = b->nni->best_l;
+      b->l->v = b->nni->best_l;
 
 /*       (b->nni->best_conf == 1)? */
 /* 	(Swap(b->left->v[b->l_v2],b->left,b->rght,b->rght->v[b->r_v1],tree)): */
 /* 	(Swap(b->left->v[b->l_v2],b->left,b->rght,b->rght->v[b->r_v2],tree)); */
       
-/*       b->l =  */
+/*       b->l->v =  */
 /* 	(b->nni->best_conf == 1)? */
 /* 	(b->nni->l1): */
 /* 	(b->nni->l2); */
@@ -469,7 +469,7 @@ int Mov_Backward_Topo_Bl(t_tree *tree, phydbl lk_old, t_edge **tested_b, int n_t
 
   l_init = (phydbl *)mCalloc(2*tree->n_otu-3,sizeof(phydbl));
 
-  For(i,2*tree->n_otu-3) l_init[i] = tree->t_edges[i]->l;
+  For(i,2*tree->n_otu-3) l_init[i] = tree->t_edges[i]->l->v;
   
   step = 2;
   tree->both_sides = 0;
@@ -478,7 +478,7 @@ int Mov_Backward_Topo_Bl(t_tree *tree, phydbl lk_old, t_edge **tested_b, int n_t
       For(i,2*tree->n_otu-3) 
 	{
 	  b = tree->t_edges[i];
-	  b->l = b->l_old + (1./step) * (l_init[i] - b->l_old);
+	  b->l->v = b->l_old->v + (1./step) * (l_init[i] - b->l_old->v);
 	}
 
       beg = (int)FLOOR((phydbl)n_tested/(step-1));
@@ -505,7 +505,7 @@ int Mov_Backward_Topo_Bl(t_tree *tree, phydbl lk_old, t_edge **tested_b, int n_t
       For(i,2*tree->n_otu-3) 
 	{
 	  b = tree->t_edges[i];
-	  b->l = b->l_old;
+	  b->l->v = b->l_old->v;
 	}
       
       tree->both_sides = 0;
@@ -627,7 +627,7 @@ void Unswap_N_Branch(t_tree *tree, t_edge **b, int beg, int end)
 /* 	    (Swap(b[i]->left->v[b[i]->l_v2],b[i]->left,b[i]->rght,b[i]->rght->v[b[i]->r_v1],tree)): */
 /* 	    (Swap(b[i]->left->v[b[i]->l_v2],b[i]->left,b[i]->rght,b[i]->rght->v[b[i]->r_v2],tree)); */
 
-	  b[i]->l = b[i]->l_old;
+	  b[i]->l->v = b[i]->l_old->v;
 	}
     }
   else
@@ -653,7 +653,7 @@ void Unswap_N_Branch(t_tree *tree, t_edge **b, int beg, int end)
 	    }
 	  
 
-	  b[i]->l = b[i]->l_old;
+	  b[i]->l->v = b[i]->l_old->v;
 	}
     }
 }
@@ -693,7 +693,7 @@ void Swap_N_Branch(t_tree *tree,t_edge **b, int beg, int end)
 
 	  
 
-	  b[i]->l = b[i]->nni->best_l;
+	  b[i]->l->v = b[i]->nni->best_l;
 
 	}
     }
@@ -719,7 +719,7 @@ void Swap_N_Branch(t_tree *tree,t_edge **b, int beg, int end)
 		   tree);	 
 	    }
 
-	  b[i]->l = b[i]->nni->best_l;
+	  b[i]->l->v = b[i]->nni->best_l;
 	}
     }
 }

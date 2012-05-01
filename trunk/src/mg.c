@@ -53,14 +53,14 @@ int PART_main(int argc, char **argv)
     {
       align ***data;
       calign **cdata;
-      model **mod;
+      t_mod **mod;
       matrix **mat;
       t_treelist *treelist;
       supert_tree *st;
 
       data  = (align ***)  mCalloc(io->n_part,sizeof(align **));
       cdata = (calign **)mCalloc(io->n_part,sizeof(calign *));
-      mod   = (model **) mCalloc(io->n_part,sizeof(model *));
+      mod   = (t_mod **) mCalloc(io->n_part,sizeof(t_mod *));
       mat   = (matrix **)mCalloc(io->n_part,sizeof(matrix *));
 
       /* Read the sequences (for each partition) */
@@ -80,7 +80,7 @@ int PART_main(int argc, char **argv)
 	  Init_Model(cdata[part],mod[part],io->st->optionlist[part]);
 	  Check_Ambiguities(cdata[part],
 			    io->st->optionlist[part]->mod->io->datatype,
-			    io->st->optionlist[part]->mod->state_len);
+			    io->st->optionlist[part]->mod->io->state_len);
 	}
 
       PART_Make_Supert_tree_Full(io->st,io,cdata);
@@ -120,7 +120,7 @@ int PART_main(int argc, char **argv)
 	  treelist->tree[part]->data       = cdata[part];
 	  treelist->tree[part]->both_sides = 1;
 	  treelist->tree[part]->n_pattern  = treelist->tree[part]->data->crunch_len/
-	                                     treelist->tree[part]->io->mod->state_len;
+	                                     treelist->tree[part]->io->state_len;
 
 	  Order_Tree_CSeq(treelist->tree[part],cdata[part]);
 	  Fill_Dir_Table(treelist->tree[part]);
@@ -221,7 +221,7 @@ int PART_main(int argc, char **argv)
       PhyML_Printf("\n\n. Time used %dh%dm%ds\n", hour.quot,min.quot,(int)(t_end-t_beg)%60);
       PhyML_Printf("\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n");
 
-      For(i,2*st->tree->n_otu-3) st->tree->t_edges[i]->l = 0.1;
+      For(i,2*st->tree->n_otu-3) st->tree->t_edges[i]->l->v = 0.1;
       s_tree = Write_Tree(st->tree,NO);
       PhyML_Fprintf(fp_phyml_tree,"Supertree\n");
       PhyML_Fprintf(fp_phyml_tree,"%s\n",s_tree);
@@ -339,7 +339,7 @@ void PART_Make_Supert_tree_Full(supert_tree *st, option *io, calign **data)
       if(!st->tree->has_branch_lengths)
 	{
 	  PhyML_Printf("\n. Branch lengths are all set to 0.1...\n");
-	  For(i,2*st->tree->n_otu-3) st->tree->t_edges[i]->l = 0.1;
+	  For(i,2*st->tree->n_otu-3) st->tree->t_edges[i]->l->v = 0.1;
 	}
     }
   else
@@ -399,7 +399,7 @@ void PART_Make_Supert_tree_Full(supert_tree *st, option *io, calign **data)
   st->bl2 = (phydbl **)mCalloc(st->n_part,sizeof(phydbl *));
   For(i,st->n_part) st->bl2[i] = (phydbl *)mCalloc(2*st->tree->n_otu-3,sizeof(phydbl));
 
-  st->s_mod = (model **)mCalloc(st->n_part,sizeof(model *));
+  st->s_mod = (t_mod **)mCalloc(st->n_part,sizeof(t_mod *));
 
   For(i,2*st->tree->n_otu-3) Make_Edge_NNI(st->tree->t_edges[i]);
 
@@ -585,9 +585,9 @@ void PART_Match_St_Nodes_In_Gt(t_tree *gt, supert_tree *st)
 		     gt->t_nodes[j]->v[0]->tax ? gt->t_nodes[j]->v[0]->name : NULL,
 		     gt->t_nodes[j]->v[1]->tax ? gt->t_nodes[j]->v[1]->name : NULL,
 		     gt->t_nodes[j]->v[2]->tax ? gt->t_nodes[j]->v[2]->name : NULL,
-		     gt->t_nodes[j]->v[0] ? gt->t_nodes[j]->b[0]->l : -1.,
-		     gt->t_nodes[j]->v[1] ? gt->t_nodes[j]->b[1]->l : -1.,
-		     gt->t_nodes[j]->v[2] ? gt->t_nodes[j]->b[2]->l : -1.);
+		     gt->t_nodes[j]->v[0] ? gt->t_nodes[j]->b[0]->l->v : -1.,
+		     gt->t_nodes[j]->v[1] ? gt->t_nodes[j]->b[1]->l->v : -1.,
+		     gt->t_nodes[j]->v[2] ? gt->t_nodes[j]->b[2]->l->v : -1.);
 	    }
 	}
 
@@ -1516,7 +1516,7 @@ void PART_Speed_Spr(supert_tree *st)
 	     (int)(st->tree->t_current-st->tree->t_beg),
 	     PART_Lk(st),PART_Pars(st));
 
-      /* Optimise parameters of the Markov model */
+      /* Optimise parameters of the Markov t_mod */
       For(gt,st->n_part) Optimiz_All_Free_Param(st->treelist->tree[gt],
 					      st->treelist->tree[gt]->mod->s_opt->print);
 
@@ -1794,17 +1794,17 @@ int PART_Test_List_Of_Regraft_Pos(spr **st_spr_list, int list_size, supert_tree 
 		      else                                          dir_v2 = j;
 		    }
 		  
-		  move->l0 = move->n_link->b[dir_v0]->l;
+		  move->l0 = move->n_link->b[dir_v0]->l->v;
 		  
 		  if(move->n_link->v[dir_v1]->num > move->n_link->v[dir_v2]->num)
 		    {
-		      move->l1 = move->n_link->b[dir_v2]->l;
-		      move->l2 = move->n_link->b[dir_v1]->l;
+		      move->l1 = move->n_link->b[dir_v2]->l->v;
+		      move->l2 = move->n_link->b[dir_v1]->l->v;
 		    }
 		  else
 		    {
-		      move->l1 = move->n_link->b[dir_v1]->l;
-		      move->l2 = move->n_link->b[dir_v2]->l;
+		      move->l1 = move->n_link->b[dir_v1]->l->v;
+		      move->l2 = move->n_link->b[dir_v2]->l->v;
 		    }
 		  	  
 		  /* Regraft the subtree at its original position */
@@ -1917,17 +1917,17 @@ int PART_Try_One_Spr_Move(spr *st_move, supert_tree *st)
 		  else                                                        dir_v2 = j;
 		}
 	      
-	      gt_move[gt]->n_link->b[dir_v0]->l = gt_move[gt]->l0;
+	      gt_move[gt]->n_link->b[dir_v0]->l->v = gt_move[gt]->l0;
 		  
 	      if(gt_move[gt]->n_link->v[dir_v1]->num > gt_move[gt]->n_link->v[dir_v2]->num)
 		{
-		  gt_move[gt]->n_link->b[dir_v2]->l = gt_move[gt]->l1;
-		  gt_move[gt]->n_link->b[dir_v1]->l = gt_move[gt]->l2;
+		  gt_move[gt]->n_link->b[dir_v2]->l->v = gt_move[gt]->l1;
+		  gt_move[gt]->n_link->b[dir_v1]->l->v = gt_move[gt]->l2;
 		}
 	      else
 		{
-		  gt_move[gt]->n_link->b[dir_v1]->l = gt_move[gt]->l1;
-		  gt_move[gt]->n_link->b[dir_v2]->l = gt_move[gt]->l2;
+		  gt_move[gt]->n_link->b[dir_v1]->l->v = gt_move[gt]->l1;
+		  gt_move[gt]->n_link->b[dir_v2]->l->v = gt_move[gt]->l2;
 		}
 	    }
 	}
@@ -2438,7 +2438,7 @@ void PART_Set_Bl(phydbl **bl, supert_tree *st)
       For(j,2*st->treelist->tree[i]->n_otu-3)
 	{
 	  gt_b = st->treelist->tree[i]->t_edges[j];
-	  gt_b->l = .0;
+	  gt_b->l->v = .0;
 	}
     }
 
@@ -2454,7 +2454,7 @@ void PART_Set_Bl(phydbl **bl, supert_tree *st)
 	  if((st->map_st_node_in_gt[j][st->tree->t_edges[i]->left->num][st->tree->t_edges[i]->l_r][0]) &&
 	     (st->map_st_node_in_gt[j][st->tree->t_edges[i]->rght->num][st->tree->t_edges[i]->r_l][0]))
 	    {
-	      gt_b->l += bl[st->bl_partition[j]][i];
+	      gt_b->l->v += bl[st->bl_partition[j]][i];
 	    }
 	}
     }
@@ -2522,7 +2522,7 @@ phydbl PART_Lk_At_Given_Edge(t_edge *st_b, supert_tree *st)
       gt_b = st->map_st_edge_in_gt[i][st_b->num];
       lnL = Lk_At_Given_Edge(gt_b,st->treelist->tree[i]);
       st->tree->c_lnL += lnL;
-/*       PhyML_Printf("\n. gt %d st t_edge %d gt t_edge %d lnL=%f l=%f ",i,st_b->num,gt_b->num,lnL,gt_b->l); */
+/*       PhyML_Printf("\n. gt %d st t_edge %d gt t_edge %d lnL=%f l=%f ",i,st_b->num,gt_b->num,lnL,gt_b->l->v); */
     }
   return st->tree->c_lnL;
 }
