@@ -129,25 +129,25 @@ void Make_Edge_Lk(t_edge *b, t_tree *tree)
   b->div_post_pred_left = (short int *)mCalloc(ns,sizeof(short int));
   b->div_post_pred_rght = (short int *)mCalloc(ns,sizeof(short int));
 
-  b->Pij_rr = (phydbl *)mCalloc(tree->mod->n_catg*tree->mod->ns*tree->mod->ns,sizeof(phydbl));
+  b->Pij_rr = (phydbl *)mCalloc(tree->mod->ras->n_catg*tree->mod->ns*tree->mod->ns,sizeof(phydbl));
   
-  b->sum_scale_left_cat = (int *)mCalloc(tree->mod->n_catg,sizeof(int));  
-  b->sum_scale_rght_cat = (int *)mCalloc(tree->mod->n_catg,sizeof(int));
+  b->sum_scale_left_cat = (int *)mCalloc(tree->mod->ras->n_catg,sizeof(int));  
+  b->sum_scale_rght_cat = (int *)mCalloc(tree->mod->ras->n_catg,sizeof(int));
 
   if(!b->left->tax)
-    b->sum_scale_left = (int *)mCalloc(tree->data->crunch_len*tree->mod->n_catg,sizeof(int));
+    b->sum_scale_left = (int *)mCalloc(tree->data->crunch_len*tree->mod->ras->n_catg,sizeof(int));
   else
     b->sum_scale_left = NULL;
   
   if(!b->rght->tax)
-    b->sum_scale_rght = (int *)mCalloc(tree->data->crunch_len*tree->mod->n_catg,sizeof(int));
+    b->sum_scale_rght = (int *)mCalloc(tree->data->crunch_len*tree->mod->ras->n_catg,sizeof(int));
   else
     b->sum_scale_rght = NULL;
   
   
   if((!b->left->tax) || (tree->mod->s_opt->greedy))
     {
-      b->p_lk_left = (phydbl *)mCalloc(tree->data->crunch_len*tree->mod->n_catg*tree->mod->ns,sizeof(phydbl));
+      b->p_lk_left = (phydbl *)mCalloc(tree->data->crunch_len*tree->mod->ras->n_catg*tree->mod->ns,sizeof(phydbl));
       b->p_lk_tip_l = NULL;
     }
   else if(b->left->tax)
@@ -158,7 +158,7 @@ void Make_Edge_Lk(t_edge *b, t_tree *tree)
   
   if((!b->rght->tax) || (tree->mod->s_opt->greedy))
     {
-      b->p_lk_rght = (phydbl *)mCalloc(tree->data->crunch_len*tree->mod->n_catg*tree->mod->ns,sizeof(phydbl));
+      b->p_lk_rght = (phydbl *)mCalloc(tree->data->crunch_len*tree->mod->ras->n_catg*tree->mod->ns,sizeof(phydbl));
       b->p_lk_tip_r = NULL;
     }
   else if(b->rght->tax)
@@ -514,11 +514,11 @@ void Make_Model_Complete(t_mod *mod)
       mod->ns = mod->m4mod->n_o * mod->m4mod->n_h;
     }
   
-  mod->Pij_rr->v                 = (phydbl *)mCalloc(mod->n_catg*mod->ns*mod->ns,sizeof(phydbl));
-  mod->gamma_r_proba->v          = (phydbl *)mCalloc(mod->n_catg,sizeof(phydbl));
-  mod->gamma_r_proba_unscaled->v = (phydbl *)mCalloc(mod->n_catg,sizeof(phydbl));
-  mod->gamma_rr->v               = (phydbl *)mCalloc(mod->n_catg,sizeof(phydbl));
-  mod->gamma_rr_unscaled->v      = (phydbl *)mCalloc(mod->n_catg,sizeof(phydbl));
+  mod->Pij_rr->v                 = (phydbl *)mCalloc(mod->ras->n_catg*mod->ns*mod->ns,sizeof(phydbl));
+  mod->gamma_r_proba->v          = (phydbl *)mCalloc(mod->ras->n_catg,sizeof(phydbl));
+  mod->gamma_r_proba_unscaled->v = (phydbl *)mCalloc(mod->ras->n_catg,sizeof(phydbl));
+  mod->gamma_rr->v               = (phydbl *)mCalloc(mod->ras->n_catg,sizeof(phydbl));
+  mod->gamma_rr_unscaled->v      = (phydbl *)mCalloc(mod->ras->n_catg,sizeof(phydbl));
   mod->eigen                     = (eigen *)Make_Eigen_Struct(mod->ns);
   // If r_mat (e_frq) are not NULL, then they have been created elsewhere and affected.
   mod->r_mat                     = (mod->r_mat)?(mod->r_mat):((t_rmat *)Make_Rmat(mod->ns));
@@ -526,9 +526,9 @@ void Make_Model_Complete(t_mod *mod)
   
   mod->user_b_freq->len          = mod->ns;
 
-  For(i,mod->n_catg) mod->gamma_rr->v[i] = 1.0;
-  For(i,mod->n_catg) mod->gamma_r_proba_unscaled->v[i] = 1.0;
-  For(i,mod->n_catg) mod->gamma_r_proba->v[i] = 1.0/(phydbl)mod->n_catg;
+  For(i,mod->ras->n_catg) mod->gamma_rr->v[i] = 1.0;
+  For(i,mod->ras->n_catg) mod->gamma_r_proba_unscaled->v[i] = 1.0;
+  For(i,mod->ras->n_catg) mod->gamma_r_proba->v[i] = 1.0/(phydbl)mod->ras->n_catg;
   
   if(mod->whichmodel < 0)
     {
@@ -663,16 +663,16 @@ triplet *Make_Triplet_Struct(t_mod *mod)
   triplet_struct->pi_bc           = (phydbl *)mCalloc(mod->ns,sizeof(phydbl ));
   triplet_struct->pi_cd           = (phydbl *)mCalloc(mod->ns,sizeof(phydbl ));
   triplet_struct->pi_bd           = (phydbl *)mCalloc(mod->ns,sizeof(phydbl ));
-  triplet_struct->F_bc            = (phydbl *)mCalloc(mod->ns*mod->ns*mod->n_catg,sizeof(phydbl));
-  triplet_struct->F_cd            = (phydbl *)mCalloc(mod->ns*mod->ns*mod->n_catg,sizeof(phydbl));
+  triplet_struct->F_bc            = (phydbl *)mCalloc(mod->ns*mod->ns*mod->ras->n_catg,sizeof(phydbl));
+  triplet_struct->F_cd            = (phydbl *)mCalloc(mod->ns*mod->ns*mod->ras->n_catg,sizeof(phydbl));
   triplet_struct->F_bd            = (phydbl *)mCalloc(mod->ns*mod->ns,sizeof(phydbl));
-  triplet_struct->core            = (phydbl ****)mCalloc(mod->n_catg,sizeof(phydbl ***));
+  triplet_struct->core            = (phydbl ****)mCalloc(mod->ras->n_catg,sizeof(phydbl ***));
   triplet_struct->p_one_site      = (phydbl ***)mCalloc(mod->ns,sizeof(phydbl **));
   triplet_struct->sum_p_one_site  = (phydbl ***)mCalloc(mod->ns,sizeof(phydbl **));
   triplet_struct->eigen_struct    = (eigen *)Make_Eigen_Struct(mod->ns);
   triplet_struct->mod             = mod;
 
-  For(k,mod->n_catg)
+  For(k,mod->ras->n_catg)
     {
       triplet_struct->core[k]                = (phydbl ***)mCalloc(mod->ns,sizeof(phydbl **));
       For(i,mod->ns)

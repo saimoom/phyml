@@ -486,7 +486,7 @@ int main(int argc, char **argv)
 int main(int argc, char **argv)
 {
   FILE *fp;
-  xml_node *root,*p_elem,*m_elem,*d_elem,*parent,*n;
+  xml_node *root,*p_elem,*m_elem,*d_elem,*parent,*instance;
 
   fp = fopen(argv[1],"r");
   
@@ -536,7 +536,7 @@ int main(int argc, char **argv)
       // Attach a model to this io struct
       io->mod = (t_mod *)Make_Model_Basic();
       Set_Defaults_Model(io->mod);
-      io->mod->n_catg = 0;
+      io->mod->ras->n_catg = 0;
 
       // Attach an optimization structure to this model
       io->mod->s_opt = (optimiz *)Make_Optimiz();
@@ -603,8 +603,8 @@ int main(int argc, char **argv)
 	      
 	      if(first_m_elem > 1) 
 		{
-		  while(tree->prev) { tree = tree->prev; } 
-		  while(mod->prev)  { mod  = mod->prev;  } 
+		  while(tree->prev) { tree = tree->prev; } // tree = tree->parent->child;
+		  while(mod->prev)  { mod  = mod->prev;  } // mod = mod->parent->child;
 		}
 
 	      // Read and process model components
@@ -675,28 +675,28 @@ int main(int argc, char **argv)
 
 		    
 		    // Find which node this ID corresponds to
-		    n = XML_Search_Node_ID(component,YES,root);
+		    instance = XML_Search_Node_ID(component,YES,root);
 		  
-		    if(!n)
+		    if(!instance)
 		      {
 			PhyML_Printf("\n== Could not find a node with id:'%s'.",component);
 			PhyML_Printf("\n== Problem with 'mixtureelem' node, list '%s'.",list);
 			Exit("\n");
 		      }
-		    if(!n->parent)
+		    if(!instance->parent)
 		      {
-			PhyML_Printf("\n== Node '%s' with id:'%s' has no parent.",n->name,component);
+			PhyML_Printf("\n== Node '%s' with id:'%s' has no parent.",instance->name,component);
 			Exit("\n");
 		      }
 		      
-		    parent = n->parent;
+		    parent = instance->parent;
 
 		    if(!strcmp(parent->name,"ratematrices"))
 		      {
 			// Init substitution model here
 			char *model = NULL;
 
-			model = XML_Get_Attribute_Value(n,"model");  
+			model = XML_Get_Attribute_Value(instance,"model");  
 			
 			if(model == NULL)
 			  {
@@ -748,17 +748,17 @@ int main(int argc, char **argv)
 
 			// If n->ds == NULL, the corrresponding node data structure, n->ds, has not
 			// been initialized. If not, do nothing.
-			if(n->ds == NULL)  n->ds = (t_rmat *)Make_Rmat(mod->ns);
+			if(instance->ds == NULL)  instance->ds = (t_rmat *)Make_Rmat(mod->ns);
 
 			// Connect the data structure n->ds to mod->r_mat
-			mod->r_mat = (t_rmat *)n->ds;
+			mod->r_mat = (t_rmat *)instance->ds;
 
 			// Set model number
 			mod->whichmodel = Set_Whichmodel(select);
 
 			// Optimize rate model parameters?
 			char *optimize = NULL;			
-			optimize = XML_Get_Attribute_Value(n,"optimize");	
+			optimize = XML_Get_Attribute_Value(instance,"optimize");	
 			
 			if(optimize)
 			  {
@@ -790,16 +790,16 @@ int main(int argc, char **argv)
 			      }
 			  }
 		      }
-		    else if(!strcmp(n->name,"statefreqs"))
+		    else if(!strcmp(instance->name,"statefreqs"))
 		      {
 			// Stationary frequencies
 
 			// If n->ds == NULL, the corrresponding node data structure, n->ds, has not
 			// been initialized. If not, do nothing.
-			if(n->ds == NULL)  n->ds = (t_efrq *)Make_Efrq(mod->ns);
+			if(instance->ds == NULL)  instance->ds = (t_efrq *)Make_Efrq(mod->ns);
 
 			// Connect the data structure n->ds to mod->e_frq
-			mod->e_frq = (t_efrq *)n->ds;		      	      
+			mod->e_frq = (t_efrq *)instance->ds;		      	      
 		      }
 		    else if(!strcmp(parent->name,"topologies"))
 		      {
@@ -810,8 +810,10 @@ int main(int argc, char **argv)
 		      {
 			char *rate_value = NULL;			
 			scalar_dbl *r;
+			int class_number;
+			xml_node *buff;
 			
-			
+
 			// First time we process a 'siterates' node, check that its format is valid.
 			// and process afterwards.
 			if(parent->ds == NULL)
@@ -849,6 +851,14 @@ int main(int argc, char **argv)
 					  io->mod->s_opt->opt_alpha = NO;
 					  io->mod->alpha->v = String_To_Dbl(alpha);
 					}
+				      
+				      io->mod->ras->n_catg = XML_Siterates_Number_Of_Classes(parent);
+				      
+				      io->mod->gamma_r_proba->v          = (phydbl *)mCalloc(io->mod->ras->n_catg,sizeof(phydbl));
+				      io->mod->gamma_r_proba_unscaled->v = (phydbl *)mCalloc(io->mod->ras->n_catg,sizeof(phydbl));
+				      io->mod->gamma_rr->v               = (phydbl *)mCalloc(io->mod->ras->n_catg,sizeof(phydbl));
+				      io->mod->gamma_rr_unscaled->v      = (phydbl *)mCalloc(io->mod->ras->n_catg,sizeof(phydbl));
+				    
 				      break;
 				    }
 				  case 1: // Gamma+Inv model
@@ -880,10 +890,41 @@ int main(int argc, char **argv)
 					  io->mod->s_opt->opt_pinvar = NO;
 					  io->mod->pinvar->v = String_To_Dbl(pinv);					  
 					}
+
+				      io->mod->ras->n_catg = XML_Siterates_Number_Of_Classes(parent);
+				      io->mod->ras->n_catg--;
+
+				      io->mod->gamma_r_proba->v          = (phydbl *)mCalloc(io->mod->ras->n_catg,sizeof(phydbl));
+				      io->mod->gamma_r_proba_unscaled->v = (phydbl *)mCalloc(io->mod->ras->n_catg,sizeof(phydbl));
+				      io->mod->gamma_rr->v               = (phydbl *)mCalloc(io->mod->ras->n_catg,sizeof(phydbl));
+				      io->mod->gamma_rr_unscaled->v      = (phydbl *)mCalloc(io->mod->ras->n_catg,sizeof(phydbl));
+
 				      break;
 				    }
 				  case 2: // FreeRate model
 				    {
+				      char *est_weights;
+				      int select;
+
+				      io->mod->free_mixt_rates = YES;
+
+				      est_weights = XML_Get_Attribute_Value(w,"estimateweights");
+				      select = XML_Validate_Attr_Int(est_weights,6,
+								     "true","yes","y",
+								     "false","no","n");
+
+				      if(select < 3) io->mod->s_opt->opt_free_mixt_rates = YES;
+				      else           io->mod->s_opt->opt_free_mixt_rates = NO;
+
+
+				      io->mod->ras->n_catg = XML_Siterates_Number_Of_Classes(parent);
+				      io->mod->ras->n_catg--;
+
+				      io->mod->gamma_r_proba->v          = (phydbl *)mCalloc(io->mod->ras->n_catg,sizeof(phydbl));
+				      io->mod->gamma_r_proba_unscaled->v = (phydbl *)mCalloc(io->mod->ras->n_catg,sizeof(phydbl));
+				      io->mod->gamma_rr->v               = (phydbl *)mCalloc(io->mod->ras->n_catg,sizeof(phydbl));
+				      io->mod->gamma_rr_unscaled->v      = (phydbl *)mCalloc(io->mod->ras->n_catg,sizeof(phydbl));
+
 				      break;
 				    }
 				  default:
@@ -896,29 +937,55 @@ int main(int argc, char **argv)
 			      }
 			  }
 			
-			rate_value = XML_Get_Attribute_Value(n,"value");
+			class_number = 0;
+			buff = instance->parent->child;
+			while(strcmp(buff->id,instance->id))
+			  {
+			    buff = buff->next;
+			    class_number++;			  
+			  }
 
-			if(n->ds == NULL) 
+			rate_value = XML_Get_Attribute_Value(instance,"value");
+
+			if(instance->ds == NULL) 
 			  {
 			    r = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
 			    Init_Scalar_Dbl(r);
 			    r->v = String_To_Dbl(rate_value);
-			    n->ds = (scalar_dbl *)r;
+			    instance->ds = (scalar_dbl *)r;
 			    
 			    if(r->v > 0.0)
 			      {
-				io->mod->n_catg++;
+				io->mod->ras->n_catg++;
 			      }
 			    else
 			      {
 				io->mod->invar = YES;				
+				if(instance->next && !strcmp(instance->next->name,"instance"))
+				  {
+				    PhyML_Printf("\n== Invariant site rate has to be the last instance in the list");
+				    PhyML_Printf("\n== of siterates instances. Please modify your XML file accordingly.");
+				    Exit("\n");
+				  }
 			      }
 			  }
 			else
 			  {
-			    r = (scalar_dbl *)n->ds;
+			    r = (scalar_dbl *)instance->ds;
 			  }
-			mod->br_len_multiplier = r;		      
+
+			io->mod->gamma_rr->v[class_number] = r->v;
+
+			xml_node *orig_w = NULL;
+			orig_w = XML_Search_Node_Attribute_Value("appliesto",instance->id,YES,instance->parent);
+			
+			if(orig_w)
+			  {
+			    char *weight;
+			    weight = XML_Get_Attribute_Value(orig_w,"value");
+			    PhyML_Printf("\n. ");
+			    io->mod->gamma_r_proba->v[class_number] = String_To_Dbl(weight);
+			  }
 		      }
 		    else if(!strcmp(parent->name,"branchlengths"))
 		      {
@@ -927,7 +994,7 @@ int main(int argc, char **argv)
 			int n_otu;
 
 
-			if(n->ds == NULL)
+			if(instance->ds == NULL)
 			  {
 			    n_otu = tree->n_otu;
 			    lens = (scalar_dbl **)mCalloc(2*tree->n_otu-3,sizeof(scalar_dbl *));
@@ -937,12 +1004,12 @@ int main(int argc, char **argv)
 			    	Init_Scalar_Dbl(lens[i]);
 			      }
 			    			    
-			    n->ds = (scalar_dbl **)lens;
+			    instance->ds = (scalar_dbl **)lens;
 			    For(i,2*tree->n_otu-3) Free(tree->t_edges[i]->l);
 			  }
 			else
 			  {
-			    lens = (scalar_dbl **)n->ds;
+			    lens = (scalar_dbl **)instance->ds;
 			  }
 			
 			if(n_otu != tree->n_otu)
