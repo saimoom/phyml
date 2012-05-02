@@ -637,7 +637,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
   For(catg,tree->mod->ras->n_catg) 
     site_lk += 
     tree->site_lk_cat[catg] * 
-    tree->mod->gamma_r_proba->v[catg];
+    tree->mod->ras->gamma_r_proba->v[catg];
 
   Invariant_Correction(&site_lk,fact_sum_scale,site,tree);
 
@@ -650,7 +650,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
       PhyML_Printf("\n. Site = %d",site);
       PhyML_Printf("\n. invar = %d",tree->data->invar[site]);
       PhyML_Printf("\n. Lk = %G LOG(Lk) = %f < %G",site_lk,log_site_lk,-BIG);
-      For(catg,tree->mod->ras->n_catg) PhyML_Printf("\n. rr=%f p=%f",tree->mod->gamma_rr->v[catg],tree->mod->gamma_r_proba->v[catg]);
+      For(catg,tree->mod->ras->n_catg) PhyML_Printf("\n. rr=%f p=%f",tree->mod->ras->gamma_rr->v[catg],tree->mod->ras->gamma_r_proba->v[catg]);
       PhyML_Printf("\n. pinv = %G",tree->mod->pinvar->v);
       PhyML_Printf("\n. bl mult = %G",tree->mod->br_len_multiplier->v);
 
@@ -1817,8 +1817,8 @@ matrix *ML_Dist(calign *data, t_mod *mod)
 
   For(i,mod->ras->n_catg) /* Don't use the discrete gamma distribution */
     {
-      mod->gamma_rr->v[i]      = 1.0;
-      mod->gamma_r_proba->v[i] = 1.0;
+      mod->ras->gamma_rr->v[i]      = 1.0;
+      mod->ras->gamma_r_proba->v[i] = 1.0;
     }
 
   n_catg = mod->ras->n_catg;
@@ -1918,8 +1918,8 @@ phydbl Lk_Given_Two_Seq(calign *data, int numseq1, int numseq2, phydbl dist, t_m
   dim1 = mod->ns;
   dim2 = mod->ns * mod->ns;
 
-  DiscreteGamma(mod->gamma_r_proba->v, mod->gamma_rr->v, mod->alpha->v,
-		mod->alpha->v,mod->ras->n_catg,mod->gamma_median);
+  DiscreteGamma(mod->ras->gamma_r_proba->v, mod->ras->gamma_rr->v, mod->ras->alpha->v,
+		mod->ras->alpha->v,mod->ras->n_catg,mod->ras->gamma_median);
 
   seq1 = data->c_seq[numseq1];
   seq2 = data->c_seq[numseq2];
@@ -1931,7 +1931,7 @@ phydbl Lk_Given_Two_Seq(calign *data, int numseq1, int numseq2, phydbl dist, t_m
 
   For(i,mod->ras->n_catg)
     {
-      len = dist*mod->gamma_rr->v[i];
+      len = dist*mod->ras->gamma_rr->v[i];
       if(len < mod->l_min) len = mod->l_min;
       else if(len > mod->l_max) len = mod->l_max;
       PMat(len,mod,dim2*i,mod->Pij_rr->v);
@@ -1976,7 +1976,7 @@ phydbl Lk_Given_Two_Seq(calign *data, int numseq1, int numseq2, phydbl dist, t_m
 	      For(j,mod->ras->n_catg)
 		{
 		  site_lk +=
-		    mod->gamma_r_proba->v[j] *
+		    mod->ras->gamma_r_proba->v[j] *
 		    mod->e_frq->pi->v[k] *
 		    p_lk_l[i*dim1+k] *
 		    mod->Pij_rr->v[j*dim2+k*dim1+l] *
@@ -1992,7 +1992,7 @@ phydbl Lk_Given_Two_Seq(calign *data, int numseq1, int numseq2, phydbl dist, t_m
 		      For(l,mod->ns)
 			{
 			  site_lk +=
-			    mod->gamma_r_proba->v[j] *
+			    mod->ras->gamma_r_proba->v[j] *
 			    mod->e_frq->pi->v[k] *
 			    p_lk_l[i*dim1+k] *
 			    mod->Pij_rr->v[j*dim2+k*dim1+l] *
@@ -2202,7 +2202,7 @@ void Update_PMat_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
       For(i,tree->mod->ras->n_catg) 
 	{
 	  PMat_MGF_Gamma(b_fcus->Pij_rr+tree->mod->ns*tree->mod->ns*i,
-			 shape,scale,tree->mod->gamma_rr->v[i],tree->mod);
+			 shape,scale,tree->mod->ras->gamma_rr->v[i],tree->mod);
 	}
     }
   else
@@ -2220,7 +2220,7 @@ void Update_PMat_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
 	    }
 	  else
 	    {
-	      len = b_fcus->l->v*tree->mod->gamma_rr->v[i];	  
+	      len = b_fcus->l->v*tree->mod->ras->gamma_rr->v[i];	  
 	      if(len < l_min)      len = l_min;
 	      else if(len > l_max) len = l_max;
 	    }
@@ -2323,7 +2323,7 @@ phydbl Lk_Dist(phydbl *F, phydbl dist, t_mod *mod)
 
   For(k,mod->ras->n_catg)
     {
-      len = dist*mod->gamma_rr->v[k];
+      len = dist*mod->ras->gamma_rr->v[k];
       if(len < mod->l_min)      len = mod->l_min;
       else if(len > mod->l_max) len = mod->l_max;
       PMat(len,mod,mod->ns*mod->ns*k,mod->Pij_rr->v);
@@ -2541,7 +2541,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
         }
 
       tree->log_site_lk_cat[catg][site] = site_lk_cat;
-      site_lk += site_lk_cat * tree->mod->gamma_r_proba->v[catg];
+      site_lk += site_lk_cat * tree->mod->ras->gamma_r_proba->v[catg];
     }
 
   /* site_lk may be too small ? */
@@ -2818,7 +2818,7 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
 /*                  { */
 /*                    PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__); */
 /*                    PhyML_Printf("\n. p_lk[%3d][%2d][%3d] = %G max_p_lk = %G",site,catg,i,p_lk[site][catg][i],max_p_lk); */
-/*                    PhyML_Printf("\n. alpha=%f pinv=%f",tree->mod->alpha->v,tree->mod->pinvar->v); */
+/*                    PhyML_Printf("\n. alpha=%f pinv=%f",tree->mod->ras->alpha->v,tree->mod->pinvar->v); */
 /*                    For(i,tree->mod->ras->n_catg) PhyML_Printf("\n. rr[%2d] = %G",i,tree->mod->r_mat->rr[i]); */
 /*                    PhyML_Printf("\n. d->b[dir1]->l->v = %f, d->b[dir2]->l->v = %f",d->b[dir1]->l->v,d->b[dir2]->l->v); */
 /*                    PhyML_Printf("\n. d->v[dir1]->num = %d, d->v[dir2]->num = %d",d->v[dir1]->num,d->v[dir2]->num); */
@@ -3275,9 +3275,9 @@ void Sample_Ancestral_Seq(int mutmap, int fromprior, t_tree *tree)
 	  if(fromprior == NO)
 	    probs[j] = 
 	      EXP(tree->log_site_lk_cat[j][i])*
-	      tree->mod->gamma_r_proba->v[j];
+	      tree->mod->ras->gamma_r_proba->v[j];
 	  else
-	    probs[j] = tree->mod->gamma_r_proba->v[j];
+	    probs[j] = tree->mod->ras->gamma_r_proba->v[j];
 	}
 
 
@@ -3430,7 +3430,7 @@ void Sample_Ancestral_Seq_Pre(t_node *a, t_node *d, t_edge *b,
 
       /* if(site == 92) */
       /* 	printf("\n. l=%f pr[%f %f %f %f] Pij[%f %f %f %f] plk[%f %f %f %f]", */
-      /* 	       b->l->v * tree->mod->gamma_rr->v[rate_cat], */
+      /* 	       b->l->v * tree->mod->ras->gamma_rr->v[rate_cat], */
       /* 	       probs[0],probs[1],probs[2],probs[3], */
       /* 	       Pij[rate_cat*dim3+sa*dim2+0], */
       /* 	       Pij[rate_cat*dim3+sa*dim2+1], */
@@ -3544,7 +3544,7 @@ void Map_Mutations(t_node *a, t_node *d, int sa, int sd, t_edge *b, int site, in
   ta = tree->rates->nd_t[a->num];
   
   // Site relative rate
-  gr = tree->mod->gamma_rr->v[rate_cat];
+  gr = tree->mod->ras->gamma_rr->v[rate_cat];
 
 
   // Rate matrix
@@ -3602,7 +3602,7 @@ void Map_Mutations(t_node *a, t_node *d, int sa, int sd, t_edge *b, int site, in
       
       /* printf("\n. slast=%2d sd=%2d tlast=%12G td=%12G p=%12f rcat=%12f site=%4d", */
       /* 	 slast,sd,tlast,td,-Q[slast*tree->mod->ns+slast], */
-      /* 	 tree->mod->gamma_rr->v[rate_cat],site); */
+      /* 	 tree->mod->ras->gamma_rr->v[rate_cat],site); */
       
       // The time for the next mutation does not exceed the length
       // of the time interval -> sample a new mutation event

@@ -46,5 +46,7 @@ option *Make_Input();
 eigen *Make_Eigen_Struct(int ns);
 triplet *Make_Triplet_Struct(t_mod *mod);
 void Make_Short_L(t_tree *tree);
+void Make_RAS_Complete(t_ras *ras);
+t_ras *Make_RAS_Basic();
 
 #endif

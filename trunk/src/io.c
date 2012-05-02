@@ -2051,7 +2051,7 @@ void Print_Site_Lk(t_tree *tree, FILE *fp)
       s = (char *)mCalloc(T_MAX_LINE,sizeof(char));
       
       PhyML_Fprintf(fp,"Note : P(D|M) is the probability of site D given the model M (i.e., the site likelihood)\n");
-      if(tree->mod->n_catg > 1 || tree->mod->invar)
+      if(tree->mod->ras->n_catg > 1 || tree->mod->ras->invar)
 	PhyML_Fprintf(fp,"P(D|M,rr[x]) is the probability of site D given the model M and the relative rate\nof evolution rr[x], where x is the class of rate to be considered.\nWe have P(D|M) = \\sum_x P(x) x P(D|M,rr[x]).\n");
       PhyML_Fprintf(fp,"\n\n");
       
@@ -2061,11 +2061,11 @@ void Print_Site_Lk(t_tree *tree, FILE *fp)
       sprintf(s,"P(D|M)");
       PhyML_Fprintf(fp,"%-16s",s);
       
-      if(tree->mod->n_catg > 1)
+      if(tree->mod->ras->n_catg > 1)
 	{
-	  For(catg,tree->mod->n_catg)
+	  For(catg,tree->mod->ras->n_catg)
 	    {
-	      sprintf(s,"P(D|M,rr[%d]=%5.4f)",catg+1,tree->mod->gamma_rr->v[catg]);
+	      sprintf(s,"P(D|M,rr[%d]=%5.4f)",catg+1,tree->mod->ras->gamma_rr->v[catg]);
 	      PhyML_Fprintf(fp,"%-22s",s);
 	    }
 	  
@@ -2074,7 +2074,7 @@ void Print_Site_Lk(t_tree *tree, FILE *fp)
 	}
       
       
-      if(tree->mod->invar)
+      if(tree->mod->ras->invar)
 	{
 	  sprintf(s,"P(D|M,rr[0]=0)");
 	  PhyML_Fprintf(fp,"%-16s",s);
@@ -2085,22 +2085,22 @@ void Print_Site_Lk(t_tree *tree, FILE *fp)
 	{
 	  PhyML_Fprintf(fp,"%-7d",site+1);
 	  PhyML_Fprintf(fp,"%-16g",(phydbl)EXP(tree->cur_site_lk[tree->data->sitepatt[site]]));      
-	  if(tree->mod->n_catg > 1)
+	  if(tree->mod->ras->n_catg > 1)
 	    {
-	      For(catg,tree->mod->n_catg)
+	      For(catg,tree->mod->ras->n_catg)
 		PhyML_Fprintf(fp,"%-22g",(phydbl)EXP(tree->log_site_lk_cat[catg][tree->data->sitepatt[site]]));
 
 	      postmean = .0;
-	      For(catg,tree->mod->n_catg) 
+	      For(catg,tree->mod->ras->n_catg) 
 		postmean += 
-		tree->mod->gamma_rr->v[catg] * 
+		tree->mod->ras->gamma_rr->v[catg] * 
 		EXP(tree->log_site_lk_cat[catg][tree->data->sitepatt[site]]) * 
-		tree->mod->gamma_r_proba->v[catg];
+		tree->mod->ras->gamma_r_proba->v[catg];
 	      postmean /= EXP(tree->cur_site_lk[tree->data->sitepatt[site]]);
 
 	      PhyML_Fprintf(fp,"%-22g",postmean);
 	    }
-	  if(tree->mod->invar)
+	  if(tree->mod->ras->invar)
 	    {
 	      if((phydbl)tree->data->invar[tree->data->sitepatt[site]] > -0.5)
 		PhyML_Fprintf(fp,"%-16g",tree->mod->e_frq->pi->v[tree->data->invar[tree->data->sitepatt[site]]]);
@@ -2321,9 +2321,9 @@ void Print_Model(t_mod *mod)
   PhyML_Printf("\n. string=%s",mod->custom_mod_string);
   PhyML_Printf("\n. mod_num=%d",mod->mod_num);
   PhyML_Printf("\n. ns=%d",mod->ns);
-  PhyML_Printf("\n. n_catg=%d",mod->n_catg);
+  PhyML_Printf("\n. n_catg=%d",mod->ras->n_catg);
   PhyML_Printf("\n. kappa=%f",mod->kappa->v);
-  PhyML_Printf("\n. alpha=%f",mod->alpha->v);
+  PhyML_Printf("\n. alpha=%f",mod->ras->alpha->v);
   PhyML_Printf("\n. lambda=%f",mod->lambda->v);
   PhyML_Printf("\n. pinvar=%f",mod->pinvar->v);
   PhyML_Printf("\n. br_len_multiplier=%f",mod->br_len_multiplier->v);
@@ -2331,14 +2331,14 @@ void Print_Model(t_mod *mod)
   PhyML_Printf("\n. update_eigen=%d",mod->update_eigen);
   PhyML_Printf("\n. bootstrap=%d",mod->bootstrap);
   PhyML_Printf("\n. n_diff_rr=%d",mod->r_mat->n_diff_rr);
-  PhyML_Printf("\n. invar=%d",mod->invar);
+  PhyML_Printf("\n. invar=%d",mod->ras->invar);
   PhyML_Printf("\n. use_m4mod=%d",mod->use_m4mod);
-  PhyML_Printf("\n. gamma_median=%d",mod->gamma_median);
+  PhyML_Printf("\n. gamma_median=%d",mod->ras->gamma_median);
   PhyML_Printf("\n. state_len=%d",mod->io->state_len);
   PhyML_Printf("\n. log_l=%d",mod->log_l);
   PhyML_Printf("\n. l_min=%f",mod->l_min);
   PhyML_Printf("\n. l_max=%f",mod->l_max);
-  PhyML_Printf("\n. free_mixt_rates=%d",mod->free_mixt_rates);
+  PhyML_Printf("\n. free_mixt_rates=%d",mod->ras->free_mixt_rates);
   PhyML_Printf("\n. gamma_mgf_bl=%d",mod->gamma_mgf_bl);
   
   PhyML_Printf("\n. Pi\n");
@@ -2347,13 +2347,13 @@ void Print_Model(t_mod *mod)
   For(i,mod->ns) PhyML_Printf(" %f ",mod->e_frq->pi_unscaled->v[i]);
   
   PhyML_Printf("\n. Rates\n");
-  For(i,mod->n_catg) PhyML_Printf(" %f ",mod->gamma_r_proba->v[i]);
+  For(i,mod->ras->n_catg) PhyML_Printf(" %f ",mod->ras->gamma_r_proba->v[i]);
   PhyML_Printf("\n");
-  For(i,mod->n_catg) PhyML_Printf(" %f ",mod->gamma_r_proba_unscaled->v[i]);
+  For(i,mod->ras->n_catg) PhyML_Printf(" %f ",mod->ras->gamma_r_proba_unscaled->v[i]);
   PhyML_Printf("\n");
-  For(i,mod->n_catg) PhyML_Printf(" %f ",mod->gamma_rr->v[i]);
+  For(i,mod->ras->n_catg) PhyML_Printf(" %f ",mod->ras->gamma_rr->v[i]);
   PhyML_Printf("\n");
-  For(i,mod->n_catg) PhyML_Printf(" %f ",mod->gamma_rr_unscaled->v[i]);
+  For(i,mod->ras->n_catg) PhyML_Printf(" %f ",mod->ras->gamma_rr_unscaled->v[i]);
   
   
   
@@ -2403,10 +2403,10 @@ void Print_Model(t_mod *mod)
   PhyML_Printf("\n");
   
   PhyML_Printf("\n. Pij");
-  For(k,mod->n_catg)
+  For(k,mod->ras->n_catg)
     {
-      PMat(0.01*mod->gamma_rr->v[k],mod,mod->ns*mod->ns*k,mod->Pij_rr->v);
-      PhyML_Printf("\n. l=%f\n",0.01*mod->gamma_rr->v[k]);
+      PMat(0.01*mod->ras->gamma_rr->v[k],mod,mod->ns*mod->ns*k,mod->Pij_rr->v);
+      PhyML_Printf("\n. l=%f\n",0.01*mod->ras->gamma_rr->v[k]);
       For(i,mod->ns)
 	{
 	  PhyML_Printf("  ");
@@ -2594,23 +2594,23 @@ void Print_Fp_Out(FILE *fp_out, time_t t_beg, time_t t_end, t_tree *tree, option
 
   PhyML_Fprintf(fp_out,"\n. Tree size: \t\t\t\t%.5f",tree->size);
 
-  if(tree->mod->n_catg > 1 && tree->mod->free_mixt_rates == NO)
+  if(tree->mod->ras->n_catg > 1 && tree->mod->ras->free_mixt_rates == NO)
     {
       PhyML_Fprintf(fp_out,"\n. Discrete gamma model: \t\t%s","Yes");
-      PhyML_Fprintf(fp_out,"\n  - Number of categories: \t\t%d",tree->mod->n_catg);
-      PhyML_Fprintf(fp_out,"\n  - Gamma shape parameter: \t\t%.3f",tree->mod->alpha->v);
+      PhyML_Fprintf(fp_out,"\n  - Number of categories: \t\t%d",tree->mod->ras->n_catg);
+      PhyML_Fprintf(fp_out,"\n  - Gamma shape parameter: \t\t%.3f",tree->mod->ras->alpha->v);
     }
-  else if(tree->mod->free_mixt_rates == YES)
+  else if(tree->mod->ras->free_mixt_rates == YES)
     {
       PhyML_Fprintf(fp_out,"\n. Discrete gamma model: \t\t%s","No");
-      PhyML_Fprintf(fp_out,"\n  - Number of categories: \t\t%d",tree->mod->n_catg);
-      For(i,tree->mod->n_catg)
+      PhyML_Fprintf(fp_out,"\n  - Number of categories: \t\t%d",tree->mod->ras->n_catg);
+      For(i,tree->mod->ras->n_catg)
 	{
-	  PhyML_Fprintf(fp_out,"\n  - Relative rate in class %d: \t\t%.5f [prop=%4f] \t\t",i+1,tree->mod->gamma_rr->v[i],tree->mod->gamma_r_proba->v[i]);
+	  PhyML_Fprintf(fp_out,"\n  - Relative rate in class %d: \t\t%.5f [prop=%4f] \t\t",i+1,tree->mod->ras->gamma_rr->v[i],tree->mod->ras->gamma_r_proba->v[i]);
 	}
     }
 
-  if(tree->mod->invar) PhyML_Fprintf(fp_out,"\n. Proportion of invariant: \t\t%.3f",tree->mod->pinvar->v);
+  if(tree->mod->ras->invar) PhyML_Fprintf(fp_out,"\n. Proportion of invariant: \t\t%.3f",tree->mod->pinvar->v);
 
   /*was before Discrete gamma model ; moved here FLT*/
   if((tree->mod->whichmodel == K80)   ||
@@ -2753,7 +2753,7 @@ void Print_Fp_Out_Lines(FILE *fp_out, time_t t_beg, time_t t_end, t_tree *tree, 
 
 	PhyML_Fprintf(fp_out, "Discrete   \t");
 
-	if(tree->mod->n_catg > 1)
+	if(tree->mod->ras->n_catg > 1)
 	  PhyML_Fprintf(fp_out, "Number of \tGamma shape\t");
 
 	PhyML_Fprintf(fp_out,"Proportion of\t");
@@ -2781,7 +2781,7 @@ void Print_Fp_Out_Lines(FILE *fp_out, time_t t_beg, time_t t_end, t_tree *tree, 
 
 	PhyML_Fprintf(fp_out, "gamma model\t");
 
-	if(tree->mod->n_catg > 1)
+	if(tree->mod->ras->n_catg > 1)
 	  PhyML_Fprintf(fp_out, "categories\tparameter  \t");
 
 	PhyML_Fprintf(fp_out,"invariant    \t");
@@ -2804,7 +2804,7 @@ void Print_Fp_Out_Lines(FILE *fp_out, time_t t_beg, time_t t_end, t_tree *tree, 
 	if(tree->mod->whichmodel == TN93)
 	  {
 	    PhyML_Fprintf(fp_out,"    \t      \t          \t           \t");
-	    if(tree->mod->n_catg > 1) PhyML_Fprintf(fp_out,"         \t         \t");
+	    if(tree->mod->ras->n_catg > 1) PhyML_Fprintf(fp_out,"         \t         \t");
 	    PhyML_Fprintf(fp_out,"             \t");
 	    PhyML_Fprintf(fp_out,"purines pyrimid.\t");
 	    PhyML_Fprintf(fp_out, "\n");
@@ -2823,14 +2823,14 @@ void Print_Fp_Out_Lines(FILE *fp_out, time_t t_beg, time_t t_end, t_tree *tree, 
   PhyML_Fprintf(fp_out,"%.5f\t",tree->c_lnL);
 
   PhyML_Fprintf(fp_out,"%s        \t",
-	  (tree->mod->n_catg>1)?("Yes"):("No "));
-  if(tree->mod->n_catg > 1)
+	  (tree->mod->ras->n_catg>1)?("Yes"):("No "));
+  if(tree->mod->ras->n_catg > 1)
     {
-      PhyML_Fprintf(fp_out,"%d        \t",tree->mod->n_catg);
-      PhyML_Fprintf(fp_out,"%.3f    \t",tree->mod->alpha->v);
+      PhyML_Fprintf(fp_out,"%d        \t",tree->mod->ras->n_catg);
+      PhyML_Fprintf(fp_out,"%.3f    \t",tree->mod->ras->alpha->v);
     }
 
-  /*if(tree->mod->invar)*/
+  /*if(tree->mod->ras->invar)*/
     PhyML_Fprintf(fp_out,"%.3f    \t",tree->mod->pinvar->v);
 
   if(tree->mod->whichmodel <= 5)
@@ -2874,7 +2874,7 @@ void Print_Fp_Out_Lines(FILE *fp_out, time_t t_beg, time_t t_end, t_tree *tree, 
 	  if (i!=0) {
 	    /*format*/
 	    PhyML_Fprintf(fp_out,"      \t     \t          \t           \t");
-	    if(tree->mod->n_catg > 1) PhyML_Fprintf(fp_out,"          \t           \t");
+	    if(tree->mod->ras->n_catg > 1) PhyML_Fprintf(fp_out,"          \t           \t");
 	    PhyML_Fprintf(fp_out,"             \t                                      \t");
 	  }
 	  For(j,4)
@@ -3019,16 +3019,16 @@ void Print_Settings(option *io)
     PhyML_Printf("\n                . Proportion of invariable sites:\t\t %f", io->mod->pinvar->v);
 
 
-  PhyML_Printf("\n                . Number of subst. rate categs:\t\t\t %d", io->mod->n_catg);
-  if(io->mod->n_catg > 1)
+  PhyML_Printf("\n                . Number of subst. rate categs:\t\t\t %d", io->mod->ras->n_catg);
+  if(io->mod->ras->n_catg > 1)
     {
-      if(io->mod->free_mixt_rates == NO)
+      if(io->mod->ras->free_mixt_rates == NO)
 	{
 	  if(io->mod->s_opt->opt_alpha)
 	    PhyML_Printf("\n                . Gamma distribution parameter:\t\t\t estimated");
 	  else
-	    PhyML_Printf("\n                . Gamma distribution parameter:\t\t\t %f", io->mod->alpha->v);
-	  PhyML_Printf("\n                . 'Middle' of each rate class:\t\t\t %s",(io->mod->gamma_median)?("median"):("mean"));
+	    PhyML_Printf("\n                . Gamma distribution parameter:\t\t\t %f", io->mod->ras->alpha->v);
+	  PhyML_Printf("\n                . 'Middle' of each rate class:\t\t\t %s",(io->mod->ras->gamma_median)?("median"):("mean"));
 	}
     }
     

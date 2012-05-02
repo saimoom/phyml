@@ -126,7 +126,7 @@ void Init_SPR (t_tree *tree)
 
 /*     For(i,tree->data->crunch_len) */
 /*       { */
-/* 	For(j,tree->mod->n_catg) */
+/* 	For(j,tree->mod->ras->n_catg) */
 /* 	  { */
 /* 	    Free(edge_0->p_lk_rght[i][j]); */
 /* 	  } */
@@ -139,7 +139,7 @@ void Init_SPR (t_tree *tree)
 
 /*     For(i,tree->data->crunch_len) */
 /*       { */
-/* 	For(j,tree->mod->n_catg) */
+/* 	For(j,tree->mod->ras->n_catg) */
 /* 	  { */
 /* 	    Free(edge_1->p_lk_rght[i][j]); */
 /* 	  } */
@@ -152,7 +152,7 @@ void Init_SPR (t_tree *tree)
 
 /*     For(i,tree->data->crunch_len) */
 /*       { */
-/* 	For(j,tree->mod->n_catg) */
+/* 	For(j,tree->mod->ras->n_catg) */
 /* 	  { */
 /* 	    Free(edge_2->p_lk_rght[i][j]); */
 /* 	  } */
@@ -182,7 +182,7 @@ void Init_SPR (t_tree *tree)
 
 /*     For(i,tree->data->crunch_len) */
 /*       { */
-/* 	For(j,tree->mod->n_catg) */
+/* 	For(j,tree->mod->ras->n_catg) */
 /* 	  { */
 /* 	    Free(edge_4->p_lk_rght[i][j]); */
 /* 	  } */
@@ -195,7 +195,7 @@ void Init_SPR (t_tree *tree)
 
 /*     For(i,tree->data->crunch_len) */
 /*       { */
-/* 	For(j,tree->mod->n_catg) */
+/* 	For(j,tree->mod->ras->n_catg) */
 /* 	  { */
 /* 	    Free(edge_4->p_lk_left[i][j]); */
 /* 	  } */
@@ -210,12 +210,12 @@ void Init_SPR (t_tree *tree)
   ** Allocate memory for temporarily storing partial likelihoods and
   ** scaling factors.
   */
-  p_lk_tmp = (phydbl *)mCalloc (tree->n_pattern*tree->mod->n_catg*tree->mod->ns, sizeof (phydbl));
+  p_lk_tmp = (phydbl *)mCalloc (tree->n_pattern*tree->mod->ras->n_catg*tree->mod->ns, sizeof (phydbl));
 /*   p_lk_tmp = (phydbl ***)mCalloc (tree->n_pattern, sizeof (phydbl **)); */
 /*   for (i = 0; i < tree->n_pattern; i++) */
 /*   { */
-/*     p_lk_tmp[i] = (phydbl **)mCalloc (tree->mod->n_catg, sizeof (phydbl *)); */
-/*     for (j = 0; j < tree->mod->n_catg; j++) */
+/*     p_lk_tmp[i] = (phydbl **)mCalloc (tree->mod->ras->n_catg, sizeof (phydbl *)); */
+/*     for (j = 0; j < tree->mod->ras->n_catg; j++) */
 /*     { */
 /*       p_lk_tmp[i][j] = (phydbl *)mCalloc (tree->mod->ns, sizeof (phydbl)); */
 /*     } */
@@ -313,7 +313,7 @@ void Clean_SPR (t_tree *tree)
   */
 /*   for (i = 0; i < tree->n_pattern; i++) */
 /*   { */
-/*     for (j = 0; j < tree->mod->n_catg; j++) */
+/*     for (j = 0; j < tree->mod->ras->n_catg; j++) */
 /*     { */
 /*       free (p_lk_tmp[i][j]); */
 /*     } */
@@ -1278,8 +1278,8 @@ int Est_Lk_Change (t_edge *e_prune, t_node *v_prune, t_tree *tree)
   int dim1, dim2;
 
 
-  dim1 = tree->mod->ns * tree->mod->n_catg;
-  dim2 = tree->mod->n_catg;
+  dim1 = tree->mod->ns * tree->mod->ras->n_catg;
+  dim2 = tree->mod->ras->n_catg;
 
   /*
   ** Get the directions from t_node v_prune.
@@ -1525,7 +1525,7 @@ int Est_Lk_Change (t_edge *e_prune, t_node *v_prune, t_tree *tree)
 	for (pat = 0; pat < tree->n_pattern; pat++)
 	  {
 	    sum_scale_tmp[pat] = p_sum[pat];
-	    for (cat = 0; cat < tree->mod->n_catg; cat++)
+	    for (cat = 0; cat < tree->mod->ras->n_catg; cat++)
 	      {
 		for (ste = 0; ste < tree->mod->ns; ste++)
 		  {
@@ -1728,7 +1728,7 @@ int Est_Lk_Change (t_edge *e_prune, t_node *v_prune, t_tree *tree)
     for (pat = 0; pat < tree->n_pattern; pat++)
     {
       p_sum[pat] = sum_scale_tmp[pat];
-      for (cat = 0; cat < tree->mod->n_catg; cat++)
+      for (cat = 0; cat < tree->mod->ras->n_catg; cat++)
       {
 	for (ste = 0; ste < tree->mod->ns; ste++)
 	{
@@ -1819,7 +1819,7 @@ int Best_Lk_Change (t_edge *e_prune, t_node *v_prune, t_tree *tree)
   _move_ *tmp_cand;
   int dim1, dim2;
 
-  dim1 = tree->mod->ns * tree->mod->n_catg;
+  dim1 = tree->mod->ns * tree->mod->ras->n_catg;
   dim2 = tree->mod->ns ;
 
   /*
@@ -2065,7 +2065,7 @@ int Best_Lk_Change (t_edge *e_prune, t_node *v_prune, t_tree *tree)
 	for (pat = 0; pat < tree->n_pattern; pat++)
 	{
 	  sum_scale_tmp[pat] = p_sum[pat];
-	  for (cat = 0; cat < tree->mod->n_catg; cat++)
+	  for (cat = 0; cat < tree->mod->ras->n_catg; cat++)
 	  {
 	    for (ste = 0; ste < tree->mod->ns; ste++)
 	    {
@@ -2214,7 +2214,7 @@ int Best_Lk_Change (t_edge *e_prune, t_node *v_prune, t_tree *tree)
     for (pat = 0; pat < tree->n_pattern; pat++)
     {
       p_sum[pat] = sum_scale_tmp[pat];
-      for (cat = 0; cat < tree->mod->n_catg; cat++)
+      for (cat = 0; cat < tree->mod->ras->n_catg; cat++)
       {
 	for (ste = 0; ste < tree->mod->ns; ste++)
 	{
@@ -2690,7 +2690,7 @@ void Prune (t_edge *e, t_node *v, t_edge **e_connect, t_edge **e_avail, t_tree *
   int dim1, dim2;
 
 
-  dim1 = tree->mod->ns * tree->mod->n_catg;
+  dim1 = tree->mod->ns * tree->mod->ras->n_catg;
   dim2 = tree->mod->ns;
 
   /*
@@ -2758,7 +2758,7 @@ void Prune (t_edge *e, t_node *v, t_edge **e_connect, t_edge **e_avail, t_tree *
     for (i = 0; i < tree->n_pattern; i++)
     {
       e1->sum_scale_rght[i] = sum_scale_f[i];
-      for (j = 0; j < tree->mod->n_catg; j++)
+      for (j = 0; j < tree->mod->ras->n_catg; j++)
       {
 	for (k = 0; k < tree->mod->ns; k++)
 	{
@@ -2776,7 +2776,7 @@ void Prune (t_edge *e, t_node *v, t_edge **e_connect, t_edge **e_avail, t_tree *
     for (i = 0; i < tree->n_pattern; i++)
     {
       e1->sum_scale_left[i] = sum_scale_f[i];
-      for (j = 0; j < tree->mod->n_catg; j++)
+      for (j = 0; j < tree->mod->ras->n_catg; j++)
       {
 	for (k = 0; k < tree->mod->ns; k++)
 	{
@@ -2865,7 +2865,7 @@ void Regraft (t_edge *e, t_node *v, t_edge *avail, t_tree *tree)
   t_node   *u1, *u2;
   int dim1, dim2;
 
-  dim1 = tree->mod->ns * tree->mod->n_catg;
+  dim1 = tree->mod->ns * tree->mod->ras->n_catg;
   dim2 = tree->mod->ns ;
 
   /*
@@ -2925,7 +2925,7 @@ void Regraft (t_edge *e, t_node *v, t_edge *avail, t_tree *tree)
   for (i = 0; i < tree->n_pattern; i++)
   {
     avail->sum_scale_rght[i] = sum_scale_f[i];
-    for (j = 0; j < tree->mod->n_catg; j++)
+    for (j = 0; j < tree->mod->ras->n_catg; j++)
     {
       for (k = 0; k < tree->mod->ns; k++)
       {
@@ -4387,7 +4387,7 @@ void SPR_Shuffle(t_tree *tree)
   phydbl best_lnL    = UNLIKELY;
   t_tree *best_tree  = Make_Tree_From_Scratch(tree->n_otu,tree->data);
   t_tree *start_tree = Make_Tree_From_Scratch(tree->n_otu,tree->data);
-  int ori_catg = tree->mod->n_catg;
+  int ori_catg = tree->mod->ras->n_catg;
   phydbl lk_old;
 
   start_tree->mod                = tree->mod;
@@ -4398,7 +4398,7 @@ void SPR_Shuffle(t_tree *tree)
   /* start_tree->mod->s_opt->print  = YES; */
   start_tree->n_pattern          = tree->data->crunch_len;
   start_tree->t_beg              = tree->t_beg;
-  start_tree->mod->n_catg        = MIN(2,ori_catg);
+  start_tree->mod->ras->n_catg        = MIN(2,ori_catg);
   
   if(tree->mod->s_opt->print) PhyML_Printf("\n. Refining the tree...\n");
 
@@ -4479,7 +4479,7 @@ void SPR_Shuffle(t_tree *tree)
   Free_Tree(start_tree);
   Free_Tree(best_tree);
 
-  tree->mod->n_catg = ori_catg;
+  tree->mod->ras->n_catg = ori_catg;
 
 }
 

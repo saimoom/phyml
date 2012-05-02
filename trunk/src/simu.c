@@ -29,9 +29,9 @@ void Simu_Loop(t_tree *tree)
 
   if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n. Refining the input tree...\n");
 
-  ori_catg                            = tree->mod->n_catg;
+  ori_catg                            = tree->mod->ras->n_catg;
   ori_print                           = tree->mod->s_opt->print;
-  tree->mod->n_catg                   = MIN(2,ori_catg);
+  tree->mod->ras->n_catg                   = MIN(2,ori_catg);
   tree->mod->s_opt->print             = NO;
   Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
   tree->best_pars                     = 1E+8;
@@ -53,7 +53,7 @@ void Simu_Loop(t_tree *tree)
   	 (FABS(lk_old-tree->c_lnL) < 1.)) break;
     }while(1);
   
-  tree->mod->n_catg = ori_catg;
+  tree->mod->ras->n_catg = ori_catg;
   tree->mod->s_opt->print = ori_print;
   
   if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n. Maximizing likelihood (using NNI moves)...\n");
@@ -98,8 +98,8 @@ int Simu(t_tree *tree, int n_step_max)
   old_loglk           = UNLIKELY;
   tree->c_lnL         = UNLIKELY;
   n_iter              = 1.0;
-  /* it_lim_without_swap = (tree->mod->invar)?(5):(2); */
-  it_lim_without_swap = (tree->mod->invar)?(1):(1);
+  /* it_lim_without_swap = (tree->mod->ras->invar)?(5):(2); */
+  it_lim_without_swap = (tree->mod->ras->invar)?(1):(1);
   n_tested            = 0;
   n_without_swap      = 0;
   step                = 0;

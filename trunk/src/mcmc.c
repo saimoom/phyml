@@ -1829,13 +1829,13 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
 	  PhyML_Fprintf(fp,"TsTv\t");
 
 
-	  if(tree->mod->n_catg > 1)
+	  if(tree->mod->ras->n_catg > 1)
 	    {
-	      if(tree->mod->free_mixt_rates == NO) PhyML_Fprintf(fp,"Alpha\t");
+	      if(tree->mod->ras->free_mixt_rates == NO) PhyML_Fprintf(fp,"Alpha\t");
 	      else
 		{
-		  For(i,tree->mod->n_catg) PhyML_Fprintf(fp,"p%d\t",i);
-		  For(i,tree->mod->n_catg) PhyML_Fprintf(fp,"r%d\t",i);
+		  For(i,tree->mod->ras->n_catg) PhyML_Fprintf(fp,"p%d\t",i);
+		  For(i,tree->mod->ras->n_catg) PhyML_Fprintf(fp,"r%d\t",i);
 		}
 	    }
 
@@ -1974,16 +1974,16 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
       PhyML_Fprintf(fp,"%G\t",tree->rates->birth_rate);
       PhyML_Fprintf(fp,"%G\t",tree->mod->kappa->v);
       
-      if(tree->mod->n_catg > 1)
+      if(tree->mod->ras->n_catg > 1)
 	{
-	  if(tree->mod->free_mixt_rates == NO)
-	    PhyML_Fprintf(fp,"%G\t",tree->mod->alpha);
+	  if(tree->mod->ras->free_mixt_rates == NO)
+	    PhyML_Fprintf(fp,"%G\t",tree->mod->ras->alpha);
 	  else
 	    {
-	      For(i,tree->mod->n_catg) PhyML_Fprintf(fp,"%G\t",tree->mod->gamma_r_proba->v[i]);
-	      For(i,tree->mod->n_catg) PhyML_Fprintf(fp,"%G\t",tree->mod->gamma_rr->v[i]);
-	      /* For(i,tree->mod->n_catg) PhyML_Fprintf(fp,"%G\t",tree->mod->gamma_r_proba_unscaled[i]); */
-	      /* For(i,tree->mod->n_catg) PhyML_Fprintf(fp,"%G\t",tree->mod->gamma_rr_unscaled[i]); */
+	      For(i,tree->mod->ras->n_catg) PhyML_Fprintf(fp,"%G\t",tree->mod->ras->gamma_r_proba->v[i]);
+	      For(i,tree->mod->ras->n_catg) PhyML_Fprintf(fp,"%G\t",tree->mod->ras->gamma_rr->v[i]);
+	      /* For(i,tree->mod->ras->n_catg) PhyML_Fprintf(fp,"%G\t",tree->mod->ras->gamma_r_proba_unscaled[i]); */
+	      /* For(i,tree->mod->ras->n_catg) PhyML_Fprintf(fp,"%G\t",tree->mod->ras->gamma_rr_unscaled[i]); */
 	    }
 	}
 
@@ -2520,18 +2520,18 @@ void MCMC_Randomize_Kappa(t_tree *tree)
 
 void MCMC_Randomize_Rate_Across_Sites(t_tree *tree)
 {
-  if(tree->mod->n_catg == 1) return;
+  if(tree->mod->ras->n_catg == 1) return;
   
-  if(tree->mod->free_mixt_rates == YES)
+  if(tree->mod->ras->free_mixt_rates == YES)
     {
       int i;
-      For(i,tree->mod->n_catg-1) tree->mod->gamma_r_proba_unscaled->v[i] = Uni()*100.;
-      tree->mod->gamma_r_proba_unscaled->v[tree->mod->n_catg-1] = 100.;
-      For(i,tree->mod->n_catg) tree->mod->gamma_rr_unscaled->v[i] = (phydbl)i+1.; /* Do not randomize those as their ordering matter */
+      For(i,tree->mod->ras->n_catg-1) tree->mod->ras->gamma_r_proba_unscaled->v[i] = Uni()*100.;
+      tree->mod->ras->gamma_r_proba_unscaled->v[tree->mod->ras->n_catg-1] = 100.;
+      For(i,tree->mod->ras->n_catg) tree->mod->ras->gamma_rr_unscaled->v[i] = (phydbl)i+1.; /* Do not randomize those as their ordering matter */
     }
   else
     {
-      tree->mod->alpha->v = Uni()*5.;
+      tree->mod->ras->alpha->v = Uni()*5.;
     }
 }
 
@@ -3162,9 +3162,9 @@ void MCMC_Kappa(t_tree *tree)
 
 void MCMC_Rate_Across_Sites(t_tree *tree)
 {
-  if(tree->mod->n_catg == 1) return;
+  if(tree->mod->ras->n_catg == 1) return;
 
-  if(tree->mod->free_mixt_rates == YES)
+  if(tree->mod->ras->free_mixt_rates == YES)
     {
       MCMC_Free_Mixt_Rate(tree);
     }
@@ -3183,7 +3183,7 @@ void MCMC_Alpha(t_tree *tree)
   int i;
   
   For(i,2*tree->n_otu-2) tree->rates->br_do_updt[i] = NO;
-  MCMC_Single_Param_Generic(&(tree->mod->alpha->v),0.,100.,tree->mcmc->num_move_ras,
+  MCMC_Single_Param_Generic(&(tree->mod->ras->alpha->v),0.,100.,tree->mcmc->num_move_ras,
 			    NULL,&(tree->c_lnL),
 			    NULL,Wrap_Lk,tree->mcmc->move_type[tree->mcmc->num_move_ras],NO,NULL,tree,NULL);
 }
@@ -3210,10 +3210,10 @@ void MCMC_Free_Mixt_Rate(t_tree *tree)
   cur_lnL_data = tree->c_lnL;
   new_lnL_data = tree->c_lnL;
 
-  c = tree->mod->n_catg;
+  c = tree->mod->ras->n_catg;
 
-  z = tree->mod->gamma_rr_unscaled->v;
-  y = tree->mod->gamma_r_proba_unscaled->v;
+  z = tree->mod->ras->gamma_rr_unscaled->v;
+  y = tree->mod->ras->gamma_r_proba_unscaled->v;
 
   num = z[c-1]*(y[c-1]-y[c-2]);
   denom = z[0]*y[0];
@@ -3282,7 +3282,7 @@ void MCMC_Free_Mixt_Rate(t_tree *tree)
       // Update rates
 
       // Choose the class freq to update at random.
-      c2updt = Rand_Int(0,tree->mod->n_catg-1);
+      c2updt = Rand_Int(0,tree->mod->ras->n_catg-1);
 
       // Proposal move.
       u = Uni();
@@ -3611,7 +3611,7 @@ void MCMC_Complete_MCMC(t_mcmc *mcmc, t_tree *tree)
   mcmc->num_move_tree_rates     = mcmc->n_moves; mcmc->n_moves += 1;
   mcmc->num_move_subtree_rates  = mcmc->n_moves; mcmc->n_moves += 1;
   mcmc->num_move_updown_nu_cr   = mcmc->n_moves; mcmc->n_moves += 1;
-  mcmc->num_move_ras            = mcmc->n_moves; mcmc->n_moves += 2*tree->mod->n_catg;
+  mcmc->num_move_ras            = mcmc->n_moves; mcmc->n_moves += 2*tree->mod->ras->n_catg;
   mcmc->num_move_updown_t_cr    = mcmc->n_moves; mcmc->n_moves += 1;
   mcmc->num_move_cov_rates      = mcmc->n_moves; mcmc->n_moves += 2*tree->mod->m4mod->n_h;
   mcmc->num_move_cov_switch     = mcmc->n_moves; mcmc->n_moves += 1;
@@ -3654,7 +3654,7 @@ void MCMC_Complete_MCMC(t_mcmc *mcmc, t_tree *tree)
   strcpy(mcmc->move_name[mcmc->num_move_tree_rates],"tree_rates");
   strcpy(mcmc->move_name[mcmc->num_move_subtree_rates],"subtree_rates");
   strcpy(mcmc->move_name[mcmc->num_move_updown_nu_cr],"updown_nu_cr");
-  for(i=mcmc->num_move_ras;i<mcmc->num_move_ras+2*tree->mod->n_catg;i++) 
+  for(i=mcmc->num_move_ras;i<mcmc->num_move_ras+2*tree->mod->ras->n_catg;i++) 
     strcpy(mcmc->move_name[i],"ras");  
   strcpy(mcmc->move_name[mcmc->num_move_updown_t_cr],"updown_t_cr");
   for(i=mcmc->num_move_cov_rates;i<mcmc->num_move_cov_rates+2*tree->mod->m4mod->n_h;i++) 
@@ -3678,7 +3678,7 @@ void MCMC_Complete_MCMC(t_mcmc *mcmc, t_tree *tree)
   mcmc->move_type[mcmc->num_move_tree_rates] = MCMC_MOVE_SCALE_THORNE;
   mcmc->move_type[mcmc->num_move_subtree_rates] = MCMC_MOVE_SCALE_THORNE;
   mcmc->move_type[mcmc->num_move_updown_nu_cr] = MCMC_MOVE_RANDWALK_NORMAL;
-  for(i=mcmc->num_move_ras;i<mcmc->num_move_ras+2*tree->mod->n_catg;i++) mcmc->move_type[i] = MCMC_MOVE_RANDWALK_NORMAL;  
+  for(i=mcmc->num_move_ras;i<mcmc->num_move_ras+2*tree->mod->ras->n_catg;i++) mcmc->move_type[i] = MCMC_MOVE_RANDWALK_NORMAL;  
   mcmc->move_type[mcmc->num_move_updown_t_cr] = MCMC_MOVE_SCALE_THORNE;
   for(i=mcmc->num_move_cov_rates;i<mcmc->num_move_cov_rates+2*tree->mod->m4mod->n_h;i++) mcmc->move_type[i] = MCMC_MOVE_SCALE_THORNE;
   mcmc->move_type[mcmc->num_move_cov_switch] = MCMC_MOVE_SCALE_THORNE;
@@ -3724,7 +3724,7 @@ void MCMC_Complete_MCMC(t_mcmc *mcmc, t_tree *tree)
   mcmc->move_weight[mcmc->num_move_tree_rates]      = 1.0;
   mcmc->move_weight[mcmc->num_move_subtree_rates]   = 0.5;
   mcmc->move_weight[mcmc->num_move_updown_nu_cr]    = 0.0;
-  for(i=mcmc->num_move_ras;i<mcmc->num_move_ras+2*tree->mod->n_catg;i++) mcmc->move_weight[i] = 0.5*(1./(phydbl)tree->mod->n_catg);
+  for(i=mcmc->num_move_ras;i<mcmc->num_move_ras+2*tree->mod->ras->n_catg;i++) mcmc->move_weight[i] = 0.5*(1./(phydbl)tree->mod->ras->n_catg);
   mcmc->move_weight[mcmc->num_move_updown_t_cr]     = 0.0; /* Does not seem to work well (does not give uniform prior on root height
   							      when sampling from prior) */
   for(i=mcmc->num_move_cov_rates;i<mcmc->num_move_cov_rates+2*tree->mod->m4mod->n_h;i++) mcmc->move_weight[i] = 0.5*(1./(phydbl)tree->mod->m4mod->n_h);
@@ -3743,7 +3743,7 @@ void MCMC_Complete_MCMC(t_mcmc *mcmc, t_tree *tree)
   /* mcmc->move_weight[mcmc->num_move_tree_rates]      = 0.0; */
   /* mcmc->move_weight[mcmc->num_move_subtree_rates]   = 0.0; */
   /* mcmc->move_weight[mcmc->num_move_updown_nu_cr]    = 0.0; */
-  /* for(i=mcmc->num_move_ras;i<mcmc->num_move_ras+2*tree->mod->n_catg;i++) mcmc->move_weight[i] = 0.5*(1./(phydbl)tree->mod->n_catg);; */
+  /* for(i=mcmc->num_move_ras;i<mcmc->num_move_ras+2*tree->mod->ras->n_catg;i++) mcmc->move_weight[i] = 0.5*(1./(phydbl)tree->mod->ras->n_catg);; */
   /* mcmc->move_weight[mcmc->num_move_updown_t_cr]     = 0.0; /\* Does not seem to work well (does not give uniform prior on root height */
   /* 							      when sampling from prior) *\/ */
   /* for(i=mcmc->num_move_cov_rates;i<mcmc->num_move_cov_rates+2*tree->mod->m4mod->n_h;i++) mcmc->move_weight[i] = 0.0; */

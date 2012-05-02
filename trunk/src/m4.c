@@ -430,7 +430,7 @@ void M4_Update_Qmat(m4 *m4mod, t_mod *mod)
   /* Set the relative substitution rates */
   if(mod->m4mod->use_cov_alpha)
     {
-      DiscreteGamma(m4mod->h_fq,m4mod->multipl,m4mod->alpha,m4mod->alpha,m4mod->n_h,mod->gamma_median);
+      DiscreteGamma(m4mod->h_fq,m4mod->multipl,m4mod->alpha,m4mod->alpha,m4mod->n_h,mod->ras->gamma_median);
     }
   else if(mod->m4mod->use_cov_free)
     {
@@ -628,7 +628,7 @@ void M4_Init_P_Lk_Tips_Double(t_tree *tree)
 {
   int curr_site,i,j,k,l,dim1,dim2,dim3;
   
-  dim1 = tree->mod->n_catg * tree->mod->m4mod->n_h * tree->mod->m4mod->n_o;
+  dim1 = tree->mod->ras->n_catg * tree->mod->m4mod->n_h * tree->mod->m4mod->n_o;
   dim2 = tree->mod->m4mod->n_h * tree->mod->m4mod->n_o;
   dim3 = tree->mod->m4mod->n_o;
 
@@ -654,7 +654,7 @@ void M4_Init_P_Lk_Tips_Double(t_tree *tree)
 
 
 	      For(k,tree->mod->m4mod->n_o)
-		for(l=1;l<tree->mod->n_catg;l++)
+		for(l=1;l<tree->mod->ras->n_catg;l++)
 		  tree->t_nodes[i]->b[0]->p_lk_rght[curr_site*dim1 + l*dim2 + j*dim3+k] = 
 		  tree->t_nodes[i]->b[0]->p_lk_rght[curr_site*dim1 + 0*dim2 + j*dim3+k];
 		  /* tree->t_nodes[i]->b[0]->p_lk_rght[curr_site][l][j*tree->mod->m4mod->n_o+k] =  */
@@ -708,12 +708,12 @@ phydbl ****M4_Integral_Term_On_One_Edge(t_edge *b, t_tree *tree)
   ns = tree->mod->ns;
 
 
-  P1 = (phydbl *)mCalloc(tree->mod->n_catg*ns*ns,sizeof(phydbl));
-  P2 = (phydbl *)mCalloc(tree->mod->n_catg*ns*ns,sizeof(phydbl));
+  P1 = (phydbl *)mCalloc(tree->mod->ras->n_catg*ns*ns,sizeof(phydbl));
+  P2 = (phydbl *)mCalloc(tree->mod->ras->n_catg*ns*ns,sizeof(phydbl));
 
 
-  integral = (phydbl ****)mCalloc(tree->mod->n_catg,sizeof(phydbl ***));
-  For(g,tree->mod->n_catg)
+  integral = (phydbl ****)mCalloc(tree->mod->ras->n_catg,sizeof(phydbl ***));
+  For(g,tree->mod->ras->n_catg)
     {
       integral[g] = (phydbl ***)mCalloc(ns,sizeof(phydbl **));
       For(j,ns)
@@ -729,10 +729,10 @@ phydbl ****M4_Integral_Term_On_One_Edge(t_edge *b, t_tree *tree)
   PhyML_Printf("\n. [");
   For(i,step)
     {
-      For(g,tree->mod->n_catg)
+      For(g,tree->mod->ras->n_catg)
 	{
-	  PMat(((phydbl)(i+0.5)/step)*b->l->v*tree->mod->gamma_rr->v[g],tree->mod,g*ns*ns,P1);
-	  PMat(((phydbl)(step-i-0.5)/step)*b->l->v*tree->mod->gamma_rr->v[g],tree->mod,g*ns*ns,P2);
+	  PMat(((phydbl)(i+0.5)/step)*b->l->v*tree->mod->ras->gamma_rr->v[g],tree->mod,g*ns*ns,P1);
+	  PMat(((phydbl)(step-i-0.5)/step)*b->l->v*tree->mod->ras->gamma_rr->v[g],tree->mod,g*ns*ns,P2);
 
 	  For(j,ns)
 	    {
@@ -771,7 +771,7 @@ void M4_Post_Prob_H_Class_Edge_Site(t_edge *b, phydbl ****integral, phydbl *post
   phydbl sum;
   int dim1,dim2;
 
-  dim1 = tree->mod->n_catg * tree->mod->ns;
+  dim1 = tree->mod->ras->n_catg * tree->mod->ns;
   dim2 = tree->mod->ns;
 
   ns = tree->mod->ns;
@@ -787,7 +787,7 @@ void M4_Post_Prob_H_Class_Edge_Site(t_edge *b, phydbl ****integral, phydbl *post
 	  postprob[i] = .0;
 	  For(j,tree->mod->m4mod->n_o)
 	    {
-	      For(g,tree->mod->n_catg)
+	      For(g,tree->mod->ras->n_catg)
 		{
 		  For(k,tree->mod->ns)
 		    {
@@ -796,7 +796,7 @@ void M4_Post_Prob_H_Class_Edge_Site(t_edge *b, phydbl ****integral, phydbl *post
 			  postprob[i] +=
 
 			    (1./site_lk) *
-			    tree->mod->gamma_r_proba->v[g] *
+			    tree->mod->ras->gamma_r_proba->v[g] *
 			    tree->mod->m4mod->h_fq[i] *
 			    tree->mod->m4mod->o_fq[j] *
 			    b->p_lk_left[tree->curr_site*dim1 + g*dim2 + k] *
@@ -804,7 +804,7 @@ void M4_Post_Prob_H_Class_Edge_Site(t_edge *b, phydbl ****integral, phydbl *post
 			    integral[g][i*tree->mod->m4mod->n_o+j][k][l];
 
 			    /* (1./site_lk) * */
-			    /* tree->mod->gamma_r_proba[g] * */
+			    /* tree->mod->ras->gamma_r_proba[g] * */
 			    /* tree->mod->m4mod->h_fq[i] * */
 			    /* tree->mod->m4mod->o_fq[j] * */
 			    /* b->p_lk_left[tree->curr_site][g][k] * */
@@ -830,7 +830,7 @@ void M4_Post_Prob_H_Class_Edge_Site(t_edge *b, phydbl ****integral, phydbl *post
 	  postprob[i] = .0;
 	  For(j,tree->mod->m4mod->n_o)
 	    {
-	      For(g,tree->mod->n_catg)
+	      For(g,tree->mod->ras->n_catg)
 		{
 		  For(k,tree->mod->ns)
 		    {
@@ -839,7 +839,7 @@ void M4_Post_Prob_H_Class_Edge_Site(t_edge *b, phydbl ****integral, phydbl *post
 			  postprob[i] +=
 
 			    (1./site_lk) *
-			    tree->mod->gamma_r_proba->v[g] *
+			    tree->mod->ras->gamma_r_proba->v[g] *
 			    tree->mod->m4mod->h_fq[i] *
 			    tree->mod->m4mod->o_fq[j] *
 			    b->p_lk_left[tree->curr_site*dim1 + g*dim2 + k] *
@@ -847,7 +847,7 @@ void M4_Post_Prob_H_Class_Edge_Site(t_edge *b, phydbl ****integral, phydbl *post
 			    integral[g][i*tree->mod->m4mod->n_o+j][k][l];
 
 			    /* (1./site_lk) * */
-			    /* tree->mod->gamma_r_proba[g] * */
+			    /* tree->mod->ras->gamma_r_proba[g] * */
 			    /* tree->mod->m4mod->h_fq[i] * */
 			    /* tree->mod->m4mod->o_fq[j] * */
 			    /* b->p_lk_left[tree->curr_site][g][k] * */
@@ -1419,7 +1419,7 @@ void M4_Free_Integral_Term_On_One_Edge(phydbl ****integral, t_tree *tree)
 {
   int g,i,j;
 
-  For(g,tree->mod->n_catg)
+  For(g,tree->mod->ras->n_catg)
     {
       For(i,tree->mod->m4mod->n_h)
 	{

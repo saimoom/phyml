@@ -318,7 +318,7 @@ void Free_Tree_Lk(t_tree *tree)
   Free(tree->old_site_lk);
   Free(tree->site_lk_cat);
 
-  For(i,tree->mod->n_catg) Free(tree->log_site_lk_cat[i]);
+  For(i,tree->mod->ras->n_catg) Free(tree->log_site_lk_cat[i]);
   Free(tree->log_site_lk_cat);
 				
   For(i,2*tree->n_otu-3)
@@ -381,13 +381,21 @@ void Free_Edge_Lk(t_tree *tree, t_edge *b)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
+void Free_RAS(t_ras *ras)
+{
+  Free(ras->gamma_r_proba->v);
+  Free(ras->gamma_r_proba_unscaled->v);
+  Free(ras->gamma_rr->v);
+  Free(ras->gamma_rr_unscaled->v);
+  Free(ras);
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
 
 void Free_Model_Complete(t_mod *mod)
 {
-  Free(mod->gamma_r_proba->v);
-  Free(mod->gamma_r_proba_unscaled->v);
-  Free(mod->gamma_rr->v);
-  Free(mod->gamma_rr_unscaled->v);
+  Free_RAS(mod->ras);
   Free(mod->Pij_rr->v);
   Free_Eigen(mod->eigen);
   Free_Rmat(mod->r_mat);
@@ -406,18 +414,18 @@ void Free_Model_Basic(t_mod *mod)
   Free(mod->user_b_freq);
   Free(mod->kappa);
   Free(mod->lambda);
-  Free(mod->alpha);
+  Free(mod->ras->alpha);
   Free(mod->pinvar);
-  Free(mod->alpha_old);
+  Free(mod->ras->alpha_old);
   Free(mod->kappa_old);
   Free(mod->lambda_old);
   Free(mod->pinvar_old);
   Free(mod->Pij_rr);
   Free(mod->mr);
-  Free(mod->gamma_r_proba);
-  Free(mod->gamma_r_proba_unscaled);
-  Free(mod->gamma_rr);
-  Free(mod->gamma_rr_unscaled);
+  Free(mod->ras->gamma_r_proba);
+  Free(mod->ras->gamma_r_proba_unscaled);
+  Free(mod->ras->gamma_rr);
+  Free(mod->ras->gamma_rr_unscaled);
   Free(mod->br_len_multiplier);
 }
 
@@ -638,7 +646,7 @@ void Free_Triplet(triplet *t)
   Free(t->pi_cd);
   Free(t->pi_bd);
 
-  For(k,t->mod->n_catg) 
+  For(k,t->mod->ras->n_catg) 
     {
       For(i,t->size) 
 	{

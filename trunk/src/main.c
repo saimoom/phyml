@@ -838,7 +838,7 @@ int main(int argc, char **argv)
 				      char *alpha;
 
 				      io->mod->s_opt->opt_pinvar = NO;
-				      io->mod->invar             = NO;
+				      io->mod->ras->invar             = NO;
 
 				      alpha = XML_Get_Attribute_Value(w,"alpha");
 				      if(!strcmp(alpha,"estimate") || !strcmp(alpha,"estimated") || 
@@ -849,15 +849,15 @@ int main(int argc, char **argv)
 				      else
 					{					  
 					  io->mod->s_opt->opt_alpha = NO;
-					  io->mod->alpha->v = String_To_Dbl(alpha);
+					  io->mod->ras->alpha->v = String_To_Dbl(alpha);
 					}
 				      
 				      io->mod->ras->n_catg = XML_Siterates_Number_Of_Classes(parent);
 				      
-				      io->mod->gamma_r_proba->v          = (phydbl *)mCalloc(io->mod->ras->n_catg,sizeof(phydbl));
-				      io->mod->gamma_r_proba_unscaled->v = (phydbl *)mCalloc(io->mod->ras->n_catg,sizeof(phydbl));
-				      io->mod->gamma_rr->v               = (phydbl *)mCalloc(io->mod->ras->n_catg,sizeof(phydbl));
-				      io->mod->gamma_rr_unscaled->v      = (phydbl *)mCalloc(io->mod->ras->n_catg,sizeof(phydbl));
+				      io->mod->ras->gamma_r_proba->v          = (phydbl *)mCalloc(io->mod->ras->n_catg,sizeof(phydbl));
+				      io->mod->ras->gamma_r_proba_unscaled->v = (phydbl *)mCalloc(io->mod->ras->n_catg,sizeof(phydbl));
+				      io->mod->ras->gamma_rr->v               = (phydbl *)mCalloc(io->mod->ras->n_catg,sizeof(phydbl));
+				      io->mod->ras->gamma_rr_unscaled->v      = (phydbl *)mCalloc(io->mod->ras->n_catg,sizeof(phydbl));
 				    
 				      break;
 				    }
@@ -865,7 +865,7 @@ int main(int argc, char **argv)
 				    {
 				      char *alpha,*pinv;
 
-				      io->mod->invar = YES;
+				      io->mod->ras->invar = YES;
 
 				      alpha = XML_Get_Attribute_Value(w,"alpha");
 				      if(!strcmp(alpha,"estimate") || !strcmp(alpha,"estimated") || 
@@ -876,7 +876,7 @@ int main(int argc, char **argv)
 				      else
 					{
 					  io->mod->s_opt->opt_alpha = NO;
-					  io->mod->alpha->v = String_To_Dbl(alpha);;
+					  io->mod->ras->alpha->v = String_To_Dbl(alpha);;
 					}
 
 				      pinv = XML_Get_Attribute_Value(w,"pinv");
@@ -894,10 +894,10 @@ int main(int argc, char **argv)
 				      io->mod->ras->n_catg = XML_Siterates_Number_Of_Classes(parent);
 				      io->mod->ras->n_catg--;
 
-				      io->mod->gamma_r_proba->v          = (phydbl *)mCalloc(io->mod->ras->n_catg,sizeof(phydbl));
-				      io->mod->gamma_r_proba_unscaled->v = (phydbl *)mCalloc(io->mod->ras->n_catg,sizeof(phydbl));
-				      io->mod->gamma_rr->v               = (phydbl *)mCalloc(io->mod->ras->n_catg,sizeof(phydbl));
-				      io->mod->gamma_rr_unscaled->v      = (phydbl *)mCalloc(io->mod->ras->n_catg,sizeof(phydbl));
+				      io->mod->ras->gamma_r_proba->v          = (phydbl *)mCalloc(io->mod->ras->n_catg,sizeof(phydbl));
+				      io->mod->ras->gamma_r_proba_unscaled->v = (phydbl *)mCalloc(io->mod->ras->n_catg,sizeof(phydbl));
+				      io->mod->ras->gamma_rr->v               = (phydbl *)mCalloc(io->mod->ras->n_catg,sizeof(phydbl));
+				      io->mod->ras->gamma_rr_unscaled->v      = (phydbl *)mCalloc(io->mod->ras->n_catg,sizeof(phydbl));
 
 				      break;
 				    }
@@ -906,7 +906,7 @@ int main(int argc, char **argv)
 				      char *est_weights;
 				      int select;
 
-				      io->mod->free_mixt_rates = YES;
+				      io->mod->ras->free_mixt_rates = YES;
 
 				      est_weights = XML_Get_Attribute_Value(w,"estimateweights");
 				      select = XML_Validate_Attr_Int(est_weights,6,
@@ -920,10 +920,10 @@ int main(int argc, char **argv)
 				      io->mod->ras->n_catg = XML_Siterates_Number_Of_Classes(parent);
 				      io->mod->ras->n_catg--;
 
-				      io->mod->gamma_r_proba->v          = (phydbl *)mCalloc(io->mod->ras->n_catg,sizeof(phydbl));
-				      io->mod->gamma_r_proba_unscaled->v = (phydbl *)mCalloc(io->mod->ras->n_catg,sizeof(phydbl));
-				      io->mod->gamma_rr->v               = (phydbl *)mCalloc(io->mod->ras->n_catg,sizeof(phydbl));
-				      io->mod->gamma_rr_unscaled->v      = (phydbl *)mCalloc(io->mod->ras->n_catg,sizeof(phydbl));
+				      io->mod->ras->gamma_r_proba->v          = (phydbl *)mCalloc(io->mod->ras->n_catg,sizeof(phydbl));
+				      io->mod->ras->gamma_r_proba_unscaled->v = (phydbl *)mCalloc(io->mod->ras->n_catg,sizeof(phydbl));
+				      io->mod->ras->gamma_rr->v               = (phydbl *)mCalloc(io->mod->ras->n_catg,sizeof(phydbl));
+				      io->mod->ras->gamma_rr_unscaled->v      = (phydbl *)mCalloc(io->mod->ras->n_catg,sizeof(phydbl));
 
 				      break;
 				    }
@@ -960,7 +960,7 @@ int main(int argc, char **argv)
 			      }
 			    else
 			      {
-				io->mod->invar = YES;				
+				io->mod->ras->invar = YES;				
 				if(instance->next && !strcmp(instance->next->name,"instance"))
 				  {
 				    PhyML_Printf("\n== Invariant site rate has to be the last instance in the list");
@@ -974,7 +974,7 @@ int main(int argc, char **argv)
 			    r = (scalar_dbl *)instance->ds;
 			  }
 
-			io->mod->gamma_rr->v[class_number] = r->v;
+			io->mod->ras->gamma_rr->v[class_number] = r->v;
 
 			xml_node *orig_w = NULL;
 			orig_w = XML_Search_Node_Attribute_Value("appliesto",instance->id,YES,instance->parent);
@@ -984,7 +984,7 @@ int main(int argc, char **argv)
 			    char *weight;
 			    weight = XML_Get_Attribute_Value(orig_w,"value");
 			    PhyML_Printf("\n. ");
-			    io->mod->gamma_r_proba->v[class_number] = String_To_Dbl(weight);
+			    io->mod->ras->gamma_r_proba->v[class_number] = String_To_Dbl(weight);
 			  }
 		      }
 		    else if(!strcmp(parent->name,"branchlengths"))
