@@ -927,7 +927,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
       if(tree->mod->s_opt->opt_alpha && tree->mod->free_mixt_rates == NO)
 	{
 
-	  if(tree->mod->n_catg > 1)
+	  if(tree->mod->ras->n_catg > 1)
 	    Generic_Brent_Lk(&(tree->mod->alpha->v),
 			     tree->mod->alpha->v/2.,tree->mod->alpha->v*2.,
 			     tree->mod->s_opt->min_diff_lk_global,
@@ -984,7 +984,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
         
       /* failed = 0; */
       /* tree->mod->update_eigen = 1; */
-      /* BFGS(tree,tree->mod->gamma_r_proba_unscaled,tree->mod->n_catg,1.e-5,1.e-5, */
+      /* BFGS(tree,tree->mod->gamma_r_proba_unscaled,tree->mod->ras->n_catg,1.e-5,1.e-5, */
       /* 	   &Return_Abs_Lk, */
       /* 	   &Num_Derivative_Several_Param, */
       /* 	   &Lnsrch_Free_Mixt_Rates,&failed); */
@@ -992,7 +992,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
       if(verbose) Print_Lk(tree,"[Rate class freqs.  ]");
 
 
-      /* For(i,tree->mod->n_catg-1) */
+      /* For(i,tree->mod->ras->n_catg-1) */
       /* 	{ */
       /* 	  Generic_Brent_Lk(&(tree->mod->gamma_r_proba_unscaled->v[i]), */
       /* 			   0., */
@@ -1003,8 +1003,8 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
       /* 			   Wrap_Lk,NULL,tree,NULL); */
       /* 	} */
 
-      tree->mod->gamma_r_proba_unscaled->v[tree->mod->n_catg-1] = 100.;
-      For(i,tree->mod->n_catg-1)
+      tree->mod->gamma_r_proba_unscaled->v[tree->mod->ras->n_catg-1] = 100.;
+      For(i,tree->mod->ras->n_catg-1)
       	{
       	  if(!i)
       	    Generic_Brent_Lk(&(tree->mod->gamma_r_proba_unscaled->v[i]),
@@ -1027,7 +1027,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
       
       if(verbose) Print_Lk(tree,"[Rate class values  ]");
 
-      For(i,tree->mod->n_catg) 
+      For(i,tree->mod->ras->n_catg) 
 	{
 	  Generic_Brent_Lk(&(tree->mod->gamma_rr_unscaled->v[i]),
 			   0.,100.,

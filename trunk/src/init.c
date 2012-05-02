@@ -505,7 +505,7 @@ void Set_Defaults_Model(t_mod *mod)
   mod->r_mat                   = NULL;
   mod->e_frq                   = NULL;
   mod->whichmodel              = HKY85;
-  mod->n_catg                  = 4;
+  mod->ras->n_catg                  = 4;
   mod->mod_num                 = 0;
 
   mod->kappa->v                = 4.0;

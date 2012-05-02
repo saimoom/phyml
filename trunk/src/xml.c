@@ -425,7 +425,6 @@ xml_node *XML_Search_Node_Name(char *name, int skip, xml_node *node)
 
 xml_node *XML_Search_Node_ID(char *id, int skip, xml_node *node)
 {
-
   xml_node *match;
   
   if(!node)
@@ -696,5 +695,30 @@ int XML_Siterates_Has_Invariants(xml_node *parent)
   if(!n) return NO;
   else return YES;
 }
+
+//////////////////////////////////////////////////////////////
+
+int XML_Siterates_Number_Of_Classes(xml_node *sr_node)
+{
+  xml_node *buff;
+  int n_classes;
+
+  buff = sr_node->child;
+  n_classes = 0;
+
+  do
+    {
+      if(!buff) break;
+      n_classes++;
+      buff = buff->next;
+    }while(1);
+  
+  return n_classes;
+  
+}
+
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////

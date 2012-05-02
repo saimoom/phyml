@@ -342,7 +342,7 @@ void PMat_Gamma(phydbl l, t_mod *mod, int pos, phydbl *Pij)
   V     = mod->eigen->l_e_vect;
   R     = mod->eigen->e_val; /* exponential of the eigen value matrix */
   
-  if(mod->n_catg == 1) shape = 1.E+4;
+  if(mod->ras->n_catg == 1) shape = 1.E+4;
   else                 shape = mod->alpha->v;
 
 
@@ -2372,7 +2372,7 @@ void Init_Model(calign *data, t_mod *mod, option *io)
 
   if(io->datatype == GENERIC) mod->whichmodel = JC69;
 
-  if(!mod->invar) For(i,data->crunch_len) data->invar[i] = 0;
+  if(!mod->ras->invar) For(i,data->crunch_len) data->invar[i] = 0;
 
   dr      = (phydbl *)mCalloc(  mod->ns,sizeof(phydbl));
   di      = (phydbl *)mCalloc(  mod->ns,sizeof(phydbl));
@@ -2385,10 +2385,10 @@ void Init_Model(calign *data, t_mod *mod, option *io)
       mod->l_max = LOG(mod->l_max);
     }
 
-  For(i,mod->n_catg) mod->gamma_r_proba->v[i]          = (phydbl)1./mod->n_catg;
-  For(i,mod->n_catg) mod->gamma_r_proba_unscaled->v[i] = (phydbl)i;
-  For(i,mod->n_catg) mod->gamma_rr->v[i]               = (phydbl)i;
-  For(i,mod->n_catg) mod->gamma_rr_unscaled->v[i]      = (phydbl)i;
+  For(i,mod->ras->n_catg) mod->gamma_r_proba->v[i]          = (phydbl)1./mod->ras->n_catg;
+  For(i,mod->ras->n_catg) mod->gamma_r_proba_unscaled->v[i] = (phydbl)i;
+  For(i,mod->ras->n_catg) mod->gamma_rr->v[i]               = (phydbl)i;
+  For(i,mod->ras->n_catg) mod->gamma_rr_unscaled->v[i]      = (phydbl)i;
 
   mod->br_len_multiplier->v = 1.0;
 
@@ -2893,71 +2893,71 @@ void Set_Model_Parameters(t_mod *mod)
 					       mod->gamma_rr->v, 
 					       mod->alpha->v, 
 					       mod->alpha->v, 
-					       mod->n_catg, 
+					       mod->ras->n_catg, 
 					       mod->gamma_median);
   else
     {
       /* /\* // Update class frequencies *\/ */
       /* sum = .0; */
-      /* For(i,mod->n_catg) sum += FABS(mod->gamma_r_proba_unscaled->v[i]); */
-      /* For(i,mod->n_catg) mod->gamma_r_proba->v[i] = FABS(mod->gamma_r_proba_unscaled->v[i])/sum; */
+      /* For(i,mod->ras->n_catg) sum += FABS(mod->gamma_r_proba_unscaled->v[i]); */
+      /* For(i,mod->ras->n_catg) mod->gamma_r_proba->v[i] = FABS(mod->gamma_r_proba_unscaled->v[i])/sum; */
 
       /* // Update class rates */
       /* do */
       /* 	{ */
       /* 	  sum = .0; */
-      /* 	  For(i,mod->n_catg) */
+      /* 	  For(i,mod->ras->n_catg) */
       /* 	    { */
       /* 	      if(mod->gamma_r_proba->v[i] < 0.01) mod->gamma_r_proba->v[i]=0.01; */
       /* 	      if(mod->gamma_r_proba->v[i] > 0.99) mod->gamma_r_proba->v[i]=0.99; */
       /* 	      sum += mod->gamma_r_proba->v[i]; */
       /* 	    } */
-      /* 	  For(i,mod->n_catg) mod->gamma_r_proba->v[i]/=sum; */
+      /* 	  For(i,mod->ras->n_catg) mod->gamma_r_proba->v[i]/=sum; */
       /* 	} */
       /* while((sum > 1.01) || (sum < 0.99)); */
 
       /* sum = .0; */
-      /* For(i,mod->n_catg) sum += mod->gamma_r_proba->v[i] * FABS(mod->gamma_rr_unscaled->v[i]); */
-      /* For(i,mod->n_catg) mod->gamma_rr->v[i] = FABS(mod->gamma_rr_unscaled->v[i])/sum; */
+      /* For(i,mod->ras->n_catg) sum += mod->gamma_r_proba->v[i] * FABS(mod->gamma_rr_unscaled->v[i]); */
+      /* For(i,mod->ras->n_catg) mod->gamma_rr->v[i] = FABS(mod->gamma_rr_unscaled->v[i])/sum; */
 
 
       //
 
-      Qksort(mod->gamma_r_proba_unscaled->v,NULL,0,mod->n_catg-1); // Unscaled class frequencies sorted in increasing order
+      Qksort(mod->gamma_r_proba_unscaled->v,NULL,0,mod->ras->n_catg-1); // Unscaled class frequencies sorted in increasing order
 
 
       // Update class frequencies
-      For(i,mod->n_catg)
+      For(i,mod->ras->n_catg)
       	{
       	  if(!i)
       	    mod->gamma_r_proba->v[i] =
-      	      mod->gamma_r_proba_unscaled->v[i] /  (mod->gamma_r_proba_unscaled->v[mod->n_catg-1]) ;
+      	      mod->gamma_r_proba_unscaled->v[i] /  (mod->gamma_r_proba_unscaled->v[mod->ras->n_catg-1]) ;
       	  else
       	    mod->gamma_r_proba->v[i] =
-      	      (mod->gamma_r_proba_unscaled->v[i] - mod->gamma_r_proba_unscaled->v[i-1]) /  (mod->gamma_r_proba_unscaled->v[mod->n_catg-1]) ;
+      	      (mod->gamma_r_proba_unscaled->v[i] - mod->gamma_r_proba_unscaled->v[i-1]) /  (mod->gamma_r_proba_unscaled->v[mod->ras->n_catg-1]) ;
       	}
 
       // Update class rates
       do
       	{
       	  sum = .0;
-      	  For(i,mod->n_catg)
+      	  For(i,mod->ras->n_catg)
       	    {
       	      if(mod->gamma_r_proba->v[i] < 0.01) mod->gamma_r_proba->v[i]=0.01;
       	      if(mod->gamma_r_proba->v[i] > 0.99) mod->gamma_r_proba->v[i]=0.99;
       	      sum += mod->gamma_r_proba->v[i];
       	    }
-      	  For(i,mod->n_catg) mod->gamma_r_proba->v[i]/=sum;
+      	  For(i,mod->ras->n_catg) mod->gamma_r_proba->v[i]/=sum;
       	}
       while((sum > 1.01) || (sum < 0.99));
 
       sum = .0;
-      For(i,mod->n_catg) sum += mod->gamma_r_proba->v[i] * FABS(mod->gamma_rr_unscaled->v[i]);
-      For(i,mod->n_catg) mod->gamma_rr->v[i] = FABS(mod->gamma_rr_unscaled->v[i])/sum;
+      For(i,mod->ras->n_catg) sum += mod->gamma_r_proba->v[i] * FABS(mod->gamma_rr_unscaled->v[i]);
+      For(i,mod->ras->n_catg) mod->gamma_rr->v[i] = FABS(mod->gamma_rr_unscaled->v[i])/sum;
 
 
       /* sum = .0; */
-      /* For(i,mod->n_catg) sum += mod->gamma_r_proba->v[i] * FABS(mod->gamma_rr->v[i]); */
+      /* For(i,mod->ras->n_catg) sum += mod->gamma_r_proba->v[i] * FABS(mod->gamma_rr->v[i]); */
       /* printf("\n. sum=%f",sum); */
 
     }

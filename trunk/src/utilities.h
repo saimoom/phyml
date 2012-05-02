@@ -698,6 +698,22 @@ typedef struct __RateMatrix {
 
 /*!********************************************************/
 
+typedef struct __RAS {
+  /*! Rate across sites */
+  int                       n_catg; /*! number of categories in the discrete gamma distribution */
+  int                        invar; /*! =1 iff the substitution model takes into account invariable sites */
+  int                 gamma_median; /*! 1: use the median of each bin in the discrete gamma distribution. 0: the mean is used */
+  vect_dbl          *gamma_r_proba; /*! probabilities of the substitution rates defined by the discrete gamma distribution */
+  vect_dbl *gamma_r_proba_unscaled; 
+  vect_dbl               *gamma_rr; /*! substitution rates defined by the RAS distribution */
+  vect_dbl      *gamma_rr_unscaled; /*! substitution rates defined by the RAS distribution (unscaled) */
+  scalar_dbl                *alpha; /*! gamma shapa parameter */
+  scalar_dbl            *alpha_old;
+  int              free_mixt_rates;  
+}t_ras;
+
+/*!********************************************************/
+
 typedef struct __EquFreq {
   /*! Equilibrium frequencies */
   vect_dbl          *pi; /*! states frequencies */
@@ -717,6 +733,7 @@ typedef struct __Model {
   struct __Model           *parent;
   struct __RateMatrix       *r_mat;
   struct __EquFreq          *e_frq;
+  struct __RAS                *ras;
 
   vect_dbl            *user_b_freq; /*! user-defined nucleotide frequencies */
   char                  *modelname;
@@ -727,19 +744,6 @@ typedef struct __Model {
   int                 update_eigen; /*! update_eigen=1-> eigen values/vectors need to be updated */
 
   int                   whichmodel;
-
-  /*! Variation of rates across sites */
-  int                       n_catg; /*! number of categories in the discrete gamma distribution */
-  int                        invar; /*! =1 iff the substitution model takes into account invariable sites */
-  int                 gamma_median; /*! 1: use the median of each bin in the discrete gamma distribution. 0: the mean is used */
-  vect_dbl          *gamma_r_proba; /*! probabilities of the substitution rates defined by the discrete gamma distribution */
-  vect_dbl *gamma_r_proba_unscaled; 
-  vect_dbl               *gamma_rr; /*! substitution rates defined by the RAS distribution */
-  vect_dbl      *gamma_rr_unscaled; /*! substitution rates defined by the RAS distribution (unscaled) */
-  scalar_dbl                *alpha; /*! gamma shapa parameter */
-  scalar_dbl            *alpha_old;
-  int              free_mixt_rates;
-
 
   int                           ns; /*! number of states (4 for ADN, 20 for AA) */
 

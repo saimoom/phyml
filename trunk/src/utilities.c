@@ -5047,7 +5047,7 @@ void Fast_Br_Len(t_edge *b, t_tree *tree, int approx)
 /*   return; */
 
   n_iter = 0;
-  dim1   = tree->mod->ns * tree->mod->n_catg;
+  dim1   = tree->mod->ns * tree->mod->ras->n_catg;
   dim2   = tree->mod->ns ;
   dim3   = tree->mod->ns * tree->mod->ns;
   eps_bl = tree->mod->l_min;
@@ -5067,7 +5067,7 @@ void Fast_Br_Len(t_edge *b, t_tree *tree, int approx)
 	{
 	  For(j,tree->mod->ns)
 	    {
-	      For(k,tree->mod->n_catg)
+	      For(k,tree->mod->ras->n_catg)
 		{
 		  v_rght = (b->rght->tax)?((phydbl)(b->p_lk_tip_r[site*dim2+j])):(b->p_lk_rght[site*dim1+k*dim2+j]);
 		  scale_rght = (b->rght->tax)?(0.0):(b->sum_scale_rght[k*tree->n_pattern+site]);
@@ -5085,11 +5085,11 @@ void Fast_Br_Len(t_edge *b, t_tree *tree, int approx)
       
       /* Scaling */
       sum = .0;
-      For(k,tree->mod->n_catg) For(i,tree->mod->ns) For(j,tree->mod->ns) sum += prob[dim3*k+dim2*i+j];
-      For(k,tree->mod->n_catg) For(i,tree->mod->ns) For(j,tree->mod->ns) prob[dim3*k+dim2*i+j] /= sum;
+      For(k,tree->mod->ras->n_catg) For(i,tree->mod->ns) For(j,tree->mod->ns) sum += prob[dim3*k+dim2*i+j];
+      For(k,tree->mod->ras->n_catg) For(i,tree->mod->ns) For(j,tree->mod->ns) prob[dim3*k+dim2*i+j] /= sum;
       
       /* Expected number of each pair of states */
-      For(i,tree->mod->ns) For(j,tree->mod->ns) For(k,tree->mod->n_catg)
+      For(i,tree->mod->ns) For(j,tree->mod->ns) For(k,tree->mod->ras->n_catg)
 	F[dim3*k+dim2*i+j] += tree->data->wght[site] * prob[dim3*k+dim2*i+j];
     }
   
@@ -5841,11 +5841,11 @@ void Check_Memory_Amount(t_tree *tree)
   nbytes += (2*n_otu-3) * 2 * tree->data->crunch_len * mod->ns * sizeof(int);
 
   /* Pmat */
-  nbytes += (2*n_otu-3) * mod->n_catg * mod->ns * mod->ns * sizeof(phydbl);
+  nbytes += (2*n_otu-3) * mod->ras->n_catg * mod->ns * mod->ns * sizeof(phydbl);
   
 
   /* Partial Lk */
-  nbytes += ((2*n_otu-3) * 2 - tree->n_otu) * tree->data->crunch_len * mod->n_catg * mod->ns * sizeof(phydbl);
+  nbytes += ((2*n_otu-3) * 2 - tree->n_otu) * tree->data->crunch_len * mod->ras->n_catg * mod->ns * sizeof(phydbl);
 
 
   /* Scaling factors */
@@ -6404,7 +6404,7 @@ void Evolve(calign *data, t_mod *mod, t_tree *tree)
       data->c_seq[0]->state[site] = Reciproc_Assign_State(root_state,tree->io->datatype);
 
       /* Pick the rate class */
-      root_rate_class = Pick_State(mod->n_catg,mod->gamma_r_proba->v);
+      root_rate_class = Pick_State(mod->ras->n_catg,mod->gamma_r_proba->v);
 
       /* tree->t_nodes[0] is considered as the root t_node */
       Evolve_Recur(tree->t_nodes[0],
@@ -8516,8 +8516,8 @@ phydbl Rescale_Free_Rate_Tree(t_tree *tree)
   phydbl sum;
 
   sum = 0.0;
-  For(i,tree->mod->n_catg) sum += tree->mod->gamma_rr->v[i]*tree->mod->gamma_r_proba->v[i];
-  For(i,tree->mod->n_catg) tree->mod->gamma_rr->v[i] /= sum;
+  For(i,tree->mod->ras->n_catg) sum += tree->mod->gamma_rr->v[i]*tree->mod->gamma_r_proba->v[i];
+  For(i,tree->mod->ras->n_catg) tree->mod->gamma_rr->v[i] /= sum;
   
   For(i,2*tree->n_otu-3) tree->t_edges[i]->l->v *= sum;
   
@@ -8545,8 +8545,8 @@ phydbl Unscale_Free_Rate_Tree(t_tree *tree)
   phydbl sum;
 
   sum = 0.0;
-  For(i,tree->mod->n_catg) sum += tree->mod->gamma_rr->v[i]*tree->mod->gamma_r_proba->v[i];
-  For(i,tree->mod->n_catg) tree->mod->gamma_rr->v[i] *= sum;
+  For(i,tree->mod->ras->n_catg) sum += tree->mod->gamma_rr->v[i]*tree->mod->gamma_r_proba->v[i];
+  For(i,tree->mod->ras->n_catg) tree->mod->gamma_rr->v[i] *= sum;
   For(i,2*tree->n_otu-3) tree->t_edges[i]->l->v /= sum;
   
   return(-1.);

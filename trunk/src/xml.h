@@ -25,5 +25,6 @@ xml_node *XML_Make_Node(char *name);
 xml_node *XML_Search_Node_Attribute_Value(char *attr_name, char *value, int skip, xml_node *node);
 void XML_Check_Siterates_Node(xml_node *parent);
 int XML_Get_Number_Of_Classes_Siterates(xml_node *parent);
+int XML_Siterates_Number_Of_Classes(xml_node *sr_node);
 
 #endif
