@@ -235,7 +235,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	  }
 	case 61:
 	  {
-	    io->mod->free_mixt_rates            = YES;
+	    io->mod->ras->free_mixt_rates            = YES;
 	    io->mod->s_opt->opt_free_mixt_rates = YES;
 	    break;
 	  }
@@ -361,7 +361,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	  }
 	case 45 : 
 	  {
-	    io->mod->gamma_median = 1;
+	    io->mod->ras->gamma_median = 1;
 	    break;
 	  }
 	case 44 :
@@ -849,7 +849,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	      }
 	    else
 	      {
-		io->mod->alpha->v = (phydbl)atof(optarg);
+		io->mod->ras->alpha->v = (phydbl)atof(optarg);
 		io->mod->s_opt->opt_alpha  = 0;
 	      }
 	    break;
@@ -906,8 +906,8 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	      }
 	    else 
 	      {
-		io->mod->n_catg = atoi(optarg);
-		if(io->mod->n_catg < 1) 
+		io->mod->ras->n_catg = atoi(optarg);
+		if(io->mod->ras->n_catg < 1) 
 		  {
 		    PhyML_Printf("\n. The number of rate categories must be a positive integer\n");
 		    Exit("\n");
@@ -1145,7 +1145,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		(strcmp (optarg, "ESTIMATED") == 0)) 
 	      {
 		io->mod->s_opt->opt_pinvar    = YES;
-		io->mod->invar                = YES;
+		io->mod->ras->invar                = YES;
 	      }
 	    
 	    else if ((atof(optarg) < 0.0) || (atof(optarg) > 1.0))
@@ -1160,9 +1160,9 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	      {
 		io->mod->pinvar->v = (phydbl)atof(optarg);
 		if (io->mod->pinvar->v > 0.0+SMALL)
-		  io->mod->invar = 1;
+		  io->mod->ras->invar = 1;
 		else
-		  io->mod->invar = 0;
+		  io->mod->ras->invar = 0;
 		io->mod->s_opt->opt_pinvar = 0;
 	      }
 	    break;
@@ -1365,7 +1365,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
   strcat(io->out_tree_file,".txt");
   strcat(io->out_stats_file,".txt");
   
-  if(io->mod->n_catg == 1) io->mod->s_opt->opt_alpha = 0;
+  if(io->mod->ras->n_catg == 1) io->mod->s_opt->opt_alpha = 0;
   
   if(!io->mod->s_opt->opt_subst_param)
     {

@@ -182,7 +182,7 @@ void Launch_Interface(option *io)
       strcat(io->out_stats_file,".txt");
     }
 
-  if(io->mod->n_catg == 1) io->mod->s_opt->opt_alpha = 0;
+  if(io->mod->ras->n_catg == 1) io->mod->s_opt->opt_alpha = 0;
 
   if(io->mod->whichmodel != K80 && 
      io->mod->whichmodel != HKY85 && 
@@ -712,26 +712,26 @@ void Launch_Interface_Model(option *io)
   PhyML_Printf("                [R] "
 	 "....... One category of substitution rate (yes/no) "
 	 " %-15s \n",
-	 (io->mod->n_catg > 1)?("no"):("yes"));
+	 (io->mod->ras->n_catg > 1)?("no"):("yes"));
 
-  if(io->mod->n_catg > 1)
+  if(io->mod->ras->n_catg > 1)
     {
       PhyML_Printf("                [C] "
 	     "........... Number of substitution rate categories "
 	     " %-15d \n",
-	     io->mod->n_catg);
+	     io->mod->ras->n_catg);
     }
 
 
-  if(io->mod->n_catg > 1)
+  if(io->mod->ras->n_catg > 1)
     {
       PhyML_Printf("                [G] "
 		   "............. Gamma distributed rates across sites "
-		   " %-15s \n",(io->mod->free_mixt_rates)?("no"):("yes"));
+		   " %-15s \n",(io->mod->ras->free_mixt_rates)?("no"):("yes"));
     }
 
 
-  if((io->mod->n_catg > 1) && (io->mod->free_mixt_rates == NO))
+  if((io->mod->ras->n_catg > 1) && (io->mod->ras->free_mixt_rates == NO))
     {
       strcpy(s,(io->mod->s_opt->opt_alpha)?("estimated"):("fixed"));
       (io->mod->s_opt->opt_alpha)?(strcat(s, "")):(strcat(s," (alpha = "));
@@ -742,7 +742,7 @@ void Launch_Interface_Model(option *io)
 	}
       else
 	{
-	  sprintf(s+strlen(s),"%3.2f)",io->mod->alpha->v);
+	  sprintf(s+strlen(s),"%3.2f)",io->mod->ras->alpha->v);
 	}
 
       PhyML_Printf("                [A] "
@@ -750,7 +750,7 @@ void Launch_Interface_Model(option *io)
 	     " %-15s \n",s);
 
 
-/*       strcpy(s,(io->mod->gamma_median)?("median"):("mean")); */
+/*       strcpy(s,(io->mod->ras->gamma_median)?("median"):("mean")); */
       
 /*       PhyML_Printf("                [G] " */
 /* 	     ".........'Middle' of each rate class (mean/median) " */
@@ -778,7 +778,7 @@ void Launch_Interface_Model(option *io)
 
     case 'G' :
       {
-	io->mod->free_mixt_rates = (io->mod->free_mixt_rates)?(NO):(YES);
+	io->mod->ras->free_mixt_rates = (io->mod->ras->free_mixt_rates)?(NO):(YES);
 	break;
       }
 
@@ -1004,7 +1004,7 @@ void Launch_Interface_Model(option *io)
 	    {
 	      char *a;
 	      a = (char *)mCalloc(100,sizeof(char));
-	      io->mod->alpha->v = 10.0;
+	      io->mod->ras->alpha->v = 10.0;
 	      io->mod->s_opt->opt_alpha = 0;
 	      PhyML_Printf("\n. Enter your value of alpha > ");
 	      Getstring_Stdin(a);
@@ -1016,7 +1016,7 @@ void Launch_Interface_Model(option *io)
 		  PhyML_Printf("\n. Enter a new value > ");
 		  Getstring_Stdin(a);
 		}
-	      io->mod->alpha->v = (phydbl)atof(a);
+	      io->mod->ras->alpha->v = (phydbl)atof(a);
 	      Free(a);
 	      io->mod->s_opt->opt_alpha  = 0;
 	      break;
@@ -1041,14 +1041,14 @@ void Launch_Interface_Model(option *io)
 	    PhyML_Printf("\n. Enter a new value > ");
 	    Getstring_Stdin(c);
 	  }
-	io->mod->n_catg = atoi(c);
+	io->mod->ras->n_catg = atoi(c);
 	Free(c);
 	break;
       }
 
     case 'R' :
       {
-	(io->mod->n_catg == 1)?(io->mod->n_catg = 4):(io->mod->n_catg = 1);
+	(io->mod->ras->n_catg == 1)?(io->mod->ras->n_catg = 4):(io->mod->ras->n_catg = 1);
 	break;
       }
 
@@ -1096,7 +1096,7 @@ void Launch_Interface_Model(option *io)
 	      io->mod->s_opt->opt_subst_param = 1;
 	      io->mod->s_opt->opt_pinvar = 1;
 	      io->mod->pinvar->v = 0.2;
-	      io->mod->invar  = 1;
+	      io->mod->ras->invar  = 1;
 	      break;
 	    }
 	  case 'N' : case 'n' :
@@ -1116,8 +1116,8 @@ void Launch_Interface_Model(option *io)
 		}
 	      io->mod->pinvar->v = (phydbl)atof(p);
 
-	      if(io->mod->pinvar->v > 0.0+SMALL) io->mod->invar = 1;
-	      else                             io->mod->invar = 0;
+	      if(io->mod->pinvar->v > 0.0+SMALL) io->mod->ras->invar = 1;
+	      else                             io->mod->ras->invar = 0;
 
 	      Free(p);
 

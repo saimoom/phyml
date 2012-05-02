@@ -509,20 +509,20 @@ void Set_Defaults_Model(t_mod *mod)
   mod->mod_num                 = 0;
 
   mod->kappa->v                = 4.0;
-  mod->alpha->v                = 1.0;
+  mod->ras->alpha->v                = 1.0;
   mod->lambda->v               = 1.0;
   mod->pinvar->v               = 0.0;
 
   mod->kappa_old->v            = 4.0;
-  mod->alpha_old->v            = 1.0;
+  mod->ras->alpha_old->v            = 1.0;
   mod->lambda_old->v           = 1.0;
   mod->pinvar_old->v           = 0.0;
 
   mod->bootstrap               = 0;
-  mod->invar                   = NO;
+  mod->ras->invar                   = NO;
   mod->ns                      = 4;
   mod->use_m4mod               = NO;
-  mod->gamma_median            = 0;
+  mod->ras->gamma_median            = 0;
   mod->m4mod                   = NULL;
   
   /* mod->r_mat->n_diff_rr        = 0; */
@@ -531,7 +531,7 @@ void Set_Defaults_Model(t_mod *mod)
   /* mod->r_mat->n_rr_per_cat->v  = NULL; */
   mod->io                      = NULL;
   mod->log_l                   = NO;
-  mod->free_mixt_rates         = NO;
+  mod->ras->free_mixt_rates         = NO;
   mod->gamma_mgf_bl            = NO;
   mod->br_len_multiplier->v    = 1.0;
   

@@ -393,7 +393,7 @@ void Print_Fp_Out_Lines_MPI(t_tree *tree, option *io, int n_data_set, char *boot
 
     strncat (s, "Discrete   \t", T_MAX_LINE);
 
-    if(tree->mod->n_catg > 1)
+    if(tree->mod->ras->n_catg > 1)
       strncat (s, "Number of \tGamma shape\t", T_MAX_LINE);
 
     strncat (s, "Proportion of\t", T_MAX_LINE);
@@ -418,7 +418,7 @@ void Print_Fp_Out_Lines_MPI(t_tree *tree, option *io, int n_data_set, char *boot
 
     strncat (s, "gamma model\t", T_MAX_LINE);
 
-    if(tree->mod->n_catg > 1)
+    if(tree->mod->ras->n_catg > 1)
       strncat (s, "categories\tparameter  \t", T_MAX_LINE);
 
     strncat (s, "invariant    \t", T_MAX_LINE);
@@ -437,7 +437,7 @@ void Print_Fp_Out_Lines_MPI(t_tree *tree, option *io, int n_data_set, char *boot
     /*headline 3*/
     if(tree->mod->whichmodel == TN93) {
       strncat (s, "    \t      \t          \t           \t", T_MAX_LINE);
-      if(tree->mod->n_catg > 1)
+      if(tree->mod->ras->n_catg > 1)
         strncat (s, "         \t         \t", T_MAX_LINE);
       strncat (s, "             \t", T_MAX_LINE);
       strncat (s, "purines pyrimid.\t", T_MAX_LINE);
@@ -457,12 +457,12 @@ void Print_Fp_Out_Lines_MPI(t_tree *tree, option *io, int n_data_set, char *boot
   snprintf(tmp, T_MAX_LINE, "%.5f\t",tree->c_lnL); strncat (s, tmp, T_MAX_LINE);
   
   snprintf(tmp, T_MAX_LINE, "%s        \t",
-          (tree->mod->n_catg>1)?("Yes"):("No ")); strncat (s, tmp, T_MAX_LINE);
+          (tree->mod->ras->n_catg>1)?("Yes"):("No ")); strncat (s, tmp, T_MAX_LINE);
   
-  if(tree->mod->n_catg > 1)
+  if(tree->mod->ras->n_catg > 1)
     {
-      snprintf(tmp, T_MAX_LINE, "%d        \t",tree->mod->n_catg); strncat (s, tmp, T_MAX_LINE);
-      snprintf(tmp, T_MAX_LINE, "%.3f    \t",tree->mod->alpha->v); strncat (s, tmp, T_MAX_LINE);
+      snprintf(tmp, T_MAX_LINE, "%d        \t",tree->mod->ras->n_catg); strncat (s, tmp, T_MAX_LINE);
+      snprintf(tmp, T_MAX_LINE, "%.3f    \t",tree->mod->ras->alpha->v); strncat (s, tmp, T_MAX_LINE);
     }
   
   snprintf(tmp, T_MAX_LINE, "%.3f    \t",tree->mod->pinvar->v); strncat (s, tmp, T_MAX_LINE);
@@ -499,7 +499,7 @@ void Print_Fp_Out_Lines_MPI(t_tree *tree, option *io, int n_data_set, char *boot
             /*format*/
             snprintf(tmp, T_MAX_LINE, "      \t     \t          \t           \t");
             strncat (s, tmp, T_MAX_LINE);
-            if(tree->mod->n_catg > 1) {
+            if(tree->mod->ras->n_catg > 1) {
               snprintf(tmp, T_MAX_LINE, "          \t           \t");
               strncat (s, tmp, T_MAX_LINE);
             }

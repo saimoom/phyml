@@ -447,19 +447,8 @@ t_mod *Make_Model_Basic()
   mod->modelname              = (char *)mCalloc(T_MAX_NAME,sizeof(char));
   mod->custom_mod_string      = (char *)mCalloc(T_MAX_OPTION,sizeof(char));
   
-
-  mod->gamma_r_proba          = (vect_dbl *)mCalloc(1,sizeof(vect_dbl));
-  Init_Vect_Dbl(0,mod->gamma_r_proba);
-
-  mod->gamma_r_proba_unscaled = (vect_dbl *)mCalloc(1,sizeof(vect_dbl));
-  Init_Vect_Dbl(0,mod->gamma_r_proba_unscaled);
-
-  mod->gamma_rr               = (vect_dbl *)mCalloc(1,sizeof(vect_dbl));
-  Init_Vect_Dbl(0,mod->gamma_rr);
-
-  mod->gamma_rr_unscaled      = (vect_dbl *)mCalloc(1,sizeof(vect_dbl));
-  Init_Vect_Dbl(0,mod->gamma_rr_unscaled);
-
+  mod->ras = Make_RAS_Basic();
+ 
   mod->Pij_rr                 = (vect_dbl *)mCalloc(1,sizeof(vect_dbl));
   Init_Vect_Dbl(0,mod->Pij_rr);
 
@@ -469,14 +458,14 @@ t_mod *Make_Model_Basic()
   mod->lambda                 = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
   Init_Scalar_Dbl(mod->lambda);
 
-  mod->alpha                  = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
-  Init_Scalar_Dbl(mod->alpha);
+  mod->ras->alpha                  = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
+  Init_Scalar_Dbl(mod->ras->alpha);
 
   mod->pinvar                 = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
   Init_Scalar_Dbl(mod->pinvar);
 
-  mod->alpha_old              = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
-  Init_Scalar_Dbl(mod->alpha_old);
+  mod->ras->alpha_old              = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
+  Init_Scalar_Dbl(mod->ras->alpha_old);
 
   mod->kappa_old              = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
   Init_Scalar_Dbl(mod->kappa_old);
@@ -515,20 +504,18 @@ void Make_Model_Complete(t_mod *mod)
     }
   
   mod->Pij_rr->v                 = (phydbl *)mCalloc(mod->ras->n_catg*mod->ns*mod->ns,sizeof(phydbl));
-  mod->gamma_r_proba->v          = (phydbl *)mCalloc(mod->ras->n_catg,sizeof(phydbl));
-  mod->gamma_r_proba_unscaled->v = (phydbl *)mCalloc(mod->ras->n_catg,sizeof(phydbl));
-  mod->gamma_rr->v               = (phydbl *)mCalloc(mod->ras->n_catg,sizeof(phydbl));
-  mod->gamma_rr_unscaled->v      = (phydbl *)mCalloc(mod->ras->n_catg,sizeof(phydbl));
   mod->eigen                     = (eigen *)Make_Eigen_Struct(mod->ns);
   // If r_mat (e_frq) are not NULL, then they have been created elsewhere and affected.
   mod->r_mat                     = (mod->r_mat)?(mod->r_mat):((t_rmat *)Make_Rmat(mod->ns));
   mod->e_frq                     = (mod->e_frq)?(mod->e_frq):((t_efrq *)Make_Efrq(mod->ns));
+
+  Make_RAS_Complete(mod->ras);
   
   mod->user_b_freq->len          = mod->ns;
 
-  For(i,mod->ras->n_catg) mod->gamma_rr->v[i] = 1.0;
-  For(i,mod->ras->n_catg) mod->gamma_r_proba_unscaled->v[i] = 1.0;
-  For(i,mod->ras->n_catg) mod->gamma_r_proba->v[i] = 1.0/(phydbl)mod->ras->n_catg;
+  For(i,mod->ras->n_catg) mod->ras->gamma_rr->v[i] = 1.0;
+  For(i,mod->ras->n_catg) mod->ras->gamma_r_proba_unscaled->v[i] = 1.0;
+  For(i,mod->ras->n_catg) mod->ras->gamma_r_proba->v[i] = 1.0/(phydbl)mod->ras->n_catg;
   
   if(mod->whichmodel < 0)
     {
@@ -546,6 +533,40 @@ void Make_Model_Complete(t_mod *mod)
     {
       Make_Custom_Model(mod);
     }
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+t_ras *Make_RAS_Basic()
+{
+  t_ras *ras;
+  ras = (t_ras *)mCalloc(1,sizeof(t_ras));
+
+  ras->gamma_r_proba          = (vect_dbl *)mCalloc(1,sizeof(vect_dbl));
+  Init_Vect_Dbl(0,ras->gamma_r_proba);
+
+  ras->gamma_r_proba_unscaled = (vect_dbl *)mCalloc(1,sizeof(vect_dbl));
+  Init_Vect_Dbl(0,ras->gamma_r_proba_unscaled);
+
+  ras->gamma_rr               = (vect_dbl *)mCalloc(1,sizeof(vect_dbl));
+  Init_Vect_Dbl(0,ras->gamma_rr);
+
+  ras->gamma_rr_unscaled      = (vect_dbl *)mCalloc(1,sizeof(vect_dbl));
+  Init_Vect_Dbl(0,ras->gamma_rr_unscaled);
+
+  return(ras);
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void Make_RAS_Complete(t_ras *ras)
+{
+  ras->gamma_r_proba->v          = (phydbl *)mCalloc(ras->n_catg,sizeof(phydbl));
+  ras->gamma_r_proba_unscaled->v = (phydbl *)mCalloc(ras->n_catg,sizeof(phydbl));
+  ras->gamma_rr->v               = (phydbl *)mCalloc(ras->n_catg,sizeof(phydbl));
+  ras->gamma_rr_unscaled->v      = (phydbl *)mCalloc(ras->n_catg,sizeof(phydbl));
 }
 
 //////////////////////////////////////////////////////////////

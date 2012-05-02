@@ -3168,9 +3168,9 @@ t_mod *Copy_Model(t_mod *ori)
 
   cpy             = Make_Model_Basic();
 
-  cpy->ns         = ori->ns;
-  cpy->n_catg     = ori->n_catg;
-  cpy->whichmodel = ori->whichmodel;
+  cpy->ns          = ori->ns;
+  cpy->ras->n_catg = ori->ras->n_catg;
+  cpy->whichmodel  = ori->whichmodel;
 
   Make_Model_Complete(cpy);
   Record_Model(ori,cpy);
@@ -3182,20 +3182,19 @@ t_mod *Copy_Model(t_mod *ori)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
 void Record_Model(t_mod *ori, t_mod *cpy)
 {
   int i;
   
-  cpy->ns     = ori->ns;
-  cpy->n_catg = ori->n_catg;
+  cpy->ns          = ori->ns;
+  cpy->ras->n_catg = ori->ras->n_catg;
   
-  cpy->alpha_old->v         = ori->alpha_old->v;
-  cpy->kappa_old->v         = ori->alpha_old->v;
+  cpy->ras->alpha_old->v    = ori->ras->alpha_old->v;
+  cpy->kappa_old->v         = ori->kappa_old->v;
   cpy->lambda_old->v        = ori->lambda_old->v;
   cpy->pinvar_old->v        = ori->pinvar_old->v;
   cpy->kappa->v             = ori->kappa->v;
-  cpy->alpha->v             = ori->alpha->v;
+  cpy->ras->alpha->v        = ori->ras->alpha->v;
   cpy->lambda->v            = ori->lambda->v;
   cpy->pinvar->v            = ori->pinvar->v;
   cpy->br_len_multiplier->v = ori->br_len_multiplier->v;
@@ -3207,13 +3206,13 @@ void Record_Model(t_mod *ori, t_mod *cpy)
   cpy->whichmodel           = ori->whichmodel;
   cpy->update_eigen         = ori->update_eigen;
   cpy->bootstrap            = ori->bootstrap;
-  cpy->invar                = ori->invar;
+  cpy->ras->invar           = ori->ras->invar;
   cpy->r_mat->n_diff_rr     = ori->r_mat->n_diff_rr;
   cpy->l_min                = ori->l_min;
   cpy->l_max                = ori->l_max;
   cpy->log_l                = ori->log_l;
-  cpy->free_mixt_rates      = ori->free_mixt_rates;
-  cpy->gamma_median         = ori->gamma_median;
+  cpy->ras->free_mixt_rates = ori->ras->free_mixt_rates;
+  cpy->ras->gamma_median    = ori->ras->gamma_median;
   
   if((ori->whichmodel == CUSTOM) || (ori->whichmodel == GTR))
     {
@@ -3235,12 +3234,12 @@ void Record_Model(t_mod *ori, t_mod *cpy)
   
   For(i,cpy->ns*cpy->ns) cpy->r_mat->qmat->v[i] = ori->r_mat->qmat->v[i];
 
-  For(i,cpy->n_catg)
+  For(i,cpy->ras->n_catg)
     {
-      cpy->gamma_r_proba->v[i]          = ori->gamma_r_proba->v[i];
-      cpy->gamma_rr->v[i]               = ori->gamma_rr->v[i];
-      cpy->gamma_r_proba_unscaled->v[i] = ori->gamma_r_proba_unscaled->v[i];
-      cpy->gamma_rr_unscaled->v[i]      = ori->gamma_rr_unscaled->v[i];
+      cpy->ras->gamma_r_proba->v[i]          = ori->ras->gamma_r_proba->v[i];
+      cpy->ras->gamma_rr->v[i]               = ori->ras->gamma_rr->v[i];
+      cpy->ras->gamma_r_proba_unscaled->v[i] = ori->ras->gamma_r_proba_unscaled->v[i];
+      cpy->ras->gamma_rr_unscaled->v[i]      = ori->ras->gamma_rr_unscaled->v[i];
     }
   
   cpy->use_m4mod = ori->use_m4mod;
@@ -5073,7 +5072,7 @@ void Fast_Br_Len(t_edge *b, t_tree *tree, int approx)
 		  scale_rght = (b->rght->tax)?(0.0):(b->sum_scale_rght[k*tree->n_pattern+site]);
 
 		  prob[dim3*k+dim2*i+j]              =
-		    tree->mod->gamma_r_proba->v[k]    *
+		    tree->mod->ras->gamma_r_proba->v[k]    *
 		    tree->mod->e_frq->pi->v[i]                 *
 		    b->Pij_rr[k*dim3+i*dim2+j]       *
 		    b->p_lk_left[site*dim1+k*dim2+i] *
@@ -5291,7 +5290,7 @@ void Fix_All(t_tree *tree)
   int i;
 
   tree->mod->pinvar_old->v = tree->mod->pinvar->v;
-  tree->mod->alpha_old->v  = tree->mod->alpha->v;
+  tree->mod->ras->alpha_old->v  = tree->mod->ras->alpha->v;
   tree->mod->kappa_old->v  = tree->mod->kappa->v;
   tree->mod->lambda_old->v = tree->mod->lambda->v;
 
@@ -6404,7 +6403,7 @@ void Evolve(calign *data, t_mod *mod, t_tree *tree)
       data->c_seq[0]->state[site] = Reciproc_Assign_State(root_state,tree->io->datatype);
 
       /* Pick the rate class */
-      root_rate_class = Pick_State(mod->ras->n_catg,mod->gamma_r_proba->v);
+      root_rate_class = Pick_State(mod->ras->n_catg,mod->ras->gamma_r_proba->v);
 
       /* tree->t_nodes[0] is considered as the root t_node */
       Evolve_Recur(tree->t_nodes[0],
@@ -8516,8 +8515,8 @@ phydbl Rescale_Free_Rate_Tree(t_tree *tree)
   phydbl sum;
 
   sum = 0.0;
-  For(i,tree->mod->ras->n_catg) sum += tree->mod->gamma_rr->v[i]*tree->mod->gamma_r_proba->v[i];
-  For(i,tree->mod->ras->n_catg) tree->mod->gamma_rr->v[i] /= sum;
+  For(i,tree->mod->ras->n_catg) sum += tree->mod->ras->gamma_rr->v[i]*tree->mod->ras->gamma_r_proba->v[i];
+  For(i,tree->mod->ras->n_catg) tree->mod->ras->gamma_rr->v[i] /= sum;
   
   For(i,2*tree->n_otu-3) tree->t_edges[i]->l->v *= sum;
   
@@ -8545,8 +8544,8 @@ phydbl Unscale_Free_Rate_Tree(t_tree *tree)
   phydbl sum;
 
   sum = 0.0;
-  For(i,tree->mod->ras->n_catg) sum += tree->mod->gamma_rr->v[i]*tree->mod->gamma_r_proba->v[i];
-  For(i,tree->mod->ras->n_catg) tree->mod->gamma_rr->v[i] *= sum;
+  For(i,tree->mod->ras->n_catg) sum += tree->mod->ras->gamma_rr->v[i]*tree->mod->ras->gamma_r_proba->v[i];
+  For(i,tree->mod->ras->n_catg) tree->mod->ras->gamma_rr->v[i] *= sum;
   For(i,2*tree->n_otu-3) tree->t_edges[i]->l->v /= sum;
   
   return(-1.);

@@ -57,6 +57,7 @@ void Free_Optimiz(optimiz *s_opt);
 void Free_Nexus(option *io);
 void Free_Nexus_Com(nexcom **com);
 void Free_Nexus_Parm(nexparm *parm);
+void Free_RAS(t_ras *ras);
 void XML_Free_XML_Tree(xml_node *node);
 void XML_Free_XML_Node(xml_node *node);
 void XML_Free_XML_Attr(xml_attr *attr);
