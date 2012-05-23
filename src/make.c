@@ -409,17 +409,18 @@ t_treelist *Make_Treelist(int list_size)
   return tlist;
 }
 
-optimiz *Make_Optimiz()
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+t_opt *Make_Optimiz()
 {
-  optimiz *s_opt;
-  s_opt = (optimiz *)mCalloc(1,sizeof(optimiz));
+  t_opt *s_opt;
+  s_opt = (t_opt *)mCalloc(1,sizeof(t_opt));
   return s_opt;
 }
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
-
-
 
 void Make_Custom_Model(t_mod *mod)
 {
@@ -492,35 +493,33 @@ t_mod *Make_Model_Basic()
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
+/*! Call only when the values of mod->ns & ras->n_catg is set to its final value */
 
 void Make_Model_Complete(t_mod *mod)
 {
-  int i;
-
   if(mod->use_m4mod == YES)
     {
       M4_Make_Complete(mod->m4mod->n_h,mod->m4mod->n_o,mod->m4mod);
       mod->ns = mod->m4mod->n_o * mod->m4mod->n_h;
     }
   
-  mod->Pij_rr->v                 = (phydbl *)mCalloc(mod->ras->n_catg*mod->ns*mod->ns,sizeof(phydbl));
-  mod->eigen                     = (eigen *)Make_Eigen_Struct(mod->ns);
+  mod->Pij_rr->v = (phydbl *)mCalloc(mod->ras->n_catg*mod->ns*mod->ns,sizeof(phydbl));
+  mod->eigen     = (eigen *)Make_Eigen_Struct(mod->ns);
   // If r_mat (e_frq) are not NULL, then they have been created elsewhere and affected.
-  mod->r_mat                     = (mod->r_mat)?(mod->r_mat):((t_rmat *)Make_Rmat(mod->ns));
-  mod->e_frq                     = (mod->e_frq)?(mod->e_frq):((t_efrq *)Make_Efrq(mod->ns));
+
+  if(!mod->r_mat)
+    mod->r_mat = (t_rmat *)Make_Rmat(mod->ns);
+  if(!mod->e_frq)
+    mod->e_frq = (t_efrq *)Make_Efrq(mod->ns);
 
   Make_RAS_Complete(mod->ras);
   
-  mod->user_b_freq->len          = mod->ns;
-
-  For(i,mod->ras->n_catg) mod->ras->gamma_rr->v[i] = 1.0;
-  For(i,mod->ras->n_catg) mod->ras->gamma_r_proba_unscaled->v[i] = 1.0;
-  For(i,mod->ras->n_catg) mod->ras->gamma_r_proba->v[i] = 1.0/(phydbl)mod->ras->n_catg;
+  mod->user_b_freq->len = mod->ns;
   
   if(mod->whichmodel < 0)
     {
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-      Warn_And_Exit("");
+      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");
     }
 
   if(mod->whichmodel == CUSTOM)
@@ -545,15 +544,21 @@ t_ras *Make_RAS_Basic()
 
   ras->gamma_r_proba          = (vect_dbl *)mCalloc(1,sizeof(vect_dbl));
   Init_Vect_Dbl(0,ras->gamma_r_proba);
+  ras->gamma_r_proba->v = NULL;
 
   ras->gamma_r_proba_unscaled = (vect_dbl *)mCalloc(1,sizeof(vect_dbl));
   Init_Vect_Dbl(0,ras->gamma_r_proba_unscaled);
+  ras->gamma_r_proba_unscaled->v = NULL;
 
   ras->gamma_rr               = (vect_dbl *)mCalloc(1,sizeof(vect_dbl));
   Init_Vect_Dbl(0,ras->gamma_rr);
+  ras->gamma_rr->v = NULL;
 
   ras->gamma_rr_unscaled      = (vect_dbl *)mCalloc(1,sizeof(vect_dbl));
   Init_Vect_Dbl(0,ras->gamma_rr_unscaled);
+  ras->gamma_rr_unscaled->v = NULL;
+  
+  ras->next = NULL;
 
   return(ras);
 }
@@ -561,12 +566,16 @@ t_ras *Make_RAS_Basic()
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
+/*! Call only when the value of ras->n_catg is set to its final value */
 void Make_RAS_Complete(t_ras *ras)
 {
-  ras->gamma_r_proba->v          = (phydbl *)mCalloc(ras->n_catg,sizeof(phydbl));
-  ras->gamma_r_proba_unscaled->v = (phydbl *)mCalloc(ras->n_catg,sizeof(phydbl));
-  ras->gamma_rr->v               = (phydbl *)mCalloc(ras->n_catg,sizeof(phydbl));
-  ras->gamma_rr_unscaled->v      = (phydbl *)mCalloc(ras->n_catg,sizeof(phydbl));
+  if(!ras->gamma_r_proba->v)
+    {
+      ras->gamma_r_proba->v          = (phydbl *)mCalloc(ras->n_catg,sizeof(phydbl));
+      ras->gamma_r_proba_unscaled->v = (phydbl *)mCalloc(ras->n_catg,sizeof(phydbl));
+      ras->gamma_rr->v               = (phydbl *)mCalloc(ras->n_catg,sizeof(phydbl));
+      ras->gamma_rr_unscaled->v      = (phydbl *)mCalloc(ras->n_catg,sizeof(phydbl));
+    }
 }
 
 //////////////////////////////////////////////////////////////
@@ -585,8 +594,9 @@ t_efrq *Make_Efrq(int ns)
   e_frq->pi_unscaled      = (vect_dbl *)mCalloc(1,sizeof(vect_dbl));
   e_frq->pi_unscaled->v   = (phydbl *)mCalloc(ns,sizeof(phydbl));
   e_frq->pi_unscaled->len = ns;
-
-
+  
+  e_frq->mixt_weight = 1.; // Should be in a separate init function...
+  e_frq->next = NULL; // same
   return e_frq;
 }
 
@@ -620,8 +630,17 @@ t_rmat *Make_Rmat(int ns)
   r_mat->qmat->v                = (phydbl *)mCalloc(ns*ns,sizeof(phydbl));
   r_mat->qmat_buff->v           = (phydbl *)mCalloc(ns*ns,sizeof(phydbl));
 
+  r_mat->mixt_weight = 1.;
+  
+  r_mat->next = NULL;
+
   return(r_mat);
 }
+
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 option *Make_Input()
 {
@@ -781,6 +800,8 @@ xml_node *XML_Make_Node(char *name)
     {
       new_node->name = (char *)mCalloc(strlen(name)+1,sizeof(char));
     }
+  
+  new_node->ds = (t_ds *)mCalloc(1,sizeof(t_ds));
 
   return new_node;
 }
@@ -788,8 +809,48 @@ xml_node *XML_Make_Node(char *name)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
+void Make_Best_Spr(t_tree *tree)
+{
+  tree->best_spr = Make_One_Spr(tree);
+  Init_One_Spr(tree->best_spr);
+}
+
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
+void Make_Spr_List(t_tree *tree)
+{
+  int i;
+
+  tree->size_spr_list = 2*tree->n_otu-3;
+  tree->spr_list = (spr **)mCalloc(2*tree->n_otu-2,sizeof(spr *));
+
+  For(i,2*tree->n_otu-2)
+    {
+      tree->spr_list[i] = Make_One_Spr(tree);
+      Init_One_Spr(tree->spr_list[i]);
+    }
+  tree->perform_spr_right_away = 0;
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+spr *Make_One_Spr(t_tree *tree)
+{
+  spr *a_spr;
+  a_spr       = (spr *)mCalloc(1,sizeof(spr));
+  a_spr->path = (t_node **)mCalloc(tree->n_otu,sizeof(t_node *));
+  return a_spr;
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////

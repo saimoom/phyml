@@ -19,8 +19,7 @@ the GNU public licence.  See http://www.opensource.org for details.
 void Make_Tree_4_Pars(t_tree *tree, calign *cdata, int n_site)
 {
   int i;
-
-
+  
   tree->site_pars = (int *)mCalloc(tree->n_pattern, sizeof(int));
   tree->step_mat = (int *)mCalloc(tree->mod->ns * tree->mod->ns, sizeof(int));
   For(i,2*tree->n_otu-3) Make_Edge_Pars(tree->t_edges[i],tree);
@@ -31,21 +30,26 @@ void Make_Tree_4_Pars(t_tree *tree, calign *cdata, int n_site)
 
 /*********************************************************/
 
-int Pars(t_tree *tree)
+int Pars(t_edge *b, t_tree *tree)
 {
   int site,n_patterns;
 
   n_patterns = tree->n_pattern;
-
-  Post_Order_Pars(tree->t_nodes[0],tree->t_nodes[0]->v[0],tree);
-  if(tree->both_sides) Pre_Order_Pars(tree->t_nodes[0],tree->t_nodes[0]->v[0],tree);
   
+  if(!b)
+    {
+      Post_Order_Pars(tree->t_nodes[0],tree->t_nodes[0]->v[0],tree);
+      if(tree->both_sides) Pre_Order_Pars(tree->t_nodes[0],tree->t_nodes[0]->v[0],tree);
+    }
+
+  if(!b) b = tree->t_nodes[0]->b[0];
+
   tree->c_pars = 0;
   For(site,n_patterns)
     {
       tree->site_pars[site] = 0;
       tree->curr_site       = site;
-      Site_Pars(tree);
+      Pars_Core(b,tree);
       tree->c_pars += tree->site_pars[site] * tree->data->wght[site];
     }
 
@@ -133,27 +137,38 @@ void Init_P_Pars_Tips(t_tree *tree)
 
 	  if(tree->io->datatype == NT)
 	    {
-	      Init_Tips_At_One_Site_Nucleotides_Int(tree->data->c_seq[i]->state[curr_site],
+	      Init_Tips_At_One_Site_Nucleotides_Int(tree->t_nodes[i]->c_seq->state[curr_site],
 						    0,
 						    state_v);	      
+	      /* Init_Tips_At_One_Site_Nucleotides_Int(tree->data->c_seq[i]->state[curr_site], */
+	      /* 					    0, */
+	      /* 					    state_v);	       */
 	      For(j,tree->mod->ns) tree->t_nodes[i]->b[0]->p_pars_r[curr_site*dim1+j] = MAX_PARS;
 	      For(j,tree->mod->ns) if(state_v[j] > 0.5) tree->t_nodes[i]->b[0]->p_pars_r[curr_site*dim1+j] =  0;
 	    }
 	  else if(tree->io->datatype == AA)
 	    {
-	      Init_Tips_At_One_Site_AA_Int(tree->data->c_seq[i]->state[curr_site],
+	      Init_Tips_At_One_Site_AA_Int(tree->t_nodes[i]->c_seq->state[curr_site],
 					   0,
 					   state_v);
+	      /* Init_Tips_At_One_Site_AA_Int(tree->data->c_seq[i]->state[curr_site], */
+	      /* 				   0, */
+	      /* 				   state_v); */
 	      For(j,tree->mod->ns) tree->t_nodes[i]->b[0]->p_pars_r[curr_site*dim1+j] = MAX_PARS;
 	      For(j,tree->mod->ns) if(state_v[j] > 0.5) tree->t_nodes[i]->b[0]->p_pars_r[curr_site*dim1+j] =  0;
 	    }
 	  else if(tree->io->datatype == GENERIC)
 	    {
-	      Init_Tips_At_One_Site_Generic_Int(tree->data->c_seq[i]->state+curr_site*tree->mod->io->state_len,
+	      Init_Tips_At_One_Site_Generic_Int(tree->t_nodes[i]->c_seq->state+curr_site*tree->mod->io->state_len,
 						tree->mod->ns,
 						tree->mod->io->state_len,
 						0,
 						state_v);
+	      /* Init_Tips_At_One_Site_Generic_Int(tree->data->c_seq[i]->state+curr_site*tree->mod->io->state_len, */
+	      /* 					tree->mod->ns, */
+	      /* 					tree->mod->io->state_len, */
+	      /* 					0, */
+	      /* 					state_v); */
 	      For(j,tree->mod->ns) tree->t_nodes[i]->b[0]->p_pars_r[curr_site*dim1+j] = MAX_PARS;
 	      For(j,tree->mod->ns) if(state_v[j] > 0.5) tree->t_nodes[i]->b[0]->p_pars_r[curr_site*dim1+j] =  0;
 	    }
@@ -183,27 +198,38 @@ void Init_Ui_Tips(t_tree *tree)
 		  Warn_And_Exit("\n");	    
 		}
 
-	      Init_Tips_At_One_Site_Nucleotides_Int(tree->data->c_seq[i]->state[curr_site],
+	      Init_Tips_At_One_Site_Nucleotides_Int(tree->t_nodes[i]->c_seq->state[curr_site],
 						    0,
 						    state_v);	      
+	      /* Init_Tips_At_One_Site_Nucleotides_Int(tree->data->c_seq[i]->state[curr_site], */
+	      /* 					    0, */
+	      /* 					    state_v);	       */
 	      tree->t_nodes[i]->b[0]->ui_r[curr_site] = 0;
 	      For(j,tree->mod->ns) tree->t_nodes[i]->b[0]->ui_r[curr_site] += (unsigned int)(state_v[j] * POW(2,j));
 	    }
 	  else if(tree->io->datatype == AA)
 	    {
-	      Init_Tips_At_One_Site_AA_Int(tree->data->c_seq[i]->state[curr_site],
+	      Init_Tips_At_One_Site_AA_Int(tree->t_nodes[i]->c_seq->state[curr_site],
 					   0,
 					   state_v);
+	      /* Init_Tips_At_One_Site_AA_Int(tree->data->c_seq[i]->state[curr_site], */
+	      /* 				   0, */
+	      /* 				   state_v); */
 	      tree->t_nodes[i]->b[0]->ui_r[curr_site] = 0;
 	      For(j,tree->mod->ns) tree->t_nodes[i]->b[0]->ui_r[curr_site] += (unsigned int)(state_v[j] * POW(2,j));
 	    }
 	  else if(tree->io->datatype == GENERIC)
 	    {
-	      Init_Tips_At_One_Site_Generic_Int(tree->data->c_seq[i]->state+curr_site*tree->mod->io->state_len,
+	      Init_Tips_At_One_Site_Generic_Int(tree->t_nodes[i]->c_seq->state+curr_site*tree->mod->io->state_len,
 						tree->mod->ns,
 						tree->mod->io->state_len,
 						0,
 						state_v);
+	      /* Init_Tips_At_One_Site_Generic_Int(tree->data->c_seq[i]->state+curr_site*tree->mod->io->state_len, */
+	      /* 					tree->mod->ns, */
+	      /* 					tree->mod->io->state_len, */
+	      /* 					0, */
+	      /* 					state_v); */
 	      tree->t_nodes[i]->b[0]->ui_r[curr_site] = 0;
 	      For(j,tree->mod->ns) tree->t_nodes[i]->b[0]->ui_r[curr_site] += (unsigned int)(state_v[j] * POW(2,j));
 	    }
@@ -247,6 +273,14 @@ void Update_P_Pars(t_tree *tree, t_edge *b_fcus, t_node *n)
   int min_v1,min_v2;
   int v;
   int dim1;
+
+
+  if(tree->is_mixt_tree == YES)
+    {
+      MIXT_Update_P_Pars(tree,b_fcus,n);
+      return;
+    }
+
 
   if((tree->io->do_alias_subpatt == YES) && 
      (tree->update_alias_subpatt == YES))
@@ -437,7 +471,7 @@ int One_Pars_Step(t_edge *b,t_tree *tree)
   
   tree->mod->s_opt->general_pars = 0;
   tree->both_sides   = 1;
-  Pars(tree);
+  Pars(NULL,tree);
 
   For(site,tree->n_pattern)
     {
@@ -456,7 +490,7 @@ int One_Pars_Step(t_edge *b,t_tree *tree)
 int Pars_At_Given_Edge(t_edge *b, t_tree *tree)
 {
   int site,n_patterns;
-  
+
 /*   n_patterns = (int)FLOOR(tree->n_pattern*tree->prop_of_sites_to_consider); */
   n_patterns = tree->n_pattern;
 
@@ -477,7 +511,7 @@ int Update_Pars_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
 {
   Update_P_Pars(tree,b_fcus,b_fcus->left);
   Update_P_Pars(tree,b_fcus,b_fcus->rght);
-  tree->c_pars = Pars_At_Given_Edge(b_fcus,tree);
+  tree->c_pars = Pars(b_fcus,tree);
   return tree->c_pars;
 }
 

@@ -56,11 +56,11 @@ int Generic_Brak(phydbl *param,
 
    if(*param > lim_sup) *param = lim_sup;
    if(*param < lim_inf) *param = lim_inf;
-   *fa=-Lk(tree);
+   *fa=-Lk(NULL,tree);
    *param = *bx;
    if(*param > lim_sup) *param = lim_sup;
    if(*param < lim_inf) *param = lim_inf;
-   *fb=-Lk(tree);
+   *fb=-Lk(NULL,tree);
    if (*fb > *fa) {
       SHFT(dum,*ax,*bx,dum)
       SHFT(dum,*fb,*fa,dum)
@@ -69,7 +69,7 @@ int Generic_Brak(phydbl *param,
    *param = FABS(*cx);
    if(*param > lim_sup) *param = lim_sup;
    if(*param < lim_inf) *param = lim_inf;
-   *fc=-Lk(tree); 
+   *fc=-Lk(NULL,tree); 
    while (*fb > *fc) 
      {
         
@@ -93,7 +93,7 @@ int Generic_Brak(phydbl *param,
 	   *param = FABS(u);
 	   if(*param > lim_sup) {*param = u = lim_sup;}
 	   if(*param < lim_inf) {*param = u = lim_inf;}
-	   fu=-Lk(tree);
+	   fu=-Lk(NULL,tree);
 	   if (fu < *fc) 
 	     {
 	       *ax=(*bx);
@@ -118,19 +118,19 @@ int Generic_Brak(phydbl *param,
 	   *param = FABS(u);
 	   if(*param > lim_sup) {*param = u = lim_sup;}
 	   if(*param < lim_inf) {*param = u = lim_inf;}
-	   fu=-Lk(tree);
+	   fu=-Lk(NULL,tree);
 	 } 
        else if ((*cx-u)*(u-ulim) > lim_inf) 
 	 {
 	   *param = FABS(u);
 	   if(*param > lim_sup) {*param = u = lim_sup;}
 	   if(*param < lim_inf) {*param = u = lim_inf;}
-	   fu=-Lk(tree);
+	   fu=-Lk(NULL,tree);
 	   if (fu < *fc) 
 	     {
 	       SHFT(*bx,*cx,u,*cx+MNBRAK_GOLD*(*cx-*bx))
 	       *param = FABS(u); 
-	       SHFT(*fb,*fc,fu,-Lk(tree))
+	       SHFT(*fb,*fc,fu,-Lk(NULL,tree))
 	     }
 	 } 
        else if ((u-ulim)*(ulim-*cx) >= lim_inf) 
@@ -139,7 +139,7 @@ int Generic_Brak(phydbl *param,
 	   *param = FABS(u);
 	   if(*param > lim_sup) {*param = u = lim_sup;}
 	   if(*param < lim_inf) {*param = u = lim_inf;}
-	   fu=-Lk(tree);
+	   fu=-Lk(NULL,tree);
 	 } 
        else 
 	 {
@@ -147,7 +147,7 @@ int Generic_Brak(phydbl *param,
 	   *param = FABS(u);
 	   if(*param > lim_sup) {*param = u = lim_sup;}
 	   if(*param < lim_inf) {*param = u = lim_inf;}
-	   fu=-Lk(tree);
+	   fu=-Lk(NULL,tree);
 	 }
        SHFT(*ax,*bx,*cx,u)
        SHFT(*fa,*fb,*fc,fu)
@@ -180,7 +180,7 @@ phydbl Generic_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
   x=w=v=bx;
   old_lnL = UNLIKELY;
   (*xmin) = FABS(bx);
-  fw=fv=fx=-Lk(tree);
+  fw=fv=fx=-Lk(NULL,tree);
   init_lnL = -fw;
 
 /*   PhyML_Printf("\n. init_lnL = %f a=%f b=%f c=%f\n",init_lnL,ax,bx,cx); */
@@ -194,7 +194,7 @@ phydbl Generic_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
       if(FABS(x - xm) <= (tol2 - 0.5 * (b - a)))
 	{
 	  *xmin = x;
-	  Lk(tree);
+	  Lk(NULL,tree);
 	  if(tree->c_lnL < init_lnL - tree->mod->s_opt->min_diff_lk_local)
 	    {
 	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
@@ -235,7 +235,7 @@ phydbl Generic_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
       u=(FABS(d) >= tol1 ? x+d : x+SIGN(tol1,d));
       (*xmin) = FABS(u);
       old_lnL = tree->c_lnL;
-      fu = -Lk(tree);
+      fu = -Lk(NULL,tree);
       
 /*       PhyML_Printf("\n. iter=%d/%d param=%f LOGlk=%f",iter,BRENT_ITMAX,*xmin,tree->c_lnL); */
 
@@ -298,11 +298,11 @@ phydbl RRparam_GTR_Golden(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
      }
    (*param)=x1;
 
-   Lk(tree);
+   Lk(NULL,tree);
    f1=-tree->c_lnL;
    (*param)=x2;
 
-   Lk(tree);
+   Lk(NULL,tree);
    f2=-tree->c_lnL;
 
    n_iter = 0;
@@ -313,14 +313,14 @@ phydbl RRparam_GTR_Golden(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 	 {
 	   SHFT3(x0,x1,x2,GOLDEN_R*x1+GOLDEN_C*x3)
 	   (*param)=x2;
-	   Lk(tree);
+	   Lk(NULL,tree);
 	   SHFT2(f1,f2,-tree->c_lnL)
 	 } 
        else 
 	 {
 	   SHFT3(x3,x2,x1,GOLDEN_R*x2+GOLDEN_C*x0)
 	   (*param)=x1;
-	   Lk(tree);
+	   Lk(NULL,tree);
 	   SHFT2(f2,f1,-tree->c_lnL)
 	 }
        
@@ -363,22 +363,22 @@ phydbl Br_Len_Golden(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
      }
    
    b_fcus->l->v=x1;
-   f1 = -Lk_At_Given_Edge(b_fcus,tree);
+   f1 = -Lk(b_fcus,tree);
    b_fcus->l->v=x2;
-   f2 = -Lk_At_Given_Edge(b_fcus,tree);
+   f2 = -Lk(b_fcus,tree);
    while (FABS(x3-x0) > tol*(FABS(x1)+FABS(x2))) 
      {
        if (f2 < f1) 
 	 {
 	   SHFT3(x0,x1,x2,GOLDEN_R*x1+GOLDEN_C*x3)
 	   b_fcus->l->v=x2;
-	   SHFT2(f1,f2,-Lk_At_Given_Edge(b_fcus,tree))
+	   SHFT2(f1,f2,-Lk(b_fcus,tree))
 	 } 
        else 
 	 {
 	   SHFT3(x3,x2,x1,GOLDEN_R*x2+GOLDEN_C*x0)
 	   b_fcus->l->v=x1;
-	   SHFT2(f2,f1,-Lk_At_Given_Edge(b_fcus,tree))
+	   SHFT2(f2,f1,-Lk(b_fcus,tree))
 	 }
      }
    if (f1 < f2) 
@@ -404,16 +404,16 @@ int Br_Len_Brak(phydbl *ax, phydbl *bx, phydbl *cx,
    phydbl ulim,u,r,q,fu,dum;
 
    b_fcus->l->v = *ax;
-   *fa=-Lk_At_Given_Edge(b_fcus,tree);
+   *fa=-Lk(b_fcus,tree);
    b_fcus->l->v = *bx;
-   *fb=-Lk_At_Given_Edge(b_fcus,tree);
+   *fb=-Lk(b_fcus,tree);
    if (*fb > *fa) {
       SHFT(dum,*ax,*bx,dum)
       SHFT(dum,*fb,*fa,dum)
    }
    *cx=(*bx)+MNBRAK_GOLD*(*bx-*ax);
    b_fcus->l->v = *cx;
-   *fc=-Lk_At_Given_Edge(b_fcus,tree);
+   *fc=-Lk(b_fcus,tree);
    while (*fb > *fc + tree->mod->s_opt->min_diff_lk_local) 
      {
        PhyML_Printf("fb=%f fc=%f\n",*fb,*fc);
@@ -426,7 +426,7 @@ int Br_Len_Brak(phydbl *ax, phydbl *bx, phydbl *cx,
        if ((*bx-u)*(u-*cx) > 0.0) 
 	 {
 	   b_fcus->l->v = u;
-	   fu=-Lk_At_Given_Edge(b_fcus,tree);
+	   fu=-Lk(b_fcus,tree);
 	   if (fu < *fc) 
 	     {
 	       *ax=(*bx);
@@ -449,30 +449,30 @@ int Br_Len_Brak(phydbl *ax, phydbl *bx, phydbl *cx,
 	     }
 	   u=(*cx)+MNBRAK_GOLD*(*cx-*bx);
 	   b_fcus->l->v = u;
-	   fu=-Lk_At_Given_Edge(b_fcus,tree);
+	   fu=-Lk(b_fcus,tree);
 	 } 
        else if ((*cx-u)*(u-ulim) > 0.0) 
 	 {
 	   b_fcus->l->v = FABS(u);
-	   fu=-Lk_At_Given_Edge(b_fcus,tree);
+	   fu=-Lk(b_fcus,tree);
 	   if (fu < *fc) 
 	     {
 	       SHFT(*bx,*cx,u,*cx+MNBRAK_GOLD*(*cx-*bx))
 	       b_fcus->l->v = u; 
-	       SHFT(*fb,*fc,fu,-Lk_At_Given_Edge(b_fcus,tree))
+	       SHFT(*fb,*fc,fu,-Lk(b_fcus,tree))
 	     }
 	 } 
        else if ((u-ulim)*(ulim-*cx) >= 0.0) 
 	 {
 	   u=ulim;
 	   b_fcus->l->v = u;
-	   fu=-Lk_At_Given_Edge(b_fcus,tree);
+	   fu=-Lk(b_fcus,tree);
 	 } 
        else 
 	 {
 	   u=(*cx)+MNBRAK_GOLD*(*cx-*bx);
 	   b_fcus->l->v = u;
-	   fu=-Lk_At_Given_Edge(b_fcus,tree);
+	   fu=-Lk(b_fcus,tree);
 	 }
        SHFT(*ax,*bx,*cx,u)
        SHFT(*fa,*fb,*fc,fu)
@@ -495,121 +495,143 @@ phydbl Br_Len_Brent_Default(t_edge *b_fcus, t_tree *tree)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
 phydbl Br_Len_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 		    t_edge *b_fcus, t_tree *tree, int n_iter_max, int quickdirty)
 {
-  int iter;
-  phydbl a,b,d,etemp,fu,fv,fw,fx,p,q,r,tol1,tol2,u,v,w,x,xm;
-  phydbl e=0.0;
-  phydbl old_lnL, init_lnL;
+  /* int iter; */
+  /* phydbl a,b,d,etemp,fu,fv,fw,fx,p,q,r,tol1,tol2,u,v,w,x,xm; */
+  /* phydbl e=0.0; */
+  /* phydbl old_lnL, init_lnL; */
+
+  if(tree->is_mixt_tree)
+    {
+      MIXT_Br_Len_Brent(b_fcus,tree,n_iter_max,quickdirty);
+      return tree->c_lnL;
+    }
+
   
+  if(b_fcus->l->onoff == OFF) return tree->c_lnL;
+
   if(tree->mod->gamma_mgf_bl == YES)
     {
-      Generic_Brent_Lk(&(b_fcus->gamma_prior_var),
-      		       0.0,1000.,
-      		       tree->mod->s_opt->min_diff_lk_local,
-      		       tree->mod->s_opt->brent_it_max,
-      		       tree->mod->s_opt->quickdirty,
-      		       Wrap_Lk_At_Given_Edge,b_fcus,tree,NULL);
-
+      return
+	Generic_Brent_Lk(&(b_fcus->gamma_prior_var),
+			 0.0,1000.,
+			 tree->mod->s_opt->min_diff_lk_local,
+			 tree->mod->s_opt->brent_it_max,
+			 tree->mod->s_opt->quickdirty,
+			 Wrap_Lk_At_Given_Edge,b_fcus,tree,NULL);
     }
-      
-  d=0.0;
-  a=((ax < cx) ? ax : cx);
-  b=((ax > cx) ? ax : cx);
-  x=w=v=bx;
-  old_lnL = UNLIKELY;
-  b_fcus->l->v = bx;
-  fw=fv=fx=fu=-Lk_At_Given_Edge(b_fcus,tree);
-  init_lnL = -fw;
-  
-  /* PhyML_Printf("\n. INIT BRENT t_edge %3d l=%f lnL=%20f",b_fcus->num,b_fcus->l->v,fu); */
-  
-  for(iter=1;iter<=BRENT_ITMAX;iter++)
+  else
     {
-      xm=0.5*(a+b);
-      tol2=2.0*(tol1=tol*x+BRENT_ZEPS);
-      
-      if((tree->c_lnL > init_lnL + tol) && (quickdirty))
-	{
-	  b_fcus->l->v = x;
-	  Lk_At_Given_Edge(b_fcus,tree);
-	  /* 	  PhyML_Printf("\n> iter=%3d max=%3d v=%f lnL=%f init_lnL=%f tol=%f",iter,n_iter_max,(*xmin),tree->c_lnL,init_lnL,tol); */
-	  /* 	  Exit("\n"); */
-	  return tree->c_lnL;	  
-	}
-      
-      /*       if(((FABS(tree->c_lnL-old_lnL) < tol) && (tree->c_lnL > init_lnL - tol)) || (iter > n_iter_max - 1)) */
-      if((FABS(tree->c_lnL-old_lnL) < tol) || (iter > n_iter_max - 1))
-	{
-	  b_fcus->l->v=x;
-	  Lk_At_Given_Edge(b_fcus,tree);
-	  /* 	  PhyML_Printf("\n. iter=%3d max=%3d l=%f lnL=%f init_lnL=%f",iter,n_iter_max,b_fcus->l->v,tree->c_lnL,init_lnL); */
-	  /* 	  Exit("\n"); */
-	  return tree->c_lnL;
-	}
-      
-      if(FABS(e) > tol1)
-	{
-	  r=(x-w)*(fx-fv);
-	  q=(x-v)*(fx-fw);
-	  p=(x-v)*q-(x-w)*r;
-	  q=2.0*(q-r);
-	  if(q > 0.0) p = -p;
-	  q=FABS(q);
-	  etemp=e;
-	  e=d;
-	  if(FABS(p) >= FABS(0.5*q*etemp) || p <= q*(a-x) || p >= q*(b-x))
-	    d=BRENT_CGOLD*(e=(x >= xm ? a-x : b-x));
-	  else{
-	    d=p/q;
-	    u=x+d;
-	    if (u-a < tol2 || b-u < tol2)
-	      d=SIGN(tol1,xm-x);
-	  }
-	}
-      else
-	{
-	  d=BRENT_CGOLD*(e=(x >= xm ? a-x : b-x));
-	}
-      u=(FABS(d) >= tol1 ? x+d : x+SIGN(tol1,d));
-      /*       if(u<tree->l_min) u = tree->l_min; */
-      b_fcus->l->v=u;
-      old_lnL = tree->c_lnL;
-      fu=-Lk_At_Given_Edge(b_fcus,tree);
-      
-      /* PhyML_Printf("\n. BRENT t_edge %3d l=%f lnL=%20f iter=%3d",b_fcus->num,b_fcus->l->v,fu,iter); */
-      
-      /*       if(fu <= fx) */
-      if(fu < fx)
-	{
-	  if(u > x) a=x; else b=x;
-	  /* 	  if(u >= x) a=x; else b=x; */
-	  SHFT(v,w,x,u)
-	    SHFT(fv,fw,fx,fu)
-	    }
-      else
-	{
-	  if (u < x) a=u; else b=u;
-	  /* 	  if (fu <= fw || w == x) */
-	  if (fu < fw || FABS(w-x) < SMALL)
-	    {
-	      v=w;
-	      w=u;
-	      fv=fw;
-	      fw=fu;
-	    }
-	  else if (fu < fv || FABS(v-x) < SMALL || FABS(v-w) < SMALL)
-	    /* 	  else if (fu <= fv || v == x || v == w)  */
-	    {
-	      v=u;
-	      fv=fu;
-	    }
-	}
+      return
+	Generic_Brent_Lk(&(b_fcus->l->v),
+			 tree->mod->l_min,
+			 tree->mod->l_max,
+			 tree->mod->s_opt->min_diff_lk_local,
+			 tree->mod->s_opt->brent_it_max,
+			 tree->mod->s_opt->quickdirty,
+			 Wrap_Lk_At_Given_Edge,
+			 b_fcus->parent?b_fcus->parent:b_fcus,
+			 tree->parent?tree->parent:tree,NULL);
     }
-  if(iter > BRENT_ITMAX) PhyML_Printf("\n. Too many iterations in BRENT (%d) (%f)",iter,b_fcus->l->v);      
-  return(-1);
+
+
+  /* d=0.0; */
+  /* a=((ax < cx) ? ax : cx); */
+  /* b=((ax > cx) ? ax : cx); */
+  /* x=w=v=bx; */
+  /* old_lnL = UNLIKELY; */
+  /* b_fcus->l->v = bx; */
+  /* fw=fv=fx=fu=-Lk(b_fcus,tree); */
+  /* init_lnL = -fw; */
+  
+  /* /\* PhyML_Printf("\n. INIT BRENT t_edge %3d l=%f lnL=%20f",b_fcus->num,b_fcus->l->v,fu); *\/ */
+  
+  /* for(iter=1;iter<=BRENT_ITMAX;iter++) */
+  /*   { */
+  /*     xm=0.5*(a+b); */
+  /*     tol2=2.0*(tol1=tol*x+BRENT_ZEPS); */
+      
+  /*     if((tree->c_lnL > init_lnL + tol) && (quickdirty)) */
+  /* 	{ */
+  /* 	  b_fcus->l->v = x; */
+  /* 	  Lk(b_fcus,tree); */
+  /* 	  /\* PhyML_Printf("\nX iter=%3d max=%3d v=%f lnL=%f init_lnL=%f tol=%f",iter,n_iter_max,(*xmin),tree->c_lnL,init_lnL,tol); *\/ */
+  /* 	  /\* 	  Exit("\n"); *\/ */
+  /* 	  return tree->c_lnL;	   */
+  /* 	} */
+      
+  /*     /\*       if(((FABS(tree->c_lnL-old_lnL) < tol) && (tree->c_lnL > init_lnL - tol)) || (iter > n_iter_max - 1)) *\/ */
+  /*     if((FABS(tree->c_lnL-old_lnL) < tol) || (iter > n_iter_max - 1)) */
+  /* 	{ */
+  /* 	  b_fcus->l->v=x; */
+  /* 	  Lk(b_fcus,tree); */
+  /* 	  /\* PhyML_Printf("\nXX iter=%3d max=%3d l=%f lnL=%f init_lnL=%f",iter,n_iter_max,b_fcus->l->v,tree->c_lnL,init_lnL); *\/ */
+  /* 	  /\* 	  Exit("\n"); *\/ */
+  /* 	  return tree->c_lnL; */
+  /* 	} */
+      
+  /*     if(FABS(e) > tol1) */
+  /* 	{ */
+  /* 	  r=(x-w)*(fx-fv); */
+  /* 	  q=(x-v)*(fx-fw); */
+  /* 	  p=(x-v)*q-(x-w)*r; */
+  /* 	  q=2.0*(q-r); */
+  /* 	  if(q > 0.0) p = -p; */
+  /* 	  q=FABS(q); */
+  /* 	  etemp=e; */
+  /* 	  e=d; */
+  /* 	  if(FABS(p) >= FABS(0.5*q*etemp) || p <= q*(a-x) || p >= q*(b-x)) */
+  /* 	    d=BRENT_CGOLD*(e=(x >= xm ? a-x : b-x)); */
+  /* 	  else{ */
+  /* 	    d=p/q; */
+  /* 	    u=x+d; */
+  /* 	    if (u-a < tol2 || b-u < tol2) */
+  /* 	      d=SIGN(tol1,xm-x); */
+  /* 	  } */
+  /* 	} */
+  /*     else */
+  /* 	{ */
+  /* 	  d=BRENT_CGOLD*(e=(x >= xm ? a-x : b-x)); */
+  /* 	} */
+  /*     u=(FABS(d) >= tol1 ? x+d : x+SIGN(tol1,d)); */
+  /*     /\*       if(u<tree->l_min) u = tree->l_min; *\/ */
+  /*     b_fcus->l->v=u; */
+  /*     old_lnL = tree->c_lnL; */
+  /*     fu=-Lk(b_fcus,tree); */
+      
+  /*     /\* PhyML_Printf("\n. BRENT t_edge %3d l=%f lnL=%20f iter=%3d",b_fcus->num,b_fcus->l->v,fu,iter); *\/ */
+      
+  /*     /\*       if(fu <= fx) *\/ */
+  /*     if(fu < fx) */
+  /* 	{ */
+  /* 	  if(u > x) a=x; else b=x; */
+  /* 	  /\* 	  if(u >= x) a=x; else b=x; *\/ */
+  /* 	  SHFT(v,w,x,u) */
+  /* 	    SHFT(fv,fw,fx,fu) */
+  /* 	    } */
+  /*     else */
+  /* 	{ */
+  /* 	  if (u < x) a=u; else b=u; */
+  /* 	  /\* 	  if (fu <= fw || w == x) *\/ */
+  /* 	  if (fu < fw || FABS(w-x) < SMALL) */
+  /* 	    { */
+  /* 	      v=w; */
+  /* 	      w=u; */
+  /* 	      fv=fw; */
+  /* 	      fw=fu; */
+  /* 	    } */
+  /* 	  else if (fu < fv || FABS(v-x) < SMALL || FABS(v-w) < SMALL) */
+  /* 	    /\* 	  else if (fu <= fv || v == x || v == w)  *\/ */
+  /* 	    { */
+  /* 	      v=u; */
+  /* 	      fv=fu; */
+  /* 	    } */
+  /* 	} */
+  /*   } */
+  /* if(iter > BRENT_ITMAX) PhyML_Printf("\n. Too many iterations in BRENT (%d) (%f)",iter,b_fcus->l->v);       */
+  /* return(-1); */
   /* Not Reached ??  *xmin=x;   */
   /* Not Reached ??  return fx; */
 }
@@ -631,8 +653,8 @@ void Round_Optimize(t_tree *tree, calign *data, int n_round_max)
   tol = 1.e-2;
   root = tree->t_nodes[0];
   
-  tree->both_sides = 1;
-  Lk(tree);
+  tree->both_sides = YES;
+  Lk(NULL,tree);
 
   while(n_round < n_round_max)
     {     
@@ -644,24 +666,23 @@ void Round_Optimize(t_tree *tree, calign *data, int n_round_max)
 
       if(tree->mod->s_opt->opt_bl || tree->mod->s_opt->constrained_br_len)
 	Optimize_Br_Len_Serie(root,root->v[0],root->b[0],tree,data);
-
       
-      tree->both_sides = 1;
-      Lk(tree);
+      tree->both_sides = YES;
+      Lk(NULL,tree);
 
       if(!each)
 	{
 	  each = 1;
 	  Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
-	  tree->both_sides = 1;
-	  Lk(tree);
+	  tree->both_sides = YES;
+	  Lk(NULL,tree);
 	}
       
       lk_new = tree->c_lnL;      
       if(lk_new < lk_old - tree->mod->s_opt->min_diff_lk_global) 
 	{
-	  PhyML_Printf("\n. lk_new = %f lk_old = %f diff = %f",lk_new,lk_old,lk_new-lk_old);
-	  Exit("\n. Optimisation failed ! (Round_Optimize)\n");
+	  PhyML_Printf("\n== lk_new = %f lk_old = %f diff = %f",lk_new,lk_old,lk_new-lk_old);
+	  Exit("\n== Optimisation failed ! (Round_Optimize)\n");
 	}
       if(FABS(lk_new - lk_old) < tree->mod->s_opt->min_diff_lk_global)  break;
       else lk_old  = lk_new;
@@ -701,8 +722,7 @@ void Optimize_Br_Len_Serie(t_node *a, t_node *d, t_edge *b_fcus, t_tree *tree, c
 
       return;
     }
-    
-  
+
   l_max  = b_fcus->l->v;
   l_infa = tree->mod->l_max;
   l_infb = tree->mod->l_min;
@@ -773,7 +793,7 @@ void Optimiz_Ext_Br(t_tree *tree)
 	  l_init = b->l->v;
 
 /* 	  Fast_Br_Len(b,tree); */
-/* 	  lk = Lk_At_Given_Edge(tree,b); */
+/* 	  lk = Lk(NULL,tree,b); */
 
 	  l_infa = 10.*b->l->v;
 	  l_max  = b->l->v;
@@ -803,72 +823,16 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 {
   int  init_both_sides;
 
+  if(!tree) return;
+  if(tree->parent && tree->mod->ras->invar == YES) return;
+
   init_both_sides  = tree->both_sides;
-  tree->both_sides = 0;
-
-
-
-  if((tree->mod->whichmodel == GTR) ||
-     ((tree->mod->whichmodel == CUSTOM) && 
-      (tree->mod->s_opt->opt_rr) && 
-      (tree->mod->r_mat->n_diff_rr > 1)))
-    {
-      int failed;
-      
-      failed = 0;
-      
-      tree->mod->update_eigen = 1;
-      BFGS(tree,tree->mod->r_mat->rr_val->v,tree->mod->r_mat->n_diff_rr,1.e-5,1.e-3,
-	   &Return_Abs_Lk,
-	   &Num_Derivative_Several_Param,
-	   &Lnsrch_RR_Param,&failed);
-      
-      if(failed)
-	{
-	  int i;
-	  
-	  For(i,tree->mod->r_mat->n_diff_rr)
-	    if(i != 5)
-	      {
-/* 		Optimize_Single_Param_Generic(tree,&(tree->mod->r_mat->rr_val[i]), */
-/* 					      1.E-2,1.E+2, */
-/* 					      tree->mod->s_opt->min_diff_lk_global, */
-/* 					      tree->mod->s_opt->brent_it_max, */
-/* 					      tree->mod->s_opt->quickdirty); */
-
-		Generic_Brent_Lk(&(tree->mod->r_mat->rr_val->v[i]),
-				 1.E-2,1.E+2,
-				 tree->mod->s_opt->min_diff_lk_global,
-				 tree->mod->s_opt->brent_it_max,
-				 tree->mod->s_opt->quickdirty,
-				 Wrap_Lk,NULL,tree,NULL);
-		
-	      }
-
-	}
-      if(verbose) Print_Lk(tree,"[GTR parameters     ]");
-      tree->mod->update_eigen = 0;
-    }
+  tree->both_sides = NO;
   
-  if(tree->mod->s_opt->opt_kappa)
-    {
-      tree->mod->update_eigen = 1;
+  Optimize_RR_Params(tree,verbose);
 
-      Generic_Brent_Lk(&(tree->mod->kappa->v),
-		       0.1,100.,
-		       tree->mod->s_opt->min_diff_lk_global,
-		       tree->mod->s_opt->brent_it_max,
-		       tree->mod->s_opt->quickdirty,
-		       Wrap_Lk,NULL,tree,NULL);
-      
-      if(verbose) 
-	{
-	  Print_Lk(tree,"[Ts/ts ratio        ]");
-	  PhyML_Printf("[%10f]",tree->mod->kappa->v);
-	}
-      tree->mod->update_eigen = 0;
-    }
-
+  Optimize_TsTv(tree,verbose);
+  
   if(tree->mod->s_opt->opt_lambda) 
     {
 /*       Optimize_Single_Param_Generic(tree,&(tree->mod->lambda->v),.001,100., */
@@ -926,7 +890,6 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
       
       if(tree->mod->s_opt->opt_alpha && tree->mod->ras->free_mixt_rates == NO)
 	{
-
 	  if(tree->mod->ras->n_catg > 1)
 	    Generic_Brent_Lk(&(tree->mod->ras->alpha->v),
 			     tree->mod->ras->alpha->v/2.,tree->mod->ras->alpha->v*2.,
@@ -948,11 +911,13 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
         int failed,i;
         
         failed = 0;
-        tree->mod->update_eigen = 1;
+	
+	Switch_Eigen(YES,tree->mod);
+
         BFGS(tree,tree->mod->e_frq->pi_unscaled->v,tree->mod->ns,1.e-5,1.e-5,
 	     &Return_Abs_Lk,
 	     &Num_Derivative_Several_Param,
-	     &Lnsrch_Nucleotide_Frequencies,&failed);
+	     &Lnsrch,&failed);
 
         if(failed)
 	  {
@@ -971,8 +936,10 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 				 Wrap_Lk,NULL,tree,NULL);
 	      }
 	  }
+
 	if(verbose) Print_Lk(tree,"[Nucleotide freqs.  ]");
-        tree->mod->update_eigen = 0;
+
+	Switch_Eigen(NO,tree->mod);
     }
 
 
@@ -983,14 +950,13 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
       int i;
         
       /* failed = 0; */
-      /* tree->mod->update_eigen = 1; */
+      /* Switch_Eigen(YES,mod); */
       /* BFGS(tree,tree->mod->ras->gamma_r_proba_unscaled,tree->mod->ras->n_catg,1.e-5,1.e-5, */
       /* 	   &Return_Abs_Lk, */
       /* 	   &Num_Derivative_Several_Param, */
-      /* 	   &Lnsrch_Free_Mixt_Rates,&failed); */
+      /* 	   &Lnsrch,&failed); */
 
       if(verbose) Print_Lk(tree,"[Rate class freqs.  ]");
-
 
       /* For(i,tree->mod->ras->n_catg-1) */
       /* 	{ */
@@ -1036,9 +1002,6 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 			   tree->mod->s_opt->quickdirty,
 			   Wrap_Lk,NULL,tree,NULL);
 	}
-
-
-      tree->mod->update_eigen = 0;
     }
 
 
@@ -1049,7 +1012,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 
       if(tree->mod->s_opt->opt_cov_delta) 
 	{
-	  tree->mod->update_eigen = YES;
+	  Switch_Eigen(YES,tree->mod);
 
 /* 	  Optimize_Single_Param_Generic(tree,&(tree->mod->m4mod->delta), */
 /* 					0.01,10., */
@@ -1069,7 +1032,9 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 	      Print_Lk(tree,"[Switching param.   ]");
 	      PhyML_Printf("[%10f]",tree->mod->m4mod->delta);
 	    }
-	  tree->mod->update_eigen = NO;
+
+	  Switch_Eigen(NO,tree->mod);
+
 	}
 
       
@@ -1077,7 +1042,8 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 	{
 	  int rcat;
 	  
-	  tree->mod->update_eigen = YES;
+	  Switch_Eigen(YES,tree->mod);
+
 	  For(rcat,tree->mod->m4mod->n_h)
 	    {
 /* 	      Optimize_Single_Param_Generic(tree,&(tree->mod->m4mod->multipl_unscaled[rcat]), */
@@ -1123,12 +1089,16 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 		  PhyML_Printf("[%10f]",tree->mod->m4mod->h_fq[rcat]);
 		}
 	    }
-	  tree->mod->update_eigen = NO;      
+
+	  Switch_Eigen(NO,tree->mod);
+
 	}
       
       if(tree->mod->s_opt->opt_cov_alpha) 
 	{
-	  tree->mod->update_eigen = 1;
+
+	  Switch_Eigen(YES,tree->mod);
+
 /* 	  Optimize_Single_Param_Generic(tree,&(tree->mod->m4mod->ras->alpha), */
 /* 					.01,10., */
 /* 					tree->mod->s_opt->min_diff_lk_global, */
@@ -1148,7 +1118,9 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 	      Print_Lk(tree,"[Alpha (covarion)   ]");
 	      PhyML_Printf("[%10f]",tree->mod->m4mod->alpha);
 	    }
-	  tree->mod->update_eigen = 0;      	  
+
+	  Switch_Eigen(NO,tree->mod);
+
 	}
       
 	  
@@ -1161,11 +1133,13 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 	     tree->mod->whichmodel == CUSTOM)
 	    {
 	      failed = 0;
-	      tree->mod->update_eigen = 1;
+
+	      Switch_Eigen(YES,tree->mod);
+
 	      BFGS(tree,tree->mod->m4mod->o_rr,5,1.e-5,1.e-5,
 		   &Return_Abs_Lk,
 		   &Num_Derivative_Several_Param,
-		   &Lnsrch_RR_Cov_Param,&failed);
+		   &Lnsrch,&failed);
 	    }
 	  
 	  if(failed)
@@ -1188,13 +1162,19 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 		}
 	    }
 	  if(verbose) Print_Lk(tree,"[GTR parameters     ]");
-	  tree->mod->update_eigen = 0;
+
+	  Switch_Eigen(NO,tree->mod);
+	      
 	}
     }
 
   tree->both_sides = init_both_sides;
 
-  if(tree->both_sides) Lk(tree); /* Needed to update all partial likelihoods */
+  if(tree->both_sides) Lk(NULL,tree); /* Needed to update all partial likelihoods */
+
+
+  /* if(tree->child) Optimiz_All_Free_Param(tree->child,verbose); */
+  /* else            Optimiz_All_Free_Param(tree->next,verbose); */
 
   /* if(tree->nextree) Optimiz_All_Free_Param(tree->nextree,verbose); */
 }
@@ -1232,7 +1212,7 @@ void BFGS(t_tree *tree,
   xi   = (phydbl *)mCalloc(n,sizeof(phydbl ));
   
 
-/*   PhyML_Printf("\n. ENTER BFGS WITH: %f\n",Lk(tree)); */
+  /* PhyML_Printf("\n. ENTER BFGS WITH: %f\n",Lk(NULL,tree)); */
 
   fp=(*func)(tree);
   (*dfunc)(tree,p,n,step_size,func,g);
@@ -1249,9 +1229,11 @@ void BFGS(t_tree *tree,
 
   for(its=1;its<=ITMAX;its++) 
     {
+
       lnsrch(tree,n,p,fp,g,xi,pnew,&fret,stpmax,&check);
 
-/*       PhyML_Printf("BFGS -> %f\n",tree->c_lnL); */
+
+      /* PhyML_Printf("BFGS -> %f\n",tree->c_lnL); */
 
       fp = fret;
       
@@ -1265,6 +1247,7 @@ void BFGS(t_tree *tree,
       for (i=0;i<n;i++) 
 	{
 	  temp=FABS(xi[i])/MAX(FABS(p[i]),1.0);
+	  /* printf("\n. x[i]=%f p[i]=%f",xi[i],p[i]); */
 	  if (temp > test) test=temp;
 	}
       if (test < TOLX) 
@@ -1371,9 +1354,9 @@ void BFGS(t_tree *tree,
 #define ALF 1.0e-4
 #define TOLX 1.0e-7
 
-int Lnsrch_RR_Param(t_tree *tree, int n, phydbl *xold, phydbl fold, 
-		    phydbl *g, phydbl *p, phydbl *x,
-		    phydbl *f, phydbl stpmax, int *check)
+int Lnsrch(t_tree *tree, int n, phydbl *xold, phydbl fold, 
+	   phydbl *g, phydbl *p, phydbl *x,
+	   phydbl *f, phydbl stpmax, int *check)
 {
   int i;
   phydbl a,alam,alam2,alamin,b,disc,f2,fold2,rhs1,rhs2,slope,sum,temp,test,tmplam;
@@ -1404,14 +1387,9 @@ int Lnsrch_RR_Param(t_tree *tree, int n, phydbl *xold, phydbl fold,
       for(i=0;i<n;i++) 
 	{
 	  x[i]=FABS(local_xold[i]+alam*p[i]);
+	  //
+	  xold[i] = x[i];
 	}
-
-      /**/
-      for(i=0;i<n;i++)
-	{
-	  tree->mod->r_mat->rr_val->v[i] = FABS(local_xold[i]+alam*p[i]);
-	}
-      /**/
 
       if(i==n) 
 	{
@@ -1420,17 +1398,6 @@ int Lnsrch_RR_Param(t_tree *tree, int n, phydbl *xold, phydbl fold,
       else *f=1.+fold+ALF*alam*slope;
       if (alam < alamin)
 	{
-	  for (i=0;i<n;i++) 
-	    {
-	      x[i]=FABS(local_xold[i]);
-	    }
-	  /**/      
-	  for(i=0;i<n;i++)
-	    {
-	      tree->mod->r_mat->rr_val->v[i] = FABS(local_xold[i]);
-	    }
-	  /**/
-
 	  *check=1;
 	  For(i,n) xold[i] = local_xold[i];
 	  Free(local_xold);
@@ -1472,343 +1439,6 @@ int Lnsrch_RR_Param(t_tree *tree, int n, phydbl *xold, phydbl fold,
   Free(local_xold);
   return 1;
 }
-
-#undef ALF
-#undef TOLX
-#undef NRANSI
-
-//////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
-
-
-#define ALF 1.0e-4
-#define TOLX 1.0e-7
-
-int Lnsrch_RR_Cov_Param(t_tree *tree, int n, phydbl *xold, phydbl fold, 
-			phydbl *g, phydbl *p, phydbl *x,
-			phydbl *f, phydbl stpmax, int *check)
-{
-  int i;
-  phydbl a,alam,alam2,alamin,b,disc,f2,fold2,rhs1,rhs2,slope,sum,temp,test,tmplam;
-  phydbl *local_xold;
-
-  alam = alam2 = f2 = fold2 = tmplam = .0;
-
-  local_xold = (phydbl *)mCalloc(n,sizeof(phydbl));
-  For(i,n) local_xold[i] = xold[i];
-
-
-  *check=0;
-  for(sum=0.0,i=0;i<n;i++) sum += p[i]*p[i];
-  sum=SQRT(sum);
-  if(sum > stpmax)
-    for(i=0;i<n;i++) p[i] *= stpmax/sum;
-  for(slope=0.0,i=0;i<n;i++)
-    slope += g[i]*p[i];
-  test=0.0;
-  for(i=0;i<n;i++) 
-    {
-      temp=FABS(p[i])/MAX(FABS(local_xold[i]),1.0);
-      if (temp > test) test=temp;
-    }
-  alamin=TOLX/test;
-  alam=1.0;
-  for (;;) 
-    {
-      for(i=0;i<n;i++) 
-	{
-	  x[i]=FABS(local_xold[i]+alam*p[i]);
-	}
-
-      /**/
-      for(i=0;i<n;i++)
-	{
-	  tree->mod->m4mod->o_rr[i] = FABS(local_xold[i]+alam*p[i]);
-	}
-      /**/
-
-      if(i==n) 
-	{
-	  *f=Return_Abs_Lk(tree);
-/* 	  PhyML_Printf("LOGlk = %f\n",*f); */
-	}
-      else *f=1.+fold+ALF*alam*slope;
-      if (alam < alamin)
-	{
-	  for (i=0;i<n;i++) 
-	    {
-	      x[i]=FABS(local_xold[i]);
-	    }
-	  /**/      
-	  for(i=0;i<n;i++)
-	    {
-	      tree->mod->m4mod->o_rr[i] = FABS(local_xold[i]);
-	    }
-	  /**/
-
-	  *check=1;
-	  For(i,n) xold[i] = local_xold[i];
-	  Free(local_xold);
-	  return 0;
-	} 
-      else if (*f <= fold+ALF*alam*slope) 
-	{
-	  For(i,n) xold[i] = local_xold[i];
-	  Free(local_xold); 
-	  return 0;
-	}
-      else 
-	{
-/* 	  if (alam == 1.0) */
-	  if ((alam < 1.0+SMALL) && (alam > 1.0-SMALL))
-	    tmplam = -slope/(2.0*(*f-fold-slope));
-	  else 
-	    {
-	      rhs1 = *f-fold-alam*slope;
-	      rhs2=f2-fold2-alam2*slope;
-	      a=(rhs1/(alam*alam)-rhs2/(alam2*alam2))/(alam-alam2);
-	      b=(-alam2*rhs1/(alam*alam)+alam*rhs2/(alam2*alam2))/(alam-alam2);
-/* 	      if (a == 0.0) tmplam = -slope/(2.0*b); */
-	      if (a < SMALL && a > -SMALL) tmplam = -slope/(2.0*b);
-	      else 
-		{
-		  disc=b*b-3.0*a*slope;
-		  if (disc<0.0) tmplam = 0.5*alam;
-		  else if(b <= 0.0) tmplam=(-b+SQRT(disc))/(3.0*a);
-		  else tmplam = -slope/(b+SQRT(disc));
-		}
-	      if (tmplam>0.5*alam) tmplam=0.5*alam;
-	    }
-	}
-      alam2=alam;
-      f2 = *f;
-      fold2=fold;
-      alam=MAX(tmplam,0.1*alam);
-    }
-  Free(local_xold);
-  return 1;
-}
-
-#undef ALF
-#undef TOLX
-#undef NRANSI
-
-//////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
-
-
-#define ALF 1.0e-4
-#define TOLX 1.0e-7
-
-int Lnsrch_Nucleotide_Frequencies(t_tree *tree, int n, phydbl *xold, phydbl fold, phydbl *g, phydbl *p, phydbl *x,
-				   phydbl *f, phydbl stpmax, int *check)
-{
-  int i;
-  phydbl a,alam,alam2,alamin,b,disc,f2,fold2,rhs1,rhs2,slope,sum,temp,test,tmplam;
-  phydbl *local_xold;
-
-  alam = alam2 = f2 = fold2 = tmplam = .0;
-
-  local_xold = (phydbl *)mCalloc(n,sizeof(phydbl));
-  For(i,n) local_xold[i] = xold[i];
-
-
-  *check=0;
-  for(sum=0.0,i=0;i<n;i++) sum += p[i]*p[i];
-  sum=SQRT(sum);
-  if(sum > stpmax)
-    for(i=0;i<n;i++) p[i] *= stpmax/sum;
-  for(slope=0.0,i=0;i<n;i++)
-    slope += g[i]*p[i];
-  test=0.0;
-  for(i=0;i<n;i++) 
-    {
-      temp=FABS(p[i])/MAX(FABS(local_xold[i]),1.0);
-      if (temp > test) test=temp;
-    }
-  alamin=TOLX/test;
-  alam=1.0;
-  for (;;) 
-    {
-      for(i=0;i<n;i++) x[i]=FABS(local_xold[i]+alam*p[i]);
-      /**/      
-      for(i=0;i<n;i++) 
-	{
-	  tree->mod->e_frq->pi_unscaled->v[i]=FABS(local_xold[i]+alam*p[i]);
-/* 	  if( */
-/* 	     (tree->mod->e_frq->pi[i] < 0.001) || */
-/* 	     (tree->mod->e_frq->pi[i] > 0.999) */
-/* 	     ) */
-/* 	    break; */
-	}
-      /**/
-      if(i==n) 
-	{
-	  *f=Return_Abs_Lk(tree);
-	}
-      else     *f=1.+fold+ALF*alam*slope;
-      if (alam < alamin)
-	{
-	  for (i=0;i<n;i++) x[i]=local_xold[i];
-	  for (i=0;i<n;i++) tree->mod->e_frq->pi_unscaled->v[i]=local_xold[i];
-	  *check=1;
-	  For(i,n) xold[i] = local_xold[i];
-	  Free(local_xold);
-	  return 0;
-	} 
-      else if (*f <= fold+ALF*alam*slope) 
-	{
-	  For(i,n) xold[i] = local_xold[i];
-	  Free(local_xold); 
-	  return 0;
-	}
-      else 
-	{
-	  if ((alam < 1.0+SMALL) && (alam > 1.0-SMALL))
-/* 	  if (alam == 1.0) */
-	    tmplam = -slope/(2.0*(*f-fold-slope));
-	  else 
-	    {
-	      rhs1 = *f-fold-alam*slope;
-	      rhs2=f2-fold2-alam2*slope;
-	      a=(rhs1/(alam*alam)-rhs2/(alam2*alam2))/(alam-alam2);
-	      b=(-alam2*rhs1/(alam*alam)+alam*rhs2/(alam2*alam2))/(alam-alam2);
-	      if (a < SMALL && a > -SMALL) tmplam = -slope/(2.0*b);
-/* 	      if (a == 0.0) tmplam = -slope/(2.0*b); */
-	      else 
-		{
-		  disc=b*b-3.0*a*slope;
-		  if (disc<0.0) 
-		    {
-		      disc=b*b-3.0*a*slope;
-		      if (disc<0.0) tmplam = 0.5*alam;
-		      else if(b <= 0.0) tmplam=(-b+SQRT(disc))/(3.0*a);
-		      else tmplam = -slope/(b+SQRT(disc));
-		    }
-		  else tmplam=(-b+SQRT(disc))/(3.0*a);
-		}
-	      if (tmplam>0.5*alam) tmplam=0.5*alam;
-	    }
-	}
-      alam2=alam;
-      f2 = *f;
-      fold2=fold;
-      alam=MAX(tmplam,0.1*alam);
-    }
-  Free(local_xold);
-  return 1;
-}
-
-//////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
-
-
-
-#define ALF 1.0e-4
-#define TOLX 1.0e-7
-
-int Lnsrch_Free_Mixt_Rates(t_tree *tree, int n, phydbl *xold, phydbl fold, phydbl *g, phydbl *p, phydbl *x,
-			   phydbl *f, phydbl stpmax, int *check)
-{
-  int i;
-  phydbl a,alam,alam2,alamin,b,disc,f2,fold2,rhs1,rhs2,slope,sum,temp,test,tmplam;
-  phydbl *local_xold;
-
-  alam = alam2 = f2 = fold2 = tmplam = .0;
-
-  local_xold = (phydbl *)mCalloc(n,sizeof(phydbl));
-  For(i,n) local_xold[i] = xold[i];
-
-
-  *check=0;
-  for(sum=0.0,i=0;i<n;i++) sum += p[i]*p[i];
-  sum=SQRT(sum);
-  if(sum > stpmax)
-    for(i=0;i<n;i++) p[i] *= stpmax/sum;
-  for(slope=0.0,i=0;i<n;i++)
-    slope += g[i]*p[i];
-  test=0.0;
-  for(i=0;i<n;i++) 
-    {
-      temp=FABS(p[i])/MAX(FABS(local_xold[i]),1.0);
-      if (temp > test) test=temp;
-    }
-  alamin=TOLX/test;
-  alam=1.0;
-  for (;;) 
-    {
-      for(i=0;i<n;i++) x[i]=FABS(local_xold[i]+alam*p[i]);
-      /**/      
-      for(i=0;i<n;i++) 
-	{
-	  tree->mod->ras->gamma_r_proba->v[i]=FABS(local_xold[i]+alam*p[i]);
-	}
-      /**/
-      if(i==n) 
-	{
-	  *f=Return_Abs_Lk(tree);
-	}
-      else     *f=1.+fold+ALF*alam*slope;
-      if (alam < alamin)
-	{
-	  for (i=0;i<n;i++) x[i]=local_xold[i];
-	  for (i=0;i<n;i++) tree->mod->ras->gamma_r_proba->v[i]=local_xold[i];
-	  *check=1;
-	  For(i,n) xold[i] = local_xold[i];
-	  Free(local_xold);
-	  return 0;
-	} 
-      else if (*f <= fold+ALF*alam*slope) 
-	{
-	  For(i,n) xold[i] = local_xold[i];
-	  Free(local_xold); 
-	  return 0;
-	}
-      else 
-	{
-	  if ((alam < 1.0+SMALL) && (alam > 1.0-SMALL))
-/* 	  if (alam == 1.0) */
-	    tmplam = -slope/(2.0*(*f-fold-slope));
-	  else 
-	    {
-	      rhs1 = *f-fold-alam*slope;
-	      rhs2=f2-fold2-alam2*slope;
-	      a=(rhs1/(alam*alam)-rhs2/(alam2*alam2))/(alam-alam2);
-	      b=(-alam2*rhs1/(alam*alam)+alam*rhs2/(alam2*alam2))/(alam-alam2);
-	      if (a < SMALL && a > -SMALL) tmplam = -slope/(2.0*b);
-/* 	      if (a == 0.0) tmplam = -slope/(2.0*b); */
-	      else 
-		{
-		  disc=b*b-3.0*a*slope;
-		  if (disc<0.0) 
-		    {
-		      disc=b*b-3.0*a*slope;
-		      if (disc<0.0) tmplam = 0.5*alam;
-		      else if(b <= 0.0) tmplam=(-b+SQRT(disc))/(3.0*a);
-		      else tmplam = -slope/(b+SQRT(disc));
-		    }
-		  else tmplam=(-b+SQRT(disc))/(3.0*a);
-		}
-	      if (tmplam>0.5*alam) tmplam=0.5*alam;
-	    }
-	}
-      alam2=alam;
-      f2 = *f;
-      fold2=fold;
-      alam=MAX(tmplam,0.1*alam);
-    }
-  Free(local_xold);
-  return 1;
-}
-
-
-/* void Optimize_Global_Rate(t_tree *tree) */
-/* { */
-/*     PhyML_Printf("\n. Global rate (%f->)",tree->c_lnL); */
-/*     Optimize_Single_Param_Generic(tree,&(tree->tbl),tree->tbl,tree->l_min,1.E+4,100); */
-/*     PhyML_Printf("%f)\n",tree->c_lnL); */
-/* } */
-
 
 #undef ALF
 #undef TOLX
@@ -2240,7 +1870,7 @@ int Optimiz_Alpha_And_Pinv(t_tree *tree)
   /* Two (full) steps to compute  pinv_alpha_slope & pinv_alpha_intercept */
 
   tree->both_sides = 1;
-  Lk(tree);
+  Lk(NULL,tree);
   lk_b = tree->c_lnL;
 
   Optimize_Br_Len_Serie(tree->t_nodes[0],tree->t_nodes[0]->v[0],
@@ -2264,7 +1894,7 @@ int Optimiz_Alpha_And_Pinv(t_tree *tree)
 
 
   tree->both_sides = 1;
-  Lk(tree);
+  Lk(NULL,tree);
 
   Optimize_Br_Len_Serie(tree->t_nodes[0],tree->t_nodes[0]->v[0],
 			tree->t_nodes[0]->b[0],tree,tree->data);
@@ -2330,7 +1960,7 @@ int Optimiz_Alpha_And_Pinv(t_tree *tree)
 	  if(tree->mod->pinvar->v > 1.0) tree->mod->pinvar->v = 0.9;
 	  if(tree->mod->pinvar->v < 0.0) tree->mod->pinvar->v = 0.001;
 	  tree->both_sides = 1;
-	  Lk(tree);
+	  Lk(NULL,tree);
 
 	  Optimize_Br_Len_Serie(tree->t_nodes[0],tree->t_nodes[0]->v[0],
 				tree->t_nodes[0]->b[0],tree,tree->data);
@@ -2350,7 +1980,7 @@ int Optimiz_Alpha_And_Pinv(t_tree *tree)
 	      if(tree->mod->pinvar->v > 1.0) tree->mod->pinvar->v = 0.9;
 	      if(tree->mod->pinvar->v < 0.0) tree->mod->pinvar->v = 0.001;
 	      tree->both_sides = 1;
-	      Lk(tree);
+	      Lk(NULL,tree);
 	      Optimize_Br_Len_Serie(tree->t_nodes[0],tree->t_nodes[0]->v[0],
 				    tree->t_nodes[0]->b[0],tree,tree->data);
 	      fa = tree->c_lnL;
@@ -2371,7 +2001,7 @@ int Optimiz_Alpha_And_Pinv(t_tree *tree)
 	  if(tree->mod->pinvar->v > 1.0) tree->mod->pinvar->v = 0.9;
 	  if(tree->mod->pinvar->v < 0.0) tree->mod->pinvar->v = 0.001;
 	  tree->both_sides = 1;
-	  Lk(tree);
+	  Lk(NULL,tree);
 	  Optimize_Br_Len_Serie(tree->t_nodes[0],tree->t_nodes[0]->v[0],
 				tree->t_nodes[0]->b[0],tree,tree->data);
 	  fc = tree->c_lnL;
@@ -2387,7 +2017,7 @@ int Optimiz_Alpha_And_Pinv(t_tree *tree)
 	      if(tree->mod->pinvar->v > 1.0) tree->mod->pinvar->v = 0.9;
 	      if(tree->mod->pinvar->v < 0.0) tree->mod->pinvar->v = 0.001;
 	      tree->both_sides = 1;
-	      Lk(tree);
+	      Lk(NULL,tree);
 	      Optimize_Br_Len_Serie(tree->t_nodes[0],tree->t_nodes[0]->v[0],
 				    tree->t_nodes[0]->b[0],tree,tree->data);
 	      fc = tree->c_lnL;
@@ -2410,7 +2040,7 @@ int Optimiz_Alpha_And_Pinv(t_tree *tree)
 	  if(tree->mod->pinvar->v > 1.0) tree->mod->pinvar->v = 0.9;
 	  if(tree->mod->pinvar->v < 0.0) tree->mod->pinvar->v = 0.001;
 	  tree->both_sides = 1;
-	  Lk(tree);
+	  Lk(NULL,tree);
 	  Optimize_Br_Len_Serie(tree->t_nodes[0],tree->t_nodes[0]->v[0],
 				tree->t_nodes[0]->b[0],tree,tree->data);
 	  f2 = tree->c_lnL;
@@ -2428,7 +2058,7 @@ int Optimiz_Alpha_And_Pinv(t_tree *tree)
 	  if(tree->mod->pinvar->v > 1.0) tree->mod->pinvar->v = 0.9;
 	  if(tree->mod->pinvar->v < 0.0) tree->mod->pinvar->v = 0.001;
 	  tree->both_sides = 1;
-	  Lk(tree);
+	  Lk(NULL,tree);
 	  Optimize_Br_Len_Serie(tree->t_nodes[0],tree->t_nodes[0]->v[0],
 				tree->t_nodes[0]->b[0],tree,tree->data);
 	  f1 = tree->c_lnL;
@@ -2454,7 +2084,7 @@ int Optimiz_Alpha_And_Pinv(t_tree *tree)
 	      if(tree->mod->pinvar->v > 1.0) tree->mod->pinvar->v = 0.9;
 	      if(tree->mod->pinvar->v < 0.0) tree->mod->pinvar->v = 0.001;
 	      tree->both_sides = 1;
-	      Lk(tree);
+	      Lk(NULL,tree);
 	      Optimize_Br_Len_Serie(tree->t_nodes[0],tree->t_nodes[0]->v[0],
 				    tree->t_nodes[0]->b[0],tree,tree->data);
 	      f1 = tree->c_lnL;
@@ -2482,7 +2112,7 @@ int Optimiz_Alpha_And_Pinv(t_tree *tree)
 	      if(tree->mod->pinvar->v > 1.0) tree->mod->pinvar->v = 0.9;
 	      if(tree->mod->pinvar->v < 0.0) tree->mod->pinvar->v = 0.001;
 	      tree->both_sides = 1;
-	      Lk(tree);
+	      Lk(NULL,tree);
 	      Optimize_Br_Len_Serie(tree->t_nodes[0],tree->t_nodes[0]->v[0],
 				    tree->t_nodes[0]->b[0],tree,tree->data);
 	      f2 = tree->c_lnL;
@@ -2509,7 +2139,7 @@ int Optimiz_Alpha_And_Pinv(t_tree *tree)
   tree->mod->br_len_multiplier->v = best_mult;
   Restore_Br_Len(tree);      
   tree->both_sides = 1;
-  Lk(tree);
+  Lk(NULL,tree);
   /* PhyML_Printf("\n\n. Init lnL after golden opt = %f [%f] best_alpha=%f best_pinv=%f",tree->c_lnL,Lk(tree),best_alpha,best_pinv); */
   return 1;
 }
@@ -2644,7 +2274,7 @@ void Round_Optimize_Node_Heights(t_tree *tree)
 
 
   cur_lnL = UNLIKELY;
-  new_lnL = Lk(tree);
+  new_lnL = Lk(NULL,tree);
 
   
   printf("\n. cur_lnL = %f new_lnL=%f",cur_lnL,new_lnL);
@@ -2735,8 +2365,8 @@ void Opt_Node_Heights_Recurr_Pre(t_node *a, t_node *d, t_tree *tree)
       
       if(t_min > t_max)
 	{
-	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-	  Warn_And_Exit("");
+	  PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+	  Exit("\n");
 	}
       
       Generic_Brent_Lk(&(tree->rates->nd_t[d->num]),
@@ -2756,8 +2386,150 @@ void Opt_Node_Heights_Recurr_Pre(t_node *a, t_node *d, t_tree *tree)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
+void Optimize_RR_Params(t_tree *mixt_tree, int verbose)
+{
+  t_tree *tree;
+  t_rmat **r_mat;
+  int n_r_mat;
+  int i;
+
+  if(mixt_tree->is_mixt_tree == NO)
+    {
+      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");
+    }
+
+  Switch_Eigen(YES,mixt_tree->mod);
+
+  n_r_mat = 0;
+  tree    = mixt_tree;
+  r_mat   = NULL;
+
+  do
+    {
+      if(tree->child) tree = tree->child;
+      
+      For(i,n_r_mat) if(tree->mod->r_mat == r_mat[i]) break;
+
+      if(i == n_r_mat) // tree->mod->r_mat was not found before
+	{
+	  if(!r_mat) r_mat = (t_rmat **)mCalloc(1,sizeof(t_rmat *));
+	  else       r_mat = (t_rmat **)mRealloc(r_mat,n_r_mat+1,sizeof(t_rmat *));
+	  r_mat[n_r_mat] = tree->mod->r_mat;
+	  n_r_mat++;
+
+	  if((tree->mod->whichmodel == GTR) ||
+	     ((tree->mod->whichmodel == CUSTOM) && 
+	      (tree->mod->s_opt->opt_rr) && 
+	      (tree->mod->r_mat->n_diff_rr > 1)))
+	    {
+	      int failed;
+      
+	      failed = NO;
+
+      
+	      BFGS(mixt_tree,tree->mod->r_mat->rr_val->v,tree->mod->r_mat->n_diff_rr,1.e-5,1.e-3,
+		   &Return_Abs_Lk,
+		   &Num_Derivative_Several_Param,
+		   &Lnsrch,&failed);
+
+
+	      if(failed == YES)
+		{
+		  For(i,tree->mod->r_mat->n_diff_rr)
+		    if(i != 5)
+		      {
+			Generic_Brent_Lk(&(tree->mod->r_mat->rr_val->v[i]),
+					 1.E-2,1.E+2,
+					 tree->mod->s_opt->min_diff_lk_global,
+					 tree->mod->s_opt->brent_it_max,
+					 tree->mod->s_opt->quickdirty,
+					 Wrap_Lk,NULL,mixt_tree,NULL);
+		      }
+		}
+	      
+	      if(verbose) Print_Lk(tree->parent?
+				   tree->parent:
+				   tree,"[GTR parameters     ]");
+	      
+	    }
+	}
+      
+      tree = tree->next;
+      if(!tree) break;
+
+  }
+  while(1);
+  
+  if(r_mat) Free(r_mat);
+
+  Switch_Eigen(NO,mixt_tree->mod);	      
+
+}
+
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
+
+void Optimize_TsTv(t_tree *mixt_tree, int verbose)
+{
+  scalar_dbl **tstv;
+  int n_tstv;
+  t_tree *tree;
+  int i;
+
+  if(mixt_tree->is_mixt_tree == NO)
+    {
+      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");
+    }
+  
+  Switch_Eigen(YES,mixt_tree->mod);
+
+  tstv   = NULL;
+  n_tstv = 0;
+  tree   = mixt_tree;
+
+  do
+    {
+      if(tree->child) tree = tree->child;
+      
+      For(i,n_tstv) if(tree->mod->kappa == tstv[i]) break;
+
+      if(i == n_tstv)
+	{
+	  if(!tstv) tstv = (scalar_dbl **)mCalloc(1,sizeof(scalar_dbl *)); 
+	  else      tstv = (scalar_dbl **)mRealloc(tstv,n_tstv+1,sizeof(scalar_dbl *));
+	  tstv[n_tstv] = tree->mod->kappa;
+	  n_tstv++;
+
+	  if(tree->mod->s_opt->opt_kappa)
+	    {
+	      Generic_Brent_Lk(&(tree->mod->kappa->v),
+			       0.1,100.,
+			       tree->mod->s_opt->min_diff_lk_global,
+			       tree->mod->s_opt->brent_it_max,
+			       tree->mod->s_opt->quickdirty,
+			       Wrap_Lk,NULL,mixt_tree,NULL);
+
+	      if(verbose) 
+		{
+		  Print_Lk(tree->parent?tree->parent:tree,"[Ts/ts ratio        ]");
+		  PhyML_Printf("[%10f]",tree->mod->kappa->v);
+		}
+	    }
+	}
+
+      tree = tree->next;
+      if(!tree) break;
+
+    }while(1);
+  
+  if(tstv) Free(tstv);
+
+  Switch_Eigen(NO,mixt_tree->mod);
+
+}
+
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////

@@ -383,10 +383,19 @@ void Free_Edge_Lk(t_tree *tree, t_edge *b)
 
 void Free_RAS(t_ras *ras)
 {
-  Free(ras->gamma_r_proba->v);
-  Free(ras->gamma_r_proba_unscaled->v);
-  Free(ras->gamma_rr->v);
-  Free(ras->gamma_rr_unscaled->v);
+  if(ras->gamma_r_proba->v)
+    {
+      Free(ras->gamma_r_proba->v);
+      Free(ras->gamma_r_proba_unscaled->v);
+      Free(ras->gamma_rr->v);
+      Free(ras->gamma_rr_unscaled->v);
+    }
+
+  Free(ras->gamma_r_proba);
+  Free(ras->gamma_r_proba_unscaled);
+  Free(ras->gamma_rr);
+  Free(ras->gamma_rr_unscaled);
+
   Free(ras);
 }
 
@@ -722,7 +731,7 @@ void Free_Pnode(pnode *n)
 //////////////////////////////////////////////////////////////
 
 
-void Free_Optimiz(optimiz *s_opt)
+void Free_Optimiz(t_opt *s_opt)
 {
   Free(s_opt);
 }

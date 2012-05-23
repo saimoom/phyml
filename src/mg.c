@@ -122,7 +122,7 @@ int PART_main(int argc, char **argv)
 	  treelist->tree[part]->n_pattern  = treelist->tree[part]->data->crunch_len/
 	                                     treelist->tree[part]->io->state_len;
 
-	  Order_Tree_CSeq(treelist->tree[part],cdata[part]);
+	  Connect_CSeqs_To_Nodes(cdata[part],treelist->tree[part]);
 	  Fill_Dir_Table(treelist->tree[part]);
 	  Update_Dirs(treelist->tree[part]);
 	  Make_Tree_4_Lk(treelist->tree[part],cdata[part],cdata[part]->init_len);
@@ -143,7 +143,7 @@ int PART_main(int argc, char **argv)
       st->tree->c_lnL = .0;
       For(part,io->n_part)
 	{
-	  Lk(treelist->tree[part]);
+	  Lk(NULL,treelist->tree[part]);
 /* 	  Get_List_Of_Reachable_Tips(treelist->tree[part]); */
 	  PART_Match_St_Nodes_In_Gt(treelist->tree[part],st);
 	  PART_Match_St_Edges_In_Gt(treelist->tree[part],st);
@@ -1365,7 +1365,7 @@ int PART_Pars(supert_tree *st)
   For(i,st->n_part) 
     {
       st->treelist->tree[i]->both_sides = 1;	  
-      Pars(st->treelist->tree[i]);
+      Pars(NULL,st->treelist->tree[i]);
       st->tree->c_pars += st->treelist->tree[i]->c_pars;
     }
 
@@ -1780,7 +1780,7 @@ int PART_Test_List_Of_Regraft_Pos(spr **st_spr_list, int list_size, supert_tree 
 			      move->b_opp_to_link,
 			      move->n_link);
 		  
-		  move->lnL = Lk_At_Given_Edge(move->b_opp_to_link,st->treelist->tree[gt]);
+		  move->lnL = Lk(move->b_opp_to_link,st->treelist->tree[gt]);
 
 		  
 		  st->tree->spr_list[i]->lnL += move->lnL;
@@ -1972,8 +1972,8 @@ int PART_Try_One_Spr_Move(spr *st_move, supert_tree *st)
 	      For(gt,st->n_part)
 		{
 		  PhyML_Printf("\n. truth -> %f ; move -> %f",
-			 Lk(st->treelist->tree[gt]),
-			 gt_move[gt] ? gt_move[gt]->lnL : -1.);
+			       Lk(NULL,st->treelist->tree[gt]),
+			       gt_move[gt] ? gt_move[gt]->lnL : -1.);
 		}
 	    }
 	  
@@ -2495,7 +2495,7 @@ phydbl PART_Lk(supert_tree *st)
   For(i,st->n_part) 
     {
       st->treelist->tree[i]->both_sides = 1;	  
-      Lk(st->treelist->tree[i]);
+      Lk(NULL,st->treelist->tree[i]);
 /*       PhyML_Printf("\n. Tree %3d lnL = %f",i+1,st->treelist->tree[i]->c_lnL); */
       st->tree->c_lnL += st->treelist->tree[i]->c_lnL;
     }
@@ -2520,7 +2520,7 @@ phydbl PART_Lk_At_Given_Edge(t_edge *st_b, supert_tree *st)
   For(i,st->n_part)
     {      
       gt_b = st->map_st_edge_in_gt[i][st_b->num];
-      lnL = Lk_At_Given_Edge(gt_b,st->treelist->tree[i]);
+      lnL = Lk(gt_b,st->treelist->tree[i]);
       st->tree->c_lnL += lnL;
 /*       PhyML_Printf("\n. gt %d st t_edge %d gt t_edge %d lnL=%f l=%f ",i,st_b->num,gt_b->num,lnL,gt_b->l->v); */
     }

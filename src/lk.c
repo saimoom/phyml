@@ -289,6 +289,12 @@ void Post_Order_Lk(t_node *a, t_node *d, t_tree *tree)
 {
   int i,dir;
 
+  if(tree->is_mixt_tree == YES)
+    {
+      MIXT_Post_Order_Lk(a,d,tree);
+      return;
+    }
+
   dir = -1;
   
   if(d->tax) 
@@ -311,10 +317,16 @@ void Post_Order_Lk(t_node *a, t_node *d, t_tree *tree)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
 void Pre_Order_Lk(t_node *a, t_node *d, t_tree *tree)
 {
   int i;
+
+  if(tree->is_mixt_tree == YES)
+    {
+      MIXT_Pre_Order_Lk(a,d,tree);
+      return;
+    }
+
 
   if(d->tax) 
     {
@@ -337,16 +349,12 @@ void Pre_Order_Lk(t_node *a, t_node *d, t_tree *tree)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
-phydbl Lk(t_tree *tree)
+phydbl Lk(t_edge *b, t_tree *tree)
 {
   int br;
   int n_patterns;
 
-  if(tree->is_mixt_tree)
-    {
-      /* return Lk_Meta_Tree(NULL,tree); */
-    }
+  if(tree->is_mixt_tree) return MIXT_Lk(b,tree);
   
   tree->old_lnL = tree->c_lnL;
 
@@ -364,20 +372,38 @@ phydbl Lk(t_tree *tree)
 
   n_patterns = tree->n_pattern;
 
-  Set_Model_Parameters(tree->mod);
+  if(!b) Set_Model_Parameters(tree->mod);
   
-  For(br,2*tree->n_otu-3) Update_PMat_At_Given_Edge(tree->t_edges[br],tree);
+  if(!b)
+    {
+      For(br,2*tree->n_otu-3) Update_PMat_At_Given_Edge(tree->t_edges[br],tree);
+      /* printf("\n. L0=%f P0=%f RR=%f", */
+      /* 	     tree->t_edges[0]->l->v,tree->t_edges[0]->Pij_rr[0], */
+      /* 	     tree->parent->mod->ras->gamma_rr->v[tree->mod->ras->parent_class_number]); */
+    }
+  else
+    {
+      Update_PMat_At_Given_Edge(b,tree);
+      /* printf("\n. L0=%f P0=%f RR=%f", */
+      /* 	     b->l->v,b->Pij_rr[0], */
+      /* 	     tree->parent->mod->ras->gamma_rr->v[tree->mod->ras->parent_class_number]); */
+    }
 
-  Post_Order_Lk(tree->t_nodes[0],tree->t_nodes[0]->v[0],tree);
-  if(tree->both_sides)
-    Pre_Order_Lk(tree->t_nodes[0],
-		 tree->t_nodes[0]->v[0],
-		 tree);
+  if(!b)
+    {
+      Post_Order_Lk(tree->t_nodes[0],tree->t_nodes[0]->v[0],tree);
+      if(tree->both_sides)
+	Pre_Order_Lk(tree->t_nodes[0],
+		     tree->t_nodes[0]->v[0],
+		     tree);
+    }
 
+  if(!b) b = tree->t_nodes[0]->b[0];
   tree->c_lnL             = .0;
   tree->sum_min_sum_scale = .0;
   For(tree->curr_site,n_patterns)
-    if(tree->data->wght[tree->curr_site] > SMALL) Lk_Core(tree->t_nodes[0]->b[0],tree);
+    if(tree->data->wght[tree->curr_site] > SMALL) 
+      Lk_Core(b,tree);
 
 /*   Qksort(tree->c_lnL_sorted,NULL,0,n_patterns-1); */
 
@@ -399,59 +425,55 @@ phydbl Lk(t_tree *tree)
 //////////////////////////////////////////////////////////////
 
 
-phydbl Lk_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
-{
-  int n_patterns;
+/* phydbl Lk_At_Given_Edge(t_edge *b_fcus, t_tree *tree) */
+/* { */
+/*   int n_patterns; */
   
-  if(tree->is_mixt_tree)
-    {
-      /* return Lk_Meta_Tree(b_fcus,tree); */
-    }
+/*   if(tree->is_mixt_tree) return MIXT_Lk_At_Given_Edge(tree); */
 
-  n_patterns = tree->n_pattern;
+/*   n_patterns = tree->n_pattern; */
 
-#ifdef PHYTIME
-  if((tree->rates) && (tree->rates->bl_from_rt)) RATES_Update_Cur_Bl(tree);
-#endif
+/* #ifdef PHYTIME */
+/*   if((tree->rates) && (tree->rates->bl_from_rt)) RATES_Update_Cur_Bl(tree); */
+/* #endif */
   
-  Check_Br_Len_Bounds(tree);
+/*   Check_Br_Len_Bounds(tree); */
 
-  if(tree->rates && tree->io->lk_approx == NORMAL)
-    {
-      tree->c_lnL = Lk_Normal_Approx(tree);
-      return tree->c_lnL;
-    }
-
-  Update_PMat_At_Given_Edge(b_fcus,tree);
-
-  if(b_fcus->left->tax)
-    {
-      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
-      Warn_And_Exit("");
-    }
-
-  tree->c_lnL             = .0;
-  tree->sum_min_sum_scale = .0;
-  For(tree->curr_site,n_patterns)
-    {
-      if(tree->data->wght[tree->curr_site] > SMALL) Lk_Core(b_fcus,tree);
-    }
-
-/*   Qksort(tree->c_lnL_sorted,NULL,0,n_patterns-1); */
-
-/*   tree->c_lnL = .0; */
-/*   For(tree->curr_site,n_patterns) */
+/*   if(tree->rates && tree->io->lk_approx == NORMAL) */
 /*     { */
-/*       tree->c_lnL += tree->c_lnL_sorted[tree->curr_site]; */
+/*       tree->c_lnL = Lk_Normal_Approx(tree); */
+/*       return tree->c_lnL; */
 /*     } */
 
+/*   Update_PMat_At_Given_Edge(b_fcus,tree); */
 
-  Adjust_Min_Diff_Lk(tree);
+/*   if(b_fcus->left->tax) */
+/*     { */
+/*       PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__); */
+/*       Warn_And_Exit(""); */
+/*     } */
 
-  tree->c_lnL_mixt = tree->c_lnL;
+/*   tree->c_lnL             = .0; */
+/*   tree->sum_min_sum_scale = .0; */
+/*   For(tree->curr_site,n_patterns) */
+/*     if(tree->data->wght[tree->curr_site] > SMALL)  */
+/*       Lk_Core(b_fcus,tree); */
+
+/* /\*   Qksort(tree->c_lnL_sorted,NULL,0,n_patterns-1); *\/ */
+
+/* /\*   tree->c_lnL = .0; *\/ */
+/* /\*   For(tree->curr_site,n_patterns) *\/ */
+/* /\*     { *\/ */
+/* /\*       tree->c_lnL += tree->c_lnL_sorted[tree->curr_site]; *\/ */
+/* /\*     } *\/ */
+
+
+/*   Adjust_Min_Diff_Lk(tree); */
+
+/*   tree->c_lnL_mixt = tree->c_lnL; */
   
-  return tree->c_lnL;
-}
+/*   return tree->c_lnL; */
+/* } */
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
@@ -465,7 +487,7 @@ phydbl Lk_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
 phydbl Lk_Core(t_edge *b, t_tree *tree)
 {
   phydbl log_site_lk;
-  phydbl site_lk_cat, site_lk;
+  phydbl site_lk_cat, site_lk, inv_site_lk;
   int fact_sum_scale;
   phydbl max_sum_scale,min_sum_scale;
   phydbl sum;
@@ -474,6 +496,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
   int dim1,dim2,dim3;
   int *sum_scale_left_cat,*sum_scale_rght_cat;
   int exponent;
+  int num_prec_issue;
   phydbl tmp;
   phydbl logbig,logsmall;
 
@@ -494,7 +517,8 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
 
   if((b->rght->tax) && (!tree->mod->s_opt->greedy))
     {
-      ambiguity_check = tree->data->c_seq[b->rght->num]->is_ambigu[site];
+      ambiguity_check = b->rght->c_seq->is_ambigu[site];
+      /* ambiguity_check = tree->data->c_seq[b->rght->num]->is_ambigu[site]; */
       if(!ambiguity_check) state = Get_State_From_P_Pars(b->p_lk_tip_r,site*dim2,tree);
     }
 
@@ -579,67 +603,87 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
 	}
       tree->site_lk_cat[catg] = site_lk_cat;
     }
-    
-  max_sum_scale =  (phydbl)BIG;
-  For(catg,tree->mod->ras->n_catg)
+
+  if(tree->apply_lk_scaling == YES)
     {
-      sum_scale_left_cat[catg] =
-        (b->sum_scale_left)?
-        (b->sum_scale_left[catg*tree->n_pattern+site]):
-        (0.0);
-      
-      sum_scale_rght_cat[catg] =
-        (b->sum_scale_rght)?
-        (b->sum_scale_rght[catg*tree->n_pattern+site]):
-        (0.0);
-
-      sum = sum_scale_left_cat[catg] + sum_scale_rght_cat[catg];
-
-      if(sum < .0)
+      max_sum_scale =   (phydbl)BIG;
+      min_sum_scale =  -(phydbl)BIG;
+      For(catg,tree->mod->ras->n_catg)
 	{
-	  PhyML_Printf("\n== sum = %G",sum);
-	  PhyML_Printf("\n== Err in file %s at line %d\n\n",__FILE__,__LINE__);
-	  Warn_And_Exit("\n");
+	  sum_scale_left_cat[catg] =
+	    (b->sum_scale_left)?
+	    (b->sum_scale_left[catg*tree->n_pattern+site]):
+	    (0.0);
+	  
+	  sum_scale_rght_cat[catg] =
+	    (b->sum_scale_rght)?
+	    (b->sum_scale_rght[catg*tree->n_pattern+site]):
+	    (0.0);
+	  
+	  sum = sum_scale_left_cat[catg] + sum_scale_rght_cat[catg];
+	  
+	  if(sum < .0)
+	    {
+	      PhyML_Printf("\n== sum = %G",sum);
+	      PhyML_Printf("\n== Err in file %s at line %d\n\n",__FILE__,__LINE__);
+	      Warn_And_Exit("\n");
+	    }
+	  
+	  tmp = sum + (logbig - LOG(tree->site_lk_cat[catg]))/(phydbl)LOG2;
+	  if(tmp < max_sum_scale) max_sum_scale = tmp; /* min of the maxs */
+	  
+	  tmp = sum + (logsmall - LOG(tree->site_lk_cat[catg]))/(phydbl)LOG2;
+	  if(tmp > min_sum_scale) min_sum_scale = tmp; /* max of the mins */
+	}
+      
+      if(min_sum_scale > max_sum_scale)
+	{
+	  /* PhyML_Printf("\n== Numerical precision issue alert."); */
+	  /* PhyML_Printf("\n== min_sum_scale = %G max_sum_scale = %G",min_sum_scale,max_sum_scale); */
+	  /* PhyML_Printf("\n== Err in file %s at line %d\n\n",__FILE__,__LINE__); */
+	  /* Warn_And_Exit("\n"); */
+	  min_sum_scale = max_sum_scale;
 	}
 
-      tmp = sum + (logbig - LOG(tree->site_lk_cat[catg]))/(phydbl)LOG2;
-      if(tmp < max_sum_scale) max_sum_scale = tmp; /* min of the maxs */
+      fact_sum_scale = (int)((max_sum_scale + min_sum_scale) / 2);
 
-      tmp = sum + (logsmall - LOG(tree->site_lk_cat[catg]))/(phydbl)LOG2;
-      if(tmp > min_sum_scale) min_sum_scale = tmp; /* max of the mins */
+      /* fact_sum_scale = (int)(max_sum_scale / 2); */
+
+      /* Apply scaling factors */
+      For(catg,tree->mod->ras->n_catg)
+	{
+	  exponent = -(sum_scale_left_cat[catg]+sum_scale_rght_cat[catg])+fact_sum_scale;
+	  site_lk_cat = tree->site_lk_cat[catg];     
+	  Rate_Correction(exponent,&site_lk_cat,tree);
+	  tree->site_lk_cat[catg] = site_lk_cat;
+	}
     }
-
-  if(min_sum_scale > max_sum_scale)
+  else // No scaling of lk
     {
-      /* PhyML_Printf("\n== Numerical precision issue alert."); */
-      /* PhyML_Printf("\n== min_sum_scale = %G max_sum_scale = %G",min_sum_scale,max_sum_scale); */
-      /* PhyML_Printf("\n== Err in file %s at line %d\n\n",__FILE__,__LINE__); */
-      /* Warn_And_Exit("\n"); */
-      min_sum_scale = max_sum_scale;
+      fact_sum_scale = 0;
     }
-
-  fact_sum_scale = (int)((max_sum_scale + min_sum_scale) / 2);
-
-/*   fact_sum_scale = (int)((max_sum_scale + min_sum_scale) / 2); */
-
-  fact_sum_scale = (int)(max_sum_scale / 2);
-
-  /* Apply scaling factors */
-  For(catg,tree->mod->ras->n_catg)
-    {
-      exponent = -(sum_scale_left_cat[catg]+sum_scale_rght_cat[catg])+fact_sum_scale;
-      site_lk_cat = tree->site_lk_cat[catg];     
-      Rate_Correction(exponent,&site_lk_cat,tree);
-      tree->site_lk_cat[catg] = site_lk_cat;
-    }
-
+  
   site_lk = .0;
   For(catg,tree->mod->ras->n_catg) 
     site_lk += 
     tree->site_lk_cat[catg] * 
     tree->mod->ras->gamma_r_proba->v[catg];
 
-  Invariant_Correction(&site_lk,fact_sum_scale,site,tree);
+  if(tree->mod->ras->invar == YES)
+    {
+      num_prec_issue = NO;
+      inv_site_lk = Invariant_Lk(&fact_sum_scale,site,&num_prec_issue,tree);  
+      
+      if(num_prec_issue == YES) // inv_site_lk >> site_lk
+	{
+	  site_lk = inv_site_lk * tree->mod->pinvar->v;
+	}
+      else
+	{
+	  site_lk = site_lk * (1. - tree->mod->pinvar->v) + inv_site_lk * tree->mod->pinvar->v;
+	}
+    }
+
 
   log_site_lk = LOG(site_lk) - (phydbl)LOG2 * fact_sum_scale;
 
@@ -674,7 +718,8 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
       Warn_And_Exit("\n");
     }
   
-  tree->cur_site_lk[site] = log_site_lk;
+  tree->cur_site_lk[site] = EXP(log_site_lk);
+
 
   /* Multiply log likelihood by the number of times this site pattern is found in the data */
   tree->c_lnL_sorted[site] = tree->data->wght[site]*log_site_lk;
@@ -728,6 +773,7 @@ void Rate_Correction(int exponent, phydbl *site_lk_cat, t_tree *tree)
     {
       if(tree->mod->ras->n_catg == 1)
 	{
+	  PhyML_Printf("\n== site_lk_cat = %G",*site_lk_cat);
 	  PhyML_Printf("\n== Numerical precision issue alert.");
 	  PhyML_Printf("\n== File %s at line %d\n\n",__FILE__,__LINE__);
 	  Exit("\n");
@@ -738,55 +784,51 @@ void Rate_Correction(int exponent, phydbl *site_lk_cat, t_tree *tree)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-void Invariant_Correction(phydbl *site_lk, int fact_sum_scale, int site, t_tree *tree)
+// Returns the scaled likelihood for invariable sites
+phydbl Invariant_Lk(int *fact_sum_scale, int site, int *num_prec_issue, t_tree *tree)
 {
   int exponent,piecewise_exponent;
   phydbl multiplier;
   phydbl inv_site_lk = 0.;
-  
+
+  (*num_prec_issue) = NO;
+
   /* The substitution model does include invariable sites */
-  if(tree->mod->ras->invar)
+  if(tree->mod->ras->invar == YES)
     {
       /* The site is invariant */
       if(tree->data->invar[site] > -0.5)
         {
-	  /* Multiply P(D|r=0) by 2^(fact_sum_scale) */
 	  inv_site_lk = tree->mod->e_frq->pi->v[tree->data->invar[site]];
-	  exponent = fact_sum_scale;
-	  do
-	    {
-	      piecewise_exponent = MIN(exponent,63);
-	      multiplier = (phydbl)((unsigned long long)(1) << piecewise_exponent);
-	      inv_site_lk *= multiplier;
-	      exponent -= piecewise_exponent;
-	    }
-	  while(exponent != 0);
 
-	  inv_site_lk *= tree->mod->pinvar->v;
+	  /* printf("\n. inv_site_lk = %f [%c] [%d]",inv_site_lk,tree->data->c_seq[0]->state[site],tree->data->invar[site]); */
+
+	  if(tree->apply_lk_scaling == YES)
+	    {
+	      exponent = (*fact_sum_scale);
+	      do
+		{
+		  piecewise_exponent = MIN(exponent,63);
+		  multiplier = (phydbl)((unsigned long long)(1) << piecewise_exponent);
+		  inv_site_lk *= multiplier;
+		  exponent -= piecewise_exponent;
+		}
+	      while(exponent != 0);
+	    }
+
 
 	  /* Update the value of site_lk */
 	  if(isinf(inv_site_lk)) // P(D|r=0) >> P(D|r>0) => assume P(D) = P(D|r=0)P(r=0)
 	    {
 	      PhyML_Printf("\n== Numerical precision issue alert.");
 	      PhyML_Printf("\n== File %s at line %d\n\n",__FILE__,__LINE__);
-	      PhyML_Printf("\n== P(D|r=0)=%G P(D|r>0)=%G",
-			   tree->mod->e_frq->pi->v[tree->data->invar[site]],
-			   EXP(LOG(*site_lk) - (phydbl)LOG2 * fact_sum_scale));	      
-	      (*site_lk) = (1. - tree->mod->pinvar->v)*tree->mod->e_frq->pi->v[tree->data->invar[site]];
-	      fact_sum_scale = 0.0;
-	    }
-	  else
-	    {
-	      (*site_lk) *= (1. - tree->mod->pinvar->v);
-	      (*site_lk) += inv_site_lk;	      
+	      (*num_prec_issue) = YES;
 	    }
 	}
-      else
-        {
-          /* Same formula as above with P(D | subs, rate = 0) = 0 */
-	  (*site_lk) *= (1. - tree->mod->pinvar->v);
-        }
     }
+
+  return inv_site_lk;
+
 }
 
 
@@ -801,6 +843,12 @@ void Invariant_Correction(phydbl *site_lk, int fact_sum_scale, int site, t_tree 
 
 void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
 {
+
+  if(tree->is_mixt_tree == YES)
+    {
+      MIXT_Update_P_Lk(tree,b,d);
+      return;
+    }
 
   if((tree->io->do_alias_subpatt == YES) && 
      (tree->update_alias_subpatt == YES)) 
@@ -822,12 +870,7 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
   else
     {
       Update_P_Lk_Generic(tree,b,d);
-    }
-
-  if(tree->next) Update_P_Lk(tree->next,
-			     tree->next->t_edges[b->num],
-			     tree->next->t_nodes[d->num]);
-  
+    }  
 }
 
 //////////////////////////////////////////////////////////////
@@ -955,14 +998,16 @@ void Update_P_Lk_Generic(t_tree *tree, t_edge *b, t_node *d)
 	  if(n_v1->tax)
 	    {
 	      /* Is the state at this tip ambiguous? */
-	      ambiguity_check_v1 = tree->data->c_seq[n_v1->num]->is_ambigu[site];
+	      ambiguity_check_v1 = n_v1->c_seq->is_ambigu[site];
+	      /* ambiguity_check_v1 = tree->data->c_seq[n_v1->num]->is_ambigu[site]; */
 	      if(ambiguity_check_v1 == NO) state_v1 = Get_State_From_P_Pars(n_v1->b[0]->p_lk_tip_r,site*Ns,tree);
 	    }
 	      
 	  if(n_v2->tax)
 	    {
 	      /* Is the state at this tip ambiguous? */
-	      ambiguity_check_v2 = tree->data->c_seq[n_v2->num]->is_ambigu[site];
+	      ambiguity_check_v2 = n_v2->c_seq->is_ambigu[site];
+	      /* ambiguity_check_v2 = tree->data->c_seq[n_v2->num]->is_ambigu[site]; */
 	      if(ambiguity_check_v2 == NO) state_v2 = Get_State_From_P_Pars(n_v2->b[0]->p_lk_tip_r,site*Ns,tree);
 	    }
 	}
@@ -1231,14 +1276,16 @@ void Update_P_Lk_Nucl(t_tree *tree, t_edge *b, t_node *d)
 	  if(n_v1->tax)
 	    {
 	      /* Is the state at this tip ambiguous? */
-	      ambiguity_check_v1 = tree->data->c_seq[n_v1->num]->is_ambigu[site];
+	      ambiguity_check_v1 = n_v1->c_seq->is_ambigu[site];
+	      /* ambiguity_check_v1 = tree->data->c_seq[n_v1->num]->is_ambigu[site]; */
 	      if(ambiguity_check_v1 == NO) state_v1 = Get_State_From_P_Pars(n_v1->b[0]->p_lk_tip_r,site*dim2,tree);
 	    }
 	      
 	  if(n_v2->tax)
 	    {
 	      /* Is the state at this tip ambiguous? */
-	      ambiguity_check_v2 = tree->data->c_seq[n_v2->num]->is_ambigu[site];
+	      ambiguity_check_v2 = n_v2->c_seq->is_ambigu[site];
+	      /* ambiguity_check_v2 = tree->data->c_seq[n_v2->num]->is_ambigu[site]; */
 	      if(ambiguity_check_v2 == NO) state_v2 = Get_State_From_P_Pars(n_v2->b[0]->p_lk_tip_r,site*dim2,tree);
 	    }
 	}
@@ -1554,14 +1601,16 @@ void Update_P_Lk_AA(t_tree *tree, t_edge *b, t_node *d)
 	  if(n_v1->tax)
 	    {
 	      /* Is the state at this tip ambiguous? */
-	      ambiguity_check_v1 = tree->data->c_seq[n_v1->num]->is_ambigu[site];
+	      ambiguity_check_v1 = n_v1->c_seq->is_ambigu[site];
+	      /* ambiguity_check_v1 = tree->data->c_seq[n_v1->num]->is_ambigu[site]; */
 	      if(ambiguity_check_v1 == NO) state_v1 = Get_State_From_P_Pars(n_v1->b[0]->p_lk_tip_r,site*dim2,tree);
 	    }
 	      
 	  if(n_v2->tax)
 	    {
 	      /* Is the state at this tip ambiguous? */
-	      ambiguity_check_v2 = tree->data->c_seq[n_v2->num]->is_ambigu[site];
+	      ambiguity_check_v2 = n_v2->c_seq->is_ambigu[site];
+	      /* ambiguity_check_v2 = tree->data->c_seq[n_v2->num]->is_ambigu[site]; */
 	      if(ambiguity_check_v2 == NO) state_v2 = Get_State_From_P_Pars(n_v2->b[0]->p_lk_tip_r,site*dim2,tree);
 	    }
 	}
@@ -1776,7 +1825,7 @@ void Update_P_Lk_AA(t_tree *tree, t_edge *b, t_node *d)
 
 phydbl Return_Abs_Lk(t_tree *tree)
 {
-  Lk(tree);
+  Lk(NULL,tree);
   return FABS(tree->c_lnL);
 }
 
@@ -2055,7 +2104,7 @@ void Make_Tree_4_Lk(t_tree *tree, calign *cdata, int n_site)
   tree->cur_site_lk  = (phydbl *)mCalloc(cdata->crunch_len,sizeof(phydbl));
   tree->old_site_lk  = (phydbl *)mCalloc(cdata->crunch_len,sizeof(phydbl));
   tree->site_lk_cat  = (phydbl *)mCalloc(tree->mod->ras->n_catg,sizeof(phydbl));  
-  tree->log_site_lk_cat      = (phydbl **)mCalloc(tree->mod->ras->n_catg,sizeof(phydbl *));
+  tree->log_site_lk_cat  = (phydbl **)mCalloc(tree->mod->ras->n_catg,sizeof(phydbl *));
   For(i,tree->mod->ras->n_catg)
     tree->log_site_lk_cat[i] = (phydbl *)mCalloc(cdata->crunch_len,sizeof(phydbl));
 
@@ -2063,24 +2112,27 @@ void Make_Tree_4_Lk(t_tree *tree, calign *cdata, int n_site)
   tree->log_lks_aLRT = (phydbl **)mCalloc(3,sizeof(phydbl *));
   For(i,3) tree->log_lks_aLRT[i] = (phydbl *)mCalloc(tree->data->init_len,sizeof(phydbl));
 
-  For(i,2*tree->n_otu-3)
+  if(tree->is_mixt_tree == NO)
     {
-      Make_Edge_Lk(tree->t_edges[i],tree);
-      Make_Edge_NNI(tree->t_edges[i]);
+      For(i,2*tree->n_otu-3)
+	{
+	  Make_Edge_Lk(tree->t_edges[i],tree);
+	  Make_Edge_NNI(tree->t_edges[i]);
+	}
+      
+      For(i,2*tree->n_otu-2) Make_Node_Lk(tree->t_nodes[i]);
+      
+      if(tree->mod->s_opt->greedy) 
+	{
+	  Init_P_Lk_Tips_Double(tree);
+	}
+      else 
+	{
+	  Init_P_Lk_Tips_Int(tree);
+	}
+      
+      Init_P_Lk_Loc(tree);
     }
-
-  For(i,2*tree->n_otu-2) Make_Node_Lk(tree->t_nodes[i]);
-
-  if(tree->mod->s_opt->greedy) 
-    {
-      Init_P_Lk_Tips_Double(tree);
-    }
-  else 
-    {
-      Init_P_Lk_Tips_Int(tree);
-    }
-  
-  Init_P_Lk_Loc(tree);
 }
 
 //////////////////////////////////////////////////////////////
@@ -2095,26 +2147,47 @@ void Init_P_Lk_Tips_Double(t_tree *tree)
   dim2 = tree->mod->ns;
 
 
+  For(i,tree->n_otu)
+    {
+      if(!tree->t_nodes[i]->c_seq || 
+	 strcmp(tree->t_nodes[i]->c_seq->name,tree->t_nodes[i]->name))
+	{
+	  PhyML_Printf("\n== Err. in file %s at line %d\n\n",__FILE__,__LINE__);
+	  Exit("");
+	}
+    }
+
   For(curr_site,tree->data->crunch_len)
     {
       For(i,tree->n_otu)
 	{
 	  if (tree->io->datatype == NT)
-	    Init_Tips_At_One_Site_Nucleotides_Float(tree->data->c_seq[i]->state[curr_site],
+	    /* Init_Tips_At_One_Site_Nucleotides_Float(tree->data->c_seq[i]->state[curr_site], */
+	    /* 					    curr_site*dim1+0*dim2, */
+	    /* 					    tree->t_nodes[i]->b[0]->p_lk_rght); */
+	    Init_Tips_At_One_Site_Nucleotides_Float(tree->t_nodes[i]->c_seq->state[curr_site],
 						    curr_site*dim1+0*dim2,
 						    tree->t_nodes[i]->b[0]->p_lk_rght);
 
 	  else if(tree->io->datatype == AA)
-	    Init_Tips_At_One_Site_AA_Float(tree->data->c_seq[i]->state[curr_site],
+	    Init_Tips_At_One_Site_AA_Float(tree->t_nodes[i]->c_seq->state[curr_site],
 					   curr_site*dim1+0*dim2,
 					   tree->t_nodes[i]->b[0]->p_lk_rght);
+	    /* Init_Tips_At_One_Site_AA_Float(tree->data->c_seq[i]->state[curr_site], */
+	    /* 				   curr_site*dim1+0*dim2, */
+	    /* 				   tree->t_nodes[i]->b[0]->p_lk_rght); */
 
 	  else if(tree->io->datatype == GENERIC)
-	    Init_Tips_At_One_Site_Generic_Float(tree->data->c_seq[i]->state+curr_site*tree->mod->io->state_len,
+	    Init_Tips_At_One_Site_Generic_Float(tree->t_nodes[i]->c_seq->state+curr_site*tree->mod->io->state_len,
 						tree->mod->ns,
 						tree->mod->io->state_len,
 						curr_site*dim1+0*dim2,
 						tree->t_nodes[i]->b[0]->p_lk_rght);
+	    /* Init_Tips_At_One_Site_Generic_Float(tree->data->c_seq[i]->state+curr_site*tree->mod->io->state_len, */
+	    /* 					tree->mod->ns, */
+	    /* 					tree->mod->io->state_len, */
+	    /* 					curr_site*dim1+0*dim2, */
+	    /* 					tree->t_nodes[i]->b[0]->p_lk_rght); */
 
 	  for(j=1;j<tree->mod->ras->n_catg;j++)
 	    {
@@ -2143,27 +2216,52 @@ void Init_P_Lk_Tips_Int(t_tree *tree)
 
   dim1 = tree->mod->ns;
 
+  For(i,tree->n_otu)
+    {
+      if(!tree->t_nodes[i]->c_seq || 
+	 strcmp(tree->t_nodes[i]->c_seq->name,tree->t_nodes[i]->name))
+	{
+	  PhyML_Printf("\n== Err. in file %s at line %d\n\n",__FILE__,__LINE__);
+	  Exit("");
+	}
+    }
+
+
+
   For(curr_site,tree->data->crunch_len)
     {
       For(i,tree->n_otu)
-	{
+	{	  
 	  if(tree->io->datatype == NT)
-	    Init_Tips_At_One_Site_Nucleotides_Int(tree->data->c_seq[i]->state[curr_site],
-						  curr_site*dim1,
-						  tree->t_nodes[i]->b[0]->p_lk_tip_r);
-
+	    {
+	      Init_Tips_At_One_Site_Nucleotides_Int(tree->t_nodes[i]->c_seq->state[curr_site],
+						    curr_site*dim1,
+						    tree->t_nodes[i]->b[0]->p_lk_tip_r);
+	      /* Init_Tips_At_One_Site_Nucleotides_Int(tree->data->c_seq[i]->state[curr_site], */
+	      /* 					    curr_site*dim1, */
+	      /* 					    tree->t_nodes[i]->b[0]->p_lk_tip_r); */
+	    }
 	  else if(tree->io->datatype == AA)
-	    Init_Tips_At_One_Site_AA_Int(tree->data->c_seq[i]->state[curr_site],
-					 curr_site*dim1,					   
+	    Init_Tips_At_One_Site_AA_Int(tree->t_nodes[i]->c_seq->state[curr_site],
+					 curr_site*dim1,
 					 tree->t_nodes[i]->b[0]->p_lk_tip_r);
+	    /* Init_Tips_At_One_Site_AA_Int(tree->data->c_seq[i]->state[curr_site], */
+	    /* 				 curr_site*dim1,					    */
+	    /* 				 tree->t_nodes[i]->b[0]->p_lk_tip_r); */
 
 	  else if(tree->io->datatype == GENERIC)
 	    {
-	      Init_Tips_At_One_Site_Generic_Int(tree->data->c_seq[i]->state+curr_site*tree->mod->io->state_len,
+	      Init_Tips_At_One_Site_Generic_Int(tree->t_nodes[i]->c_seq->state+curr_site*tree->mod->io->state_len,
 						tree->mod->ns,
 						tree->mod->io->state_len,
 						curr_site*dim1,
 						tree->t_nodes[i]->b[0]->p_lk_tip_r);
+
+	      /* Init_Tips_At_One_Site_Generic_Int(tree->data->c_seq[i]->state+curr_site*tree->mod->io->state_len, */
+	      /* 					tree->mod->ns, */
+	      /* 					tree->mod->io->state_len, */
+	      /* 					curr_site*dim1, */
+	      /* 					tree->t_nodes[i]->b[0]->p_lk_tip_r); */
 	    }
 	}
     }
@@ -2176,12 +2274,17 @@ void Init_P_Lk_Tips_Int(t_tree *tree)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
 void Update_PMat_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
 {
   int i;
   phydbl len;
   phydbl l_min, l_max;
+
+  if(tree->is_mixt_tree == YES)
+    {
+      MIXT_Update_PMat_At_Given_Edge(b_fcus,tree);
+      return;
+    }
 
   l_min = tree->mod->l_min;
   l_max = tree->mod->l_max;
@@ -2208,8 +2311,7 @@ void Update_PMat_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
   else
     {
       len = -1.0;
-      
-            
+
       if(tree->mod->log_l == YES) b_fcus->l->v = EXP(b_fcus->l->v);
       
       For(i,tree->mod->ras->n_catg)
@@ -2220,13 +2322,14 @@ void Update_PMat_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
 	    }
 	  else
 	    {
+	      /* printf("\n. %f %f",tree->parent->mod->ras->alpha->v,tree->parent->mod->ras->gamma_rr->v[tree->mod->ras->parent_class_number]); */
 	      len = b_fcus->l->v*tree->mod->ras->gamma_rr->v[i];	  
+	      len *= tree->mod->br_len_multiplier->v;
+	      if(tree->parent) len *= tree->parent->mod->ras->gamma_rr->v[tree->mod->ras->parent_class_number];
 	      if(len < l_min)      len = l_min;
 	      else if(len > l_max) len = l_max;
 	    }
-
-	  len *= tree->mod->br_len_multiplier->v;
-
+	  
 	  PMat(len,tree->mod,tree->mod->ns*tree->mod->ns*i,b_fcus->Pij_rr);
 	}
 
@@ -2294,7 +2397,7 @@ void Update_P_Lk_Along_A_Path(t_node **path, int path_length, t_tree *tree)
 	      }
 	    else
 	      {
-		PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
+		PhyML_Printf("\n== Err. in file %s at line %d\n\n",__FILE__,__LINE__);
 		Exit("");
 	      }
 	    break;
@@ -2302,7 +2405,7 @@ void Update_P_Lk_Along_A_Path(t_node **path, int path_length, t_tree *tree)
 #ifdef DEBUG
       if(j == 3)
 	{
-	  PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
+	  PhyML_Printf("\n== Err. in file %s at line %d\n\n",__FILE__,__LINE__);
 	  Exit("");
 	}
 #endif
@@ -2372,7 +2475,7 @@ phydbl Update_Lk_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
 {
   Update_P_Lk(tree,b_fcus,b_fcus->left);
   Update_P_Lk(tree,b_fcus,b_fcus->rght);
-  tree->c_lnL = Lk_At_Given_Edge(b_fcus,tree);
+  tree->c_lnL = Lk(b_fcus,tree);
   return tree->c_lnL;
 }
 
@@ -2386,7 +2489,7 @@ void Print_Lk_Given_Edge_Recurr(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 	 b->num,
 	 b->left->num,
 	 b->rght->num,
-	 Lk_At_Given_Edge(b,tree));
+	 Lk(b,tree));
 
   if(d->tax) return;
   else
@@ -2470,7 +2573,8 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
 
   if((b->rght->tax) && (!tree->mod->s_opt->greedy))
     {
-      ambiguity_check = tree->data->c_seq[b->rght->num]->is_ambigu[site];
+      /* ambiguity_check = tree->data->c_seq[b->rght->num]->is_ambigu[site]; */
+      ambiguity_check = b->rght->c_seq->is_ambigu[site];
       if(!ambiguity_check) state = Get_State_From_P_Pars(b->p_lk_tip_r,site*dim2,tree);
     }
 
@@ -2572,6 +2676,8 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
     }
   
   if(log_site_lk < -BIG) Warn_And_Exit("\nlog_site_lk < -BIG\n");
+  
+
 
   For(catg,tree->mod->ras->n_catg)
     tree->log_site_lk_cat[catg][site] =
@@ -2579,7 +2685,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
     scale_left +
     scale_rght;
   
-  tree->cur_site_lk[site] = log_site_lk;
+  tree->cur_site_lk[site] = EXP(log_site_lk);
   /* Multiply log likelihood by the number of times this site pattern is found oin the data */
   tree->c_lnL_sorted[site] = tree->data->wght[site]*log_site_lk;
   tree->c_lnL += tree->c_lnL_sorted[site];
@@ -2619,6 +2725,12 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
   int ambiguity_check_v1,ambiguity_check_v2;
   int state_v1,state_v2;
   int dim1, dim2, dim3;
+
+  if(tree->is_mixt_tree == YES)
+    {
+      MIXT_Update_P_Lk(tree,b,d);
+      return;
+    }
 
   dim1 = tree->mod->ras->n_catg * tree->mod->ns;
   dim2 = tree->mod->ns;
@@ -2710,14 +2822,16 @@ void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
           if(n_v1->tax)
             {
               /* Is the state at this tip ambiguous? */
-              ambiguity_check_v1 = tree->data->c_seq[n_v1->num]->is_ambigu[site];
+              ambiguity_check_v1 = n_v1->c_seq->is_ambigu[site];
+              /* ambiguity_check_v1 = tree->data->c_seq[n_v1->num]->is_ambigu[site]; */
               if(!ambiguity_check_v1) state_v1 = Get_State_From_P_Pars(n_v1->b[0]->p_lk_tip_r,site*dim2,tree);
             }
               
           if(n_v2->tax)
             {
               /* Is the state at this tip ambiguous? */
-              ambiguity_check_v2 = tree->data->c_seq[n_v2->num]->is_ambigu[site];
+              ambiguity_check_v2 = n_v2->c_seq->is_ambigu[site];
+              /* ambiguity_check_v2 = tree->data->c_seq[n_v2->num]->is_ambigu[site]; */
               if(!ambiguity_check_v2) state_v2 = Get_State_From_P_Pars(n_v2->b[0]->p_lk_tip_r,site*dim2,tree);
             }
         }
@@ -3081,7 +3195,8 @@ void Init_P_Lk_Loc(t_tree *tree)
       patt_id_d = (d == d->b[0]->left)?(d->b[0]->patt_id_left):(d->b[0]->patt_id_rght);
       For(j,tree->n_pattern)
 	{
-	  patt_id_d[j] = (int)tree->data->c_seq[d->num]->state[j];
+	  patt_id_d[j] = (int)tree->t_nodes[d->num]->c_seq->state[j];
+	  /* patt_id_d[j] = (int)tree->data->c_seq[d->num]->state[j]; */
 	}
     }
 }
@@ -3163,7 +3278,7 @@ phydbl Wrap_Part_Lk(t_edge *b, t_tree *tree, supert_tree *stree)
 
 phydbl Wrap_Lk(t_edge *b, t_tree *tree, supert_tree *stree)
 {
-  Lk(tree);
+  Lk(NULL,tree);
   return tree->c_lnL;
 }
 
@@ -3183,7 +3298,7 @@ phydbl Wrap_Geo_Lk(t_edge *b, t_tree *tree, supert_tree *stree)
 
 phydbl Wrap_Lk_At_Given_Edge(t_edge *b, t_tree *tree, supert_tree *stree)
 {
-  Lk_At_Given_Edge(b,tree);
+  Lk(b,tree);
   return tree->c_lnL;
 }
 
@@ -3264,7 +3379,7 @@ void Sample_Ancestral_Seq(int mutmap, int fromprior, t_tree *tree)
     {
       /* Update P(D_x|X=i) for each state i and node X */
       tree->both_sides = YES;
-      Lk(tree);
+      Lk(NULL,tree);
     }
 
   For(i,tree->n_pattern)
@@ -3375,9 +3490,11 @@ void Sample_Ancestral_Seq_Pre(t_node *a, t_node *d, t_edge *b,
   probs = (phydbl *)mCalloc(tree->mod->ns,sizeof(phydbl));
       
   if(a->tax) 
-    c = tree->data->c_seq[a->num]->state+site*tree->mod->io->state_len;
+    c = a->c_seq->state+site*tree->mod->io->state_len;
+    /* c = tree->data->c_seq[a->num]->state+site*tree->mod->io->state_len; */
   else
-    c = tree->anc_data->c_seq[a->num-tree->n_otu]->state+site*tree->mod->io->state_len;
+    c = a->c_seq_anc->state+site*tree->mod->io->state_len;
+    /* c = tree->anc_data->c_seq[a->num-tree->n_otu]->state+site*tree->mod->io->state_len; */
   
   sa = Assign_State(c,
 		    tree->mod->io->datatype,
@@ -3461,11 +3578,13 @@ void Sample_Ancestral_Seq_Pre(t_node *a, t_node *d, t_edge *b,
 	  }
 
       /* Assign state */
-      tree->anc_data->c_seq[d->num-tree->n_otu]->state[site] = Reciproc_Assign_State(sd,tree->io->datatype);
+      /* tree->anc_data->c_seq[d->num-tree->n_otu]->state[site] = Reciproc_Assign_State(sd,tree->io->datatype); */
+      d->c_seq_anc->state[site] = Reciproc_Assign_State(sd,tree->io->datatype);
     }
   else
     {
-      c = tree->data->c_seq[d->num]->state+site*tree->mod->io->state_len;
+      c = d->c_seq->state+site*tree->mod->io->state_len;
+      /* c = tree->data->c_seq[d->num]->state+site*tree->mod->io->state_len; */
         
       sd = Assign_State(c,
 			tree->mod->io->datatype,
@@ -3682,6 +3801,32 @@ void Map_Mutations(t_node *a, t_node *d, int sa, int sd, t_edge *b, int site, in
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
+
+int Check_Lk_At_Given_Edge(t_tree *tree)
+{
+  int res;
+  int i;
+  phydbl *lk;
+
+  lk = (phydbl *)mCalloc(2*tree->n_otu-3,sizeof(phydbl));
+
+  res = 0;
+  For(i,2*tree->n_otu-3)
+    {
+      lk[i] = Lk(tree->t_edges[i],tree);
+      printf("\n. %3d %13f",i,lk[i]);
+    }
+
+  res=1;
+  for(i=1;i<2*tree->n_otu-3;i++)
+    {
+      if(FABS(lk[i]-lk[i-1]) > 1.E-2) res=0;
+    }
+  Free(lk);
+
+  return res;
+}
+
 
 
 //////////////////////////////////////////////////////////////

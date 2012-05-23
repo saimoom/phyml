@@ -16,7 +16,6 @@ the GNU public licence.  See http://www.opensource.org for details.
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
 void Simu_Loop(t_tree *tree)
 {
   phydbl lk_old;
@@ -24,15 +23,15 @@ void Simu_Loop(t_tree *tree)
   int ori_print;
 
   tree->both_sides = 0;
-  Lk(tree);
+  Lk(NULL,tree);
 
 
   if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n. Refining the input tree...\n");
 
   ori_catg                            = tree->mod->ras->n_catg;
   ori_print                           = tree->mod->s_opt->print;
-  tree->mod->ras->n_catg                   = MIN(2,ori_catg);
-  tree->mod->s_opt->print             = NO;
+  tree->mod->ras->n_catg              = (!tree->child)?(MIN(2,ori_catg)):(tree->mod->ras->n_catg);
+  tree->mod->s_opt->print             = YES;
   Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
   tree->best_pars                     = 1E+8;
   tree->mod->s_opt->spr_pars          = 0;
@@ -53,6 +52,7 @@ void Simu_Loop(t_tree *tree)
   	 (FABS(lk_old-tree->c_lnL) < 1.)) break;
     }while(1);
   
+
   tree->mod->ras->n_catg = ori_catg;
   tree->mod->s_opt->print = ori_print;
   
@@ -125,7 +125,7 @@ int Simu(t_tree *tree, int n_step_max)
       if(n_tested || step == 1) tree->update_alias_subpatt = YES;
       old_loglk = tree->c_lnL;	    
       tree->both_sides = 1;
-      Lk(tree);
+      Lk(NULL,tree);
       tree->update_alias_subpatt = NO;
             
       if(tree->c_lnL < old_loglk)
@@ -137,7 +137,7 @@ int Simu(t_tree *tree, int n_step_max)
 	  
 	  For(i,2*tree->n_otu-3) tree->t_edges[i]->l_old->v = tree->t_edges[i]->l->v;	    
 	  tree->both_sides = 1;
-	  Lk(tree);
+	  Lk(NULL,tree);
 	}
 
       if(step > n_step_max) break;
@@ -230,7 +230,7 @@ void Simu_Pars(t_tree *tree, int n_step_max)
       each--;
       
       tree->both_sides = 1;
-      Pars(tree);
+      Pars(NULL,tree);
       
       if((tree->mod->s_opt->print) && (!tree->io->quiet)) 
 	{
@@ -250,7 +250,7 @@ void Simu_Pars(t_tree *tree, int n_step_max)
 	  if(!tree->n_swap) n_neg = 0;
 	  
 	  tree->both_sides = 1;
-	  Pars(tree);
+	  Pars(NULL,tree);
 	}
       else 
 	{
@@ -491,7 +491,7 @@ int Mov_Backward_Topo_Bl(t_tree *tree, phydbl lk_old, t_edge **tested_b, int n_t
       if(!end) tree->n_swap = 0;
       
       tree->both_sides = 0;
-      Lk(tree);
+      Lk(NULL,tree);
       
       step++;
 
@@ -509,7 +509,7 @@ int Mov_Backward_Topo_Bl(t_tree *tree, phydbl lk_old, t_edge **tested_b, int n_t
 	}
       
       tree->both_sides = 0;
-      Lk(tree);
+      Lk(NULL,tree);
     }
 
   Free(l_init);
@@ -550,7 +550,7 @@ int Mov_Backward_Topo_Pars(t_tree *tree, int pars_old, t_edge **tested_b, int n_
       if(!end) tree->n_swap = 0;
       
       tree->both_sides         = 0;
-      Pars(tree);
+      Pars(NULL,tree);
       
       step++;
 
@@ -562,7 +562,7 @@ int Mov_Backward_Topo_Pars(t_tree *tree, int pars_old, t_edge **tested_b, int n_
       if(tree->n_swap)  Exit("\n. Err. in Mov_Backward_Topo_Bl (n_swap > 0)\n");
 
       tree->both_sides = 0;
-      Pars(tree);
+      Pars(NULL,tree);
     }
 
   tree->n_swap = 0;

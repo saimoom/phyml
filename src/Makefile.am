@@ -288,7 +288,9 @@ io.c io.h\
 make.c make.h\
 nexus.c nexus.h\
 init.c init.h\
-xml.c xml.h
+xml.c xml.h\
+mixt.c mixt.h\
+mixtlk.c mixtlk.h
 test_LDADD = -lm
 else
 phyml_SOURCES = main.c \

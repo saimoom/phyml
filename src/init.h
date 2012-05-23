@@ -30,7 +30,8 @@ void Init_Nexus_Format(nexcom **com);
 void Init_Mat(matrix *mat,calign *data);
 void Set_Defaults_Input(option *io);
 void Set_Defaults_Model(t_mod *mod);
-void Set_Defaults_Optimiz(optimiz *s_opt);
+void Set_Defaults_Optimiz(t_opt *s_opt);
 void XML_Init_Node(xml_node *parent, xml_node *new, char *name);
+void Init_One_Spr(spr *a_spr);
 
 #endif
