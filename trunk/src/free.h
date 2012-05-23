@@ -53,7 +53,7 @@ void Free_Triplet(triplet *t);
 void Free_Actual_CSeq(calign *data);
 void Free_Prefix_Tree(pnode *n,int size);
 void Free_Pnode(pnode *n);
-void Free_Optimiz(optimiz *s_opt);
+void Free_Optimiz(t_opt *s_opt);
 void Free_Nexus(option *io);
 void Free_Nexus_Com(nexcom **com);
 void Free_Nexus_Parm(nexparm *parm);

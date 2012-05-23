@@ -36,7 +36,7 @@ void Make_All_Tree_Nodes(t_tree *tree);
 void Make_All_Tree_Edges(t_tree *tree);
 calign *Make_Cseq(int n_otu,int crunch_len,int state_len,int init_len,char **sp_names);
 t_treelist *Make_Treelist(int list_size);
-optimiz *Make_Optimiz();
+t_opt *Make_Optimiz();
 void Make_Custom_Model(t_mod *mod);
 t_mod *Make_Model_Basic();
 void Make_Model_Complete(t_mod *mod);
@@ -48,5 +48,8 @@ triplet *Make_Triplet_Struct(t_mod *mod);
 void Make_Short_L(t_tree *tree);
 void Make_RAS_Complete(t_ras *ras);
 t_ras *Make_RAS_Basic();
+void Make_Best_Spr(t_tree *tree);
+void Make_Spr_List(t_tree *tree);
+spr *Make_One_Spr(t_tree *tree);
 
 #endif

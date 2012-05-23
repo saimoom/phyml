@@ -1966,7 +1966,7 @@ void RATES_Posterior_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree)
       RATES_Update_Norm_Fact(tree);
       RATES_Update_Cur_Bl(tree);
       
-      if(tree->mcmc->use_data) new_lnL_data = Lk_At_Given_Edge(b,tree);
+      if(tree->mcmc->use_data) new_lnL_data = Lk(b,tree);
         /* new_lnL_rate = RATES_Lk_Rates(tree); */
       new_lnL_rate = 
 	cur_lnL_rate - 
@@ -2442,7 +2442,7 @@ void RATES_Posterior_One_Time(t_node *a, t_node *d, int traversal, t_tree *tree)
       	  Update_PMat_At_Given_Edge(b3,tree);
       	  Update_P_Lk(tree,b1,d);
       	}
-      new_lnL_data = Lk_At_Given_Edge(b1,tree);
+      new_lnL_data = Lk(b1,tree);
     }
   
   new_lnL_rate = RATES_Lk_Rates(tree);
@@ -2643,7 +2643,7 @@ void RATES_Posterior_Time_Root(t_tree *tree)
   new_lnL_data = tree->c_lnL;
   new_lnL_rate = tree->rates->c_lnL_rates;
   
-  if(tree->mcmc->use_data) new_lnL_data = Lk(tree);
+  if(tree->mcmc->use_data) new_lnL_data = Lk(NULL,tree);
     
   ratio = 0.0;
   /* Prior ratio */

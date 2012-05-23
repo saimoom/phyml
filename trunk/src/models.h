@@ -19,6 +19,7 @@ the GNU public licence.  See http://www.opensource.org for details.
 #include "eigen.h"
 #include "free.h"
 #include "stats.h"
+#include "mixtlk.h"
 
 void PMat(phydbl l, t_mod *mod, int pos, phydbl *Pij);
 void  PMat_K80(phydbl l,phydbl kappa, int pos, phydbl *Pij);
@@ -53,5 +54,7 @@ void Switch_From_M4mod_To_Mod(t_mod *mod);
 void PMat_JC69(phydbl l, int pos, phydbl *Pij, t_mod *mod);
 phydbl Get_Lambda_F84(phydbl *pi, phydbl *kappa);
 void Update_Eigen(t_mod *mod);
+void Update_RAS(t_mod *mod);
+void Update_Efrq(t_mod *mod);
 
 #endif

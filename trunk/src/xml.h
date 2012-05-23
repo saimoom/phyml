@@ -26,5 +26,8 @@ xml_node *XML_Search_Node_Attribute_Value(char *attr_name, char *value, int skip
 void XML_Check_Siterates_Node(xml_node *parent);
 int XML_Get_Number_Of_Classes_Siterates(xml_node *parent);
 int XML_Siterates_Number_Of_Classes(xml_node *sr_node);
+void XML_Check_Duplicate_ID(xml_node *n);
+void XML_Count_Number_Of_Node_With_ID(char *id, int *count, xml_node *n);
+void XML_Count_Number_Of_Node_With_Name(char *name, int *count, xml_node *n);
 
 #endif

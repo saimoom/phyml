@@ -141,7 +141,7 @@ int M4_main(int argc, char **argv)
 		  if(io->do_alias_subpatt)
 		    {
 		      tree->update_alias_subpatt = YES;
-		      Lk(tree);
+		      Lk(NULL,tree);
 		      tree->update_alias_subpatt = NO;
 		    }
 
@@ -155,12 +155,12 @@ int M4_main(int argc, char **argv)
 		    {
 		      if(tree->mod->s_opt->opt_subst_param || 
 			 tree->mod->s_opt->opt_bl)                       Round_Optimize(tree,tree->data,ROUND_MAX);
-		      else                                               Lk(tree);
+		      else                                               Lk(NULL,tree);
 		    }
 		  
 		  tree->both_sides = 1;
-		  Lk(tree);
-		  Pars(tree);
+		  Lk(NULL,tree);
+		  Pars(NULL,tree);
 		  Get_Tree_Size(tree);
 		  PhyML_Printf("\n. Log likelihood of the current tree: %f.\n",tree->c_lnL);
 
@@ -403,7 +403,7 @@ void M4_Init_Model(m4 *m4mod, calign *data, t_mod *mod)
   For(i,m4mod->n_h) m4mod->multipl[i] = (phydbl)i;
   For(i,m4mod->n_h) m4mod->multipl_unscaled[i] = (phydbl)i;
 
-  mod->update_eigen = YES;
+  Switch_Eigen(YES,mod);
   M4_Update_Qmat(m4mod,mod);
 }
 
@@ -1301,7 +1301,7 @@ void M4_Site_Branch_Classification_Experiment(t_tree *tree)
   Round_Optimize(tree,tree->data,ROUND_MAX);
 
   tree->both_sides = 1;
-  Lk(tree);
+  Lk(NULL,tree);
 
   /* Classify branches */
   best_probs = M4_Site_Branch_Classification(M4_Compute_Proba_Hidden_States_On_Edges(tree),tree);
@@ -1524,13 +1524,13 @@ void M4_Detect_Site_Switches_Experiment(t_tree *tree)
       
       tree->mod = nocov_mod;
       For(i,2*tree->n_otu-3) tree->t_edges[i]->l->v = nocov_bl[i];
-      Lk(tree);
+      Lk(NULL,tree);
       For(i,tree->data->crunch_len) site_lnl_nocov[i] = tree->cur_site_lk[i];
       Print_Lk(tree,"[CPY LnL under non-switching substitution model]");
 
       tree->mod = cov_mod;
       For(i,2*tree->n_otu-3) tree->t_edges[i]->l->v = cov_bl[i];
-      Lk(tree);
+      Lk(NULL,tree);
       For(i,tree->data->crunch_len) site_lnl_cov[i] = tree->cur_site_lk[i];
       Print_Lk(tree,"[CPY LnL under switching substitution model]");
 
@@ -1551,12 +1551,12 @@ void M4_Detect_Site_Switches_Experiment(t_tree *tree)
 
   tree->mod = nocov_mod;
   For(i,2*tree->n_otu-3) tree->t_edges[i]->l->v = nocov_bl[i];  
-  Lk(tree);
+  Lk(NULL,tree);
   Print_Lk(tree,"[FINAL LnL under non-switching substitution model]");
   
   tree->mod = cov_mod;
   For(i,2*tree->n_otu-3) tree->t_edges[i]->l->v = cov_bl[i];  
-  Lk(tree);
+  Lk(NULL,tree);
   Print_Lk(tree,"[FINAL LnL under switching substitution model]");
 
   tree->mod = ori_mod;
@@ -1673,7 +1673,7 @@ void M4_Posterior_Prediction_Experiment(t_tree *tree)
       if(tree->mod->s_opt->greedy) Init_P_Lk_Tips_Double(tree);
       else Init_P_Lk_Tips_Int(tree);
 
-      Lk(tree);
+      Lk(NULL,tree);
 
       Init_Ui_Tips(tree);
       Site_Diversity(tree);
@@ -1707,7 +1707,7 @@ void M4_Posterior_Prediction_Experiment(t_tree *tree)
       if(tree->mod->s_opt->greedy) Init_P_Lk_Tips_Double(tree);
       else Init_P_Lk_Tips_Int(tree);
 
-      Lk(tree);
+      Lk(NULL,tree);
 
       Init_Ui_Tips(tree);
       Site_Diversity(tree);
@@ -1723,7 +1723,6 @@ void M4_Posterior_Prediction_Experiment(t_tree *tree)
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
-
 
 m4 *M4_Copy_M4_Model(t_mod *ori_mod, m4 *ori_m4mod)
 {

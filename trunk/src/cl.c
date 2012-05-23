@@ -519,12 +519,12 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	  }
 	case 26 :
 	  {
-	    io->mod->s_opt->general_pars = 1;
+	    io->mod->s_opt->general_pars = YES;
 	    break;
 	  }
 	case 25 :
 	  {
-	    io->mod->s_opt->fast_nni = 1;
+	    io->mod->s_opt->fast_nni = YES;
 	    break;
 	  }
 	case 24 :
@@ -1058,10 +1058,10 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		    (strcmp(optarg, "estimated") == 0) ||
 		    (strcmp(optarg, "ESTIMATED") == 0))
 		  {
-		    io->mod->kappa->v                 = 4.0;
-		    io->mod->s_opt->opt_kappa      = 1;
+		    io->mod->kappa->v              = 4.0;
+		    io->mod->s_opt->opt_kappa      = YES;
 		    if (io->mod->whichmodel == TN93)
-		      io->mod->s_opt->opt_lambda   = 1;
+		      io->mod->s_opt->opt_lambda   = YES;
 		  }
 		else
 		  {

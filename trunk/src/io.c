@@ -696,10 +696,10 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, t_tree *
 
       if(*available < 0)
 	{
-	  PhyML_Printf("\n. s=%s\n",*s_tree);
-	  PhyML_Printf("\n. len=%d\n",(int)strlen(*s_tree));
-	  PhyML_Printf("\n. The sequence names in your input file might be too long.");
-	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  PhyML_Printf("\n== s=%s\n",*s_tree);
+	  PhyML_Printf("\n== len=%d\n",(int)strlen(*s_tree));
+	  PhyML_Printf("\n== The sequence names in your input file might be too long.");
+	  PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
 	  Warn_And_Exit("");
 	}
 
@@ -715,7 +715,6 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, t_tree *
     }
   else
     {
-
       (*s_tree)[(int)strlen(*s_tree)]='(';
 
 #ifndef MPI
@@ -762,12 +761,11 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, t_tree *
       
       if(p < 0)
 	{
-	  PhyML_Printf("\n. fils=%p root=%p root->v[0]=%p root->v[1]=%p",fils,tree->n_root,tree->n_root->v[0],tree->n_root->v[1]);
-	  PhyML_Printf("\n. tree->e_root=%p fils->b[0]=%p fils->b[1]=%p fils->b[2]=%p",tree->e_root,fils->b[0],fils->b[1],fils->b[2]);		       
-	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-	  Warn_And_Exit("");
+	  PhyML_Printf("\n== fils=%p root=%p root->v[0]=%p root->v[1]=%p",fils,tree->n_root,tree->n_root->v[0],tree->n_root->v[1]);
+	  PhyML_Printf("\n== tree->e_root=%p fils->b[0]=%p fils->b[1]=%p fils->b[2]=%p",tree->e_root,fils->b[0],fils->b[1],fils->b[2]);		       
+	  PhyML_Printf("\n== Err. in file %s at line %d\n",__FILE__,__LINE__);
+	  Exit("\n");
 	}
-
 
       last_len = (int)strlen(*s_tree);
 
@@ -2084,7 +2082,7 @@ void Print_Site_Lk(t_tree *tree, FILE *fp)
       For(site,tree->data->init_len)
 	{
 	  PhyML_Fprintf(fp,"%-7d",site+1);
-	  PhyML_Fprintf(fp,"%-16g",(phydbl)EXP(tree->cur_site_lk[tree->data->sitepatt[site]]));      
+	  PhyML_Fprintf(fp,"%-16g",tree->cur_site_lk[tree->data->sitepatt[site]]);      
 	  if(tree->mod->ras->n_catg > 1)
 	    {
 	      For(catg,tree->mod->ras->n_catg)
@@ -2096,7 +2094,7 @@ void Print_Site_Lk(t_tree *tree, FILE *fp)
 		tree->mod->ras->gamma_rr->v[catg] * 
 		EXP(tree->log_site_lk_cat[catg][tree->data->sitepatt[site]]) * 
 		tree->mod->ras->gamma_r_proba->v[catg];
-	      postmean /= EXP(tree->cur_site_lk[tree->data->sitepatt[site]]);
+	      postmean /= tree->cur_site_lk[tree->data->sitepatt[site]];
 
 	      PhyML_Fprintf(fp,"%-22g",postmean);
 	    }
@@ -2114,7 +2112,7 @@ void Print_Site_Lk(t_tree *tree, FILE *fp)
   else
     {
       For(site,tree->data->init_len)
-	PhyML_Fprintf(fp,"%.2f\t",tree->cur_site_lk[tree->data->sitepatt[site]]);
+	PhyML_Fprintf(fp,"%.2f\t",LOG(tree->cur_site_lk[tree->data->sitepatt[site]]));
       PhyML_Fprintf(fp,"\n");
     }
 }
@@ -3573,12 +3571,12 @@ option *Get_Input(int argc, char **argv)
 
   option *io;
   t_mod *mod;
-  optimiz *s_opt;
+  t_opt *s_opt;
   m4 *m4mod;
 
   io    = (option *)Make_Input();
   mod   = (t_mod *)Make_Model_Basic();
-  s_opt = (optimiz *)Make_Optimiz();
+  s_opt = (t_opt *)Make_Optimiz();
   m4mod = (m4 *)M4_Make_Light();
 
   Set_Defaults_Input(io);
@@ -3621,43 +3619,6 @@ option *Get_Input(int argc, char **argv)
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
-
-void Print_Data_Structure(t_tree *root)
-{
-  t_tree *tree;
-
-  if(!root)
-    {
-      PhyML_Printf("\n== Root tree structure is empty");
-      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
-      Exit("\n");	  
-    }
-
-  if(root->is_mixt_tree == NO)
-    {
-      PhyML_Printf("\n== Root tree is supposed to be a mixture tree.");
-      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
-      Exit("\n");	  
-    }
-
-  tree = root;
-  do
-    {
-      PhyML_Printf("\n. Tree '%p' is_mixt_tree: %c child: '%p' parent: '%p' next: '%p' prev: '%p'",
-		   tree,
-		   tree->is_mixt_tree?'y':'n',
-		   tree->child,
-		   tree->parent,
-		   tree->next,
-		   tree->prev);
-
-      if(tree->child) tree = tree->child;
-      else tree = tree->next;
-      
-      if(!tree) break;
-    }while(1);
-}
-
 
 int Set_Whichmodel(int select)
 {
@@ -3793,3 +3754,124 @@ int Set_Whichmodel(int select)
   return wm;
 
 }
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void Print_Data_Structure(t_tree *root)
+{
+  int n_partition_elem;
+  void *buff;
+  char *s;
+
+  PhyML_Printf("\n\n.:: Printing the data structure ::. \n\n");
+
+  PhyML_Printf("\n. Starting tree:\t%12s",
+	       root->io->in_tree == 2?root->io->in_tree_file:"BioNJ");
+
+  PhyML_Printf("\n. Tree topology search:\t%12s",
+	       root->io->mod->s_opt->opt_topo==YES?
+	       root->io->mod->s_opt->topo_search==SPR_MOVE?"spr":
+	       root->io->mod->s_opt->topo_search==NNI_MOVE?"nni":
+	       "spr+nni":"no");
+
+
+  n_partition_elem = 1;
+  buff = root;
+  do
+    {
+      buff = ((t_tree *)buff)->next;
+      if(!buff) break;
+      n_partition_elem++;
+    }
+  while(1);
+  
+  s = (char *)mCalloc(2,sizeof(char));
+  s[0] = ' ';
+  s[1] = '\0';
+  buff = root;
+  do
+    {
+      s = (char *)mRealloc(s,(int)(strlen(s)+strlen(((t_tree *)buff)->io->in_align_file))+2+2,sizeof(char));
+      strcat(s,((t_tree *)buff)->io->in_align_file);
+      strcat(s,", ");
+      buff = ((t_tree *)buff)->next;
+      if(!buff) break;      
+    }
+  while(1);
+  s[(int)strlen(s)-2]=' ';
+  s[(int)strlen(s)-1]='\0';
+
+  PhyML_Printf("\n. Processing %d data %s (%s)",n_partition_elem,n_partition_elem>1?"sets":"set",s);
+
+  buff = root;
+  
+  do
+    {
+      int class = 0;
+      t_tree *tree = ((t_tree *)buff)->child;
+      
+      PhyML_Printf("\n\n. Mixture model for data set %s",((t_tree *)buff)->io->in_align_file);
+      PhyML_Printf("\n.");
+      PhyML_Printf("\n. Number of rate classes:\t\t\t%12d",((t_tree *)buff)->mod->ras->n_catg);
+      if(((t_tree *)buff)->mod->ras->n_catg > 1)
+	{
+	  PhyML_Printf("\n. Model of rate variation:\t\t\t%12s",
+		       ((t_tree *)buff)->mod->ras->free_mixt_rates?"FreeRates":
+		       ((t_tree *)buff)->mod->ras->invar?"Gamma+Inv":"Gamma");
+	  if(((t_tree *)buff)->mod->ras->free_mixt_rates == NO)
+	    {
+	      PhyML_Printf("\n. Gamma shape parameter:\t\t\t%12f",((t_tree *)buff)->mod->ras->alpha->v);
+	      PhyML_Printf("\n. Optimize parameter:\t\t\t\t%12s",((t_tree *)buff)->mod->s_opt->opt_alpha==YES?"yes":"no");
+	    }
+	  if(((t_tree *)buff)->mod->ras->invar == YES)
+	    {
+	      PhyML_Printf("\n. Proportion of invariable sites:\t\t%12f",((t_tree *)buff)->mod->pinvar->v);
+	    }
+	}
+	  
+      do
+	{
+	  PhyML_Printf("\n. Class %d",class+1);
+	  PhyML_Printf("\n.\t\t Substitution model:\t\t%12s",tree->mod->modelname);
+	  
+	  if(tree->mod->whichmodel == K80 ||
+	     tree->mod->whichmodel == HKY85 ||
+	     tree->mod->whichmodel == TN93)
+	    {
+	      PhyML_Printf("\n.\t\t Optimise ts/tv ratio:\t\t%12s",tree->mod->s_opt->opt_kappa?"yes":"no");
+	      PhyML_Printf("\n.\t\t Value of the ts/tv ratio:\t%12f",tree->mod->kappa->v);
+	    }
+	  else if(tree->mod->whichmodel == GTR ||
+		  tree->mod->whichmodel == CUSTOM)	    
+	    PhyML_Printf("\n.\t\t Optimise subst. rates:\t\t%12s",tree->mod->s_opt->opt_rr?"yes":"no");
+
+	  class++;
+	  
+	  tree = tree->next;
+	  if(tree && tree->is_mixt_tree == YES) break;
+	  if(!tree) break;
+	}
+      while(1);
+
+      buff = ((t_tree *)buff)->next;
+      if(!buff) break;
+    }
+  while(1);  
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+

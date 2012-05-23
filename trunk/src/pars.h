@@ -22,7 +22,7 @@ the GNU public licence.  See http://www.opensource.org for details.
 #include "free.h"
 
 void Make_Tree_4_Pars(t_tree *tree, calign *cdata, int n_site);
-int  Pars(t_tree *tree);
+int  Pars(t_edge *b, t_tree *tree);
 void Post_Order_Pars(t_node *a, t_node *d, t_tree *tree);
 void Pre_Order_Pars(t_node *a, t_node *d, t_tree *tree);
 void Get_Partial_Pars(t_tree *tree, t_edge *b_fcus, t_node *a, t_node *d);

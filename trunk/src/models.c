@@ -2372,13 +2372,12 @@ void Init_Model(calign *data, t_mod *mod, option *io)
 
   if(io->datatype == GENERIC) mod->whichmodel = JC69;
 
-  if(!mod->ras->invar) For(i,data->crunch_len) data->invar[i] = 0;
+  /* if(!mod->ras->invar) For(i,data->crunch_len) data->invar[i] = 0; */
 
   dr      = (phydbl *)mCalloc(  mod->ns,sizeof(phydbl));
   di      = (phydbl *)mCalloc(  mod->ns,sizeof(phydbl));
   space   = (phydbl *)mCalloc(2*mod->ns,sizeof(phydbl));
   
-
   if(mod->log_l == YES)
     {
       mod->l_min = LOG(mod->l_min);
@@ -2420,14 +2419,14 @@ void Init_Model(calign *data, t_mod *mod, option *io)
 	}
     }
 
-  if(mod->s_opt->opt_alpha)   mod->ras->alpha->v  = 1.0;
-  if(mod->s_opt->opt_pinvar)  mod->pinvar->v = 0.2;
+  if(mod->s_opt->opt_alpha)  mod->ras->alpha->v = 1.0;
+  if(mod->s_opt->opt_pinvar) mod->pinvar->v     = 0.2;
   
   if(io->datatype == NT) /* Nucleotides */
     { 
       /* init for nucleotides */
-      mod->update_eigen = 1;
-      mod->lambda->v       = 1.;
+      mod->lambda->v    = 1.;
+      /* mod->update_eigen = YES; */
       
       if(mod->whichmodel == JC69)
 	{
@@ -2469,14 +2468,14 @@ void Init_Model(calign *data, t_mod *mod, option *io)
       if(mod->whichmodel == GTR)
 	{
 	  mod->kappa->v = 1.;
-	  mod->update_eigen          = YES;
-	  io->mod->s_opt->opt_rr     = YES;
+	  mod->update_eigen      = YES;
+	  io->mod->s_opt->opt_rr = YES;
 	}
 
       if(mod->whichmodel == CUSTOM)
 	{
 	  mod->kappa->v = 1.;
-	  mod->update_eigen          = YES;
+	  mod->update_eigen      = YES;
 	  /* 	  io->mod->s_opt->opt_rr     = YES; */ /* What if the user decided not to optimise the rates? */
 	}
       
@@ -2497,14 +2496,18 @@ void Init_Model(calign *data, t_mod *mod, option *io)
 	  {
 	    mod->e_frq->pi->v[i] = mod->user_b_freq->v[i];
 	  }
-
-      if(!mod->use_m4mod) Set_Model_Parameters(mod);      
       
-      if((mod->whichmodel != GTR)    && 
-	 (mod->whichmodel != CUSTOM) && 
-	 (mod->whichmodel != HKY85)) mod->update_eigen = 0;
-
-
+      if((mod->whichmodel == GTR)    || 
+	 (mod->whichmodel == CUSTOM) || 
+	 (mod->whichmodel == HKY85)) 
+	{
+	  mod->update_eigen = YES;
+	  Update_Eigen(mod);
+	  mod->update_eigen = NO;
+	}
+      /* if((mod->whichmodel != GTR)    &&  */
+      /* 	 (mod->whichmodel != CUSTOM) &&  */
+      /* 	 (mod->whichmodel != HKY85)) mod->update_eigen = NO; */
     }
   else if(mod->io->datatype == AA)
     { 
@@ -2517,7 +2520,6 @@ void Init_Model(calign *data, t_mod *mod, option *io)
        */
       For(i,mod->ns*mod->ns) mod->r_mat->qmat->v[i] = .0;
       For(i,mod->ns        ) mod->e_frq->pi->v[i]   = .0;
-
 
       switch(mod->whichmodel)
 	{
@@ -2546,7 +2548,7 @@ void Init_Model(calign *data, t_mod *mod, option *io)
 	  {
 	    Init_Qmat_LG(mod->r_mat->qmat->v,mod->e_frq->pi->v);
 	    if(mod->s_opt->opt_state_freq)
-	      For(i,mod->ns) mod->e_frq->pi->v[i] = data->b_frq[i];
+	      For(i,mod->ns) mod->e_frq->pi->v[i] = data->b_frq[i];	    
 	    break;
 	  }
 	case WAG : 
@@ -2632,7 +2634,6 @@ void Init_Model(calign *data, t_mod *mod, option *io)
   
 /*       /\* multiply the nth col of Q by the nth term of pi/100 just as in PAML *\/ */
       For(i,mod->ns) For(j,mod->ns) mod->r_mat->qmat->v[i*mod->ns+j] *= mod->e_frq->pi->v[j] / 100.0;
-
       
       /* compute diagonal terms of Q and mean rate mr = l/t */
       mod->mr->v= .0;
@@ -2660,7 +2661,7 @@ void Init_Model(calign *data, t_mod *mod, option *io)
 	  For (i,mod->ns*mod->ns) mod->eigen->l_e_vect[i] = mod->eigen->r_e_vect[i];
 	  if(!Matinv(mod->eigen->l_e_vect,mod->eigen->size,mod->eigen->size,YES))
 	    {
-	      PhyML_Printf("\n. Err in file %s at line %d.",__FILE__,__LINE__);
+	      PhyML_Printf("\n== Err in file %s at line %d.",__FILE__,__LINE__);
 	      Exit("\n");      
 	    }
 	  
@@ -2669,8 +2670,8 @@ void Init_Model(calign *data, t_mod *mod, option *io)
 	}
       else
 	{
-	  if (result==-1) PhyML_Printf("\n. Eigenvalues/vectors computation does not converge : computation cancelled");
-	  else if (result==1) PhyML_Printf("\n. Complex eigenvalues/vectors : computation cancelled");
+	  if (result==-1) PhyML_Printf("\n== Eigenvalues/vectors computation does not converge : computation cancelled");
+	  else if (result==1) PhyML_Printf("\n== Complex eigenvalues/vectors : computation cancelled");
 	}
     }
   else if(mod->io->datatype == GENERIC)
@@ -2690,6 +2691,7 @@ void Init_Model(calign *data, t_mod *mod, option *io)
       Warn_And_Exit("");
     }
   
+  if(!mod->use_m4mod) Set_Model_Parameters(mod);      
 		  
   mod->ras->alpha_old->v  = mod->ras->alpha->v;
   mod->kappa_old->v  = mod->kappa->v;
@@ -2802,6 +2804,20 @@ void Update_Qmat_GTR(phydbl *rr, phydbl *rr_val, int *rr_num, phydbl *pi, phydbl
   mr = .0;
   For (i,4) mr += pi[i] * (-qmat[i*4+i]);
   For(i,16) qmat[i] /= mr;
+
+  /* int j; */
+  /* printf("\n"); */
+  /* printf("\n. rr -- "); */
+  /* For(i,5) printf(" %15f ",rr[i]); */
+  /* printf("\n"); */
+  /* For(i,4) */
+  /*   { */
+  /*     printf("\n. [%15f] \t ",pi[i]); */
+  /*     For(j,4) */
+  /* 	{ */
+  /* 	  printf(" %15f ",qmat[i*4+j]); */
+  /* 	} */
+  /*   } */
 }
 
 //////////////////////////////////////////////////////////////
@@ -2883,48 +2899,22 @@ void Translate_Custom_Mod_String(t_mod *mod)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
+// Update rate across sites distribution settings.
 
-void Set_Model_Parameters(t_mod *mod)
+void Update_RAS(t_mod *mod)
 {
   phydbl sum;
   int i;
 
   if(mod->ras->free_mixt_rates == NO) DiscreteGamma(mod->ras->gamma_r_proba->v, 
-					       mod->ras->gamma_rr->v, 
-					       mod->ras->alpha->v, 
-					       mod->ras->alpha->v, 
-					       mod->ras->n_catg, 
-					       mod->ras->gamma_median);
+						    mod->ras->gamma_rr->v, 
+						    mod->ras->alpha->v, 
+						    mod->ras->alpha->v, 
+						    mod->ras->n_catg, 
+						    mod->ras->gamma_median);
   else
     {
-      /* /\* // Update class frequencies *\/ */
-      /* sum = .0; */
-      /* For(i,mod->ras->n_catg) sum += FABS(mod->ras->gamma_r_proba_unscaled->v[i]); */
-      /* For(i,mod->ras->n_catg) mod->ras->gamma_r_proba->v[i] = FABS(mod->ras->gamma_r_proba_unscaled->v[i])/sum; */
-
-      /* // Update class rates */
-      /* do */
-      /* 	{ */
-      /* 	  sum = .0; */
-      /* 	  For(i,mod->ras->n_catg) */
-      /* 	    { */
-      /* 	      if(mod->ras->gamma_r_proba->v[i] < 0.01) mod->ras->gamma_r_proba->v[i]=0.01; */
-      /* 	      if(mod->ras->gamma_r_proba->v[i] > 0.99) mod->ras->gamma_r_proba->v[i]=0.99; */
-      /* 	      sum += mod->ras->gamma_r_proba->v[i]; */
-      /* 	    } */
-      /* 	  For(i,mod->ras->n_catg) mod->ras->gamma_r_proba->v[i]/=sum; */
-      /* 	} */
-      /* while((sum > 1.01) || (sum < 0.99)); */
-
-      /* sum = .0; */
-      /* For(i,mod->ras->n_catg) sum += mod->ras->gamma_r_proba->v[i] * FABS(mod->ras->gamma_rr_unscaled->v[i]); */
-      /* For(i,mod->ras->n_catg) mod->ras->gamma_rr->v[i] = FABS(mod->ras->gamma_rr_unscaled->v[i])/sum; */
-
-
-      //
-
       Qksort(mod->ras->gamma_r_proba_unscaled->v,NULL,0,mod->ras->n_catg-1); // Unscaled class frequencies sorted in increasing order
-
 
       // Update class frequencies
       For(i,mod->ras->n_catg)
@@ -2955,13 +2945,19 @@ void Set_Model_Parameters(t_mod *mod)
       For(i,mod->ras->n_catg) sum += mod->ras->gamma_r_proba->v[i] * FABS(mod->ras->gamma_rr_unscaled->v[i]);
       For(i,mod->ras->n_catg) mod->ras->gamma_rr->v[i] = FABS(mod->ras->gamma_rr_unscaled->v[i])/sum;
 
-
       /* sum = .0; */
       /* For(i,mod->ras->n_catg) sum += mod->ras->gamma_r_proba->v[i] * FABS(mod->ras->gamma_rr->v[i]); */
       /* printf("\n. sum=%f",sum); */
-
     }
+}
 
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void Update_Efrq(t_mod *mod)
+{
+  phydbl sum;
+  int i;
 
   if((mod->io->datatype == NT) && (mod->s_opt->opt_state_freq))
     {
@@ -2982,17 +2978,22 @@ void Set_Model_Parameters(t_mod *mod)
 	}
       while((sum > 1.01) || (sum < 0.99));
     }
-
-  Update_Eigen(mod);
-
-  /* printf("\n. Record %d to %d",mod->mod_num,mod->nextmod?mod->nextmod->mod_num:-1); */
-
-  if(mod->next) Record_Model(mod,mod->next);
 }
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
+void Set_Model_Parameters(t_mod *mod)
+{
+
+  Update_RAS(mod);
+  Update_Efrq(mod);
+  if(!mod->child) Update_Eigen(mod);
+
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
 
 void Update_Eigen(t_mod *mod)
 {
@@ -3031,7 +3032,7 @@ void Update_Eigen(t_mod *mod)
       /*       if(!EigenRealGeneral(mod->eigen->size,mod->r_mat->qmat,mod->eigen->e_val, */
       /* 			  mod->eigen->e_val_im, mod->eigen->r_e_vect, */
       /* 			  mod->eigen->space_int,mod->eigen->space)) */
-
+      
       if(!Eigen(1,mod->r_mat->qmat_buff->v,mod->eigen->size,mod->eigen->e_val,
 		mod->eigen->e_val_im,mod->eigen->r_e_vect,
 		mod->eigen->r_e_vect_im,mod->eigen->space))
@@ -3062,31 +3063,31 @@ void Update_Eigen(t_mod *mod)
 	  For(i,mod->ns) mod->eigen->e_val[i] = (phydbl)EXP(mod->eigen->e_val[i]);
 
 
-/* 	  int j; */
-/* 	  double *U,*V,*R; */
-/* 	  double *expt;  */
-/* 	  double *uexpt; */
-/* 	  int n; */
+	  /* int j; */
+	  /* double *U,*V,*R; */
+	  /* double *expt; */
+	  /* double *uexpt; */
+	  /* int n; */
 
-/* 	  expt  = mod->eigen->e_val_im; */
-/* 	  uexpt = mod->eigen->r_e_vect_im; */
-/* 	  U     = mod->eigen->r_e_vect; */
-/* 	  V     = mod->eigen->l_e_vect; */
-/* 	  R     = mod->eigen->e_val; /\* exponential of the eigen value matrix *\/ */
-/* 	  n     = mod->ns; */
+	  /* expt  = mod->eigen->e_val_im; */
+	  /* uexpt = mod->eigen->r_e_vect_im; */
+	  /* U     = mod->eigen->r_e_vect; */
+	  /* V     = mod->eigen->l_e_vect; */
+	  /* R     = mod->eigen->e_val; /\* exponential of the eigen value matrix *\/ */
+	  /* n     = mod->ns; */
 
-/* 	  PhyML_Printf("\n"); */
-/* 	  PhyML_Printf("\n. Q\n"); */
-/* 	  For(i,n) { For(j,n) PhyML_Printf("%7.3f ",mod->eigen->q[i*n+j]); PhyML_Printf("\n"); } */
-/* 	  PhyML_Printf("\n. U\n"); */
-/* 	  For(i,n) { For(j,n) PhyML_Printf("%7.3f ",U[i*n+j]); PhyML_Printf("\n"); } */
-/* 	  PhyML_Printf("\n"); */
-/* 	  PhyML_Printf("\n. V\n"); */
-/* 	  For(i,n) { For(j,n) PhyML_Printf("%7.3f ",V[i*n+j]); PhyML_Printf("\n"); } */
-/* 	  PhyML_Printf("\n"); */
-/* 	  PhyML_Printf("\n. Eigen\n"); */
-/* 	  For(i,n)  PhyML_Printf("%E ",expt[i]); */
-/* 	  PhyML_Printf("\n"); */
+	  /* PhyML_Printf("\n"); */
+	  /* PhyML_Printf("\n. Q\n"); */
+	  /* For(i,n) { For(j,n) PhyML_Printf("%7.3f ",mod->eigen->q[i*n+j]); PhyML_Printf("\n"); } */
+	  /* PhyML_Printf("\n. U\n"); */
+	  /* For(i,n) { For(j,n) PhyML_Printf("%7.3f ",U[i*n+j]); PhyML_Printf("\n"); } */
+	  /* PhyML_Printf("\n"); */
+	  /* PhyML_Printf("\n. V\n"); */
+	  /* For(i,n) { For(j,n) PhyML_Printf("%7.3f ",V[i*n+j]); PhyML_Printf("\n"); } */
+	  /* PhyML_Printf("\n"); */
+	  /* PhyML_Printf("\n. Eigen\n"); */
+	  /* For(i,n)  PhyML_Printf("%E ",mod->eigen->e_val[i]); */
+	  /* PhyML_Printf("\n"); */
 	  
 /* 	  Exit("\n"); */
 
@@ -3112,7 +3113,7 @@ void Switch_From_M4mod_To_Mod(t_mod *mod)
   mod->ns = mod->m4mod->n_o;
   For(i,mod->ns) mod->e_frq->pi->v[i] = mod->m4mod->o_fq[i];
   mod->eigen->size = mod->ns;
-  mod->update_eigen = 1;
+  Switch_Eigen(YES,mod);
 }
 
 //////////////////////////////////////////////////////////////
@@ -3126,7 +3127,7 @@ void Switch_From_Mod_To_M4mod(t_mod *mod)
   mod->ns = mod->m4mod->n_o * mod->m4mod->n_h;
   For(i,mod->ns) mod->e_frq->pi->v[i] = mod->m4mod->o_fq[i%mod->m4mod->n_o] * mod->m4mod->h_fq[i/mod->m4mod->n_o];
   mod->eigen->size = mod->ns;
-  mod->update_eigen = 1;
+  Switch_Eigen(YES,mod);
 }
 
 //////////////////////////////////////////////////////////////

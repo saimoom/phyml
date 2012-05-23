@@ -47,7 +47,7 @@ void MCMC(t_tree *tree)
       MCMC_Read_Param_Vals(tree);
     }
 
-  tree->mod->update_eigen = YES;
+  Switch_Eigen(YES,tree->mod);
 
   MCMC_Initialize_Param_Val(tree->mcmc,tree);
   
@@ -60,9 +60,9 @@ void MCMC(t_tree *tree)
   RATES_Lk_Rates(tree);
   TIMES_Lk_Times(tree);
   tree->both_sides = NO;
-  if(tree->mcmc->use_data) Lk(tree);
+  if(tree->mcmc->use_data) Lk(NULL,tree);
   else tree->c_lnL = 0.0;
-  tree->mod->update_eigen = NO;
+  Switch_Eigen(NO,tree->mod);
   MCMC_Print_Param(tree->mcmc,tree);
 
        
@@ -273,7 +273,7 @@ void MCMC(t_tree *tree)
       else if(!strcmp(tree->mcmc->move_name[move],"time"))
       	{
       	  tree->both_sides = YES;
-      	  if(tree->mcmc->use_data == YES) Lk(tree);
+      	  if(tree->mcmc->use_data == YES) Lk(NULL,tree);
       	  tree->both_sides = NO;
 
 
@@ -304,7 +304,7 @@ void MCMC(t_tree *tree)
       	{
 
       	  tree->both_sides = YES;
-      	  if(tree->mcmc->use_data == YES) Lk(tree);
+      	  if(tree->mcmc->use_data == YES) Lk(NULL,tree);
       	  tree->both_sides = NO;
 
       	  if(tree->mcmc->is == NO)
@@ -323,7 +323,7 @@ void MCMC(t_tree *tree)
 
 	  /* MCMC_Sim_Rate(tree->n_root,tree->n_root->v[0],tree); */
 	  /* MCMC_Sim_Rate(tree->n_root,tree->n_root->v[1],tree); */
-      	  /* if(tree->mcmc->use_data == YES) Lk(tree); */
+      	  /* if(tree->mcmc->use_data == YES) Lk(NULL,tree); */
 	  /* RATES_Lk_Rates(tree); */
       	}
 
@@ -671,7 +671,7 @@ void MCMC_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree)
 		}
 	      Update_P_Lk(tree,b1,d);
 	    }
-	  new_lnL_data = Lk_At_Given_Edge(b1,tree);
+	  new_lnL_data = Lk(b1,tree);
 	  
 	  /* tree->both_sides = NO; */
 	  /* new_lnL_data = Lk(tree); */
@@ -883,7 +883,7 @@ void MCMC_One_Time(t_node *a, t_node *d, int traversal, t_tree *tree)
 	      Update_PMat_At_Given_Edge(b3,tree);
 	      Update_P_Lk(tree,b1,d);
 	    }
-	  new_lnL_data = Lk_At_Given_Edge(b1,tree);
+	  new_lnL_data = Lk(b1,tree);
 
 	  /* /\* !!!!!!!!!!!!!!!!!!!!1 *\/ */
 	  /* if(FABS(Lk(tree) - new_lnL_data) > 1.E-5) */
@@ -1044,7 +1044,7 @@ void MCMC_Tree_Height(t_tree *tree)
   
   For(i,2*tree->n_otu-2) tree->rates->br_do_updt[i] = YES;
   RATES_Update_Cur_Bl(tree);
-  if(tree->mcmc->use_data) new_lnL_data = Lk(tree);
+  if(tree->mcmc->use_data) new_lnL_data = Lk(NULL,tree);
 
   new_lnL_rate = RATES_Lk_Rates(tree);
   new_lnL_time = TIMES_Lk_Times(tree);
@@ -1166,7 +1166,7 @@ void MCMC_Updown_T_Cr(t_tree *tree)
   
   For(i,2*tree->n_otu-2) tree->rates->br_do_updt[i] = YES;
   RATES_Update_Cur_Bl(tree);
-  if(tree->mcmc->use_data) new_lnL_data = Lk(tree);
+  if(tree->mcmc->use_data) new_lnL_data = Lk(NULL,tree);
 
   new_lnL_rate = RATES_Lk_Rates(tree);
   new_lnL_time = TIMES_Lk_Times(tree);
@@ -1276,7 +1276,7 @@ void MCMC_Subtree_Height(t_tree *tree)
      
   For(i,2*tree->n_otu-2) tree->rates->br_do_updt[i] = YES;
   RATES_Update_Cur_Bl(tree);
-  if(tree->mcmc->use_data) new_lnL_data = Lk(tree);
+  if(tree->mcmc->use_data) new_lnL_data = Lk(NULL,tree);
 
   new_lnL_rate = RATES_Lk_Rates(tree);
   new_lnL_time = TIMES_Lk_Times(tree);
@@ -1376,7 +1376,7 @@ void MCMC_Tree_Rates(t_tree *tree)
       int i;
       For(i,2*tree->n_otu-2) tree->rates->br_do_updt[i] = YES;
       RATES_Update_Cur_Bl(tree);
-      if(tree->mcmc->use_data) new_lnL_data = Lk(tree);
+      if(tree->mcmc->use_data) new_lnL_data = Lk(NULL,tree);
 /*     } */
 
   new_lnL_rate = RATES_Lk_Rates(tree);
@@ -1459,7 +1459,7 @@ void MCMC_Subtree_Rates(t_tree *tree)
     }
 
   new_lnL_rate = RATES_Lk_Rates(tree);
-  if(tree->mcmc->use_data) new_lnL_data = Lk(tree);
+  if(tree->mcmc->use_data) new_lnL_data = Lk(NULL,tree);
 
   /* Proposal ratio: 2n-2=> number of multiplications, 1=>number of divisions */
   ratio += (+n_nodes)*LOG(mult);
@@ -1555,7 +1555,7 @@ void MCMC_Swing(t_tree *tree)
 
   For(i,2*tree->n_otu-2) tree->rates->br_do_updt[i] = YES;
   RATES_Update_Cur_Bl(tree);
-  if(tree->mcmc->use_data) new_lnL_data = Lk(tree);
+  if(tree->mcmc->use_data) new_lnL_data = Lk(NULL,tree);
 
   new_lnL_rate = RATES_Lk_Rates(tree);
 
@@ -1641,7 +1641,7 @@ void MCMC_Updown_Nu_Cr(t_tree *tree)
   
   For(i,2*tree->n_otu-2) tree->rates->br_do_updt[i] = YES;
   RATES_Update_Cur_Bl(tree);
-  if(tree->mcmc->use_data) new_lnL_data = Lk(tree);
+  if(tree->mcmc->use_data) new_lnL_data = Lk(NULL,tree);
 
   new_lnL_rate = RATES_Lk_Rates(tree);
 
@@ -1953,11 +1953,11 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
       orig_approx = tree->io->lk_approx;
       orig_lnL = tree->c_lnL;
       tree->io->lk_approx = EXACT;
-      if(tree->mcmc->use_data)  Lk(tree);  else tree->c_lnL = 0.0;
+      if(tree->mcmc->use_data)  Lk(NULL,tree);  else tree->c_lnL = 0.0;
       PhyML_Fprintf(fp,"%.1f\t",tree->c_lnL);
       tree->io->lk_approx = NORMAL;
       tree->c_lnL = 0.0;
-      if(tree->mcmc->use_data)  Lk(tree);  else tree->c_lnL = 0.0;
+      if(tree->mcmc->use_data)  Lk(NULL,tree);  else tree->c_lnL = 0.0;
       PhyML_Fprintf(fp,"%.1f\t",tree->c_lnL);
       tree->io->lk_approx = orig_approx;
       tree->c_lnL = orig_lnL;
@@ -3007,7 +3007,7 @@ void MCMC_One_Length(t_edge *b, t_tree *tree)
   if(new_l < tree->mod->l_min || new_l > tree->mod->l_max) return;
 
   b->l->v = new_l;
-  new_lnL_data = Lk_At_Given_Edge(b,tree);
+  new_lnL_data = Lk(b,tree);
 /*   tree->both_sides = NO; */
 /*   new_lnL_data = Lk(tree); */
 
@@ -3059,7 +3059,7 @@ void MCMC_Scale_Br_Lens(t_tree *tree)
     }
 
   tree->both_sides = NO;
-  new_lnL_data = Lk(tree);
+  new_lnL_data = Lk(NULL,tree);
 
   ratio =
     (new_lnL_data - cur_lnL_data) +
@@ -3133,12 +3133,12 @@ void MCMC_Kappa(t_tree *tree)
 
   change = NO;
 
-  tree->mod->update_eigen = YES;
+  Switch_Eigen(YES,tree->mod);
 		
   if(tree->io->lk_approx == NORMAL)
     {
       tree->io->lk_approx = EXACT;
-      if(tree->mcmc->use_data == YES) Lk(tree);
+      if(tree->mcmc->use_data == YES) Lk(NULL,tree);
       change = YES;
     }
   
@@ -3150,10 +3150,10 @@ void MCMC_Kappa(t_tree *tree)
   if(change == YES)
     {
       tree->io->lk_approx = NORMAL;
-      if(tree->mcmc->use_data == YES) Lk(tree);
+      if(tree->mcmc->use_data == YES) Lk(NULL,tree);
     }
   
-  tree->mod->update_eigen = NO;  
+  Switch_Eigen(NO,tree->mod);
 }
 
 //////////////////////////////////////////////////////////////
@@ -3248,7 +3248,7 @@ void MCMC_Free_Mixt_Rate(t_tree *tree)
  
       hr = Jnow/Jthen;
 
-      new_lnL_data = Lk(tree);
+      new_lnL_data = Lk(NULL,tree);
 
       // Metropolis-Hastings step
       ratio = 0.;
@@ -3309,7 +3309,7 @@ void MCMC_Free_Mixt_Rate(t_tree *tree)
 
       hr = Jnow/Jthen;
       
-      new_lnL_data = Lk(tree);
+      new_lnL_data = Lk(NULL,tree);
 
       // Metropolis-Hastings step
       ratio = 0.;
@@ -3353,7 +3353,7 @@ void MCMC_Covarion_Rates(t_tree *tree)
 
   if(tree->mod->use_m4mod == NO) return;
 
-  tree->mod->update_eigen = YES;
+  Switch_Eigen(YES,tree->mod);
 
   For(i,2*tree->n_otu-2) tree->rates->br_do_updt[i] = YES;
 
@@ -3392,7 +3392,7 @@ void MCMC_Covarion_Rates(t_tree *tree)
 				NULL,Wrap_Lk,tree->mcmc->move_type[tree->mcmc->num_move_cov_rates+class],NO,NULL,tree,NULL);
     }
 
-  tree->mod->update_eigen = NO;
+  Switch_Eigen(NO,tree->mod);
 
 }
 
@@ -3404,11 +3404,11 @@ void MCMC_Covarion_Switch(t_tree *tree)
 {
   if(tree->mod->use_m4mod == NO) return;
 
-  tree->mod->update_eigen = YES;
+  Switch_Eigen(YES,tree->mod);
   MCMC_Single_Param_Generic(&(tree->mod->m4mod->delta),0.01,+100.,tree->mcmc->num_move_cov_switch,
 			    NULL,&(tree->c_lnL),
 			    NULL,Wrap_Lk,tree->mcmc->move_type[tree->mcmc->num_move_cov_switch],NO,NULL,tree,NULL); 
-  tree->mod->update_eigen = NO;
+  Switch_Eigen(NO,tree->mod);
 }
 
 //////////////////////////////////////////////////////////////
@@ -3467,7 +3467,7 @@ void MCMC_Nu(t_tree *tree)
       if((tree->rates->model == GUINDON) && (tree->mcmc->use_data))
 	{
 	  For(i,2*tree->n_otu-2) tree->rates->br_do_updt[i] = YES;
-	  new_lnL_data = Lk(tree);
+	  new_lnL_data = Lk(NULL,tree);
 	}
       
       ratio +=
@@ -3524,7 +3524,7 @@ void MCMC_All_Rates(t_tree *tree)
   MCMC_Sim_Rate(tree->n_root,tree->n_root->v[0],tree);
   MCMC_Sim_Rate(tree->n_root,tree->n_root->v[1],tree);
 
-  new_lnL_data = Lk(tree);
+  new_lnL_data = Lk(NULL,tree);
   
   ratio += (new_lnL_data - cur_lnL_data);
   ratio = EXP(ratio);
@@ -3843,7 +3843,7 @@ void MCMC_Slice_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree)
       tree->rates->br_r[d->num] = L;
       tree->rates->br_do_updt[d->num] = YES;
       RATES_Update_Cur_Bl(tree);
-      Lk_At_Given_Edge(b,tree);
+      Lk(b,tree);
       RATES_Lk_Rates(tree);
       if(L < tree->rates->min_rate) { L = tree->rates->min_rate - w; break;}
       L = L - w;
@@ -3857,7 +3857,7 @@ void MCMC_Slice_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree)
       tree->rates->br_r[d->num] = R;
       tree->rates->br_do_updt[d->num] = YES;
       RATES_Update_Cur_Bl(tree);
-      Lk_At_Given_Edge(b,tree);
+      Lk(b,tree);
       RATES_Lk_Rates(tree);
       if(R > tree->rates->max_rate) { R = tree->rates->max_rate + w; break;}
       R = R + w;
@@ -3874,7 +3874,7 @@ void MCMC_Slice_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree)
       tree->rates->br_r[d->num] = x1;
       tree->rates->br_do_updt[d->num] = YES;
       RATES_Update_Cur_Bl(tree);
-      Lk_At_Given_Edge(b,tree);
+      Lk(b,tree);
       RATES_Lk_Rates(tree);
       
       if(tree->c_lnL + tree->rates->c_lnL_rates > logy) break;

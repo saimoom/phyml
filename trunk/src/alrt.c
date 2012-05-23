@@ -59,7 +59,7 @@ int Check_NNI_Five_Branches(t_tree *tree)
 
       tree->update_alias_subpatt = YES;
       tree->both_sides = 1;
-      init_lnL = Lk(tree);
+      init_lnL = Lk(NULL,tree);
       tree->update_alias_subpatt = NO;
 
       //For every branch
@@ -146,7 +146,7 @@ int Check_NNI_Five_Branches(t_tree *tree)
 	  Make_Target_Swap(tree,tree->t_edges[best_edge],best_config);
 
 	  tree->update_alias_subpatt = YES;
-	  Lk(tree);
+	  Lk(NULL,tree);
 	  tree->update_alias_subpatt = NO;
 
 	  if(tree->c_lnL < init_lnL)
@@ -183,7 +183,7 @@ void aLRT(t_tree *tree)
   
   tree->update_alias_subpatt = YES;
   tree->both_sides = 1;
-  Lk(tree);
+  Lk(NULL,tree);
   tree->update_alias_subpatt = NO;
 
 
@@ -691,7 +691,7 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
       Update_P_Lk(tree,b_fcus->rght->b[i],b_fcus->rght);
   tree->update_alias_subpatt = NO;
 
-  lk_temp = Lk_At_Given_Edge(b_fcus,tree);
+  lk_temp = Lk(b_fcus,tree);
 
 
   if((lk_temp > lk_init + tree->mod->s_opt->min_diff_lk_local) || (lk_temp < lk_init - tree->mod->s_opt->min_diff_lk_local))
@@ -1286,7 +1286,7 @@ phydbl Update_Lk_At_Given_Edge_Excluding(t_edge *b_fcus, t_tree *tree, t_node *e
   if((!b_fcus->rght->tax) && (exclude == NULL || exclude != b_fcus->rght))
     Update_P_Lk(tree,b_fcus,b_fcus->rght);
 
-  tree->c_lnL = Lk_At_Given_Edge(b_fcus,tree);
+  tree->c_lnL = Lk(b_fcus,tree);
 
   return tree->c_lnL;
 }

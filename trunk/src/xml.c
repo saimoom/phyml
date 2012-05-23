@@ -174,7 +174,7 @@ int XML_Add_Character(int c, char  **bufptr, char **buffer, int *bufsize)
     *buffer = newbuffer;
   }
 
-  *(*bufptr)++ = c;
+  *(*bufptr)++ = tolower(c);
   return 0;
 }
 
@@ -455,6 +455,7 @@ xml_node *XML_Search_Node_ID(char *id, int skip, xml_node *node)
 	      PhyML_Printf("\n== Could not find a node with id '%s'.",id);
 	      Exit("\n");
 	    }
+	  
 	  return NULL;
 	}
     }
@@ -530,7 +531,7 @@ char *XML_Get_Attribute_Value(xml_node *node, char *attr_name)
   
   attr = node->attr;
 
-  while(strcmp(attr->name,attr_name))
+  while(attr && strcmp(attr->name,attr_name))
     {
       attr = attr->next;
       
@@ -551,17 +552,31 @@ int XML_Validate_Attr_Int(char *target, int num, ...)
 {
   va_list args;                     
   int i;
-  char *s;
+  char *s,*sc_s;
+  char *sc_target;
+  
+  sc_target = To_Lower_String(target);
 
   va_start(args,num);           
   For(i,num)
     {
       s = va_arg(args, char *); 
-      if(!strcmp(s,target)) break;
+      sc_s = To_Lower_String(s);
+      if(!strcmp(sc_s,sc_target)) break;
+      Free(sc_s);
     }
   va_end(args);
 
-  if(i == num) i = -1;
+  if(i == num) 
+    {
+      i = -1;
+      PhyML_Printf("\n== Attribute value '%s' is not valid",target);
+      Exit("\n");
+    }
+
+
+
+  Free(sc_target);
 
   return(i);
 }
@@ -709,7 +724,7 @@ int XML_Siterates_Number_Of_Classes(xml_node *sr_node)
   do
     {
       if(!buff) break;
-      n_classes++;
+      if(!strcmp(buff->name,"instance")) n_classes++;
       buff = buff->next;
     }while(1);
   
@@ -719,6 +734,47 @@ int XML_Siterates_Number_Of_Classes(xml_node *sr_node)
 
 //////////////////////////////////////////////////////////////
 
+void XML_Count_Number_Of_Node_With_ID(char *id, int *count, xml_node *n)
+{
+  if(!id) return;
+  if(n->id && !strcmp(n->id,id)) (*count)++;
+  
+  if(n->child) XML_Count_Number_Of_Node_With_ID(id,count,n->child);
+  if(n->next)  XML_Count_Number_Of_Node_With_ID(id,count,n->next);
+    
+}
+
 //////////////////////////////////////////////////////////////
+
+void XML_Count_Number_Of_Node_With_Name(char *name, int *count, xml_node *n)
+{
+  if(!name) return;
+  if(n->name && !strcmp(n->name,name)) (*count)++;
+  
+  if(n->child) XML_Count_Number_Of_Node_With_Name(name,count,n->child);
+  if(n->next)  XML_Count_Number_Of_Node_With_Name(name,count,n->next);
+    
+}
+
+//////////////////////////////////////////////////////////////
+
+void XML_Check_Duplicate_ID(xml_node *n)
+{
+  int count;
+  
+  count = 0;
+  XML_Count_Number_Of_Node_With_ID(n->id,&count,n);
+  
+  if(count > 1)
+    {
+      PhyML_Printf("\n== Node ID'%s' was found in more than once.",n->id);
+      PhyML_Printf("\n== Each ID must be unique. Please amend your XML");
+      PhyML_Printf("\n== file accordingly.");
+      Exit("\n");
+    }
+
+  if(n->child) XML_Check_Duplicate_ID(n->child);
+  if(n->next) XML_Check_Duplicate_ID(n->next);
+}
 
 //////////////////////////////////////////////////////////////

@@ -19,7 +19,15 @@ phydbl String_To_Dbl(char *string)
 {
   phydbl buff;
   char *endptr;
-  
+
+  if(!string)
+    {
+      PhyML_Printf("\n== String object empty.");
+      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);      
+      Exit("\n");
+    }
+
+
   buff = strtod(string,&endptr);
   if(string == endptr || errno == ERANGE)
     {
@@ -72,15 +80,15 @@ void Make_Edge_Dirs(t_edge *b, t_node *a, t_node *d, t_tree *tree)
  
   if(a == b->rght)
     {
-      PhyML_Printf("\n. a->num = %3d ; d->num = %3d",a->num,d->num);
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-      Warn_And_Exit("");
+      PhyML_Printf("\n== a->num = %3d ; d->num = %3d",a->num,d->num);
+      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");
     }
   if(d == b->left)
     {
-      PhyML_Printf("\n. a->num = %3d ; d->num = %3d",a->num,d->num);
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-      Warn_And_Exit("");
+      PhyML_Printf("\n== a->num = %3d ; d->num = %3d",a->num,d->num);
+      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");
     }
 
   b->l_r = b->r_l = -1;
@@ -271,9 +279,10 @@ calign *Compact_Data(align **data, option *io)
 		  For(j,n_otu)
 		    {
 		      cdata_tmp->invar[n_patt] = Assign_State(cdata_tmp->c_seq[j]->state+n_patt*io->state_len,
-							      io->datatype,
-							      io->state_len);
-		      if(cdata_tmp->invar[n_patt] > -1.) break; /* It is not actually (at least one state in the column is ambiguous) */
+		      					      io->datatype,
+		      					      io->state_len);
+
+		      if(cdata_tmp->invar[n_patt] > -1.) break;
 		    }
 		}
 	      else cdata_tmp->invar[n_patt] = -1;
@@ -427,8 +436,9 @@ calign *Compact_Cdata(calign *data, option *io)
 		  For(j,n_otu)
 		    {
 		      cdata->invar[n_patt] = Assign_State(cdata->c_seq[j]->state+n_patt*io->state_len,
-							    io->datatype,
-							    io->state_len);
+							  io->datatype,
+							  io->state_len);
+
 		      if(cdata->invar[n_patt] > -1.) break;
 		    }
 		}
@@ -1115,32 +1125,6 @@ void Print_Site(calign *cdata, int num, int n_otu, char *sep, int stepsize)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
-
-void Order_Tree_Seq(t_tree *tree, align **data)
-{
-    int i,j,n_otu;
-    align *buff;
-
-    n_otu = tree->n_otu;
-
-    For(i,n_otu)
-      {
-	For(j,n_otu)
-	  {
-	    if(!strcmp(tree->t_nodes[i]->name,data[j]->name))
-	      break;
-	  }
-	buff = data[j];
-	data[j] = data[i];
-	data[i] = buff;
-      }
-}
-
-//////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
-
-
 char *Add_Taxa_To_Constraint_Tree(FILE *fp, calign *cdata)
 {
   char *line,*long_line;
@@ -1211,47 +1195,6 @@ void Check_Constraint_Tree_Taxa_Names(t_tree *tree, calign *cdata)
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
-
-
-void Order_Tree_CSeq(t_tree *tree, calign *cdata)
-{
-    int i,j,n_otu_tree,n_otu_cdata;
-    align *buff;
-
-    n_otu_tree  = tree->n_otu;
-    n_otu_cdata = cdata->n_otu;
-
-    if((n_otu_tree != n_otu_cdata) && (tree->io->fp_in_constraint_tree == NULL)) 
-      {
-	PhyML_Printf("\n. Number of taxa in the tree: %d, number of sequences: %d.",n_otu_tree,n_otu_cdata);
-	Warn_And_Exit("\n. The number of tips in the tree is not the same as the number of sequences\n");
-      }
-
-    For(i,MAX(n_otu_tree,n_otu_cdata))
-      {
-	For(j,MIN(n_otu_tree,n_otu_cdata))
-	  {
-	    if(!strcmp(tree->t_nodes[i]->name,cdata->c_seq[j]->name))
-	      break;
-	  }
-	
-	if(j==MIN(n_otu_tree,n_otu_cdata))
-	  {
-	    PhyML_Printf("\n. Err: '%s' is not found in sequence data set\n",tree->t_nodes[i]->name);
-	    Warn_And_Exit("");
-	  }
-	
-	buff            = cdata->c_seq[j];
-	cdata->c_seq[j] = cdata->c_seq[i];
-	cdata->c_seq[i] = buff;
-      }
-}
-
-//////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
-
-
-
 
 void Copy_Tax_Names_To_Tip_Labels(t_tree *tree, calign *data)
 {
@@ -1473,28 +1416,27 @@ int Sort_Edges_Depth(t_tree *tree, t_edge **sorted_edges, int n_elem)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
 void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
 {
   int l_r, r_l, l_v1, l_v2, r_v3, r_v4;
   t_node *v1,*v2,*v3,*v4;
   phydbl lk0, lk1, lk2;
   phydbl lk0_init, lk1_init, lk2_init;
-  phydbl bl_init;
   phydbl l0,l1,l2;
   phydbl l_infa, l_infb, l_max;
-/*   phydbl lk_infa, lk_infb, lk_max; */
   phydbl lk_init;
 
-  bl_init                = b_fcus->l->v;
-  lk_init                = tree->c_lnL;
+  if(tree->is_mixt_tree == YES)
+    {
+      MIXT_NNI(tree,b_fcus,do_swap);
+      return;
+    }
 
+  lk_init                = tree->c_lnL;
   b_fcus->nni->init_l    = b_fcus->l->v;
   b_fcus->nni->init_lk   = tree->c_lnL;;
-
   b_fcus->nni->best_conf = 0;
   b_fcus->nni->score     = +1.0;
-
   lk0 = lk1 = lk2        = UNLIKELY;
   v1 = v2 = v3 = v4      = NULL;
 
@@ -1502,7 +1444,6 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
 
   l_r                    = b_fcus->l_r;
   r_l                    = b_fcus->r_l;
-
   v1                     = b_fcus->left->v[b_fcus->l_v1];
   v2                     = b_fcus->left->v[b_fcus->l_v2];
   v3                     = b_fcus->rght->v[b_fcus->r_v1];
@@ -1539,7 +1480,7 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
   if(tree->mod->s_opt->fast_nni)
     {
       Fast_Br_Len(b_fcus,tree,1);
-      lk1 = Lk_At_Given_Edge(b_fcus,tree);
+      lk1 = Lk(b_fcus,tree);
     }
   else
     {
@@ -1579,7 +1520,7 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
   if(tree->mod->s_opt->fast_nni)
     {
       Fast_Br_Len(b_fcus,tree,1);
-      lk2 = Lk_At_Given_Edge(b_fcus,tree);
+      lk2 = Lk(b_fcus,tree);
     }
   else
     {
@@ -1619,7 +1560,7 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
 		   lk0_init,
 		   lk_init-lk0_init,
 		   b_fcus->l->v);
-      PhyML_Printf("\n. Curr_lnL = %f\n",Lk(tree));
+      PhyML_Printf("\n. Curr_lnL = %f\n",Lk(NULL,tree));
       Warn_And_Exit("\n. Err. in NNI (3)\n");
     }
   
@@ -1630,7 +1571,7 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
   if(tree->mod->s_opt->fast_nni)
     {
       Fast_Br_Len(b_fcus,tree,1);
-      lk0 = Lk_At_Given_Edge(b_fcus,tree);
+      lk0 = Lk(b_fcus,tree);
     }
   else
     {
@@ -1719,7 +1660,7 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
 	  Swap(v2,b_fcus->left,b_fcus->rght,v3,tree);
 	  b_fcus->l->v = l1;
 	  tree->both_sides = 1;
-	  Lk(tree);
+	  Lk(NULL,tree);
 	}
       else
 	{
@@ -1727,7 +1668,7 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
 	  Swap(v2,b_fcus->left,b_fcus->rght,v4,tree);
 	  b_fcus->l->v = l2;
 	  tree->both_sides = 1;
-	  Lk(tree);
+	  Lk(NULL,tree);
 	}
     }
   else
@@ -1865,12 +1806,7 @@ void Swap(t_node *a, t_node *b, t_node *c, t_node *d, t_tree *tree)
    * nodes b and c are not necessarily on the same branch 
    */
 
-
-  if(tree->next) Swap(tree->next->t_nodes[a->num],
-			 tree->next->t_nodes[b->num],
-			 tree->next->t_nodes[c->num],
-			 tree->next->t_nodes[d->num],
-			 tree->next);
+  if(!tree) return;
 
 #ifdef DEBUG
   if(!a || !b || !c || !d)
@@ -1950,6 +1886,10 @@ void Swap(t_node *a, t_node *b, t_node *c, t_node *d, t_tree *tree)
     }
   Update_Dirs(tree);
   
+  if(tree->child) 
+    Swap(a->child,b->child,c->child,d->child,tree->child);
+  else
+    Swap(a->next,b->next,c->next,d->next,tree->next);
 }
 
 //////////////////////////////////////////////////////////////
@@ -1979,11 +1919,11 @@ void Update_All_Partial_Lk(t_edge *b_fcus, t_tree *tree)
 			    b_fcus->rght->v[b_fcus->r_v2],
 			    tree);
 
-  tree->c_lnL = Lk_At_Given_Edge(b_fcus,tree);
+  tree->c_lnL = Lk(b_fcus,tree);
 
 
   if(tree->next) Update_All_Partial_Lk(tree->next->t_edges[b_fcus->num],
-					  tree->next);
+				       tree->next);
 }
 
 //////////////////////////////////////////////////////////////
@@ -2876,7 +2816,9 @@ void Bootstrap(t_tree *tree)
       boot_tree->io->print_trace    = 0;
 
       if((boot_tree->mod->s_opt->random_input_tree) && (boot_tree->mod->s_opt->topo_search == SPR_MOVE)) Random_Tree(boot_tree);
-      Order_Tree_CSeq(boot_tree,boot_data);
+
+      Connect_CSeqs_To_Nodes(boot_data,boot_tree);
+
       Share_Lk_Struct(tree,boot_tree);
       Share_Spr_Struct(tree,boot_tree);
       Share_Pars_Struct(tree,boot_tree);
@@ -2893,7 +2835,7 @@ void Bootstrap(t_tree *tree)
       if(boot_tree->io->do_alias_subpatt)
 	{
 	  boot_tree->update_alias_subpatt = YES;
-	  Lk(boot_tree);
+	  Lk(NULL,boot_tree);
 	  boot_tree->update_alias_subpatt = NO;
 	}
 
@@ -2914,7 +2856,7 @@ void Bootstrap(t_tree *tree)
 	  if(boot_tree->mod->s_opt->opt_subst_param || boot_tree->mod->s_opt->opt_bl)
 	    Round_Optimize(boot_tree,boot_tree->data,ROUND_MAX);
 	  else
-	    Lk(boot_tree);
+	    Lk(NULL,boot_tree);
 	}
       
 
@@ -2986,7 +2928,6 @@ void Br_Len_Involving_Invar(t_tree *tree)
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
-
 
 void Br_Len_Not_Involving_Invar(t_tree *tree)
 {
@@ -3290,6 +3231,13 @@ void Get_Bip(t_node *a, t_node *d, t_tree *tree)
   t_node *tmp;
   int swapped;
 
+  if(!d || !a || !tree)
+    {
+      PhyML_Printf("\n== d: %p a: %p tree: %p",d,a,tree);
+      PhyML_Printf("\n== Err. in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");      
+    }
+
   if(d->tax)
     {
       if(d->common)
@@ -3477,7 +3425,6 @@ int Sort_String(const void *a, const void *b)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
 int Compare_Bip(t_tree *tree1, t_tree *tree2, int on_existing_edges_only)
 {
   int i,j,k;
@@ -3487,11 +3434,23 @@ int Compare_Bip(t_tree *tree1, t_tree *tree2, int on_existing_edges_only)
   t_node **bip1, **bip2;
   int bip_size1, bip_size2, bip_size;
   int different,identical;
+  int n_edges;
 
   /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
   /* WARNING: call Match_Tip_Numbers and Get_Bip before using this function. */
   /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
   
+  if(on_existing_edges_only == YES)
+    {
+      n_edges = 0;
+      For(i,2*tree1->n_otu-3) 
+	if(tree1->t_edges[i]->does_exist && tree2->t_edges[i]->does_exist) n_edges++;
+      n_edges -= tree1->n_otu;
+    }
+  else
+    {
+      n_edges = tree1->n_otu-3;
+    }
   
   identical = 0;
   different = 0;
@@ -3508,7 +3467,7 @@ int Compare_Bip(t_tree *tree1, t_tree *tree2, int on_existing_edges_only)
 	      bip_size2 = MIN(b2->left->bip_size[b2->l_r],b2->rght->bip_size[b2->r_l]);
 
 	      if(bip_size2 > 1 && ((on_existing_edges_only == YES && b2->does_exist) || (on_existing_edges_only == NO)))
-		{
+		{		  
 		  if(bip_size1 == bip_size2)
 		    {
 		      bip_size = bip_size1;
@@ -3577,17 +3536,21 @@ int Compare_Bip(t_tree *tree1, t_tree *tree2, int on_existing_edges_only)
 			  b1->bip_score++;
 			  b2->bip_score++;
 			  identical++;			  
-			  break;
+			  goto out;
 			}
-		      else different++; // Bipartitions has identical size but distinct elements
+		      else 
+			{
+			  different++; // Bipartitions have identical sizes but distinct elements
+			}
 		    }
 		  else different++; // Biparition have different sizes
 		}
 	    }
 	}
+    out: ;
     }
-  
-  return different;
+  return n_edges - identical;
+  /* return different; */
 }
 
 //////////////////////////////////////////////////////////////
@@ -4320,11 +4283,12 @@ void Copy_Tree(t_tree *ori, t_tree *cpy)
   For(i,ori->n_otu)
     {
       cpy->t_nodes[i]->tax = YES;
-      if(!cpy->t_nodes[i]->name) 
-	{
-	  cpy->t_nodes[i]->name = (char *)mCalloc(strlen(ori->t_nodes[i]->name)+1,sizeof(char));
-	  cpy->t_nodes[i]->ori_name = cpy->t_nodes[i]->name ;
-	}
+      
+      Free(cpy->t_nodes[i]->name);
+
+      cpy->t_nodes[i]->name = (char *)mCalloc(strlen(ori->t_nodes[i]->name)+1,sizeof(char));
+      cpy->t_nodes[i]->ori_name = cpy->t_nodes[i]->name ;
+
       strcpy(cpy->t_nodes[i]->name,ori->t_nodes[i]->name);
     }
 
@@ -4359,17 +4323,16 @@ void Prune_Subtree(t_node *a, t_node *d, t_edge **target, t_edge **residual, t_t
   unsigned int *buff_ui;
   short int *buff_p_lk_tip;
 
-  if(tree->next)
-    Prune_Subtree(tree->next->t_nodes[a->num],
-		  tree->next->t_nodes[d->num],
-		  tree->next->t_edges + (*target)->num,
-		  tree->next->t_edges + (*residual)->num,
-		  tree->next);
+  if(tree->is_mixt_tree == YES)
+    {
+      MIXT_Prune_Subtree(a,d,target,residual,tree);
+      return;
+    }
 
   if(a->tax)
     {
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-      Warn_And_Exit("");
+      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");
     }
 
   dir_v1 = dir_v2 = -1;
@@ -4597,7 +4560,7 @@ void Prune_Subtree(t_node *a, t_node *d, t_edge **target, t_edge **residual, t_t
     }
 #endif
 
-  b1->l->v += b2->l->v;
+  if(b1->l->onoff == ON) b1->l->v += b2->l->v;
 
   (v1 == b1->left)?
     (Make_Edge_Dirs(b1,v1,v2,tree)):
@@ -4605,7 +4568,6 @@ void Prune_Subtree(t_node *a, t_node *d, t_edge **target, t_edge **residual, t_t
 
   if(target)   (*target)   = b1;
   if(residual) (*residual) = b2;
-
 
 #ifdef DEBUG
   if(b1->left->tax)
@@ -4615,8 +4577,6 @@ void Prune_Subtree(t_node *a, t_node *d, t_edge **target, t_edge **residual, t_t
       Warn_And_Exit("");
     }
 #endif
-
-
 }
 
 //////////////////////////////////////////////////////////////
@@ -4634,10 +4594,11 @@ void Graft_Subtree(t_edge *target, t_node *link, t_edge *residual, t_tree *tree)
   unsigned int *buff_ui;
   t_edge *b_up;
 
-  if(tree->next) Graft_Subtree(tree->next->t_edges[target->num],
-				  tree->next->t_nodes[link->num],
-				  tree->next->t_edges[residual->num],
-				  tree->next);
+  if(tree->is_mixt_tree == YES)
+    {
+      MIXT_Graft_Subtree(target,link,residual,tree);
+      return;
+    }
 
   dir_v1 = dir_v2 = -1;
   b_up = NULL;
@@ -4756,16 +4717,12 @@ void Graft_Subtree(t_edge *target, t_node *link, t_edge *residual, t_tree *tree)
 	break;
       }
 
-
-  target->l->v /= 2.;
-
-  residual->l->v = target->l->v;
+  if(target->l->onoff == ON)   target->l->v /= 2.;
+  if(residual->l->onoff == ON) residual->l->v = target->l->v;
 
   Make_Edge_Dirs(target,target->left,target->rght,tree);
   Make_Edge_Dirs(residual,residual->left,residual->rght,tree);
   Make_Edge_Dirs(b_up,b_up->left,b_up->rght,tree);
-
-  
 }
 
 //////////////////////////////////////////////////////////////
@@ -5026,24 +4983,22 @@ int Get_Subtree_Size(t_node *a, t_node *d)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
 void Fast_Br_Len(t_edge *b, t_tree *tree, int approx)
 {
   phydbl sum;
   phydbl *prob, *F;
   int i, j, k, site;
-  phydbl v_rght;
+  phydbl *v_rght;
   int dim1,dim2,dim3;
   phydbl eps_bl,old_l,new_l;
   int n_iter;
   phydbl scale_rght;
 
-/*   Br_Len_Brent(0.02*b->l->v,b->l->v,50.*b->l->v, */
-/* 	       tree->mod->s_opt->min_diff_lk_local, */
-/* 	       b,tree, */
-/* 	       tree->mod->s_opt->brent_it_max, */
-/* 	       tree->mod->s_opt->quickdirty); */
-/*   return; */
+  if(tree->is_mixt_tree) 
+    {
+      MIXT_Fast_Br_Len(b,tree,approx);
+      return;
+    }
 
   n_iter = 0;
   dim1   = tree->mod->ns * tree->mod->ras->n_catg;
@@ -5061,31 +5016,29 @@ void Fast_Br_Len(t_edge *b, t_tree *tree, int approx)
   For(site,tree->n_pattern)
     {
       /* Joint probabilities of the states at the two ends of the t_edge */
-      v_rght = -1.;
-      For(i,tree->mod->ns)
-	{
-	  For(j,tree->mod->ns)
-	    {
-	      For(k,tree->mod->ras->n_catg)
-		{
-		  v_rght = (b->rght->tax)?((phydbl)(b->p_lk_tip_r[site*dim2+j])):(b->p_lk_rght[site*dim1+k*dim2+j]);
-		  scale_rght = (b->rght->tax)?(0.0):(b->sum_scale_rght[k*tree->n_pattern+site]);
 
-		  prob[dim3*k+dim2*i+j]              =
-		    tree->mod->ras->gamma_r_proba->v[k]    *
-		    tree->mod->e_frq->pi->v[i]                 *
-		    b->Pij_rr[k*dim3+i*dim2+j]       *
-		    b->p_lk_left[site*dim1+k*dim2+i] *
-		    v_rght *
-		    POW(2.,-(b->sum_scale_left[k*tree->n_pattern+site] + scale_rght));
-		}
-	    }
+      For(k,tree->mod->ras->n_catg)
+	{
+	  v_rght = (b->rght->tax)?((phydbl *)(b->p_lk_tip_r + site*dim2)):(b->p_lk_rght + site*dim1+k*dim2);
+	  scale_rght = (b->rght->tax)?(0.0):(b->sum_scale_rght[k*tree->n_pattern+site]);
+	  
+	  Joint_Proba_States_Left_Right(b->Pij_rr + k*dim3,
+					b->p_lk_left + site*dim1+k*dim2,
+					v_rght,
+					tree->mod->e_frq->pi,
+					b->sum_scale_left[k*tree->n_pattern+site],
+					scale_rght,
+					prob + dim3*k,
+					tree->mod->ns);
+	  
+	  /* Scaling */
+	  sum = .0;
+	  For(i,tree->mod->ns) For(j,tree->mod->ns) sum += prob[dim3*k+dim2*i+j];
+	  For(i,tree->mod->ns) For(j,tree->mod->ns) prob[dim3*k+dim2*i+j] /= sum;
+
+	  For(i,tree->mod->ns) For(j,tree->mod->ns) prob[dim3*k+dim2*i+j] *= tree->mod->ras->gamma_r_proba->v[k];
+
 	}
-      
-      /* Scaling */
-      sum = .0;
-      For(k,tree->mod->ras->n_catg) For(i,tree->mod->ns) For(j,tree->mod->ns) sum += prob[dim3*k+dim2*i+j];
-      For(k,tree->mod->ras->n_catg) For(i,tree->mod->ns) For(j,tree->mod->ns) prob[dim3*k+dim2*i+j] /= sum;
       
       /* Expected number of each pair of states */
       For(i,tree->mod->ns) For(j,tree->mod->ns) For(k,tree->mod->ras->n_catg)
@@ -5096,26 +5049,60 @@ void Fast_Br_Len(t_edge *b, t_tree *tree, int approx)
   Opt_Dist_F(&(b->l->v),F,tree->mod);
   new_l = b->l->v;
   n_iter++;
+
+  printf("\n. Edge %d before %f ",b->num,b->l->v);
   
-  if(!approx)
+  if(approx == NO)
     Br_Len_Brent(0.02*b->l->v,b->l->v,50.*b->l->v,
 		 tree->mod->s_opt->min_diff_lk_local,
 		 b,tree,
 		 tree->mod->s_opt->brent_it_max,
 		 tree->mod->s_opt->quickdirty);
   else
-    Lk_At_Given_Edge(b,tree);
+    Lk(b,tree);
+
+  printf("\n. Edge %d after %f ",b->num,b->l->v);
 
 }
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
+/*! 
+  Calculate the joint probability of states (nt or aa) at the
+  two extremities of a given edge given the matrix of transition
+  probabilities, the vector of conditional likelihoods on each
+  side of the branch and the vector of equilibrium frequencies.
+*/
+void Joint_Proba_States_Left_Right(phydbl *Pij, phydbl *p_lk_left, phydbl *p_lk_rght, 
+				   vect_dbl *pi, int scale_left, int scale_rght, 
+				   phydbl *F, int n)
+{
+  int i,j;
+  phydbl sum = 0.0;
 
+  For(i,n) F[i] = .0;
+  
+  For(i,n)
+    {
+      For(j,n)
+	{	  
+	  F[i*n+j] =
+	    pi->v[i] *
+	    Pij[i*n+j] *
+	    p_lk_left[i] *
+	    p_lk_rght[j] *
+	    POW(2.,-(scale_left + scale_rght));
+
+	  sum += F[i*n+j];
+	}
+    }
+
+  For(i,n*n) F[i] /= sum;
+
+}
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
-
-
 
 phydbl Triple_Dist(t_node *a, t_tree *tree, int approx)
 {
@@ -5903,6 +5890,7 @@ int Get_State_From_P_Lk(phydbl *p_lk, int pos, t_tree *tree)
 int Get_State_From_P_Pars(short int *p_pars, int pos, t_tree *tree)
 {
   int i;
+
   For(i,tree->mod->ns) if(p_pars[pos+i] > .0) return i;
   return -1;
 }
@@ -5929,8 +5917,8 @@ void Check_Dirs(t_tree *tree)
 		     tree->t_edges[i]->num,
 		     tree->t_edges[i]->left->v[tree->t_edges[i]->l_v1]->num,
 		     tree->t_edges[i]->left->v[tree->t_edges[i]->l_v2]->num);
-	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-	      Warn_And_Exit("");
+	      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+	      Exit("\n");
 	    }
 	}
 
@@ -5952,7 +5940,6 @@ void Check_Dirs(t_tree *tree)
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
-
 
 void Warn_And_Exit(char *s)
 {
@@ -6835,7 +6822,7 @@ void Best_Of_NNI_And_SPR(t_tree *tree)
 
 
       best_lnL = UNLIKELY;
-      Lk(tree);
+      Lk(NULL,tree);
       ori_lnL = tree->c_lnL; /* Record likelihood of the starting tree */
 
 
@@ -6854,7 +6841,7 @@ void Best_Of_NNI_And_SPR(t_tree *tree)
       Record_Model(ori_mod,tree->mod); /* Back to the original model */
       
       /* Make sure the tree is in its original form */
-      Lk(tree);
+      Lk(NULL,tree);
 
 
       if(FABS(tree->c_lnL - ori_lnL) > tree->mod->s_opt->min_diff_lk_global)
@@ -6886,7 +6873,7 @@ void Best_Of_NNI_And_SPR(t_tree *tree)
       Record_Model(best_mod,tree->mod);
       
       /* Make sure the current tree has the best topology, branch lengths and model parameters */
-      Lk(tree);
+      Lk(NULL,tree);
       if(FABS(tree->c_lnL - best_lnL) > tree->mod->s_opt->min_diff_lk_global)
 	{
 	  PhyML_Printf("\n. best_lnL = %f, c_lnL = %f",best_lnL,tree->c_lnL);
@@ -7060,7 +7047,7 @@ void Add_BioNJ_Branch_Lengths(t_tree *tree, calign *cdata, t_mod *mod)
   PhyML_Printf("\n");
   PhyML_Printf("\n. Computing branch length estimates...\n");
 
-  Order_Tree_CSeq(tree,cdata);
+  Connect_CSeqs_To_Nodes(cdata,tree);
   mat = ML_Dist(cdata,mod);
   mat->tree = tree;
   mat->method = 0;
@@ -7090,7 +7077,7 @@ char *Bootstrap_From_String(char *s_tree, calign *cdata, t_mod *mod, option *io)
   tree->both_sides  = 1;
   tree->n_pattern   = tree->data->crunch_len;
 
-  Order_Tree_CSeq(tree,cdata);
+  Connect_CSeqs_To_Nodes(cdata,tree);
   if(tree->mod->s_opt->random_input_tree) Random_Tree(tree);
   Fill_Dir_Table(tree);
   Update_Dirs(tree);
@@ -7103,7 +7090,7 @@ char *Bootstrap_From_String(char *s_tree, calign *cdata, t_mod *mod, option *io)
   Make_Best_Spr(tree);
 
   tree->both_sides = 1;
-  Lk(tree);
+  Lk(NULL,tree);
 
 #ifdef MPI
   Bootstrap_MPI(tree);
@@ -7146,7 +7133,7 @@ char *aLRT_From_String(char *s_tree, calign *cdata, t_mod *mod, option *io)
   tree->both_sides  = 1;
   tree->n_pattern   = tree->data->crunch_len;
 
-  Order_Tree_CSeq(tree,cdata);
+  Connect_CSeqs_To_Nodes(cdata,tree);
   if(tree->mod->s_opt->random_input_tree) Random_Tree(tree);
   Fill_Dir_Table(tree);
   Update_Dirs(tree);
@@ -7159,7 +7146,7 @@ char *aLRT_From_String(char *s_tree, calign *cdata, t_mod *mod, option *io)
   Make_Best_Spr(tree);
 
   tree->both_sides = 1;
-  Lk(tree);
+  Lk(NULL,tree);
 
   aLRT(tree);
   
@@ -7182,14 +7169,13 @@ char *aLRT_From_String(char *s_tree, calign *cdata, t_mod *mod, option *io)
 
 void Prepare_Tree_For_Lk(t_tree *tree)
 {
-  Order_Tree_CSeq(tree,tree->data);
+  Connect_CSeqs_To_Nodes(tree->data,tree);
   Fill_Dir_Table(tree);
   Update_Dirs(tree);
   Make_Tree_4_Pars(tree,tree->data,tree->data->init_len);
   Make_Tree_4_Lk(tree,tree->data,tree->data->init_len);
+
   tree->triplet_struct = Make_Triplet_Struct(tree->mod);
-  Br_Len_Not_Involving_Invar(tree);
-  Unscale_Br_Len_Multiplier_Tree(tree);
   Make_Spr_List(tree);
   Make_Best_Spr(tree);
 }
@@ -7733,150 +7719,131 @@ void Copy_Tree_Topology_With_Labels(t_tree *ori, t_tree *cpy)
 
 void Set_Model_Name(t_mod *mod)
 {
-  if(mod->io->datatype == NT)
+
+  switch(mod->whichmodel)
     {
-      switch(mod->whichmodel)
-	{
-	case JC69:
-	  {
-	    strcpy(mod->modelname, "JC69");
-	    break;
-	  }
-	case K80:
-	  {
-	    strcpy(mod->modelname, "K80");
-	    break;
-	  }
-	case F81:
-	  {
-	    strcpy(mod->modelname, "F81");
-	    break;
-	  }
-	case HKY85:
-	  {
-	    strcpy(mod->modelname, "HKY85");
-	    break;
-	  }
-	case F84:
-	  {
-	    strcpy(mod->modelname, "F84");
-	    break;
-	  }
-	case TN93:
-	  {
-	    strcpy(mod->modelname, "TN93");
-	    break;
-	  }
-	case GTR:
-	  {
-	    strcpy(mod->modelname, "GTR");
-	    break;
-	  }
-	case CUSTOM:
-	  {
-	    strcpy(mod->modelname, "Custom");
-	    break;
-	  }
-	default:
-	  {
-	    PhyML_Printf("\n. Unknown model name.\n");
-	    PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-	    Warn_And_Exit("");
-	    break;
-	  }
-	}
-    }
-  else if(mod->io->datatype == AA)
-    {
-      switch(mod->whichmodel)
-	{
-	case DAYHOFF:
-	  {
-	    strcpy(mod->modelname, "Dayhoff");
-	    break;
-	  }
-	case JTT:
-	  {
-	    strcpy(mod->modelname, "JTT");
-	    break;
-	  }
-	case MTREV:
-	  {
-	    strcpy(mod->modelname, "MtREV");
-	    break;
-	  }
-	case LG:
-	  {
-	    strcpy(mod->modelname, "LG");
-	    break;
-	  }
-	case WAG:
-	  {
-	    strcpy(mod->modelname, "WAG");
-	    break;
-	  }
-	case DCMUT:
-	  {
-	    strcpy(mod->modelname, "DCMut");
-	    break;
-	  }
-	case RTREV:
-	  {
-	    strcpy(mod->modelname, "RtREV");
-	    break;
-	  }
-	case CPREV:
-	  {
-	    strcpy(mod->modelname, "CpREV");
-	    break;
-	  }
-	case VT:
-	  {
-	    strcpy(mod->modelname, "VT");
-	    break;
-	  }
-	case BLOSUM62:
-	  {
-	    strcpy(mod->modelname, "Blosum62");
-	    break;
-	  }
-	case MTMAM:
-	  {
-	    strcpy(mod->modelname, "MtMam");
-	    break;
-	  }
-	case MTART:
-	  {
-	    strcpy(mod->modelname, "MtArt");
-	    break;
-	  }
-	case HIVW:
-	  {
-	    strcpy(mod->modelname, "HIVw");
-	    break;
-	  }
-	case HIVB:
-	  {
-	    strcpy(mod->modelname, "HIVb");
-	    break;
-	  }
-	case CUSTOMAA:
-	  {
-	    strcpy(mod->modelname, "Custom");
-	    break;
-	  }
-	default:
-	  {
-	    PhyML_Printf("\n. Unknown model name.\n");
-	    PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-	    Warn_And_Exit("");
-	    break;
-	  }
-	}
-    }
-  else if(mod->io->datatype == GENERIC)
-    {
-      strcpy(mod->modelname, "JC69");
+    case JC69:
+      {
+	strcpy(mod->modelname, "JC69");
+	break;
+      }
+    case K80:
+      {
+	strcpy(mod->modelname, "K80");
+	break;
+      }
+    case F81:
+      {
+	strcpy(mod->modelname, "F81");
+	break;
+      }
+    case HKY85:
+      {
+	strcpy(mod->modelname, "HKY85");
+	break;
+      }
+    case F84:
+      {
+	strcpy(mod->modelname, "F84");
+	break;
+      }
+    case TN93:
+      {
+	strcpy(mod->modelname, "TN93");
+	break;
+      }
+    case GTR:
+      {
+	strcpy(mod->modelname, "GTR");
+	break;
+      }
+    case CUSTOM:
+      {
+	strcpy(mod->modelname, "Custom");
+	break;
+      }
+    case DAYHOFF:
+      {
+	strcpy(mod->modelname, "Dayhoff");
+	break;
+      }
+    case JTT:
+      {
+	strcpy(mod->modelname, "JTT");
+	break;
+      }
+    case MTREV:
+      {
+	strcpy(mod->modelname, "MtREV");
+	break;
+      }
+    case LG:
+      {
+	strcpy(mod->modelname, "LG");
+	break;
+      }
+    case WAG:
+      {
+	strcpy(mod->modelname, "WAG");
+	break;
+      }
+    case DCMUT:
+      {
+	strcpy(mod->modelname, "DCMut");
+	break;
+      }
+    case RTREV:
+      {
+	strcpy(mod->modelname, "RtREV");
+	break;
+      }
+    case CPREV:
+      {
+	strcpy(mod->modelname, "CpREV");
+	break;
+      }
+    case VT:
+      {
+	strcpy(mod->modelname, "VT");
+	break;
+      }
+    case BLOSUM62:
+      {
+	strcpy(mod->modelname, "Blosum62");
+	break;
+      }
+    case MTMAM:
+      {
+	strcpy(mod->modelname, "MtMam");
+	break;
+      }
+    case MTART:
+      {
+	strcpy(mod->modelname, "MtArt");
+	break;
+      }
+    case HIVW:
+      {
+	strcpy(mod->modelname, "HIVw");
+	break;
+      }
+    case HIVB:
+      {
+	strcpy(mod->modelname, "HIVb");
+	break;
+      }
+    case CUSTOMAA:
+      {
+	strcpy(mod->modelname, "Custom");
+	break;
+      }
+    default:
+      {
+	PhyML_Printf("\n== Unknown model name.\n");
+	PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+	Warn_And_Exit("");
+	break;
+      }    
     }
 }
 
@@ -8282,6 +8249,14 @@ void Check_Br_Len_Bounds(t_tree *tree)
   int i;
   t_edge *b;
 
+  if(!tree->mod)
+    {
+      PhyML_Printf("\n== tree->is_mixt_tree: %s",tree->is_mixt_tree?"yes":"no");
+      PhyML_Printf("\n== tree->mod: %p",tree->mod);
+      Exit("\n");
+    }
+
+
   b = NULL;
 
   For(i,2*tree->n_otu-3)
@@ -8406,7 +8381,7 @@ phydbl Diff_Lk_Norm_At_Given_Edge(t_edge *b, t_tree *tree)
     {
       b->l->v = tree->short_l[i];
 
-      lk_exact = Lk_At_Given_Edge(b,tree);
+      lk_exact = Lk(b,tree);
       lk_norm = tree->norm_scale + Log_Dnorm(b->l->v,tree->rates->mean_l[b->num],
 					     tree->rates->cov_l[b->num*dim+b->num],&err);
 
@@ -8420,7 +8395,7 @@ phydbl Diff_Lk_Norm_At_Given_Edge(t_edge *b, t_tree *tree)
     }
 
   Restore_Br_Len(tree);
-  Lk_At_Given_Edge(b,tree);
+  Lk(b,tree);
 
   return(sum);
 }
@@ -8554,7 +8529,6 @@ phydbl Unscale_Free_Rate_Tree(t_tree *tree)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
 phydbl Unscale_Br_Len_Multiplier_Tree(t_tree *tree)
 {
   int i;
@@ -8687,7 +8661,6 @@ int Check_Topo_Constraints(t_tree *big_tree, t_tree *small_tree)
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
-
 
 void Prune_Tree(t_tree *big_tree, t_tree *small_tree)
 {
@@ -9096,12 +9069,96 @@ char *To_Lower_String(char *in)
   return(out);
 }
 
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+char *To_Upper_String(char *in)
+{
+  char *out;
+  int i;
+  int len;
+
+  len = (int)strlen(in);
+
+  out = (char *)mCalloc(len+1,sizeof(char));
+  
+  For(i,len)
+    {
+      out[i] = (char)toupper(in[i]);
+    }
+
+  out[len] = '\0';
+  return(out);
+}
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
+
+void Connect_CSeqs_To_Nodes(calign *cdata, t_tree *tree)
+{
+  int i,j,n_otu_tree,n_otu_cdata;
+
+  n_otu_tree  = tree->n_otu;
+  n_otu_cdata = cdata->n_otu;
+  
+  if((n_otu_tree != n_otu_cdata) && (tree->io->fp_in_constraint_tree == NULL)) 
+    {
+      PhyML_Printf("\n== Number of taxa in the tree: %d, number of sequences: %d.",n_otu_tree,n_otu_cdata);
+      Warn_And_Exit("\n== The number of tips in the tree is not the same as the number of sequences\n");
+    }
+  
+  For(i,MAX(n_otu_tree,n_otu_cdata))
+    {
+      For(j,MIN(n_otu_tree,n_otu_cdata))
+	{
+	  if(!strcmp(tree->t_nodes[i]->name,cdata->c_seq[j]->name))
+	    break;
+	}
+      
+      if(j==MIN(n_otu_tree,n_otu_cdata))
+	{
+	  PhyML_Printf("\n. Err: '%s' is not found in sequence data set\n",tree->t_nodes[i]->name);
+	  Warn_And_Exit("");
+	}
+      
+      tree->t_nodes[i]->c_seq = cdata->c_seq[j];
+
+    }
+}
+
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
+
+void Switch_Eigen(int state, t_mod *mod)
+{
+  t_mod *buff;
+  
+  buff = mod;
+  do
+    {
+      buff->update_eigen = state;
+      if(buff->child) buff = buff->child;
+      else buff = buff->next;
+      if(!buff) break;
+    }
+  while(1);
+}
+
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////

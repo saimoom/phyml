@@ -26,6 +26,7 @@ the GNU public licence. See http://www.opensource.org for details.
 #include <limits.h>
 #include <errno.h>
 #include <float.h>
+#include <stdbool.h>
 
 #define For(i,n)                     for(i=0; i<n; i++)
 #define Fors(i,n,s)                  for(i=0; i<n; i+=s)
@@ -101,6 +102,9 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 
 #define  TRUE  1
 #define  FALSE 0
+
+#define  ON  1
+#define  OFF 0
 
 #define  NT 0 /*! nucleotides */
 #define  AA 1 /*! amino acids */
@@ -287,6 +291,7 @@ typedef struct __Scalar_Int {
 
 typedef struct __Scalar_Dbl {
   phydbl v;
+  bool onoff;
 }scalar_dbl;
 
 /*!********************************************************/
@@ -313,6 +318,15 @@ typedef struct __Node {
   struct __Node                      *anc; /*! direct ancestor t_node (for rooted tree only) */
   struct __Node                 *ext_node;
   struct __Node               *match_node;
+  struct __Align                   *c_seq; /*! corresponding compressed sequence */
+  struct __Align               *c_seq_anc; /*! corresponding compressed ancestral sequence */
+
+
+  struct __Node                     *next; /*! tree->t_nodes[i]->next <=> tree->next->t_nodes[i] */ 
+  struct __Node                    *child; /*! See above */
+  struct __Node                   *parent; /*! See above */
+  struct __Node                     *prev; /*! See above */
+
 
   int                           *bip_size; /*! Size of each of the three lists from bip_node */
   int                                 num; /*! t_node number */
@@ -525,12 +539,15 @@ typedef struct __Tree{
 
   int                              bl_ndigits;
 
-  phydbl                             *short_l; /* Vector of short branch length values */
-  int                               n_short_l; /* Length of short_l */
+  phydbl                             *short_l; /*! Vector of short branch length values */
+  int                               n_short_l; /*! Length of short_l */
   phydbl                           norm_scale;
   
   short int                   br_len_recorded;
   int                           max_spr_depth;
+  
+  short int                  apply_lk_scaling; /*! Applying scaling of likelihoods. YES/NO */
+
 }t_tree;
 
 /*!********************************************************/
@@ -652,10 +669,10 @@ typedef struct __Align {
 typedef struct __Calign {
   struct __Align **c_seq;             /*! compressed sequences      */
   phydbl          *b_frq;             /*! observed state frequencies */
-  short int       *invar;             /*! 1 -> states are identical, 0 states vary */
+  short int       *invar;             /*! < 0 -> polymorphism observed */
   int              *wght;             /*! # of each site in c_align */
   short int      *ambigu;             /*! ambigu[i]=1 is one or more of the sequences at site
-				       i display an ambiguous character */
+					i display an ambiguous character */
   phydbl      obs_pinvar;
   int              n_otu;             /*! number of taxa */
   int          clean_len;             /*! uncrunched sequences lenghts without gaps */
@@ -694,6 +711,10 @@ typedef struct __RateMatrix {
   vect_int           *n_rr_per_cat; /*! number of rate parameters in each category */
   vect_dbl                   *qmat;
   vect_dbl              *qmat_buff;
+  phydbl               mixt_weight;
+
+  struct __RateMatrix        *next;
+
 }t_rmat;
 
 /*!********************************************************/
@@ -710,14 +731,23 @@ typedef struct __RAS {
   scalar_dbl                *alpha; /*! gamma shapa parameter */
   scalar_dbl            *alpha_old;
   int              free_mixt_rates;  
+  phydbl               mixt_weight;
+  int          parent_class_number;
+
+  struct __RAS               *next;
+
 }t_ras;
 
 /*!********************************************************/
 
 typedef struct __EquFreq {
   /*! Equilibrium frequencies */
-  vect_dbl          *pi; /*! states frequencies */
-  vect_dbl *pi_unscaled; /*! states frequencies (unscaled) */
+  vect_dbl           *pi; /*! states frequencies */
+  vect_dbl  *pi_unscaled; /*! states frequencies (unscaled) */
+  phydbl     mixt_weight;
+
+  struct __EquFreq *next;
+
 }t_efrq;
 
 /*!********************************************************/
@@ -953,7 +983,7 @@ typedef struct __Optimiz { /*! parameters to be optimised (mostly used in 'optim
   int           wim_n_optim;
   int            wim_n_best;
   int        wim_inside_opt;
-}optimiz;
+}t_opt;
 
 /*!********************************************************/
 
@@ -1308,8 +1338,16 @@ typedef struct __XML_node {
   char *id;
   char *name;
   char *value;
-  void *ds; // Pointer to a data strucuture. Can be a scalar, a vector, anything.
+  struct __Generic_Data_Structure *ds; // Pointer to a data strucuture. Can be a scalar, a vector, anything.
 }xml_node;
+
+/*!********************************************************/
+
+typedef struct __Generic_Data_Structure {
+  void *obj;
+  struct __Generic_Data_Structure *next;
+}t_ds;
+
 
 /*!********************************************************/
 
@@ -1399,7 +1437,7 @@ t_mod *Copy_Model(t_mod *ori);
 void Record_Model(t_mod *ori,t_mod *cpy);
 void Set_Defaults_Input(option *io);
 void Set_Defaults_Model(t_mod *mod);
-void Set_Defaults_Optimiz(optimiz *s_opt);
+void Set_Defaults_Optimiz(t_opt *s_opt);
 void Test_Node_Table_Consistency(t_tree *tree);
 void Get_Bip(t_node *a,t_node *d,t_tree *tree);
 void Alloc_Bip(t_tree *tree);
@@ -1544,6 +1582,12 @@ void Init_Vect_Dbl(int len,vect_dbl *p);
 void Init_Vect_Int(int len,vect_int *p);
 char *To_Lower_String(char *in);
 phydbl String_To_Dbl(char *string);
+char *To_Upper_String(char *in);
+void Connect_CSeqs_To_Nodes(calign *cdata, t_tree *tree);
+void Switch_Eigen(int state, t_mod *mod);
+void Joint_Proba_States_Left_Right(phydbl *Pij, phydbl *p_lk_left, phydbl *p_lk_rght, 
+				   vect_dbl *pi, int scale_left, int scale_rght, 
+				   phydbl *F, int n);
 
 #include "xml.h"
 #include "free.h"

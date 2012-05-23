@@ -18,7 +18,8 @@ void Init_Eigen_Struct(eigen *this)
 
 void Init_Scalar_Dbl(scalar_dbl *p)
 {
-  p->v = -1.;
+  p->v     = -1.;
+  p->onoff = ON;
 }
 
 //////////////////////////////////////////////////////////////
@@ -92,6 +93,7 @@ void Init_Tree(t_tree *tree, int n_otu)
   tree->norm_scale                = 0.0;
   tree->br_len_recorded           = NO;
   tree->max_spr_depth             = 0;
+  tree->apply_lk_scaling          = YES;
 }
 
 //////////////////////////////////////////////////////////////
@@ -109,8 +111,9 @@ void Init_Edge_Light(t_edge *b, int num)
   b->gamma_prior_mean     = 1.E-0;
   b->gamma_prior_var      = 1.E-1;
   b->does_exist           = YES;
-  b->l->v                    = -1.;
+  b->l->v                 = -1.;
   b->bin_cod_num          = -1.;
+  b->l->onoff             = ON;
 
   b->next                 = NULL;
   b->prev                 = NULL;
@@ -138,6 +141,8 @@ void Init_Node_Light(t_node *n, int num)
   n->ext_node               = NULL;
   n->name                   = NULL;
   n->ori_name               = NULL;
+  n->c_seq                  = NULL;
+  n->c_seq_anc              = NULL;
   n->y_rank                 = 0.;
   n->y_rank_ori             = 0.;
   n->y_rank_max             = 0.;
@@ -493,7 +498,6 @@ void Set_Defaults_Input(option* io)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
 void Set_Defaults_Model(t_mod *mod)
 {
   strcpy(mod->modelname,"HKY85");
@@ -505,36 +509,42 @@ void Set_Defaults_Model(t_mod *mod)
   mod->r_mat                   = NULL;
   mod->e_frq                   = NULL;
   mod->whichmodel              = HKY85;
-  mod->ras->n_catg                  = 4;
+  mod->ras->n_catg             = 4;
   mod->mod_num                 = 0;
+  mod->update_eigen            = NO;
 
   mod->kappa->v                = 4.0;
-  mod->ras->alpha->v                = 1.0;
+  mod->ras->alpha->v           = 1.0;
   mod->lambda->v               = 1.0;
   mod->pinvar->v               = 0.0;
 
   mod->kappa_old->v            = 4.0;
-  mod->ras->alpha_old->v            = 1.0;
+  mod->ras->alpha_old->v       = 1.0;
   mod->lambda_old->v           = 1.0;
   mod->pinvar_old->v           = 0.0;
 
   mod->bootstrap               = 0;
-  mod->ras->invar                   = NO;
+  mod->ras->invar              = NO;
   mod->ns                      = 4;
   mod->use_m4mod               = NO;
-  mod->ras->gamma_median            = 0;
+  mod->ras->gamma_median       = NO;
   mod->m4mod                   = NULL;
   
   /* mod->r_mat->n_diff_rr        = 0; */
-  /* mod->r_mat->rr->v            = NULL; */
-  /* mod->r_mat->rr_val->v        = NULL; */
-  /* mod->r_mat->n_rr_per_cat->v  = NULL; */
-  mod->io                      = NULL;
-  mod->log_l                   = NO;
-  mod->ras->free_mixt_rates         = NO;
-  mod->gamma_mgf_bl            = NO;
-  mod->br_len_multiplier->v    = 1.0;
+  /* mod->r_mat->rr               = NULL; */
+  /* mod->r_mat->rr_val           = NULL; */
+  /* mod->r_mat->n_rr_per_cat     = NULL; */
+
+  mod->io                       = NULL;
+  mod->log_l                    = NO;
+  mod->ras->free_mixt_rates     = NO;
+  mod->gamma_mgf_bl             = NO;
+  mod->br_len_multiplier->v     = 1.0;
   
+  mod->ras->parent_class_number = -1;
+
+  mod->ras->mixt_weight         = 1.;
+
 #ifndef PHYTIME
   mod->l_min = 1.E-8;
   mod->l_max = 100.0;
@@ -547,8 +557,10 @@ void Set_Defaults_Model(t_mod *mod)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
 
-void Set_Defaults_Optimiz(optimiz *s_opt)
+void Set_Defaults_Optimiz(t_opt *s_opt)
 {
   s_opt->print                = YES;
   s_opt->last_opt             = YES;
@@ -611,11 +623,12 @@ void XML_Init_Node(xml_node *parent, xml_node *new_node, char *name)
 {
   if(name) strcpy(new_node->name,name);
 
-  new_node->parent = parent ? parent : NULL;
-  new_node->next   = NULL;
-  new_node->prev   = NULL;
-  new_node->child  = NULL;
-  new_node->ds     = NULL;
+  new_node->parent   = parent ? parent : NULL;
+  new_node->next     = NULL;
+  new_node->prev     = NULL;
+  new_node->child    = NULL;
+  new_node->ds->obj  = NULL;
+  new_node->ds->next = NULL;
 
   if(parent)
     { 
@@ -637,6 +650,25 @@ void XML_Init_Node(xml_node *parent, xml_node *new_node, char *name)
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
+
+void Init_One_Spr(spr *a_spr)
+{
+  a_spr->lnL             = UNLIKELY;
+  a_spr->pars            = 1E+5;
+  a_spr->depth_path      = 0;
+  a_spr->dist            = 0;
+  a_spr->init_target_l   = -1.;
+  a_spr->l0              = -1.;
+  a_spr->l1              = -1.;
+  a_spr->l2              = -1.;
+  a_spr->n_link          = NULL;
+  a_spr->n_opp_to_link   = NULL;
+  a_spr->b_opp_to_link   = NULL;
+  a_spr->b_target        = NULL;
+  a_spr->b_init_target   = NULL;
+}
+
+/*********************************************************/
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////

@@ -202,7 +202,8 @@ fflush(stderr);
       boot_tree->io->print_trace    = 0;
 
       if((boot_tree->mod->s_opt->random_input_tree) && (boot_tree->mod->s_opt->topo_search == SPR_MOVE)) Random_Tree(boot_tree);
-      Order_Tree_CSeq(boot_tree,boot_data);
+
+      Connect_CSeqs_To_Nodes(boot_data,boot_tree);
       Share_Lk_Struct(tree,boot_tree);
       Share_Spr_Struct(tree,boot_tree);
       Share_Pars_Struct(tree,boot_tree);

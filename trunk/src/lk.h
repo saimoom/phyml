@@ -28,9 +28,9 @@ void Get_All_Partial_Lk(t_tree *tree,t_edge *b_fcus,t_node *a,t_node *d);
 void Get_All_Partial_Lk_Scale(t_tree *tree,t_edge *b_fcus,t_node *a,t_node *d);
 void Post_Order_Lk(t_node *pere, t_node *fils, t_tree *tree);
 void Pre_Order_Lk(t_node *pere, t_node *fils, t_tree *tree);
-phydbl Lk(t_tree *tree);
+phydbl Lk(t_edge *b, t_tree *tree);
 void Site_Lk(t_tree *tree);
-phydbl Lk_At_Given_Edge(t_edge *b_fcus,t_tree *tree);
+/* phydbl Lk_At_Given_Edge(t_edge *b_fcus,t_tree *tree); */
 phydbl Return_Abs_Lk(t_tree *tree);
 matrix *ML_Dist(calign *data, t_mod *mod);
 phydbl Lk_Given_Two_Seq(calign *data, int numseq1, int numseq2, phydbl dist, t_mod *mod, phydbl *loglk);
@@ -85,8 +85,9 @@ void Sample_Ancestral_Seq_Pre(t_node *a, t_node *d, t_edge *b,
 			      int mutmap, int fromprior, t_tree *tree);
 phydbl Wrap_Lk_Times(t_edge *b, t_tree *tree, supert_tree *stree);
 phydbl Lk_LastFirst(t_tree *tree);
-void Invariant_Correction(phydbl *site_lk, int fact_sum_scale, int site, t_tree *tree);
+phydbl Invariant_Lk(int *fact_sum_scale, int site, int *num_prec_issue, t_tree *tree);
 void Rate_Correction(int exponent, phydbl *site_lk_cat, t_tree *tree);
+int Check_Lk_At_Given_Edge(t_tree *tree);
 
 #endif
 
