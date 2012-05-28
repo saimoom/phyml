@@ -1531,8 +1531,7 @@ void PART_Speed_Spr(supert_tree *st)
 	  Optimize_Br_Len_Serie(st->treelist->tree[gt]->t_nodes[0],
 				st->treelist->tree[gt]->t_nodes[0]->v[0],
 				st->treelist->tree[gt]->t_nodes[0]->b[0],
-				st->treelist->tree[gt],
-				st->treelist->tree[gt]->data);
+				st->treelist->tree[gt]);
 	}
 
 

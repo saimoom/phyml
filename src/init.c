@@ -541,7 +541,7 @@ void Set_Defaults_Model(t_mod *mod)
   mod->gamma_mgf_bl             = NO;
   mod->br_len_multiplier->v     = 1.0;
   
-  mod->ras->parent_class_number = -1;
+  mod->ras->parent_class_number = 0;
 
   mod->ras->mixt_weight         = 1.;
 
@@ -666,6 +666,10 @@ void Init_One_Spr(spr *a_spr)
   a_spr->b_opp_to_link   = NULL;
   a_spr->b_target        = NULL;
   a_spr->b_init_target   = NULL;
+  a_spr->next            = NULL;
+  a_spr->prev            = NULL;
+  a_spr->child           = NULL;
+  a_spr->parent          = NULL;
 }
 
 /*********************************************************/

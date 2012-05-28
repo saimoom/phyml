@@ -2924,7 +2924,8 @@ void Update_RAS(t_mod *mod)
       	      mod->ras->gamma_r_proba_unscaled->v[i] /  (mod->ras->gamma_r_proba_unscaled->v[mod->ras->n_catg-1]) ;
       	  else
       	    mod->ras->gamma_r_proba->v[i] =
-      	      (mod->ras->gamma_r_proba_unscaled->v[i] - mod->ras->gamma_r_proba_unscaled->v[i-1]) /  (mod->ras->gamma_r_proba_unscaled->v[mod->ras->n_catg-1]) ;
+      	      (mod->ras->gamma_r_proba_unscaled->v[i] - mod->ras->gamma_r_proba_unscaled->v[i-1]) /  
+	      (mod->ras->gamma_r_proba_unscaled->v[mod->ras->n_catg-1]) ;
       	}
 
       // Update class rates
@@ -2948,7 +2949,7 @@ void Update_RAS(t_mod *mod)
       /* sum = .0; */
       /* For(i,mod->ras->n_catg) sum += mod->ras->gamma_r_proba->v[i] * FABS(mod->ras->gamma_rr->v[i]); */
       /* printf("\n. sum=%f",sum); */
-    }
+    }  
 }
 
 //////////////////////////////////////////////////////////////

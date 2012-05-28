@@ -24,9 +24,6 @@ the GNU public licence.  See http://www.opensource.org for details.
 
 
 void      Optimiz_Ext_Br(t_tree *tree);
-void      Optimize_Alpha(t_tree *tree);
-void      Optimize_Kappa(t_tree *tree);
-void      Optimize_Lambda(t_tree *tree);
 void      Optimize_Param_Parall(t_tree *tree);
 phydbl    Optimize_Branch_Quad(t_tree *tree, calign *cdata, t_edge *b_fcus);
 void      Optimize_After_Hide(t_tree *tree, calign *cdata, t_node *h);
@@ -109,7 +106,7 @@ int Generic_Brak(phydbl *param,
 		 t_tree *tree);
 phydbl Generic_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, 
 		     phydbl *xmin, t_tree *tree, int n_iter_max,int quickdirty);
-void Optimize_Br_Len_Serie(t_node *a, t_node *d, t_edge *b_fcus, t_tree *tree,calign *cdata);
+void Optimize_Br_Len_Serie(t_node *a, t_node *d, t_edge *b_fcus, t_tree *tree);
 void Optimize_Global_Rate(t_tree *tree);
 phydbl Br_Len_Brent_Default(t_edge *b_fcus, t_tree *tree);
 
@@ -122,7 +119,7 @@ phydbl Missing_Dist_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, int n_ite
 			  int x, int y, matrix *mat);
 int Missing_Dist_Brak(phydbl *ax, phydbl *bx, phydbl *cx, int x, int y, matrix *mat);
 void Opt_Missing_Dist(int x, int y, matrix *mat);
-int Optimiz_Alpha_And_Pinv(t_tree *tree);
+int Optimiz_Alpha_And_Pinv(t_tree *tree, int verbose);
 phydbl Node_Time_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 		       t_node *anc, t_node *des, t_tree *tree, int n_iter_max);
 phydbl Time_Stamps_Mult_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
@@ -143,6 +140,10 @@ int Lnsrch(t_tree *tree, int n, phydbl *xold, phydbl fold, phydbl *g, phydbl *p,
 	   phydbl *f, phydbl stpmax, int *check);
 void Optimize_RR_Params(t_tree *mixt_tree, int verbose);
 void Optimize_TsTv(t_tree *mixt_tree, int verbose);
+void Optimize_Lambda(t_tree *mixt_tree, int verbose);
+void Optimize_Alpha(t_tree *mixt_tree, int verbose);
+void Optimize_Pinv(t_tree *mixt_tree, int verbose);
+void Optimize_State_Freqs(t_tree *mixt_tree, int verbose);
 
 #endif
 

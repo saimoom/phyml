@@ -3177,7 +3177,6 @@ void Print_Pars(t_tree *tree)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
 void Print_Lk_And_Pars(t_tree *tree)
 {	
   time(&(tree->t_current));
@@ -3191,6 +3190,8 @@ void Print_Lk_And_Pars(t_tree *tree)
 #endif
 }
 
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
 
 void Read_Qmat(phydbl *daa, phydbl *pi, FILE *fp)
 {
@@ -3207,7 +3208,7 @@ void Read_Qmat(phydbl *daa, phydbl *pi, FILE *fp)
 /* 	  if(!fscanf(fp,"%lf",&(daa[i*20+j]))) Exit("\n"); */
 	  if(!fscanf(fp,"%lf",&val)) 
 	    {
-	      PhyML_Printf("\n. Rate matrix file does not appear to have a proper format. Please refer to the documentation.");
+	      PhyML_Printf("\n== Rate matrix file does not appear to have a proper format. Please refer to the documentation.");
 	      Exit("\n");
 	    }
 	  daa[i*20+j] = (phydbl)val;

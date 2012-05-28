@@ -691,12 +691,13 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
   
   if(isinf(log_site_lk) || isnan(log_site_lk))
     {
-      PhyML_Printf("\n. Site = %d",site);
-      PhyML_Printf("\n. invar = %d",tree->data->invar[site]);
-      PhyML_Printf("\n. Lk = %G LOG(Lk) = %f < %G",site_lk,log_site_lk,-BIG);
-      For(catg,tree->mod->ras->n_catg) PhyML_Printf("\n. rr=%f p=%f",tree->mod->ras->gamma_rr->v[catg],tree->mod->ras->gamma_r_proba->v[catg]);
-      PhyML_Printf("\n. pinv = %G",tree->mod->pinvar->v);
-      PhyML_Printf("\n. bl mult = %G",tree->mod->br_len_multiplier->v);
+      PhyML_Printf("\n== Site = %d",site);
+      PhyML_Printf("\n== Invar = %d",tree->data->invar[site]);
+      PhyML_Printf("\n== Mixt = %d",tree->is_mixt_tree);
+      PhyML_Printf("\n== Lk = %G LOG(Lk) = %f < %G",site_lk,log_site_lk,-BIG);
+      For(catg,tree->mod->ras->n_catg) PhyML_Printf("\n== rr=%f p=%f",tree->mod->ras->gamma_rr->v[catg],tree->mod->ras->gamma_r_proba->v[catg]);
+      PhyML_Printf("\n== Pinv = %G",tree->mod->pinvar->v);
+      PhyML_Printf("\n== Bl mult = %G",tree->mod->br_len_multiplier->v);
 
       /* int i; */
       /* For(i,2*tree->n_otu-3) */
@@ -714,8 +715,8 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
 		       
       /* 	} */
 
-      PhyML_Printf("\n. Err in file %s at line %d",__FILE__,__LINE__);
-      Warn_And_Exit("\n");
+      PhyML_Printf("\n== Err in file %s at line %d",__FILE__,__LINE__);
+      Exit("\n");
     }
   
   tree->cur_site_lk[site] = EXP(log_site_lk);
@@ -2108,28 +2109,20 @@ void Make_Tree_4_Lk(t_tree *tree, calign *cdata, int n_site)
   For(i,tree->mod->ras->n_catg)
     tree->log_site_lk_cat[i] = (phydbl *)mCalloc(cdata->crunch_len,sizeof(phydbl));
 
-
   tree->log_lks_aLRT = (phydbl **)mCalloc(3,sizeof(phydbl *));
   For(i,3) tree->log_lks_aLRT[i] = (phydbl *)mCalloc(tree->data->init_len,sizeof(phydbl));
 
+  For(i,2*tree->n_otu-3) Make_Edge_NNI(tree->t_edges[i]);
+
   if(tree->is_mixt_tree == NO)
     {
-      For(i,2*tree->n_otu-3)
-	{
-	  Make_Edge_Lk(tree->t_edges[i],tree);
-	  Make_Edge_NNI(tree->t_edges[i]);
-	}
-      
+      For(i,2*tree->n_otu-3) Make_Edge_Lk(tree->t_edges[i],tree);    
       For(i,2*tree->n_otu-2) Make_Node_Lk(tree->t_nodes[i]);
       
       if(tree->mod->s_opt->greedy) 
-	{
-	  Init_P_Lk_Tips_Double(tree);
-	}
+	Init_P_Lk_Tips_Double(tree);
       else 
-	{
-	  Init_P_Lk_Tips_Int(tree);
-	}
+	Init_P_Lk_Tips_Int(tree);
       
       Init_P_Lk_Loc(tree);
     }
@@ -2225,8 +2218,6 @@ void Init_P_Lk_Tips_Int(t_tree *tree)
 	  Exit("");
 	}
     }
-
-
 
   For(curr_site,tree->data->crunch_len)
     {
@@ -3814,7 +3805,7 @@ int Check_Lk_At_Given_Edge(t_tree *tree)
   For(i,2*tree->n_otu-3)
     {
       lk[i] = Lk(tree->t_edges[i],tree);
-      printf("\n. %3d %13f",i,lk[i]);
+      /* printf("\n. Edge %3d %13f",i,lk[i]); */
     }
 
   res=1;

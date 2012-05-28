@@ -49,8 +49,9 @@ int Pars(t_edge *b, t_tree *tree)
     {
       tree->site_pars[site] = 0;
       tree->curr_site       = site;
-      Pars_Core(b,tree);
+      tree->site_pars[site] = Pars_Core(b,tree);
       tree->c_pars += tree->site_pars[site] * tree->data->wght[site];
+      /* printf("\n. site %d pars: %d",site,tree->c_pars); */
     }
 
   return tree->c_pars;
@@ -131,8 +132,8 @@ void Init_P_Pars_Tips(t_tree *tree)
 	{
 	  if(tree->t_nodes[i]->b[0]->rght->tax != 1)
 	    {
-	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-	      Warn_And_Exit("\n");	    
+	      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+	      Exit("\n");	    
 	    }
 
 	  if(tree->io->datatype == NT)
@@ -140,9 +141,6 @@ void Init_P_Pars_Tips(t_tree *tree)
 	      Init_Tips_At_One_Site_Nucleotides_Int(tree->t_nodes[i]->c_seq->state[curr_site],
 						    0,
 						    state_v);	      
-	      /* Init_Tips_At_One_Site_Nucleotides_Int(tree->data->c_seq[i]->state[curr_site], */
-	      /* 					    0, */
-	      /* 					    state_v);	       */
 	      For(j,tree->mod->ns) tree->t_nodes[i]->b[0]->p_pars_r[curr_site*dim1+j] = MAX_PARS;
 	      For(j,tree->mod->ns) if(state_v[j] > 0.5) tree->t_nodes[i]->b[0]->p_pars_r[curr_site*dim1+j] =  0;
 	    }
@@ -151,9 +149,6 @@ void Init_P_Pars_Tips(t_tree *tree)
 	      Init_Tips_At_One_Site_AA_Int(tree->t_nodes[i]->c_seq->state[curr_site],
 					   0,
 					   state_v);
-	      /* Init_Tips_At_One_Site_AA_Int(tree->data->c_seq[i]->state[curr_site], */
-	      /* 				   0, */
-	      /* 				   state_v); */
 	      For(j,tree->mod->ns) tree->t_nodes[i]->b[0]->p_pars_r[curr_site*dim1+j] = MAX_PARS;
 	      For(j,tree->mod->ns) if(state_v[j] > 0.5) tree->t_nodes[i]->b[0]->p_pars_r[curr_site*dim1+j] =  0;
 	    }
@@ -164,11 +159,6 @@ void Init_P_Pars_Tips(t_tree *tree)
 						tree->mod->io->state_len,
 						0,
 						state_v);
-	      /* Init_Tips_At_One_Site_Generic_Int(tree->data->c_seq[i]->state+curr_site*tree->mod->io->state_len, */
-	      /* 					tree->mod->ns, */
-	      /* 					tree->mod->io->state_len, */
-	      /* 					0, */
-	      /* 					state_v); */
 	      For(j,tree->mod->ns) tree->t_nodes[i]->b[0]->p_pars_r[curr_site*dim1+j] = MAX_PARS;
 	      For(j,tree->mod->ns) if(state_v[j] > 0.5) tree->t_nodes[i]->b[0]->p_pars_r[curr_site*dim1+j] =  0;
 	    }
@@ -194,8 +184,8 @@ void Init_Ui_Tips(t_tree *tree)
 	    {
 	      if(tree->t_nodes[i]->b[0]->rght->tax != 1)
 		{
-		  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-		  Warn_And_Exit("\n");	    
+		  PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+		  Exit("\n");	    
 		}
 
 	      Init_Tips_At_One_Site_Nucleotides_Int(tree->t_nodes[i]->c_seq->state[curr_site],
@@ -274,14 +264,6 @@ void Update_P_Pars(t_tree *tree, t_edge *b_fcus, t_node *n)
   int v;
   int dim1;
 
-
-  if(tree->is_mixt_tree == YES)
-    {
-      MIXT_Update_P_Pars(tree,b_fcus,n);
-      return;
-    }
-
-
   if((tree->io->do_alias_subpatt == YES) && 
      (tree->update_alias_subpatt == YES))
     Alias_One_Subpatt((n==b_fcus->left)?(b_fcus->rght):(b_fcus->left),n,tree);
@@ -295,6 +277,7 @@ void Update_P_Pars(t_tree *tree, t_edge *b_fcus, t_node *n)
   pars = pars_v1 = pars_v2 = NULL;
 
   n_patterns = tree->n_pattern;
+
 
   if(n == b_fcus->left)
     {	     
@@ -401,6 +384,7 @@ void Update_P_Pars(t_tree *tree, t_edge *b_fcus, t_node *n)
 	{
 	  pars[site] = pars_v1[site] + pars_v2[site];
 
+
 	  ui[site] = ui_v1[site] & ui_v2[site];
 
 	  if(!ui[site])
@@ -408,6 +392,7 @@ void Update_P_Pars(t_tree *tree, t_edge *b_fcus, t_node *n)
 	      pars[site]++;
 	      ui[site] = ui_v1[site] | ui_v2[site];
 	    }
+
 	}
     }
 }
@@ -429,7 +414,6 @@ int Pars_Core(t_edge *b, t_tree *tree)
 
   if(tree->mod->s_opt->general_pars)
     {
-
       For(i,tree->mod->ns)
 	{
 	  min_l = MAX_PARS;
