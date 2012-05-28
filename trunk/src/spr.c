@@ -391,7 +391,7 @@ void Optim_SPR (t_tree *tree, int max_size, int method)
   */
 /*   PhyML_Printf("\n. Optimizing t_edge lengths."); */
   root = tree->t_nodes[0];
-  Optimize_Br_Len_Serie (root, root->v[0], root->b[0], tree, tree->data);
+  Optimize_Br_Len_Serie (root, root->v[0], root->b[0], tree);
   tree->both_sides = 1;
   cur_lk = Lk(NULL,tree);
   time(&(tree->t_current));
@@ -622,7 +622,7 @@ int Perform_SPR_Moves (t_tree *tree, int max_size)
   tree->both_sides = 1;
   cur_lk = Lk(NULL,tree);
   root = tree->t_nodes[0];
-  Optimize_Br_Len_Serie (root, root->v[0], root->b[0], tree, tree->data);
+  Optimize_Br_Len_Serie (root, root->v[0], root->b[0], tree);
   tree->both_sides = 1;
   cur_lk = Lk(NULL,tree);
   time(&(tree->t_current));
@@ -781,7 +781,7 @@ int Perform_Best_SPR (t_tree *tree, int max_size)
   tree->both_sides = 1;
   cur_lk = Lk(NULL,tree);
   root = tree->t_nodes[0];
-  Optimize_Br_Len_Serie (root, root->v[0], root->b[0], tree, tree->data);
+  Optimize_Br_Len_Serie (root, root->v[0], root->b[0], tree);
   tree->both_sides = 1;
   cur_lk = Lk(NULL,tree);
   time(&(tree->t_current));
@@ -960,7 +960,7 @@ int Perform_One_SPR(t_tree *tree, int max_size)
   tree->both_sides = 1;
   cur_lk = Lk(NULL,tree);
   root = tree->t_nodes[0];
-  Optimize_Br_Len_Serie (root, root->v[0], root->b[0], tree, tree->data);
+  Optimize_Br_Len_Serie (root, root->v[0], root->b[0], tree);
   tree->both_sides = 1;
   cur_lk = Lk(NULL,tree);
   time(&(tree->t_current));
@@ -2600,7 +2600,7 @@ int Find_Optim_Globl (t_tree *tree)
       tree->both_sides = 1;
       Lk(NULL,tree);
       root = tree->t_nodes[0];
-      Optimize_Br_Len_Serie (root, root->v[0], root->b[0], tree, tree->data);
+      Optimize_Br_Len_Serie (root, root->v[0], root->b[0], tree);
       tree->both_sides = 1;
       new_lk = Lk (NULL,tree);
 
@@ -3166,8 +3166,8 @@ void Spr_Subtree(t_edge *b, t_node *link, t_tree *tree)
 
   if((link != b->left) && (link != b->rght))
     {
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-      Warn_And_Exit("");			        
+      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");
     }
   else
     {
@@ -3206,8 +3206,8 @@ void Spr_Subtree(t_edge *b, t_node *link, t_tree *tree)
 	    {
 	      if(tree->io->fp_in_constraint_tree)
 		{
-		  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-		  Warn_And_Exit("");
+		  PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+		  Exit("\n");
 		}
 
 	      min_pars = 1E+8;
@@ -3224,14 +3224,14 @@ void Spr_Subtree(t_edge *b, t_node *link, t_tree *tree)
 		{
 		  Prune_Subtree(best_pars_move->n_link,best_pars_move->n_opp_to_link,&target,&residual,tree);
 		  Graft_Subtree(best_pars_move->b_target,best_pars_move->n_link,residual,tree);
-		  tree->both_sides = 1;
+		  tree->both_sides = YES;
 		  Pars(NULL,tree);
 		  tree->best_pars = tree->c_pars;
 		  if(tree->best_pars != best_pars_move->pars)
 		    {
-		      PhyML_Printf("\n. best_pars = %d move_pars = %d",tree->best_pars,best_pars_move->pars);
-		      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-		      Warn_And_Exit("");			  
+		      PhyML_Printf("\n== best_pars = %d move_pars = %d",tree->best_pars,best_pars_move->pars);
+		      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+		      Exit("\n");			  
 		    }
 		  tree->n_improvements++;
 		}
@@ -3246,6 +3246,7 @@ void Spr_Subtree(t_edge *b, t_node *link, t_tree *tree)
 
 	      /* printf("\n. 1"); fflush(NULL); */
 	      /* if(!Check_Lk_At_Given_Edge(tree)) Exit("\n"); */
+
 
 	      best_move = Evaluate_List_Of_Regraft_Pos_Triple(tree->spr_list,n_moves,tree);
 	      
@@ -3283,10 +3284,16 @@ int Test_All_Spr_Targets(t_edge *b_pulled, t_node *n_link, t_tree *tree)
   t_node *n_opp_to_link,*n_v1,*n_v2,*n_up;
   t_edge *b_target,*b_residual;
   int i,dir1,dir2;
-  phydbl init_len_v1, init_len_v2, init_len_pulled;
+  phydbl *init_len_v1, *init_len_v2, *init_len_pulled;
   int best_found,approx;
   phydbl init_lnL;
 
+
+  if(tree->parent)
+    {
+      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");
+    }
 
   init_lnL = tree->c_lnL;
   n_up = NULL;
@@ -3294,7 +3301,7 @@ int Test_All_Spr_Targets(t_edge *b_pulled, t_node *n_link, t_tree *tree)
   n_opp_to_link  = (n_link == b_pulled->rght)?(b_pulled->left):(b_pulled->rght);
   approx = 1;
 
-  init_len_pulled = b_pulled->l->v;
+  init_len_pulled = MIXT_Get_Lengths_Of_This_Edge(b_pulled);
   dir1 = dir2 = -1;
   For(i,3)
     if(n_link->v[i] != n_opp_to_link)
@@ -3307,15 +3314,15 @@ int Test_All_Spr_Targets(t_edge *b_pulled, t_node *n_link, t_tree *tree)
     {
       n_v1        = n_link->v[dir1];
       n_v2        = n_link->v[dir2];
-      init_len_v1 = n_link->b[dir1]->l->v;
-      init_len_v2 = n_link->b[dir2]->l->v;
+      init_len_v1 = MIXT_Get_Lengths_Of_This_Edge(n_link->b[dir1]);
+      init_len_v2 = MIXT_Get_Lengths_Of_This_Edge(n_link->b[dir2]);
     }
   else
     {
       n_v1        = n_link->v[dir2];
       n_v2        = n_link->v[dir1];
-      init_len_v1 = n_link->b[dir2]->l->v;
-      init_len_v2 = n_link->b[dir1]->l->v;
+      init_len_v1 = MIXT_Get_Lengths_Of_This_Edge(n_link->b[dir2]);
+      init_len_v2 = MIXT_Get_Lengths_Of_This_Edge(n_link->b[dir1]);
     }
     
   if(!(n_v1->tax && n_v2->tax)) /* Pruning is meaningless otherwise */
@@ -3324,8 +3331,7 @@ int Test_All_Spr_Targets(t_edge *b_pulled, t_node *n_link, t_tree *tree)
       
       if(tree->mod->s_opt->spr_lnL)
 	{
-	  Fast_Br_Len(b_target,tree,0);
-
+	  Fast_Br_Len(b_target,tree,NO);
 /* 	  Update_PMat_At_Given_Edge(b_target,tree); */
 	}
       
@@ -3347,10 +3353,15 @@ int Test_All_Spr_Targets(t_edge *b_pulled, t_node *n_link, t_tree *tree)
       if((n_link->v[dir1] != n_v1) || (n_link->v[dir2] != n_v2))
 	PhyML_Printf("\n. Warning: -- SWITCH NEEDED -- ! \n");
       
-      n_link->b[dir1]->l->v = init_len_v1;
-      n_link->b[dir2]->l->v = init_len_v2; 
-      b_pulled->l->v = init_len_pulled;
+      /* n_link->b[dir1]->l->v = init_len_v1; */
+      /* n_link->b[dir2]->l->v = init_len_v2;  */
+      /* b_pulled->l->v = init_len_pulled; */
       
+      MIXT_Set_Lengths_Of_This_Edge(init_len_v1,n_link->b[dir1]);
+      MIXT_Set_Lengths_Of_This_Edge(init_len_v2,n_link->b[dir2]);
+      MIXT_Set_Lengths_Of_This_Edge(init_len_pulled,b_pulled);
+      
+
       Update_PMat_At_Given_Edge(n_link->b[dir1],tree);
       Update_PMat_At_Given_Edge(n_link->b[dir2],tree);
       Update_PMat_At_Given_Edge(b_pulled,tree);
@@ -3386,6 +3397,10 @@ int Test_All_Spr_Targets(t_edge *b_pulled, t_node *n_link, t_tree *tree)
     }
 
   tree->c_lnL = init_lnL;
+  
+  Free(init_len_v1);
+  Free(init_len_v2);
+  Free(init_len_pulled);
 
   return 0;
 
@@ -3444,26 +3459,40 @@ void Test_One_Spr_Target_Recur(t_node *a, t_node *d, t_edge *pulled, t_node *lin
 
 phydbl Test_One_Spr_Target(t_edge *b_target, t_edge *b_arrow, t_node *n_link, t_edge *b_residual, t_tree *tree)
 {
-  phydbl init_target_len, init_arrow_len, init_residual_len;
+  phydbl *init_target_len, *init_arrow_len, *init_residual_len;
   int i,dir_v0,dir_v1,dir_v2;
-  phydbl l0,l1,l2;
+  phydbl *l0,*l1,*l2;
   t_node *v1, *v2;
   phydbl init_lnL, move_lnL;
   int init_pars,move_pars;
   int approx;
+  t_tree *orig_tree;
+  t_edge *orig_target, *orig_arrow;
+  t_node *orig_link;
+  spr *orig_move,*move;
+
+  if(tree->parent)
+    {
+      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");
+    }
 
   tree->n_moves++;
 
-  approx    = 1;
+  approx    = YES;
   move_lnL  = UNLIKELY;
   init_lnL  = tree->c_lnL;
   init_pars = tree->c_pars;
 
   Graft_Subtree(b_target,n_link,b_residual,tree);
    
-  init_target_len   = b_target->l->v;
-  init_arrow_len    = b_arrow->l->v;
-  init_residual_len = b_residual->l->v;
+  /* init_target_len   = b_target->l->v; */
+  /* init_arrow_len    = b_arrow->l->v; */
+  /* init_residual_len = b_residual->l->v; */
+
+  init_target_len   = MIXT_Get_Lengths_Of_This_Edge(b_target);
+  init_arrow_len    = MIXT_Get_Lengths_Of_This_Edge(b_arrow);
+  init_residual_len = MIXT_Get_Lengths_Of_This_Edge(b_residual);
   
   if(tree->mod->s_opt->spr_lnL)
     {
@@ -3490,36 +3519,79 @@ phydbl Test_One_Spr_Target(t_edge *b_target, t_edge *b_arrow, t_node *n_link, t_
       else if(n_link->v[i] == v2) dir_v2 = i;
       else                        dir_v0 = i;
     }
-  l0 = n_link->b[dir_v0]->l->v;
+
+  l0 = MIXT_Get_Lengths_Of_This_Edge(n_link->b[dir_v0]);
   if(n_link->v[dir_v1]->num > n_link->v[dir_v2]->num)
     {
-      l1 = n_link->b[dir_v2]->l->v;
-      l2 = n_link->b[dir_v1]->l->v;
+      l1 = MIXT_Get_Lengths_Of_This_Edge(n_link->b[dir_v2]);
+      l2 = MIXT_Get_Lengths_Of_This_Edge(n_link->b[dir_v1]);
     }
   else
     {
-      l1 = n_link->b[dir_v1]->l->v;
-      l2 = n_link->b[dir_v2]->l->v;
+      l1 = MIXT_Get_Lengths_Of_This_Edge(n_link->b[dir_v1]);
+      l2 = MIXT_Get_Lengths_Of_This_Edge(n_link->b[dir_v2]);
     }
+
+  move = tree->spr_list[tree->size_spr_list];
+  For(i,tree->depth_curr_path+1) move->path[i] = tree->curr_path[i];
+  move->depth_path    = tree->depth_curr_path;
+  move->pars          = tree->c_pars;
+  move->lnL           = tree->c_lnL;
+
+  orig_target = b_target;
+  orig_link   = n_link;
+  orig_arrow  = b_arrow;  
+  orig_tree   = tree;
+  orig_move   = move;
+  i = 0;
+  do
+    {
+      move->l0            = l0[i];
+      move->l1            = l1[i];
+      move->l2            = l2[i];
+      move->b_target      = b_target;
+      move->n_link        = n_link;
+      move->b_opp_to_link = b_arrow;
+      move->dist          = b_target->topo_dist_btw_edges;
+      move->n_opp_to_link = (n_link==b_arrow->left)?(b_arrow->rght):(b_arrow->left);
+
+      if(tree->child) 
+	{
+	  tree     = tree->child;
+	  b_target = b_target->child;
+	  b_arrow  = b_arrow->child;
+	  n_link   = n_link->child;
+	  move     = move->child;
+	}
+      else            
+	{
+	  tree     = tree->next;
+	  b_target = b_target->next;
+	  b_arrow  = b_arrow->next;
+	  n_link   = n_link->next;
+	  move     = move->next;
+	}
+
+      i++;
+
+    }
+  while(tree);
+
+  b_target = orig_target;
+  n_link   = orig_link;
+  b_arrow  = orig_arrow;  
+  tree     = orig_tree;
+  move     = orig_move;
+
+  Include_One_Spr_To_List_Of_Spr(move,tree);
   
-  For(i,tree->depth_curr_path+1) tree->spr_list[tree->size_spr_list]->path[i] = tree->curr_path[i];
-  tree->spr_list[tree->size_spr_list]->depth_path    = tree->depth_curr_path;
-  tree->spr_list[tree->size_spr_list]->pars          = tree->c_pars;
-  tree->spr_list[tree->size_spr_list]->lnL           = tree->c_lnL;
-  tree->spr_list[tree->size_spr_list]->b_target      = b_target;
-  tree->spr_list[tree->size_spr_list]->n_link        = n_link;
-  tree->spr_list[tree->size_spr_list]->n_opp_to_link = (n_link==b_arrow->left)?(b_arrow->rght):(b_arrow->left);
-  tree->spr_list[tree->size_spr_list]->b_opp_to_link = b_arrow;
-  tree->spr_list[tree->size_spr_list]->l0            = l0;
-  tree->spr_list[tree->size_spr_list]->l1            = l1;
-  tree->spr_list[tree->size_spr_list]->l2            = l2;
-  tree->spr_list[tree->size_spr_list]->dist          = b_target->topo_dist_btw_edges;
-  
-  Include_One_Spr_To_List_Of_Spr(tree->spr_list[tree->size_spr_list],tree);
-  
-  b_target->l->v   = init_target_len;
-  b_arrow->l->v    = init_arrow_len;
-  b_residual->l->v = init_residual_len;
+  /* b_target->l->v   = init_target_len; */
+  /* b_arrow->l->v    = init_arrow_len; */
+  /* b_residual->l->v = init_residual_len; */
+
+  MIXT_Set_Lengths_Of_This_Edge(init_target_len,b_target);
+  MIXT_Set_Lengths_Of_This_Edge(init_arrow_len,b_arrow);
+  MIXT_Set_Lengths_Of_This_Edge(init_residual_len,b_residual);
   
   Prune_Subtree(n_link,
 		(n_link==b_arrow->left)?(b_arrow->rght):(b_arrow->left),
@@ -3531,6 +3603,14 @@ phydbl Test_One_Spr_Target(t_edge *b_target, t_edge *b_arrow, t_node *n_link, t_
 
   tree->c_lnL   = init_lnL;
   tree->c_pars  = init_pars;
+
+  Free(l0);
+  Free(l1);
+  Free(l2);
+
+  Free(init_target_len);
+  Free(init_arrow_len);
+  Free(init_residual_len);
 
   return move_lnL;
 }
@@ -3635,7 +3715,7 @@ void Speed_Spr(t_tree *tree, int max_cycles)
     }
 
 
-  tree->both_sides = 1;
+  tree->both_sides = YES;
   Pars(NULL,tree);
   Lk(NULL,tree);
   Record_Br_Len(tree);
@@ -3653,6 +3733,7 @@ void Speed_Spr(t_tree *tree, int max_cycles)
       old_lnL  = tree->c_lnL;
       old_pars = tree->c_pars;
 
+
       tree->max_spr_depth          = 0;
       tree->n_improvements         = 0;
       tree->perform_spr_right_away = 1;
@@ -3664,8 +3745,7 @@ void Speed_Spr(t_tree *tree, int max_cycles)
 	  Optimize_Br_Len_Serie(tree->t_nodes[0],
 				tree->t_nodes[0]->v[0],
 				tree->t_nodes[0]->b[0],
-				tree,
-				tree->data);
+				tree);
 	  
 	  /* Update partial likelihoods */
 	  tree->both_sides = YES;
@@ -3696,18 +3776,18 @@ void Speed_Spr(t_tree *tree, int max_cycles)
 	{
 	  if(tree->c_lnL < old_lnL-tree->mod->s_opt->min_diff_lk_local)
 	    {
-	      PhyML_Printf("\n. old_lnL = %f c_lnL = %f",old_lnL,tree->c_lnL); 
-	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-	      Warn_And_Exit("");
+	      PhyML_Printf("\n== old_lnL = %f c_lnL = %f",old_lnL,tree->c_lnL); 
+	      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+	      Exit("");
 	    }
 	}
       else
 	{
 	  if(tree->c_pars > old_pars)
 	    {
-	      PhyML_Printf("\n. old_pars = %d c_pars = %d",old_pars,tree->c_pars); 
-	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-	      Warn_And_Exit("");	    
+	      PhyML_Printf("\n== old_pars = %d c_pars = %d",old_pars,tree->c_pars); 
+	      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+	      Exit("");	    
 	    }
 	}
 
@@ -3727,12 +3807,20 @@ void Speed_Spr(t_tree *tree, int max_cycles)
 
 int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, t_tree *tree)
 {
-  spr *move;
+  spr *move,*orig_move;
   t_edge *init_target, *b_residual;
-  int i,j,best_move;
+  int i,j,best_move,n;
   int dir_v0, dir_v1, dir_v2;
-  phydbl recorded_l;
+  phydbl *recorded_l;
   phydbl best_lnL,init_lnL;
+  int recorded;
+  t_tree *orig_tree;
+
+  if(tree->parent)
+    {
+      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");
+    }
 
   best_lnL = UNLIKELY;
   init_target = b_residual = NULL;
@@ -3741,21 +3829,22 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, t_tree *t
   
   if(!list_size && !tree->io->fp_in_constraint_tree) 
     {
-      PhyML_Printf("\n. List size is 0 !");
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-      Warn_And_Exit("");
+      PhyML_Printf("\n== List size is 0 !");
+      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");
     }
 
-  recorded_l = -1.0;
+
+  recorded = NO;
   For(i,list_size)
     {
       move = spr_list[i];
 
       if(!move)
 	{
-	  PhyML_Printf("\n. move is NULL\n");
-	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-	  Warn_And_Exit("");
+	  PhyML_Printf("\n== move is NULL\n");
+	  PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+	  Exit("\n");
 	}
 
       if(move->b_target)
@@ -3766,24 +3855,73 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, t_tree *t
 	  /* Prune subtree */
 	  Prune_Subtree(move->n_link,move->n_opp_to_link,&init_target,&b_residual,tree);
 
-	  if(recorded_l < 0.0)
-	    {
-	      /* Rough optimisation of the branch length at prune site
-	       * We only need to perform this optimisation for the first
-	       * element of spr_list because the pruned subtree is the
-	       * same across all the elements of spr_list. It would not
-	       * be true in the general case
-	       */
-	      Fast_Br_Len(init_target,tree,0);
 
-	      /* Record branch length at prune site */
-	      move->init_target_l = init_target->l->v;
-	      recorded_l          = init_target->l->v;
+	  if(recorded == NO)
+	    {
+	      /*! Rough optimisation of the branch length at prune site
+	       *  We only need to perform this optimisation for the first
+	       *  element of spr_list because the pruned subtree is the
+	       *  same across all the elements of spr_list. It would not
+	       *  be true in the general case
+	       */
+	      recorded = YES;
+	      
+	      Fast_Br_Len(init_target,tree,NO);
+
+	      /*! Record branch length at prune site */
+
+	      recorded_l = MIXT_Get_Lengths_Of_This_Edge(init_target);
+
+	      /*! Make sure recorded_l has been updated beforehand */ 
+	      orig_move = move;
+	      orig_tree = tree;
+	      n = 0;
+	      do
+		{
+		  move->init_target_l = recorded_l[n];
+		  n++;
+
+		  if(tree->child) 
+		    {
+		      move = move->child;
+		      tree = tree->child;
+		    }
+		  else            
+		    {
+		      move = move->next;
+		      tree = tree->next;
+		    }
+		}
+	      while(tree);
+	      move = orig_move;
+	      tree = orig_tree;
 	    }
 	  else
 	    {
-	      init_target->l->v      = recorded_l;
-	      move->init_target_l = recorded_l;
+	      MIXT_Set_Lengths_Of_This_Edge(recorded_l,init_target);
+
+	      orig_move = move;
+	      orig_tree = tree;
+	      n = 0;
+	      do
+		{
+		  move->init_target_l = recorded_l[n];
+		  n++;
+
+		  if(tree->child) 
+		    {
+		      move = move->child;
+		      tree = tree->child;
+		    }
+		  else            
+		    {
+		      move = move->next;
+		      tree = tree->next;
+		    }
+		}
+	      while(tree);
+	      move = orig_move;
+	      tree = orig_tree;
 	    }
 
 	  /* Update the change proba matrix at prune position */
@@ -3805,19 +3943,39 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, t_tree *t
 	      else if(dir_v1 < 0)                           dir_v1 = j;
 	      else                                          dir_v2 = j;
 	    }
-	  
-	  move->n_link->b[dir_v0]->l->v = move->l0;
-	  
-	  if(move->n_link->v[dir_v1]->num > move->n_link->v[dir_v2]->num)
+
+	  orig_tree = tree;
+	  orig_move = move;
+	  do
 	    {
-	      move->n_link->b[dir_v2]->l->v = move->l1;
-	      move->n_link->b[dir_v1]->l->v = move->l2;
+	      move->n_link->b[dir_v0]->l->v = move->l0;
+	      
+	      if(move->n_link->v[dir_v1]->num > move->n_link->v[dir_v2]->num)
+		{
+		  move->n_link->b[dir_v2]->l->v = move->l1;
+		  move->n_link->b[dir_v1]->l->v = move->l2;
+		}
+	      else
+		{
+		  move->n_link->b[dir_v1]->l->v = move->l1;
+		  move->n_link->b[dir_v2]->l->v = move->l2;
+		}
+
+	      if(tree->child) 
+		{
+		  move = move->child;
+		  tree = tree->child;
+		}
+	      else            
+		{
+		  move = move->next;
+		  tree = tree->next;
+		}
+
 	    }
-	  else
-	    {
-	      move->n_link->b[dir_v1]->l->v = move->l1;
-	      move->n_link->b[dir_v2]->l->v = move->l2;
-	    }
+	  while(tree);
+	  move = orig_move;
+	  tree = orig_tree;
 
 /* 	  Update_PMat_At_Given_Edge(move->b_target,tree); */
 /* 	  Update_PMat_At_Given_Edge(b_residual,tree); */
@@ -3830,12 +3988,14 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, t_tree *t
 	  move->lnL = Triple_Dist(move->n_link,tree,1);
 	  tree->update_alias_subpatt = NO;
 	  
-
-/* 	  printf("\n. move->n_link=%d  move=%f %f %f", */
-/* 		 move->n_link->num, */
-/* 		 move->lnL, */
-/* 		 move->l1,move->l2); */
-/* 	  Exit("\n"); */
+	  /* printf("\n. move->n_link=%d  move=%f %f %f %s %s", */
+	  /* 	 move->n_link->num, */
+	  /* 	 move->lnL, */
+	  /* 	 move->l1,move->l2, */
+	  /* 	 move->b_target->left->tax?move->b_target->left->name:"xxx", */
+	  /* 	 move->b_target->rght->tax?move->b_target->rght->name:"xxx"); */
+	  /* Exit("\n"); */
+	  
 
 	  if((move->lnL < best_lnL) && (move->lnL > best_lnL - tree->mod->s_opt->max_delta_lnL_spr))
 	    {
@@ -3844,25 +4004,43 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, t_tree *t
 	    }
 	  
 	  /* Record updated branch lengths for this move */
-	  move->l0 = move->n_link->b[dir_v0]->l->v;
-	  
-	  if(move->n_link->v[dir_v1]->num > move->n_link->v[dir_v2]->num)
+	  orig_move = move;
+	  orig_tree = tree;
+	  do
 	    {
-	      move->l1 = move->n_link->b[dir_v2]->l->v;
-	      move->l2 = move->n_link->b[dir_v1]->l->v;
+	      move->l0 = move->n_link->b[dir_v0]->l->v;
+	      
+	      if(move->n_link->v[dir_v1]->num > move->n_link->v[dir_v2]->num)
+		{
+		  move->l1 = move->n_link->b[dir_v2]->l->v;
+		  move->l2 = move->n_link->b[dir_v1]->l->v;
+		}
+	      else
+		{
+		  move->l1 = move->n_link->b[dir_v1]->l->v;
+		  move->l2 = move->n_link->b[dir_v2]->l->v;
+		}
+	      
+	      if(tree->child) 
+		{
+		  move = move->child;
+		  tree = tree->child;
+		}
+	      else            
+		{
+		  move = move->next;
+		  tree = tree->next;
+		}
 	    }
-	  else
-	    {
-	      move->l1 = move->n_link->b[dir_v1]->l->v;
-	      move->l2 = move->n_link->b[dir_v2]->l->v;
-	    }
-	
+	  while(tree);
+	  move = orig_move;
+	  tree = orig_tree;
+
 	  if(move->lnL > best_lnL + tree->mod->s_opt->min_diff_lk_move)
 	    {
 	      best_lnL  = move->lnL;
 	      best_move = i;
 	    }
-
 
 	  /* Regraft the subtree at its original position */
 	  Prune_Subtree(move->n_link,
@@ -3926,8 +4104,8 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, t_tree *t
 	  break;
 	}
     }
-  tree->update_alias_subpatt = NO;      
 
+  tree->update_alias_subpatt = NO;      
 
 #ifdef DEBUG
   if(best_move < 0 && list_size > 0)
@@ -3941,11 +4119,12 @@ int Evaluate_List_Of_Regraft_Pos_Triple(spr **spr_list, int list_size, t_tree *t
 	  PhyML_Printf("\n. %p %p",move,move->b_target);
 	}
 
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-      Warn_And_Exit("");
+      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");
     }
 #endif
 
+  Free(recorded_l);
 
   return best_move;
 }
@@ -3958,7 +4137,15 @@ int Try_One_Spr_Move_Triple(spr *move, t_tree *tree)
   int j;
   int dir_v0, dir_v1, dir_v2;
   int accept;
-  phydbl u;
+  t_edge *orig_b;
+  spr *orig_move;
+  t_tree *orig_tree;
+
+  if(tree->parent)
+    {
+      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");
+    }
 
   Record_Br_Len(tree);
 
@@ -3967,8 +4154,30 @@ int Try_One_Spr_Move_Triple(spr *move, t_tree *tree)
 		&init_target,
 		&b_residual,
 		tree);
-
-  init_target->l->v = move->init_target_l;
+  
+  orig_tree = tree;
+  orig_b    = init_target;
+  orig_move = move;
+  do
+    {
+      init_target->l->v = move->init_target_l;
+      if(tree->child) 
+	{
+	  init_target = init_target->child;
+	  move        = move->child;
+	  tree        = tree->child;
+	}
+      else                   
+	{
+	  init_target = init_target->next;
+	  move        = move->next;
+	  tree        = tree->next;
+	}
+    }
+  while(tree);
+  init_target = orig_b;
+  move        = orig_move;
+  tree        = orig_tree;
 
   Graft_Subtree(move->b_target,move->n_link,b_residual,tree);
 
@@ -3980,34 +4189,42 @@ int Try_One_Spr_Move_Triple(spr *move, t_tree *tree)
       else                                          dir_v2 = j;
     }
 
-  move->n_link->b[dir_v0]->l->v = move->l0;
-
-  if(move->n_link->v[dir_v1]->num > move->n_link->v[dir_v2]->num)
+  orig_move = move;
+  orig_tree = tree;
+  do
     {
-      move->n_link->b[dir_v2]->l->v = move->l1;
-      move->n_link->b[dir_v1]->l->v = move->l2;
-    }
-  else
-    {
-      move->n_link->b[dir_v1]->l->v = move->l1;
-      move->n_link->b[dir_v2]->l->v = move->l2;
-    }
+      move->n_link->b[dir_v0]->l->v = move->l0;
 
+      if(move->n_link->v[dir_v1]->num > move->n_link->v[dir_v2]->num)
+	{
+	  move->n_link->b[dir_v2]->l->v = move->l1;
+	  move->n_link->b[dir_v1]->l->v = move->l2;
+	}
+      else
+	{
+	  move->n_link->b[dir_v1]->l->v = move->l1;
+	  move->n_link->b[dir_v2]->l->v = move->l2;
+	}
+
+      if(tree->child) 
+	{
+	  move = move->child;
+	  tree = tree->child;
+	}
+      else            
+	{
+	  move = move->next;
+	  tree = tree->next;
+	}
+
+    }
+  while(tree);
+  move = orig_move;
+  tree = orig_tree;
 
   accept = YES;
   if(!Check_Topo_Constraints(tree,tree->io->cstr_tree)) accept = NO;
-  if(accept)
-    {
-      u = Uni();
-      if(!(u < EXP((move->lnL - tree->best_lnL)/tree->temp)))
-	accept = NO;      
-
-      if(FABS(move->lnL -tree->best_lnL) < tree->mod->s_opt->min_diff_lk_move)
-	accept = NO;
-    }
   
-  /* printf("\n. %d %15f %15f",accept,move->lnL - tree->best_lnL,tree->temp); */
-
   if(accept == YES) /* Apply the move */
     {
       time(&(tree->t_current));
@@ -4019,10 +4236,10 @@ int Try_One_Spr_Move_Triple(spr *move, t_tree *tree)
 
       if(FABS(tree->c_lnL - move->lnL) > tree->mod->s_opt->min_diff_lk_move)
 	{
-	  PhyML_Printf("\n. c_lnL = %f move_lnL = %f\n",
+	  PhyML_Printf("\n== c_lnL = %f move_lnL = %f\n",
 		       tree->c_lnL,move->lnL);
-	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-	  Warn_And_Exit("");
+	  PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+	  Exit("\n");
 	}
 
       //
@@ -4098,17 +4315,16 @@ int Try_One_Spr_Move_Full(spr *move, t_tree *tree)
   Graft_Subtree(move->b_target,move->n_link,b_residual,tree);
 
   tree->update_alias_subpatt = YES;
-  tree->both_sides = 1;
+  tree->both_sides = YES;
   Lk(NULL,tree);
   tree->update_alias_subpatt = NO;
 
   Optimize_Br_Len_Serie(tree->t_nodes[0],
 			tree->t_nodes[0]->v[0],
 			tree->t_nodes[0]->b[0],
-			tree,
-			tree->data);
+			tree);
   
-  tree->both_sides = 1;
+  tree->both_sides = YES;
   Lk(NULL,tree);
 
   if(tree->c_lnL > tree->best_lnL + tree->mod->s_opt->min_diff_lk_move)
@@ -4134,7 +4350,7 @@ int Try_One_Spr_Move_Full(spr *move, t_tree *tree)
 		    tree);
       
       Restore_Br_Len(tree);
-      tree->both_sides = 1;
+      tree->both_sides = YES;
       
       tree->update_alias_subpatt = YES;
       Lk(NULL,tree);
@@ -4151,34 +4367,78 @@ int Try_One_Spr_Move_Full(spr *move, t_tree *tree)
 void Include_One_Spr_To_List_Of_Spr(spr *move, t_tree *tree)
 {
   int i;
-  spr *buff_spr;
+  spr *buff_spr,*orig_move, *orig_move_list, *move_list;
+  t_tree *orig_tree;
+  
+  if(tree->parent)
+    {
+      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");
+    }
 
   if((( tree->mod->s_opt->spr_lnL) && (move->lnL  > tree->spr_list[tree->size_spr_list-1]->lnL)) ||
      ((!tree->mod->s_opt->spr_lnL) && (move->pars <= tree->spr_list[tree->size_spr_list-1]->pars)))
     {
-      tree->spr_list[tree->size_spr_list-1]->depth_path    = move->depth_path;
-      tree->spr_list[tree->size_spr_list-1]->pars          = move->pars;
-      tree->spr_list[tree->size_spr_list-1]->lnL           = move->lnL;
-      tree->spr_list[tree->size_spr_list-1]->b_target      = move->b_target;
-      tree->spr_list[tree->size_spr_list-1]->n_link        = move->n_link;
-      tree->spr_list[tree->size_spr_list-1]->n_opp_to_link = move->n_opp_to_link;
-      tree->spr_list[tree->size_spr_list-1]->b_opp_to_link = move->b_opp_to_link;
-      tree->spr_list[tree->size_spr_list-1]->l0            = move->l0;
-      tree->spr_list[tree->size_spr_list-1]->l1            = move->l1;
-      tree->spr_list[tree->size_spr_list-1]->l2            = move->l2;
-      tree->spr_list[tree->size_spr_list-1]->dist          = move->dist;
+      move_list = tree->spr_list[tree->size_spr_list-1];
+      
+      move_list->depth_path    = move->depth_path;
+      move_list->pars          = move->pars;
+      move_list->lnL           = move->lnL;
+      move_list->dist          = move->dist;
 
-      For(i,tree->spr_list[tree->size_spr_list-1]->depth_path+1)
-	tree->spr_list[tree->size_spr_list-1]->path[i] = move->path[i];
+      orig_move      = move;
+      orig_move_list = move_list;
+      orig_tree      = tree;
+      do
+	{
+	  move_list->l0            = move->l0;
+	  move_list->l1            = move->l1;
+	  move_list->l2            = move->l2;
+	  move_list->b_target      = move->b_target;
+	  move_list->n_link        = move->n_link;
+	  move_list->n_opp_to_link = move->n_opp_to_link;
+	  move_list->b_opp_to_link = move->b_opp_to_link;
+
+
+	  if(tree->child) 
+	    {
+	      move      = move->child;
+	      move_list = move_list->child;
+	      tree      = tree->child;
+	    }
+	  else            
+	    {
+	      move      = move->next;
+	      move_list = move_list->next;
+	      tree      = tree->next;
+	    }
+	}
+      while(tree);
+      move      = orig_move;
+      move_list = orig_move_list;
+      tree      = orig_tree;
+
+      For(i,move_list->depth_path+1) move_list->path[i] = move->path[i];
 
       for(i=tree->size_spr_list-1;i>0;i--)
 	{
 	  if((( tree->mod->s_opt->spr_lnL) && (tree->spr_list[i]->lnL > tree->spr_list[i-1]->lnL)) ||
 	     ((!tree->mod->s_opt->spr_lnL) && (tree->spr_list[i]->pars <=  tree->spr_list[i-1]->pars)))
 	    {
-	      buff_spr            = tree->spr_list[i-1];
-	      tree->spr_list[i-1] = tree->spr_list[i];
-	      tree->spr_list[i]   = buff_spr;
+
+	      orig_tree = tree;
+	      do
+		{
+		  buff_spr            = tree->spr_list[i-1];
+		  tree->spr_list[i-1] = tree->spr_list[i];
+		  tree->spr_list[i]   = buff_spr;
+
+		  if(tree->child) tree = tree->child;
+		  else            tree = tree->next;
+		}
+	      while(tree);
+	      tree = orig_tree;
+
 	    }
 	  else  break;
 	}
@@ -4297,103 +4557,97 @@ void Spr_Pars(t_tree *tree)
 
 void SPR_Shuffle(t_tree *tree)
 {
-  int n_rand_cycles  = 0;
-  phydbl best_lnL    = UNLIKELY;
-  t_tree *best_tree  = Make_Tree_From_Scratch(tree->n_otu,tree->data);
-  t_tree *start_tree = Make_Tree_From_Scratch(tree->n_otu,tree->data);
-  int ori_catg = tree->mod->ras->n_catg;
   phydbl lk_old;
-
-  start_tree->mod                = tree->mod;
-  start_tree->io                 = tree->io;
-  start_tree->data               = tree->data;
-  start_tree->both_sides         = YES;
-  start_tree->mod->s_opt->print  = tree->mod->s_opt->print;
-  /* start_tree->mod->s_opt->print  = YES; */
-  start_tree->n_pattern          = tree->data->crunch_len;
-  start_tree->t_beg              = tree->t_beg;
-  start_tree->mod->ras->n_catg        = MIN(2,ori_catg);
+  int *orig_catg,n;
+  t_tree *orig_tree,**tree_list;
   
-  if(tree->mod->s_opt->print) PhyML_Printf("\n. Refining the tree...\n");
+  /*! Get the number of classes in each mixture */
+  orig_catg = MIXT_Get_Number_Of_Classes_In_All_Mixtures(tree);
+  
+  /*! Set the number of rate classes to (at most) 2.
+    ! Propagate this to every mixture tree in the analysis
+  */
+  orig_tree = tree;
+  n = 0;
+  do
+    {
+      tree->mod->ras->n_catg = MIN(2,orig_catg[n]);
+      tree = tree->next;
+      n++;
+    }
+  while(tree);
+  tree = orig_tree;
 
+
+  /*! Make sure the number of trees in each mixture is at most 2
+   */
+  tree_list = MIXT_Break_All_Mixtures(tree->mod->ras->n_catg,tree);
+
+  if(tree->mod->s_opt->print) PhyML_Printf("\n. Refining the tree...\n");
 
   do
     {
-      n_rand_cycles++;
-
-      /* Random_Tree(start_tree); */
-      Copy_Tree(tree,start_tree);
-      Share_Lk_Struct(tree,start_tree);
-      Share_Spr_Struct(tree,start_tree);
-      Share_Pars_Struct(tree,start_tree);
-      Fill_Dir_Table(start_tree);
-      Update_Dirs(start_tree);
-      Init_P_Lk_Tips_Int(start_tree);
-      Init_Ui_Tips(start_tree);
-      Init_P_Pars_Tips(start_tree);
-      Br_Len_Not_Involving_Invar(start_tree);
-      start_tree->best_pars = start_tree->c_pars;
-      start_tree->best_lnL  = start_tree->c_lnL;
-      start_tree->mod->s_opt->max_delta_lnL_spr = 0.;
-      start_tree->mod->s_opt->br_len_in_spr     = 1;
-      start_tree->mod->s_opt->max_depth_path    = 2*tree->n_otu-3;
-      start_tree->mod->s_opt->spr_lnL           = NO;
-
-      /* start_tree->temp = 6.; */
-      start_tree->temp = 0.;
-      do
-	{
-
-	  start_tree->both_sides = YES;
-	  Lk(NULL,start_tree);
-	  Pars(NULL,start_tree);
-	  Record_Br_Len(start_tree);
-
-	  start_tree->n_improvements            = 0;
-	  start_tree->max_spr_depth             = 0;
-	  start_tree->best_pars                 = start_tree->c_pars;
-	  start_tree->best_lnL                  = start_tree->c_lnL;
-	  
-	  lk_old = tree->c_lnL;
-	  Spr(UNLIKELY,start_tree);
-	  
-	  start_tree->temp -= 3.;
-	  if(start_tree->temp < .0) start_tree->temp = .0;
-
-	  /* printf("\n. temp=%f n_improv=%d max_depth=%d",start_tree->temp,start_tree->n_improvements,start_tree->max_spr_depth); */
-
-	  Optimiz_All_Free_Param(start_tree,(start_tree->io->quiet)?(0):(start_tree->mod->s_opt->print));
-	  Optimize_Br_Len_Serie(start_tree->t_nodes[0],
-				start_tree->t_nodes[0]->v[0],
-				start_tree->t_nodes[0]->b[0],
-				start_tree,
-				start_tree->data);
-
-	  if(start_tree->n_improvements < 20 || start_tree->max_spr_depth  < 5 ||
-	     (FABS(lk_old-start_tree->c_lnL) < 1.)) break;
-	}while(1);
+      tree->both_sides = YES;
+      Lk(NULL,tree);
+      Pars(NULL,tree);
+      Record_Br_Len(tree);
+      
+      tree->n_improvements = 0;
+      tree->max_spr_depth  = 0;
+      tree->best_pars      = tree->c_pars;
+      tree->best_lnL       = tree->c_lnL;
+      
+      lk_old = tree->c_lnL;
+      Spr(UNLIKELY,tree);
+                  
+      Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
+      Optimize_Br_Len_Serie(tree->t_nodes[0],
+			    tree->t_nodes[0]->v[0],
+			    tree->t_nodes[0]->b[0],
+			    tree);
+      
+      if(tree->n_improvements < 20 || tree->max_spr_depth  < 5 ||
+	 (FABS(lk_old-tree->c_lnL) < 1.)) break;
+    }
+  while(1);
 
 
-      if(start_tree->c_lnL > best_lnL)
-      	{
-      	  best_lnL = start_tree->c_lnL;
-  	  Copy_Tree(start_tree,best_tree);
-  	}
 
-    }while(n_rand_cycles < 1);
+
+  /*! Go back to the original data structure, with potentially more
+    ! than 2 trees per mixture
+   */
+  MIXT_Reconnect_All_Mixtures(tree->mod->ras->n_catg,tree_list,tree);
+
+
+  /*! Only the first two trees for each mixture have been modified so
+    ! far -> need to update the other trees by copying the modified trees
+    ! onto them.
+   */
+  orig_tree = tree;
+  do
+    {
+      if(tree != orig_tree) Copy_Tree(orig_tree,tree);
+      if(tree->child) tree = tree->child;
+      else tree = tree->next;
+    }
+  while(tree);
+  tree = orig_tree;
+
+  /*! Set the number of rate classes to its original value
+   */
+  orig_tree = tree;
+  n = 0;
+  do
+    {
+      tree->mod->ras->n_catg = orig_catg[n];
+      tree = tree->next;
+      n++;
+    }
+  while(tree);
+  tree = orig_tree;
   
-  Copy_Tree(best_tree,tree);
-  Share_Lk_Struct(start_tree,tree);
-  Fill_Dir_Table(tree);
-  Update_Dirs(tree);
-  Init_P_Lk_Tips_Int(tree);
-  Init_Ui_Tips(tree);
-  Init_P_Pars_Tips(tree);
-
-  Free_Tree(start_tree);
-  Free_Tree(best_tree);
-
-  tree->mod->ras->n_catg = ori_catg;
+  Free(orig_catg);
 
 }
 

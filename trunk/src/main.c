@@ -592,7 +592,7 @@ int main(int argc, char **argv)
       // Attach a model to this io struct
       io->mod = (t_mod *)Make_Model_Basic();
       Set_Defaults_Model(io->mod);
-      io->mod->ras->n_catg = 0;
+      io->mod->ras->n_catg = 1;
       io->mod->io = io;
 
       iomod = io->mod;
@@ -901,6 +901,26 @@ int main(int argc, char **argv)
 			      }
 			  }
 
+			/*! Custom model for amino-acids. Read in the rate matrix file */
+			if(mod->whichmodel == CUSTOMAA)
+			  {
+			    char *r_mat_file;
+
+			    r_mat_file = XML_Get_Attribute_Value(instance,"ratematrixfile");  
+
+			    if(!r_mat_file)
+			      {
+				PhyML_Printf("\n== No valid 'ratematrixfile' attribute could be processed.\n");
+				PhyML_Printf("\n== Please fix your XML file.\n");
+				Exit("\n");
+			      }
+			    else
+			      {
+				io->fp_aa_rate_mat = Openfile(r_mat_file,0);
+				strcpy(io->aa_rate_mat_file,r_mat_file);
+			      }
+			  }
+
 			// If n->ds == NULL, the corrresponding node data structure, n->ds, has not
 			// been initialized. If not, do nothing.
 			if(instance->ds->obj == NULL)  
@@ -1025,6 +1045,7 @@ int main(int argc, char **argv)
 			char *rate_value = NULL;			
 			scalar_dbl *r;
 			
+
 			// First time we process a 'siterates' node, check that its format is valid.
 			// and process it afterwards.
 			if(parent->ds->obj == NULL)
@@ -1033,6 +1054,7 @@ int main(int argc, char **argv)
 			    char *family;
 			    int select;
 			    
+			    iomod->ras->n_catg = 0;
 			    class_number = 0;
 
 			    XML_Check_Siterates_Node(parent);
@@ -1041,7 +1063,7 @@ int main(int argc, char **argv)
 			    if(w)
 			      {
 				family = XML_Get_Attribute_Value(w,"family");
-				select = XML_Validate_Attr_Int(family,3,"gamma","gamma+inv","free");
+				select = XML_Validate_Attr_Int(family,3,"gamma","gamma+inv","freerates");
 				switch(select)
 				  {
 				  case 0: // Gamma model
@@ -1077,7 +1099,8 @@ int main(int argc, char **argv)
 				    {
 				      char *alpha;
 
-				      iomod->ras->invar = YES;
+				      iomod->ras->invar        = YES;
+				      iomod->s_opt->opt_pinvar = YES;
 
 				      alpha = XML_Get_Attribute_Value(w,"alpha");
 				      
@@ -1094,7 +1117,7 @@ int main(int argc, char **argv)
 					      iomod->ras->alpha->v = String_To_Dbl(alpha);;
 					    }
 					}
-
+				      
 				      iomod->ras->n_catg = XML_Siterates_Number_Of_Classes(parent);
 				      iomod->ras->n_catg--;
 
@@ -1106,26 +1129,15 @@ int main(int argc, char **argv)
 				      int select;
 
 				      iomod->ras->free_mixt_rates = YES;
-
-				      est_weights = XML_Get_Attribute_Value(w,"estimateweights");
-				      select = XML_Validate_Attr_Int(est_weights,6,
-								     "true","yes","y",
-								     "false","no","n");
-
-				      if(select < 3) iomod->s_opt->opt_free_mixt_rates = YES;
-				      else           iomod->s_opt->opt_free_mixt_rates = NO;
-
-
+				      iomod->s_opt->opt_free_mixt_rates = YES;				      
 				      iomod->ras->n_catg = XML_Siterates_Number_Of_Classes(parent);
-				      iomod->ras->n_catg--;
-
 				      break;
 				    }
 				  default:
 				    {
 				      PhyML_Printf("\n== family: %s",family);
 				      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
-				      Warn_And_Exit("");
+				      Exit("\n");
 				    }
 				  }
 			      }
@@ -1182,7 +1194,6 @@ int main(int argc, char **argv)
 			if(Are_Equal(r->v,0.0,1E-20)) 
 			  {
 			    mod->ras->invar = YES;
-			    mod->ras->parent_class_number = -1;
 			  }
 			else
 			  {
@@ -1253,9 +1264,15 @@ int main(int argc, char **argv)
 
 			For(i,2*tree->n_otu-3) tree->t_edges[i]->l = lens[i];
 		      }
+
+		    //////////////////////////////////////////////
+		    //           EQUILIBRIUM FREQS              //
+		    //////////////////////////////////////////////
+
 		    else if(!strcmp(parent->name,"statefreqs"))
 		      {
 		      }
+
 		    else
 		      {
 			PhyML_Printf("\n== Problem with your XML file format.");
@@ -1290,14 +1307,12 @@ int main(int argc, char **argv)
     }
   while(1);
 
-
   while(io->prev != NULL) io = io->prev;
   while(mixt_tree->prev != NULL) mixt_tree = mixt_tree->prev;
 
   Print_Data_Structure(mixt_tree);
-
     
-  // Set default branch lengths if unspecified in the xml file.
+  /*! Set default branch lengths if unspecified in the xml file. */
   xml_node *bl = NULL;
   bl = XML_Search_Node_Name("branchlengths",YES,root);
   if(!bl)
@@ -1334,7 +1349,7 @@ int main(int argc, char **argv)
 	{
 	  if(!this_io->fp_in_tree)
 	    {
-	      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+	      PhyML_Printf("\n== Err. in file %s at line %d\n",__FILE__,__LINE__);
 	      Exit("\n");
 	    }
 	  
@@ -1364,22 +1379,15 @@ int main(int argc, char **argv)
 
     }while(1);
 
+  time(&(mixt_tree->t_beg));
 
-  // Finish making the models
+  /*! Finish making the models */
   mod = mixt_tree->mod;
   do
     {
       Make_Model_Complete(mod);      
       if(mod->child) mod = mod->child;
       else           mod = mod->next;
-    }
-  while(mod);
-
-  mod  = mixt_tree->mod;
-  do
-    {      
-      PhyML_Printf("\n. ALPHA = %f OPT = %d\n",mod->ras->alpha->v,mod->s_opt->opt_alpha);
-      mod = mod->next;
     }
   while(mod);
 
@@ -1404,8 +1412,8 @@ int main(int argc, char **argv)
   while(mod);
 
 
-  // Connect edges of every tree to next, prev & child
-  // edges in the corresponding trees
+  /*! Connect edges of every tree to next, prev & child
+    ! edges in the corresponding trees */
   tree = mixt_tree;
   do
     {
@@ -1413,7 +1421,8 @@ int main(int argc, char **argv)
       Connect_Nodes_To_Next_Prev_Child_Parent(tree);
       if(tree->child) tree = tree->child;
       else            tree = tree->next;
-    }while(tree);
+    }
+  while(tree);
 
 
   t_edge *b = NULL;
@@ -1434,13 +1443,36 @@ int main(int argc, char **argv)
 	}while(1);
     }
 
-  // Turn all branches to ON state 
+  /*! Turn all branches to ON state */
   tree = mixt_tree;
   do
     {
       MIXT_Turn_Branch_OnOff(ON,tree);
       if(tree->child) tree = tree->child;
       else            tree = tree->next;
+    }
+  while(tree);
+
+
+  /*! Check that each partition element points to a single set of edge lengths */
+  tree = mixt_tree;
+  do
+    {
+      if(tree->is_mixt_tree == YES) tree = tree->child;
+
+      if(tree->next) 
+	{
+	  if((tree->parent == tree->next->parent) && 
+	     (tree->t_edges[0]->l != tree->next->t_edges[0]->l))
+	    {
+	      PhyML_Printf("\n== Only one set of branch lengths is allowed for each data partition.");
+	      PhyML_Printf("\n== Please amend your XML file accordingly.");
+	      Exit("\n");
+	    }
+	}
+
+      tree = tree->next;
+
     }
   while(tree);
 
@@ -1456,40 +1488,54 @@ int main(int argc, char **argv)
   while(tree);
   /* Exit("\n"); */
 
+
+  /*! Connect edges of every tree to next, prev & child
+    ! edges in the corresponding trees */
+  tree = mixt_tree;
+  do
+    {
+      Connect_Sprs_To_Next_Prev_Child_Parent(tree);
+      if(tree->child) tree = tree->child;
+      else            tree = tree->next;
+    }
+  while(tree);
+
+
   /* TO DO
 
     1) REMOVE ROOT
-    2) ALLOW MORE THAN ONE VECTOR OF BRANCH LENGTHS -> NEED TO 
+    X 2) ALLOW MORE THAN ONE VECTOR OF BRANCH LENGTHS -> NEED TO 
        LOOK CAREFULY AT WHAT IT MEANS FOR SPR,  SIMULTANEOUS NNI MOVES
        PRUNE AND REGRAFT...
-    3) Branch lengths in Prune and Regarft -> make sure you don't apply
+    X 3) Branch lengths in Prune and Regarft -> make sure you don't apply
        change several times
     4) Make sure you can't have the same branch lengths with distinct
        data types
-  */
+    5) Finish rewritting Opt_Free_Param
+    X 6) Make sure you can have only one set of branch lengths per partition
+    7) BIONJ starting tree
 
+  */
 
 
   PhyML_Printf("\n. Calculating the likelihood now");
 
 
-  mixt_tree->both_sides = YES;
+  MIXT_Set_Both_Sides(YES,mixt_tree);
   Lk(NULL,mixt_tree);
   PhyML_Printf("\n. lnL=%12f",mixt_tree->c_lnL);
 
   printf("\n\n\n");
 
-  For(i,2*mixt_tree->n_otu-3)
-    {
-      Lk(mixt_tree->t_edges[i],mixt_tree);
-      PhyML_Printf("\n. Edge %4d lnL=%12f",i,mixt_tree->c_lnL);
-    }
-
+  if(!Check_Lk_At_Given_Edge(mixt_tree)) Exit("\n. FAILED HERE\n");
+  
   printf("\n. <<<<<<<<<<< OPTIMIZ >>>>>>>>>>>>>>>>>>\n");
 
-  Simu_Loop(mixt_tree);
+
+
+  /* Simu_Loop(mixt_tree); */
   /* Speed_Spr_Loop(mixt_tree); */
-  /* Round_Optimize(mixt_tree,mixt_tree->data,ROUND_MAX); */
+  Round_Optimize(mixt_tree,mixt_tree->data,ROUND_MAX);
 
   PhyML_Printf("\n. FINAL: lnL=%12f",mixt_tree->c_lnL);
 
