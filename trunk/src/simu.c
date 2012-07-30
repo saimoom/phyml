@@ -23,7 +23,7 @@ void Simu_Loop(t_tree *tree)
   int ori_print,n;
   t_tree *orig_tree,**tree_list;
 
-  tree->both_sides = 0;
+  Set_Both_Sides(NO,tree);
   Lk(NULL,tree);
 
   if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n. Refining the input tree...\n");
@@ -176,8 +176,8 @@ int Simu(t_tree *tree, int n_step_max)
       ++step;
                  
       if(n_tested || step == 1) tree->update_alias_subpatt = YES;
-      old_loglk = tree->c_lnL;	    
-      tree->both_sides = YES;
+      old_loglk = tree->c_lnL;
+      Set_Both_Sides(YES,tree);
       Lk(NULL,tree);
       tree->update_alias_subpatt = NO;
             
@@ -190,7 +190,7 @@ int Simu(t_tree *tree, int n_step_max)
 	  
 	  /* For(i,2*tree->n_otu-3) tree->t_edges[i]->l_old->v = tree->t_edges[i]->l->v;	     */
 	  Record_Br_Len(tree);
-	  tree->both_sides = 1;
+          Set_Both_Sides(YES,tree);
 	  Lk(NULL,tree);
 	}
 
@@ -285,7 +285,7 @@ void Simu_Pars(t_tree *tree, int n_step_max)
       
       each--;
       
-      tree->both_sides = 1;
+      Set_Both_Sides(YES,tree);
       Pars(NULL,tree);
       
       if((tree->mod->s_opt->print) && (!tree->io->quiet)) 
@@ -305,7 +305,8 @@ void Simu_Pars(t_tree *tree, int n_step_max)
 	    Exit("\n. Err: mov_back failed\n");
 	  if(!tree->n_swap) n_neg = 0;
 	  
-	  tree->both_sides = 1;
+	  
+          Set_Both_Sides(YES,tree);
 	  Pars(NULL,tree);
 	}
       else 
@@ -555,7 +556,6 @@ int Mov_Backward_Topo_Bl(t_tree *tree, phydbl lk_old, t_edge **tested_b, int n_t
   For(i,2*tree->n_otu-3) l_init[i] = MIXT_Get_Lengths_Of_This_Edge(tree->t_edges[i]);
   
   step = 2;
-  tree->both_sides = 0;
   do
     {
       For(i,2*tree->n_otu-3) 
@@ -585,8 +585,8 @@ int Mov_Backward_Topo_Bl(t_tree *tree, phydbl lk_old, t_edge **tested_b, int n_t
       Swap_N_Branch(tree,tested_b,beg,end);
       
       if(!end) tree->n_swap = 0;
-      
-      tree->both_sides = 0;
+            
+      Set_Both_Sides(NO,tree);
       Lk(NULL,tree);
       
       step++;
@@ -613,7 +613,8 @@ int Mov_Backward_Topo_Bl(t_tree *tree, phydbl lk_old, t_edge **tested_b, int n_t
 	  b = orig;
 	}
       
-      tree->both_sides = 0;
+      
+      Set_Both_Sides(NO,tree);
       Lk(NULL,tree);
     }
   
@@ -643,7 +644,6 @@ int Mov_Backward_Topo_Pars(t_tree *tree, int pars_old, t_edge **tested_b, int n_
   int i,step,beg,end;
   
   step = 2;
-  tree->both_sides = 0;
   do
     {
       beg = (int)FLOOR((phydbl)n_tested/(step-1));
@@ -655,7 +655,7 @@ int Mov_Backward_Topo_Pars(t_tree *tree, int pars_old, t_edge **tested_b, int n_
       
       if(!end) tree->n_swap = 0;
       
-      tree->both_sides = NO;
+      Set_Both_Sides(NO,tree);     
       Pars(NULL,tree);
       
       step++;
@@ -667,7 +667,7 @@ int Mov_Backward_Topo_Pars(t_tree *tree, int pars_old, t_edge **tested_b, int n_
     {
       if(tree->n_swap)  Exit("\n. Err. in Mov_Backward_Topo_Bl (n_swap > 0)\n");
 
-      tree->both_sides = 0;
+      Set_Both_Sides(NO,tree);
       Pars(NULL,tree);
     }
 

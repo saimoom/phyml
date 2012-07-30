@@ -1,0 +1,154 @@
+/*
+
+PhyML:  a program that  computes maximum likelihood phylogenies from
+DNA or AA homologous sequences.
+
+Copyright (C) Stephane Guindon. Oct 2003 onward.
+
+All parts of the source except where indicated are distributed under
+the GNU public licence. See http://www.opensource.org for details.
+
+*/
+
+#include "mixt.h"
+
+
+void MIXT_Connect_Edges_To_Next_Prev_Child_Parent(t_tree *tree)
+{
+  int i;
+  t_edge *b;
+
+  For(i,2*tree->n_otu-3)
+    {
+      b = tree->t_edges[i];
+
+      if(tree->next)   b->next   = tree->next->t_edges[i];
+      if(tree->prev)   b->prev   = tree->prev->t_edges[i];
+      if(tree->child)  b->child  = tree->child->t_edges[i];
+      if(tree->parent) b->parent = tree->parent->t_edges[i];
+    }
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void MIXT_Connect_Nodes_To_Next_Prev_Child_Parent(t_tree *tree)
+{
+  int i;
+  t_node *n;
+
+  For(i,2*tree->n_otu-2)
+    {
+      n = tree->t_nodes[i];
+
+      if(tree->next)   n->next   = tree->next->t_nodes[i];
+      if(tree->prev)   n->prev   = tree->prev->t_nodes[i];
+      if(tree->child)  n->child  = tree->child->t_nodes[i];
+      if(tree->parent) n->parent = tree->parent->t_nodes[i];
+    }
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void MIXT_Connect_Sprs_To_Next_Prev_Child_Parent(t_tree *tree)
+{
+  int i;
+
+  For(i,2*tree->n_otu-2)
+    {
+      if(tree->next)   tree->spr_list[i]->next   = tree->next->spr_list[i];
+      if(tree->prev)   tree->spr_list[i]->prev   = tree->prev->spr_list[i];
+      if(tree->child)  tree->spr_list[i]->child  = tree->child->spr_list[i];
+      if(tree->parent) tree->spr_list[i]->parent = tree->parent->spr_list[i];
+    }    
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void MIXT_Turn_Branches_OnOff(int onoff, t_tree *tree)
+{
+  int i;
+
+  For(i,2*tree->n_otu-3) tree->t_edges[i]->l->onoff = onoff;
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+phydbl *MIXT_Get_Lengths_Of_This_Edge(t_edge *mixt_b)
+{
+  phydbl *lens;
+  t_edge *b;
+  int n_lens;
+
+  lens = NULL;
+  n_lens = 0;
+
+  b = mixt_b;
+  do
+    {
+      if(b->child) b = b->child;
+      
+      if(!lens) lens = (phydbl *)mCalloc(1,sizeof(phydbl));
+      else      lens = (phydbl *)realloc(lens,(n_lens+1)*sizeof(phydbl));
+
+      lens[n_lens] = b->l->v;
+
+      n_lens++;
+      b = b->next;
+    }
+  while(b);
+  
+  return(lens);
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void MIXT_Set_Lengths_Of_This_Edge(phydbl *lens, t_edge *mixt_b)
+{
+  t_edge *b;
+  int n_lens;
+
+  n_lens = 0;
+
+  b = mixt_b;
+  do
+    {
+      if(b->child) b = b->child; 
+      b->l->v = lens[n_lens];
+      n_lens++;
+      b = b->next;
+    }
+  while(b);
+}
+
+
+
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+

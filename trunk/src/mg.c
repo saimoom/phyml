@@ -118,10 +118,10 @@ int PART_main(int argc, char **argv)
 	  treelist->tree[part]->mod        = mod[part];
 	  treelist->tree[part]->io         = io->st->optionlist[part];
 	  treelist->tree[part]->data       = cdata[part];
-	  treelist->tree[part]->both_sides = 1;
 	  treelist->tree[part]->n_pattern  = treelist->tree[part]->data->crunch_len/
 	                                     treelist->tree[part]->io->state_len;
 
+          Set_Both_Sides(YES,treelist->tree[part]);
 	  Connect_CSeqs_To_Nodes(cdata[part],treelist->tree[part]);
 	  Fill_Dir_Table(treelist->tree[part]);
 	  Update_Dirs(treelist->tree[part]);
@@ -172,7 +172,7 @@ int PART_main(int argc, char **argv)
 				   st->tree->t_nodes[0]->b[0],
 				   st);
 
-	  st->tree->both_sides = 1;
+          Set_Both_Sides(YES,st->tree);
 	  PART_Lk(st);
 	  PhyML_Printf("\n. %f",st->tree->c_lnL);
 /* 	  For(part,st->n_part) PhyML_Printf("\n. %s",Write_Tree(st->treelist->tree[part],NO)); */
@@ -836,7 +836,7 @@ void PART_Simu(supert_tree *st)
 	      each = 4;
 	      /* Markov model parameters are free to vary across data partitions */
 	      For(i,st->n_part) Optimiz_All_Free_Param(st->treelist->tree[i],0);	      
-	      For(i,st->n_part) st->treelist->tree[i]->both_sides = 1;
+	      For(i,st->n_part) Set_Both_Sides(YES,st->treelist->tree[i]);
 	      st->tree->c_lnL  = PART_Lk(st);
 	      st->tree->c_pars = PART_Pars(st);
 	    }
@@ -1364,7 +1364,7 @@ int PART_Pars(supert_tree *st)
   st->tree->c_pars = 0;
   For(i,st->n_part) 
     {
-      st->treelist->tree[i]->both_sides = 1;	  
+      Set_Both_Sides(YES,st->treelist->tree[i]);	  
       Pars(NULL,st->treelist->tree[i]);
       st->tree->c_pars += st->treelist->tree[i]->c_pars;
     }
@@ -1385,12 +1385,13 @@ int PART_Spr(phydbl init_lnL, supert_tree *st)
   t_node *gt_a, *gt_d;
 
   st->tree->n_root     = st->tree->t_nodes[0];
-  st->tree->both_sides = 1;
   pruned               = NULL;
   target               = NULL;
   move                 = -2;
   gt_a                 = NULL;
   gt_d                 = NULL;
+  
+  Set_Both_Sides(YES,st->tree);
 
   For(i,2*st->tree->n_otu-3)
     {
@@ -1462,9 +1463,9 @@ int PART_Spr(phydbl init_lnL, supert_tree *st)
 	    }
 	  else
 	    {
-	      st->tree->both_sides = 1;
-	      st->tree->c_lnL      = PART_Lk(st);
-	      st->tree->c_pars     = PART_Pars(st);	      
+              Set_Both_Sides(YES,st->tree);
+	      st->tree->c_lnL  = PART_Lk(st);
+	      st->tree->c_pars = PART_Pars(st);	      
 	    }
 	}
     }
@@ -1484,10 +1485,10 @@ void PART_Speed_Spr(supert_tree *st)
   Make_Spr_List(st->tree);
   For(gt,st->n_part) Make_Spr_List(st->treelist->tree[gt]);
 
-  st->tree->both_sides = 1; 
+  Set_Both_Sides(YES,st->tree); 
   For(gt,st->n_part) 
     {
-      st->treelist->tree[gt]->both_sides = 1;
+      Set_Both_Sides(YES,st->treelist->tree[gt]);
       Record_Br_Len(st->treelist->tree[gt]);
     }
   
@@ -1536,7 +1537,7 @@ void PART_Speed_Spr(supert_tree *st)
 
 
       /* Update partial likelihoods & parsimony */
-      st->tree->both_sides = 1; 
+      Set_Both_Sides(YES,st->tree); 
       st->tree->c_pars = PART_Pars(st);
       st->tree->c_lnL  = PART_Lk(st);
       
@@ -1956,9 +1957,8 @@ int PART_Try_One_Spr_Move(spr *st_move, supert_tree *st)
 	  PART_Do_Mapping(st);
 
 	  time(&(st->tree->t_current));
-	  st->tree->both_sides = 1;
-	  
-	  st->tree->both_sides = 1;
+
+	  Set_Both_Sides(YES,st->tree);	  
 	  st->tree->c_lnL      = PART_Lk(st);
 	  st->tree->c_pars     = PART_Pars(st);
 	  
@@ -2075,7 +2075,7 @@ int PART_Try_One_Spr_Move(spr *st_move, supert_tree *st)
 	}
     }
   
-  st->tree->both_sides = 1;
+  Set_Both_Sides(YES,st->tree);
   st->tree->c_lnL      = PART_Lk(st);
   st->tree->c_pars     = PART_Pars(st);
 
@@ -2493,7 +2493,7 @@ phydbl PART_Lk(supert_tree *st)
   st->tree->c_lnL = .0;
   For(i,st->n_part) 
     {
-      st->treelist->tree[i]->both_sides = 1;	  
+      Set_Both_Sides(YES,st->treelist->tree[i]);	  
       Lk(NULL,st->treelist->tree[i]);
 /*       PhyML_Printf("\n. Tree %3d lnL = %f",i+1,st->treelist->tree[i]->c_lnL); */
       st->tree->c_lnL += st->treelist->tree[i]->c_lnL;

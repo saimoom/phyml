@@ -195,12 +195,13 @@ fflush(stderr);
       boot_tree->mod                = boot_mod;
       boot_tree->io                 = tree->io;
       boot_tree->data               = boot_data;
-      boot_tree->both_sides         = 1;
       boot_tree->mod->s_opt->print  = 0;
       boot_tree->n_pattern          = boot_tree->data->crunch_len;
       boot_tree->io->print_site_lnl = 0;
       boot_tree->io->print_trace    = 0;
 
+      Set_Both_Sides(YES,boot_tree);
+      
       if((boot_tree->mod->s_opt->random_input_tree) && (boot_tree->mod->s_opt->topo_search == SPR_MOVE)) Random_Tree(boot_tree);
 
       Connect_CSeqs_To_Nodes(boot_data,boot_tree);

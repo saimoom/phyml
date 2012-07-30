@@ -58,7 +58,7 @@ int Check_NNI_Five_Branches(t_tree *tree)
       best_config   = -1;
 
       tree->update_alias_subpatt = YES;
-      tree->both_sides = 1;
+      Set_Both_Sides(YES,tree);     
       init_lnL = Lk(NULL,tree);
       tree->update_alias_subpatt = NO;
 
@@ -182,7 +182,7 @@ void aLRT(t_tree *tree)
      not be modified afterwards by locking the topology */
   
   tree->update_alias_subpatt = YES;
-  tree->both_sides = 1;
+  Set_Both_Sides(YES,tree);     
   Lk(NULL,tree);
   tree->update_alias_subpatt = NO;
 
@@ -462,7 +462,7 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
   Swap(v2,b_fcus->left,b_fcus->rght,v3,tree);
 
   tree->update_alias_subpatt = YES;
-  tree->both_sides = 1;
+  Set_Both_Sides(YES,tree);     
   lk1 = Update_Lk_At_Given_Edge(b_fcus,tree);
 
   For(i,3)
@@ -572,7 +572,7 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
   //do the second possible swap
   Swap(v2,b_fcus->left,b_fcus->rght,v4,tree);
   b_fcus->l->v = bl_init;
-  tree->both_sides = 1;
+  Set_Both_Sides(YES,tree);
 
   tree->update_alias_subpatt = YES;
   lk2 = Update_Lk_At_Given_Edge(b_fcus,tree);
@@ -817,7 +817,7 @@ void Make_Target_Swap(t_tree *tree, t_edge *b_fcus, int swaptodo)
     }
 
   tree->update_alias_subpatt = YES;
-  tree->both_sides = 1;
+  Set_Both_Sides(YES,tree);     
   lktodo = Update_Lk_At_Given_Edge(b_fcus,tree);
 
   For(i,3)

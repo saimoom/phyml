@@ -507,10 +507,8 @@ void Make_Model_Complete(t_mod *mod)
   mod->eigen     = (eigen *)Make_Eigen_Struct(mod->ns);
   // If r_mat (e_frq) are not NULL, then they have been created elsewhere and affected.
 
-  if(!mod->r_mat)
-    mod->r_mat = (t_rmat *)Make_Rmat(mod->ns);
-  if(!mod->e_frq)
-    mod->e_frq = (t_efrq *)Make_Efrq(mod->ns);
+  if(!mod->r_mat) mod->r_mat = (t_rmat *)Make_Rmat(mod->ns);
+  if(!mod->e_frq) mod->e_frq = (t_efrq *)Make_Efrq(mod->ns);
 
   Make_RAS_Complete(mod->ras);
   
@@ -823,23 +821,24 @@ void Make_Spr_List(t_tree *tree)
   int i;
 
   tree->size_spr_list = 2*tree->n_otu-3;
-  tree->spr_list = (spr **)mCalloc(2*tree->n_otu-2,sizeof(spr *));
+  tree->spr_list = (t_spr **)mCalloc(2*tree->n_otu-2,sizeof(t_spr *));
 
   For(i,2*tree->n_otu-2)
     {
       tree->spr_list[i] = Make_One_Spr(tree);
       Init_One_Spr(tree->spr_list[i]);
     }
-  tree->perform_spr_right_away = 0;
+
+  tree->perform_spr_right_away = NO;
 }
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-spr *Make_One_Spr(t_tree *tree)
+t_spr *Make_One_Spr(t_tree *tree)
 {
-  spr *a_spr;
-  a_spr       = (spr *)mCalloc(1,sizeof(spr));
+  t_spr *a_spr;
+  a_spr       = (t_spr *)mCalloc(1,sizeof(spr));
   a_spr->path = (t_node **)mCalloc(tree->n_otu,sizeof(t_node *));
   return a_spr;
 }
