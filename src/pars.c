@@ -39,7 +39,7 @@ int Pars(t_edge *b, t_tree *tree)
   if(!b)
     {
       Post_Order_Pars(tree->t_nodes[0],tree->t_nodes[0]->v[0],tree);
-      if(tree->both_sides) Pre_Order_Pars(tree->t_nodes[0],tree->t_nodes[0]->v[0],tree);
+      if(tree->both_sides == YES) Pre_Order_Pars(tree->t_nodes[0],tree->t_nodes[0]->v[0],tree);
     }
 
   if(!b) b = tree->t_nodes[0]->b[0];
@@ -454,7 +454,7 @@ int One_Pars_Step(t_edge *b,t_tree *tree)
   init_general_pars = tree->mod->s_opt->general_pars;
   
   tree->mod->s_opt->general_pars = 0;
-  tree->both_sides   = 1;
+  Set_Both_Sides(YES,tree);
   Pars(NULL,tree);
 
   For(site,tree->n_pattern)

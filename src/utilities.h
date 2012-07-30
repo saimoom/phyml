@@ -1031,7 +1031,7 @@ typedef struct __SPR{
   struct __SPR           *child;
   struct __SPR          *parent;
 
-}spr;
+}t_spr;
 
 /*!********************************************************/
 
@@ -1593,6 +1593,7 @@ void Switch_Eigen(int state, t_mod *mod);
 void Joint_Proba_States_Left_Right(phydbl *Pij, phydbl *p_lk_left, phydbl *p_lk_rght, 
 				   vect_dbl *pi, int scale_left, int scale_rght, 
 				   phydbl *F, int n);
+void Set_Both_Sides(int yesno, t_tree *tree);
 
 #include "xml.h"
 #include "free.h"

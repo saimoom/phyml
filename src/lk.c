@@ -392,7 +392,7 @@ phydbl Lk(t_edge *b, t_tree *tree)
   if(!b)
     {
       Post_Order_Lk(tree->t_nodes[0],tree->t_nodes[0]->v[0],tree);
-      if(tree->both_sides)
+      if(tree->both_sides == YES)
 	Pre_Order_Lk(tree->t_nodes[0],
 		     tree->t_nodes[0]->v[0],
 		     tree);
@@ -3369,7 +3369,7 @@ void Sample_Ancestral_Seq(int mutmap, int fromprior, t_tree *tree)
   if(fromprior == YES)
     {
       /* Update P(D_x|X=i) for each state i and node X */
-      tree->both_sides = YES;
+      Set_Both_Sides(YES,tree);
       Lk(NULL,tree);
     }
 

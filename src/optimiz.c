@@ -570,9 +570,8 @@ void Round_Optimize(t_tree *tree, calign *data, int n_round_max)
   tol = 1.e-2;
   root = tree->t_nodes[0];
   
-  tree->both_sides = YES;
+  Set_Both_Sides(YES,tree);
   Lk(NULL,tree);
-
 
   while(n_round < n_round_max)
     {     
@@ -586,14 +585,14 @@ void Round_Optimize(t_tree *tree, calign *data, int n_round_max)
       if(tree->mod->s_opt->opt_bl || tree->mod->s_opt->constrained_br_len)
 	Optimize_Br_Len_Serie(root,root->v[0],root->b[0],tree);
       
-      tree->both_sides = YES;
+      Set_Both_Sides(YES,tree);
       Lk(NULL,tree);
 
       if(!each)
 	{
 	  each = 1;
 	  Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
-	  tree->both_sides = YES;
+	  Set_Both_Sides(YES,tree);
 	  Lk(NULL,tree);
 	}
       
@@ -753,7 +752,8 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
   if(tree->parent && tree->mod->ras->invar == YES) return;
 
   init_both_sides  = tree->both_sides;
-  tree->both_sides = NO;
+
+  Set_Both_Sides(NO,tree);
   
   Optimize_RR_Params(tree,verbose);
   Optimize_TsTv(tree,verbose);
@@ -762,7 +762,6 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
   Optimize_Pinv(tree,verbose);
   Optimize_Alpha(tree,verbose);
   Optimize_State_Freqs(tree,verbose);
-
 
   if((tree->mod->s_opt->opt_free_mixt_rates) && (tree->mod->ras->free_mixt_rates == YES))
     {
@@ -988,10 +987,9 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 	}
     }
 
-  tree->both_sides = init_both_sides;
+  SEt_Both_Sides(init_both_sides,tree);
 
-  if(tree->both_sides) Lk(NULL,tree); /* Needed to update all partial likelihoods */
-
+  if(tree->both_sides == YES) Lk(NULL,tree); /* Needed to update all partial likelihoods */
 
   /* if(tree->child) Optimiz_All_Free_Param(tree->child,verbose); */
   /* else            Optimiz_All_Free_Param(tree->next,verbose); */
@@ -1710,14 +1708,14 @@ int Optimiz_Alpha_And_Pinv(t_tree *mixt_tree, int verbose)
 	      
 	      /* Two (full) steps to compute  pinv_alpha_slope & pinv_alpha_intercept */
 	      
-	      mixt_tree->both_sides = YES;
+	      Set_Both_Sides(YES,mixt_tree);
 	      Lk(NULL,mixt_tree);
 	      lk_b = mixt_tree->c_lnL;
 	      
 	      Optimize_Br_Len_Serie(mixt_tree->t_nodes[0],mixt_tree->t_nodes[0]->v[0],
 				    mixt_tree->t_nodes[0]->b[0],mixt_tree);
 	      
-	      mixt_tree->both_sides = NO;
+	      Set_Both_Sides(NO,mixt_tree);
 	      Optimize_Single_Param_Generic(mixt_tree,&(tree->mod->ras->alpha->v),.01,100.,
 					    tree->mod->s_opt->min_diff_lk_global,
 					    tree->mod->s_opt->brent_it_max,
@@ -1732,13 +1730,13 @@ int Optimiz_Alpha_And_Pinv(t_tree *mixt_tree, int verbose)
 	      alpha0 = tree->mod->ras->alpha->v;
 	      f0 = mixt_tree->c_lnL;
 	      
-	      mixt_tree->both_sides = YES;
+	      Set_Both_Sides(YES,mixt_tree);
 	      Lk(NULL,mixt_tree);
 	      
 	      Optimize_Br_Len_Serie(mixt_tree->t_nodes[0],mixt_tree->t_nodes[0]->v[0],
 				    mixt_tree->t_nodes[0]->b[0],mixt_tree);
 	      	      
-	      mixt_tree->both_sides = NO;
+	      Set_Both_Sides(NO,mixt_tree);
 	      Optimize_Single_Param_Generic(mixt_tree,&(tree->mod->ras->alpha->v),.01,100.,
 					    tree->mod->s_opt->min_diff_lk_global,
 					    tree->mod->s_opt->brent_it_max,
@@ -1796,7 +1794,7 @@ int Optimiz_Alpha_And_Pinv(t_tree *mixt_tree, int verbose)
 		      tree->mod->pinvar->v = slope * tree->mod->ras->alpha->v + intercept;
 		      if(tree->mod->pinvar->v > 1.0) tree->mod->pinvar->v = 0.9;
 		      if(tree->mod->pinvar->v < 0.0) tree->mod->pinvar->v = 0.001;
-		      mixt_tree->both_sides = YES;
+		      Set_Both_Sides(YES,mixt_tree);
 		      Lk(NULL,mixt_tree);
 		      
 		      Optimize_Br_Len_Serie(mixt_tree->t_nodes[0],mixt_tree->t_nodes[0]->v[0],
@@ -1815,7 +1813,7 @@ int Optimiz_Alpha_And_Pinv(t_tree *mixt_tree, int verbose)
 			  tree->mod->pinvar->v = slope * tree->mod->ras->alpha->v + intercept;
 			  if(tree->mod->pinvar->v > 1.0) tree->mod->pinvar->v = 0.9;
 			  if(tree->mod->pinvar->v < 0.0) tree->mod->pinvar->v = 0.001;
-			  mixt_tree->both_sides = YES;
+			  Set_Both_Sides(YES,mixt_tree);
 			  Lk(NULL,mixt_tree);
 			  Optimize_Br_Len_Serie(mixt_tree->t_nodes[0],mixt_tree->t_nodes[0]->v[0],
 						mixt_tree->t_nodes[0]->b[0],mixt_tree);
@@ -1836,7 +1834,7 @@ int Optimiz_Alpha_And_Pinv(t_tree *mixt_tree, int verbose)
 		      tree->mod->pinvar->v = slope * tree->mod->ras->alpha->v + intercept;
 		      if(tree->mod->pinvar->v > 1.0) tree->mod->pinvar->v = 0.9;
 		      if(tree->mod->pinvar->v < 0.0) tree->mod->pinvar->v = 0.001;
-		      mixt_tree->both_sides = YES;
+		      Set_Both_Sides(YES,mixt_tree);
 		      Lk(NULL,mixt_tree);
 		      Optimize_Br_Len_Serie(mixt_tree->t_nodes[0],mixt_tree->t_nodes[0]->v[0],
 					    mixt_tree->t_nodes[0]->b[0],mixt_tree);
@@ -1852,7 +1850,7 @@ int Optimiz_Alpha_And_Pinv(t_tree *mixt_tree, int verbose)
 			  tree->mod->pinvar->v = slope * tree->mod->ras->alpha->v + intercept;
 			  if(tree->mod->pinvar->v > 1.0) tree->mod->pinvar->v = 0.9;
 			  if(tree->mod->pinvar->v < 0.0) tree->mod->pinvar->v = 0.001;
-			  mixt_tree->both_sides = YES;
+			  Set_Both_Sides(YES,mixt_tree);
 			  Lk(NULL,mixt_tree);
 			  Optimize_Br_Len_Serie(mixt_tree->t_nodes[0],mixt_tree->t_nodes[0]->v[0],
 						mixt_tree->t_nodes[0]->b[0],mixt_tree);
@@ -1875,7 +1873,7 @@ int Optimiz_Alpha_And_Pinv(t_tree *mixt_tree, int verbose)
 		      tree->mod->pinvar->v = slope * tree->mod->ras->alpha->v + intercept;
 		      if(tree->mod->pinvar->v > 1.0) tree->mod->pinvar->v = 0.9;
 		      if(tree->mod->pinvar->v < 0.0) tree->mod->pinvar->v = 0.001;
-		      mixt_tree->both_sides = YES;
+		      Set_Both_Sides(YES,mixt_tree);
 		      Lk(NULL,mixt_tree);
 		      Optimize_Br_Len_Serie(mixt_tree->t_nodes[0],mixt_tree->t_nodes[0]->v[0],
 					    mixt_tree->t_nodes[0]->b[0],mixt_tree);
@@ -1893,7 +1891,7 @@ int Optimiz_Alpha_And_Pinv(t_tree *mixt_tree, int verbose)
 		      tree->mod->pinvar->v = slope * tree->mod->ras->alpha->v + intercept;
 		      if(tree->mod->pinvar->v > 1.0) tree->mod->pinvar->v = 0.9;
 		      if(tree->mod->pinvar->v < 0.0) tree->mod->pinvar->v = 0.001;
-		      mixt_tree->both_sides = YES;
+		      Set_Both_Sides(YES,mixt_tree);
 		      Lk(NULL,mixt_tree);
 		      Optimize_Br_Len_Serie(mixt_tree->t_nodes[0],mixt_tree->t_nodes[0]->v[0],
 					    mixt_tree->t_nodes[0]->b[0],mixt_tree);
@@ -1919,7 +1917,7 @@ int Optimiz_Alpha_And_Pinv(t_tree *mixt_tree, int verbose)
 			  tree->mod->pinvar->v = slope * tree->mod->ras->alpha->v + intercept;
 			  if(tree->mod->pinvar->v > 1.0) tree->mod->pinvar->v = 0.9;
 			  if(tree->mod->pinvar->v < 0.0) tree->mod->pinvar->v = 0.001;
-			  mixt_tree->both_sides = YES;
+			  Set_Both_Sides(YES,mixt_tree);
 			  Lk(NULL,mixt_tree);
 			  Optimize_Br_Len_Serie(mixt_tree->t_nodes[0],mixt_tree->t_nodes[0]->v[0],
 						mixt_tree->t_nodes[0]->b[0],mixt_tree);
@@ -1947,7 +1945,7 @@ int Optimiz_Alpha_And_Pinv(t_tree *mixt_tree, int verbose)
 			  tree->mod->pinvar->v = slope * tree->mod->ras->alpha->v + intercept;
 			  if(tree->mod->pinvar->v > 1.0) tree->mod->pinvar->v = 0.9;
 			  if(tree->mod->pinvar->v < 0.0) tree->mod->pinvar->v = 0.001;
-			  mixt_tree->both_sides = YES;
+			  Set_Both_Sides(YES,mixt_tree);
 			  Lk(NULL,mixt_tree);
 			  Optimize_Br_Len_Serie(mixt_tree->t_nodes[0],mixt_tree->t_nodes[0]->v[0],
 						mixt_tree->t_nodes[0]->b[0],mixt_tree);
@@ -1974,7 +1972,7 @@ int Optimiz_Alpha_And_Pinv(t_tree *mixt_tree, int verbose)
 	      tree->mod->pinvar->v = best_pinv;
 	      tree->mod->br_len_multiplier->v = best_mult;
 	      Restore_Br_Len(mixt_tree);      
-	      mixt_tree->both_sides = YES;
+	      Set_Both_Sides(YES,mixt_tree);
 	      Lk(NULL,mixt_tree);
 
 
@@ -2203,7 +2201,6 @@ void Opt_Node_Heights_Recurr_Pre(t_node *a, t_node *d, t_tree *tree)
       phydbl t0,t1,t2,t3;
       phydbl t_min,t_max;
       t_node *v2,*v3;
-
       
       v2 = v3 = NULL;
       For(i,3)
@@ -2418,8 +2415,7 @@ void Optimize_Pinv(t_tree *mixt_tree, int verbose)
 	  n_pinv++;
 
 	  if(tree->mod->s_opt->opt_pinvar == YES && tree->mod->s_opt->opt_alpha == NO)
-	    {
-	      
+	    {	      
 	      Generic_Brent_Lk(&(tree->mod->pinvar->v),
 			       0.0001,0.9999,
 			       tree->mod->s_opt->min_diff_lk_global,
@@ -2461,8 +2457,7 @@ void Optimize_Alpha(t_tree *mixt_tree, int verbose)
   tree   = mixt_tree;
 
   do
-    {
-      
+    {      
       For(i,n_alpha) if(tree->mod->ras->alpha == alpha[i]) break;
 
       if(i == n_alpha)

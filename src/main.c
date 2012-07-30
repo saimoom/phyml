@@ -161,8 +161,9 @@ int main(int argc, char **argv)
 		  tree->mod         = mod;
 		  tree->io          = io;
 		  tree->data        = cdata;
-		  tree->both_sides  = YES;
 		  tree->n_pattern   = tree->data->crunch_len;
+                  
+                  Set_Both_Sides(YES,tree);     
 
 		  if(mod->s_opt->random_input_tree) Random_Tree(tree);
 
@@ -677,7 +678,6 @@ int main(int argc, char **argv)
 	      first_m_elem++;
 	      
 	      // Rewind tree and model when processing a new mixtureelem node
-	      
 	      if(first_m_elem > 1) 
 		{
 		  while(tree->prev) { tree = tree->prev; } // tree = tree->parent->child;
@@ -1401,7 +1401,8 @@ int main(int argc, char **argv)
   /*     else            tree = tree->next; */
   /*   }while(tree); */
 
-  // Initialize the models
+
+  /*! Initialize the models */
   mod  = mixt_tree->mod;
   do
     {      
@@ -1417,8 +1418,8 @@ int main(int argc, char **argv)
   tree = mixt_tree;
   do
     {
-      Connect_Edges_To_Next_Prev_Child_Parent(tree);
-      Connect_Nodes_To_Next_Prev_Child_Parent(tree);
+      MIXT_Connect_Edges_To_Next_Prev_Child_Parent(tree);
+      MIXT_Connect_Nodes_To_Next_Prev_Child_Parent(tree);
       if(tree->child) tree = tree->child;
       else            tree = tree->next;
     }
@@ -1447,7 +1448,7 @@ int main(int argc, char **argv)
   tree = mixt_tree;
   do
     {
-      MIXT_Turn_Branch_OnOff(ON,tree);
+      MIXT_Turn_Branches_OnOff(ON,tree);
       if(tree->child) tree = tree->child;
       else            tree = tree->next;
     }
@@ -1489,17 +1490,16 @@ int main(int argc, char **argv)
   /* Exit("\n"); */
 
 
-  /*! Connect edges of every tree to next, prev & child
+  /*! Connect sprs of every tree to next, prev & child
     ! edges in the corresponding trees */
   tree = mixt_tree;
   do
     {
-      Connect_Sprs_To_Next_Prev_Child_Parent(tree);
+      MIXT_Connect_Sprs_To_Next_Prev_Child_Parent(tree);
       if(tree->child) tree = tree->child;
       else            tree = tree->next;
     }
   while(tree);
-
 
   /* TO DO
 
@@ -1520,8 +1520,15 @@ int main(int argc, char **argv)
 
   PhyML_Printf("\n. Calculating the likelihood now");
 
+  tree = mixt_tree;
+  do
+    {
+      Set_Both_Sides(YES,tree);
+      if(tree->child) tree = tree->child;
+      else            tree = tree->next;
+    }
+  while(tree);
 
-  MIXT_Set_Both_Sides(YES,mixt_tree);
   Lk(NULL,mixt_tree);
   PhyML_Printf("\n. lnL=%12f",mixt_tree->c_lnL);
 
@@ -1530,7 +1537,6 @@ int main(int argc, char **argv)
   if(!Check_Lk_At_Given_Edge(mixt_tree)) Exit("\n. FAILED HERE\n");
   
   printf("\n. <<<<<<<<<<< OPTIMIZ >>>>>>>>>>>>>>>>>>\n");
-
 
 
   /* Simu_Loop(mixt_tree); */

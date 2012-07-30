@@ -1466,7 +1466,7 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
 
   /***********/
   Swap(v2,b_fcus->left,b_fcus->rght,v3,tree);
-  tree->both_sides = YES;
+  Set_Both_Sides(YES,tree);
 
   tree->update_alias_subpatt = YES;
   lk1_init = Update_Lk_At_Given_Edge(b_fcus,tree);
@@ -1506,7 +1506,7 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
   /***********/
   Swap(v2,b_fcus->left,b_fcus->rght,v4,tree);
   Restore_Br_Len(tree);
-  tree->both_sides = YES;
+  Set_Both_Sides(YES,tree);
 
   tree->update_alias_subpatt = YES;
   lk2_init = Update_Lk_At_Given_Edge(b_fcus,tree);
@@ -1546,7 +1546,7 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
   
   /***********/
   Restore_Br_Len(tree);
-  tree->both_sides = 1;
+  Set_Both_Sides(YES,tree);
 
   tree->update_alias_subpatt = YES;
   lk0_init = Update_Lk_At_Given_Edge(b_fcus,tree);
@@ -1729,7 +1729,7 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
 	    }
 	  while(b);
 
-	  tree->both_sides = YES;
+          Set_Both_Sides(YES,tree);
 	  Lk(NULL,tree);
 	}
       else
@@ -1748,7 +1748,7 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
 	    }
 	  while(b);
 
-	  tree->both_sides = YES;
+          Set_Both_Sides(YES,tree);
 	  Lk(NULL,tree);
 	}
     }
@@ -1806,24 +1806,24 @@ void NNI_Pars(t_tree *tree, t_edge *b_fcus, int do_swap)
   
   /***********/
   Swap(v2,b_fcus->left,b_fcus->rght,v3,tree);
-  tree->both_sides = 1;
+  Set_Both_Sides(YES,tree);
   pars1 = Update_Pars_At_Given_Edge(b_fcus,tree);
   Swap(v3,b_fcus->left,b_fcus->rght,v2,tree);
   /***********/
 
   /***********/
   Swap(v2,b_fcus->left,b_fcus->rght,v4,tree);
-  tree->both_sides = 1;
+  Set_Both_Sides(YES,tree);
   pars2 = Update_Pars_At_Given_Edge(b_fcus,tree);
   Swap(v4,b_fcus->left,b_fcus->rght,v2,tree);
   /***********/
 
-
+  
   /***********/
-   tree->both_sides = 1;
-   pars0 = Update_Pars_At_Given_Edge(b_fcus,tree);
+  Set_Both_Sides(YES,tree);
+  pars0 = Update_Pars_At_Given_Edge(b_fcus,tree);
  
-   if(pars0 != pars_init)
+  if(pars0 != pars_init)
      {
        PhyML_Printf("\n. pars_init = %d; pars0 = %d\n",
 	      pars_init,
@@ -2892,11 +2892,12 @@ void Bootstrap(t_tree *tree)
       boot_tree->mod                = boot_mod;
       boot_tree->io                 = tree->io;
       boot_tree->data               = boot_data;
-      boot_tree->both_sides         = 1;
       boot_tree->mod->s_opt->print  = 0;
       boot_tree->n_pattern          = boot_tree->data->crunch_len;
       boot_tree->io->print_site_lnl = 0;
       boot_tree->io->print_trace    = 0;
+
+      Set_Both_Sides(YES,boot_tree);
 
       if((boot_tree->mod->s_opt->random_input_tree) && (boot_tree->mod->s_opt->topo_search == SPR_MOVE)) Random_Tree(boot_tree);
 
@@ -3672,7 +3673,6 @@ void Match_Tip_Numbers(t_tree *tree1, t_tree *tree2)
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
-
 
 void Test_Multiple_Data_Set_Format(option *io)
 {
@@ -5120,7 +5120,6 @@ void Fast_Br_Len(t_edge *b, t_tree *tree, int approx)
 	  For(i,tree->mod->ns) For(j,tree->mod->ns) prob[dim3*k+dim2*i+j] /= sum;
 
 	  For(i,tree->mod->ns) For(j,tree->mod->ns) prob[dim3*k+dim2*i+j] *= tree->mod->ras->gamma_r_proba->v[k];
-
 	}
       
       /* Expected number of each pair of states */
@@ -7178,7 +7177,6 @@ char *Bootstrap_From_String(char *s_tree, calign *cdata, t_mod *mod, option *io)
   tree->mod         = mod;
   tree->io          = io;
   tree->data        = cdata;
-  tree->both_sides  = 1;
   tree->n_pattern   = tree->data->crunch_len;
 
   Connect_CSeqs_To_Nodes(cdata,tree);
@@ -7193,7 +7191,7 @@ char *Bootstrap_From_String(char *s_tree, calign *cdata, t_mod *mod, option *io)
   Make_Spr_List(tree);
   Make_Best_Spr(tree);
 
-  tree->both_sides = 1;
+  Set_Both_Sides(YES,tree);
   Lk(NULL,tree);
 
 #ifdef MPI
@@ -7234,7 +7232,6 @@ char *aLRT_From_String(char *s_tree, calign *cdata, t_mod *mod, option *io)
   tree->mod         = mod;
   tree->io          = io;
   tree->data        = cdata;
-  tree->both_sides  = 1;
   tree->n_pattern   = tree->data->crunch_len;
 
   Connect_CSeqs_To_Nodes(cdata,tree);
@@ -7249,7 +7246,7 @@ char *aLRT_From_String(char *s_tree, calign *cdata, t_mod *mod, option *io)
   Make_Spr_List(tree);
   Make_Best_Spr(tree);
 
-  tree->both_sides = 1;
+  Set_Both_Sides(YES,tree);
   Lk(NULL,tree);
 
   aLRT(tree);
@@ -9250,6 +9247,10 @@ void Switch_Eigen(int state, t_mod *mod)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
+void Set_Both_Sides(int yesno, t_tree *tree)
+{
+  tree->both_sides = yesno;
+}
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////

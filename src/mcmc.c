@@ -59,7 +59,7 @@ void MCMC(t_tree *tree)
   RATES_Update_Cur_Bl(tree);
   RATES_Lk_Rates(tree);
   TIMES_Lk_Times(tree);
-  tree->both_sides = NO;
+  Set_Both_Sides(NO,tree);     
   if(tree->mcmc->use_data) Lk(NULL,tree);
   else tree->c_lnL = 0.0;
   Switch_Eigen(NO,tree->mod);
@@ -272,9 +272,10 @@ void MCMC(t_tree *tree)
       /* Times */
       else if(!strcmp(tree->mcmc->move_name[move],"time"))
       	{
-      	  tree->both_sides = YES;
+          Set_Both_Sides(YES,tree);     
       	  if(tree->mcmc->use_data == YES) Lk(NULL,tree);
-      	  tree->both_sides = NO;
+          Set_Both_Sides(NO,tree);     
+
 
 
       	  if(tree->mcmc->is == NO || tree->rates->model_log_rates == YES)
@@ -303,10 +304,10 @@ void MCMC(t_tree *tree)
       else if(!strcmp(tree->mcmc->move_name[move],"br_rate"))
       	{
 
-      	  tree->both_sides = YES;
+      	  Set_Both_Sides(YES,tree);
       	  if(tree->mcmc->use_data == YES) Lk(NULL,tree);
-      	  tree->both_sides = NO;
-
+      	  Set_Both_Sides(NO,tree);
+      	  
       	  if(tree->mcmc->is == NO)
       	    {
       	      /* MCMC_Slice_One_Rate(tree->n_root,tree->n_root->v[first],YES,tree); */
@@ -3058,7 +3059,7 @@ void MCMC_Scale_Br_Lens(t_tree *tree)
 	 tree->t_edges[i]->l->v > tree->mod->l_max) return;
     }
 
-  tree->both_sides = NO;
+  Set_Both_Sides(NO,tree);
   new_lnL_data = Lk(NULL,tree);
 
   ratio =

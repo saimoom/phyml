@@ -166,7 +166,7 @@ int XML_Add_Character(int c, char  **bufptr, char **buffer, int *bufsize)
     if ((newbuffer = realloc(*buffer, *bufsize)) == NULL)
     {
       Free(*buffer);
-      PhyML_Printf("Unable to expand string buffer to %d bytes!", *bufsize);
+      PhyML_Printf("\n== Unable to expand string buffer to %d bytes!", *bufsize);
       Exit("\n");
     }
 

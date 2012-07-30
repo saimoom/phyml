@@ -127,9 +127,10 @@ int M4_main(int argc, char **argv)
 		  tree->mod         = mod;
 		  tree->io          = io;
 		  tree->data        = cdata;
-		  tree->both_sides  = YES;
 		  tree->n_pattern   = tree->data->crunch_len;
 
+                  Set_Both_Sides(YES,tree);
+    
 		  if(mod->s_opt->random_input_tree) Random_Tree(tree);
 
 		  if((!num_data_set) && (!num_tree) && (!num_rand_tree)) Check_Memory_Amount(tree);
@@ -158,7 +159,8 @@ int M4_main(int argc, char **argv)
 		      else                                               Lk(NULL,tree);
 		    }
 		  
-		  tree->both_sides = 1;
+		  
+                  Set_Both_Sides(YES,tree);     
 		  Lk(NULL,tree);
 		  Pars(NULL,tree);
 		  Get_Tree_Size(tree);

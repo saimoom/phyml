@@ -167,9 +167,9 @@ int TIMES_main(int argc, char **argv)
 		  tree->mod         = mod;
 		  tree->io          = io;
 		  tree->data        = cdata;
-		  tree->both_sides  = 1;
 		  tree->n_pattern   = tree->data->crunch_len/tree->mod->state_len;
 
+                  Set_Both_Sides(YES,tree);
 
 		  /* phydbl *l1,*l2,crit; */
 		  /* int i; */

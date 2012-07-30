@@ -1597,7 +1597,7 @@ phydbl *Hessian(t_tree *tree)
 
   lnL = lnL1 = lnL2 = UNLIKELY;
 
-  tree->both_sides = 1;
+  Set_Both_Sides(YES,tree);
   Lk(NULL,tree);
   ori_lnL = tree->c_lnL;
 
@@ -1917,7 +1917,7 @@ phydbl *Hessian(t_tree *tree)
 
 
   /* Make sure to update likelihood before bailing out */
-  tree->both_sides = YES;
+  Set_Both_Sides(YES,tree);
   Lk(NULL,tree);
 
   Free(ori_bl);
@@ -1967,7 +1967,7 @@ phydbl *Gradient(t_tree *tree)
 
   lnL = lnL1 = lnL2 = UNLIKELY;
 
-  tree->both_sides = 1;
+  Set_Both_Sides(YES,tree);
   Lk(NULL,tree);
 
   For(i,dim) ori_bl[i] = tree->t_edges[i]->l->v;
@@ -2044,7 +2044,7 @@ phydbl *Gradient(t_tree *tree)
     }
 
   /* Make sure to update likelihood before bailing out */
-  tree->both_sides = YES;
+  Set_Both_Sides(YES,tree);
   Lk(NULL,tree);
 
   Free(ori_bl);
@@ -2118,7 +2118,7 @@ phydbl *Hessian_Seo(t_tree *tree)
 
   lnL = lnL1 = lnL2 = UNLIKELY;
   
-  tree->both_sides = YES;
+  Set_Both_Sides(YES,tree);
   Lk(NULL,tree);
   ori_lnL = tree->c_lnL;
 
@@ -2248,7 +2248,7 @@ phydbl *Hessian_Seo(t_tree *tree)
 
 
   /* Make sure to update likelihood before bailing out */
-  tree->both_sides = YES;
+  Set_Both_Sides(YES,tree);
   Lk(NULL,tree);
 
   l = tree->data->init_len;
@@ -2400,7 +2400,7 @@ phydbl *Hessian_Log(t_tree *tree)
   ok_edges    = (int *)mCalloc((int)dim,       sizeof(int));
   is_ok       = (int *)mCalloc((int)dim,       sizeof(int));
   
-  tree->both_sides = 1;
+  Set_Both_Sides(YES,tree)
   Lk(NULL,tree);
 
   For(i,dim) ori_bl[i] = tree->t_edges[i]->l->v;
@@ -3561,7 +3561,7 @@ void VarCov_Approx_Likelihood(t_tree *tree)
   
   /* For(i,2*tree->n_otu-3) tree->t_edges[i]->l->v *= Rgamma(5.,1./5.); */
   
-  tree->both_sides = YES;
+  Set_Both_Sides(YES,tree);
   Lk(NULL,tree);
 
   iter = 0;
