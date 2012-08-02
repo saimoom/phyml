@@ -24,5 +24,7 @@ void MIXT_Turn_Branches_OnOff(int onoff, t_tree *tree);
 void MIXT_Connect_Sprs_To_Next_Prev_Child_Parent(t_tree *tree);
 phydbl *MIXT_Get_Lengths_Of_This_Edge(t_edge *mixt_b);
 void MIXT_Set_Lengths_Of_This_Edge(phydbl *lens, t_edge *mixt_b);
+void MIXT_Post_Order_Lk(t_node *mixt_a, t_node *mixt_d, t_tree *mixt_tree);
+void MIXT_Pre_Order_Lk(t_node *mixt_a, t_node *mixt_d, t_tree *mixt_tree);
 
 #endif

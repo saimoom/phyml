@@ -548,8 +548,7 @@ int main(int argc, char **argv)
     {
       p_elem = XML_Search_Node_Name("partitionelem",YES,p_elem);
       if(p_elem == NULL) break;
-      
-     
+           
       buff = (option *)Make_Input();
       Set_Defaults_Input(buff);
       if(io) 
@@ -755,7 +754,6 @@ int main(int argc, char **argv)
 			tree->n_pattern = io->cdata->crunch_len;
 			tree->io        = io;
 			tree->mod       = mod;
-
 
 			if(tree->n_pattern != tree->parent->n_pattern)
 			  {
@@ -1478,16 +1476,7 @@ int main(int argc, char **argv)
   while(tree);
 
 
-  tree = mixt_tree;
-  do
-    {
-      Prepare_Tree_For_Lk(tree);
-      /* printf("\n. %p %s",(void *)tree,Write_Tree(tree,NO)); */
-      if(tree->child) tree = tree->child;
-      else            tree = tree->next;
-    }
-  while(tree);
-  /* Exit("\n"); */
+  Prepare_Tree_For_Lk(mixt_tree);
 
 
   /*! Connect sprs of every tree to next, prev & child

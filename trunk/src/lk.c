@@ -284,6 +284,37 @@ void Get_All_Partial_Lk_Scale(t_tree *tree, t_edge *b_fcus, t_node *a, t_node *d
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
+/* void Post_Order_Lk(t_node *a, t_node *d, t_tree *tree) */
+/* { */
+/*   int i,dir; */
+
+/*   if(tree->is_mixt_tree == YES) */
+/*     { */
+/*       MIXT_Post_Order_Lk(a,d,tree); */
+/*       return; */
+/*     } */
+
+/*   dir = -1; */
+  
+/*   if(d->tax)  */
+/*     { */
+/*       Get_All_Partial_Lk_Scale(tree,d->b[0],a,d); */
+/*       return; */
+/*     } */
+/*   else */
+/*     { */
+/*       For(i,3) */
+/* 	{ */
+/* 	  if(d->v[i] != a) */
+/* 	    Post_Order_Lk(d,d->v[i],tree); */
+/* 	  else dir = i; */
+/* 	}       */
+/*       Get_All_Partial_Lk_Scale(tree,d->b[dir],a,d); */
+/*     } */
+/* } */
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
 
 void Post_Order_Lk(t_node *a, t_node *d, t_tree *tree)
 {
@@ -294,14 +325,10 @@ void Post_Order_Lk(t_node *a, t_node *d, t_tree *tree)
       MIXT_Post_Order_Lk(a,d,tree);
       return;
     }
-
+  
   dir = -1;
   
-  if(d->tax) 
-    {
-      Get_All_Partial_Lk_Scale(tree,d->b[0],a,d);
-      return;
-    }
+  if(d->tax) return;
   else
     {
       For(i,3)
@@ -328,11 +355,7 @@ void Pre_Order_Lk(t_node *a, t_node *d, t_tree *tree)
     }
 
 
-  if(d->tax) 
-    {
-      Get_All_Partial_Lk_Scale(tree,d->b[0],a,d);
-      return;
-    }
+  if(d->tax) return;
   else
     {
       For(i,3)
@@ -416,8 +439,6 @@ phydbl Lk(t_edge *b, t_tree *tree)
     
   Adjust_Min_Diff_Lk(tree);
 
-  tree->c_lnL_mixt = tree->c_lnL;
-
   return tree->c_lnL;
 }
 
@@ -469,8 +490,6 @@ phydbl Lk(t_edge *b, t_tree *tree)
 
 
 /*   Adjust_Min_Diff_Lk(tree); */
-
-/*   tree->c_lnL_mixt = tree->c_lnL; */
   
 /*   return tree->c_lnL; */
 /* } */
@@ -521,14 +540,11 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
       /* ambiguity_check = tree->data->c_seq[b->rght->num]->is_ambigu[site]; */
       if(!ambiguity_check) state = Get_State_From_P_Pars(b->p_lk_tip_r,site*dim2,tree);
     }
-
   
   if(tree->mod->use_m4mod) ambiguity_check = 1;
-
   
   sum_scale_left_cat = b->sum_scale_left_cat;
   sum_scale_rght_cat = b->sum_scale_rght_cat;
-
 
   /* Actual likelihood calculation */
   /* For all classes of rates */
@@ -608,6 +624,7 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
     {
       max_sum_scale =   (phydbl)BIG;
       min_sum_scale =  -(phydbl)BIG;
+
       For(catg,tree->mod->ras->n_catg)
 	{
 	  sum_scale_left_cat[catg] =
@@ -683,7 +700,6 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
 	  site_lk = site_lk * (1. - tree->mod->pinvar->v) + inv_site_lk * tree->mod->pinvar->v;
 	}
     }
-
 
   log_site_lk = LOG(site_lk) - (phydbl)LOG2 * fact_sum_scale;
 

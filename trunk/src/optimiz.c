@@ -1994,8 +1994,6 @@ int Optimiz_Alpha_And_Pinv(t_tree *mixt_tree, int verbose)
 		}
 	    }
 	}
-
-
       
       tree = tree->next;
 
@@ -2529,7 +2527,6 @@ void Optimize_State_Freqs(t_tree *mixt_tree, int verbose)
 
 	  if((tree->mod->s_opt->opt_state_freq) && (tree->io->datatype == NT))
 	    {
-
 	      failed = NO;
             
 	      BFGS(mixt_tree,tree->mod->e_frq->pi_unscaled->v,tree->mod->ns,1.e-5,1.e-5,

@@ -504,7 +504,6 @@ typedef struct __Tree{
   phydbl                              best_lnL; /*! highest value of the loglikelihood found so far */
   int                                best_pars; /*! highest value of the parsimony found so far */
   phydbl                                 c_lnL; /*! loglikelihood */
-  phydbl                            c_lnL_mixt; /*! loglikelihood */
   phydbl                               old_lnL; /*! old loglikelihood */
   phydbl                     sum_min_sum_scale; /*! common factor of scaling factors */
   phydbl                         *c_lnL_sorted; /*! used to compute c_lnL by adding sorted terms to minimize CPU errors */
