@@ -3288,7 +3288,6 @@ int Test_All_Spr_Targets(t_edge *b_pulled, t_node *n_link, t_tree *tree)
   int best_found,approx;
   phydbl init_lnL;
 
-
   if(tree->parent)
     {
       PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);

@@ -7270,6 +7270,7 @@ char *aLRT_From_String(char *s_tree, calign *cdata, t_mod *mod, option *io)
 
 void Prepare_Tree_For_Lk(t_tree *tree)
 {
+    
   Connect_CSeqs_To_Nodes(tree->data,tree);
   Fill_Dir_Table(tree);
   Update_Dirs(tree);
@@ -7278,6 +7279,7 @@ void Prepare_Tree_For_Lk(t_tree *tree)
   tree->triplet_struct = Make_Triplet_Struct(tree->mod);
   Make_Spr_List(tree);
   Make_Best_Spr(tree);
+   
 }
 
 //////////////////////////////////////////////////////////////
