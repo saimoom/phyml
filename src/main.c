@@ -1475,6 +1475,7 @@ int main(int argc, char **argv)
     }
   while(tree);
 
+  MIXT_Check_Number_Of_Invar_Classes(tree);
 
   Prepare_Tree_For_Lk(mixt_tree);
 
@@ -1503,7 +1504,9 @@ int main(int argc, char **argv)
     5) Finish rewritting Opt_Free_Param
     X 6) Make sure you can have only one set of branch lengths per partition
     7) BIONJ starting tree
-
+    8) When iomod->ras->invar = YES, check that only one mod has mod->ras->invar = YES;
+    9) Reflect changes on simu.c to spr.c, especiaqlly regarding invariants
+    10) Rough_SPR to replace SPR_Shuffle and first step in nni (refining tree)
   */
 
 

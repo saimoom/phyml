@@ -19,17 +19,20 @@ the GNU public licence.  See http://www.opensource.org for details.
 void Simu_Loop(t_tree *tree)
 {
   phydbl lk_old;
-  int *orig_catg;
+  int *orig_catg,*orig_inv;
   int ori_print,n;
-  t_tree *orig_tree,**tree_list;
-
-  Set_Both_Sides(NO,tree);
-  Lk(NULL,tree);
+  t_tree *orig_tree,**tree_list,**orig_tree_list;
+  
 
   if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n. Refining the input tree...\n");
 
   /*! Get the number of classes in each mixture */
   orig_catg = MIXT_Get_Number_Of_Classes_In_All_Mixtures(tree);
+
+  /*! Record values of mod->invar in every tree 
+   */
+  orig_inv  = MIXT_Has_Invariants(tree);
+
   ori_print = tree->mod->s_opt->print;
 
   /*! Set the number of rate classes to (at most) 2.
@@ -45,6 +48,25 @@ void Simu_Loop(t_tree *tree)
     }
   while(tree);
   tree = orig_tree;
+  
+  /*! Make sure the number of trees in each mixture is at most 2
+   */
+  tree_list = MIXT_Record_All_Mixtures(tree);
+  MIXT_Break_All_Mixtures(tree->mod->ras->n_catg,tree);
+
+  /*! Set mod->ras->invar to NO for all the trees.
+  */
+  orig_tree_list = tree_list;
+  do
+    {
+      (*tree_list)->mod->ras->invar = NO;
+      tree_list++;
+    }
+  while(*tree_list);
+  tree_list = orig_tree_list;
+
+  Set_Both_Sides(NO,tree);
+  Lk(NULL,tree);
 
   tree->mod->s_opt->print             = YES;
   tree->best_pars                     = 1E+8;
@@ -55,10 +77,6 @@ void Simu_Loop(t_tree *tree)
   tree->mod->s_opt->br_len_in_spr     = 1;
   tree->mod->s_opt->max_depth_path    = 2*tree->n_otu-3;
   tree->mod->s_opt->spr_lnL           = NO;
-
-  /*! Make sure the number of trees in each mixture is at most 2
-   */
-  tree_list = MIXT_Break_All_Mixtures(tree->mod->ras->n_catg,tree);
 
   /*! Optimize branch lengths and substitution model parameters
    */
@@ -78,7 +96,8 @@ void Simu_Loop(t_tree *tree)
   /*! Go back to the original data structure, with potentially more
     ! than 2 trees per mixture
    */
-  MIXT_Reconnect_All_Mixtures(tree->mod->ras->n_catg,tree_list,tree);
+  MIXT_Reconnect_All_Mixtures(tree_list,tree);
+  Free(tree_list);
 
 
   /*! Only the first two trees for each mixture have been modified so
@@ -95,7 +114,7 @@ void Simu_Loop(t_tree *tree)
   while(tree);
   tree = orig_tree;
 
-  /*! Set the number of rate classes to its original value
+  /*! Set the number of rate classes to their original values
    */
   orig_tree = tree;
   n = 0;
@@ -109,8 +128,19 @@ void Simu_Loop(t_tree *tree)
   tree = orig_tree;
   
   Free(orig_catg);
-  
+
+  /*! Reset the mod->invar to their original values 
+   */
+  MIXT_Reset_Has_Invariants(orig_inv,tree);
+  Free(orig_inv);
+
+
+
   if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n. Maximizing likelihood (using NNI moves)...\n");
+
+  Set_Both_Sides(NO,tree);
+  Lk(NULL,tree);
+  tree->best_lnL = tree->c_lnL;
 
   int n_tot_moves = 0;
   do
@@ -136,7 +166,6 @@ void Simu_Loop(t_tree *tree)
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
-
 
 int Simu(t_tree *tree, int n_step_max)
 {
