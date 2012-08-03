@@ -12,6 +12,8 @@ the GNU public licence. See http://www.opensource.org for details.
 
 #include "mixt.h"
 
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
 
 void MIXT_Connect_Edges_To_Next_Prev_Child_Parent(t_tree *tree)
 {
@@ -208,8 +210,8 @@ void MIXT_Lk(t_edge *mixt_b, t_tree *mixt_tree)
           tree = tree->child;
           b    = b->child;
         }
-      
-      if(tree->mod->ras->invar == NO) 
+              
+      if(!(tree->mod->ras->invar == YES && mixt_tree->is_mixt_tree == YES)) 
         {
           tree->apply_lk_scaling = NO;
           Lk(b,tree);
@@ -224,8 +226,7 @@ void MIXT_Lk(t_edge *mixt_b, t_tree *mixt_tree)
   /*! Apply scaling factors */
   do
     {
-      int site;
-      int class;
+      int site, class;
       phydbl *sum_scale_left_cat,*sum_scale_rght_cat;
       phydbl sum,tmp;
       phydbl logbig,logsmall;
@@ -348,7 +349,6 @@ void MIXT_Lk(t_edge *mixt_b, t_tree *mixt_tree)
             /*   tree->sum_min_sum_scale += (int)tree->data->wght[site]*min_sum_scale; */
             
         }
-
       
       Free(sum_scale_left_cat);
       Free(sum_scale_rght_cat);
@@ -359,9 +359,384 @@ void MIXT_Lk(t_edge *mixt_b, t_tree *mixt_tree)
   
   while(mixt_tree->prev) { mixt_tree = mixt_tree->prev; }
 
-  mixt_tree->c_lnL = sum_lnL;
+  sum_lnL = .0;
+  do
+    {
+      sum_lnL += mixt_tree->c_lnL;
+      mixt_tree = mixt_tree->next;
+    }
+  while(mixt_tree);
+
+  while(mixt_tree->prev) { mixt_tree = mixt_tree->prev; }
+
+  do
+    {
+      mixt_tree->c_lnL = sum_lnL;
+      mixt_tree = mixt_tree->next;
+    }
+  while(mixt_tree);
+
+  while(mixt_tree->prev) { mixt_tree = mixt_tree->prev; }
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void MIXT_Update_P_Lk(t_tree *mixt_tree, t_edge *mixt_b, t_node *mixt_d)
+{
+  t_tree *tree;
+  t_edge *b;
+  t_node *d;
+
+  tree = mixt_tree;
+  b    = mixt_b;
+  d    = mixt_d;
+
+  do
+    {
+      if(tree->child) 
+        {
+          tree = tree->child;
+          b    = b->child;
+          d    = d->child;
+        }
+
+      Update_P_Lk(tree,b,d);
+
+      tree = tree->next;
+      b    = b->next;
+      d    = d->next;
+
+    }
+  while(tree);
 
 }
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void MIXT_Update_PMat_At_Given_Edge(t_edge *mixt_b, t_tree *mixt_tree)
+{
+  t_tree *tree;
+  t_edge *b;
+
+  tree = mixt_tree;
+  b    = mixt_b;
+
+  do
+    {
+      if(tree->child) 
+        {
+          tree = tree->child;
+          b    = b->child;
+        }
+
+      Update_PMat_At_Given_Edge(b,tree);
+
+      tree = tree->next;
+      b    = b->next;
+    }
+  while(tree);
+
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+int *MIXT_Get_Number_Of_Classes_In_All_Mixtures(t_tree *mixt_tree)
+{
+  int *n_catg;
+  t_tree *tree;
+  int class;
+
+  n_catg = NULL;
+  tree = mixt_tree;
+  class = 0;
+  do
+    {
+      if(!n_class) n_catg = (int *)mCalloc(1,sizeof(int));
+      else         n_catg = (int *)realloc(n_catg,(class+1)*sizeof(int));
+
+      n_catg[class] = tree->mod->ras->n_catg;
+      class++;
+      tree = tree->next;
+    }
+  while(tree);
+
+  return(n_catg);
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+t_tree **MIXT_Record_All_Mixtures(t_tree *mixt_tree)
+{
+  t_tree **tree_list;
+  int n_trees;
+  t_tree *tree;
+
+  tree_list = NULL;
+  n_trees   = 0;
+  tree      = mixt_tree;
+  do
+    {
+      if(!tree_list) tree_list = (t_tree **)mCalloc(1,sizeof(t_tree *));
+      else           tree_list = (t_tree **)realloc(tree_list,(n_trees+1)*sizeof(t_tree *));
+      
+      tree_list[n_trees] = tree;
+      n_trees++;
+
+      if(tree->child) tree = tree->child;
+      else            tree = tree->next;
+    }
+  while(tree);
+
+  tree_list = (t_tree **)realloc(tree_list,(n_trees+1)*sizeof(t_tree *));
+  tree_list[n_trees] = NULL;
+
+  return(tree_list);
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void MIXT_Break_All_Mixtures(int c_max, t_tree *mixt_tree);
+{
+  t_tree *tree;
+  int c;
+
+  if(mixt_tree->is_mixt_tree == NO) return;
+  
+  c = 0;
+  tree = mixt_tree;
+  do
+    {
+      if(tree->is_mixt_tree) 
+        {
+          c = 0;
+          tree = tree->child;
+        }
+
+      if(c == (c_max-1)           && 
+         tree->is_mixt_tree == NO &&
+         tree->next != NULL       && 
+         tree->next->is_mixt_tree == NO) tree->next = NULL;
+      
+      tree = tree->next;
+      c++;
+    }
+  while(tree);
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+void MIXT_Reconnect_All_Mixtures(t_tree **tree_list, t_tree *mixt_tree);
+{
+  t_tree *tree;
+  int n_trees;
+
+  if(mixt_tree->is_mixt_tree == NO) return;
+
+  tree = mixt_tree;
+  n_trees = 0;
+  do
+    {
+      tree->next = tree_list[n_trees+1];      
+      tree = tree->next;
+    }
+  while(tree);
+  
+
+}
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+int *MIXT_Record_Has_Invariants(t_tree *mixt_tree)
+{
+  int *has_invariants;
+  t_tree *tree;
+  int n_trees;
+
+  has_invariants = NULL;
+  tree = mixt_tree;
+  n_trees = 0;
+  do
+    {
+      if(!n_trees) has_invariants = (int *)mCalloc(1,sizeof(int));
+      else         has_invariants = (int *)realloc(has_invariants,(n_mixt_trees+1)*sizeof(int));
+      has_invariants[n_trees] = (tree->mod->ras->invar == YES)?1:0;
+      n_trees++;
+      if(tree->child) tree = tree->child;
+      else            tree = tree->next;
+    }
+  while(tree);
+
+  return(has_invariants);
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void MIXT_Reset_Has_Invariants(int *has_invariants, t_tree *mixt_tree)
+{
+  t_tree *tree;
+  int n_trees;
+
+  tree = mixt_tree;
+  n_trees = 0;
+  do
+    {
+      tree->mod->ras->invar = has_invariants[n_trees];
+      n_trees++;
+      if(tree->child) tree = tree->child;
+      else            tree = tree->next;
+    }
+  while(tree);
+
+  Free(has_invariants);
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void MIXT_Check_Invar_Setup(t_tree *mixt_tree)
+{
+  if(mixt_tree->is_mixt_tree == NO) return;
+  else
+    {
+      t_tree *tree;
+      int n_inv;
+      
+      n_inv = 0;
+      tree = mixt_tree;
+      do
+        {
+          if(tree->child) 
+            {
+              tree  = tree->child;
+              if(n_inv == 0 || n_inv == 1)
+                {
+                  PhyML_Printf("\n== Err in file %s at line %d\n\n",__FILE__,__LINE__);
+                  Warn_And_Exit("\n");
+                }
+              n_inv = 0;
+            }
+
+          if(tree->parent->mod->ras->invar == YES && 
+             tree->mod->ras->invar == YES)
+            n_inv++; 
+
+          if(tree->parent->mod->ras->invar == NO && 
+             tree->mod->ras->invar == YES)
+            {
+              PhyML_Printf("\n== Err in file %s at line %d\n\n",__FILE__,__LINE__);
+              Warn_And_Exit("\n");
+            }
+
+        }
+    }
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void MIXT_Prune_Subtree(t_node *mixt_a, t_node *mixt_d, t_edge *mixt_target, t_edge *mixt_residual, t_tree *mixt_tree)
+{
+  t_node *a,*d;
+  t_edge *target, *residual;
+  t_tree *tree;
+  
+  tree     = mixt_tree;
+  a        = mixt_a;
+  d        = mixt_d;
+  target   = mixt_target;
+  residual = mixt_residual;
+
+  do
+    {      
+      Prune_Subtree(a,d,target,residual,tree);
+      
+      if(tree->child) 
+        {
+          tree     = tree->child;
+          a        = a->child;
+          d        = d->child;
+          target   = target->child;
+          residual = residual->child;
+        }
+      else            
+        {
+          tree     = tree->next;
+          a        = a->next;
+          d        = d->next;
+          target   = target->next;
+          residual = residual->next;
+        }
+    }
+  while(tree);
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void MIXT_Graft_Subtree(t_edge *mixt_target,t_node *mixt_link,t_edge *mixt_residual,t_tree *mixt_tree)
+{
+  t_edge *target,*residual;
+  t_link *link;
+  t_tree *tree;
+
+  tree     = mixt_tree;
+  target   = mixt_target;
+  residual = mixt_residual;
+  link     = mixt_link;
+  
+  do
+    {
+      Graft_Subtree(target,link,residual,tree);
+      
+      if(tree->child)
+        {
+          tree     = tree->child;
+          target   = target->child;
+          residual = residual->child;
+          link     = link->child;
+        }
+      else
+        {
+          tree     = tree->next;
+          target   = target->next;
+          residual = residual->next;
+          link     = link->next;          
+        }
+    }
+
+  while(tree);
+}
+
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////

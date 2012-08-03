@@ -3765,8 +3765,7 @@ void Speed_Spr(t_tree *tree, int max_cycles)
 	  if((tree->io->print_site_lnl) && (!tree->mod->s_opt->spr_pars)) Print_Site_Lk(tree,tree->io->fp_out_lk); fflush(tree->io->fp_out_lk);
 	}
 
-
-      /* Record the current best LOG-likelihood and parsimony */
+      /* Record the current best log-likelihood and parsimony */
       tree->best_lnL  = tree->c_lnL;
       tree->best_pars = tree->c_pars;
 
@@ -4550,7 +4549,8 @@ void Spr_Pars(t_tree *tree)
   PhyML_Printf("\n");
 }
 
-/*********************************************************/
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
 
 
 void SPR_Shuffle(t_tree *tree)
@@ -4562,6 +4562,10 @@ void SPR_Shuffle(t_tree *tree)
   /*! Get the number of classes in each mixture */
   orig_catg = MIXT_Get_Number_Of_Classes_In_All_Mixtures(tree);
   
+  /*! Record values of mod->invar in every tree 
+   */
+  orig_inv  = MIXT_Has_Invariants(tree);
+
   /*! Set the number of rate classes to (at most) 2.
     ! Propagate this to every mixture tree in the analysis
   */
@@ -4576,10 +4580,24 @@ void SPR_Shuffle(t_tree *tree)
   while(tree);
   tree = orig_tree;
 
-
   /*! Make sure the number of trees in each mixture is at most 2
    */
-  tree_list = MIXT_Break_All_Mixtures(tree->mod->ras->n_catg,tree);
+  tree_list = MIXT_Record_All_Mixtures(tree);
+  MIXT_Break_All_Mixtures(tree->mod->ras->n_catg,tree);
+
+  /*! Set mod->ras->invar to NO for all the trees.
+  */
+  orig_tree_list = tree_list;
+  do
+    {
+      (*tree_list)->mod->ras->invar = NO;
+      tree_list++;
+    }
+  while(*tree_list);
+  tree_list = orig_tree_list;
+
+
+
 
   if(tree->mod->s_opt->print) PhyML_Printf("\n. Refining the tree...\n");
 
@@ -4615,7 +4633,7 @@ void SPR_Shuffle(t_tree *tree)
   /*! Go back to the original data structure, with potentially more
     ! than 2 trees per mixture
    */
-  MIXT_Reconnect_All_Mixtures(tree->mod->ras->n_catg,tree_list,tree);
+  MIXT_Reconnect_All_Mixtures(tree_list,tree);
 
 
   /*! Only the first two trees for each mixture have been modified so
@@ -4646,6 +4664,12 @@ void SPR_Shuffle(t_tree *tree)
   tree = orig_tree;
   
   Free(orig_catg);
+
+  /*! Reset the mod->invar to their original values 
+   */
+  MIXT_Reset_Has_Invariants(orig_inv,tree);
+  Free(orig_inv);
+
 
 }
 
