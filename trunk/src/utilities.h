@@ -1397,7 +1397,6 @@ int Sort_Phydbl_Decrease(const void *a,const void *b);
 void Qksort_Int(int *A,int *B,int ilo,int ihi);
 void Qksort(phydbl *A,phydbl *B,int ilo,int ihi);
 void Qksort_Matrix(phydbl **A,int col,int ilo,int ihi);
-void Print_Site(calign *cdata,int num,int n_otu,char *sep,int stepsize);
 void Order_Tree_Seq(t_tree *tree,align **data);
 char *Add_Taxa_To_Constraint_Tree(FILE *fp,calign *cdata);
 void Check_Constraint_Tree_Taxa_Names(t_tree *tree,calign *cdata);

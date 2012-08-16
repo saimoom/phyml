@@ -838,8 +838,8 @@ void Make_Spr_List(t_tree *tree)
 t_spr *Make_One_Spr(t_tree *tree)
 {
   t_spr *a_spr;
-  a_spr       = (t_spr *)mCalloc(1,sizeof(spr));
-  a_spr->path = (t_node **)mCalloc(tree->n_otu,sizeof(t_node *));
+  a_spr         = (t_spr *)mCalloc(1,sizeof(t_spr));
+  a_spr->path   = (t_node **)mCalloc(tree->n_otu,sizeof(t_node *));
   return a_spr;
 }
 

@@ -21,12 +21,11 @@ int M4_main(int argc, char **argv)
   calign *cdata;
   option *io;
   t_tree *tree;
-  int n_otu, num_data_set;
-  int num_tree,tree_line_number,num_rand_tree;
-  matrix *mat;
+  int num_data_set;
+  int num_tree,num_rand_tree;
   t_mod *mod;
   time_t t_beg,t_end;
-  phydbl best_lnL,most_likely_size,tree_size;
+  phydbl best_lnL;
   int r_seed;
   char *most_likely_tree=NULL;
 
@@ -50,10 +49,6 @@ int M4_main(int argc, char **argv)
   tree             = NULL;
   mod              = NULL;
   best_lnL         = UNLIKELY;
-  most_likely_size = -1.0;
-  tree_size        = -1.0;
-
-  
       
   io = (option *)Get_Input(argc,argv);
   r_seed = (io->r_seed < 0)?(time(NULL)):(io->r_seed);
@@ -64,9 +59,6 @@ int M4_main(int argc, char **argv)
   if(io->in_tree == 2) Test_Multiple_Data_Set_Format(io);
   else io->n_trees = 1;
 
-  mat = NULL;
-  tree_line_number = 0;
-
 
   if((io->n_data_sets > 1) && (io->n_trees > 1))
     {
@@ -76,7 +68,6 @@ int M4_main(int argc, char **argv)
 
   For(num_data_set,io->n_data_sets)
     {
-      n_otu = 0;
       best_lnL = UNLIKELY;
       Get_Seq(io);
       Make_Model_Complete(io->mod);
@@ -189,7 +180,7 @@ int M4_main(int argc, char **argv)
 		      Br_Len_Involving_Invar(tree);
 		      if(most_likely_tree) Free(most_likely_tree);
 		      most_likely_tree = Write_Tree(tree,NO);
-		      most_likely_size = Get_Tree_Size(tree);
+		      Get_Tree_Size(tree);
 		    }
 
 /* 		  JF(tree); */
@@ -769,14 +760,13 @@ void M4_Post_Prob_H_Class_Edge_Site(t_edge *b, phydbl ****integral, phydbl *post
 
   phydbl site_lk;
   int g,i,j,k,l;
-  int ns,n_h;
+  int n_h;
   phydbl sum;
   int dim1,dim2;
 
   dim1 = tree->mod->ras->n_catg * tree->mod->ns;
   dim2 = tree->mod->ns;
 
-  ns = tree->mod->ns;
   n_h = tree->mod->m4mod->n_h; /* number of classes, i.e., number of hidden states */
 
   site_lk = (phydbl)EXP(tree->cur_site_lk[tree->curr_site]);
@@ -895,11 +885,10 @@ void M4_Post_Prob_H_Class_Edge_Site(t_edge *b, phydbl ****integral, phydbl *post
 phydbl ***M4_Compute_Proba_Hidden_States_On_Edges(t_tree *tree)
 {
   int i;
-  phydbl ***post_probs, *dwell;
+  phydbl ***post_probs;
   phydbl ****integral;
 
 
-  dwell = (phydbl *)mCalloc(tree->mod->m4mod->n_h,sizeof(phydbl));
   post_probs = (phydbl ***)mCalloc(2*tree->n_otu-3,sizeof(phydbl **));
 
   For(i,2*tree->n_otu-3)
@@ -1222,13 +1211,12 @@ phydbl **M4_Site_Branch_Classification(phydbl ***post_probs, t_tree *tree)
 
 void M4_Site_Branch_Classification_Experiment(t_tree *tree)
 {
-  calign *ori_data,*cpy_data;
+  calign *cpy_data;
   short int **true_rclass, **est_rclass;
   phydbl **best_probs;
   int i,j;
   phydbl correct_class, mis_class, unknown;
-  int ns;
-
+  
   true_rclass = (short int **)mCalloc(tree->data->init_len, sizeof(short int *));
   est_rclass  = (short int **)mCalloc(tree->data->init_len, sizeof(short int *));
  
@@ -1238,11 +1226,7 @@ void M4_Site_Branch_Classification_Experiment(t_tree *tree)
       est_rclass[i]  = (short int *)mCalloc(2*tree->n_otu-3,sizeof(short int));
     }
 
-  ori_data = tree->data;
-
-  if(tree->io->datatype == NT)      ns = 4;
-  else if(tree->io->datatype == AA) ns = 20;
-  else
+  if(tree->io->datatype != NT && tree->io->datatype != AA)
     {
       PhyML_Printf("\n. Not implemented yet.");
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
@@ -1444,7 +1428,7 @@ void M4_Detect_Site_Switches_Experiment(t_tree *tree)
 {
   t_mod *nocov_mod,*cov_mod,*ori_mod;
   calign *ori_data,*cpy_data;
-  int i,n_iter,ns;
+  int i,n_iter;
   phydbl *nocov_bl,*cov_bl;
   phydbl *site_lnl_nocov, *site_lnl_cov;
 
@@ -1456,12 +1440,10 @@ void M4_Detect_Site_Switches_Experiment(t_tree *tree)
   ori_data = tree->data;
   ori_mod  = tree->mod;
 
-  if(tree->io->datatype == NT)      ns = 4;
-  else if(tree->io->datatype == AA) ns = 20;
-  else
+  if(tree->io->datatype != NT && tree->io->datatype != AA)
     {
-      PhyML_Printf("\n. Not implemented yet.");
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n== Not implemented yet.");
+      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
@@ -1579,9 +1561,8 @@ void M4_Detect_Site_Switches_Experiment(t_tree *tree)
 
 void M4_Posterior_Prediction_Experiment(t_tree *tree)
 {
-  t_mod *ori_mod;
   calign *ori_data,*cpy_data;
-  int i,n_iter,n_simul,ns;
+  int i,n_iter,n_simul;
   FILE *fp_nocov,*fp_cov,*fp_obs;
   char *s;
   t_edge *best_edge;
@@ -1604,12 +1585,9 @@ void M4_Posterior_Prediction_Experiment(t_tree *tree)
   Print_Diversity_Header(fp_obs, tree);
 
   ori_data = tree->data;
-  ori_mod  = tree->mod;
 
-  if(tree->io->datatype == NT)      ns = 4;
-  else if(tree->io->datatype == AA) ns = 20;
-  else
-    {
+  if(tree->io->datatype != NT && tree->io->datatype != AA)
+   {
       PhyML_Printf("\n. Not implemented yet.");
       PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
@@ -1730,14 +1708,11 @@ m4 *M4_Copy_M4_Model(t_mod *ori_mod, m4 *ori_m4mod)
 {
   int i,j,n_h, n_o;
   m4 *cpy_m4mod;
-  int ns;
   
-  if(ori_mod->io->datatype == NT)      ns = 4;
-  else if(ori_mod->io->datatype == AA) ns = 20;
-  else
+  if(ori_mod->io->datatype == NT && ori_mod->io->datatype != AA)
     {
-      PhyML_Printf("\n. Not implemented yet.");
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n== Not implemented yet.");
+      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 

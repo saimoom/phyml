@@ -30,7 +30,7 @@ int TIMES_main(int argc, char **argv)
   int n_otu, num_data_set;
   int num_tree,tree_line_number,num_rand_tree;
   matrix *mat;
-  model *mod;
+  t_mod *mod;
   time_t t_beg,t_end;
   phydbl best_lnL,most_likely_size,tree_size;
   int r_seed;
@@ -847,23 +847,18 @@ phydbl TIMES_Lk_Yule_Joint(t_tree *tree)
   int n; // number of lineages at a given time point
   phydbl lbda;
   t_node *nd;
-  phydbl *ts,*tf;
+  phydbl *ts;
   int *tr;
-  phydbl eps;
-  int curr_ts;
   phydbl top_t;
   short int *interrupted;
   phydbl sumdt;
 
   interrupted = (short int *)mCalloc(tree->n_otu,sizeof(short int));
 
-  eps = 1.E-10;
   t = tree->rates->nd_t;
   ts = tree->rates->time_slice_lims;
-  tf = tree->rates->t_floor;
   tr = tree->rates->t_ranked;
   lbda = tree->rates->birth_rate;
-  curr_ts = 0;
 
   TIMES_Update_Node_Ordering(tree);
 
@@ -935,7 +930,7 @@ phydbl TIMES_Lk_Yule_Joint(t_tree *tree)
 phydbl TIMES_Lk_Yule_Order(t_tree *tree)
 {
   int j;
-  phydbl *ts,*t,*tf;
+  phydbl *t,*tf;
   t_node *n;
   phydbl loglk;
   phydbl loglbda;
@@ -946,7 +941,6 @@ phydbl TIMES_Lk_Yule_Order(t_tree *tree)
   tp_min = tree->rates->t_prior_min;
   tp_max = tree->rates->t_prior_max;
   tf = tree->rates->t_floor;
-  ts = tree->rates->time_slice_lims;
   t  = tree->rates->nd_t;
   n = NULL;
   loglbda = LOG(tree->rates->birth_rate);
@@ -975,10 +969,6 @@ phydbl TIMES_Lk_Yule_Order(t_tree *tree)
 
 phydbl TIMES_Lk_Times(t_tree *tree)
 {
-  phydbl condlogdens;
-
-  condlogdens = 0.0;
-
   /* TIMES_Lk_Times_Trav(tree->n_root,tree->n_root->v[0], */
   /* 		      tree->rates->nd_t[tree->n_root->num], */
   /* 		      tree->rates->t_floor[tree->n_root->v[0]->num],&condlogdens,tree); */
@@ -1160,7 +1150,6 @@ phydbl TIMES_Log_Number_Of_Ranked_Labelled_Histories(t_node *root, int per_slice
   int i;
   phydbl logn;
   t_node *v1,*v2;
-  int dir1r,dir2r;
   int n1,n2;
   
   TIMES_Update_Curr_Slice(tree);
@@ -1187,10 +1176,7 @@ phydbl TIMES_Log_Number_Of_Ranked_Labelled_Histories(t_node *root, int per_slice
 	}
     }
 
-  dir1r = dir2r = -1;
-  For(i,3) if(v1->v[i] == root || v1->b[i] == tree->e_root) { dir1r = i; break; }
-  For(i,3) if(v2->v[i] == root || v2->b[i] == tree->e_root) { dir2r = i; break; }
-
+ 
   if(per_slice == NO)
     {
       n1 = tree->rates->n_tips_below[v1->num];
@@ -1231,7 +1217,6 @@ void TIMES_Log_Number_Of_Ranked_Labelled_Histories_Post(t_node *a, t_node *d, in
     {
       int i,n1,n2;
       t_node *v1, *v2;
-      int dir1d,dir2d;
 
       For(i,3)
 	{
@@ -1242,7 +1227,6 @@ void TIMES_Log_Number_Of_Ranked_Labelled_Histories_Post(t_node *a, t_node *d, in
 	}
 
       v1 = v2 = NULL;
-      dir1d = dir2d = -1;
       For(i,3)
 	{
 	  if(d->v[i] != a && d->b[i] != tree->e_root)
@@ -1252,8 +1236,6 @@ void TIMES_Log_Number_Of_Ranked_Labelled_Histories_Post(t_node *a, t_node *d, in
 	    }
 	}
 
-      For(i,3) if(v1->v[i] == d) {dir1d = i; break;}
-      For(i,3) if(v2->v[i] == d) {dir2d = i; break;}
 
       if(per_slice == NO)
 	{

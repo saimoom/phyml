@@ -1119,9 +1119,7 @@ void PART_Map_St_Nodes_In_Gt(t_tree *gt, supert_tree *st)
 
 void PART_Map_St_Nodes_In_Gt_Post(t_node *a_st, t_node *d_st, t_tree *gt, supert_tree *st)
 {
-  int i,dir;
-
-  dir = -1;
+  int i;
 
   if(d_st->tax) return;
   else
@@ -1380,14 +1378,12 @@ int PART_Spr(phydbl init_lnL, supert_tree *st)
 {
   int gt;
   int i;
-  t_edge *target, *pruned;
-  int move,best_move;
+  t_edge *pruned;
+  int best_move;
   t_node *gt_a, *gt_d;
 
   st->tree->n_root     = st->tree->t_nodes[0];
   pruned               = NULL;
-  target               = NULL;
-  move                 = -2;
   gt_a                 = NULL;
   gt_d                 = NULL;
   
@@ -1697,11 +1693,11 @@ int Map_Spr_Move(t_edge *st_pruned, t_edge *st_target, t_node *st_link, t_tree *
 //////////////////////////////////////////////////////////////
 
 
-int PART_Test_List_Of_Regraft_Pos(spr **st_spr_list, int list_size, supert_tree *st)
+int PART_Test_List_Of_Regraft_Pos(t_spr **st_spr_list, int list_size, supert_tree *st)
 {
 
   int i,j,best_move;
-  spr *move;
+  t_spr *move;
   t_edge *init_target, *b_residual;
   phydbl best_lnL, init_lnL;
   int dir_v0, dir_v1, dir_v2;
@@ -1854,10 +1850,10 @@ int PART_Test_List_Of_Regraft_Pos(spr **st_spr_list, int list_size, supert_tree 
 //////////////////////////////////////////////////////////////
 
 
-int PART_Try_One_Spr_Move(spr *st_move, supert_tree *st)
+int PART_Try_One_Spr_Move(t_spr *st_move, supert_tree *st)
 {
   int j;
-  spr **gt_move;
+  t_spr **gt_move;
   t_edge **init_target, **b_residual;
   int dir_v0, dir_v1, dir_v2;
   int gt;
@@ -1867,7 +1863,7 @@ int PART_Try_One_Spr_Move(spr *st_move, supert_tree *st)
   
   init_target = (t_edge **)mCalloc(st->n_part,sizeof(t_edge *));
   b_residual  = (t_edge **)mCalloc(st->n_part,sizeof(t_edge *));
-  gt_move     = (spr **)mCalloc(st->n_part,sizeof(spr *));
+  gt_move     = (t_spr **)mCalloc(st->n_part,sizeof(t_spr *));
 
 
   n_moves = 0;
@@ -2102,8 +2098,6 @@ int PART_Try_One_Spr_Move(spr *st_move, supert_tree *st)
 void PART_NNI(t_edge *st_b, supert_tree *st)
 {  
   t_node *v1, *v2, *v3, *v4;
-  phydbl lk_init;
-  phydbl lk0_init, lk1_init, lk2_init;
   phydbl lk0_opt, lk1_opt, lk2_opt;
   int i,j;
   phydbl *init_bl;
@@ -2120,7 +2114,6 @@ void PART_NNI(t_edge *st_b, supert_tree *st)
   v3 = st_b->rght->v[st_b->r_v1];
   v4 = st_b->rght->v[st_b->r_v2];
 
-  lk0_init = lk1_init = lk2_init = UNLIKELY;
   lk0_opt  = lk1_opt  = lk2_opt  = UNLIKELY;
 
   if(v1->num < v2->num)
@@ -2137,7 +2130,6 @@ void PART_NNI(t_edge *st_b, supert_tree *st)
       Warn_And_Exit("");
     }
 
-  lk_init = st->tree->c_lnL;
   
 /*   PhyML_Printf("oooooooo\n"); */
 /*   Print_Node(st->tree->t_nodes[0], */
@@ -2183,7 +2175,7 @@ void PART_NNI(t_edge *st_b, supert_tree *st)
 		    map_edge_aft_swap[i],
 		    map_edge_aft_swap[i]->rght);
     }
-  lk1_init = PART_Update_Lk_At_Given_Edge(st_b,st);
+  PART_Update_Lk_At_Given_Edge(st_b,st);
   lk1_opt  = PART_Br_Len_Brent(st_b,0,st);
   For(i,st->n_part) st->bl1[st->bl_partition[i]][st_b->num] = st->bl[st->bl_partition[i]][st_b->num];
   /* Unswap */
@@ -2239,7 +2231,7 @@ void PART_NNI(t_edge *st_b, supert_tree *st)
 		    map_edge_aft_swap[i]->rght);
     }
 
-  lk2_init = PART_Update_Lk_At_Given_Edge(st_b,st);
+  PART_Update_Lk_At_Given_Edge(st_b,st);
   lk2_opt  = PART_Br_Len_Brent(st_b,0,st);
   For(i,st->n_part) st->bl2[st->bl_partition[i]][st_b->num] = st->bl[st->bl_partition[i]][st_b->num];
   /*   PhyML_Printf("\n. lk2_init = %f lk2_opt = %f",lk2_init,lk2_opt); */
@@ -2278,7 +2270,7 @@ void PART_NNI(t_edge *st_b, supert_tree *st)
   For(i,st->n_part) if(st->map_st_edge_in_gt[i][st_b->num]) map_edge_aft_swap[i] = st->map_st_edge_in_gt[i][st_b->num];
   For(i,st->n_part) if(map_edge_bef_swap[i]) Update_PMat_At_Given_Edge(map_edge_bef_swap[i],st->treelist->tree[i]);
   For(i,st->n_part) if(map_edge_aft_swap[i]) Update_PMat_At_Given_Edge(map_edge_aft_swap[i],st->treelist->tree[i]);
-  lk0_init = PART_Update_Lk_At_Given_Edge(st_b,st);
+  PART_Update_Lk_At_Given_Edge(st_b,st);
   lk0_opt  = PART_Br_Len_Brent(st_b,0,st);
   For(i,st->n_part) st->bl0[st->bl_partition[i]][st_b->num] = st->bl[st->bl_partition[i]][st_b->num];
 
@@ -2636,7 +2628,7 @@ void PART_Fill_Model_Partitions_Table(supert_tree *st)
 
 phydbl PART_Br_Len_Brent(t_edge *st_b, int quickdirty, supert_tree *st)
 {
-  phydbl ax, bx, cx;
+  phydbl ax,  cx;
   int part;
   phydbl cur_l;
 
@@ -2646,7 +2638,6 @@ phydbl PART_Br_Len_Brent(t_edge *st_b, int quickdirty, supert_tree *st)
       cur_l = st->bl[part][st_b->num];
       
       ax = 10.*cur_l;
-      bx = cur_l;
       cx = st->tree->mod->l_min;
 
       Generic_Brent_Lk(&(st->bl[part][st_b->num]),

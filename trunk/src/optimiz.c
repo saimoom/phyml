@@ -171,14 +171,13 @@ phydbl Generic_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
   int iter;
   phydbl a,b,d,etemp,fu,fv,fw,fx,p,q,r,tol1,tol2,u,v,w,x,xm;
   phydbl e=0.0;
-  phydbl old_lnL,init_lnL;
+  phydbl init_lnL;
 
   
   d=0.0;
   a=((ax < cx) ? ax : cx);
   b=((ax > cx) ? ax : cx);
   x=w=v=bx;
-  old_lnL = UNLIKELY;
   (*xmin) = FABS(bx);
   fw=fv=fx=-Lk(NULL,tree);
   init_lnL = -fw;
@@ -234,7 +233,6 @@ phydbl Generic_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
       
       u=(FABS(d) >= tol1 ? x+d : x+SIGN(tol1,d));
       (*xmin) = FABS(u);
-      old_lnL = tree->c_lnL;
       fu = -Lk(NULL,tree);
       
 /*       PhyML_Printf("\n. iter=%d/%d param=%f LOGlk=%f",iter,BRENT_ITMAX,*xmin,tree->c_lnL); */
@@ -525,7 +523,6 @@ phydbl Br_Len_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
       return tree->c_lnL;
     }
 
-
   if(b_fcus->l->onoff == OFF) return tree->c_lnL;
 
   if(tree->mod->gamma_mgf_bl == YES)
@@ -560,14 +557,13 @@ phydbl Br_Len_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 void Round_Optimize(t_tree *tree, calign *data, int n_round_max)
 {
   int n_round,each;
-  phydbl lk_old, lk_new, tol;
+  phydbl lk_old, lk_new;
   t_node *root;
 
   lk_new = tree->c_lnL;
   lk_old = UNLIKELY;
   n_round = 0;
   each = 0;
-  tol = 1.e-2;
   root = tree->t_nodes[0];
   
   Set_Both_Sides(YES,tree);
@@ -697,11 +693,10 @@ void Optimiz_Ext_Br(t_tree *tree)
   int i;
   t_edge *b,*ori;
   phydbl l_infa,l_max,l_infb;
-  phydbl lk, lk_init,l_init;
+  phydbl lk_init,l_init;
   
   lk_init = tree->c_lnL;
   
-
   For(i,2*tree->n_otu-3)
     {
       b = tree->t_edges[i];
@@ -717,11 +712,11 @@ void Optimiz_Ext_Br(t_tree *tree)
 	  l_max  = b->l->v;
 	  l_infb = tree->mod->l_min;
 
-	  lk = Br_Len_Brent(l_infa,l_max,l_infb,
-			    tree->mod->s_opt->min_diff_lk_local,
-			    b,tree,
-			    tree->mod->s_opt->brent_it_max,
-			    tree->mod->s_opt->quickdirty);
+	  Br_Len_Brent(l_infa,l_max,l_infb,
+                       tree->mod->s_opt->min_diff_lk_local,
+                       b,tree,
+                       tree->mod->s_opt->brent_it_max,
+                       tree->mod->s_opt->quickdirty);
 
 	  ori = b;
 	  do
@@ -987,7 +982,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 	}
     }
 
-  SEt_Both_Sides(init_both_sides,tree);
+  Set_Both_Sides(init_both_sides,tree);
 
   if(tree->both_sides == YES) Lk(NULL,tree); /* Needed to update all partial likelihoods */
 
@@ -1546,19 +1541,14 @@ phydbl Missing_Dist_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, int n_ite
   int iter;
   phydbl a,b,d,etemp,fu,fv,fw,fx,p,q,r,tol1,tol2,u,v,w,xx,xm;
   phydbl e=0.0;
-  phydbl init_LOGlk, max_LOGlk;
-  phydbl bestx;
-
+  
   d=0.0;
   a=((ax < cx) ? ax : cx);
   b=((ax > cx) ? ax : cx);
   xx=w=v=bx;
   fx=Least_Square_Missing_Dist_XY(x,y,FABS(bx),mat);
   fw=fv=-fx;
-  init_LOGlk = fw;
-  max_LOGlk = UNLIKELY;
-  bestx = bx;
-
+  
   for(iter=1;iter<=BRENT_ITMAX;iter++) 
     {
       xm=0.5*(a+b);
@@ -1664,8 +1654,7 @@ int Optimiz_Alpha_And_Pinv(t_tree *mixt_tree, int verbose)
   phydbl best_alpha, best_pinv, best_mult;
   phydbl slope, intercept;
   phydbl lk_b, lk_a;
-  phydbl lk_init, lk_final;
-  phydbl f0,f1,f2,f3,x0,x1,x2,x3;
+  phydbl f0,f1,f2,x0,x1,x2,x3;
   phydbl pinv0, pinv1;
   phydbl a, b, c;
   phydbl fa, fb, fc;
@@ -1697,7 +1686,6 @@ int Optimiz_Alpha_And_Pinv(t_tree *mixt_tree, int verbose)
 	  if((tree->mod->s_opt->opt_pinvar) && (tree->mod->s_opt->opt_alpha))
 	    {
 	      
-	      lk_final = UNLIKELY;
 	      lk_b     = UNLIKELY;
 	      lk_a     = UNLIKELY;
 	      
@@ -1767,7 +1755,6 @@ int Optimiz_Alpha_And_Pinv(t_tree *mixt_tree, int verbose)
 	      best_alpha = tree->mod->ras->alpha->v;
 	      best_pinv  = tree->mod->pinvar->v;
 	      best_mult  = tree->mod->br_len_multiplier->v;
-	      lk_init    = mixt_tree->c_lnL;
 	      
 	      /* PhyML_Printf("\n\n. Init lnL after std opt = %f [%f] best_alpha=%f best_pinv=%f",tree->c_lnL,Lk(tree),best_alpha,best_pinv); */
 	      /* PhyML_Printf("\n. Best_lnL = %f",best_lnL); */
@@ -1868,7 +1855,6 @@ int Optimiz_Alpha_And_Pinv(t_tree *mixt_tree, int verbose)
 		      
 		      f0 = fa;
 		      f1 = fb;
-		      f3 = fc;
 		      tree->mod->ras->alpha->v = x2;
 		      tree->mod->pinvar->v = slope * tree->mod->ras->alpha->v + intercept;
 		      if(tree->mod->pinvar->v > 1.0) tree->mod->pinvar->v = 0.9;
@@ -1886,7 +1872,6 @@ int Optimiz_Alpha_And_Pinv(t_tree *mixt_tree, int verbose)
 		      
 		      f0 = fa;
 		      f2 = fb;
-		      f3 = fc;
 		      tree->mod->ras->alpha->v = x1;
 		      tree->mod->pinvar->v = slope * tree->mod->ras->alpha->v + intercept;
 		      if(tree->mod->pinvar->v > 1.0) tree->mod->pinvar->v = 0.9;
@@ -1910,7 +1895,6 @@ int Optimiz_Alpha_And_Pinv(t_tree *mixt_tree, int verbose)
 			  x2 = x1;
 			  x1 = x2 - K * FABS(x2 - x0);
 			  
-			  f3 = f2;
 			  f2 = f1;
 			  
 			  tree->mod->ras->alpha->v = x1;
@@ -2196,7 +2180,7 @@ void Opt_Node_Heights_Recurr_Pre(t_node *a, t_node *d, t_tree *tree)
   else
     {
       int i;
-      phydbl t0,t1,t2,t3;
+      phydbl t0,t2,t3;
       phydbl t_min,t_max;
       t_node *v2,*v3;
       
@@ -2212,7 +2196,6 @@ void Opt_Node_Heights_Recurr_Pre(t_node *a, t_node *d, t_tree *tree)
       Opt_Node_Heights_Recurr_Pre(d,v3,tree);
 
       t0 = tree->rates->nd_t[a->num];
-      t1 = tree->rates->nd_t[d->num];
       t2 = tree->rates->nd_t[v2->num];
       t3 = tree->rates->nd_t[v3->num];
       

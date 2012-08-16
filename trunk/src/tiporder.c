@@ -1172,11 +1172,9 @@ void TIPO_Randomize_Tip_Y_Ranks(t_tree *tree)
 
 phydbl TIPO_Read_One_Taxon_Zscore(FILE *fp_coord, char *seqname_qry, int col, t_tree *tree)
 {
-  char *line;
   char *seqname, *place;
   phydbl lat;
 
-  line    = (char *)mCalloc(T_MAX_LINE,sizeof(char));
   seqname = (char *)mCalloc(T_MAX_NAME,sizeof(char));
   place   = (char *)mCalloc(T_MAX_NAME,sizeof(char));
 

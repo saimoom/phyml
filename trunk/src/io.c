@@ -247,7 +247,7 @@ void Read_Branch_Label(char *s_d, char *s_a, t_edge *b)
 {
   char *sub_tp;
   char *p;
-  int i,posp,posl;
+  int posp,posl;
 
   sub_tp = (char *)mCalloc(3+(int)strlen(s_d)+1,sizeof(char));
   /* sub_tp = (char *)mCalloc(T_MAX_LINE,sizeof(char)); */
@@ -267,8 +267,6 @@ void Read_Branch_Label(char *s_d, char *s_a, t_edge *b)
       p = strstr(s_a,sub_tp);
     }
 
-
-  i = 0;
   b->n_labels = 0;
   if(p)
     {
@@ -452,6 +450,7 @@ char **Sub_Trees(char *tree, int *degree)
 
   For(i,NODE_DEG_MAX) subs[i]=(char *)mCalloc(strlen(tree)+1,sizeof(char));
 
+
   posbeg=posend=1;
   (*degree)=0;
   do
@@ -554,7 +553,7 @@ char *Write_Tree(t_tree *tree, int custom)
 {
   char *s;
   int i,available;
-  int init_len,last_len;
+  int init_len;
 
   init_len = 3*(int)T_MAX_NAME;
 
@@ -567,7 +566,6 @@ char *Write_Tree(t_tree *tree, int custom)
 
   
   s[0]='(';
-  last_len = 1;
 
   if(custom == NO)
     {
@@ -590,7 +588,7 @@ char *Write_Tree(t_tree *tree, int custom)
     }
   else
     {
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
       Exit("\n");
     }
 
@@ -1393,14 +1391,12 @@ align **Get_Seq(option *io)
 void Get_Nexus_Data(FILE *fp, option *io)
 {
   char *token;
-  int in_comment;
   nexcom *curr_com;
   nexparm *curr_parm;
   int nxt_token_t,cur_token_t;
 
   token = (char *)mCalloc(T_MAX_TOKEN,sizeof(char));
       	  
-  in_comment = NO;
   curr_com   = NULL;
   curr_parm  = NULL;
   nxt_token_t = NEXUS_COM; 
@@ -2026,6 +2022,22 @@ t_tree *Read_Tree_File_Phylip(FILE *fp_input_tree)
   Free(line);
   
   return tree;
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void Print_Site(calign *cdata, int num, int n_otu, char *sep, int stepsize)
+{
+  int i,j;
+  For(i,n_otu)
+    {
+      PhyML_Printf("%s   ",cdata->c_seq[i]->name);
+      For(j,stepsize)
+	PhyML_Printf("%c",cdata->c_seq[i]->state[num+j]);
+      PhyML_Printf("%s",sep);
+    }
+  PhyML_Fprintf(stderr,"%s",sep);
 }
 
 //////////////////////////////////////////////////////////////
@@ -3273,7 +3285,7 @@ void Print_Square_Matrix_Generic(int n, phydbl *mat)
       PhyML_Printf("[%3d]",i);
       For(j,n)
 	{
-	  PhyML_Printf("%7.1G ",mat[i*n+j]);
+	  PhyML_Printf("%12.5f ",mat[i*n+j]);
 	}
       PhyML_Printf("\n");
     }
@@ -3286,11 +3298,7 @@ void Print_Square_Matrix_Generic(int n, phydbl *mat)
 
 void Print_Diversity(FILE *fp, t_tree *tree)
 {
-  int ns;
   
-  if(tree->io->datatype == NT)      ns = 4;
-  else if(tree->io->datatype == AA) ns = 20;
-
   Print_Diversity_Pre(tree->t_nodes[0],
 		      tree->t_nodes[0]->v[0],
 		      tree->t_nodes[0]->b[0],
@@ -3776,7 +3784,6 @@ void Print_Data_Structure(t_tree *root)
 	       root->io->mod->s_opt->topo_search==NNI_MOVE?"nni":
 	       "spr+nni":"no");
 
-
   n_partition_elem = 1;
   buff = root;
   do
@@ -3834,12 +3841,13 @@ void Print_Data_Structure(t_tree *root)
       do
 	{
 	  PhyML_Printf("\n. Class %d",class+1);
-	  PhyML_Printf("\n.\t\t Substitution model:\t\t%12s",tree->mod->modelname);
+	  PhyML_Printf("\n.\t\t Substitution model:\t\t%12s [%p]",tree->mod->modelname,(void *)tree->mod);
 	  
 	  if(tree->mod->whichmodel == K80 ||
 	     tree->mod->whichmodel == HKY85 ||
 	     tree->mod->whichmodel == TN93)
 	    {
+	      PhyML_Printf("\n.\t\t Ts/tv ratio:\t\t\t%12p",(void *)tree->mod->kappa);
 	      PhyML_Printf("\n.\t\t Optimise ts/tv ratio:\t\t%12s",tree->mod->s_opt->opt_kappa?"yes":"no");
 	      PhyML_Printf("\n.\t\t Value of the ts/tv ratio:\t%12f",tree->mod->kappa->v);
 	    }
@@ -3851,9 +3859,8 @@ void Print_Data_Structure(t_tree *root)
 	  
 	  tree = tree->next;
 	  if(tree && tree->is_mixt_tree == YES) break;
-	  if(!tree) break;
 	}
-      while(1);
+      while(tree);
 
       buff = ((t_tree *)buff)->next;
       if(!buff) break;

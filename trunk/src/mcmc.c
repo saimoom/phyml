@@ -1,3 +1,4 @@
+
 /*
 
 PhyML:  a program that  computes maximum likelihood phylogenies from
@@ -180,9 +181,6 @@ void MCMC(t_tree *tree)
       if(u < .5) { first = 0; secod = 1; }
       else       { first = 1; secod = 0; }
       
-
-      phydbl cur_lnL;
-      cur_lnL = tree->c_lnL;
 
       /* printf("\n. [%15s] %15f ",tree->mcmc->move_name[move],tree->c_lnL); */
 
@@ -392,7 +390,7 @@ void MCMC_Single_Param_Generic(phydbl *val,
 {
   phydbl cur_val,new_val,new_lnLike,new_lnPrior,cur_lnLike,cur_lnPrior;
   phydbl u,alpha,ratio;
-  phydbl K,mult;
+  phydbl K;
   phydbl new_lnval, cur_lnval;
  
   Record_Br_Len(tree);
@@ -400,7 +398,6 @@ void MCMC_Single_Param_Generic(phydbl *val,
   cur_val       = *val;
   new_val       = -1.0;
   ratio         =  0.0;
-  mult          = -1.0;
   K             = tree->mcmc->tune_move[move_num];
   cur_lnval     = LOG(*val);
   new_lnval     = cur_lnval;
@@ -581,10 +578,8 @@ void MCMC_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree)
   phydbl ratio, alpha;
   phydbl new_mu, cur_mu;
   phydbl r_min, r_max;
-  phydbl K;
   t_edge *b1,*b2,*b3;
   t_node *v2,*v3;
-  phydbl nu,cr;
   
   if(tree->rates->model == STRICTCLOCK) return;
 
@@ -600,10 +595,7 @@ void MCMC_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree)
   new_lnL_rate = tree->rates->c_lnL_rates;
   r_min        = tree->rates->min_rate;
   r_max        = tree->rates->max_rate;
-  K            = tree->mcmc->tune_move[tree->mcmc->num_move_br_r+d->num];
   ratio        = 0.0;
-  nu           = tree->rates->nu;
-  cr           = tree->rates->clock_r;
   
   Record_Br_Len(tree);
   
@@ -998,9 +990,7 @@ void MCMC_Tree_Height(t_tree *tree)
   phydbl cur_lnL_time,new_lnL_time;
   phydbl floor;
   int n_nodes;
-  phydbl cur_height, new_height;
-  phydbl min_t,max_t;
-
+  
   if(FABS(tree->rates->t_prior_max[tree->n_root->num] - tree->rates->t_prior_min[tree->n_root->num]) < 1.E-10) return;
 
   RATES_Record_Times(tree);
@@ -1012,11 +1002,8 @@ void MCMC_Tree_Height(t_tree *tree)
   ratio        = 0.0;
   cur_lnL_rate = tree->rates->c_lnL_rates;
   new_lnL_rate = tree->rates->c_lnL_rates;
-  cur_height   = tree->rates->nd_t[tree->n_root->num];
   cur_lnL_time = tree->rates->c_lnL_times;
-  min_t        = tree->rates->t_prior_min[tree->n_root->num];
-  max_t        = tree->rates->t_prior_max[tree->n_root->num];
-
+  
   u = Uni();
   mult = EXP(K*(u-0.5));
 
@@ -1029,7 +1016,6 @@ void MCMC_Tree_Height(t_tree *tree)
   /* floor = tree->rates->t_prior_max[tree->n_root->num]; */
 
   Scale_Subtree_Height(tree->n_root,mult,floor,&n_nodes,tree);
-  new_height = tree->rates->nd_t[tree->n_root->num];
   
   For(i,2*tree->n_otu-1)
     {
@@ -1221,7 +1207,6 @@ void MCMC_Subtree_Height(t_tree *tree)
   phydbl cur_lnL_data,new_lnL_data;
   phydbl cur_lnL_rate,new_lnL_rate;
   phydbl cur_lnL_time,new_lnL_time;
-  phydbl cur_height,new_height;
   phydbl floor;
   int target;
   int n_nodes;
@@ -1243,7 +1228,6 @@ void MCMC_Subtree_Height(t_tree *tree)
 
   target = Rand_Int(tree->n_otu,2*tree->n_otu-3);
 
-  cur_height = tree->rates->nd_t[target];
   floor = tree->rates->t_floor[target];
 
   if(tree->t_nodes[target] == tree->n_root)
@@ -1260,8 +1244,7 @@ void MCMC_Subtree_Height(t_tree *tree)
       return;
     }
 
-  new_height = tree->rates->nd_t[target];
-
+  
   For(i,2*tree->n_otu-1)
     {
       if(tree->rates->nd_t[i] > tree->rates->t_prior_max[i] ||
@@ -1595,8 +1578,7 @@ void MCMC_Updown_Nu_Cr(t_tree *tree)
   phydbl cur_lnL_rate,new_lnL_rate;
   phydbl cur_lnL_data,new_lnL_data;
   int i;
-  int n_nodes;
-
+  
   RATES_Record_Rates(tree);
   Record_Br_Len(tree);
 
@@ -1605,8 +1587,7 @@ void MCMC_Updown_Nu_Cr(t_tree *tree)
   new_lnL_data  = tree->c_lnL;
   cur_lnL_rate  = tree->rates->c_lnL_rates;
   new_lnL_rate  = tree->rates->c_lnL_rates;
-  n_nodes       = 0;
-
+  
   u = Uni();
   mult = EXP(K*(u-0.5));
 
@@ -2611,14 +2592,8 @@ void MCMC_Randomize_Rates(t_tree *tree)
   /* Should be called once t_node times have been determined */
 
   int i;
-  phydbl u;
-  phydbl r_min,r_max;
 
   For(i,2*tree->n_otu-2) tree->rates->br_r[i] = 1.0;
-
-  r_min = 0.9;
-  r_max = 1.1;
-  u     = 0.0;
 
 /*   For(i,2*tree->n_otu-2) */
 /*     { */
@@ -3969,7 +3944,7 @@ void MCMC_Read_Param_Vals(t_tree *tree)
   FILE *in_fp;
   phydbl val;
   int i,v;
-
+  
   in_fp = tree->mcmc->in_fp_par;
   
 
@@ -4022,7 +3997,8 @@ void MCMC_Read_Param_Vals(t_tree *tree)
       tree->rates->br_r[i] = LOG(val);
     }
   
-  
+  v++;
+
   Free(token);
 
 }

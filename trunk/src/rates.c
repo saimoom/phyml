@@ -685,11 +685,10 @@ phydbl RATES_Average_Rate(t_tree *tree)
 phydbl RATES_Average_Substitution_Rate(t_tree *tree)
 {
   phydbl sum_r,sum_dt;
-  phydbl u,t,t_anc,tmp;
+  phydbl u,t,t_anc;
   int i;
 
   u = 0.0;
-  tmp = 0.0;
   sum_r  = 0.0;
   sum_dt = 0.0;
 
@@ -1120,7 +1119,7 @@ phydbl RATES_Dmu(phydbl mu, int n_jumps, phydbl dt, phydbl a, phydbl b, phydbl l
 {
   if(n_jumps < 0) /* Marginal, i.e., the number of jumps is not fixed */
     {
-      phydbl var,cumpoissprob,dens,mean,poissprob,ab2,gammadens,lexpdt,*suminv,b2;
+      phydbl var,cumpoissprob,dens,mean,poissprob,ab2,gammadens,lexpdt;
       int n,up,down;
       
       var          = 0.0;
@@ -1130,8 +1129,6 @@ phydbl RATES_Dmu(phydbl mu, int n_jumps, phydbl dt, phydbl a, phydbl b, phydbl l
       mean         = a*b;
       ab2          = a*b*b;
       lexpdt       = lexp*dt;  
-      b2           = b*b;
-      suminv       = NULL;
       
       RATES_Bracket_N_Jumps(&up,&down,lexpdt);
       For(n,MAX(down,min_n)-1) cumpoissprob += Dpois(n,lexpdt);
@@ -1175,7 +1172,7 @@ phydbl RATES_Dmu(phydbl mu, int n_jumps, phydbl dt, phydbl a, phydbl b, phydbl l
   
 phydbl RATES_Dmu_One(phydbl mu, phydbl dt, phydbl a, phydbl b, phydbl lexp)
 {
-  phydbl var,cumpoissprob,dens,mean,poissprob,ab2,gammadens,lexpdt,*suminv,b2;
+  phydbl var,cumpoissprob,dens,mean,poissprob,ab2,gammadens,lexpdt;
   int n,up,down;
   
   var          = 0.0;
@@ -1185,8 +1182,6 @@ phydbl RATES_Dmu_One(phydbl mu, phydbl dt, phydbl a, phydbl b, phydbl lexp)
   mean         = a*b;
   ab2          = a*b*b;
   lexpdt       = lexp*dt;  
-  b2           = b*b;
-  suminv       = NULL;
   
   if(dt < 0.0)
     {
@@ -1372,10 +1367,9 @@ void RATES_Get_Mean_Rates_Pre(t_node *a, t_node *d, t_edge *b, phydbl r_a, t_tre
 
 void RATES_Random_Branch_Lengths(t_tree *tree)
 {
-  phydbl r0,r_d;
+  phydbl r0;
    
   r0 = 1.0;
-  r_d = 0;
 
   tree->rates->br_r[tree->n_root->num] = r0;
 
@@ -1622,13 +1616,10 @@ phydbl RATES_Dmu2_And_Mu1_Given_Min_N(phydbl mu1, phydbl mu2, phydbl dt1, phydbl
 
 phydbl RATES_Dmu2_And_Mu1_Given_N(phydbl mu1, phydbl mu2, phydbl dt1, phydbl dt2, int n, phydbl a, phydbl b, phydbl lexp)
   {
-    phydbl density,lexpdt1,lexpdt2,texpn,cumpoiss,poiss,abb,ab,LOGnf,LOGdt1,LOGdt2,nLOGdt;
+    phydbl density,cumpoiss,poiss,abb,ab,LOGnf,LOGdt1,LOGdt2,nLOGdt;
     int i;
 
     density  = 0.0;
-    lexpdt1  = lexp*dt1;
-    lexpdt2  = lexp*dt2;
-    texpn    = POW(dt1+dt2,n);
     abb      = a*b*b;
     ab       = a*b;
     cumpoiss = 0.0;
@@ -1771,11 +1762,8 @@ void RATES_Posterior_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree)
   phydbl like_mean, like_var;
   phydbl prior_mean, prior_var;
   phydbl post_mean, post_var, post_sd;
-  phydbl dt,ra,rd,cr,nu,cel,cvl;
-  phydbl cur_l;
+  phydbl dt,rd,cr,cel,cvl;
   int dim;
-  short int *is_1;
-  phydbl *cond_mu, *cond_cov; 
   phydbl l_opp; /* length of the branch connected to the root, opposite to the one connected to d */
   t_edge *b;
   int i;
@@ -1797,9 +1785,6 @@ void RATES_Posterior_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree)
   dim = 2*tree->n_otu-3;
   err = NO;
 
-  is_1        = tree->rates->_2n_vect5;
-  cond_mu     = tree->rates->_2n_vect1;
-  cond_cov    = tree->rates->_2n2n_vect1;
   inflate_var = tree->rates->inflate_var;
 
   b = NULL;
@@ -1838,11 +1823,8 @@ void RATES_Posterior_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree)
   V3 = tree->rates->nu * FABS(T3 - T1);
 
   dt     = T1 - T0;
-  ra     = U0;
   rd     = U1;
   cr     = tree->rates->clock_r;
-  nu     = tree->rates->nu;
-  cur_l  = tree->rates->cur_l[d->num];
   r_min  = tree->rates->min_rate;
   r_max  = tree->rates->max_rate;
   nf     = tree->rates->norm_fact;
@@ -2540,14 +2522,13 @@ void RATES_Posterior_Time_Root(t_tree *tree)
   int err;
   phydbl cr;
   phydbl bl_min, bl_max;
-  phydbl new_l,cur_l;
-  phydbl new_lnL_data, cur_lnL_data, new_lnL_rate, cur_lnL_rate;
+  phydbl new_l;
+  phydbl new_lnL_data, cur_lnL_data, cur_lnL_rate;
   phydbl u,ratio;
 
   dim    = 2*tree->n_otu-3;
   b      = tree->e_root;
   root   = tree->n_root;
-  cur_l  = b->l->v;
   t0     = tree->rates->nd_t[root->num];
   t1     = tree->rates->nd_t[root->v[0]->num];
   t2     = tree->rates->nd_t[root->v[1]->num];
@@ -2641,7 +2622,6 @@ void RATES_Posterior_Time_Root(t_tree *tree)
   cur_lnL_data = tree->c_lnL;
   cur_lnL_rate = tree->rates->c_lnL_rates;
   new_lnL_data = tree->c_lnL;
-  new_lnL_rate = tree->rates->c_lnL_rates;
   
   if(tree->mcmc->use_data) new_lnL_data = Lk(NULL,tree);
     
@@ -2737,9 +2717,8 @@ void RATES_Update_Cur_Bl(t_tree *tree)
 
 void RATES_Update_Cur_Bl_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 {
-  phydbl dt,rr,cr,nf,ra,rd,ta,td,nu;
+  phydbl dt,rr,cr,ra,rd,ta,td,nu;
 
-  /* !!!!!!!!!!!!!!!!!!!!1 */
   tree->rates->br_do_updt[d->num] = YES;
 
   if(tree->rates->br_do_updt[d->num] == YES)
@@ -2748,7 +2727,6 @@ void RATES_Update_Cur_Bl_Pre(t_node *a, t_node *d, t_edge *b, t_tree *tree)
 
       dt = tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num];
       cr = tree->rates->clock_r;
-      nf = tree->rates->norm_fact;
       rd = tree->rates->br_r[d->num];
       ra = tree->rates->br_r[a->num];
       td = tree->rates->nd_t[d->num];
@@ -2910,11 +2888,10 @@ void RATES_Get_Cov_Matrix_Rooted(phydbl *unroot_cov, t_tree *tree)
 
 void RATES_Get_Cov_Matrix_Rooted_Pre(t_node *a, t_node *d, t_edge *b, phydbl *cov, t_tree *tree)
 {
-  int i, dim, done_left;
+  int i, dim;
   t_node *n;
 
   dim       = 2*tree->n_otu-3;
-  done_left = 0;
   n         = NULL;
 
   For(i,dim) 
@@ -3019,7 +2996,7 @@ void RATES_Covariance_Mu(t_tree *tree)
 void RATES_Variance_Mu_Pre(t_node *a, t_node *d, t_tree *tree)
 {
   int dim;
-  phydbl dt0,var0;
+  phydbl var0;
   phydbl dt1,var1;
   phydbl dt2,var2;
   int i;
@@ -3040,7 +3017,6 @@ void RATES_Variance_Mu_Pre(t_node *a, t_node *d, t_tree *tree)
     }
 
 
-  dt0  = tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num];
   var0 = tree->rates->cov_r[d->num*dim+d->num];
 
   dt1  = tree->rates->nd_t[d->v[dir1]->num] - tree->rates->nd_t[d->num];
@@ -3233,11 +3209,9 @@ void RATES_Check_Lk_Rates(t_tree *tree, int *err)
   int i;
   phydbl u,u_anc;
   phydbl t,t_anc;
-  phydbl z;
   
   *err = 0;
 
-  z = 0.0;
   For(i,2*tree->n_otu-2)
     {
       u     = tree->rates->br_r[i];
@@ -3286,17 +3260,9 @@ void RATES_Expected_Tree_Length_Pre(t_node *a, t_node *d, phydbl eranc, phydbl *
 {
   phydbl erdes;
   int i;
-  phydbl u,u_anc,t,t_anc;
   phydbl loc_mean;
   int loc_n;
-  phydbl sd;
-
-  u     = tree->rates->br_r[d->num];
-  u_anc = tree->rates->br_r[a->num];
-  t     = tree->rates->nd_t[d->num];
-  t_anc = tree->rates->nd_t[a->num];
   
-  sd = SQRT((t-t_anc)*tree->rates->nu);
   
 /*  erdes = u_anc - */
 /*     sd*(Dnorm((tree->rates->min_rate-u_anc)/sd,.0,1.) - Dnorm((tree->rates->max_rate-u_anc)/sd,.0,1.))/ */
@@ -3585,7 +3551,7 @@ phydbl RATES_Get_Correction_Factor(phydbl mode, phydbl sd, int *err, t_tree *tre
   phydbl eps=0.01;
   phydbl A,B;
   phydbl slope,inter;
-  phydbl num, denom;
+  phydbl denom;
 
   *err = NO;
 
@@ -3619,7 +3585,6 @@ phydbl RATES_Get_Correction_Factor(phydbl mode, phydbl sd, int *err, t_tree *tre
 
       X2 = -inter/slope;
       
-      num   = (Dnorm(A-K+X2,.0,1.)-Dnorm(B-K+X2,.0,1.));
       denom = (Pnorm(B-K+X2,.0,1.)-Pnorm(A-K+X2,.0,1.));
 
       if(denom < 1.E-10) 
@@ -3661,17 +3626,7 @@ phydbl RATES_Get_Correction_Factor(phydbl mode, phydbl sd, int *err, t_tree *tre
 
 phydbl Sample_Average_Rate(t_node *a, t_node *d, t_tree *tree)
 {
-  phydbl ra,rd;
-  phydbl ta,td;
-
-  ra = tree->rates->br_r[a->num];
-  rd = tree->rates->br_r[d->num];
-
-  ta = tree->rates->nd_t[a->num];
-  td = tree->rates->nd_t[d->num];
-  
   return(-1.);
-
 }
 
 //////////////////////////////////////////////////////////////
@@ -3808,8 +3763,7 @@ void RATES_Set_Clock_And_Nu_Max(t_tree *tree)
   phydbl step;
   phydbl l_max;
   phydbl max_clock;
-  phydbl a;
-  phydbl r_min,r_max;
+  phydbl r_max;
   phydbl tune;
   phydbl pa,pb;
 
@@ -3820,12 +3774,10 @@ void RATES_Set_Clock_And_Nu_Max(t_tree *tree)
       
       if(tree->rates->model_log_rates == NO)
 	{
-	  r_min = LOG(tree->rates->min_rate);
 	  r_max = LOG(tree->rates->max_rate);
 	}
       else
 	{
-	  r_min = tree->rates->min_rate;
 	  r_max = tree->rates->max_rate;
 	}
       
@@ -3839,7 +3791,6 @@ void RATES_Set_Clock_And_Nu_Max(t_tree *tree)
       
       nu   = 1.E-10;
       step = 1.E-1;
-      a    = 0.5;
       do
 	{
 	  do
