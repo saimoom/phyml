@@ -319,7 +319,7 @@ io.c io.h\
 make.c make.h\
 nexus.c nexus.h\
 init.c init.h\
-xml.c xml.h
+xml.c xml.h\
 mixt.c mixt.h
 phyml_LDADD = -lm 
 endif

@@ -20,10 +20,8 @@ the GNU public licence. See http://www.opensource.org for details.
 void Read_Command_Line(option *io, int argc, char **argv)
 {
   int c;
-  int open_ps_file;
-  int use_gamma;
-  int writemode;
   int idx;
+  int writemode;
 
   if(argc == 1) Exit("\n. No argument was passed to the program. Please check the documentation. \n");
 
@@ -115,8 +113,9 @@ void Read_Command_Line(option *io, int argc, char **argv)
   io->datatype = UNDEFINED;
 
   writemode = 1;
-  open_ps_file = 0;
-  use_gamma = 0;
+  #ifndef PHYML
+  int open_ps_file = 0;
+  #endif
   idx=-1;
 
     do
@@ -421,7 +420,9 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	  }
 	case 36 :
 	  {
-	    open_ps_file = 1;
+	    #ifndef PHYML
+            open_ps_file = 1;
+            #endif
 	    break;
 	  }
 	case 35 :
@@ -831,7 +832,6 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	  
 	case 'a':case 14 :
 	  {
-	    use_gamma = 1;
 	    if ((strcmp (optarg, "e") == 0) ||
 		(strcmp (optarg, "E") == 0) ||
 		(strcmp (optarg, "estimated") == 0) ||

@@ -250,12 +250,11 @@ phydbl Rnorm_Trunc_Inverse(phydbl mean, phydbl sd, phydbl min, phydbl max, int *
 {
 
   phydbl u, ret_val,eps;
-  phydbl z,rz;
+  phydbl z;
   phydbl z_min,z_max;
   phydbl cdf_min, cdf_max;
 
   z      = 0.0;
-  rz     = 0.0;
   u      = -1.0;
   *error = 0;
   
@@ -301,14 +300,12 @@ phydbl Rnorm_Trunc_Inverse(phydbl mean, phydbl sd, phydbl min, phydbl max, int *
 phydbl Rnorm_Trunc(phydbl mean, phydbl sd, phydbl min, phydbl max, int *error)
 {
 
-  phydbl u, ret_val,eps;
+  phydbl ret_val,eps;
   int iter;
-  phydbl z,rz;
+  phydbl z;
   phydbl z_min,z_max;
 
   z      = 0.0;
-  rz     = 0.0;
-  u      = -1.0;
   *error = NO;
   
   if(sd < 1.E-100)
@@ -1483,7 +1480,7 @@ int Choose(int n, int k)
 
 phydbl *Covariance_Matrix(t_tree *tree)
 {
-  phydbl *cov, *mean,var_min;
+  phydbl *cov, *mean;
   int *ori_wght,*site_num;
   int dim,i,j,replicate,n_site,position,sample_size;
 
@@ -1495,8 +1492,6 @@ phydbl *Covariance_Matrix(t_tree *tree)
   ori_wght = (int *)mCalloc(tree->data->crunch_len,sizeof(int));
   site_num = (int *)mCalloc(tree->data->init_len,sizeof(int));
   
-  var_min = 1./POW(tree->data->init_len,2);
-
   For(i,tree->data->crunch_len) ori_wght[i] = tree->data->wght[i];
 
   n_site = 0;
@@ -1948,7 +1943,6 @@ phydbl *Gradient(t_tree *tree)
   phydbl *ori_bl,*inc;
   int *is_ok;
   int dim;
-  int n_ok_edges;
   int i;
   phydbl eps;
   phydbl lk;
@@ -1977,7 +1971,6 @@ phydbl *Gradient(t_tree *tree)
   else
     l_inf = MAX(tree->mod->l_min,-LOG((phydbl)tree->data->init_len));
 
-  n_ok_edges = 0;
   For(i,dim) 
     {
       if(tree->t_edges[i]->l->v*(1.-eps) > l_inf)
@@ -2092,10 +2085,9 @@ phydbl *Hessian_Seo(t_tree *tree)
   phydbl *ori_bl,*inc_plus,*inc_minus,*inc;
   int *is_ok;
   int dim;
-  int n_ok_edges;
   int i,j,k;
   phydbl eps;
-  phydbl ori_lnL,lnL,lnL1,lnL2;
+  phydbl ori_lnL,lnL1,lnL2;
   phydbl l_inf;
   int l,n;
   phydbl small_var;
@@ -2116,7 +2108,7 @@ phydbl *Hessian_Seo(t_tree *tree)
   inc          = (phydbl *)mCalloc((int)dim,sizeof(phydbl));
   is_ok        = (int *)mCalloc((int)dim,sizeof(int));
 
-  lnL = lnL1 = lnL2 = UNLIKELY;
+  lnL1 = lnL2 = UNLIKELY;
   
   Set_Both_Sides(YES,tree);
   Lk(NULL,tree);
@@ -2129,7 +2121,6 @@ phydbl *Hessian_Seo(t_tree *tree)
   else
     l_inf = MAX(tree->mod->l_min,-LOG((phydbl)tree->data->init_len));
 
-  n_ok_edges = 0;
   For(i,dim) 
     {
       if(tree->t_edges[i]->l->v*(1.-eps) > l_inf)
@@ -2185,7 +2176,7 @@ phydbl *Hessian_Seo(t_tree *tree)
       if(is_ok[i] == YES)
 	{
 	  tree->t_edges[i]->l->v += inc[i];
-	  lnL = Lk(tree->t_edges[i],tree);
+	  Lk(tree->t_edges[i],tree);
 	  For(j,tree->n_pattern) plus[i*tree->n_pattern+j] = tree->cur_site_lk[j];
 	  tree->t_edges[i]->l->v = ori_bl[i];
 	}
@@ -2198,7 +2189,7 @@ phydbl *Hessian_Seo(t_tree *tree)
       if(is_ok[i] == YES)
 	{
 	  tree->t_edges[i]->l->v -= inc[i];
-	  lnL = Lk(tree->t_edges[i],tree);
+	  Lk(tree->t_edges[i],tree);
 	  For(j,tree->n_pattern) minus[i*tree->n_pattern+j] = tree->cur_site_lk[j];
 	  tree->t_edges[i]->l->v = ori_bl[i];
 	}
@@ -2209,7 +2200,7 @@ phydbl *Hessian_Seo(t_tree *tree)
     {
       if(is_ok[i] == NO)
 	{
-	  lnL = Lk(tree->t_edges[i],tree);	
+	  Lk(tree->t_edges[i],tree);	
 	  For(j,tree->n_pattern) zero[i*tree->n_pattern+j] = tree->cur_site_lk[j];
 	  
 	  tree->t_edges[i]->l->v += inc[i];
@@ -2400,7 +2391,7 @@ phydbl *Hessian_Log(t_tree *tree)
   ok_edges    = (int *)mCalloc((int)dim,       sizeof(int));
   is_ok       = (int *)mCalloc((int)dim,       sizeof(int));
   
-  Set_Both_Sides(YES,tree)
+  Set_Both_Sides(YES,tree);
   Lk(NULL,tree);
 
   For(i,dim) ori_bl[i] = tree->t_edges[i]->l->v;

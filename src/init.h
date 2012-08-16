@@ -31,19 +31,22 @@ void Init_Mat(matrix *mat,calign *data);
 void Set_Defaults_Input(option *io);
 void Set_Defaults_Model(t_mod *mod);
 void Set_Defaults_Optimiz(t_opt *s_opt);
-void XML_Init_Node(xml_node *parent, xml_node *new, char *name);
-void Init_One_Spr(spr *a_spr);
-void Init_Model(calign *data, t_mod *mod, option *io);
-int Init_Qmat_WAG(phydbl *daa, phydbl *pi);
-int Init_Qmat_Dayhoff(phydbl *daa, phydbl *pi);
-int Init_Qmat_JTT(phydbl *daa, phydbl *pi);
-int Init_Qmat_RtREV(phydbl *daa, phydbl *pi);
-int Init_Qmat_CpREV(phydbl *daa, phydbl *pi);
-int Init_Qmat_VT(phydbl *daa, phydbl *pi);
-int Init_Qmat_Blosum62(phydbl *daa, phydbl *pi);
-int Init_Qmat_MtMam(phydbl *daa, phydbl *pi);
-int Init_Qmat_MtArt(phydbl *daa, phydbl *pi); // Added by Federico Abascal
-int Init_Qmat_HIVb(phydbl *daa, phydbl *pi);  // Added by Federico Abascal
-int Init_Qmat_HIVw(phydbl *daa, phydbl *pi);  // Added by Federico Abascal
+void XML_Init_Node(xml_node *parent,xml_node *new_node,char *name);
+void Init_One_Spr(t_spr *a_spr);
+void Init_Model(calign *data,t_mod *mod,option *io);
+int Init_Qmat_Dayhoff(phydbl *daa,phydbl *pi);
+int Init_Qmat_DCMut(phydbl *daa,phydbl *pi);
+int Init_Qmat_MtArt(phydbl *daa,phydbl *pi);
+int Init_Qmat_HIVb(phydbl *daa,phydbl *pi);
+int Init_Qmat_HIVw(phydbl *daa,phydbl *pi);
+int Init_Qmat_JTT(phydbl *daa,phydbl *pi);
+int Init_Qmat_MtREV(phydbl *daa,phydbl *pi);
+int Init_Qmat_LG(phydbl *daa,phydbl *pi);
+int Init_Qmat_WAG(phydbl *daa,phydbl *pi);
+int Init_Qmat_RtREV(phydbl *daa,phydbl *pi);
+int Init_Qmat_CpREV(phydbl *daa,phydbl *pi);
+int Init_Qmat_VT(phydbl *daa,phydbl *pi);
+int Init_Qmat_Blosum62(phydbl *daa,phydbl *pi);
+int Init_Qmat_MtMam(phydbl *daa,phydbl *pi);
 
 #endif

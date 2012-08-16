@@ -47,7 +47,7 @@ void Free_Input(option *io);
 void Free_Tree_List(t_treelist *list);
 void Free_St(supert_tree *st);
 void Free_Eigen(eigen *eigen_struct);
-void Free_One_Spr(spr *this_spr);
+void Free_One_Spr(t_spr *this_spr);
 void Free_Spr_List(t_tree *tree);
 void Free_Triplet(triplet *t);
 void Free_Actual_CSeq(calign *data);

@@ -793,7 +793,6 @@ void Launch_Interface_Model(option *io)
 	int i,j;
 	char **rr_param,*rr;
 	t_mod *mod;
-	int curr_param;
 	int n_trial;
 
 	if(io->mod->whichmodel == CUSTOM)
@@ -844,7 +843,6 @@ void Launch_Interface_Model(option *io)
 	    strcpy(rr_param[5],"G<->T");
 
 	    PhyML_Printf("\n. Set the relative rate values\n");
-	    curr_param = 0;
 	    For(i,mod->r_mat->n_diff_rr)
 	      {
 		sprintf(rr,"\n. [");

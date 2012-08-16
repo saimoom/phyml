@@ -24,6 +24,7 @@ void PMat_JC69(phydbl l, int pos, phydbl *Pij, t_mod *mod)
 
   ns = mod->ns;
 
+
   For(i,ns) Pij[pos+ ns*i+i] = 1. - ((ns - 1.)/ns)*(1. - EXP(-ns*l/(ns - 1.)));
   For(i,ns-1) 
     for(j=i+1;j<ns;j++) 
@@ -49,6 +50,7 @@ void PMat_K80(phydbl l, phydbl kappa, int pos, phydbl *Pij)
 
   /* Ts -> transition*/
   /* Tv -> transversion*/
+
 
   aux = -2*l/(kappa+2);
   e1 = (phydbl)EXP(aux *2);

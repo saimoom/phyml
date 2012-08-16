@@ -312,13 +312,12 @@ int Compute_Likelihood_Ratio_Test(t_edge *tested_edge, t_tree *tree)
 int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
 {
   int n_patterns;
-  int l_r, r_l, l_v1, l_v2, r_v3, r_v4, site;
+  int site;
   t_node *v1,*v2,*v3,*v4;
   t_edge *e1,*e2,*e3,*e4;
   phydbl len_e1,len_e2,len_e3,len_e4;
   phydbl lk0, lk1, lk2;
   phydbl bl_init;
-  phydbl l1,l2,l3;
   phydbl l_infa, l_infb, l_max;
   phydbl lk_init, lk_temp;
   int i;
@@ -337,10 +336,6 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
   lk0 = lk1 = lk2    = UNLIKELY;
   v1 = v2 = v3 = v4  = NULL;
 
-  l_r = r_l = l_v1 = l_v2 = r_v3 = r_v4 = -1;
-
-  l_r = b_fcus->l_r;
-  r_l = b_fcus->r_l;
 
   //vertices
   v1 = b_fcus->left->v[b_fcus->l_v1];
@@ -359,9 +354,6 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
       Warn_And_Exit("");
     }
 
-
-  l1 = l2 = l3 = -1.;
-  l1 = b_fcus->l->v;
 
   //edges
   e1 = b_fcus->left->b[b_fcus->l_v1];
@@ -549,8 +541,6 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
 	}
     }
 
-  //save current length
-  l2  = b_fcus->l->v;
 
   //undo the swap
   Swap(v3,b_fcus->left,b_fcus->rght,v2,tree);
@@ -658,8 +648,6 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
 	}
     }
 
-  //save current length
-  l3  = b_fcus->l->v;
   //undo the swap
   Swap(v4,b_fcus->left,b_fcus->rght,v2,tree);
   /***********/
@@ -752,11 +740,8 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
 
 void Make_Target_Swap(t_tree *tree, t_edge *b_fcus, int swaptodo)
 {
-  int l_r, r_l, l_v1, l_v2, r_v3, r_v4;
   t_node *v1,*v2,*v3,*v4;
-  t_edge *e1,*e2,*e3,*e4;
   phydbl lktodo;
-  phydbl bl_init;
   phydbl l_infa, l_infb, l_max;
   phydbl lk_init, lk_temp;
   int i;
@@ -768,7 +753,6 @@ void Make_Target_Swap(t_tree *tree, t_edge *b_fcus, int swaptodo)
     }
 
   //Initialization
-  bl_init = b_fcus->l->v;
   lk_init = tree->c_lnL;
 
   b_fcus->nni->score = .0;
@@ -776,10 +760,6 @@ void Make_Target_Swap(t_tree *tree, t_edge *b_fcus, int swaptodo)
   lktodo = UNLIKELY;
   v1 = v2 = v3 = v4 = NULL;
 
-  l_r = r_l = l_v1 = l_v2 = r_v3 = r_v4 = -1;
-
-  l_r = b_fcus->l_r;
-  r_l = b_fcus->r_l;
 
   v1 = b_fcus->left->v[b_fcus->l_v1];
   v2 = b_fcus->left->v[b_fcus->l_v2];
@@ -796,11 +776,6 @@ void Make_Target_Swap(t_tree *tree, t_edge *b_fcus, int swaptodo)
       PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
-
-  e1 = b_fcus->left->b[b_fcus->l_v1];
-  e2 = b_fcus->left->b[b_fcus->l_v2];
-  e3 = b_fcus->rght->b[b_fcus->r_v1];
-  e4 = b_fcus->rght->b[b_fcus->r_v2];
 
 
   /***********/

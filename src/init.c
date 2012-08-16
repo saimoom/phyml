@@ -451,7 +451,6 @@ void Set_Defaults_Input(option* io)
   io->cstr_tree                  = NULL;
   io->next                       = NULL;
   io->prev                       = NULL;
-
   io->tree                       = NULL;
   io->mod                        = NULL;
   strcpy(io->nt_or_cd,"nucleotides");
@@ -672,6 +671,9 @@ void Init_One_Spr(t_spr *a_spr)
   a_spr->parent          = NULL;
 }
 
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 void Init_Model(calign *data, t_mod *mod, option *io)
 {
   int i,j;
@@ -711,8 +713,8 @@ void Init_Model(calign *data, t_mod *mod, option *io)
   if(io->datatype == NT)
     {
       /* Set the substitution parameters to their default values
-	 when they are not fixed by the user */
-      if(mod->s_opt->opt_kappa) 
+	 if they are not fixed by the user */
+      if(mod->s_opt->opt_kappa == YES) 
 	{
 	  mod->kappa->v  = 4.0;
 	  mod->lambda->v = 1.0;

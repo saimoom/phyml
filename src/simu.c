@@ -20,10 +20,9 @@ void Simu_Loop(t_tree *tree)
 {
   phydbl lk_old;
   int *orig_catg,*orig_inv;
-  int ori_print,n;
+  int n;
   t_tree *orig_tree,**tree_list,**orig_tree_list;
   
-
   if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n. Refining the input tree...\n");
 
   /*! Get the number of classes in each mixture */
@@ -31,9 +30,7 @@ void Simu_Loop(t_tree *tree)
 
   /*! Record values of mod->invar in every tree 
    */
-  orig_inv  = MIXT_Has_Invariants(tree);
-
-  ori_print = tree->mod->s_opt->print;
+  orig_inv  = MIXT_Record_Has_Invariants(tree);
 
   /*! Set the number of rate classes to (at most) 2.
     ! Propagate this to every mixture tree in the analysis
@@ -172,9 +169,7 @@ int Simu(t_tree *tree, int n_step_max)
   phydbl old_loglk,n_iter,lambda;
   int i,n_neg,n_tested,n_without_swap,n_tot_swap,step,it_lim_without_swap;
   t_edge **sorted_b,**tested_b;
-  int opt_free_param;
-  int recurr;
-
+  
   sorted_b = (t_edge **)mCalloc(tree->n_otu-3,sizeof(t_edge *));
   tested_b = (t_edge **)mCalloc(tree->n_otu-3,sizeof(t_edge *));
   
@@ -188,8 +183,6 @@ int Simu(t_tree *tree, int n_step_max)
   step                = 0;
   lambda              = .75;
   n_tot_swap          = 0;
-  opt_free_param      = 0;
-  recurr              = 0;
   
   Update_Dirs(tree);
       
@@ -380,12 +373,10 @@ void Select_Edges_To_Swap(t_tree *tree, t_edge **sorted_b, int *n_neg)
 {
   int i;
   t_edge *b;
-  int min;
   phydbl best_score;
 
   *n_neg = 0;
-  min = 0;
-  
+
   For(i,2*tree->n_otu-3)
     {
       b = tree->t_edges[i];

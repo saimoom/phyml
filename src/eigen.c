@@ -182,14 +182,13 @@ int cmatinv( complex *x, int n, int m, phydbl *space)
 */
    int i,j,k, *irow=(int*) space;
    phydbl xmaxsize, ee=1e-20;
-   complex xmax, t,t1;
+   complex t,t1;
 
    For(i,n)  {
        xmaxsize = 0.;
        for (j=i; j<n; j++) {
           if ( xmaxsize < csize (x[j*m+i]))  {
                xmaxsize = csize (x[j*m+i]);
-               xmax = x[j*m+i];
                irow[i] = j;
           }
        }

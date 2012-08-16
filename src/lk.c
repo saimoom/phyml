@@ -502,7 +502,6 @@ phydbl Lk(t_edge *b, t_tree *tree)
 */
 
 #ifndef USE_OLD_LK
-
 phydbl Lk_Core(t_edge *b, t_tree *tree)
 {
   phydbl log_site_lk;
@@ -742,7 +741,8 @@ phydbl Lk_Core(t_edge *b, t_tree *tree)
   tree->c_lnL_sorted[site] = tree->data->wght[site]*log_site_lk;
 
   tree->c_lnL += tree->data->wght[site]*log_site_lk;
-/*   tree->sum_min_sum_scale += (int)tree->data->wght[site]*min_sum_scale; */
+  /* tree->sum_min_sum_scale += (int)tree->data->wght[site]*min_sum_scale; */
+  /* printf("\n. site = %d loglk = %f",site,log_site_lk); */
   
   return log_site_lk;
 }
@@ -861,12 +861,8 @@ phydbl Invariant_Lk(int *fact_sum_scale, int site, int *num_prec_issue, t_tree *
 void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
 {
 
-  if(tree->is_mixt_tree == YES)
-    {
-      MIXT_Update_P_Lk(tree,b,d);
-      return;
-    }
-
+  if(tree->is_mixt_tree == YES) return MIXT_Update_P_Lk(tree,b,d);
+  
   if((tree->io->do_alias_subpatt == YES) && 
      (tree->update_alias_subpatt == YES)) 
     Alias_One_Subpatt((d==b->left)?(b->rght):(b->left),d,tree);
@@ -1216,8 +1212,8 @@ void Update_P_Lk_Nucl(t_tree *tree, t_edge *b, t_node *d)
 
   if(d->tax)
     {
-      PhyML_Printf("\n. t_node %d is a leaf...",d->num);
-      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
+      PhyML_Printf("\n== t_node %d is a leaf...",d->num);
+      PhyML_Printf("\n== Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("\n");
     }
 
@@ -1228,11 +1224,11 @@ void Update_P_Lk_Nucl(t_tree *tree, t_edge *b, t_node *d)
 
   if((dir1 == -1) || (dir2 == -1))
     {
-      PhyML_Printf("\n. d = %d",d->num);
-      PhyML_Printf("\n. d->v[0] = %d, d->v[1] = %d, d->v[2] = %d",d->v[0]->num,d->v[1]->num,d->v[2]->num);
-      PhyML_Printf("\n. d->b[0] = %d, d->b[1] = %d, d->b[2] = %d",d->b[0]->num,d->b[1]->num,d->b[2]->num);
-      PhyML_Printf("\n. d->num = %d dir1 = %d dir2 = %d",d->num,dir1,dir2);
-      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
+      PhyML_Printf("\n== d = %d",d->num);
+      PhyML_Printf("\n== d->v[0] = %d, d->v[1] = %d, d->v[2] = %d",d->v[0]->num,d->v[1]->num,d->v[2]->num);
+      PhyML_Printf("\n== d->b[0] = %d, d->b[1] = %d, d->b[2] = %d",d->b[0]->num,d->b[1]->num,d->b[2]->num);
+      PhyML_Printf("\n== d->num = %d dir1 = %d dir2 = %d",d->num,dir1,dir2);
+      PhyML_Printf("\n== Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Exit("");
     }
   
@@ -1441,8 +1437,30 @@ void Update_P_Lk_Nucl(t_tree *tree, t_edge *b, t_node *d)
 
 		  if(p_lk[site*dim1+catg*dim2+i] < smallest_p_lk) smallest_p_lk = p_lk[site*dim1+catg*dim2+i] ; 
 		}
-	      
-	      
+	      	      
+              /* if(n_v1->tax == NO && n_v2->tax == NO) */
+              /*   printf("\n<< site %3d node %3d %3d %3d %f %f %f %f  v1 : %f %f %f %f v2: %f %f %f %f>>",                        */
+              /*          site,d->num,n_v1->num,n_v2->num,p_lk[0],p_lk[1],p_lk[2],p_lk[3], */
+              /*          (phydbl)p_lk_v1[0],(phydbl)p_lk_v1[1],(phydbl)p_lk_v1[2],(phydbl)p_lk_v1[3], */
+              /*          (phydbl)p_lk_v2[0],(phydbl)p_lk_v2[1],(phydbl)p_lk_v2[2],(phydbl)p_lk_v2[3]); */
+              /* else if(n_v1->tax == NO && n_v2->tax == YES) */
+              /*   printf("\n<< site %3d node %3d %3d %3d %f %f %f %f  v1 : %f %f %f %f v2*: %f %f %f %f>>", */
+              /*          site,d->num,n_v1->num,n_v2->num,p_lk[0],p_lk[1],p_lk[2],p_lk[3], */
+              /*          (phydbl)p_lk_v1[0],(phydbl)p_lk_v1[1],(phydbl)p_lk_v1[2],(phydbl)p_lk_v1[3], */
+              /*          (phydbl)n_v2->b[0]->p_lk_tip_r[0],(phydbl)n_v2->b[0]->p_lk_tip_r[1],(phydbl)n_v2->b[0]->p_lk_tip_r[2],(phydbl)n_v2->b[0]->p_lk_tip_r[3]); */
+              /* else if(n_v1->tax == YES && n_v2->tax == NO) */
+              /*   printf("\n<< site %3d node %3d %3d %3d %f %f %f %f  v1*: %f %f %f %f v2 : %f %f %f %f>>", */
+              /*          site,d->num,n_v1->num,n_v2->num,p_lk[0],p_lk[1],p_lk[2],p_lk[3], */
+              /*          (phydbl)n_v1->b[0]->p_lk_tip_r[0],(phydbl)n_v1->b[0]->p_lk_tip_r[1],(phydbl)n_v1->b[0]->p_lk_tip_r[2],(phydbl)n_v1->b[0]->p_lk_tip_r[3], */
+              /*          (phydbl)p_lk_v2[0],(phydbl)p_lk_v2[1],(phydbl)p_lk_v2[2],(phydbl)p_lk_v2[3]); */
+              /* else if(n_v1->tax == YES && n_v2->tax == YES) */
+              /*   printf("\n<< site %3d node %3d %3d %3d %f %f %f %f  v1*: %f %f %f %f v2*: %f %f %f %f>>", */
+              /*          site,d->num,n_v1->num,n_v2->num,p_lk[0],p_lk[1],p_lk[2],p_lk[3], */
+              /*          (phydbl)n_v1->b[0]->p_lk_tip_r[0],(phydbl)n_v1->b[0]->p_lk_tip_r[1],(phydbl)n_v1->b[0]->p_lk_tip_r[2],(phydbl)n_v1->b[0]->p_lk_tip_r[3], */
+              /*          (phydbl)n_v2->b[0]->p_lk_tip_r[0],(phydbl)n_v2->b[0]->p_lk_tip_r[1],(phydbl)n_v2->b[0]->p_lk_tip_r[2],(phydbl)n_v2->b[0]->p_lk_tip_r[3]); */
+              /* Print_Square_Matrix_Generic(4,Pij1); */
+              /* Print_Square_Matrix_Generic(4,Pij2); */
+
 
 	      /* Current scaling values at that site */
 	      sum_scale_v1_val = (sum_scale_v1)?(sum_scale_v1[catg*n_patterns+site]):(0);
@@ -2336,8 +2354,9 @@ void Update_PMat_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
 	      if(len < l_min)      len = l_min;
 	      else if(len > l_max) len = l_max;
 	    }
-	  
+
 	  PMat(len,tree->mod,tree->mod->ns*tree->mod->ns*i,b_fcus->Pij_rr);
+
 	}
 
       if(tree->mod->log_l == YES) b_fcus->l->v = LOG(b_fcus->l->v);

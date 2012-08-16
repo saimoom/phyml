@@ -259,7 +259,7 @@ void Update_P_Pars(t_tree *tree, t_edge *b_fcus, t_node *n)
   unsigned int *ui, *ui_v1, *ui_v2;
   int *p_pars_v1, *p_pars_v2, *p_pars;
   int *pars, *pars_v1, *pars_v2;
-  int n_patterns,matches;
+  int n_patterns;
   int min_v1,min_v2;
   int v;
   int dim1;
@@ -271,7 +271,6 @@ void Update_P_Pars(t_tree *tree, t_edge *b_fcus, t_node *n)
   if(n->tax) return;
 
   dim1 = tree->mod->ns;
-  matches = 0;
   ui = ui_v1 = ui_v2 = NULL;
   p_pars = p_pars_v1 = p_pars_v2 = NULL;
   pars = pars_v1 = pars_v2 = NULL;

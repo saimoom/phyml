@@ -305,11 +305,9 @@ void Free_Tree_Lk(t_tree *tree)
 {
   int i;
   t_edge *b;
-  t_node *n;
-
+  
   b = NULL;
-  n = NULL;
-
+  
   For(i,3) Free(tree->log_lks_aLRT[i]);
   Free(tree->log_lks_aLRT);
 
@@ -620,7 +618,7 @@ void Free_Eigen(eigen *eigen_struct)
 //////////////////////////////////////////////////////////////
 
 
-void Free_One_Spr(spr *this_spr)
+void Free_One_Spr(t_spr *this_spr)
 {
   Free(this_spr->path);
   Free(this_spr);

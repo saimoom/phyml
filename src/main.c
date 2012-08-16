@@ -22,7 +22,6 @@ the GNU public licence. See http://www.opensource.org for details.
 #include "eigen.h"
 #include "pars.h"
 #include "alrt.h"
-#include "mixtlk.h"
 #include "mixt.h"
 
 #ifdef MPI
@@ -37,12 +36,11 @@ int main(int argc, char **argv)
   calign *cdata;
   option *io;
   t_tree *tree;
-  int n_otu, num_data_set;
-  int num_tree,tree_line_number,num_rand_tree;
-  matrix *mat;
+  int num_data_set;
+  int num_tree,num_rand_tree;
   t_mod *mod;
   time_t t_beg,t_end;
-  phydbl best_lnL,most_likely_size,tree_size;
+  phydbl best_lnL;
   int r_seed;
   char *most_likely_tree=NULL;
 
@@ -65,8 +63,6 @@ int main(int argc, char **argv)
   tree             = NULL;
   mod              = NULL;
   best_lnL         = UNLIKELY;
-  most_likely_size = -1.0;
-  tree_size        = -1.0;
 
   io = (option *)Get_Input(argc,argv);
   r_seed = (io->r_seed < 0)?(time(NULL)):(io->r_seed);
@@ -82,9 +78,6 @@ int main(int argc, char **argv)
       Exit("\n");
     }
 
-  mat = NULL;
-  tree_line_number = 0;
-
   if((io->n_data_sets > 1) && (io->n_trees > 1))
     {
       io->n_data_sets = MIN(io->n_trees,io->n_data_sets);
@@ -93,7 +86,6 @@ int main(int argc, char **argv)
 
   For(num_data_set,io->n_data_sets)
     {
-      n_otu = 0;
       best_lnL = UNLIKELY;
       Get_Seq(io);
       Make_Model_Complete(io->mod);
@@ -108,13 +100,6 @@ int main(int argc, char **argv)
 
 	  Free_Seq(io->data,cdata->n_otu);
 	  
-	  if(cdata) Check_Ambiguities(cdata,io->datatype,io->state_len);
-	  else
-	    {
-	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-	      Warn_And_Exit("");
-	    }
-
 	  for(num_tree=(io->n_trees == 1)?(0):(num_data_set);num_tree < io->n_trees;num_tree++)
 	    {
 	      if(!io->mod->s_opt->random_input_tree) io->mod->s_opt->n_rand_starts = 1;
@@ -171,8 +156,8 @@ int main(int argc, char **argv)
 
 		  if(io->cstr_tree && !Check_Topo_Constraints(tree,io->cstr_tree))
 		    {
-		      PhyML_Printf("\n\n. The initial tree does not satisfy the topological constraint.");
-		      PhyML_Printf("\n. Please use the user input tree option with an adequate tree topology.");
+		      PhyML_Printf("\n\n== The initial tree does not satisfy the topological constraint.");
+		      PhyML_Printf("\n== Please use the user input tree option with an adequate tree topology.");
 		      Exit("\n");
 		    }
 
@@ -192,7 +177,7 @@ int main(int argc, char **argv)
 		  if(io->do_alias_subpatt)
 		    {
 		      tree->update_alias_subpatt = YES;
-		      Lk(tree);
+		      Lk(NULL,tree);
 		      tree->update_alias_subpatt = NO;
 		    }		  
 
@@ -208,13 +193,12 @@ int main(int argc, char **argv)
 		    {
 		      if(tree->mod->s_opt->opt_subst_param || 
 			 tree->mod->s_opt->opt_bl)                       Round_Optimize(tree,tree->data,ROUND_MAX);
-		      else                                               Lk(tree);
+		      else                                               Lk(NULL,tree);
 		    }
 
-
 		  tree->both_sides = 1;
-		  Lk(tree);
-		  Pars(tree);
+		  Lk(NULL,tree);
+		  Pars(NULL,tree);
 		  Get_Tree_Size(tree);
 		  PhyML_Printf("\n\n. Log likelihood of the current tree: %f.\n",tree->c_lnL);
 
@@ -236,7 +220,6 @@ int main(int argc, char **argv)
 		      best_lnL = tree->c_lnL;
 		      if(most_likely_tree) Free(most_likely_tree);
 		      most_likely_tree = Write_Tree(tree,NO);
-		      most_likely_size = Get_Tree_Size(tree);
 		    }
 
 /* 		  JF(tree); */
@@ -543,12 +526,14 @@ int main(int argc, char **argv)
   
 
 
-  // Read all partitionelem nodes and mixturelem nodes in each of them
+  /*! Read all partitionelem nodes and mixturelem nodes in each of them
+   */
   do
     {
       p_elem = XML_Search_Node_Name("partitionelem",YES,p_elem);
-      if(p_elem == NULL) break;
-           
+
+      if(p_elem == NULL) break;           
+
       buff = (option *)Make_Input();
       Set_Defaults_Input(buff);
       if(io) 
@@ -559,13 +544,15 @@ int main(int argc, char **argv)
 	}
       else io = buff;
 
-      // Set the datatype (required when compressing data)
+      /*! Set the datatype (required when compressing data)
+       */
       char *dt = NULL;
       dt = XML_Get_Attribute_Value(p_elem,"datatype");
       if(!dt)
 	{
 	  PhyML_Printf("\n== Please specify the type of data ('aa' or 'nt') for partition element '%s'",
-		       XML_Get_Attribute_Value(p_elem,"id"));
+                       XML_Get_Attribute_Value(p_elem,"id"));
+	  PhyML_Printf("\n== Syntax: 'datatype=\"aa\"' or 'datatype=\"nt\"'");
 	  Exit("\n");	    
 	}
 
@@ -589,7 +576,8 @@ int main(int argc, char **argv)
 	  }
 	}
 
-      // Attach a model to this io struct
+      /*! Attach a model to this io struct 
+       */
       io->mod = (t_mod *)Make_Model_Basic();
       Set_Defaults_Model(io->mod);
       io->mod->ras->n_catg = 1;
@@ -597,7 +585,8 @@ int main(int argc, char **argv)
 
       iomod = io->mod;
 
-      // Attach an optimization structure to this model
+      /*! Attach an optimization structure to this model
+       */
       iomod->s_opt = (t_opt *)Make_Optimiz();
       Set_Defaults_Optimiz(iomod->s_opt);
 
@@ -605,7 +594,8 @@ int main(int argc, char **argv)
       iomod->s_opt->opt_lambda = NO;
       iomod->s_opt->opt_rr     = NO;
 
-      // Input file
+      /*! Input file
+       */
       alignment = XML_Get_Attribute_Value(p_elem,"filename");  
       
       strcpy(io->in_align_file,alignment);
@@ -615,15 +605,18 @@ int main(int argc, char **argv)
       strcpy(io->out_stats_file,alignment);
       strcat(io->out_stats_file,"_phyml_stats");      
 
-      // Load sequence file
+      /*! Load sequence file
+       */
       io->data  = Get_Seq(io);
 
-      // Compress alignment
+      /*! Compress alignment
+       */
       io->cdata = Compact_Data(io->data,io);
 
-      // Create new mixture tree
-      buff = (t_tree *)Make_Tree_From_Scratch(io->cdata->n_otu,
-					      io->cdata);
+
+      /*! Create new mixture tree
+       */
+      buff = (t_tree *)Make_Tree_From_Scratch(io->cdata->n_otu,io->cdata);
 
       if(mixt_tree)
 	{
@@ -633,34 +626,42 @@ int main(int argc, char **argv)
 	}
       else mixt_tree = buff;
       
-      // mixt_tree is a mixture tree
+      /*! mixt_tree is a mixture tree
+       */
       mixt_tree->is_mixt_tree = YES;
 
-      // Connect mixt_tree to io struct
+      /*! Connect mixt_tree to io struct
+       */
       mixt_tree->io = io;
 
-      // Connect mixt_tree to model struct
+      /*! Connect mixt_tree to model struct
+       */
       mixt_tree->mod = iomod;
 
-      // Connect mixt_tree to compressed data
+      /*! Connect mixt_tree to compressed data
+       */
       mixt_tree->data = io->cdata;
 
-      // Set total number of patterns
+      /*! Set total number of patterns
+       */
       mixt_tree->n_pattern = io->cdata->crunch_len;
 
 
-      // Connect last tree of the mixture for the
-      // previous partition element to the next mixture tree
+      /*! Connect last tree of the mixture for the
+        previous partition element to the next mixture tree
+      */
       if(tree) tree->next = mixt_tree;
 
-      // Do the same for the model
+      /*! Do the same for the model
+       */
       if(mod)  mod->next = iomod;
 
       if(!root_tree) root_tree = mixt_tree;
 
       printf("\n. read partitionelem %s",XML_Get_Attribute_Value(p_elem,"id"));
 
-      // Process all the mixtureelem tags in this partition element
+      /*! Process all the mixtureelem tags in this partition element
+       */
       n_components  = 0;
       m_elem        = p_elem;
       first_m_elem  = 0;
@@ -676,14 +677,16 @@ int main(int argc, char **argv)
 	    {
 	      first_m_elem++;
 	      
-	      // Rewind tree and model when processing a new mixtureelem node
+	      /*! Rewind tree and model when processing a new mixtureelem node
+               */
 	      if(first_m_elem > 1) 
 		{
 		  while(tree->prev) { tree = tree->prev; } // tree = tree->parent->child;
 		  while(mod->prev)  { mod  = mod->prev;  } // mod = mod->parent->child;
 		}
 
-	      // Read and process model components
+	      /*! Read and process model components
+               */
 	      char *list;
 	      list = XML_Get_Attribute_Value(m_elem,"list");
 
@@ -704,14 +707,16 @@ int main(int argc, char **argv)
 	      {
 		if(list[j] == ',' || j == (int)strlen(list))
 		  {
-		    // Reading a new component
+		    /*! Reading a new component
+                     */
 
 		    if(first_m_elem == YES) // Only true when processing the first mixtureelem node
 		      {
 			t_tree *this_tree;
 			t_mod *this_mod;
 
-			// Create new tree
+			/*! Create new tree
+                         */
 			this_tree = (t_tree *)Make_Tree_From_Scratch(io->cdata->n_otu,
 								     io->cdata);
 			
@@ -728,7 +733,8 @@ int main(int argc, char **argv)
 			tree         = this_tree;			
 			tree->parent = mixt_tree;
 			
-			// Create a new model
+			/*! Create a new model
+                         */
 			this_mod = (t_mod *)Make_Model_Basic();
 			Set_Defaults_Model(this_mod);
 			this_mod->ras->n_catg = 1;
@@ -762,11 +768,13 @@ int main(int argc, char **argv)
 			  }
 		      }
 
-		    // Read a component
+		    /*! Read a component
+                     */
 		    component[i] = '\0';		    
 		    if(j != (int)strlen(list)-1) i = 0;
 		    
-		    // Find which node this ID corresponds to
+		    /*! Find which node this ID corresponds to
+                     */
 		    instance = XML_Search_Node_ID(component,YES,root);
 		  
 		    if(!instance)
@@ -775,6 +783,7 @@ int main(int argc, char **argv)
 			PhyML_Printf("\n== Problem with 'mixtureelem' node, list '%s'.",list);
 			Exit("\n");
 		      }
+
 		    if(!instance->parent)
 		      {
 			PhyML_Printf("\n== Node '%s' with id:'%s' has no parent.",instance->name,component);
@@ -790,168 +799,228 @@ int main(int argc, char **argv)
 
 		    if(!strcmp(parent->name,"ratematrices"))
 		      {
-			// Init substitution model here
-			char *model = NULL;
 
-			model = XML_Get_Attribute_Value(instance,"model");  
-			
-			if(model == NULL)
-			  {
-			    PhyML_Printf("\n== Poorly formated XML file.");
-			    PhyML_Printf("\n== Attribute 'model' is mandatory in a <ratematrix> node.");
-			    Exit("\n");
-			  }
+                        /* ! First time we process this 'instance' node which has this 'ratematrices' parent */
+                        if(instance->ds->obj == NULL)
+                          {
+                            /*! Init substitution model here */
+                            char *model = NULL;
+                            
+                            model = XML_Get_Attribute_Value(instance,"model");  
+                            
+                            if(model == NULL)
+                              {
+                                PhyML_Printf("\n== Poorly formated XML file.");
+                                PhyML_Printf("\n== Attribute 'model' is mandatory in a <ratematrix> node.");
+                                Exit("\n");
+                              }
+                            
+                            select = XML_Validate_Attr_Int(model,26,
+                                                           "xxxxx",    //0
+                                                           "JC69",     //1
+                                                           "K80",      //2
+                                                           "F81",      //3
+                                                           "HKY85",    //4
+                                                           "F84",      //5
+                                                           "TN93",     //6
+                                                           "GTR",      //7
+                                                           "CUSTOM",   //8
+                                                           "xxxxx",    //9
+                                                           "xxxxx",    //10
+                                                           "WAG",      //11
+                                                           "DAYHOFF",  //12
+                                                           "JTT",      //13
+                                                           "BLOSUM62", //14
+                                                           "MTREV",    //15
+                                                           "RTREV",    //16
+                                                           "CPREV",    //17
+                                                           "DCMUT",    //18
+                                                           "VT",       //19
+                                                           "MTMAM",    //20
+                                                           "MTART",    //21
+                                                           "HIVW",     //22
+                                                           "HIVB",     //23
+                                                           "CUSTOMAA", //24
+                                                           "LG");      //25
+                            
+                            if(select < 9)
+                              {
+                                mod->ns = 4;
+                                if(io->datatype != NT)
+                                  {
+                                    PhyML_Printf("\n== Data type and selected model are incompatible");
+                                    Exit("\n");
+                                  }
+                              }
+                            else
+                              {
+                                mod->ns = 20;
+                                if(io->datatype != AA)
+                                  {
+                                    PhyML_Printf("\n== Data type and selected model are incompatible");
+                                    Exit("\n");
+                                  }
+                              }
+                            
+                            io->mod->ns = mod->ns;
+                            
+                            mod->r_mat = (t_rmat *)Make_Rmat(mod->ns);
 
-			select = XML_Validate_Attr_Int(model,26,
-						       "xxxxx",    //0
-						       "JC69",     //1
-						       "K80",      //2
-						       "F81",      //3
-						       "HKY85",    //4
-						       "F84",      //5
-						       "TN93",     //6
-						       "GTR",      //7
-						       "CUSTOM",   //8
-						       "xxxxx",    //9
-						       "xxxxx",    //10
-						       "WAG",      //11
-						       "DAYHOFF",  //12
-						       "JTT",      //13
-						       "BLOSUM62", //14
-						       "MTREV",    //15
-						       "RTREV",    //16
-						       "CPREV",    //17
-						       "DCMUT",    //18
-						       "VT",       //19
-						       "MTMAM",    //20
-						       "MTART",    //21
-						       "HIVW",     //22
-						       "HIVB",     //23
-						       "CUSTOMAA", //24
-						       "LG");      //25
+                              
+                            /*! Set model number & name */
+                            mod->whichmodel = Set_Whichmodel(select);	
+                            Set_Model_Name(mod);
+                            
+                            if(mod->whichmodel == K80 || mod->whichmodel == HKY85 || mod->whichmodel == TN93)
+                              {
+                                char *tstv,*opt_tstv;
+                                
+                                tstv = XML_Get_Attribute_Value(instance,"tstv");
+                                
+                                if(tstv)
+                                  {
+                                    if(!strcmp(tstv,"estimate") || !strcmp(tstv,"estimated") || 
+                                       !strcmp(tstv,"optimize") || !strcmp(tstv,"optimized"))
+                                      {
+                                        mod->s_opt->opt_kappa = YES;
+                                      }
+                                    else
+                                      {					  
+                                        mod->s_opt->opt_kappa = NO;
+                                        mod->kappa->v = String_To_Dbl(tstv);
+                                      }
+                                  }
+                                else
+                                  {
+                                    mod->s_opt->opt_kappa = YES;
+                                  }
+                                
+                                printf("\n. model %p set kappa [%p]  to %f opt: %d",(void *)mod,(void *)mod->kappa,mod->kappa->v,mod->s_opt->opt_kappa);
+                                
+                                opt_tstv = XML_Get_Attribute_Value(instance,"optimize.tstv");
+                                
+                                if(opt_tstv)
+                                  {
+                                    if(!strcmp(opt_tstv,"true") || !strcmp(opt_tstv,"yes"))
+                                      {
+                                        mod->s_opt->opt_kappa = YES;
+                                      }
+                                    else
+                                      {
+                                        mod->s_opt->opt_kappa = NO;
+                                      }
+                                  }
+                              }
+                            else
+                              {
+                                mod->s_opt->opt_kappa = NO;
+                              }
+                            
+                            
+                            if(mod->whichmodel == GTR || mod->whichmodel == CUSTOM)
+                              {
+                                char *rr;
+                                rr = XML_Get_Attribute_Value(instance,"rr");
+                                
+                                if(rr)
+                                  {
+                                    if(!strcmp(rr,"estimate") || !strcmp(rr,"estimated") || 
+                                       !strcmp(rr,"optimize") || !strcmp(rr,"optimized"))
+                                      {
+                                        mod->s_opt->opt_rr = YES;
+                                      }
+                                  }
+                              }
+                            
+                            /*! Custom model for amino-acids. Read in the rate matrix file */
+                            if(mod->whichmodel == CUSTOMAA)
+                              {
+                                char *r_mat_file;
+                                
+                                r_mat_file = XML_Get_Attribute_Value(instance,"ratematrixfile");  
+                                
+                                if(!r_mat_file)
+                                  {
+                                    PhyML_Printf("\n== No valid 'ratematrixfile' attribute could be processed.\n");
+                                    PhyML_Printf("\n== Please fix your XML file.\n");
+                                    Exit("\n");
+                                  }
+                                else
+                                  {
+                                    io->fp_aa_rate_mat = Openfile(r_mat_file,0);
+                                    strcpy(io->aa_rate_mat_file,r_mat_file);
+                                  }
+                              }
+                            
+                            t_ds *ds;
 
-			if(select < 9)
-			  {
-			    mod->ns = 4;
-			    if(io->datatype != NT)
-			      {
-				PhyML_Printf("\n== Data type and selected model are incompatible");
-				Exit("\n");
-			      }
-			  }
-			else
-			  {
-			    mod->ns = 20;
-			    if(io->datatype != AA)
-			      {
-				PhyML_Printf("\n== Data type and selected model are incompatible");
-				Exit("\n");
-			      }
-			  }
-			
-			io->mod->ns = mod->ns;
+                            ds = instance->ds;
+                                                       
+                            /*! Connect the data structure n->ds to mod->r_mat */			
+                            ds->obj = (t_rmat *)(mod->r_mat);
+                            
+                            /*! Create and connect the data structure n->ds->next to mod->kappa */
+			    ds->next      = (t_ds *)mCalloc(1,sizeof(t_ds));
+                            ds = ds->next;
+			    ds->obj = (scalar_dbl *)(mod->kappa);
 
-			// Set model number & name
-			mod->whichmodel = Set_Whichmodel(select);	
-			Set_Model_Name(mod);
-
-			if(mod->whichmodel == K80 || mod->whichmodel == HKY85 || mod->whichmodel == TN93)
-			  {
-			    char *tstv;
-			    tstv = XML_Get_Attribute_Value(instance,"tstv");
-			    
-			    if(tstv)
-			      {
-				if(!strcmp(tstv,"estimate") || !strcmp(tstv,"estimated") || 
-				   !strcmp(tstv,"optimize") || !strcmp(tstv,"optimized"))
-				  {
-				    mod->s_opt->opt_kappa = YES;
-				  }
-				else
-				  {					  
-				    mod->s_opt->opt_kappa = NO;
-				    mod->kappa->v = String_To_Dbl(tstv);
-				  }
-			      }
-			    else
-			      {
-				mod->s_opt->opt_kappa = YES;
-			      }
-			  }
-			else
-			  {
-			    mod->s_opt->opt_kappa = NO;
-			  }
+                            /*! Create and connect the data structure n->ds->next to mod->s_opt->opt_kappa */
+			    ds->next      = (t_ds *)mCalloc(1,sizeof(t_ds));
+                            ds = ds->next;
+			    ds->obj = (int *)(&iomod->s_opt->opt_kappa);
 
 
-			if(mod->whichmodel == GTR || mod->whichmodel == CUSTOM)
-			  {
-			    char *rr;
-			    rr = XML_Get_Attribute_Value(instance,"rr");
-			    
-			    if(rr)
-			      {
-				if(!strcmp(rr,"estimate") || !strcmp(rr,"estimated") || 
-				   !strcmp(rr,"optimize") || !strcmp(rr,"optimized"))
-				  {
-				    mod->s_opt->opt_rr = YES;
-				  }
-			      }
-			  }
+                            /*! Create and connect the data structure n->ds->next to mod->s_opt->opt_rr */
+			    ds->next      = (t_ds *)mCalloc(1,sizeof(t_ds));
+			    ds = ds->next;
+                            ds->obj = (int *)(&iomod->s_opt->opt_rr);
+                          }
+                        else
+                          {
+                            /*! Connect to already extisting r_mat & kappa structs. */
+                            t_ds *ds;
 
-			/*! Custom model for amino-acids. Read in the rate matrix file */
-			if(mod->whichmodel == CUSTOMAA)
-			  {
-			    char *r_mat_file;
+                            ds = instance->ds;
+                            mod->r_mat            = (t_rmat *)ds->obj;
 
-			    r_mat_file = XML_Get_Attribute_Value(instance,"ratematrixfile");  
+                            ds = ds->next;
+                            mod->kappa            = (scalar_dbl *)ds->obj;
 
-			    if(!r_mat_file)
-			      {
-				PhyML_Printf("\n== No valid 'ratematrixfile' attribute could be processed.\n");
-				PhyML_Printf("\n== Please fix your XML file.\n");
-				Exit("\n");
-			      }
-			    else
-			      {
-				io->fp_aa_rate_mat = Openfile(r_mat_file,0);
-				strcpy(io->aa_rate_mat_file,r_mat_file);
-			      }
-			  }
+                            ds = ds->next;
+                            mod->s_opt->opt_kappa = *((int *)instance->ds->obj);
+
+                            ds = ds->next;
+                            mod->s_opt->opt_rr    = *((int *)instance->ds->obj);
+                          }
+                      }
+
+                    ////////////////////////////////////////
+                    //           STATE FREQS              //
+                    ////////////////////////////////////////
+                        
+		    else if(!strcmp(instance->name,"statefreqs"))
+		      {
 
 			// If n->ds == NULL, the corrresponding node data structure, n->ds, has not
 			// been initialized. If not, do nothing.
 			if(instance->ds->obj == NULL)  
-			  {
-			    instance->ds->obj       = (t_rmat *)Make_Rmat(mod->ns);			    
+                          {
+                            mod->e_frq = (t_efrq *)Make_Efrq(mod->ns);
 
-			    instance->ds->next      = (t_ds *)mCalloc(1,sizeof(t_ds));
+                            t_ds *ds;
 
-			    Free(mod->kappa);
-			    instance->ds->next->obj = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
-			    
-			  }
+                            ds = instance->ds;
+                            ds->obj = (t_efrq *)mod->e_frq;
+                          }
+                        else
+                          {
+                            // Connect the data structure n->ds to mod->e_frq
+                            t_ds *ds;
 
-			// Connect the data structure n->ds to mod->r_mat
-			mod->r_mat = (t_rmat *)instance->ds->obj;
-			mod->kappa = (scalar_dbl *)instance->ds->next->obj;
-		      }
-
-		    ////////////////////////////////////////
-		    //           STATE FREQS              //
-		    ////////////////////////////////////////
-
-		    else if(!strcmp(instance->name,"statefreqs"))
-		      {
-			// Stationary frequencies
-
-			// If n->ds == NULL, the corrresponding node data structure, n->ds, has not
-			// been initialized. If not, do nothing.
-			if(instance->ds->obj == NULL)  instance->ds->obj = (t_efrq *)Make_Efrq(mod->ns);
-
-			// Connect the data structure n->ds to mod->e_frq
-			mod->e_frq = (t_efrq *)instance->ds->obj;		      	      
-		      }
+                            ds = instance->ds;
+                            mod->e_frq = (t_efrq *)ds->obj;
+                          }
+                      }
 
 
 		    //////////////////////////////////////////
@@ -1042,10 +1111,10 @@ int main(int argc, char **argv)
 		      {
 			char *rate_value = NULL;			
 			scalar_dbl *r;
-			
 
-			// First time we process a 'siterates' node, check that its format is valid.
-			// and process it afterwards.
+			/*! First time we process this 'siterates' node, check that its format is valid.
+                          and process it afterwards.
+                        */
 			if(parent->ds->obj == NULL)
 			  {
 			    xml_node *w;
@@ -1066,7 +1135,7 @@ int main(int argc, char **argv)
 				  {
 				  case 0: // Gamma model
 				    {
-				      char *alpha;
+				      char *alpha,*alpha_opt;
 
 				      iomod->s_opt->opt_pinvar = NO;
 				      iomod->ras->invar        = NO;
@@ -1086,6 +1155,22 @@ int main(int argc, char **argv)
 					      iomod->ras->alpha->v = String_To_Dbl(alpha);
 					    }
 					}
+
+				      alpha_opt = XML_Get_Attribute_Value(w,"optimize.alpha");
+				      
+				      if(alpha_opt)
+					{
+					  if(!strcmp(alpha_opt,"yes") || !strcmp(alpha_opt,"true"))
+					    {
+					      iomod->s_opt->opt_alpha = YES;
+					    }
+					  else
+					    {					  
+					      iomod->s_opt->opt_alpha = NO;
+					    }
+					}
+
+
 				      
 				      iomod->ras->n_catg = XML_Siterates_Number_Of_Classes(parent);
 				      
@@ -1095,7 +1180,7 @@ int main(int argc, char **argv)
 				    }
 				  case 1: // Gamma+Inv model
 				    {
-				      char *alpha;
+				      char *alpha,*pinv,*alpha_opt,*pinv_opt;
 
 				      iomod->ras->invar        = YES;
 				      iomod->s_opt->opt_pinvar = YES;
@@ -1116,6 +1201,53 @@ int main(int argc, char **argv)
 					    }
 					}
 				      
+
+				      alpha_opt = XML_Get_Attribute_Value(w,"optimize.alpha");
+				      
+				      if(alpha_opt)
+					{
+					  if(!strcmp(alpha_opt,"yes") || !strcmp(alpha_opt,"true"))
+					    {
+					      iomod->s_opt->opt_alpha = YES;
+					    }
+					  else
+					    {					  
+					      iomod->s_opt->opt_alpha = NO;
+					    }
+					}
+
+
+				      pinv = XML_Get_Attribute_Value(w,"pinv");
+				      
+				      if(pinv)
+					{
+					  if(!strcmp(pinv,"estimate") || !strcmp(pinv,"estimated") || 
+					     !strcmp(pinv,"optimize.pinv") || !strcmp(pinv,"opt.pinv"))
+					    {
+					      iomod->s_opt->opt_pinvar = YES;
+					    }
+					  else
+					    {
+					      iomod->s_opt->opt_pinvar = NO;
+					      iomod->pinvar->v = String_To_Dbl(pinv);;
+					    }
+					}
+
+				      pinv_opt = XML_Get_Attribute_Value(w,"optimize.pinv");
+				      
+				      if(pinv_opt)
+					{
+					  if(!strcmp(pinv_opt,"yes") || !strcmp(pinv_opt,"true"))
+					    {
+					      iomod->s_opt->opt_pinvar = YES;
+					    }
+					  else
+					    {					  
+					      iomod->s_opt->opt_pinvar = NO;
+					    }
+					}
+
+
 				      iomod->ras->n_catg = XML_Siterates_Number_Of_Classes(parent);
 				      iomod->ras->n_catg--;
 
@@ -1156,18 +1288,18 @@ int main(int argc, char **argv)
 
 			    Make_RAS_Complete(iomod->ras);
 
-			    t_ds *ds = parent->ds;
+			    parent->ds->obj = (t_ras *)iomod->ras;
 
-			    ds->obj = (t_ras *)iomod->ras;
+			    parent->ds->next      = (t_ds *)mCalloc(1,sizeof(t_ds));
+			    parent->ds->next->obj = (int *)(&iomod->s_opt->opt_alpha);
 
-			    ds->next      = (t_ds *)mCalloc(1,sizeof(t_ds));
-			    ds->next->obj = (int *)(&iomod->s_opt->opt_alpha);
+			    parent->ds->next->next      = (t_ds *)mCalloc(1,sizeof(t_ds));
+			    parent->ds->next->next->obj = (int *)(&iomod->s_opt->opt_free_mixt_rates);
 
-			    ds->next->next      = (t_ds *)mCalloc(1,sizeof(t_ds));
-			    ds->next->next->obj = (int *)(&iomod->s_opt->opt_free_mixt_rates);
 			  }
-			else
+			else /*! Connect ras struct to already defined one. Same for opt_alpha & opt_free_mixt_rates */
 			  {
+
 			    if(iomod->ras != (t_ras *)parent->ds->obj) Free_RAS(iomod->ras);
 			    iomod->ras = (t_ras *)parent->ds->obj;
 			    iomod->s_opt->opt_alpha = *((int *)parent->ds->next->obj);
@@ -1309,7 +1441,7 @@ int main(int argc, char **argv)
   while(mixt_tree->prev != NULL) mixt_tree = mixt_tree->prev;
 
   Print_Data_Structure(mixt_tree);
-    
+   
   /*! Set default branch lengths if unspecified in the xml file. */
   xml_node *bl = NULL;
   bl = XML_Search_Node_Name("branchlengths",YES,root);
@@ -1347,7 +1479,7 @@ int main(int argc, char **argv)
 	{
 	  if(!this_io->fp_in_tree)
 	    {
-	      PhyML_Printf("\n== Err. in file %s at line %d\n",__FILE__,__LINE__);
+	      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
 	      Exit("\n");
 	    }
 	  
@@ -1400,6 +1532,8 @@ int main(int argc, char **argv)
   /*   }while(tree); */
 
 
+ 
+
   /*! Initialize the models */
   mod  = mixt_tree->mod;
   do
@@ -1410,6 +1544,7 @@ int main(int argc, char **argv)
     }
   while(mod);
 
+  printf("\n. KAPPA = %f",mixt_tree->child->mod->kappa->v);
 
   /*! Connect edges of every tree to next, prev & child
     ! edges in the corresponding trees */
@@ -1423,24 +1558,6 @@ int main(int argc, char **argv)
     }
   while(tree);
 
-
-  t_edge *b = NULL;
-  For(i,2*mixt_tree->n_otu-3)
-    {
-      b = mixt_tree->t_edges[i];
-      b->l->onoff = ON;
-      do
-	{
-	  if(b->l->onoff == ON)
-	    {
-	      b->l->v /= (1.-mixt_tree->mod->pinvar->v);
-	      b->l->v /= mixt_tree->mod->br_len_multiplier->v;
-	      b->l->onoff = OFF;
-	    }
-	  b = b->next;
-	  if(!b) break;
-	}while(1);
-    }
 
   /*! Turn all branches to ON state */
   tree = mixt_tree;
@@ -1475,10 +1592,9 @@ int main(int argc, char **argv)
     }
   while(tree);
 
-  MIXT_Check_Number_Of_Invar_Classes(tree);
-
   Prepare_Tree_For_Lk(mixt_tree);
-
+  Br_Len_Not_Involving_Invar(mixt_tree);
+  Unscale_Br_Len_Multiplier_Tree(mixt_tree);
 
   /*! Connect sprs of every tree to next, prev & child
     ! edges in the corresponding trees */
@@ -1504,10 +1620,27 @@ int main(int argc, char **argv)
     5) Finish rewritting Opt_Free_Param
     X 6) Make sure you can have only one set of branch lengths per partition
     7) BIONJ starting tree
-    8) When iomod->ras->invar = YES, check that only one mod has mod->ras->invar = YES;
+    X 8) When iomod->ras->invar = YES, check that only one mod has mod->ras->invar = YES;
     9) Reflect changes on simu.c to spr.c, especiaqlly regarding invariants
     10) Rough_SPR to replace SPR_Shuffle and first step in nni (refining tree)
+    11) Tree corresponding to invar class is never really used (except for testing
+    whether tree->mod->ras->invar==YES). Do we need to use memory for this? 
+    X 12) Check that mixt_tree->mod->ras->n_catg corresponds to the same number of 
+    trees in the mixture (do that for each mixt_tree).
+    13) Change tree->t_edges to tree->a_edges (t is for type a is for array)
+    14) Change tree->t_nodes to tree->a_nodes (t is for type a is for array)
+    15) tstv should be shared! Check the following:
+    // Connect the data structure n->ds to mod->r_mat
+    mod->r_mat = (t_rmat *)instance->ds->obj;
+    mod->kappa = (scalar_dbl *)instance->ds->next->obj;
+
+
   */
+
+
+  MIXT_Check_Invar_Struct_In_Each_Partition_Elem(mixt_tree);
+  MIXT_Check_RAS_Struct_In_Each_Partition_Elem(mixt_tree);
+
 
 
   PhyML_Printf("\n. Calculating the likelihood now");
@@ -1520,11 +1653,10 @@ int main(int argc, char **argv)
       else            tree = tree->next;
     }
   while(tree);
-
+  
   Lk(NULL,mixt_tree);
   PhyML_Printf("\n. lnL=%12f",mixt_tree->c_lnL);
 
-  printf("\n\n\n");
 
   if(!Check_Lk_At_Given_Edge(mixt_tree)) Exit("\n. FAILED HERE\n");
   
@@ -1536,6 +1668,11 @@ int main(int argc, char **argv)
   Round_Optimize(mixt_tree,mixt_tree->data,ROUND_MAX);
 
   PhyML_Printf("\n. FINAL: lnL=%12f",mixt_tree->c_lnL);
+  Exit("\n");
+
+
+  Br_Len_Involving_Invar(tree);
+  Rescale_Br_Len_Multiplier_Tree(tree);
 
   Free(component);
 

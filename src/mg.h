@@ -33,8 +33,8 @@ int Map_Spr_Move(t_edge *st_pruned, t_edge *st_target, t_node *st_link, t_tree *
 void PART_Test_All_Spr_Targets(t_edge *pruned, t_node *n_link, supert_tree *st);
 void PART_Test_One_Spr_Target_Recur(t_node *a, t_node *d, t_edge *target, t_edge *pruned, t_node *n_link, supert_tree *st);
 void PART_Test_One_Spr_Target(t_edge *st_p, t_edge *st_t, t_node *n_link, supert_tree *st);
-int PART_Test_List_Of_Regraft_Pos(spr **st_spr_list, int list_size, supert_tree *st);
-int PART_Try_One_Spr_Move(spr *st_move, supert_tree *st);
+int PART_Test_List_Of_Regraft_Pos(t_spr **st_spr_list, int list_size, supert_tree *st);
+int PART_Try_One_Spr_Move(t_spr *st_move, supert_tree *st);
 void PART_Map_Gt_Edges_In_St(t_tree *gt, supert_tree *st);
 void PART_NNI(t_edge *st_b, supert_tree *st);
 void PART_Swap(t_node *st_a, t_node *st_b, t_node *st_c, t_node *st_d, supert_tree *st);

@@ -74,9 +74,6 @@ void Unroot_Tree(char **subtrees)
 void Make_Edge_Dirs(t_edge *b, t_node *a, t_node *d, t_tree *tree)
 {
   int i;
-  t_edge *e_root;
-
-  e_root = (tree)?(tree->e_root):(NULL);
  
   if(a == b->rght)
     {
@@ -342,14 +339,12 @@ calign *Compact_Data(align **data, option *io)
   else if(io->datatype == AA) Get_AA_Freqs(cdata_tmp);
   else {/* Uniform state frequency distribution.*/}
 
-
-
   cdata = Copy_Cseq(cdata_tmp,io);
   
-
   Free_Cseq(cdata_tmp);
   Free_Prefix_Tree(proot,T_MAX_ALPHABET);
 
+  Check_Ambiguities(cdata,io->datatype,io->state_len);
 
   return cdata;
 }
@@ -470,10 +465,6 @@ calign *Compact_Cdata(calign *data, option *io)
 
 void Traverse_Prefix_Tree(int site, int seqnum, int *patt_num, int *n_patt, align **data, option *io, pnode *n)
 {
-  int ret_val;
-
-  ret_val = -1;
-
   if(seqnum == io->n_otu-1)
     {
       n->weight++;
@@ -1106,20 +1097,6 @@ void Qksort_Matrix(phydbl **A, int col, int ilo, int ihi)
     Qksort_Matrix(A, col, uhi + 1, ihi);
 }
 
-/********************************************************/
-
-void Print_Site(calign *cdata, int num, int n_otu, char *sep, int stepsize)
-{
-  int i,j;
-  For(i,n_otu)
-    {
-      PhyML_Printf("%s   ",cdata->c_seq[i]->name);
-      For(j,stepsize)
-	PhyML_Printf("%c",cdata->c_seq[i]->state[num+j]);
-      PhyML_Printf("%s",sep);
-    }
-  PhyML_Fprintf(stderr,"%s",sep);
-}
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
@@ -1417,7 +1394,6 @@ int Sort_Edges_Depth(t_tree *tree, t_edge **sorted_edges, int n_elem)
 
 void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
 {
-  int l_r, r_l, l_v1, l_v2, r_v3, r_v4;
   t_node *v1,*v2,*v3,*v4;
   phydbl lk0, lk1, lk2;
   phydbl lk0_init, lk1_init, lk2_init;
@@ -1441,10 +1417,7 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
   lk0 = lk1 = lk2        = UNLIKELY;
   v1 = v2 = v3 = v4      = NULL;
 
-  l_r = r_l = l_v1 = l_v2 = r_v3 = r_v4 = -1;
 
-  l_r                    = b_fcus->l_r;
-  r_l                    = b_fcus->r_l;
   v1                     = b_fcus->left->v[b_fcus->l_v1];
   v2                     = b_fcus->left->v[b_fcus->l_v2];
   v3                     = b_fcus->rght->v[b_fcus->r_v1];
@@ -1770,7 +1743,6 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
 
 void NNI_Pars(t_tree *tree, t_edge *b_fcus, int do_swap)
 {
-  int l_r, r_l, l_v1, l_v2, r_v3, r_v4;
   t_node *v1,*v2,*v3,*v4;
   int pars0, pars1, pars2;
   int pars_init;
@@ -1782,10 +1754,6 @@ void NNI_Pars(t_tree *tree, t_edge *b_fcus, int do_swap)
   pars0 = pars1 = pars2  = 0;
   v1 = v2 = v3 = v4      = NULL;
 
-  l_r = r_l = l_v1 = l_v2 = r_v3 = r_v4 = -1;
-
-  l_r                    = b_fcus->l_r;
-  r_l                    = b_fcus->r_l;
 
   v1                     = b_fcus->left->v[b_fcus->l_v1];
   v2                     = b_fcus->left->v[b_fcus->l_v2];
@@ -2130,15 +2098,12 @@ matrix *K80_dist(calign *data, phydbl g_shape)
 {
   int i,j,k;
   int diff;
-  phydbl unc_len;
   matrix *mat;
   phydbl **len;
 
   len = (phydbl **)mCalloc(data->n_otu,sizeof(phydbl *));
   For(i,data->n_otu)
     len[i] = (phydbl *)mCalloc(data->n_otu,sizeof(phydbl));
-
-  unc_len = .0;
 
   mat = Make_Mat(data->n_otu);
   Init_Mat(mat,data);
@@ -2235,7 +2200,6 @@ matrix *K80_dist(calign *data, phydbl g_shape)
 matrix *JC69_Dist(calign *data, t_mod *mod)
 {
   int site,i,j,k;
-  phydbl unc_len;
   matrix *mat;
   phydbl **len;
   int datatype;
@@ -2244,8 +2208,6 @@ matrix *JC69_Dist(calign *data, t_mod *mod)
   len = (phydbl **)mCalloc(data->n_otu,sizeof(phydbl *));
   For(i,data->n_otu)
     len[i] = (phydbl *)mCalloc(data->n_otu,sizeof(phydbl));
-
-  unc_len = .0;
 
   mat = Make_Mat(data->n_otu);
   Init_Mat(mat,data);
@@ -2311,7 +2273,6 @@ matrix *JC69_Dist(calign *data, t_mod *mod)
 matrix *Hamming_Dist(calign *data, t_mod *mod)
 {
   int i,j,k;
-  phydbl unc_len;
   matrix *mat;
   phydbl **len;
   int datatype;
@@ -2319,8 +2280,6 @@ matrix *Hamming_Dist(calign *data, t_mod *mod)
   len = (phydbl **)mCalloc(data->n_otu,sizeof(phydbl *));
   For(i,data->n_otu)
     len[i] = (phydbl *)mCalloc(data->n_otu,sizeof(phydbl));
-
-  unc_len = .0;
 
   mat = Make_Mat(data->n_otu);
   Init_Mat(mat,data);
@@ -3007,6 +2966,9 @@ fflush(stdout);
 void Br_Len_Involving_Invar(t_tree *tree)
 {
   int i;
+
+  if(tree->is_mixt_tree) return MIXT_Br_Len_Involving_Invar(tree);
+
   For(i,2*tree->n_otu-3) tree->t_edges[i]->l->v *= (1.0-tree->mod->pinvar->v);
 }
 
@@ -3016,6 +2978,9 @@ void Br_Len_Involving_Invar(t_tree *tree)
 void Br_Len_Not_Involving_Invar(t_tree *tree)
 {
   int i;
+  
+  if(tree->is_mixt_tree) return MIXT_Br_Len_Not_Involving_Invar(tree);
+                            
   For(i,2*tree->n_otu-3) tree->t_edges[i]->l->v /= (1.0-tree->mod->pinvar->v);
 }
 
@@ -5073,7 +5038,6 @@ void Fast_Br_Len(t_edge *b, t_tree *tree, int approx)
   int i, j, k, site;
   phydbl *v_rght;
   int dim1,dim2,dim3;
-  phydbl eps_bl,old_l,new_l;
   int n_iter;
   phydbl scale_rght;
 
@@ -5087,7 +5051,6 @@ void Fast_Br_Len(t_edge *b, t_tree *tree, int approx)
   dim1   = tree->mod->ns * tree->mod->ras->n_catg;
   dim2   = tree->mod->ns ;
   dim3   = tree->mod->ns * tree->mod->ns;
-  eps_bl = tree->mod->l_min;
 
   F    = tree->triplet_struct->F_bc;
   prob = tree->triplet_struct->F_cd;
@@ -5127,9 +5090,7 @@ void Fast_Br_Len(t_edge *b, t_tree *tree, int approx)
 	F[dim3*k+dim2*i+j] += tree->data->wght[site] * prob[dim3*k+dim2*i+j];
     }
   
-  old_l = b->l->v;
   Opt_Dist_F(&(b->l->v),F,tree->mod);
-  new_l = b->l->v;
   n_iter++;
 
   printf("\n. Edge %d before %f ",b->num,b->l->v);
@@ -6061,9 +6022,6 @@ void Warn_And_Exit(char *s)
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
-
-
-
 
 void Randomize_Sequence_Order(calign *cdata)
 {
@@ -7269,8 +7227,7 @@ char *aLRT_From_String(char *s_tree, calign *cdata, t_mod *mod, option *io)
 
 
 void Prepare_Tree_For_Lk(t_tree *tree)
-{
-    
+{      
   Connect_CSeqs_To_Nodes(tree->data,tree);
   Fill_Dir_Table(tree);
   Update_Dirs(tree);
@@ -7278,8 +7235,9 @@ void Prepare_Tree_For_Lk(t_tree *tree)
   Make_Tree_4_Lk(tree,tree->data,tree->data->init_len); 
   tree->triplet_struct = Make_Triplet_Struct(tree->mod);
   Make_Spr_List(tree);
-  Make_Best_Spr(tree);
-   
+  Make_Best_Spr(tree);   
+
+  if(tree->is_mixt_tree) return MIXT_Prepare_Tree_For_Lk(tree);
 }
 
 //////////////////////////////////////////////////////////////
@@ -8607,6 +8565,9 @@ phydbl Rescale_Free_Rate_Tree(t_tree *tree)
 phydbl Rescale_Br_Len_Multiplier_Tree(t_tree *tree)
 {
   int i;
+
+  if(tree->is_mixt_tree) return MIXT_Rescale_Br_Len_Multiplier_Tree(tree);
+
   For(i,2*tree->n_otu-3) tree->t_edges[i]->l->v *= tree->mod->br_len_multiplier->v;
   return(-1.);
 }
@@ -8634,6 +8595,9 @@ phydbl Unscale_Free_Rate_Tree(t_tree *tree)
 phydbl Unscale_Br_Len_Multiplier_Tree(t_tree *tree)
 {
   int i;
+  
+  if(tree->is_mixt_tree) return MIXT_Unscale_Br_Len_Multiplier_Tree(tree);
+
   For(i,2*tree->n_otu-3) tree->t_edges[i]->l->v /= tree->mod->br_len_multiplier->v;
   return(-1.);
 }
