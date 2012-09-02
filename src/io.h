@@ -75,5 +75,7 @@ option *Get_Input(int argc,char **argv);
 void Print_Data_Structure(t_tree *root);
 int Set_Whichmodel(int select);
 void Print_Site(calign *cdata, int num, int n_otu, char *sep, int stepsize);
+void PhyML_XML(char *xml_filename);
+void Check_Taxa_Sets(t_tree *mixt_tree);
 
 #endif

@@ -15,27 +15,7 @@ the GNU public licence. See http://www.opensource.org for details.
 #ifndef TIMES_H
 #define TIMES_H
 
-#include "spr.h"
 #include "utilities.h"
-#include "lk.h"
-#include "optimiz.h"
-#include "bionj.h"
-#include "models.h"
-#include "free.h"
-#include "help.h"
-#include "simu.h"
-#include "eigen.h"
-#include "pars.h"
-#include "alrt.h"
-#include "m4.h"
-#include "draw.h"
-#include "rates.h"
-#include "mcmc.h"
-#include "stats.h"
-#include "tiporder.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <stdio.h>
 
 int  TIMES_main(int argc, char **argv);
 void TIMES_Bl_From_T_Post(t_node *a, t_node *d, t_edge *b, t_tree *tree);

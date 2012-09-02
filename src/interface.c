@@ -702,7 +702,7 @@ void Launch_Interface_Model(option *io)
     }
   else
     {
-      sprintf((char *)(s+strlen((char *)s)),"%3.2f)",io->mod->pinvar->v);
+      sprintf((char *)(s+strlen((char *)s)),"%3.2f)",io->mod->ras->pinvar->v);
     }
 
   PhyML_Printf("                [V] "
@@ -1093,7 +1093,7 @@ void Launch_Interface_Model(option *io)
 	    {
 	      io->mod->s_opt->opt_subst_param = 1;
 	      io->mod->s_opt->opt_pinvar = 1;
-	      io->mod->pinvar->v = 0.2;
+	      io->mod->ras->pinvar->v = 0.2;
 	      io->mod->ras->invar  = 1;
 	      break;
 	    }
@@ -1112,9 +1112,9 @@ void Launch_Interface_Model(option *io)
 		  PhyML_Printf("\n. Enter a new value > ");
 		  Getstring_Stdin(p);
 		}
-	      io->mod->pinvar->v = (phydbl)atof(p);
+	      io->mod->ras->pinvar->v = (phydbl)atof(p);
 
-	      if(io->mod->pinvar->v > 0.0+SMALL) io->mod->ras->invar = 1;
+	      if(io->mod->ras->pinvar->v > 0.0+SMALL) io->mod->ras->invar = 1;
 	      else                             io->mod->ras->invar = 0;
 
 	      Free(p);

@@ -754,6 +754,8 @@ void Update_RAS(t_mod *mod)
     {
       Qksort(mod->ras->gamma_r_proba_unscaled->v,NULL,0,mod->ras->n_catg-1); // Unscaled class frequencies sorted in increasing order
 
+
+
       // Update class frequencies
       For(i,mod->ras->n_catg)
       	{
@@ -788,6 +790,7 @@ void Update_RAS(t_mod *mod)
       /* For(i,mod->ras->n_catg) sum += mod->ras->gamma_r_proba->v[i] * FABS(mod->ras->gamma_rr->v[i]); */
       /* printf("\n. sum=%f",sum); */
     }  
+
 }
 
 //////////////////////////////////////////////////////////////
@@ -824,11 +827,9 @@ void Update_Efrq(t_mod *mod)
 
 void Set_Model_Parameters(t_mod *mod)
 {
-
   Update_RAS(mod);
   Update_Efrq(mod);
   if(!mod->child) Update_Eigen(mod);
-
 }
 
 //////////////////////////////////////////////////////////////

@@ -339,13 +339,13 @@ void Make_All_Tree_Nodes(t_tree *tree)
 {
   int i;
 
-  tree->t_nodes = (t_node **)mCalloc(2*tree->n_otu-1,sizeof(t_node *));
+  tree->a_nodes = (t_node **)mCalloc(2*tree->n_otu-1,sizeof(t_node *));
 
   For(i,2*tree->n_otu-1)
     {
-      tree->t_nodes[i] = (t_node *)Make_Node_Light(i);
-      if(i < tree->n_otu) tree->t_nodes[i]->tax = 1;
-      else                tree->t_nodes[i]->tax = 0;
+      tree->a_nodes[i] = (t_node *)Make_Node_Light(i);
+      if(i < tree->n_otu) tree->a_nodes[i]->tax = 1;
+      else                tree->a_nodes[i]->tax = 0;
     }
 }
 
@@ -356,8 +356,8 @@ void Make_All_Tree_Nodes(t_tree *tree)
 void Make_All_Tree_Edges(t_tree *tree)
 {
   int i;
-  tree->t_edges      = (t_edge **)mCalloc(2*tree->n_otu-2,sizeof(t_edge *));
-  For(i,2*tree->n_otu-2) tree->t_edges[i] = (t_edge *)Make_Edge_Light(NULL,NULL,i);
+  tree->a_edges      = (t_edge **)mCalloc(2*tree->n_otu-2,sizeof(t_edge *));
+  For(i,2*tree->n_otu-2) tree->a_edges[i] = (t_edge *)Make_Edge_Light(NULL,NULL,i);
 }
 
 //////////////////////////////////////////////////////////////
@@ -388,6 +388,7 @@ calign *Make_Cseq(int n_otu, int crunch_len, int state_len, int init_len, char *
       cdata->c_seq[j]->name      = (char *)mCalloc((int)(strlen(sp_names[j])+1),sizeof(char));
       strcpy(cdata->c_seq[j]->name,sp_names[j]);
       cdata->c_seq[j]->state     = (char *)mCalloc(crunch_len*state_len,sizeof(char));
+      cdata->c_seq[j]->d_state   = (int *)mCalloc(crunch_len*state_len,sizeof(int));
       cdata->c_seq[j]->is_ambigu = (short int *)mCalloc(crunch_len,sizeof(short int));
     }
 
@@ -459,13 +460,13 @@ t_mod *Make_Model_Basic()
   mod->lambda                 = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
   Init_Scalar_Dbl(mod->lambda);
 
-  mod->ras->alpha                  = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
+  mod->ras->alpha             = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
   Init_Scalar_Dbl(mod->ras->alpha);
 
-  mod->pinvar                 = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
-  Init_Scalar_Dbl(mod->pinvar);
+  mod->ras->pinvar            = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
+  Init_Scalar_Dbl(mod->ras->pinvar);
 
-  mod->ras->alpha_old              = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
+  mod->ras->alpha_old         = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
   Init_Scalar_Dbl(mod->ras->alpha_old);
 
   mod->kappa_old              = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
@@ -474,8 +475,8 @@ t_mod *Make_Model_Basic()
   mod->lambda_old             = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
   Init_Scalar_Dbl(mod->lambda_old);
 
-  mod->pinvar_old             = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
-  Init_Scalar_Dbl(mod->pinvar_old);
+  mod->ras->pinvar_old        = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
+  Init_Scalar_Dbl(mod->ras->pinvar_old);
 
   mod->br_len_multiplier      = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
   Init_Scalar_Dbl(mod->br_len_multiplier);

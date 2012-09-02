@@ -57,65 +57,65 @@ int Check_NNI_Five_Branches(t_tree *tree)
       best_gain     = 1.E+10;
       best_config   = -1;
 
-      tree->update_alias_subpatt = YES;
+      MIXT_Set_Alias_Subpatt(YES,tree);
       Set_Both_Sides(YES,tree);     
       init_lnL = Lk(NULL,tree);
-      tree->update_alias_subpatt = NO;
+      MIXT_Set_Alias_Subpatt(NO,tree);
 
       //For every branch
       For(i,2*tree->n_otu-3)
 	{
 	  //if this branch is not terminal
-	  if((!tree->t_edges[i]->left->tax) && (!tree->t_edges[i]->rght->tax))
+	  if((!tree->a_edges[i]->left->tax) && (!tree->a_edges[i]->rght->tax))
 	    {
 	      result = -1;
 
 	      //Try every NNIs for the tested branch
-	      result = NNI_Neigh_BL(tree->t_edges[i],tree);
+	      result = NNI_Neigh_BL(tree->a_edges[i],tree);
 
 	      //Look for possible NNI to do, and check if it is the best one
 	      switch(result)
 		{
 		case 1 : /* lk1 > lk0 > lk2 */
 		  {
-		    if((tree->t_edges[i]->nni->lk0 - tree->t_edges[i]->nni->lk1) < best_gain)
+		    if((tree->a_edges[i]->nni->lk0 - tree->a_edges[i]->nni->lk1) < best_gain)
 		      {
 			better_found = 1;
 			best_edge    = i;
-			best_gain    = tree->t_edges[i]->nni->lk0-tree->t_edges[i]->nni->lk1;
+			best_gain    = tree->a_edges[i]->nni->lk0-tree->a_edges[i]->nni->lk1;
 			best_config  = 1;
 		      }
 		    break;
 		  }
 		case 2 : /* lk2 > lk0 > lk1 */
 		  {
-		    if((tree->t_edges[i]->nni->lk0 - tree->t_edges[i]->nni->lk2) < best_gain)
+		    if((tree->a_edges[i]->nni->lk0 - tree->a_edges[i]->nni->lk2) < best_gain)
 		      {
  			better_found = 1;
 			best_edge    = i;
-			best_gain    = tree->t_edges[i]->nni->lk0-tree->t_edges[i]->nni->lk2;
+			best_gain    = tree->a_edges[i]->nni->lk0-tree->a_edges[i]->nni->lk2;
 			best_config  = 2;
 		      }
 		    break;
 		  }
 		case 3 : /* lk1 > lk2 > lk0 */
 		  {
-		    if((tree->t_edges[i]->nni->lk2 - tree->t_edges[i]->nni->lk1) < best_gain)
+		    if((tree->a_edges[i]->nni->lk2 - tree->a_edges[i]->nni->lk1) < best_gain)
 		      {
  			better_found = 1;
 			best_edge    = i;
-			best_gain    = tree->t_edges[i]->nni->lk2-tree->t_edges[i]->nni->lk1;
+			best_gain    = tree->a_edges[i]->nni->lk2-tree->a_edges[i]->nni->lk1;
 			best_config  = 1;
 		      }
 		    break;
 		  }
 		case 4 : /* lk2 > lk1 > lk0 */
 		  {
-		    if((tree->t_edges[i]->nni->lk1 - tree->t_edges[i]->nni->lk2) < best_gain)
+		    if((tree->a_edges[i]->nni->lk1 - tree->a_edges[i]->nni->lk2) < best_gain)
 		      {
 			better_found = 1;
 			best_edge    = i;
-			best_gain    = tree->t_edges[i]->nni->lk1-tree->t_edges[i]->nni->lk2;
+			best_gain    = tree->a_edges[i]->nni->lk1-tree->a_edges[i]->nni->lk2;
 			best_config  = 2;
 		      }
 		    break;
@@ -143,11 +143,11 @@ int Check_NNI_Five_Branches(t_tree *tree)
       //If there is one swap to do, make the best one.
       if(better_found)
 	{
-	  Make_Target_Swap(tree,tree->t_edges[best_edge],best_config);
+	  Make_Target_Swap(tree,tree->a_edges[best_edge],best_config);
 
-	  tree->update_alias_subpatt = YES;
+          MIXT_Set_Alias_Subpatt(YES,tree);
 	  Lk(NULL,tree);
-	  tree->update_alias_subpatt = NO;
+          MIXT_Set_Alias_Subpatt(YES,tree);
 
 	  if(tree->c_lnL < init_lnL)
 	    {
@@ -181,19 +181,18 @@ void aLRT(t_tree *tree)
   /* The topology will not be modified when assessing the branch support. We make sure that it will
      not be modified afterwards by locking the topology */
   
-  tree->update_alias_subpatt = YES;
+  MIXT_Set_Alias_Subpatt(YES,tree);
   Set_Both_Sides(YES,tree);     
   Lk(NULL,tree);
-  tree->update_alias_subpatt = NO;
-
+  MIXT_Set_Alias_Subpatt(NO,tree);
 
   For(i,2*tree->n_otu-3)
-    if((!tree->t_edges[i]->left->tax) && (!tree->t_edges[i]->rght->tax)) 
+    if((!tree->a_edges[i]->left->tax) && (!tree->a_edges[i]->rght->tax)) 
       {
 	/* Compute likelihoods for each of the three configuration */
-       	NNI_Neigh_BL(tree->t_edges[i],tree);
+       	NNI_Neigh_BL(tree->a_edges[i],tree);
 	/* Compute the corresponding statistical support */
-	Compute_Likelihood_Ratio_Test(tree->t_edges[i],tree);
+	Compute_Likelihood_Ratio_Test(tree->a_edges[i],tree);
       }
   
   tree->lock_topo = 1;
@@ -311,33 +310,31 @@ int Compute_Likelihood_Ratio_Test(t_edge *tested_edge, t_tree *tree)
 */
 int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
 {
-  int n_patterns;
   int site;
   t_node *v1,*v2,*v3,*v4;
   t_edge *e1,*e2,*e3,*e4;
-  phydbl len_e1,len_e2,len_e3,len_e4;
+  phydbl *len_e1,*len_e2,*len_e3,*len_e4;
   phydbl lk0, lk1, lk2;
-  phydbl bl_init;
+  phydbl *bl_init;
   phydbl l_infa, l_infb, l_max;
   phydbl lk_init, lk_temp;
   int i;
   int result,counter,wei;
+  void *buff;
 
   result = 0;
 
-  //Initialization
-  bl_init = b_fcus->l->v;
+  /*! Initialization */
+  bl_init = MIXT_Get_Lengths_Of_This_Edge(b_fcus);
   lk_init = tree->c_lnL;
   lk_temp = UNLIKELY;
-  n_patterns = tree->n_pattern;
 
   b_fcus->nni->score = .0;
 
   lk0 = lk1 = lk2    = UNLIKELY;
   v1 = v2 = v3 = v4  = NULL;
 
-
-  //vertices
+  /*! vertices */
   v1 = b_fcus->left->v[b_fcus->l_v1];
   v2 = b_fcus->left->v[b_fcus->l_v2];
   v3 = b_fcus->rght->v[b_fcus->r_v1];
@@ -345,31 +342,30 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
 
   if(v1->num < v2->num)
     {
-      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
+      PhyML_Printf("\n== Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
   if(v3->num < v4->num)
     {
-      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
+      PhyML_Printf("\n== Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
-
-  //edges
+  /*! edges */
   e1 = b_fcus->left->b[b_fcus->l_v1];
   e2 = b_fcus->left->b[b_fcus->l_v2];
   e3 = b_fcus->rght->b[b_fcus->r_v1];
   e4 = b_fcus->rght->b[b_fcus->r_v2];
 
-  //record initial branch lengths
-  len_e1 = e1->l->v;
-  len_e2 = e2->l->v;
-  len_e3 = e3->l->v;
-  len_e4 = e4->l->v;
+  /*! record initial branch lengths */
+  len_e1 = MIXT_Get_Lengths_Of_This_Edge(e1);
+  len_e2 = MIXT_Get_Lengths_Of_This_Edge(e2);
+  len_e3 = MIXT_Get_Lengths_Of_This_Edge(e3);
+  len_e4 = MIXT_Get_Lengths_Of_This_Edge(e4);
 
-  //Optimize branch lengths and update likelihoods for
-  //the original configuration.
-
+  /*! Optimize branch lengths and update likelihoods for
+    the original configuration.
+  */
   do
     {
       lk0 = lk_temp;
@@ -379,24 +375,16 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
 	  {
 	    Update_P_Lk(tree,b_fcus->left->b[i],b_fcus->left);
 
-	    l_infa  = 10.*b_fcus->left->b[i]->l->v;
-	    l_max   = b_fcus->left->b[i]->l->v;
-	    l_infb  = tree->mod->l_min;
-	    lk_temp = Br_Len_Brent(l_infa,l_max,l_infb,
-				   tree->mod->s_opt->min_diff_lk_local,
-				   b_fcus->left->b[i],tree,
-				   tree->mod->s_opt->brent_it_max,0);
+	    l_infa  = 10.;
+	    l_infb  = tree->mod->l_min/b_fcus->left->b[i]->l->v;
+	    lk_temp = Br_Len_Brent(l_infb,l_infa,b_fcus->left->b[i],tree);
 	  }
 
       Update_P_Lk(tree,b_fcus,b_fcus->left);
 
-      l_infa  = 10.*b_fcus->l->v;
-      l_max   = b_fcus->l->v;
-      l_infb  = tree->mod->l_min;
-      lk_temp = Br_Len_Brent(l_infa,l_max,l_infb,
-			     tree->mod->s_opt->min_diff_lk_local,
-			     b_fcus,tree,
-			     tree->mod->s_opt->brent_it_max,0);
+      l_infa  = 10.;
+      l_infb  = tree->mod->l_min/b_fcus->l->v;
+      lk_temp = Br_Len_Brent(l_infb,l_infa,b_fcus,tree);
 
 
       For(i,3)
@@ -404,13 +392,9 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
 	  {
 	    Update_P_Lk(tree,b_fcus->rght->b[i],b_fcus->rght);
 
-	    l_infa  = 10.*b_fcus->rght->b[i]->l->v;
-	    l_max   = b_fcus->rght->b[i]->l->v;
-	    l_infb  = tree->mod->l_min;
-	    lk_temp = Br_Len_Brent(l_infa,l_max,l_infb,
-				   tree->mod->s_opt->min_diff_lk_local,
-				   b_fcus->rght->b[i],tree,
-				   tree->mod->s_opt->brent_it_max,0);
+	    l_infa  = 10.;
+	    l_infb  = tree->mod->l_min/b_fcus->rght->b[i]->l->v;
+	    lk_temp = Br_Len_Brent(l_infb,l_infa,b_fcus->rght->b[i],tree);
 	  }
 
       Update_P_Lk(tree,b_fcus,b_fcus->rght);
@@ -426,23 +410,32 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
 
 
   lk0 = tree->c_lnL;
-  counter=0;
-  For(site,n_patterns)
-    {
-      wei=0;
-      For(wei,tree->data->wght[site])
-	{
-	  tree->log_lks_aLRT[0][counter]= tree->c_lnL_sorted[site] / tree->data->wght[site];
-	  counter++;
-	}
-    }
 
-  /* Go back to initial branch lengths */
-  e1->l->v     = len_e1;
-  e2->l->v     = len_e2;
-  e3->l->v     = len_e3;
-  e4->l->v     = len_e4;
-  b_fcus->l->v = bl_init;
+  buff = (t_tree *)tree;
+  do
+    {      
+      counter=0;
+      For(site,tree->n_pattern)
+        {
+          wei=0;
+          For(wei,tree->data->wght[site])
+            {
+              tree->log_lks_aLRT[0][counter]= tree->c_lnL_sorted[site] / tree->data->wght[site];
+              counter++;
+            }
+        }
+      tree = tree->next;
+    }
+  while(tree);
+  tree = (t_tree *)buff;
+
+
+  /*! Go back to initial branch lengths */
+  MIXT_Set_Lengths_Of_This_Edge(len_e1,e1);
+  MIXT_Set_Lengths_Of_This_Edge(len_e2,e2);
+  MIXT_Set_Lengths_Of_This_Edge(len_e3,e3);
+  MIXT_Set_Lengths_Of_This_Edge(len_e4,e4);
+  MIXT_Set_Lengths_Of_This_Edge(bl_init,b_fcus);
   Update_PMat_At_Given_Edge(e1,tree);
   Update_PMat_At_Given_Edge(e2,tree);
   Update_PMat_At_Given_Edge(e3,tree);
@@ -450,10 +443,11 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
   Update_PMat_At_Given_Edge(b_fcus,tree);
 
 
-  //Do first possible swap
+  /*! Do first possible swap */
   Swap(v2,b_fcus->left,b_fcus->rght,v3,tree);
 
-  tree->update_alias_subpatt = YES;
+  MIXT_Set_Alias_Subpatt(YES,tree);
+
   Set_Both_Sides(YES,tree);     
   lk1 = Update_Lk_At_Given_Edge(b_fcus,tree);
 
@@ -464,10 +458,11 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
   For(i,3)
     if(b_fcus->rght->v[i] != b_fcus->left)
       Update_P_Lk(tree,b_fcus->rght->b[i],b_fcus->rght);
-  tree->update_alias_subpatt = NO;
+
+  MIXT_Set_Alias_Subpatt(YES,tree);
 
 
-  //Optimize branch lengths and update likelihoods
+  /*! Optimize branch lengths and update likelihoods */
   lk_temp = UNLIKELY;
   do
     {
@@ -478,25 +473,17 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
 	  {
 	    Update_P_Lk(tree,b_fcus->left->b[i],b_fcus->left);
 
-	    l_infa  = 10.*b_fcus->left->b[i]->l->v;
-	    l_max   = b_fcus->left->b[i]->l->v;
-	    l_infb  = tree->mod->l_min;
-	    lk_temp = Br_Len_Brent(l_infa,l_max,l_infb,
-				   tree->mod->s_opt->min_diff_lk_local,
-				   b_fcus->left->b[i],tree,
-				   tree->mod->s_opt->brent_it_max,0);
-	  }
+	    l_infa  = 10.;
+	    l_infb  = tree->mod->l_min/b_fcus->left->b[i]->l->v;
 
+	    lk_temp = Br_Len_Brent(l_infb,l_infa,b_fcus->left->b[i],tree);
+	  }
 
       Update_P_Lk(tree,b_fcus,b_fcus->left);
 
-      l_infa  = 10.*b_fcus->l->v;
-      l_max   = b_fcus->l->v;
-      l_infb  = tree->mod->l_min;
-      lk_temp = Br_Len_Brent(l_infa,l_max,l_infb,
-			     tree->mod->s_opt->min_diff_lk_local,
-			     b_fcus,tree,
-			     tree->mod->s_opt->brent_it_max,0);
+      l_infa  = 10.;
+      l_infb  = tree->mod->l_min/b_fcus->l->v;
+      lk_temp = Br_Len_Brent(l_infb,l_infa,b_fcus,tree);
 
 
 
@@ -505,52 +492,55 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
 	  {
 	    Update_P_Lk(tree,b_fcus->rght->b[i],b_fcus->rght);
 
-	    l_infa  = 10.*b_fcus->rght->b[i]->l->v;
-	    l_max   = b_fcus->rght->b[i]->l->v;
-	    l_infb  = tree->mod->l_min;
-	    lk_temp = Br_Len_Brent(l_infa,l_max,l_infb,
-				   tree->mod->s_opt->min_diff_lk_local,
-				   b_fcus->rght->b[i],tree,
-				   tree->mod->s_opt->brent_it_max,0);
+	    l_infa  = 10.;
+	    l_infb  = tree->mod->l_min/b_fcus->rght->b[i]->l->v;
+	    lk_temp = Br_Len_Brent(l_infb,l_infa,b_fcus->rght->b[i],tree);
 	  }
 
       Update_P_Lk(tree,b_fcus,b_fcus->rght);
 
-
       if(lk_temp < lk1 - tree->mod->s_opt->min_diff_lk_local)
 	{
-	  PhyML_Printf("\n. lk_temp = %f lk1 = %f\n",lk_temp,lk1);
-	  PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
+	  PhyML_Printf("\n== lk_temp = %f lk1 = %f\n",lk_temp,lk1);
+	  PhyML_Printf("\n== Err in file %s at line %d\n\n",__FILE__,__LINE__);
 	  Warn_And_Exit("");
 	}
     }
   while(FABS(lk_temp-lk1) > tree->mod->s_opt->min_diff_lk_global);
-  //until no significative improvement is detected
+  /*! until no significative improvement is detected */
 
   lk1 = tree->c_lnL;
 
-  //save likelihood of each sites, in order to compute branch supports
-  counter=0;
-  For(site,n_patterns)
-    {
-      wei=0;
-      For(wei,tree->data->wght[site])
-	{
-	  tree->log_lks_aLRT[1][counter]= tree->c_lnL_sorted[site] / tree->data->wght[site];
-	  counter++;
-	}
+  /*! save likelihood of each sites, in order to compute branch supports */
+
+  buff = (t_tree *)tree;
+  do
+    {      
+      counter=0;
+      For(site,tree->n_pattern)
+        {
+          wei=0;
+          For(wei,tree->data->wght[site])
+            {
+              tree->log_lks_aLRT[1][counter]= tree->c_lnL_sorted[site] / tree->data->wght[site];
+              counter++;
+            }
+        }
+      tree = tree->next;
     }
+  while(tree);
+  tree = (t_tree *)buff;
 
 
-  //undo the swap
+  /*! undo the swap */
   Swap(v3,b_fcus->left,b_fcus->rght,v2,tree);
 
-  /* Go back to initial branch lengths */
-  e1->l->v     = len_e1;
-  e2->l->v     = len_e2;
-  e3->l->v     = len_e3;
-  e4->l->v     = len_e4;
-  b_fcus->l->v = bl_init;
+  /*! Go back to initial branch lengths */
+  MIXT_Set_Lengths_Of_This_Edge(len_e1,e1);
+  MIXT_Set_Lengths_Of_This_Edge(len_e2,e2);
+  MIXT_Set_Lengths_Of_This_Edge(len_e3,e3);
+  MIXT_Set_Lengths_Of_This_Edge(len_e4,e4);
+  MIXT_Set_Lengths_Of_This_Edge(bl_init,b_fcus);
 
   Update_PMat_At_Given_Edge(e1,tree);
   Update_PMat_At_Given_Edge(e2,tree);
@@ -558,13 +548,12 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
   Update_PMat_At_Given_Edge(e4,tree);
   Update_PMat_At_Given_Edge(b_fcus,tree);
 
-  /***********/
-  //do the second possible swap
+  /*! do the second possible swap */
   Swap(v2,b_fcus->left,b_fcus->rght,v4,tree);
-  b_fcus->l->v = bl_init;
-  Set_Both_Sides(YES,tree);
 
-  tree->update_alias_subpatt = YES;
+  Set_Both_Sides(YES,tree);
+  MIXT_Set_Alias_Subpatt(YES,tree);
+  
   lk2 = Update_Lk_At_Given_Edge(b_fcus,tree);
 
   For(i,3)
@@ -575,9 +564,9 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
     if(b_fcus->rght->v[i] != b_fcus->left)
       Update_P_Lk(tree,b_fcus->rght->b[i],b_fcus->rght);
 
-  tree->update_alias_subpatt = NO;
+  MIXT_Set_Alias_Subpatt(NO,tree);
 
-  //Optimize branch lengths and update likelihoods
+  /*! Optimize branch lengths and update likelihoods */
   lk_temp = UNLIKELY;
   do
     {
@@ -588,38 +577,26 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
 	  {
 	    Update_P_Lk(tree,b_fcus->left->b[i],b_fcus->left);
 
-	    l_infa  = 10.*b_fcus->left->b[i]->l->v;
-	    l_max   = b_fcus->left->b[i]->l->v;
-	    l_infb  = tree->mod->l_min;
-	    lk_temp = Br_Len_Brent(l_infa,l_max,l_infb,
-				   tree->mod->s_opt->min_diff_lk_local,
-				   b_fcus->left->b[i],tree,
-				   tree->mod->s_opt->brent_it_max,0);
+	    l_infa  = 10.;
+	    l_infb  = tree->mod->l_min/b_fcus->left->b[i]->l->v;
+	    lk_temp = Br_Len_Brent(l_infb,l_infa,b_fcus->left->b[i],tree);
 	  }
 
 
       Update_P_Lk(tree,b_fcus,b_fcus->left);
 
-      l_infa  = 10.*b_fcus->l->v;
-      l_max   = b_fcus->l->v;
-      l_infb  = tree->mod->l_min;
-      lk_temp = Br_Len_Brent(l_infa,l_max,l_infb,
-			     tree->mod->s_opt->min_diff_lk_local,
-			     b_fcus,tree,
-			     tree->mod->s_opt->brent_it_max,0);
+      l_infa  = 10.;
+      l_infb  = tree->mod->l_min/b_fcus->l->v;
+      lk_temp = Br_Len_Brent(l_infb,l_infa,b_fcus,tree);
 
       For(i,3)
 	if(b_fcus->rght->v[i] != b_fcus->left)
 	  {
 	    Update_P_Lk(tree,b_fcus->rght->b[i],b_fcus->rght);
 
-	    l_infa  = 10.*b_fcus->rght->b[i]->l->v;
-	    l_max   = b_fcus->rght->b[i]->l->v;
-	    l_infb  = tree->mod->l_min;
-	    lk_temp = Br_Len_Brent(l_infa,l_max,l_infb,
-				   tree->mod->s_opt->min_diff_lk_local,
-				   b_fcus->rght->b[i],tree,
-				   tree->mod->s_opt->brent_it_max,0);
+	    l_infa  = 10.;
+	    l_infb  = tree->mod->l_min/b_fcus->rght->b[i]->l->v;
+	    lk_temp = Br_Len_Brent(l_infb,l_infa,b_fcus->rght->b[i],tree);
 	  }
 
       Update_P_Lk(tree,b_fcus,b_fcus->rght);
@@ -636,37 +613,45 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
 
   lk2 = tree->c_lnL;
 
-  //save likelihood of each sites, in order to compute branch supports
-  counter=0;
-  For(site,n_patterns)
+  /*! save likelihood of each sites, in order to compute branch supports */
+  buff = (t_tree *)tree;  
+  do
     {
-      wei=0;
-      For(wei,tree->data->wght[site])
-	{
-	  tree->log_lks_aLRT[2][counter]= tree->c_lnL_sorted[site] / tree->data->wght[site];
-	  counter++;
-	}
+      counter=0;
+      For(site,tree->n_pattern)
+        {
+          wei=0;
+          For(wei,tree->data->wght[site])
+            {
+              tree->log_lks_aLRT[2][counter]= tree->c_lnL_sorted[site] / tree->data->wght[site];
+              counter++;
+            }
+        }
+      tree = tree->next;
     }
+  while(tree);
+  tree = (t_tree *)buff;
 
-  //undo the swap
+
+  /*! undo the swap */
   Swap(v4,b_fcus->left,b_fcus->rght,v2,tree);
   /***********/
 
-  //restore the initial branch length values
-  e1->l->v     = len_e1;
-  e2->l->v     = len_e2;
-  e3->l->v     = len_e3;
-  e4->l->v     = len_e4;
-  b_fcus->l->v = bl_init;
+  /*! restore the initial branch length values */
+  MIXT_Set_Lengths_Of_This_Edge(len_e1,e1);
+  MIXT_Set_Lengths_Of_This_Edge(len_e2,e2);
+  MIXT_Set_Lengths_Of_This_Edge(len_e3,e3);
+  MIXT_Set_Lengths_Of_This_Edge(len_e4,e4);
+  MIXT_Set_Lengths_Of_This_Edge(bl_init,b_fcus);
 
-  //recompute likelihoods
+  /*! recompute likelihoods */
   Update_PMat_At_Given_Edge(e1,tree);
   Update_PMat_At_Given_Edge(e2,tree);
   Update_PMat_At_Given_Edge(e3,tree);
   Update_PMat_At_Given_Edge(e4,tree);
   Update_PMat_At_Given_Edge(b_fcus,tree);
 
-  tree->update_alias_subpatt = YES;
+  MIXT_Set_Alias_Subpatt(YES,tree);
   Update_P_Lk(tree,b_fcus,b_fcus->rght);
   Update_P_Lk(tree,b_fcus,b_fcus->left);
 
@@ -677,15 +662,15 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
   For(i,3)
     if(b_fcus->rght->v[i] != b_fcus->left)
       Update_P_Lk(tree,b_fcus->rght->b[i],b_fcus->rght);
-  tree->update_alias_subpatt = NO;
+
+  MIXT_Set_Alias_Subpatt(NO,tree);
 
   lk_temp = Lk(b_fcus,tree);
 
-
   if((lk_temp > lk_init + tree->mod->s_opt->min_diff_lk_local) || (lk_temp < lk_init - tree->mod->s_opt->min_diff_lk_local))
     {
-      PhyML_Printf("\n. lk_temp = %f lk_init = %f\n",lk_temp,lk_init);
-      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
+      PhyML_Printf("\n== lk_temp = %f lk_init = %f",lk_temp,lk_init);
+      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
@@ -716,15 +701,6 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
       else                                    result = 4; //lk2 > lk1 > lk0
     }
 
-/*   int counter=0; */
-/*   For(site,n_patterns) */
-/*     { */
-/*       PhyML_Printf("%3d %3d %15f ",b_fcus->num,tree->data->wght[site],b_fcus->nni->score); */
-/*       PhyML_Printf("%15f %15f\n", */
-/* 	     tree->log_lks_aLRT[0][counter], */
-/* 	     (lk1 > lk2)?(tree->log_lks_aLRT[1][counter]):(tree->log_lks_aLRT[2][counter])); */
-/*       counter+=tree->data->wght[site]; */
-/*     } */
   return result;
 }
 
@@ -748,7 +724,7 @@ void Make_Target_Swap(t_tree *tree, t_edge *b_fcus, int swaptodo)
 
   if(swaptodo < 0)
     {
-      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
+      PhyML_Printf("\n== Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
@@ -760,7 +736,6 @@ void Make_Target_Swap(t_tree *tree, t_edge *b_fcus, int swaptodo)
   lktodo = UNLIKELY;
   v1 = v2 = v3 = v4 = NULL;
 
-
   v1 = b_fcus->left->v[b_fcus->l_v1];
   v2 = b_fcus->left->v[b_fcus->l_v2];
   v3 = b_fcus->rght->v[b_fcus->r_v1];
@@ -768,7 +743,7 @@ void Make_Target_Swap(t_tree *tree, t_edge *b_fcus, int swaptodo)
 
   if(v1->num < v2->num)
     {
-      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
+      PhyML_Printf("\n== Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
   if(v3->num < v4->num)
@@ -791,7 +766,7 @@ void Make_Target_Swap(t_tree *tree, t_edge *b_fcus, int swaptodo)
       if(!Check_Topo_Constraints(tree,tree->io->cstr_tree)) Swap(v4,b_fcus->left,b_fcus->rght,v2,tree);
     }
 
-  tree->update_alias_subpatt = YES;
+  MIXT_Set_Alias_Subpatt(YES,tree);
   Set_Both_Sides(YES,tree);     
   lktodo = Update_Lk_At_Given_Edge(b_fcus,tree);
 
@@ -803,7 +778,7 @@ void Make_Target_Swap(t_tree *tree, t_edge *b_fcus, int swaptodo)
     if(b_fcus->rght->v[i] != b_fcus->left)
       Update_P_Lk(tree,b_fcus->rght->b[i],b_fcus->rght);
 
-  tree->update_alias_subpatt = NO;
+  MIXT_Set_Alias_Subpatt(NO,tree);
 
   //Optimize branch lengths and update likelihoods
   lk_temp = UNLIKELY;
@@ -816,25 +791,17 @@ void Make_Target_Swap(t_tree *tree, t_edge *b_fcus, int swaptodo)
 	  {
 	    Update_P_Lk(tree,b_fcus->left->b[i],b_fcus->left);
 
-	    l_infa  = 10.*b_fcus->left->b[i]->l->v;
-	    l_max   = b_fcus->left->b[i]->l->v;
-	    l_infb  = tree->mod->l_min;
-	    lk_temp = Br_Len_Brent(l_infa,l_max,l_infb,
-				   tree->mod->s_opt->min_diff_lk_local,
-				   b_fcus->left->b[i],tree,
-				   tree->mod->s_opt->brent_it_max,0);
+	    l_infa  = 10.;
+	    l_infb  = tree->mod->l_min/b_fcus->left->b[i]->l->v;
+	    lk_temp = Br_Len_Brent(l_infb,l_infa,b_fcus->left->b[i],tree);
 	  }
 
 
       Update_P_Lk(tree,b_fcus,b_fcus->left);
 
-      l_infa  = 10.*b_fcus->l->v;
-      l_max   = b_fcus->l->v;
-      l_infb  = tree->mod->l_min;
-      lk_temp = Br_Len_Brent(l_infa,l_max,l_infb,
-			     tree->mod->s_opt->min_diff_lk_local,
-			     b_fcus,tree,
-			     tree->mod->s_opt->brent_it_max,0);
+      l_infa  = 10.;
+      l_infb  = tree->mod->l_min/b_fcus->l->v;
+      lk_temp = Br_Len_Brent(l_infb,l_infa,b_fcus,tree);
 
 
 
@@ -843,13 +810,9 @@ void Make_Target_Swap(t_tree *tree, t_edge *b_fcus, int swaptodo)
 	  {
 	    Update_P_Lk(tree,b_fcus->rght->b[i],b_fcus->rght);
 
-	    l_infa  = 10.*b_fcus->rght->b[i]->l->v;
-	    l_max   = b_fcus->rght->b[i]->l->v;
-	    l_infb  = tree->mod->l_min;
-	    lk_temp = Br_Len_Brent(l_infa,l_max,l_infb,
-				   tree->mod->s_opt->min_diff_lk_local,
-				   b_fcus->rght->b[i],tree,
-				   tree->mod->s_opt->brent_it_max,0);
+	    l_infa  = 10.;
+	    l_infb  = tree->mod->l_min/b_fcus->rght->b[i]->l->v;
+	    lk_temp = Br_Len_Brent(l_infb,l_infa,b_fcus->rght->b[i],tree);
 	  }
 
       Update_P_Lk(tree,b_fcus,b_fcus->rght);
@@ -1077,27 +1040,35 @@ phydbl Statistics_to_RELL(t_tree *tree)
   phydbl lk2=0.0;
   phydbl buff = -1.;
   int position = -1;
+  t_tree *buff_tree;
 
-  //1000 times
+  /*! 1000 times */
   For(i,occurence)
     {
       lk0=0.0;
       lk1=0.0;
       lk2=0.0;
-	  //Shuffle the data and increment the support, if needed
-      For(site, tree->data->init_len)
-	{
-	  buff  = rand();
-	  buff /= (RAND_MAX+1.);
-/* 	  buff *= tree->data->crunch_len; */
-	  buff *= tree->data->init_len;
-	  position = (int)FLOOR(buff);
 
-	  lk0+=tree->log_lks_aLRT[0][position];
-	  lk1+=tree->log_lks_aLRT[1][position];
-	  lk2+=tree->log_lks_aLRT[2][position];
-    	}
-      if (lk0>=lk1 && lk0>=lk2) nb++;
+      /*! Shuffle the data and increment the support, if needed */
+      buff_tree = tree;
+      do
+        {
+          For(site, tree->data->init_len)
+            {
+              buff  = rand();
+              buff /= (RAND_MAX+1.);
+              buff *= tree->data->init_len;
+              position = (int)FLOOR(buff);
+              
+              lk0+=tree->log_lks_aLRT[0][position];
+              lk1+=tree->log_lks_aLRT[1][position];
+              lk2+=tree->log_lks_aLRT[2][position];
+            }
+          if (lk0>=lk1 && lk0>=lk2) nb++;
+          tree = tree->next;
+        }
+      while(tree);
+      tree = buff_tree;
     }
 
   res= nb/(phydbl)occurence;
@@ -1107,10 +1078,9 @@ phydbl Statistics_to_RELL(t_tree *tree)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-/**
-* deprecated
-* Compute a SH-like support, using the latest tested branch
-* param tree: the tested tree
+/*!
+  Compute a SH-like support, using the latest tested branch
+  param tree: the tested tree
 */
 phydbl Statistics_To_SH(t_tree *tree)
 {
@@ -1128,76 +1098,94 @@ phydbl Statistics_To_SH(t_tree *tree)
   phydbl buff=-1.;
   int position=-1;
   phydbl delta_local=-1.;
+  phydbl delta=0.0;
+  t_tree *buff_tree;
 
 
-  //Compute the total log-lk of each NNI position
-  For(site, tree->data->init_len)
+  /*! Compute the total log-lk of each NNI position */
+  buff_tree = tree;
+  do
     {
-      c0+=tree->log_lks_aLRT[0][site];
-      c1+=tree->log_lks_aLRT[1][site];
-      c2+=tree->log_lks_aLRT[2][site];
+      For(site, tree->data->init_len)
+        {
+          c0+=tree->log_lks_aLRT[0][site];
+          c1+=tree->log_lks_aLRT[1][site];
+          c2+=tree->log_lks_aLRT[2][site];
+        }
+      tree = tree->next;
     }
-      phydbl delta=0.0;
-      if (c0>=c1 && c0>=c2)
-	{
-	  if (c1>=c2)
-	    {
-	      delta=c0-c1;
-	    }
-	  else
-	    {
-	      delta=c0-c2;
-	    }
-	}
-      else if(c1>=c0 && c1>=c2)
-	{
-	  if (c0>=c2)
-	    {
-	      delta=c1-c0;
-	    }
-	  else
-	    {
-	      delta=c1-c2;
-	    }
-	}
-      else
-	{
-	  if (c1>=c0)
+  while(tree);
+  tree = buff_tree;
 
-	    {
-	      delta=c2-c1;
-	    }
-	  else
-	    {
-	      delta=c2-c0;
-	    }
-	}
-  //1000 times
+  
+  if (c0>=c1 && c0>=c2)
+    {
+      if (c1>=c2)
+        {
+          delta=c0-c1;
+        }
+      else
+        {
+          delta=c0-c2;
+        }
+    }
+  else if(c1>=c0 && c1>=c2)
+    {
+      if (c0>=c2)
+        {
+          delta=c1-c0;
+        }
+      else
+        {
+          delta=c1-c2;
+        }
+    }
+  else
+    {
+      if (c1>=c0)        
+        {
+          delta=c2-c1;
+        }
+      else
+        {
+          delta=c2-c0;
+        }
+    }
+
+  /*! 1000 times */
   For(i,occurence)
     {
       lk0=0.0;
       lk1=0.0;
       lk2=0.0;
+      
+      buff_tree = tree;
+      do
+        {
+          /*! Shuffle the data */
+          For(site, tree->data->init_len)
+            {
+              buff  = rand();
+              buff /= (RAND_MAX+1.);
+              buff *= tree->data->init_len;
+              position = (int)FLOOR(buff);
+              
+              lk0+=tree->log_lks_aLRT[0][position];
+              lk1+=tree->log_lks_aLRT[1][position];
+              lk2+=tree->log_lks_aLRT[2][position];
+            }
+          
+          tree = tree->next;
+        }
+      while(tree);
+      tree = buff_tree;
 
-     //Shuffle the data
-     For(site, tree->data->init_len)
-	{
-	  buff  = rand();
-	  buff /= (RAND_MAX+1.);
-	  buff *= tree->data->init_len;
-	  position = (int)FLOOR(buff);
-
-	  lk0+=tree->log_lks_aLRT[0][position];
-	  lk1+=tree->log_lks_aLRT[1][position];
-	  lk2+=tree->log_lks_aLRT[2][position];
-    	}
-
-	  //return to null hypothesis
+      /*! return to null hypothesis */
       lk0=lk0-c0;
       lk1=lk1-c1;
       lk2=lk2-c2;
-
-	  //compute results and increment if needed
+      
+      /*! compute results and increment if needed */
       delta_local=0.0;
       if (lk0>=lk1 && lk0>=lk2)
 	{
@@ -1224,7 +1212,7 @@ phydbl Statistics_To_SH(t_tree *tree)
       else
 	{
 	  if (lk1>=lk0)
-
+            
 	    {
 	      delta_local=lk2-lk1;
 	    }
@@ -1233,14 +1221,15 @@ phydbl Statistics_To_SH(t_tree *tree)
 	      delta_local=lk2-lk0;
 	    }
 	}
-
-	if (delta>(delta_local+0.1)) {
-	  	nb++;
-	}
-	}
-
+      
+      if (delta>(delta_local+0.1)) 
+        {
+          nb++;
+        }
+    }
+  
   res= nb/occurence;
-
+  
   return res;
 }
 

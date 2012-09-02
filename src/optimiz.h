@@ -45,8 +45,7 @@ phydbl    Alpha_Golden(phydbl ax, phydbl bx, phydbl cx, phydbl tol,phydbl *xmin,
 		       t_tree *tree, calign *cdata);
 phydbl    Br_Len_Golden(phydbl ax, phydbl bx, phydbl cx, phydbl tol, 
 			phydbl *xmin, t_edge *b_fcus, t_tree *tree);
-phydbl    Br_Len_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, 
-		       t_edge *b_fcus, t_tree *tree, int n_iter_max, int quickdirty);
+phydbl Br_Len_Brent(phydbl prop_min, phydbl prop_max, t_edge *b_fcus, t_tree *tree);
 int       Br_Len_Brak(phydbl *ax, phydbl *bx, phydbl *cx, 
 		      phydbl *fa, phydbl *fb, phydbl *fc, 
 		      t_edge *b_fcus, t_tree *tree);

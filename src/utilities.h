@@ -28,6 +28,9 @@ the GNU public licence. See http://www.opensource.org for details.
 #include <float.h>
 #include <stdbool.h>
 
+extern int n_sec1;
+extern int n_sec2;
+
 #define For(i,n)                     for(i=0; i<n; i++)
 #define Fors(i,n,s)                  for(i=0; i<n; i+=s)
 #define PointGamma(prob,alpha,beta)  PointChi2(prob,2.0*(alpha))/(2.0*(beta))
@@ -220,7 +223,6 @@ static inline int isinf_ld (long double x) { return isnan (x - x); }
 #define SH             4
 #define ABAYES         5
 
-/* #define USE_OLD_LK */
 
 /*  /\* Uncomment the lines below to switch to single precision *\/ */
 /*  typedef	float phydbl; */
@@ -262,6 +264,9 @@ typedef	double phydbl;
 #define SMALL DBL_MIN
 #define BIG  DBL_MAX
 #define SMALL_PIJ 1.E-20
+#define LOGBIG 690.
+#define LOGSMALL -690.
+
 
 #ifndef PHYTIME
 #define BL_MIN 1.E-8
@@ -322,7 +327,7 @@ typedef struct __Node {
   struct __Align               *c_seq_anc; /*! corresponding compressed ancestral sequence */
 
 
-  struct __Node                     *next; /*! tree->t_nodes[i]->next <=> tree->next->t_nodes[i] */ 
+  struct __Node                     *next; /*! tree->a_nodes[i]->next <=> tree->next->a_nodes[i] */ 
   struct __Node                    *child; /*! See above */
   struct __Node                   *parent; /*! See above */
   struct __Node                     *prev; /*! See above */
@@ -453,8 +458,8 @@ typedef struct __Tree{
 
   struct __Node                       *n_root; /*! root t_node */
   struct __Edge                       *e_root; /*! t_edge on which lies the root */
-  struct __Node                     **t_nodes; /*! array of nodes that defines the tree topology */
-  struct __Edge                     **t_edges; /*! array of edges */
+  struct __Node                     **a_nodes; /*! array of nodes that defines the tree topology */
+  struct __Edge                     **a_edges; /*! array of edges */
   struct __Model                         *mod; /*! substitution model */
   struct __Calign                       *data; /*! sequences */
   struct __Calign                   *anc_data; /*! ancestral sequences */
@@ -489,7 +494,7 @@ typedef struct __Tree{
   int                              both_sides; /*! both_sides=1 -> a pre-order and a post-order tree
 						  traversals are required to compute the likelihood
 						  of every subtree in the phylogeny*/
-  int               num_curr_branch_available; /*!gives the number of the next cell in t_edges that is free to receive a pointer to a branch */
+  int               num_curr_branch_available; /*!gives the number of the next cell in a_edges that is free to receive a pointer to a branch */
   short int                            *t_dir;
   int                          n_improvements;
   int                                 n_moves;
@@ -507,8 +512,8 @@ typedef struct __Tree{
   phydbl                               old_lnL; /*! old loglikelihood */
   phydbl                     sum_min_sum_scale; /*! common factor of scaling factors */
   phydbl                         *c_lnL_sorted; /*! used to compute c_lnL by adding sorted terms to minimize CPU errors */
-  phydbl                          *cur_site_lk; /*! vector of likelihoods at individual sites */
-  phydbl                          *old_site_lk; /*! vector of likelihoods at individual sites */
+  phydbl                        *cur_site_lk; /*! vector of loglikelihoods at individual sites */
+  phydbl                        *old_site_lk; /*! vector of likelihoods at individual sites */
   phydbl                     **log_site_lk_cat; /*! loglikelihood at individual sites and for each class of rate*/
   phydbl                          *site_lk_cat; /*! loglikelihood at a single site and for each class of rate*/
   phydbl                       unconstraint_lk; /*! unconstrained (or multinomial) likelihood  */
@@ -658,6 +663,7 @@ typedef struct __Align {
   char           *name; /*! sequence name */
   int              len; /*! sequence length */
   char          *state; /*! sequence itself */
+  int         *d_state; /*! sequence itself (digits) */
   short int *is_ambigu; /*! is_ambigu[site] = 1 if state[site] is an ambiguous character. 0 otherwise */
 }align;
 
@@ -731,6 +737,8 @@ typedef struct __RAS {
   int              free_mixt_rates;  
   phydbl               mixt_weight;
   int          parent_class_number;
+  scalar_dbl               *pinvar; /*! proportion of invariable sites */
+  scalar_dbl           *pinvar_old; /*! proportion of invariable sites */
 
   struct __RAS               *next;
 
@@ -780,7 +788,6 @@ typedef struct __Model {
 
   scalar_dbl                *kappa; /*! transition/transversion rate */
   scalar_dbl               *lambda; /*! parameter used to define the ts/tv ratios in the F84 and TN93 models */
-  scalar_dbl               *pinvar; /*! proportion of invariable sites */
   scalar_dbl            *kappa_old;
   scalar_dbl           *lambda_old;
   scalar_dbl           *pinvar_old;
@@ -1590,8 +1597,9 @@ void Connect_CSeqs_To_Nodes(calign *cdata, t_tree *tree);
 void Switch_Eigen(int state, t_mod *mod);
 void Joint_Proba_States_Left_Right(phydbl *Pij, phydbl *p_lk_left, phydbl *p_lk_rght, 
 				   vect_dbl *pi, int scale_left, int scale_rght, 
-				   phydbl *F, int n);
+				   phydbl *F, int n, int site, t_tree *tree);
 void Set_Both_Sides(int yesno, t_tree *tree);
+void Set_D_States(calign *data, int datatype, int stepsize);
 
 #include "xml.h"
 #include "free.h"

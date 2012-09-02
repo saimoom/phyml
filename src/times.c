@@ -27,12 +27,10 @@ int TIMES_main(int argc, char **argv)
   calign *cdata;
   option *io;
   t_tree *tree;
-  int n_otu, num_data_set;
-  int num_tree,tree_line_number,num_rand_tree;
-  matrix *mat;
+  int num_data_set;
+  int num_tree,num_rand_tree;
   t_mod *mod;
   time_t t_beg,t_end;
-  phydbl best_lnL,most_likely_size,tree_size;
   int r_seed;
   char *most_likely_tree;
   int i;
@@ -57,9 +55,6 @@ int TIMES_main(int argc, char **argv)
   mod              = NULL;
   data             = NULL;
   most_likely_tree = NULL;
-  best_lnL         = UNLIKELY;
-  most_likely_size = -1.0;
-  tree_size        = -1.0;
 
   io = (option *)Get_Input(argc,argv);
   r_seed = (io->r_seed < 0)?(time(NULL)):(io->r_seed);
@@ -95,10 +90,6 @@ int TIMES_main(int argc, char **argv)
   if(io->in_tree == 2) Test_Multiple_Data_Set_Format(io);
   else io->n_trees = 1;
 
-  mat = NULL;
-  tree_line_number = 0;
-
-
   if((io->n_data_sets > 1) && (io->n_trees > 1))
     {
       io->n_data_sets = MIN(io->n_trees,io->n_data_sets);
@@ -107,8 +98,6 @@ int TIMES_main(int argc, char **argv)
 
   For(num_data_set,io->n_data_sets)
     {
-      n_otu = 0;
-      best_lnL = UNLIKELY;
       data = Get_Seq(io);
 
       if(data)
@@ -117,7 +106,7 @@ int TIMES_main(int argc, char **argv)
 	  PhyML_Printf("\n. Compressing sequences...\n");
 	  cdata = Compact_Data(data,io);
 	  Free_Seq(data,cdata->n_otu);
-	  Check_Ambiguities(cdata,io->mod->io->datatype,io->mod->state_len);
+	  Check_Ambiguities(cdata,io->mod->io->datatype,io->state_len);
 
 	  for(num_tree=(io->n_trees == 1)?(0):(num_data_set);num_tree < io->n_trees;num_tree++)
 	    {
@@ -167,7 +156,7 @@ int TIMES_main(int argc, char **argv)
 		  tree->mod         = mod;
 		  tree->io          = io;
 		  tree->data        = cdata;
-		  tree->n_pattern   = tree->data->crunch_len/tree->mod->state_len;
+		  tree->n_pattern   = tree->data->crunch_len/tree->io->state_len;
 
                   Set_Both_Sides(YES,tree);
 
@@ -263,13 +252,13 @@ int TIMES_main(int argc, char **argv)
 		      RATES_Get_Trip_Conditional_Variances(tree);
 		      RATES_Get_All_Trip_Reg_Coeff(tree);
 		      
-		      Lk(tree);
+		      Lk(NULL,tree);
 		      PhyML_Printf("\n");
 		      PhyML_Printf("\n. p(data|model) [exact ] ~ %.2f",tree->c_lnL);
 		      
 		      tree->io->lk_approx = NORMAL;
 		      For(i,2*tree->n_otu-3) tree->rates->u_cur_l[i] = tree->rates->mean_l[i] ;
-		      tree->c_lnL = Lk(tree);
+		      tree->c_lnL = Lk(NULL,tree);
 		      PhyML_Printf("\n. p(data|model) [approx] ~ %.2f",tree->c_lnL);
 
 		      tree->io->lk_approx = user_lk_approx;
@@ -384,7 +373,7 @@ void TIMES_Least_Square_Node_Times(t_edge *e_root, t_tree *tree)
   x = (phydbl *)mCalloc(n,  sizeof(phydbl));
     
   if(!tree->n_root && e_root) Add_Root(e_root,tree);
-  else if(!e_root)            Add_Root(tree->t_edges[0],tree);
+  else if(!e_root)            Add_Root(tree->a_edges[0],tree);
   
   root = tree->n_root;
 
@@ -406,7 +395,7 @@ void TIMES_Least_Square_Node_Times(t_edge *e_root, t_tree *tree)
   For(i,n) x[i] = .0;
   For(i,n) For(j,n) x[i] += A[i*n+j] * b[j];
 
-  For(i,n-1) { tree->rates->nd_t[tree->t_nodes[i]->num] = -x[i]; }
+  For(i,n-1) { tree->rates->nd_t[tree->a_nodes[i]->num] = -x[i]; }
   tree->rates->nd_t[root->num] = -x[n-1];
   tree->n_root->l[0] = tree->rates->nd_t[root->v[0]->num] - tree->rates->nd_t[root->num];
   tree->n_root->l[1] = tree->rates->nd_t[root->v[1]->num] - tree->rates->nd_t[root->num];
@@ -427,15 +416,15 @@ void TIMES_Least_Square_Node_Times(t_edge *e_root, t_tree *tree)
 
   time_tree_length = 0.0;
   For(i,2*tree->n_otu-3)
-    if(tree->t_edges[i] != tree->e_root)
+    if(tree->a_edges[i] != tree->e_root)
       time_tree_length +=
-	FABS(tree->rates->nd_t[tree->t_edges[i]->left->num] -
-	     tree->rates->nd_t[tree->t_edges[i]->rght->num]);
+	FABS(tree->rates->nd_t[tree->a_edges[i]->left->num] -
+	     tree->rates->nd_t[tree->a_edges[i]->rght->num]);
   time_tree_length += FABS(tree->rates->nd_t[root->num] - tree->rates->nd_t[root->v[0]->num]);
   time_tree_length += FABS(tree->rates->nd_t[root->num] - tree->rates->nd_t[root->v[1]->num]);
   
   tree_length = 0.0;
-  For(i,2*tree->n_otu-3) tree_length += tree->t_edges[i]->l->v;
+  For(i,2*tree->n_otu-3) tree_length += tree->a_edges[i]->l->v;
 
   tree->rates->clock_r = tree_length / time_tree_length;
 
@@ -549,7 +538,7 @@ void TIMES_Adjust_Node_Times_Pre(t_node *a, t_node *d, t_tree *tree)
 void TIMES_Mult_Time_Stamps(t_tree *tree)
 {
   int i;
-  For(i,2*tree->n_otu-2) tree->rates->nd_t[tree->t_nodes[i]->num] *= FABS(tree->mod->s_opt->tree_size_mult);
+  For(i,2*tree->n_otu-2) tree->rates->nd_t[tree->a_nodes[i]->num] *= FABS(tree->mod->s_opt->tree_size_mult);
   tree->rates->nd_t[tree->n_root->num] *= FABS(tree->mod->s_opt->tree_size_mult);
 }
 
@@ -789,13 +778,13 @@ phydbl TIMES_Log_Conditional_Uniform_Density(t_tree *tree)
   dens = 0.0;
   For(i,2*tree->n_otu-1)
     {
-      if((tree->t_nodes[i]->tax == NO) && (tree->t_nodes[i] != tree->n_root))
+      if((tree->a_nodes[i]->tax == NO) && (tree->a_nodes[i] != tree->n_root))
 	{
 	  max = tree->rates->t_floor[i];
 
 	  dens += LOG(Dorder_Unif(tree->rates->nd_t[i],
-				  tree->t_nodes[i]->rank-1,
-				  tree->t_nodes[i]->rank_max-2,
+				  tree->a_nodes[i]->rank-1,
+				  tree->a_nodes[i]->rank_max-2,
 				  min,max));
 	}
     }
@@ -824,7 +813,7 @@ phydbl TIMES_Lk_Yule_Root_Marginal(t_tree *tree)
   nd = NULL;
   For(j,2*tree->n_otu-2) 
     {
-      nd = tree->t_nodes[j];
+      nd = tree->a_nodes[j];
 
       if((t[nd->num] > ts[0] && t[nd->anc->num] < ts[0]) || // lineage that is crossing ts[0]
 	 (nd->tax == YES && Are_Equal(t[nd->num],ts[0],1.E-6) == YES)) // tip that is lying on ts[0]
@@ -904,7 +893,7 @@ phydbl TIMES_Lk_Yule_Joint(t_tree *tree)
       dt = 0.;
       For(j,2*tree->n_otu-2)
   	{
-  	  nd = tree->t_nodes[j];
+  	  nd = tree->a_nodes[j];
   	  if(t[nd->num] > ts[i] && t[nd->anc->num] < ts[i]) // How many lineages are crossing this time slice limit?
   	    {
   	      n++;
@@ -951,7 +940,7 @@ phydbl TIMES_Lk_Yule_Order(t_tree *tree)
   loglk = 0.0;
   For(j,2*tree->n_otu-2)
     {
-      n = tree->t_nodes[j];
+      n = tree->a_nodes[j];
       lower_bound = MAX(FABS(tf[j]),FABS(tp_max[j]));
       upper_bound = MIN(FABS(t[tree->n_root->num]),FABS(tp_min[j]));
 
@@ -983,7 +972,7 @@ phydbl TIMES_Lk_Times(t_tree *tree)
   /* int n_nodes = 0; */
   /* For(i,2*tree->n_otu-2) */
   /*   { */
-  /*     if(tree->t_nodes[i]->tax == NO && tree->t_nodes[i] != tree->n_root) */
+  /*     if(tree->a_nodes[i]->tax == NO && tree->a_nodes[i] != tree->n_root) */
   /* 	{ */
   /* 	  if(!(tree->rates->nd_t[i] > tree->rates->t_floor[tree->n_root->num])) */
   /* 	    { */
@@ -1000,7 +989,7 @@ phydbl TIMES_Lk_Times(t_tree *tree)
   /* birthr = tree->rates->birth_rate; */
   /* For(i,2*tree->n_otu-1) */
   /*   { */
-  /*     if(tree->t_nodes[i]->tax == NO && tree->t_nodes[i] != tree->n_root) */
+  /*     if(tree->a_nodes[i]->tax == NO && tree->a_nodes[i] != tree->n_root) */
   /* 	{ */
   /* 	      /\* condlogdens -= birthr*(tree->rates->t_floor[i] - tree->rates->nd_t[i]); *\/ */
   /* 	      /\* condlogdens -= LOG(1.-EXP(-birthr*(tree->rates->t_floor[i] - tree->rates->nd_t[tree->n_root->num]))); *\/ */
@@ -1087,7 +1076,7 @@ phydbl TIMES_Lk_Times(t_tree *tree)
 
 
   /* loglk = 0.; */
-  /* For(i,2*tree->n_otu-2) if(tree->t_nodes[i]->tax == NO)  loglk -= lbda * FABS(t[i]); */
+  /* For(i,2*tree->n_otu-2) if(tree->a_nodes[i]->tax == NO)  loglk -= lbda * FABS(t[i]); */
   /* loglk += (tree->n_otu-2.)*LOG(lbda); */
   /* loglk -= (tree->n_otu-2.)*LOG(1.-EXP(lbda*t[tree->n_root->num])); */
 
@@ -1373,7 +1362,7 @@ void TIMES_Get_N_Slice_Spans(t_tree *tree)
 
   For(i,2*tree->n_otu-2)
     {
-      if(tree->t_nodes[i]->tax == NO)
+      if(tree->a_nodes[i]->tax == NO)
 	{
 	  For(j,tree->rates->n_time_slices)
 	    {
@@ -1439,7 +1428,7 @@ void TIMES_Set_Root_Given_Tip_Dates(t_tree *tree)
   
   Free_Bip(tree);
   Alloc_Bip(tree);
-  Get_Bip(tree->t_nodes[0],tree->t_nodes[0]->v[0],tree);
+  Get_Bip(tree->a_nodes[0],tree->a_nodes[0]->v[0],tree);
   
   left = rght = NULL;
   b = best = NULL;
@@ -1450,9 +1439,9 @@ void TIMES_Set_Root_Given_Tip_Dates(t_tree *tree)
 
   For(i,2*tree->n_otu-3)
     {
-      left = tree->t_edges[i]->left;
-      rght = tree->t_edges[i]->rght;
-      b    = tree->t_edges[i];
+      left = tree->a_edges[i]->left;
+      rght = tree->a_edges[i]->rght;
+      b    = tree->a_edges[i];
 
       n_left_in = 0;
       For(j,left->bip_size[b->l_r]) 

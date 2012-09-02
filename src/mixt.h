@@ -37,8 +37,7 @@ void MIXT_Reset_Has_Invariants(int *has_invariants,t_tree *mixt_tree);
 void MIXT_Check_Invar_Setup(t_tree *mixt_tree);
 void MIXT_Prune_Subtree(t_node *mixt_a,t_node *mixt_d,t_edge **mixt_target,t_edge **mixt_residual,t_tree *mixt_tree);
 void MIXT_Graft_Subtree(t_edge *mixt_target,t_node *mixt_link,t_edge *mixt_residual,t_tree *mixt_tree);
-void MIXT_Fast_Br_Len(t_edge *mixt_b, t_tree *mixt_tree, int approx);
-void MIXT_Br_Len_Brent(t_edge *mixt_b, t_tree *mixt_tree, int n_iter_max, int quickdirty);
+void MIXT_Br_Len_Brent(phydbl prop_min, phydbl prop_max,t_edge *mixt_b, t_tree *mixt_tree);
 void MIXT_Check_Number_Of_Invar_Classes(t_tree *mixt_tree);
 void MIXT_Prepare_Tree_For_Lk(t_tree *tree);
 void MIXT_Check_Invar_Struct_In_Each_Partition_Elem(t_tree *mixt_tree);
@@ -47,5 +46,7 @@ void MIXT_Br_Len_Involving_Invar(t_tree *mixt_tree);
 void MIXT_Br_Len_Not_Involving_Invar(t_tree *mixt_tree);
 phydbl MIXT_Unscale_Br_Len_Multiplier_Tree(t_tree *mixt_tree);
 phydbl MIXT_Rescale_Br_Len_Multiplier_Tree(t_tree *mixt_tree);
+void MIXT_Set_Alias_Subpatt(int onoff, t_tree *mixt_tree);
+phydbl Lk_Core(int state, int ambiguity_check, t_edge *b, t_tree *tree);
 
 #endif

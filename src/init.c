@@ -515,12 +515,12 @@ void Set_Defaults_Model(t_mod *mod)
   mod->kappa->v                = 4.0;
   mod->ras->alpha->v           = 1.0;
   mod->lambda->v               = 1.0;
-  mod->pinvar->v               = 0.0;
+  mod->ras->pinvar->v               = 0.0;
 
   mod->kappa_old->v            = 4.0;
   mod->ras->alpha_old->v       = 1.0;
   mod->lambda_old->v           = 1.0;
-  mod->pinvar_old->v           = 0.0;
+  mod->ras->pinvar_old->v           = 0.0;
 
   mod->bootstrap               = 0;
   mod->ras->invar              = NO;
@@ -733,7 +733,7 @@ void Init_Model(calign *data, t_mod *mod, option *io)
     }
 
   if(mod->s_opt->opt_alpha)  mod->ras->alpha->v = 1.0;
-  if(mod->s_opt->opt_pinvar) mod->pinvar->v     = 0.2;
+  if(mod->s_opt->opt_pinvar) mod->ras->pinvar->v     = 0.2;
   
   if(io->datatype == NT) /* Nucleotides */
     { 
@@ -741,6 +741,8 @@ void Init_Model(calign *data, t_mod *mod, option *io)
       mod->lambda->v    = 1.;
       /* mod->update_eigen = YES; */
       
+      printf("\n. model %s\n",mod->modelname);
+
       if(mod->whichmodel == JC69)
 	{
 	  mod->e_frq->pi->v[0] = mod->e_frq->pi->v[1] = mod->e_frq->pi->v[2] = mod->e_frq->pi->v[3] = .25;
@@ -1009,7 +1011,7 @@ void Init_Model(calign *data, t_mod *mod, option *io)
   mod->ras->alpha_old->v  = mod->ras->alpha->v;
   mod->kappa_old->v       = mod->kappa->v;
   mod->lambda_old->v      = mod->lambda->v;
-  mod->pinvar_old->v      = mod->pinvar->v;
+  mod->ras->pinvar_old->v = mod->ras->pinvar->v;
 
   Init_Eigen_Struct(mod->eigen);
 
