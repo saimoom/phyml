@@ -107,6 +107,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
       {"mutmap",              no_argument,NULL,70},
       {"parvals",             required_argument,NULL,71},
       {"constrained_lens",    no_argument,NULL,72},
+      {"xml",                 required_argument,NULL,73},
       {0,0,0,0}
     };
 
@@ -125,6 +126,11 @@ void Read_Command_Line(option *io, int argc, char **argv)
 
       switch(c)
 	{
+	case 73:
+	  {
+            PhyML_XML(optarg);
+	    break;
+	  }
 	case 72:
 	  {
 	    io->mod->s_opt->constrained_br_len = YES;
@@ -1144,8 +1150,8 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		(strcmp (optarg, "estimated") == 0) ||
 		(strcmp (optarg, "ESTIMATED") == 0)) 
 	      {
-		io->mod->s_opt->opt_pinvar    = YES;
-		io->mod->ras->invar                = YES;
+		io->mod->s_opt->opt_pinvar = YES;
+		io->mod->ras->invar        = YES;
 	      }
 	    
 	    else if ((atof(optarg) < 0.0) || (atof(optarg) > 1.0))
@@ -1158,8 +1164,8 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	      }
 	    else
 	      {
-		io->mod->pinvar->v = (phydbl)atof(optarg);
-		if (io->mod->pinvar->v > 0.0+SMALL)
+		io->mod->ras->pinvar->v = (phydbl)atof(optarg);
+		if (io->mod->ras->pinvar->v > 0.0+SMALL)
 		  io->mod->ras->invar = 1;
 		else
 		  io->mod->ras->invar = 0;

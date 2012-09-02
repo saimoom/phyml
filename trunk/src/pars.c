@@ -22,7 +22,7 @@ void Make_Tree_4_Pars(t_tree *tree, calign *cdata, int n_site)
   
   tree->site_pars = (int *)mCalloc(tree->n_pattern, sizeof(int));
   tree->step_mat = (int *)mCalloc(tree->mod->ns * tree->mod->ns, sizeof(int));
-  For(i,2*tree->n_otu-3) Make_Edge_Pars(tree->t_edges[i],tree);
+  For(i,2*tree->n_otu-3) Make_Edge_Pars(tree->a_edges[i],tree);
   Init_Ui_Tips(tree);
   Init_P_Pars_Tips(tree); /* Must be called after Init_Ui_Tips is called */
   Get_Step_Mat(tree);
@@ -38,11 +38,11 @@ int Pars(t_edge *b, t_tree *tree)
   
   if(!b)
     {
-      Post_Order_Pars(tree->t_nodes[0],tree->t_nodes[0]->v[0],tree);
-      if(tree->both_sides == YES) Pre_Order_Pars(tree->t_nodes[0],tree->t_nodes[0]->v[0],tree);
+      Post_Order_Pars(tree->a_nodes[0],tree->a_nodes[0]->v[0],tree);
+      if(tree->both_sides == YES) Pre_Order_Pars(tree->a_nodes[0],tree->a_nodes[0]->v[0],tree);
     }
 
-  if(!b) b = tree->t_nodes[0]->b[0];
+  if(!b) b = tree->a_nodes[0]->b[0];
 
   tree->c_pars = 0;
   For(site,n_patterns)
@@ -109,7 +109,7 @@ void Get_All_Partial_Pars(t_tree *tree, t_edge *b_fcus, t_node *a, t_node *d)
 
 void Site_Pars(t_tree *tree)
 {
-  tree->site_pars[tree->curr_site] = Pars_Core(tree->t_nodes[0]->b[0],tree);
+  tree->site_pars[tree->curr_site] = Pars_Core(tree->a_nodes[0]->b[0],tree);
 }
 
 /*********************************************************/
@@ -130,7 +130,7 @@ void Init_P_Pars_Tips(t_tree *tree)
     {
       For(i,tree->n_otu)
 	{
-	  if(tree->t_nodes[i]->b[0]->rght->tax != 1)
+	  if(tree->a_nodes[i]->b[0]->rght->tax != 1)
 	    {
 	      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
 	      Exit("\n");	    
@@ -138,29 +138,29 @@ void Init_P_Pars_Tips(t_tree *tree)
 
 	  if(tree->io->datatype == NT)
 	    {
-	      Init_Tips_At_One_Site_Nucleotides_Int(tree->t_nodes[i]->c_seq->state[curr_site],
+	      Init_Tips_At_One_Site_Nucleotides_Int(tree->a_nodes[i]->c_seq->state[curr_site],
 						    0,
 						    state_v);	      
-	      For(j,tree->mod->ns) tree->t_nodes[i]->b[0]->p_pars_r[curr_site*dim1+j] = MAX_PARS;
-	      For(j,tree->mod->ns) if(state_v[j] > 0.5) tree->t_nodes[i]->b[0]->p_pars_r[curr_site*dim1+j] =  0;
+	      For(j,tree->mod->ns) tree->a_nodes[i]->b[0]->p_pars_r[curr_site*dim1+j] = MAX_PARS;
+	      For(j,tree->mod->ns) if(state_v[j] > 0.5) tree->a_nodes[i]->b[0]->p_pars_r[curr_site*dim1+j] =  0;
 	    }
 	  else if(tree->io->datatype == AA)
 	    {
-	      Init_Tips_At_One_Site_AA_Int(tree->t_nodes[i]->c_seq->state[curr_site],
+	      Init_Tips_At_One_Site_AA_Int(tree->a_nodes[i]->c_seq->state[curr_site],
 					   0,
 					   state_v);
-	      For(j,tree->mod->ns) tree->t_nodes[i]->b[0]->p_pars_r[curr_site*dim1+j] = MAX_PARS;
-	      For(j,tree->mod->ns) if(state_v[j] > 0.5) tree->t_nodes[i]->b[0]->p_pars_r[curr_site*dim1+j] =  0;
+	      For(j,tree->mod->ns) tree->a_nodes[i]->b[0]->p_pars_r[curr_site*dim1+j] = MAX_PARS;
+	      For(j,tree->mod->ns) if(state_v[j] > 0.5) tree->a_nodes[i]->b[0]->p_pars_r[curr_site*dim1+j] =  0;
 	    }
 	  else if(tree->io->datatype == GENERIC)
 	    {
-	      Init_Tips_At_One_Site_Generic_Int(tree->t_nodes[i]->c_seq->state+curr_site*tree->mod->io->state_len,
+	      Init_Tips_At_One_Site_Generic_Int(tree->a_nodes[i]->c_seq->state+curr_site*tree->mod->io->state_len,
 						tree->mod->ns,
 						tree->mod->io->state_len,
 						0,
 						state_v);
-	      For(j,tree->mod->ns) tree->t_nodes[i]->b[0]->p_pars_r[curr_site*dim1+j] = MAX_PARS;
-	      For(j,tree->mod->ns) if(state_v[j] > 0.5) tree->t_nodes[i]->b[0]->p_pars_r[curr_site*dim1+j] =  0;
+	      For(j,tree->mod->ns) tree->a_nodes[i]->b[0]->p_pars_r[curr_site*dim1+j] = MAX_PARS;
+	      For(j,tree->mod->ns) if(state_v[j] > 0.5) tree->a_nodes[i]->b[0]->p_pars_r[curr_site*dim1+j] =  0;
 	    }
 	}
     }
@@ -182,35 +182,35 @@ void Init_Ui_Tips(t_tree *tree)
 	{
 	  if(tree->io->datatype == NT)
 	    {
-	      if(tree->t_nodes[i]->b[0]->rght->tax != 1)
+	      if(tree->a_nodes[i]->b[0]->rght->tax != 1)
 		{
 		  PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
 		  Exit("\n");	    
 		}
 
-	      Init_Tips_At_One_Site_Nucleotides_Int(tree->t_nodes[i]->c_seq->state[curr_site],
+	      Init_Tips_At_One_Site_Nucleotides_Int(tree->a_nodes[i]->c_seq->state[curr_site],
 						    0,
 						    state_v);	      
 	      /* Init_Tips_At_One_Site_Nucleotides_Int(tree->data->c_seq[i]->state[curr_site], */
 	      /* 					    0, */
 	      /* 					    state_v);	       */
-	      tree->t_nodes[i]->b[0]->ui_r[curr_site] = 0;
-	      For(j,tree->mod->ns) tree->t_nodes[i]->b[0]->ui_r[curr_site] += (unsigned int)(state_v[j] * POW(2,j));
+	      tree->a_nodes[i]->b[0]->ui_r[curr_site] = 0;
+	      For(j,tree->mod->ns) tree->a_nodes[i]->b[0]->ui_r[curr_site] += (unsigned int)(state_v[j] * POW(2,j));
 	    }
 	  else if(tree->io->datatype == AA)
 	    {
-	      Init_Tips_At_One_Site_AA_Int(tree->t_nodes[i]->c_seq->state[curr_site],
+	      Init_Tips_At_One_Site_AA_Int(tree->a_nodes[i]->c_seq->state[curr_site],
 					   0,
 					   state_v);
 	      /* Init_Tips_At_One_Site_AA_Int(tree->data->c_seq[i]->state[curr_site], */
 	      /* 				   0, */
 	      /* 				   state_v); */
-	      tree->t_nodes[i]->b[0]->ui_r[curr_site] = 0;
-	      For(j,tree->mod->ns) tree->t_nodes[i]->b[0]->ui_r[curr_site] += (unsigned int)(state_v[j] * POW(2,j));
+	      tree->a_nodes[i]->b[0]->ui_r[curr_site] = 0;
+	      For(j,tree->mod->ns) tree->a_nodes[i]->b[0]->ui_r[curr_site] += (unsigned int)(state_v[j] * POW(2,j));
 	    }
 	  else if(tree->io->datatype == GENERIC)
 	    {
-	      Init_Tips_At_One_Site_Generic_Int(tree->t_nodes[i]->c_seq->state+curr_site*tree->mod->io->state_len,
+	      Init_Tips_At_One_Site_Generic_Int(tree->a_nodes[i]->c_seq->state+curr_site*tree->mod->io->state_len,
 						tree->mod->ns,
 						tree->mod->io->state_len,
 						0,
@@ -220,8 +220,8 @@ void Init_Ui_Tips(t_tree *tree)
 	      /* 					tree->mod->io->state_len, */
 	      /* 					0, */
 	      /* 					state_v); */
-	      tree->t_nodes[i]->b[0]->ui_r[curr_site] = 0;
-	      For(j,tree->mod->ns) tree->t_nodes[i]->b[0]->ui_r[curr_site] += (unsigned int)(state_v[j] * POW(2,j));
+	      tree->a_nodes[i]->b[0]->ui_r[curr_site] = 0;
+	      For(j,tree->mod->ns) tree->a_nodes[i]->b[0]->ui_r[curr_site] += (unsigned int)(state_v[j] * POW(2,j));
 	    }
 	}
     }
@@ -231,8 +231,8 @@ void Init_Ui_Tips(t_tree *tree)
     {
       For(curr_site,tree->data->crunch_len)
 	{
-	  tree->t_edges[br]->pars_r[curr_site] = 0;
-	  tree->t_edges[br]->pars_l[curr_site] = 0;
+	  tree->a_edges[br]->pars_r[curr_site] = 0;
+	  tree->a_edges[br]->pars_l[curr_site] = 0;
 	}
     }
 

@@ -141,5 +141,6 @@ void MCMC_Randomize_Covarion_Switch(t_tree *tree);
 void MCMC_Read_Param_Vals(t_tree *tree);
 void MCMC_Birth_Rate(t_tree *tree);
 void MCMC_Randomize_Birth(t_tree *tree);
+void MCMC_Clock_R(t_tree *mixt_tree);
 
 #endif

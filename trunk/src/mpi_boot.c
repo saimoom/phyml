@@ -43,7 +43,7 @@ void Bootstrap_MPI(t_tree *tree)
   
   Free_Bip(tree);
   Alloc_Bip(tree);
-  Get_Bip(tree->t_nodes[0],tree->t_nodes[0]->v[0],tree);
+  Get_Bip(tree->a_nodes[0],tree->a_nodes[0]->v[0],tree);
 
   n_site = 0;
   For(j,tree->data->crunch_len) For(k,tree->data->wght[j])
@@ -243,8 +243,8 @@ fflush(stderr);
 
       Match_Tip_Numbers(tree,boot_tree);
 
-      Get_Bip(boot_tree->t_nodes[0],
-              boot_tree->t_nodes[0]->v[0],
+      Get_Bip(boot_tree->a_nodes[0],
+              boot_tree->a_nodes[0]->v[0],
               boot_tree);
 
       Compare_Bip(tree,boot_tree,NO);
@@ -328,7 +328,7 @@ fflush(stdout);
       Free_Model(boot_mod);
 
       //Each process computes the Bip score sum for all its bootstrap trees
-      For(i,2*tree->n_otu-3) score_par[i] = tree->t_edges[i]->bip_score;
+      For(i,2*tree->n_otu-3) score_par[i] = tree->a_edges[i]->bip_score;
 
       //Each process sends its Bip score sum. The sums are summed.
       MPI_Reduce(score_par, score_tot, 2*tree->n_otu - 3, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
@@ -338,7 +338,7 @@ fflush(stdout);
   if (Global_myRank == 0) 
     {
       For(i,2*tree->n_otu-3)
-        tree->t_edges[i]->bip_score = score_tot[i];
+        tree->a_edges[i]->bip_score = score_tot[i];
       Free (score_tot);
     }
   Free (score_par);

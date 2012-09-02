@@ -23,13 +23,13 @@ void Free_All_Nodes_Light(t_tree *tree)
 
   For(i,2*tree->n_otu-1) 
     {
-      if(tree->t_nodes[i])
+      if(tree->a_nodes[i])
       	{
-	  Free_Node(tree->t_nodes[i]);
+	  Free_Node(tree->a_nodes[i]);
 	}
     }
 
-  Free(tree->t_nodes);
+  Free(tree->a_nodes);
 }
 
 //////////////////////////////////////////////////////////////
@@ -40,11 +40,11 @@ void Free_All_Edges_Light(t_tree *tree)
 {
   int i;
   For(i,2*tree->n_otu-2) 
-    if(tree->t_edges[i])
+    if(tree->a_edges[i])
       {
-	Free_Edge(tree->t_edges[i]);
+	Free_Edge(tree->a_edges[i]);
       }
-  Free(tree->t_edges);
+  Free(tree->a_edges);
 }
 
 
@@ -119,9 +119,9 @@ void Free_Bip(t_tree *tree)
     {
       For(i,2*tree->n_otu-2)
 	{
-	  Free(tree->t_nodes[i]->bip_size);
-	  For(j,3) Free(tree->t_nodes[i]->bip_node[j]);
-	  Free(tree->t_nodes[i]->bip_node);
+	  Free(tree->a_nodes[i]->bip_size);
+	  For(j,3) Free(tree->a_nodes[i]->bip_node[j]);
+	  Free(tree->a_nodes[i]->bip_node);
 	}
     }
   tree->has_bip = NO;
@@ -170,7 +170,7 @@ void Free_Node(t_node *n)
   if(n->ori_name) { Free(n->ori_name); n->ori_name = NULL; }
   /* if(n->name)     { Free(n->name);     n->name     = NULL; }  */
   /* Don't do that: see Copy_Tax_Names_To_Tip_Labels       
-     tree->t_nodes[i]->ori_name = tree->t_nodes[i]->name; */
+     tree->a_nodes[i]->ori_name = tree->a_nodes[i]->name; */
   Free(n);
 }
 
@@ -193,6 +193,7 @@ void Free_Cseq(calign *data)
       if(data->c_seq[i]->state) 
 	{
 	  Free(data->c_seq[i]->state);
+	  Free(data->c_seq[i]->d_state);
 	  if(data->c_seq[i]->is_ambigu) Free(data->c_seq[i]->is_ambigu);
 	}
       Free(data->c_seq[i]);
@@ -212,6 +213,7 @@ void Free_Seq(align **d, int n_otu)
     {
       Free(d[i]->name);
       Free(d[i]->state);
+      Free(d[i]->d_state);
       if(d[i]->is_ambigu) Free(d[i]->is_ambigu);
       Free(d[i]);
     }
@@ -271,7 +273,7 @@ void Free_Tree_Pars(t_tree *tree)
   Free(tree->step_mat);
   Free(tree->site_pars);
   For(i,2*tree->n_otu-3)
-    Free_Edge_Pars(tree->t_edges[i],tree);
+    Free_Edge_Pars(tree->a_edges[i],tree);
 }
 
 //////////////////////////////////////////////////////////////
@@ -321,7 +323,7 @@ void Free_Tree_Lk(t_tree *tree)
 				
   For(i,2*tree->n_otu-3)
     {
-      b = tree->t_edges[i];      
+      b = tree->a_edges[i];      
       Free_Edge_Lk(tree,b);
     }
 }
@@ -393,7 +395,10 @@ void Free_RAS(t_ras *ras)
   Free(ras->gamma_r_proba_unscaled);
   Free(ras->gamma_rr);
   Free(ras->gamma_rr_unscaled);
-
+  Free(ras->pinvar);
+  Free(ras->pinvar_old);
+  Free(ras->alpha);
+  Free(ras->alpha_old);
   Free(ras);
 }
 
@@ -421,18 +426,10 @@ void Free_Model_Basic(t_mod *mod)
   Free(mod->user_b_freq);
   Free(mod->kappa);
   Free(mod->lambda);
-  Free(mod->ras->alpha);
-  Free(mod->pinvar);
-  Free(mod->ras->alpha_old);
   Free(mod->kappa_old);
   Free(mod->lambda_old);
-  Free(mod->pinvar_old);
   Free(mod->Pij_rr);
   Free(mod->mr);
-  Free(mod->ras->gamma_r_proba);
-  Free(mod->ras->gamma_r_proba_unscaled);
-  Free(mod->ras->gamma_rr);
-  Free(mod->ras->gamma_rr_unscaled);
   Free(mod->br_len_multiplier);
 }
 
@@ -586,7 +583,7 @@ void Free_St(supert_tree *st)
   int i;
 
   For(i,2*st->tree->n_otu-3) 
-    Free(st->tree->t_edges[i]->nni);
+    Free(st->tree->a_edges[i]->nni);
 
   For(i,st->n_part) Free(st->match_st_node_in_gt[i]);
 
@@ -693,6 +690,7 @@ void Free_Actual_CSeq(calign *data)
   For(i,data->n_otu)
     {
       Free(data->c_seq[i]->state);
+      Free(data->c_seq[i]->d_state);
       data->c_seq[i]->state = NULL;
     }
 }

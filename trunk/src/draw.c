@@ -42,7 +42,7 @@ void DR_Get_Tree_Coord(t_tree *tree)
   if(!tree->n_root) 
     {
       PhyML_Printf("\n. Adding root before rendering the tree.");
-      Add_Root(tree->t_edges[0],tree);
+      Add_Root(tree->a_edges[0],tree);
     }
   Dist_To_Root(tree->n_root,tree);
   tree->ps_tree->max_dist_to_root = DR_Get_Max_Dist_To_Root(tree);
@@ -405,7 +405,7 @@ void DR_Get_Tree_Box_Width(tdraw *w, t_tree *tree)
   max_name_len = curr_len = 0;
   For(i,tree->n_otu)
     {
-      curr_len = (int)strlen(tree->t_nodes[i]->name);
+      curr_len = (int)strlen(tree->a_nodes[i]->name);
       if(curr_len > max_name_len) max_name_len = curr_len;
     }
 
@@ -424,9 +424,9 @@ phydbl DR_Get_Max_Dist_To_Root(t_tree *tree)
   mx = .0;
   For(i,tree->n_otu)
     {
-      if(tree->t_nodes[i]->dist_to_root > mx)
+      if(tree->a_nodes[i]->dist_to_root > mx)
 	{
-	  mx = tree->t_nodes[i]->dist_to_root;
+	  mx = tree->a_nodes[i]->dist_to_root;
 	}
     }
 
@@ -496,8 +496,8 @@ void DR_Get_Cdf_Mat(t_tree *tree)
 	{
 	  For(k,2*tree->n_otu-2) /* all nodes in the tree */
 	    {
-	      d = tree->t_nodes[k];
-	      a = tree->t_nodes[k]->anc;
+	      d = tree->a_nodes[k];
+	      a = tree->a_nodes[k]->anc;
 
 	      min_x = tree->ps_tree->xcoord_s[a->num];
 	      max_x = tree->ps_tree->xcoord_s[d->num];

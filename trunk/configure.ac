@@ -65,9 +65,14 @@ AC_ARG_ENABLE([debug],
                               [Remove optimization options and add debug informations.])])
 AS_IF([test "x$enable_debug" = "xyes"],
       [CFLAGS="-ansi -pedantic -Wall -std=c99 -O0 -g"],
-      dnl [CFLAGS="-ansi -pedantic -Wall -std=c99 -O2 -msse -fomit-frame-pointer -funroll-loops ${ARCH_flag}"]) 
       [CFLAGS="-Wall -O2 -msse -fomit-frame-pointer -funroll-loops ${ARCH_flag}"]) 
 
+AC_ARG_ENABLE([gprof],
+              [AS_HELP_STRING([--enable-gprof],
+                              [Remove optimization options and add profiling informations.])])
+AS_IF([test "x$enable_gprof" = "xyes"],
+      [CFLAGS="-ansi -pedantic -Wall -std=c99 -O0 -g -pg"],
+      [AS_IF([test "x$enable_debug" = "xno"],[CFLAGS="-Wall -O2 -msse -fomit-frame-pointer -funroll-loops ${ARCH_flag}"])]) 
 
 AC_ARG_ENABLE([mpi],
               [AS_HELP_STRING([--enable-mpi],
@@ -140,4 +145,5 @@ fi
 fi
 fi
 AC_CONFIG_FILES([Makefile src/Makefile])
+dnl AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

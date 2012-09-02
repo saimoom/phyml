@@ -45,6 +45,9 @@
 {\huge Version 3.0 \\
 \today
 \vfill
+\normalsize
+\href{http://code.google.com/p/phyml}{http://code.google.com/p/phyml}\\
+\vspace{0.4cm}
 \href{http://www.atgc-montpellier.fr/phyml}{http://www.atgc-montpellier.fr/phyml}}
 \end{center}
 \clearpage
@@ -63,17 +66,6 @@ the GNU public licence. See http://www.opensource.org for details.
 
 }
 
-{
-\noindent
-\setlength{\baselineskip}{0.5\baselineskip}
-\section{Citation}
-\begin{itemize}
-\item PhyML: ``A simple, fast and accurate algorithm to estimate large phylogenies by maximum likelihood''
-  Guindon S., Gascuel O. 2003, {\it Systematic Biology}, {\bf \small 52}(5):696-704
-\item PhyTime: ``Bayesian estimation of divergence times from large sequence alignments'' Guindon
-  S. 2010, {\it Molecular Biology and Evolution}, {\bf \small 27}(8):1768-81
-\end{itemize}
-}
 
 {
 \noindent
@@ -227,22 +219,22 @@ mpirun -n 4 ./phyml-mpi -i myseq -b 100
 \section{Program usage.}\label{sec:phyml_new}
 
 PhyML  has two distinct  user-interfaces.  The  first interface  is probably  the most  popular.  It
-corresponds to  a PHYLIP-like text interface that  makes the choice of  the options self-explanatory
-(see  Figure \ref{fig:interface}). The  command-line interface  is well-suited  for people  that are
-familiar with PhyML options or for running PhyML in batch mode.
+corresponds   to  a   PHYLIP-like   text  interface   that   makes  the   choice   of  the   options
+self-explanatory. The command-line interface is well-suited  for people that are familiar with PhyML
+options or for running PhyML in batch mode.
 
 \subsection{PHYLIP-like interface}
 
-The default is  to use the PHYLIP-like text interface (Figure  \ref{fig:interface}) by simply typing
-`\x{phyml}'  in   a  command-line   window  or  by   clicking  on   the  PhyML  icon   (see  Section
-\ref{sec:install_windows}).  After entering the name of the input sequence file, a list of sub-menus
-helps the users to set up the analysis.  There are currently four distinct sub-menus:
+The default is to use the PHYLIP-like  text interface by simply typing `\x{phyml}' in a command-line
+window or by clicking on the PhyML icon (see Section \ref{sec:install_windows}).  After entering the
+name of the input sequence file, a list of  sub-menus helps the users to set up the analysis.  There
+are currently four distinct sub-menus:
 
-\begin{figure}
-\resizebox{15cm}{9cm}{\includegraphics{./fig/interface.eps}}
-\caption{PHYLIP-like interface to PhyML.}
-\label{fig:interface}
-\end{figure}
+% \begin{figure}
+% \resizebox{15cm}{9cm}{\includegraphics{./fig/interface.eps}}
+% \caption{PHYLIP-like interface to PhyML.}
+% \label{fig:interface}
+% \end{figure}
 
 \begin{enumerate}
 
@@ -453,6 +445,10 @@ displayed  after entering the  `\x{phyml help}'  command.  The  options are  als
 follows.
 
 \begin{itemize}
+\item \x{--xml} \x{xml\_file\_name}\index{command-line options!\x{--xml}} \\
+\x{xml\_file\_name} is the name of the XML file containing the information required to run the
+analysis. More details about this type of file is given in the section \ref{sec:xmlio}.
+
 \item \x{-i} (or \x{--input}) \x{seq\_file\_name}\index{command-line options!\x{--input}} \\
 \x{seq\_file\_name} is the name of the nucleotide or amino-acid sequence file in PHYLIP format.
 
@@ -648,7 +644,7 @@ will probably NOT work. I do not know how to run a mpi process in batch mode yet
 Also, at the moment, the number of bootstrap replicates must be a multiple of the number of CPUs
 required in the mpirun command.
 
-\section{Inputs / outputs}\label{sec:input_output}
+\section{Inputs \& outputs for command-line and PHYLIP interface }\label{sec:input_output}
 
 PhyML reads data from standard text files,  without the need for any particular file name extension.
 
@@ -966,9 +962,6 @@ multifurcating tree  that defines the topological constraints  should also be us
 using  the \x{-u}  (\x{--inputtree})  option. Altogether,  the  command line  should  look like  the
 following: \x{-u}=\x{file\_name} \x{--constraint\_file}=\x{file\_name}.
 
-
-
-
 \subsection{Output files}
 
 \begin{table}
@@ -1004,7 +997,6 @@ information can be used to estimate sampling errors around each parameter of the
 When the random  tree option is turned on,  the maximum likelihood trees estimated  from each random
 starting trees are printed in a separate tree file (see last row of Table \ref{tab:output}).
 
-
 \subsection{Treatment of invariable sites with fixed branch lengths}
 
 PhyML  allows users  to give  an input  tree with  fixed topology  and branch  lengths and  find the
@@ -1034,18 +1026,222 @@ expectation, i.e., ``find the  best value of $p$ while constraining the ratio  o
 that given in the input tree''. Please feel free to send us your suggestions regarding this problem
 by posting on forum (\url{http://groups.google.com/group/phyml-forum}).
 
+
+\section{Inputs \& outputs for the XML interface }\label{sec:xmlio}\index{XML}
+
+\subsection{Mixture models in PhyML}\index{mixture models}\label{sec:mixtures}
+
+PhyML implements a wide range of mixture models. The discrete gamma model \cite{yang94b} is arguably
+the  most popular  of these  models in  phylogenetics. However,  in theory,  mixture models  are not
+restricted to the description of the variation  of substitution rates across sites. For instance, if
+there are good reasons  to believe that the relative rates of  substitution between nucleotides vary
+along the  sequence alignments, it  makes sense to  use a mixture of  GTR models. Consider  the case
+where substitutions between $A$ and $C$ occur at  high rate in some regions of the alignment and low
+rate elsewhere,  a mixture with two  classes, each class having  its own GTR rate  matrix, would be
+suitable. The likelihood at any site of  the alignment is then obtained by averaging the likelihoods
+obtained with each GTR rate matrix.
+
+PhyML implements  a generic framework  that allows users  to define mixtures on  substitution rates,
+rate matrices and nucleotide or amino-acid  equilibrium frequencies. Each class of the mixture model
+is built by assembling a substitution  rate, a rate matrix\footnote{the rate matrix corresponds here
+the symmetrical  matrix giving the so-called  ``echangeability rates''} and a  vector of equilibrium
+frequencies.  For instance, let $\{R_1,R_2\}$ be a set of substitution rates, $\{M_1,M_2\}$ a set of
+rate matrices and $\{F_1,F_2\}$ a set of  vectors of equilibrium frequencies.  One could then define
+the  first class  of the  mixture model  as  $\mathcal{C}_1 =  \{R_1,M_1,F_1\}$, a  second class  as
+$\mathcal{C}_2  = \{R_2,M_1,F_1\}$,  and a  third class  as $\mathcal{C}_3  =  \{R_3,M_2,F_2\}$.  If
+$R_1$, $R_2$  and $R_3$ correspond to  slow, medium and  fast substitution rates, then  this mixture
+model allows the  fast evolving rates to have  their own vector of equilibrium  frequencies and rate
+matrix, distinct from that  found at the medium or slow evolving sites.  The likelihood at any given
+site $D_i$ of the alignment is then:
+\begin{eqnarray*}
+\Pr(D_i) = \sum_{c=1}^{3} \Pr(D_i | \mathcal{C}_i=c) \Pr(\mathcal{C}_i=c),
+\end{eqnarray*}
+where  $\Pr(\mathcal{C}_i=c)$ is  obtained by  multiplying the  probability (density)  of  the three
+components (i.e., rate, matrix, frequencies). We therefore assume here that substitution rates, rate
+matrices and equilibrium frequencies are independent from one another.
+
+In practice, building a mixture model in a XML file readable by PhyML is relatively
+straightforward. The first step is to define the different components of each class of the
+mixture. Consider for instance that the fitted model will have a Gamma distribution with four
+classes plus a proportion of invariants. The rate component of the mixture can then be specified
+using the following XML code:
+\\
+\begin{Verbatim}[frame=single, label=$\Gamma4$+Inv rates, samepage=true, baselinestretch=0.5]
+<siterates id="SiteRates1">
+  <instance id="R1" value="1.0"/>
+  <instance id="R2" value="1.0"/>
+  <instance id="R5" value="0.0"/>
+  <instance id="R3" value="1.0"/>
+  <instance id="R4" value="1.0"/>
+  <weights  id="Distrib" family="gamma+inv" alpha=".1" \
+  optimise.alpha="yes" pinv="0.4" optimise.pinv="yes">
+  </weights>
+</siterates>
+\end{Verbatim}
+
+Consider now two rate matrices, the first corresponding to a HKY85 model, the second to a GTR:
+\\
+\begin{Verbatim}[frame=single, label=Rate matrices, samepage=true, baselinestretch=0.5]
+<ratematrices id="RateMatrices">
+  <instance id="M1" model="HKY85" tstv="4.0" optimise.tstv="no"/>
+  <instance id="M2" model="GTR" optimise.rr="yes"/>
+</ratematrices>
+\end{Verbatim}
+and two vectors of nucleotide frequencies:
+\\
+\begin{Verbatim}[frame=single, label=Equilibrium frequencies, samepage=true, baselinestretch=0.5]
+<equfreqs id="EquFreq">
+  <instance id="F1" optimise="yes"/>
+  <instance id="F2" optimise="yes"/>
+</equfreqs>
+\end{Verbatim}
+Now, the XML code below describes how  the different components defined above are assembled in a mixture model:
+\\
+\begin{Verbatim}[frame=single, label=Mixture model, samepage=true, baselinestretch=0.5]
+<partitionelem id="Part1" filename="./nucleic.txt" datatype="nt">
+  <mixtureelem list="R1, R2, R3, R4, R5"/>
+  <mixtureelem list="M1, M1, M1, M2, M2"/>
+  <mixtureelem list="F1, F2, F1, F2, F2"/>
+</partitionelem>
+\end{Verbatim}
+This  mixture  model   has  five  classes:  $\mathcal{C}_1  =   \{R_1,M_1,F_1\}$,  $\mathcal{C}_2  =
+\{R_2,M_1,F_2\}$,   $\mathcal{C}_3  =  \{R_3,M_1,F_1\}$,   $\mathcal{C}_4  =   \{R_4,M_2,F_2\}$  and
+$\mathcal{C}_5 = \{R_5,M_2,F_2\}$. 
+
+Going back  to the different components  of this model, the  XML code dealing  with the substitution
+rates defines five  classes with names {\tt R1} to  {\tt R5}. The initial values  of these rates are
+set to 1.0, except for  {\tt R5}, which is set to 0 and will  therefore correspond to the invariable
+site class. The {\tt  <weight>} tag that follows indicate that these  rates define a $\Gamma 4$+Inv
+model, with  initial gamma shape parameter  set to 0.1 and  initial proportion of  invariants set to
+0.4.  These  two parameters  will  be  estimated in  the  analysis  ({\tt  optimise.alpha} and  {\tt
+optimise.pinv} attributes  set to {\tt yes}).   The two rate matrices  have names {\tt  M1} and {\tt
+M2}.  {\tt M1} corresponds  to a HKY85 model, with transition/transversion ratio  set to 4.0 and set
+to be  optimised in the  analysis.  {\tt M2}  is a GTR  model, which parameters  are also set  to be
+optimised. {\tt F1} and {\tt F2} are two vectors of nucleotide frequencies at equilibrium. These two
+sets of frequencies will therefore be estimated during the analysis.
+
+\subsection{Partitions in PhyML}\index{partitionned analysis}\index{data partitions}
+
+PhyML can handle  partitionned data. A data partition  is made of partition elements.  Each of these
+elements usually corresponds to  the sequence alignment obtained for a given  gene.  A partition can
+combine amino-acid and nucleotide alignments.  It is important  that the set of taxa is the same for
+all the partition elements. PhyML will not proceed otherwise.
+
+The XML code below defines a partition with two elements:
+
+\begin{Verbatim}[frame=single, label=Partition element, samepage=true, baselinestretch=0.5]
+<partitionelem id="Part1" filename="./nucleic.txt" datatype="nt">
+</partitionelem>
+<partitionelem id="Part2" filename="./proteic.txt" datatype="aa">
+</partitionelem>
+\end{Verbatim}
+
+The first element, with name {\tt Part1}, points to the sequence file {\tt nucleic.txt}, which is an
+alignment of nucleotide sequences ({\tt datatype="nt"}). The second, {\tt Part2}, points to the file
+{\tt proteic.txt}, which is an alignment of amino-acid sequences ({\tt datatype="aa"}).
+
+\subsection{Combining mixture and partition models in PhyML}\index{mixture
+  models}\index{partitionned analysis}\index{data partitions}
+
+Mixture models are particularly relevant to the analysis of partitionned data. Indeed, some features
+of  evolution are  gene-specific (e.g.,  substitution  rates vary  across genes).   Models that  can
+accomodate  for such  variation,  as mixture  models do,  are  therefore relevant  in this  context.
+However, other evolutionary features are shared across loci (e.g., genes located in the same genomic
+region usually have similar  GC contents). As a consequence, some components  of mixture models need
+to be  estimated separately for each  partition element while  others should be shared  by different
+partition elements.
+
+Below is a simple example with a data partition made of two elements:
+
+\begin{Verbatim}[frame=single, label=Two sets of branch lengths (one per partition element), samepage=true, baselinestretch=0.5]
+<branchlengths id="BranchLens">
+  <instance id="L1"/>
+  <instance id="L2"/>
+</branchlengths>
+
+<partitionelem id="Part1" filename="./nucleic1.txt" datatype="nt">
+  <mixtureelem list="R1, R2, R3, R4, R5"/>
+  <mixtureelem list="L1, L1, L1, L1, L1"/>
+</partitionelem>
+
+<partitionelem id="Part2" filename="./nucleic2.txt" datatype="nt">
+  <mixtureelem list="R1, R2, R3, R4, R5"/>
+  <mixtureelem list="L2, L2, L2, L2, L2"/>
+</partitionelem>
+\end{Verbatim}
+
+Mixture elements with names  {\tt R1},$\ldots$, {\tt R5} refer to the  $\Gamma4 + $Inv model defined
+previsouly (see Section  \ref{sec:mixtures}). The {\tt branchlengths} tag  defines a mixture element
+that  had not  been introduced  before. It  refers to  vector of  branch lengths  that apply  to the
+estimated  phylogeny. Two  instances of  such lengths  are  defined: {\tt  L1} and  {\tt L2}.   When
+examining the two partition elements, it appears  that {\tt L1} is associated with {\tt Part1} while
+{\tt L2}  is associated with {\tt  Part2}.  Hence, branch  lengths will be estimated  separately for
+these  two  partition  elements. Note  that  a  given  partition  element  can only  have  one  {\tt
+  branchlengths} instance associated to it. For instance, the example given below is not valid:
+
+\begin{Verbatim}[frame=single, label=Invalid mixture, samepage=true, baselinestretch=0.5]
+<partitionelem id="Part1" filename="./nucleic1.txt" datatype="nt">
+  <mixtureelem list="R1, R2, R3, R4, R5"/>
+  <mixtureelem list="L1, L1, L1, L2, L2"/>
+</partitionelem>
+\end{Verbatim}
+
+In other words, mixture of branch lengths are forbidden. One reason for this restriction is that
+mixture of edge lengths sometimes lead to non-identifiable models (i.e., models with distinct sets
+of branch lengths have the same likelihood) \cite{matsen07}. But mostly, combining mixture of branch
+lengths with mixture of rates appears like a deadly combination. Consider for instance the following model:
+
+\begin{Verbatim}[frame=single, label=Invalid mixture, samepage=true, baselinestretch=0.5]
+<partitionelem id="Part1" filename="./nucleic1.txt" datatype="nt">
+  <mixtureelem list="R1, R2, R3"/>
+  <mixtureelem list="L1, L2, L3"/>
+</partitionelem>
+\end{Verbatim}
+
+It is here impossible to tell apart  branch lengths and substitution rates. Such model is ``strongly
+non-identifiable'' and therefore not relevant.
+
+\subsection{XML options}
+\subsubsection{{\tt topology} tag}\index{XML options!{\tt topology} tag}
+\subsubsection{{\tt ratematrices} tag}\index{XML options!{\tt ratematrices} tag}
+\subsubsection{{\tt equfreqs} tag}\index{XML options!{\tt equfreqs} tag}
+\subsubsection{{\tt branchlengths} tag}\index{XML options!{\tt branchlengths} tag}
+\subsubsection{{\tt siterates} tag}\index{XML options!{\tt siterates} tag}
+\subsubsection{{\tt partitionelem} tag}\index{XML options!{\tt partitionelem} tag}
+\subsubsection{{\tt mixtureelem} tag}\index{XML options!{\tt mixturelem} tag}
+
+\subsection{Examples}
+
+\section{Citing PhyML}
+The ``default citation'' for PhyML is:
+\begin{itemize}
+\item 
+``New algorithms and methods to estimate maximum-likelihood phylogenies: assessing the performance
+of PhyML 3.0''. Guindon S., Dufayard J.F., Lefort V., Anisimova M., Hordijk W., Gascuel O. 2010, {\it Systematic
+  Biology}, 59(3):307-321
+
+\end{itemize}
+The ``historic citation'' for PhyML is:
+\begin{itemize}
+\item ``A simple, fast and accurate algorithm to estimate large phylogenies by maximum likelihood''
+  Guindon S., Gascuel O. 2003, {\it Systematic Biology}, 52(5):696-704
+\end{itemize}
+
+
+
 \section{Other programs in the PhyML package}
 
 PhyML  is software package  that provides  tools to  tackle problems  other than  estimating maximum
 likelihood  phylogenies.  Installing these  tools  and  processing data  sets  is  explained is  the
 following sections.
 
-\subsection{PhyTime (Guindon, {\it Mol. Biol. Evol.} 2010)}\index{PhyTime} PhyTime is a program that
-estimates node  ages and substitution rates  using a fast Bayesian  approach.  It relies  on a Gibbs
-sampler which outperforms the ``standard''  Metropolis-Hastings algorithm implemented in a number of
-phylogenetic softwares.  The details and performance of this approach are described in the following
-article:  Guindon  S.  ``Bayesian  estimation  of  divergence times  from  large  data sets'',  {\it
-Mol. Biol. Evol.}, 2010, 27(8):1768:81.
+\subsection{PhyTime}\index{PhyTime} PhyTime is  a program that estimates node  ages and substitution
+rates using a Bayesian  approach.  The performance and main features of  this software are described
+in two article (see Section \ref{sec:citephytime}).
+
+It  relies on  a  Gibbs  sampler which  outperforms  the
+``standard'' Metropolis-Hastings algorithm  implemented in a number of  phylogenetic softwares.  The
+details  and performance  of  this  approach are  described  in the  following  article: 
 
 \subsubsection{Installing PhyTime}
 
@@ -1148,7 +1344,7 @@ A typical PhyTime command-line should look like the following\index{command-line
 \end{Verbatim}
 
 Assuming the file `\x{seqname}' contains DNA  sequences in PHYLIP or NEXUS format, `\x{treename}' is
-the rooted  input tree in NEXUS  format and `\x{calibration\_file}'  is a set of  calibration nodes,
+the rooted  input tree in Newick  format and `\x{calibration\_file}'  is a set of  calibration nodes,
 PhyTime will  estimate the  posterior distribution of  node times  and substitution rates  under the
 assumption that the  substitution process follows a GTR  model with 8 classes of rates  in the Gamma
 distribution of  rates across sites. The  model parameter values  are estimated by a  Gibbs sampling
@@ -1182,7 +1378,6 @@ unit so that the calibration times take values between -10 and -1000}}\index{tim
 \subsubsection{PhyTime specific options}
 
 Beside the \x{--calibration} option, there are other command line options that are specific to PhyTime:
-
 \begin{itemize}
 \item \x{--chain\_len=num}\index{command-line options!\x{--chain\_len}} \\
 \x{num} is the number of iterations required to estimate the joint posterior density of all the model
@@ -1294,6 +1489,24 @@ which therefore gives a first order  approximation of the `average' autocorrelat
 autocorrelation averaged over the set of possible values of the lag).
 
 
+\subsubsection{Citing PhyTime}\label{sec:citephytime}
+
+The ``default citation'' is:
+
+\begin{itemize}
+\item Guindon S. ``From trajectories to averages: an improved description of the heterogeneity of
+substitution rates along lineages'', {\it Systematic Biology}, 2012. doi: 10.1093/sysbio/sys063.
+\end{itemize}
+
+An earlier article also described some of the methods implemented in PhyTime:
+
+\begin{itemize}
+\item Guindon  S. ``Bayesian estimation of divergence  times from large data  sets'', {\it Molecular
+    Biology and Evolution}, 2010,
+27(8):1768:81.
+\end{itemize}
+
+
 \section{Recommendations on program usage}\label{sec:progusage}
 
 \subsection{PhyML}
@@ -1381,30 +1594,35 @@ therefore important to first check whether  using the approximate likelihood is 
 to do  so, it is  recommended to first  run the program without  the approximation, i.e.,  using the
 default settings. Once  the minimum value of the ESS  of node ages (the last column  on the right of
 the  standard output)  has reached  40-50, open  the \x{phytime.XXXX}  output file  with  Tracer and
-examine   the  correlation   between  the   exact   and  approximate   likelihood  values.    Figure
-\ref{fig:approxbad} gives an example where the correlation  is too weak and the approximation of the
-likelihood should be avoided. Figure \ref{fig:approxbad} gives an example where the approximation is
-good enough.   The current execution  of PhyTime  can be terminated  and then re-launched  using the
-\x{--fast\_lk} option.
-
-\begin{figure}
-\begin{center}
-\resizebox{14cm}{8cm}{\includegraphics{./fig/approx_bad.eps}}
-\caption{{\bf Exact vs. approximate likelihoods.} The correlation between the normally approximated
-  (Y-axis) and the exact (X-axis) likelihoods is weak here. The exact likelihood should be used (option \x{fastlk=no}).}
-\label{fig:approxbad}
-\end{center}
-\end{figure}
+examine the correlation  between the exact and approximate likelihood values.  If the correlation is
+deemed to be good enough, PhyTime can be re-run using the \x{--fast\_lk} option, which uses the fast
+normal approximation to the likelihood function.
 
 
-\begin{figure}
-\begin{center}
-\resizebox{14cm}{8cm}{\includegraphics{./fig/approx_good.eps}}
-\caption{{\bf Exact vs. approximate likelihoods.} The correlation between the normally approximated
-  (Y-axis) and the exact (X-axis) likelihoods is good. The approximation of the  likelihood can be used (option \x{fastlk=yes}).}
-\label{fig:approxgood}
-\end{center}
-\end{figure}
+
+% Figure \ref{fig:approxbad} gives an example where  the correlation is too weak and the approximation
+% of  the  likelihood  should be  avoided.  Figure  \ref{fig:approxbad}  gives  an example  where  the
+% approximation  is  good enough.   The  current  execution of  PhyTime  can  be  terminated and  then
+% re-launched using the \x{--fast\_lk} option.
+
+% \begin{figure}
+% \begin{center}
+% \resizebox{14cm}{8cm}{\includegraphics{./fig/approx_bad.eps}}
+% \caption{{\bf Exact vs. approximate likelihoods.} The correlation between the normally approximated
+%   (Y-axis) and the exact (X-axis) likelihoods is weak here. The exact likelihood should be used (option \x{fastlk=no}).}
+% \label{fig:approxbad}
+% \end{center}
+% \end{figure}
+
+
+% \begin{figure}
+% \begin{center}
+% \resizebox{14cm}{8cm}{\includegraphics{./fig/approx_good.eps}}
+% \caption{{\bf Exact vs. approximate likelihoods.} The correlation between the normally approximated
+%   (Y-axis) and the exact (X-axis) likelihoods is good. The approximation of the  likelihood can be used (option \x{fastlk=yes}).}
+% \label{fig:approxgood}
+% \end{center}
+% \end{figure}
 
 \item {\em How  long shall I run the program  for?} PhyTime should be run long  enough such that the
 ESS of  each parameter  is `large enough'.  The last column  on the  right handside of  the standard

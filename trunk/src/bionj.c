@@ -28,7 +28,7 @@ void Bionj(matrix *mat)
   phydbl vxy,lx,ly,lamda,score;
 
   Clean_Tree_Connections(mat->tree);  
-  For(i,mat->tree->n_otu) mat->tip_node[i] = mat->tree->t_nodes[i];
+  For(i,mat->tree->n_otu) mat->tip_node[i] = mat->tree->a_nodes[i];
   mat->tree->num_curr_branch_available = 0;
 
   while(mat->r > 3)
@@ -80,7 +80,7 @@ void Finish(matrix *mat)
   ny = mat->tip_node[y];
   nz = mat->tip_node[z];
 
-  new = mat->tree->t_nodes[mat->curr_int];
+  new = mat->tree->a_nodes[mat->curr_int];
   new->num = mat->curr_int;
   new->v[0] = nx;
   new->v[1] = ny;
@@ -91,11 +91,11 @@ void Finish(matrix *mat)
   nz->v[0] = new;
 
   
-  Connect_One_Edge_To_Two_Nodes(new,nx,mat->tree->t_edges[mat->tree->num_curr_branch_available],mat->tree);
+  Connect_One_Edge_To_Two_Nodes(new,nx,mat->tree->a_edges[mat->tree->num_curr_branch_available],mat->tree);
   mat->tree->num_curr_branch_available++;
-  Connect_One_Edge_To_Two_Nodes(new,ny,mat->tree->t_edges[mat->tree->num_curr_branch_available],mat->tree);
+  Connect_One_Edge_To_Two_Nodes(new,ny,mat->tree->a_edges[mat->tree->num_curr_branch_available],mat->tree);
   mat->tree->num_curr_branch_available++;
-  Connect_One_Edge_To_Two_Nodes(new,nz,mat->tree->t_edges[mat->tree->num_curr_branch_available],mat->tree);
+  Connect_One_Edge_To_Two_Nodes(new,nz,mat->tree->a_edges[mat->tree->num_curr_branch_available],mat->tree);
   mat->tree->num_curr_branch_available++;
 
  
@@ -148,16 +148,16 @@ void Update_Tree(matrix *mat, int x, int y, phydbl lx, phydbl ly, phydbl score)
 
   nx            = mat->tip_node[x];
   ny            = mat->tip_node[y];
-  new           = mat->tree->t_nodes[mat->curr_int];
+  new           = mat->tree->a_nodes[mat->curr_int];
   nx->v[0]      = new;
   ny->v[0]      = new;
   new->v[1]     = nx;
   new->v[2]     = ny;
   new->num      = mat->curr_int;
 
-  Connect_One_Edge_To_Two_Nodes(new,nx,mat->tree->t_edges[mat->tree->num_curr_branch_available],mat->tree);
+  Connect_One_Edge_To_Two_Nodes(new,nx,mat->tree->a_edges[mat->tree->num_curr_branch_available],mat->tree);
   mat->tree->num_curr_branch_available++;
-  Connect_One_Edge_To_Two_Nodes(new,ny,mat->tree->t_edges[mat->tree->num_curr_branch_available],mat->tree);
+  Connect_One_Edge_To_Two_Nodes(new,ny,mat->tree->a_edges[mat->tree->num_curr_branch_available],mat->tree);
   mat->tree->num_curr_branch_available++;
 
   nx->b[0]->l->v   = lx;
@@ -423,10 +423,10 @@ void Bionj_Br_Length(matrix *mat)
 {
   int x;
 
-  x = Bionj_Br_Length_Post(mat->tree->t_nodes[0],
-			   mat->tree->t_nodes[0]->v[0],
+  x = Bionj_Br_Length_Post(mat->tree->a_nodes[0],
+			   mat->tree->a_nodes[0]->v[0],
 			   mat);
-  mat->tree->t_nodes[0]->b[0]->l->v = Dist(mat,0,x);
+  mat->tree->a_nodes[0]->b[0]->l->v = Dist(mat,0,x);
 }
 
 //////////////////////////////////////////////////////////////

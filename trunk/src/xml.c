@@ -163,18 +163,19 @@ int XML_Add_Character(int c, char  **bufptr, char **buffer, int *bufsize)
       else
 	(*bufsize) += 1024;
 
-    if ((newbuffer = realloc(*buffer, *bufsize)) == NULL)
-    {
-      Free(*buffer);
-      PhyML_Printf("\n== Unable to expand string buffer to %d bytes!", *bufsize);
-      Exit("\n");
-    }
-
+    if((newbuffer = realloc(*buffer, *bufsize)) == NULL)
+      {
+        Free(*buffer);
+        PhyML_Printf("\n== Unable to expand string buffer to %d bytes!", *bufsize);
+        Exit("\n");
+      }
+    
     *bufptr = newbuffer + (*bufptr - *buffer);
     *buffer = newbuffer;
   }
 
-  *(*bufptr)++ = tolower(c);
+  /* *(*bufptr)++ = tolower(c); */
+  *(*bufptr)++ = c;
   return 0;
 }
 
@@ -309,7 +310,7 @@ int XML_Parse_Element(FILE *fp, xml_node *n)
 	    }
 	}
 
-      /* printf("\n. Setting attribute '%s=%s' to node '%s'",name,value,n->name); */
+      printf("\n. Setting attribute '%s=%s' to node '%s'",name,value,n->name);
       XML_Set_Attribute(n,name,value);
 
       if(c == '>') break;

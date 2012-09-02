@@ -16,26 +16,27 @@ the GNU public licence.  See http://www.opensource.org for details.
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-void Simu_Loop(t_tree *tree)
+void Simu_Loop(t_tree *mixt_tree)
 {
   phydbl lk_old;
   int *orig_catg,*orig_inv;
   int n;
-  t_tree *orig_tree,**tree_list,**orig_tree_list;
+  t_tree *tree,**tree_list,**orig_tree_list;
   
-  if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n. Refining the input tree...\n");
+  if((mixt_tree->mod->s_opt->print) && 
+     (!mixt_tree->io->quiet)) PhyML_Printf("\n. Refining the input tree...\n");
 
   /*! Get the number of classes in each mixture */
-  orig_catg = MIXT_Get_Number_Of_Classes_In_All_Mixtures(tree);
+  orig_catg = MIXT_Get_Number_Of_Classes_In_All_Mixtures(mixt_tree);
 
   /*! Record values of mod->invar in every tree 
    */
-  orig_inv  = MIXT_Record_Has_Invariants(tree);
+  orig_inv  = MIXT_Record_Has_Invariants(mixt_tree);
 
   /*! Set the number of rate classes to (at most) 2.
     ! Propagate this to every mixture tree in the analysis
   */
-  orig_tree = tree;
+  tree = mixt_tree;
   n = 0;
   do
     {
@@ -44,12 +45,11 @@ void Simu_Loop(t_tree *tree)
       n++;
     }
   while(tree);
-  tree = orig_tree;
   
   /*! Make sure the number of trees in each mixture is at most 2
    */
-  tree_list = MIXT_Record_All_Mixtures(tree);
-  MIXT_Break_All_Mixtures(tree->mod->ras->n_catg,tree);
+  tree_list = MIXT_Record_All_Mixtures(mixt_tree);
+  MIXT_Break_All_Mixtures(mixt_tree->mod->ras->n_catg,mixt_tree);
 
   /*! Set mod->ras->invar to NO for all the trees.
   */
@@ -61,59 +61,53 @@ void Simu_Loop(t_tree *tree)
     }
   while(*tree_list);
   tree_list = orig_tree_list;
+  
+  Set_Both_Sides(YES,mixt_tree);
+  Lk(NULL,mixt_tree);
 
-  Set_Both_Sides(NO,tree);
-  Lk(NULL,tree);
 
-  tree->mod->s_opt->print             = YES;
-  tree->best_pars                     = 1E+8;
-  tree->mod->s_opt->spr_pars          = NO;
-  tree->mod->s_opt->quickdirty        = NO;
-  tree->best_lnL                      = tree->c_lnL;
-  tree->mod->s_opt->max_delta_lnL_spr = 0.;
-  tree->mod->s_opt->br_len_in_spr     = 1;
-  tree->mod->s_opt->max_depth_path    = 2*tree->n_otu-3;
-  tree->mod->s_opt->spr_lnL           = NO;
+  mixt_tree->mod->s_opt->print             = YES;
+  mixt_tree->best_pars                     = 1E+8;
+  mixt_tree->mod->s_opt->spr_pars          = NO;
+  mixt_tree->mod->s_opt->quickdirty        = NO;
+  mixt_tree->best_lnL                      = mixt_tree->c_lnL;
+  mixt_tree->mod->s_opt->max_delta_lnL_spr = 0.;
+  mixt_tree->mod->s_opt->br_len_in_spr     = 1;
+  mixt_tree->mod->s_opt->max_depth_path    = 2*mixt_tree->n_otu-3;
+  mixt_tree->mod->s_opt->spr_lnL           = NO;
+
 
   /*! Optimize branch lengths and substitution model parameters
    */
-  Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
+  Optimiz_All_Free_Param(mixt_tree,(mixt_tree->io->quiet)?(0):(mixt_tree->mod->s_opt->print));
+
 
   /*! Rough SPR search
    */
   do
     {
-      lk_old = tree->c_lnL;
-      Speed_Spr(tree,1);
-      if((tree->n_improvements < 20) ||
-  	 (tree->max_spr_depth  < 5) ||
-  	 (FABS(lk_old-tree->c_lnL) < 1.)) break;
-    }while(1);
+      lk_old = mixt_tree->c_lnL;
+      Speed_Spr(mixt_tree,1);
+      if((mixt_tree->n_improvements < 20) ||
+  	 (mixt_tree->max_spr_depth  < 5) ||
+  	 (FABS(lk_old-mixt_tree->c_lnL) < 1.)) break;
+    }
+  while(1);
   
+  Set_Both_Sides(YES,mixt_tree);
+  Lk(NULL,mixt_tree);
+  printf("\n\n << %f>> \n\n",mixt_tree->c_lnL);
+  
+
   /*! Go back to the original data structure, with potentially more
     ! than 2 trees per mixture
    */
-  MIXT_Reconnect_All_Mixtures(tree_list,tree);
+  MIXT_Reconnect_All_Mixtures(tree_list,mixt_tree);
   Free(tree_list);
-
-
-  /*! Only the first two trees for each mixture have been modified so
-    ! far -> need to update the other trees by copying the modified trees
-    ! onto them.
-   */
-  orig_tree = tree;
-  do
-    {
-      if(tree != orig_tree) Copy_Tree(orig_tree,tree);
-      if(tree->child) tree = tree->child;
-      else tree = tree->next;
-    }
-  while(tree);
-  tree = orig_tree;
 
   /*! Set the number of rate classes to their original values
    */
-  orig_tree = tree;
+  tree = mixt_tree;
   n = 0;
   do
     {
@@ -122,43 +116,57 @@ void Simu_Loop(t_tree *tree)
       n++;
     }
   while(tree);
-  tree = orig_tree;
   
   Free(orig_catg);
 
+
+
+  /*! Only the first two trees for each mixture have been modified so
+    ! far -> need to update the other trees by copying the modified trees
+    ! onto them.
+   */
+  tree = mixt_tree;
+  do
+    {
+      if(tree != mixt_tree) Copy_Tree(mixt_tree,tree);
+      if(tree->child) tree = tree->child;
+      else            tree = tree->next;
+    }
+  while(tree);
+
+
   /*! Reset the mod->invar to their original values 
    */
-  MIXT_Reset_Has_Invariants(orig_inv,tree);
+  MIXT_Reset_Has_Invariants(orig_inv,mixt_tree);
   Free(orig_inv);
 
+  if((mixt_tree->mod->s_opt->print) && (!mixt_tree->io->quiet)) 
+    PhyML_Printf("\n. Maximizing likelihood (using NNI moves)...\n");
 
 
-  if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n. Maximizing likelihood (using NNI moves)...\n");
-
-  Set_Both_Sides(NO,tree);
-  Lk(NULL,tree);
-  tree->best_lnL = tree->c_lnL;
+  Set_Both_Sides(YES,mixt_tree);
+  Lk(NULL,mixt_tree);
+  mixt_tree->best_lnL = mixt_tree->c_lnL;
 
   int n_tot_moves = 0;
   do
     {
-      lk_old = tree->c_lnL;
-      Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));      
-      n_tot_moves = Simu(tree,10);
+      lk_old = mixt_tree->c_lnL;
+      Optimiz_All_Free_Param(mixt_tree,(mixt_tree->io->quiet)?(0):(mixt_tree->mod->s_opt->print));      
+      n_tot_moves = Simu(mixt_tree,10);
       if(!n_tot_moves) break;
     }
-  while(tree->c_lnL > lk_old + tree->mod->s_opt->min_diff_lk_global);
+  while(mixt_tree->c_lnL > lk_old + mixt_tree->mod->s_opt->min_diff_lk_local);
 
   do
     {
-      Round_Optimize(tree,tree->data,ROUND_MAX);
-      if(!Check_NNI_Five_Branches(tree)) break;      
+      Round_Optimize(mixt_tree,mixt_tree->data,ROUND_MAX);
+      if(!Check_NNI_Five_Branches(mixt_tree)) break;      
     }while(1);
   /*****************************/
   
-
-  if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n");
-
+  if((mixt_tree->mod->s_opt->print) && 
+     (!mixt_tree->io->quiet)) PhyML_Printf("\n");
 }
 
 //////////////////////////////////////////////////////////////
@@ -197,11 +205,11 @@ int Simu(t_tree *tree, int n_step_max)
     {
       ++step;
                  
-      if(n_tested || step == 1) tree->update_alias_subpatt = YES;
+      if(n_tested || step == 1) MIXT_Set_Alias_Subpatt(YES,tree);
       old_loglk = tree->c_lnL;
       Set_Both_Sides(YES,tree);
       Lk(NULL,tree);
-      tree->update_alias_subpatt = NO;
+      MIXT_Set_Alias_Subpatt(NO,tree);
             
       if(tree->c_lnL < old_loglk)
 	{
@@ -210,7 +218,7 @@ int Simu(t_tree *tree, int n_step_max)
 	    Exit("\n== Err: mov_back failed\n");
 	  if(!tree->n_swap) n_neg = 0;
 	  
-	  /* For(i,2*tree->n_otu-3) tree->t_edges[i]->l_old->v = tree->t_edges[i]->l->v;	     */
+	  /* For(i,2*tree->n_otu-3) tree->a_edges[i]->l_old->v = tree->a_edges[i]->l->v;	     */
 	  Record_Br_Len(tree);
           Set_Both_Sides(YES,tree);
 	  Lk(NULL,tree);
@@ -227,16 +235,16 @@ int Simu(t_tree *tree, int n_step_max)
       if((tree->mod->s_opt->print) && (!tree->io->quiet)) Print_Lk(tree,"[Topology           ]");
       
 
-/*       if(((tree->c_lnL > old_loglk) && (FABS(old_loglk-tree->c_lnL) < tree->mod->s_opt->min_diff_lk_global)) || (n_without_swap > it_lim_without_swap)) break; */
+/*       if(((tree->c_lnL > old_loglk) && (FABS(old_loglk-tree->c_lnL) < tree->mod->s_opt->min_diff_lk_local)) || (n_without_swap > it_lim_without_swap)) break; */
       if((FABS(old_loglk-tree->c_lnL) < tree->mod->s_opt->min_diff_lk_global) || (n_without_swap > it_lim_without_swap)) break;
       
       Fill_Dir_Table(tree);
       Fix_All(tree);
       n_neg = 0;
       For(i,2*tree->n_otu-3)
-	if((!tree->t_edges[i]->left->tax) && 
-	   (!tree->t_edges[i]->rght->tax))
-	  NNI(tree,tree->t_edges[i],0);
+	if((!tree->a_edges[i]->left->tax) && 
+	   (!tree->a_edges[i]->rght->tax))
+	  NNI(tree,tree->a_edges[i],0);
       
       
 
@@ -339,9 +347,9 @@ void Simu_Pars(t_tree *tree, int n_step_max)
 
 	  n_neg = 0;
 	  For(i,2*tree->n_otu-3)
-	    if((!tree->t_edges[i]->left->tax) && 
-	       (!tree->t_edges[i]->rght->tax)) 
-	      NNI_Pars(tree,tree->t_edges[i],NO);
+	    if((!tree->a_edges[i]->left->tax) && 
+	       (!tree->a_edges[i]->rght->tax)) 
+	      NNI_Pars(tree,tree->a_edges[i],NO);
 	  
 	  Select_Edges_To_Swap(tree,sorted_b,&n_neg);	    	  
 	  Sort_Edges_NNI_Score(tree,sorted_b,n_neg);	    
@@ -379,7 +387,7 @@ void Select_Edges_To_Swap(t_tree *tree, t_edge **sorted_b, int *n_neg)
 
   For(i,2*tree->n_otu-3)
     {
-      b = tree->t_edges[i];
+      b = tree->a_edges[i];
       best_score = b->nni->score;
 
       if((!b->left->tax) && (!b->rght->tax) && (b->nni->score < -tree->mod->s_opt->min_diff_lk_move)) 
@@ -404,7 +412,7 @@ void Update_Bl(t_tree *tree, phydbl fact)
 
   For(i,2*tree->n_otu-3)
     {
-      b = tree->t_edges[i];
+      b = tree->a_edges[i];
       /* b->l->v = b->l_old->v + (b->nni->l0 - b->l_old->v)*fact;       */
       
       orig = b;
@@ -501,9 +509,9 @@ int Make_Best_Swap(t_tree *tree)
   sorted_b = (t_edge **)mCalloc(tree->n_otu-3,sizeof(t_edge *));
   
   j=0;
-  For(i,2*tree->n_otu-3) if((!tree->t_edges[i]->left->tax) &&
-			    (!tree->t_edges[i]->rght->tax))
-                              sorted_b[j++] = tree->t_edges[i];
+  For(i,2*tree->n_otu-3) if((!tree->a_edges[i]->left->tax) &&
+			    (!tree->a_edges[i]->rght->tax))
+                              sorted_b[j++] = tree->a_edges[i];
 
   Sort_Edges_NNI_Score(tree,sorted_b,tree->n_otu-3);
 
@@ -573,14 +581,14 @@ int Mov_Backward_Topo_Bl(t_tree *tree, phydbl lk_old, t_edge **tested_b, int n_t
 
   l_init = (phydbl **)mCalloc(2*tree->n_otu-3,sizeof(phydbl *));
 
-  For(i,2*tree->n_otu-3) l_init[i] = MIXT_Get_Lengths_Of_This_Edge(tree->t_edges[i]);
+  For(i,2*tree->n_otu-3) l_init[i] = MIXT_Get_Lengths_Of_This_Edge(tree->a_edges[i]);
   
   step = 2;
   do
     {
       For(i,2*tree->n_otu-3) 
 	{
-	  b = tree->t_edges[i];
+	  b = tree->a_edges[i];
 
 	  /* b->l->v = b->l_old->v + (1./step) * (l_init[i] - b->l_old->v); */
 
@@ -620,7 +628,7 @@ int Mov_Backward_Topo_Bl(t_tree *tree, phydbl lk_old, t_edge **tested_b, int n_t
 
       For(i,2*tree->n_otu-3) 
 	{
-	  b = tree->t_edges[i];
+	  b = tree->a_edges[i];
 
 	  orig = b;
 	  do
@@ -644,8 +652,8 @@ int Mov_Backward_Topo_Bl(t_tree *tree, phydbl lk_old, t_edge **tested_b, int n_t
   tree->n_swap = 0;
   For(i,2*tree->n_otu-3) 
     {
-      if(tree->t_edges[i]->nni->score < 0.0) tree->n_swap++;
-      tree->t_edges[i]->nni->score = +1.0;
+      if(tree->a_edges[i]->nni->score < 0.0) tree->n_swap++;
+      tree->a_edges[i]->nni->score = +1.0;
     }
 
   
@@ -694,8 +702,8 @@ int Mov_Backward_Topo_Pars(t_tree *tree, int pars_old, t_edge **tested_b, int n_
   tree->n_swap = 0;
   For(i,2*tree->n_otu-3) 
     {
-      if(tree->t_edges[i]->nni->score < 0.0) tree->n_swap++;
-      tree->t_edges[i]->nni->score = +1.0;
+      if(tree->a_edges[i]->nni->score < 0.0) tree->n_swap++;
+      tree->a_edges[i]->nni->score = +1.0;
     }
 
   

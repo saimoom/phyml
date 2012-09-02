@@ -1,3 +1,4 @@
+# EXTRA_DIST = doc bin examples
 
 DEFS = $(REVISION)
 
@@ -71,7 +72,13 @@ rates.c rates.h\
 mcmc.c mcmc.h\
 stats.c stats.h\
 mg.c mg.h\
-tiporder.c tiporder.h
+tiporder.c tiporder.h\
+io.c io.h\
+make.c make.h\
+mixt.c mixt.h\
+init.c init.h\
+nexus.c nexus.h\
+xml.c xml.h
 phytime_LDADD = -lm
 else 
 if WANT_PHYCONT
@@ -332,7 +339,6 @@ endif
 endif
 
 
-# all-am:	intro $(bin_PROGRAMS)$(EXEEXT)
 all-am:	intro $(bin_PROGRAMS)
 	@echo ""
 	@echo "Done."
@@ -340,7 +346,7 @@ all-am:	intro $(bin_PROGRAMS)
 intro:	
 	@echo ""
 	@echo ""
-	@echo ":: Building [$(bin_PROGRAMS)]. Version $(VERSION) ::"
+	@echo ".: Building [$(bin_PROGRAMS)]. Version $(VERSION) :."
 	@echo ""
 	@echo ""
 

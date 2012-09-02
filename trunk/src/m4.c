@@ -132,9 +132,9 @@ int M4_main(int argc, char **argv)
 		 
 		  if(io->do_alias_subpatt)
 		    {
-		      tree->update_alias_subpatt = YES;
+		      MIXT_Set_Alias_Subpatt(YES,tree);
 		      Lk(NULL,tree);
-		      tree->update_alias_subpatt = NO;
+		      MIXT_Set_Alias_Subpatt(NO,tree);
 		    }
 
 		  if(tree->mod->s_opt->opt_topo)
@@ -634,24 +634,24 @@ void M4_Init_P_Lk_Tips_Double(t_tree *tree)
 	    {
 	      For(k,tree->mod->m4mod->n_o)
 		{
-		  tree->t_nodes[i]->b[0]->p_lk_rght[curr_site*dim1 + 0*dim2 + j*dim3+k] = 
-		    tree->t_nodes[i]->b[0]->p_lk_rght[curr_site*dim1 + 0*dim2 + 0*dim3+k];
+		  tree->a_nodes[i]->b[0]->p_lk_rght[curr_site*dim1 + 0*dim2 + j*dim3+k] = 
+		    tree->a_nodes[i]->b[0]->p_lk_rght[curr_site*dim1 + 0*dim2 + 0*dim3+k];
 		  
 		  printf("\n() i=%d plk=%f",
 			 curr_site*dim1 + 0*dim2 + j*dim3+k,
-			 tree->t_nodes[i]->b[0]->p_lk_rght[curr_site*dim1 + 0*dim2 + j*dim3+k]);
+			 tree->a_nodes[i]->b[0]->p_lk_rght[curr_site*dim1 + 0*dim2 + j*dim3+k]);
 
-		  /* tree->t_nodes[i]->b[0]->p_lk_rght[curr_site][0][j*tree->mod->m4mod->n_o+k] =  */
-		  /* tree->t_nodes[i]->b[0]->p_lk_rght[curr_site][0][k]; */
+		  /* tree->a_nodes[i]->b[0]->p_lk_rght[curr_site][0][j*tree->mod->m4mod->n_o+k] =  */
+		  /* tree->a_nodes[i]->b[0]->p_lk_rght[curr_site][0][k]; */
 		}
 
 
 	      For(k,tree->mod->m4mod->n_o)
 		for(l=1;l<tree->mod->ras->n_catg;l++)
-		  tree->t_nodes[i]->b[0]->p_lk_rght[curr_site*dim1 + l*dim2 + j*dim3+k] = 
-		  tree->t_nodes[i]->b[0]->p_lk_rght[curr_site*dim1 + 0*dim2 + j*dim3+k];
-		  /* tree->t_nodes[i]->b[0]->p_lk_rght[curr_site][l][j*tree->mod->m4mod->n_o+k] =  */
-		  /* tree->t_nodes[i]->b[0]->p_lk_rght[curr_site][0][j*tree->mod->m4mod->n_o+k]; */
+		  tree->a_nodes[i]->b[0]->p_lk_rght[curr_site*dim1 + l*dim2 + j*dim3+k] = 
+		  tree->a_nodes[i]->b[0]->p_lk_rght[curr_site*dim1 + 0*dim2 + j*dim3+k];
+		  /* tree->a_nodes[i]->b[0]->p_lk_rght[curr_site][l][j*tree->mod->m4mod->n_o+k] =  */
+		  /* tree->a_nodes[i]->b[0]->p_lk_rght[curr_site][0][j*tree->mod->m4mod->n_o+k]; */
 	    }
 	}
     }
@@ -676,10 +676,10 @@ void M4_Init_P_Lk_Tips_Int(t_tree *tree)
 	    {
 	      For(k,tree->mod->m4mod->n_o)
 		{
-		  tree->t_nodes[i]->b[0]->p_lk_tip_r[curr_site*dim2 + j*dim3+k] = 
-		    tree->t_nodes[i]->b[0]->p_lk_tip_r[curr_site*dim2 + 0*dim3+k];
-		  /* tree->t_nodes[i]->b[0]->p_lk_tip_r[curr_site][j*tree->mod->m4mod->n_o+k] =  */
-		  /* tree->t_nodes[i]->b[0]->p_lk_tip_r[curr_site][k]; */
+		  tree->a_nodes[i]->b[0]->p_lk_tip_r[curr_site*dim2 + j*dim3+k] = 
+		    tree->a_nodes[i]->b[0]->p_lk_tip_r[curr_site*dim2 + 0*dim3+k];
+		  /* tree->a_nodes[i]->b[0]->p_lk_tip_r[curr_site][j*tree->mod->m4mod->n_o+k] =  */
+		  /* tree->a_nodes[i]->b[0]->p_lk_tip_r[curr_site][k]; */
 		}
 	    }
 	}
@@ -906,10 +906,10 @@ phydbl ***M4_Compute_Proba_Hidden_States_On_Edges(t_tree *tree)
     {
       PhyML_Printf("\n. Edge %4d/%4d",i+1,2*tree->n_otu-3);
 
-      integral = M4_Integral_Term_On_One_Edge(tree->t_edges[i],tree);
+      integral = M4_Integral_Term_On_One_Edge(tree->a_edges[i],tree);
 
       For(tree->curr_site,tree->n_pattern)
-	M4_Post_Prob_H_Class_Edge_Site(tree->t_edges[i],
+	M4_Post_Prob_H_Class_Edge_Site(tree->a_edges[i],
 				       integral,
 				       post_probs[i][tree->curr_site],
 				       tree);
@@ -998,7 +998,7 @@ void M4_Compute_Posterior_Mean_Rates(phydbl ***post_probs, t_tree *tree)
 	{
 	  mrr[br] += mean_post_probs[br][rcat] * tree->mod->m4mod->multipl[rcat];
 	}
-      tree->t_edges[br]->l->v *= mrr[br];
+      tree->a_edges[br]->l->v *= mrr[br];
     }
 
   PhyML_Fprintf(tree->io->fp_out_stats,"\n. Mean posterior probabilities & rates\n");
@@ -1010,14 +1010,14 @@ void M4_Compute_Posterior_Mean_Rates(phydbl ***post_probs, t_tree *tree)
 	{
 	  PhyML_Fprintf(tree->io->fp_out_stats,"%2.4f ",mean_post_probs[br][rcat]);
 	}
-/*       PhyML_Fprintf(tree->io->fp_out_stats," -- %f -> %f x %f = %f",mrr[br],tree->t_edges[br]->l->v,mrr[br],tree->t_edges[br]->l->v*mrr[br]); */
+/*       PhyML_Fprintf(tree->io->fp_out_stats," -- %f -> %f x %f = %f",mrr[br],tree->a_edges[br]->l->v,mrr[br],tree->a_edges[br]->l->v*mrr[br]); */
 
       PhyML_Fprintf(tree->io->fp_out_stats," mrr=%f ",mrr[br]);
 
       if(mrr[br] > 1.) PhyML_Fprintf(tree->io->fp_out_stats,"FAST ");
       else             PhyML_Fprintf(tree->io->fp_out_stats,"SLOW ");
       
-      PhyML_Fprintf(tree->io->fp_out_stats,"%s",tree->t_edges[br]->labels[0]);
+      PhyML_Fprintf(tree->io->fp_out_stats,"%s",tree->a_edges[br]->labels[0]);
 
       PhyML_Fprintf(tree->io->fp_out_stats,"\n");
     }
@@ -1033,7 +1033,7 @@ void M4_Compute_Posterior_Mean_Rates(phydbl ***post_probs, t_tree *tree)
   DR_Print_Tree_Postscript(tree->ps_page_number++,YES,tree->io->fp_out_ps,tree);
 
   /* Go back to the initial scaled branch lengths */
-  For(br,2*tree->n_otu-3) tree->t_edges[br]->l->v /= mrr[br];
+  For(br,2*tree->n_otu-3) tree->a_edges[br]->l->v /= mrr[br];
 
   /* Compute the posterior mean relative rate at each site, for each branch
      and each rate category. Scale branch lengths using these factors and
@@ -1055,10 +1055,10 @@ void M4_Compute_Posterior_Mean_Rates(phydbl ***post_probs, t_tree *tree)
 		}
 	    }
 /* 	  mrr[br] = tree->mod->m4mod->multipl[best_r]; /\* Use the most probable relative rate instead of mean *\/ */
-	  tree->t_edges[br]->l->v *= mrr[br];
+	  tree->a_edges[br]->l->v *= mrr[br];
 	}
 
-      For(br,2*tree->n_otu-3) mean_br_len[br] += tree->t_edges[br]->l->v * tree->data->wght[patt];
+      For(br,2*tree->n_otu-3) mean_br_len[br] += tree->a_edges[br]->l->v * tree->data->wght[patt];
 
       PhyML_Fprintf(tree->io->fp_out_stats,"\n. Posterior probabilities site %4d (weight=%d, is_inv=%d)\n",
 	     patt,
@@ -1088,12 +1088,12 @@ void M4_Compute_Posterior_Mean_Rates(phydbl ***post_probs, t_tree *tree)
 	      else               PhyML_Fprintf(tree->io->fp_out_stats,"  ");
 	    }
 
-/* 	  PhyML_Fprintf(tree->io->fp_out_stats," -- %f -> %f x %f = %f",mrr[br],tree->t_edges[br]->l->v,mrr[br],tree->t_edges[br]->l->v*mrr[br]); */
+/* 	  PhyML_Fprintf(tree->io->fp_out_stats," -- %f -> %f x %f = %f",mrr[br],tree->a_edges[br]->l->v,mrr[br],tree->a_edges[br]->l->v*mrr[br]); */
 	  
 	  if(mrr[br] > 1.01)      PhyML_Fprintf(tree->io->fp_out_stats," %s ","FAST");
 	  else if(mrr[br] < 0.99) PhyML_Fprintf(tree->io->fp_out_stats," %s ","SLOW");
 	  else 	                  PhyML_Fprintf(tree->io->fp_out_stats," %s ","MEDIUM");
-	  PhyML_Fprintf(tree->io->fp_out_stats,"%s ",tree->t_edges[br]->labels[0]);
+	  PhyML_Fprintf(tree->io->fp_out_stats,"%s ",tree->a_edges[br]->labels[0]);
 	  PhyML_Fprintf(tree->io->fp_out_stats,"\n");
 	}
 
@@ -1104,7 +1104,7 @@ void M4_Compute_Posterior_Mean_Rates(phydbl ***post_probs, t_tree *tree)
       DR_Print_Tree_Postscript(tree->ps_page_number++,YES,tree->io->fp_out_ps,tree);
 
       /* Go back to the initial scaled branch lengths */
-      For(br,2*tree->n_otu-3) tree->t_edges[br]->l->v /= mrr[br];
+      For(br,2*tree->n_otu-3) tree->a_edges[br]->l->v /= mrr[br];
 
       For(br,2*tree->n_otu-3) 
 	{
@@ -1127,7 +1127,7 @@ void M4_Compute_Posterior_Mean_Rates(phydbl ***post_probs, t_tree *tree)
   For(br,2*tree->n_otu-3)
     {
       mean_br_len[br] /= (phydbl)tree->data->init_len;
-      tree->t_edges[br]->l->v = mean_br_len[br];
+      tree->a_edges[br]->l->v = mean_br_len[br];
     }
   PhyML_Fprintf(tree->io->fp_out_tree,"Mean branch lengths=");
   s = Write_Tree(tree,NO);
@@ -1185,21 +1185,21 @@ phydbl **M4_Site_Branch_Classification(phydbl ***post_probs, t_tree *tree)
 
 	  best_probs[patt][br] = (post_prob_fast > post_prob_slow)?(post_prob_fast):(post_prob_slow);
 
-	  if(!(tree->t_edges[br]->n_labels%BLOCK_LABELS)) Make_New_Edge_Label(tree->t_edges[br]);
+	  if(!(tree->a_edges[br]->n_labels%BLOCK_LABELS)) Make_New_Edge_Label(tree->a_edges[br]);
 
 /* 	  if((post_prob_fast > post_prob_slow) && (best_probs[patt][br] > 0.95)) */
-/* 	    strcpy(tree->t_edges[br]->labels[tree->t_edges[br]->n_labels],"FASTER"); */
+/* 	    strcpy(tree->a_edges[br]->labels[tree->a_edges[br]->n_labels],"FASTER"); */
 /* 	  else if((post_prob_fast < post_prob_slow) && (best_probs[patt][br] > 0.95)) */
-/* 	    strcpy(tree->t_edges[br]->labels[tree->t_edges[br]->n_labels],"SLOWER"); */
+/* 	    strcpy(tree->a_edges[br]->labels[tree->a_edges[br]->n_labels],"SLOWER"); */
 /* 	  else */
-/* 	    strcpy(tree->t_edges[br]->labels[tree->t_edges[br]->n_labels],"UNKNOWN"); */
+/* 	    strcpy(tree->a_edges[br]->labels[tree->a_edges[br]->n_labels],"UNKNOWN"); */
 
 	  if(post_prob_fast > post_prob_slow)
-	    strcpy(tree->t_edges[br]->labels[tree->t_edges[br]->n_labels],"FASTER");
+	    strcpy(tree->a_edges[br]->labels[tree->a_edges[br]->n_labels],"FASTER");
 	  else 
-	    strcpy(tree->t_edges[br]->labels[tree->t_edges[br]->n_labels],"SLOWER");
+	    strcpy(tree->a_edges[br]->labels[tree->a_edges[br]->n_labels],"SLOWER");
 
-	  tree->t_edges[br]->n_labels++;
+	  tree->a_edges[br]->n_labels++;
 	}
     }
   return best_probs;
@@ -1243,11 +1243,11 @@ void M4_Site_Branch_Classification_Experiment(t_tree *tree)
     {
       For(j,2*tree->n_otu-3)
 	{
-	  if(!strcmp(tree->t_edges[j]->labels[i],"FASTER"))
+	  if(!strcmp(tree->a_edges[j]->labels[i],"FASTER"))
 	    {
 	      true_rclass[i][j] = 1;
 	    }
-	  else if(!strcmp(tree->t_edges[j]->labels[i],"SLOWER"))
+	  else if(!strcmp(tree->a_edges[j]->labels[i],"SLOWER"))
 	    {
 	      true_rclass[i][j] = 0;
 	    }
@@ -1261,8 +1261,8 @@ void M4_Site_Branch_Classification_Experiment(t_tree *tree)
   
   For(j,2*tree->n_otu-3) 
     {
-      Free_Edge_Labels(tree->t_edges[j]);
-      tree->t_edges[j]->n_labels = 0;
+      Free_Edge_Labels(tree->a_edges[j]);
+      tree->a_edges[j]->n_labels = 0;
     }
 
   /* Generate the memory needed for likelihood calculation because
@@ -1296,15 +1296,15 @@ void M4_Site_Branch_Classification_Experiment(t_tree *tree)
     {
       For(j,2*tree->n_otu-3)
 	{
-	  if(!strcmp(tree->t_edges[j]->labels[i],"FASTER"))
+	  if(!strcmp(tree->a_edges[j]->labels[i],"FASTER"))
 	    {
 	      est_rclass[i][j] = 1;
 	    }
-	  else if(!strcmp(tree->t_edges[j]->labels[i],"SLOWER"))
+	  else if(!strcmp(tree->a_edges[j]->labels[i],"SLOWER"))
 	    {
 	      est_rclass[i][j] = 0;
 	    }
-	  else if(!strcmp(tree->t_edges[j]->labels[i],"UNKNOWN"))
+	  else if(!strcmp(tree->a_edges[j]->labels[i],"UNKNOWN"))
 	    {
 	      est_rclass[i][j] = -1;
 	    }
@@ -1394,7 +1394,7 @@ void M4_Scale_Br_Len(t_tree *tree)
   scale_fact = 1.0 + tree->mod->m4mod->delta * mrs;
 
   /* (3) Scale branch lengths */
-  For(i,2*tree->n_otu-3) tree->t_edges[i]->l->v /= scale_fact;
+  For(i,2*tree->n_otu-3) tree->a_edges[i]->l->v /= scale_fact;
 }
 
 //////////////////////////////////////////////////////////////
@@ -1453,7 +1453,7 @@ void M4_Detect_Site_Switches_Experiment(t_tree *tree)
   Switch_From_M4mod_To_Mod(tree->mod);
   Simu_Loop(tree);
   nocov_mod = (t_mod *)Copy_Model(tree->mod); /* Record model parameters */
-  For(i,2*tree->n_otu-3) nocov_bl[i] = tree->t_edges[i]->l->v; /* Record branch lengths */
+  For(i,2*tree->n_otu-3) nocov_bl[i] = tree->a_edges[i]->l->v; /* Record branch lengths */
   For(i,tree->data->crunch_len) site_lnl_nocov[i] = tree->cur_site_lk[i];
   Print_Lk(tree,"[LnL under non-switching substitution model]");
   
@@ -1461,7 +1461,7 @@ void M4_Detect_Site_Switches_Experiment(t_tree *tree)
   Switch_From_Mod_To_M4mod(tree->mod);
   Simu_Loop(tree);
   cov_mod = (t_mod *)Copy_Model(tree->mod); /* Record model parameters */
-  For(i,2*tree->n_otu-3) cov_bl[i] = tree->t_edges[i]->l->v; /* Record branch lengths */
+  For(i,2*tree->n_otu-3) cov_bl[i] = tree->a_edges[i]->l->v; /* Record branch lengths */
   For(i,tree->data->crunch_len) site_lnl_cov[i] = tree->cur_site_lk[i];
   Print_Lk(tree,"[LnL under switching substitution model]");
   
@@ -1496,8 +1496,8 @@ void M4_Detect_Site_Switches_Experiment(t_tree *tree)
     {
       /* Get the transition proba right to generate sequences */
       tree->mod = nocov_mod;
-      For(i,2*tree->n_otu-3) tree->t_edges[i]->l->v = nocov_bl[i];
-      For(i,2*tree->n_otu-3) Update_PMat_At_Given_Edge(tree->t_edges[i],tree);
+      For(i,2*tree->n_otu-3) tree->a_edges[i]->l->v = nocov_bl[i];
+      For(i,2*tree->n_otu-3) Update_PMat_At_Given_Edge(tree->a_edges[i],tree);
       
       /* Generate sequences */
       Evolve(cpy_data, nocov_mod, tree);
@@ -1507,13 +1507,13 @@ void M4_Detect_Site_Switches_Experiment(t_tree *tree)
       else Init_P_Lk_Tips_Int(tree);
       
       tree->mod = nocov_mod;
-      For(i,2*tree->n_otu-3) tree->t_edges[i]->l->v = nocov_bl[i];
+      For(i,2*tree->n_otu-3) tree->a_edges[i]->l->v = nocov_bl[i];
       Lk(NULL,tree);
       For(i,tree->data->crunch_len) site_lnl_nocov[i] = tree->cur_site_lk[i];
       Print_Lk(tree,"[CPY LnL under non-switching substitution model]");
 
       tree->mod = cov_mod;
-      For(i,2*tree->n_otu-3) tree->t_edges[i]->l->v = cov_bl[i];
+      For(i,2*tree->n_otu-3) tree->a_edges[i]->l->v = cov_bl[i];
       Lk(NULL,tree);
       For(i,tree->data->crunch_len) site_lnl_cov[i] = tree->cur_site_lk[i];
       Print_Lk(tree,"[CPY LnL under switching substitution model]");
@@ -1534,12 +1534,12 @@ void M4_Detect_Site_Switches_Experiment(t_tree *tree)
   Make_Tree_4_Lk(tree,ori_data,ori_data->init_len);
 
   tree->mod = nocov_mod;
-  For(i,2*tree->n_otu-3) tree->t_edges[i]->l->v = nocov_bl[i];  
+  For(i,2*tree->n_otu-3) tree->a_edges[i]->l->v = nocov_bl[i];  
   Lk(NULL,tree);
   Print_Lk(tree,"[FINAL LnL under non-switching substitution model]");
   
   tree->mod = cov_mod;
-  For(i,2*tree->n_otu-3) tree->t_edges[i]->l->v = cov_bl[i];  
+  For(i,2*tree->n_otu-3) tree->a_edges[i]->l->v = cov_bl[i];  
   Lk(NULL,tree);
   Print_Lk(tree,"[FINAL LnL under switching substitution model]");
 
@@ -1597,7 +1597,7 @@ void M4_Posterior_Prediction_Experiment(t_tree *tree)
 
   /* Generate a simulated data set under H0, with the right sequence length. */
   Set_Model_Parameters(tree->mod);
-  For(i,2*tree->n_otu-3) Update_PMat_At_Given_Edge(tree->t_edges[i],tree);
+  For(i,2*tree->n_otu-3) Update_PMat_At_Given_Edge(tree->a_edges[i],tree);
   Evolve(cpy_data,tree->mod,tree);
 
   /* Generate the memory needed for likelihood calculation because

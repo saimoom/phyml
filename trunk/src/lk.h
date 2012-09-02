@@ -54,7 +54,7 @@ phydbl Lk_Dist(phydbl *F, phydbl dist, t_mod *mod);
 phydbl Update_Lk_At_Given_Edge(t_edge *b_fcus, t_tree *tree);
 void Update_P_Lk_Greedy(t_tree *tree, t_edge *b_fcus, t_node *n);
 void Get_All_Partial_Lk_Scale_Greedy(t_tree *tree, t_edge *b_fcus, t_node *a, t_node *d);
-phydbl Lk_Core(t_edge *b, t_tree *tree);
+phydbl Lk_Core(int state, int ambiguity_check, t_edge *b, t_tree *tree);
 phydbl Lk_Triplet(t_node *a, t_node *d, t_tree *tree);
 void Print_Lk_Given_Edge_Recurr(t_node *a, t_node *d, t_edge *b, t_tree *tree);
 phydbl *Post_Prob_Rates_At_Given_Edge(t_edge *b, phydbl *post_prob, t_tree *tree);
@@ -87,7 +87,7 @@ phydbl Wrap_Lk_Times(t_edge *b, t_tree *tree, supert_tree *stree);
 phydbl Lk_LastFirst(t_tree *tree);
 phydbl Invariant_Lk(int *fact_sum_scale, int site, int *num_prec_issue, t_tree *tree);
 void Rate_Correction(int exponent, phydbl *site_lk_cat, t_tree *tree);
-int Check_Lk_At_Given_Edge(t_tree *tree);
+int Check_Lk_At_Given_Edge(int verbose, t_tree *tree);
 
 #endif
 
