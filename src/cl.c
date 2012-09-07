@@ -129,7 +129,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	case 73:
 	  {
             PhyML_XML(optarg);
-	    break;
+            Exit("\n");
 	  }
 	case 72:
 	  {
@@ -599,7 +599,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	  {
 	    io->mod->s_opt->random_input_tree = 1;
 	    io->mod->s_opt->n_rand_starts = atoi(optarg);
-	    if(io->mod->s_opt->n_rand_starts < 1) Exit("\n. Nunmber of random starting trees must be > 0.\n\n");
+	    if(io->mod->s_opt->n_rand_starts < 1) Exit("\n== Number of random starting trees must be > 0.\n\n");
 	  }
 	case 's':case 6:
 	  {
@@ -1104,7 +1104,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	  }
 	case 'q':case 22:
 	  {
-	    io->interleaved = 0;
+	    io->interleaved = NO;
 	    break;
 	  }
 	case 'u':case 15:
@@ -1395,7 +1395,6 @@ void Read_Command_Line(option *io, int argc, char **argv)
       PhyML_Printf("\n== Custom model option with amino-acid requires you to specify a rate matrix file through the '--aa_rate_file' option.\n");
       Exit("\n");
     }
-
 
   io->fp_out_tree  = Openfile(io->out_tree_file,writemode);
   io->fp_out_stats = Openfile(io->out_stats_file,writemode);

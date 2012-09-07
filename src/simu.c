@@ -93,12 +93,10 @@ void Simu_Loop(t_tree *mixt_tree)
   	 (FABS(lk_old-mixt_tree->c_lnL) < 1.)) break;
     }
   while(1);
-  
+
   Set_Both_Sides(YES,mixt_tree);
   Lk(NULL,mixt_tree);
-  printf("\n\n << %f>> \n\n",mixt_tree->c_lnL);
   
-
   /*! Go back to the original data structure, with potentially more
     ! than 2 trees per mixture
    */

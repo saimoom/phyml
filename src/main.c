@@ -172,9 +172,6 @@ int main(int argc, char **argv)
 		  /* ///////////////////////////////////////// */
 		  /* Make_Mixtmod(3,tree); */
 		  
-
-
-
 		  if(io->in_tree == 1) Spr_Pars(tree);
 		 
 		  if(io->do_alias_subpatt)
@@ -182,8 +179,7 @@ int main(int argc, char **argv)
 		      MIXT_Set_Alias_Subpatt(YES,tree);
 		      Lk(NULL,tree);
 		      MIXT_Set_Alias_Subpatt(NO,tree);
-		    }		  
-
+		    }
 
 		  if(tree->mod->s_opt->opt_topo)
 		    {
@@ -200,7 +196,7 @@ int main(int argc, char **argv)
 		      else                                               Lk(NULL,tree);
 		    }
 
-		  tree->both_sides = 1;
+                  Set_Both_Sides(YES,tree);
 		  Lk(NULL,tree);
 		  Pars(NULL,tree);
 		  Get_Tree_Size(tree);
@@ -226,14 +222,13 @@ int main(int argc, char **argv)
 		      most_likely_tree = Write_Tree(tree,NO);
 		    }
 
-/* 		  JF(tree); */
-
 		  time(&t_end);
 
 		  Print_Fp_Out(io->fp_out_stats,t_beg,t_end,tree,
 			       io,num_data_set+1,
 			       (tree->mod->s_opt->n_rand_starts > 1)?
-			       (num_rand_tree):(num_tree));
+			       (num_rand_tree):(num_tree),
+                               (num_rand_tree == io->mod->s_opt->n_rand_starts-1)?(YES):(NO));
 		  
 		  if(tree->io->print_site_lnl) Print_Site_Lk(tree,io->fp_out_lk);
 
@@ -242,7 +237,7 @@ int main(int argc, char **argv)
 		    {
 		      /* Do one more iteration in the loop, but don't randomize the tree */
 		      num_rand_tree--;
-		      tree->mod->s_opt->random_input_tree = 0;
+		      tree->mod->s_opt->random_input_tree = NO;
 		    }
 		  
  		  if(io->fp_in_constraint_tree != NULL) Free_Tree(io->cstr_tree);
@@ -255,7 +250,6 @@ int main(int argc, char **argv)
 		  Free_Tree(tree);
 		}
 	      
-
 	      /* Launch bootstrap analysis */
 	      if(mod->bootstrap) 
 		{
@@ -280,7 +274,6 @@ int main(int argc, char **argv)
 	      if(io->n_data_sets == 1) rewind(io->fp_out_tree);
 	      PhyML_Fprintf(io->fp_out_tree,"%s\n",most_likely_tree);
 	      
-
 	      if(io->n_trees > 1 && io->n_data_sets > 1) break;
 	    }
 	  Free_Cseq(cdata);

@@ -16,19 +16,6 @@ the GNU public licence.  See http://www.opensource.org for details.
 
 /*********************************************************/
 
-void Make_Tree_4_Pars(t_tree *tree, calign *cdata, int n_site)
-{
-  int i;
-  
-  tree->site_pars = (int *)mCalloc(tree->n_pattern, sizeof(int));
-  tree->step_mat = (int *)mCalloc(tree->mod->ns * tree->mod->ns, sizeof(int));
-  For(i,2*tree->n_otu-3) Make_Edge_Pars(tree->a_edges[i],tree);
-  Init_Ui_Tips(tree);
-  Init_P_Pars_Tips(tree); /* Must be called after Init_Ui_Tips is called */
-  Get_Step_Mat(tree);
-}
-
-/*********************************************************/
 
 int Pars(t_edge *b, t_tree *tree)
 {
@@ -53,6 +40,8 @@ int Pars(t_edge *b, t_tree *tree)
       tree->c_pars += tree->site_pars[site] * tree->data->wght[site];
       /* printf("\n. site %d pars: %d",site,tree->c_pars); */
     }
+
+  if(tree->is_mixt_tree) MIXT_Pars(b,tree);
 
   return tree->c_pars;
 }
