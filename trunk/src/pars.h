@@ -21,7 +21,6 @@ the GNU public licence.  See http://www.opensource.org for details.
 #include "models.h"
 #include "free.h"
 
-void Make_Tree_4_Pars(t_tree *tree, calign *cdata, int n_site);
 int  Pars(t_edge *b, t_tree *tree);
 void Post_Order_Pars(t_node *a, t_node *d, t_tree *tree);
 void Pre_Order_Pars(t_node *a, t_node *d, t_tree *tree);

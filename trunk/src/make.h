@@ -51,5 +51,6 @@ t_ras *Make_RAS_Basic();
 void Make_Best_Spr(t_tree *tree);
 void Make_Spr_List(t_tree *tree);
 t_spr *Make_One_Spr(t_tree *tree);
+void Make_Tree_4_Pars(t_tree *tree, calign *cdata, int n_site);
 
 #endif

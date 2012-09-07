@@ -15,7 +15,6 @@
 \def\thesection{\arabic{section}}
 \renewcommand{\thefigure}{\arabic{figure}}
 \renewcommand{\thetable}{\arabic{table}}
-\renewcommand{\baselinestretch}{1.5}
 \newcommand{\hl}{\noalign{\vskip3pt}\hline\noalign{\vskip3pt}}
 \newcommand{\hrf}{\hrulefill}
 \newcommand{\tc}[1]{\textcolor{black}{#1}}
@@ -30,7 +29,7 @@
 \setpapersize{A4}
 % \hypersetup{colorlinks=true,linkcolor=blue,urlcolor=red,linkbordercolor=000}
 \hypersetup{colorlinks=true,linkcolor=blue,urlcolor=red}
-\renewcommand{\baselinestretch}{1.2}
+\renewcommand{\baselinestretch}{1.}
 \makeindex
 \begin{document}
 \sloppy
@@ -66,7 +65,6 @@ the GNU public licence. See http://www.opensource.org for details.
 
 }
 
-
 {
 \noindent
 \setlength{\baselineskip}{0.5\baselineskip}
@@ -77,10 +75,6 @@ the GNU public licence. See http://www.opensource.org for details.
 \item Discussion forum: \href{http://groups.google.com/group/phyml-forum}{http://groups.google.com/group/phyml-forum}
 \end{itemize}
 }
-
-
-
-
 
 {
 \noindent
@@ -199,15 +193,19 @@ Once MPI is  installed, it is necessary to launch  the MPI daemon. This can be  
 following instruction: \x{mpd \&}.  Note however that in most cases, the  MPI daemon will already be
 running on your server so  that you most likely do not need to worry  about this. You can then just
 go in the \x{phyml/} directory (the directory that contains the \x{src/}, \x{examples/} and \x{doc/}
-folders) and enter the commands below: {\setlength{\baselineskip}{0.5\baselineskip}
+folders) and enter the commands below: 
+
+{\setlength{\baselineskip}{0.5\baselineskip}
 \begin{verbatim}
 ./configure --enable-mpi;
 make clean;
 make;
 \end{verbatim}
 }
+
 A binary file named \x{phyml-mpi} has now been created in the \x{src/} directory and is ready to use
 with MPI. A typical MPI command-line which uses 4 CPUs is given below:
+
 {\setlength{\baselineskip}{0.5\baselineskip}
 \begin{verbatim}
 mpirun -n 4 ./phyml-mpi -i myseq -b 100
@@ -292,7 +290,7 @@ PhyML implements a wide range of  substitution models: JC69 \cite{jukes69}, K80 
 \cite{lanave84,tavare86} and  custom for nucleotides; LG \cite{le08},  WAG \cite{whelan01b}, Dayhoff
 \cite{dayhoff78},  JTT  \cite{jones92},  Blosum62  \cite{henikoff92}, mtREV  \cite{adachi96},  rtREV
 \cite{dimmic02},  cpREV  \cite{adachi00},  DCMut   \cite{kosiol04},  VT  \cite{muller00}  and  mtMAM
-\cite{cao98}  anf custom  for amino  acids.  Cycle  through the  list of  nucleotide  or amino-acids
+\cite{cao98}  and custom  for amino  acids.  Cycle  through the  list of  nucleotide  or amino-acids
 substitution models by typing \x{M}. Both  nucleotide and amino-acid lists include a `custom' model.
 The custom option provides the most flexible  way to specify the nucleotide substitution model.  The
 model is defined  by a string made of  six digits.  The default string is  `\x{000000}', which means
@@ -306,8 +304,9 @@ GTR models respectively.  The digit string  therefore defines groups of relative
 The  initial rate within  each group  is set  to 1.0,  which corresponds  to F81  (JC69 if  the base
 frequencies are equal).   Users also have the  opportunity to define their own  initial rate values.
 These rates are  then optimised afterwards (option  `\x{O}') or fixed to their  initial values.  The
-custom option can be used to implement all substitution models that are special cases of GTR.
-
+custom option can be used to implement all substitution models that are special cases of
+GTR. Table \ref{tab:modelcode} on page \pageref{tab:modelcode} gives the correspondence between the `standard' name of the model
+(see \url{http://mbe.oxfordjournals.org/content/18/6/897/F2.large.jpg}) and the custom model code.
 The custom model also exists for protein sequences. It is useful when one wants to use an amino-acid
 substitution model that is  not hard-coded in PhyML. The symmetric part of  the rate matrix, as well
 as the equilibrium amino-acid  frequencies, are given in a file which name is  given as input of the
@@ -486,7 +485,7 @@ is absent and when tree topology modifications are to be done.
 custom} \\  The \x{custom} option can be  used to define a  new substitution model. A  string of six
 digits  identifies  the model.  For  instance,  000000 corresponds  to  F81  (or  JC69 provided  the
 distribution of nucleotide  frequencies is uniform).  012345 corresponds to GTR.  This option can be
-used for encoding any model that is a nested within GTR. See Section \ref{sec:submenus}. {\em NOTE:}
+used for encoding any model that is a nested within GTR. See Section \ref{sec:submenus} and Table \ref{tab:modelcode}. {\em NOTE:}
 the  substitution  parameters  of  the  custom  model  will be  optimised  so  as  to  maximise  the
 likelihood.  It is  possible  to  specify and  fix  (i.e., avoid  optimisation)  the  values of  the
 substitution rates only through the PHYLIP-like interface.
@@ -498,6 +497,33 @@ available by  default in PhyML. The  symmetric part of the  rate matrix, as well
 amino-acid frequencies, are  given in a file which name  is asked for by the  program. The format of
 this file is described in section \ref{sec:customaa}.
 \end{itemize}
+
+\begin{table}\index{custom models}
+\begin{center}
+\begin{tabular}{ll}
+\hline
+Name & Command-line option \\
+\hline
+JC69 &  \x{-m 000000 -f 0.25,0.25,0.25,0.25} \\
+F81 &   \x{-m 000000}\\
+K80 &   \x{-m 010010 -f 0.25,0.25,0.25,0.25} \\
+HKY85 & \x{-m 010010}\\
+TrNef & \x{-m 010020 -f 0.25,0.25,0.25,0.25} \\
+TrN &   \x{-m 010020}\\
+K81 &   \x{-m 123321 -f 0.25,0.25,0.25,0.25}\\
+K81uf & \x{-m 123321}\\
+TIMef & \x{-m 132241 -f 0.25,0.25,0.25,0.25}\\
+TIM &   \x{-m 132241}\\
+TVMef & \x{-m 102304 -f 0.25,0.25,0.25,0.25}\\
+TVM &   \x{-m 102304}\\
+SYM &   \x{-m 123456 -f 0.25,0.25,0.25,0.25}\\
+GTR &   \x{-m 123456}\\
+\hline
+\end{tabular}
+\caption{Nucleotide substitution model names (as defined in \cite{posada01}) and the corresponding
+  custom model code used in PhyML.}\label{tab:modelcode}
+\end{center}
+\end{table}
 
 \item \x{--aa\_rate\_file file\_name}\index{command-line options!\x{--aa\_rate\_file}} \\
 This option is compulsory when analysing amino-acid sequences under a `custom' model. \x{file\_name}
@@ -1198,12 +1224,52 @@ lengths with mixture of rates appears like a deadly combination. Consider for in
 </partitionelem>
 \end{Verbatim}
 
-It is here impossible to tell apart  branch lengths and substitution rates. Such model is ``strongly
-non-identifiable'' and therefore not relevant.
+It is here impossible to tell apart  branch lengths and substitution rates. Such model is strongly
+non-identifiable and therefore not relevant.
 
 \subsection{XML options}
 \subsubsection{{\tt topology} tag}\index{XML options!{\tt topology} tag}
+Options:
+\begin{itemize}
+\item \x{init.tree="bionj"|"user"|"random"}.  In case \x{init.tree="user"}, the
+  attribute \x{filename="name\_of\_tree\_file"} must be present, where \x{name\_of\_tree\_file} is a
+  text file containing a tree in NEWICK format. 
+\item \x{init.tree="yes"|"true"|"no"|"false"}. The starting tree topology as defined by
+  \x{init.tree} is to be optimised (or not) so as to maximise the likelihood function.
+\item \x{search="nni"|"spr"|"none"}. Tree topology search is conducted using NNI (fast), SPR (a bit
+  slower but more accurate) or no moves.
+\end{itemize}
+\vspace{0.2cm}
+\begin{Verbatim}[frame=single, label=Example of topology tag, samepage=true, baselinestretch=0.5]
+<topology>
+  <instance id="T1" init.tree="bionj" optimise.tree="true" \
+   search="spr"/>
+</topology>
+\end{Verbatim}
+
 \subsubsection{{\tt ratematrices} tag}\index{XML options!{\tt ratematrices} tag}
+Options:
+\begin{itemize}
+\item \x{model="JC69"|"K80"|"F81"|"F84"|"TN93"|"GTR"|"custom"} for nucleotide data.\\
+\x{model="WAG"|"JTT"|"MtREV"|"Dayhoff"|"DCMut"|"RtREV"|"CpREV"|"VT"}\\\x{|"Blosum62"|"MtMam"|"MtArt"|"HIVw"|"HIVb"|"custom"}
+for amino-acid sequences.
+\item \x{modelcode="012345"}. For \x{custom} model applied to nucleotide sequences: set the
+  string of digits that define a custom substitution model. See Table \ref{tab:modelcode} on page
+  \pageref{tab:modelcode} for more
+  information about the model codes.
+\item \x{optimise.rr="yes"|"true"|"no"|"false"}. For nucleotide models only (except JC69 and F81):
+  optimise the substitution rate model parameters.
+\item \x{tstv="value"}. For K80, HKY85 and TN93 models only: set the transition/transversion to a
+  given value.  
+\end{itemize}
+\vspace{0.2cm}
+\begin{Verbatim}[frame=single, label=Example of ratematrices tag, samepage=true, baselinestretch=0.5]
+  <ratematrices id="RM1">
+    <instance id="M1" model="custom" model.code="000000"/>
+    <instance id="M2" model="GTR" optimise.rr="yes"/>
+    <instance id="M3" model="WAG"/>
+  </ratematrices>
+\end{Verbatim}
 \subsubsection{{\tt equfreqs} tag}\index{XML options!{\tt equfreqs} tag}
 \subsubsection{{\tt branchlengths} tag}\index{XML options!{\tt branchlengths} tag}
 \subsubsection{{\tt siterates} tag}\index{XML options!{\tt siterates} tag}

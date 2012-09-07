@@ -214,7 +214,7 @@ int PART_main(int argc, char **argv)
       For(part,io->n_part)
 	{
 	  Print_Fp_Out(fp_phyml_stats,t_beg,t_end,st->treelist->tree[part],
-		       io->st->optionlist[part],1,1);
+		       io->st->optionlist[part],1,1,YES);
 	}
 
 

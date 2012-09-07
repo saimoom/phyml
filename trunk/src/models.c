@@ -829,7 +829,7 @@ void Set_Model_Parameters(t_mod *mod)
 {
   Update_RAS(mod);
   Update_Efrq(mod);
-  if(!mod->child) Update_Eigen(mod);
+  Update_Eigen(mod);
 }
 
 //////////////////////////////////////////////////////////////
@@ -840,6 +840,12 @@ void Update_Eigen(t_mod *mod)
   int result, n_iter;
   phydbl scalar;
   int i;
+  
+  if(mod->child) 
+    {
+      MIXT_Update_Eigen(mod);
+      return;
+    }
 
   if(mod->update_eigen) 
     {

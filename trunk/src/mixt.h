@@ -48,5 +48,8 @@ phydbl MIXT_Unscale_Br_Len_Multiplier_Tree(t_tree *mixt_tree);
 phydbl MIXT_Rescale_Br_Len_Multiplier_Tree(t_tree *mixt_tree);
 void MIXT_Set_Alias_Subpatt(int onoff, t_tree *mixt_tree);
 phydbl Lk_Core(int state, int ambiguity_check, t_edge *b, t_tree *tree);
+void MIXT_Check_Single_Edge_Lens(t_tree *mixt_tree);
+void MIXT_Update_Eigen(t_mod *mixt_mod);
+int MIXT_Pars(t_edge *mixt_b, t_tree *mixt_tree);
 
 #endif
