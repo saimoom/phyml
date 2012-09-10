@@ -51,16 +51,16 @@ void Simu_Loop(t_tree *mixt_tree)
   tree_list = MIXT_Record_All_Mixtures(mixt_tree);
   MIXT_Break_All_Mixtures(mixt_tree->mod->ras->n_catg,mixt_tree);
 
-  /*! Set mod->ras->invar to NO for all the trees.
-  */
-  orig_tree_list = tree_list;
-  do
-    {
-      (*tree_list)->mod->ras->invar = NO;
-      tree_list++;
-    }
-  while(*tree_list);
-  tree_list = orig_tree_list;
+  /* /\*! Set mod->ras->invar to NO for all the trees. */
+  /* *\/ */
+  /* orig_tree_list = tree_list; */
+  /* do */
+  /*   { */
+  /*     (*tree_list)->mod->ras->invar = NO; */
+  /*     tree_list++; */
+  /*   } */
+  /* while(*tree_list); */
+  /* tree_list = orig_tree_list; */
   
   Set_Both_Sides(YES,mixt_tree);
   Lk(NULL,mixt_tree);
@@ -133,10 +133,10 @@ void Simu_Loop(t_tree *mixt_tree)
   while(tree);
 
 
-  /*! Reset the mod->invar to their original values 
-   */
-  MIXT_Reset_Has_Invariants(orig_inv,mixt_tree);
-  Free(orig_inv);
+  /* /\*! Reset the mod->invar to their original values  */
+  /*  *\/ */
+  /* MIXT_Reset_Has_Invariants(orig_inv,mixt_tree); */
+  /* Free(orig_inv); */
 
   if((mixt_tree->mod->s_opt->print) && (!mixt_tree->io->quiet)) 
     PhyML_Printf("\n. Maximizing likelihood (using NNI moves)...\n");

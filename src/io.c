@@ -3954,7 +3954,6 @@ void PhyML_XML(char *xml_filename)
   void *buff;
   t_mod *mod,*iomod;
   t_tree *tree,*mixt_tree,*root_tree;
-  char *alignment;
   int select;
   char *component;
   int i,j,n_components;
@@ -3962,6 +3961,8 @@ void PhyML_XML(char *xml_filename)
   int class_number;
   scalar_dbl **lens;
   t_ds *ds;
+  char *outputfile;
+  char *alignment;
 
   fp = fopen(xml_filename,"r");
 
@@ -3984,7 +3985,6 @@ void PhyML_XML(char *xml_filename)
   // Make sure there are no duplicates in node's IDs
   XML_Check_Duplicate_ID(root);
 
-
   int count = 0;
   XML_Count_Number_Of_Node_With_Name("topology",&count,root);
   
@@ -4001,6 +4001,20 @@ void PhyML_XML(char *xml_filename)
       Exit("\n");
     }
   
+
+  p_elem = XML_Search_Node_Name("phyml",NO,p_elem);
+  
+  /*! Input file
+   */
+  outputfile = XML_Get_Attribute_Value(p_elem,"outputfile");  
+
+  if(!outputfile)
+    {
+      PhyML_Printf("\n== The 'outputfile' attribute in 'phyml' tag is mandatory.");
+      PhyML_Printf("\n==  Please amend your XML file accordingly.");
+      Exit("\n");
+    }
+      
 
 
   /*! Read all partitionelem nodes and mixturelem nodes in each of them
@@ -4019,7 +4033,16 @@ void PhyML_XML(char *xml_filename)
 	  io->next->prev = io;
 	  io = io->next;
 	}
-      else io = buff;
+      else 
+        {
+          io = buff;
+          strcpy(io->out_tree_file,outputfile);
+          strcat(io->out_tree_file,"_phyml_tree");
+          strcpy(io->out_stats_file,outputfile);
+          strcat(io->out_stats_file,"_phyml_stats");      
+          io->fp_out_tree  = Openfile(io->out_tree_file,1);
+          io->fp_out_stats = Openfile(io->out_stats_file,1);          
+        }
 
       /*! Set the datatype (required when compressing data)
        */
@@ -4087,6 +4110,7 @@ void PhyML_XML(char *xml_filename)
       iomod->s_opt->opt_lambda = NO;
       iomod->s_opt->opt_rr     = NO;
 
+
       /*! Input file
        */
       alignment = XML_Get_Attribute_Value(p_elem,"filename");  
@@ -4097,15 +4121,9 @@ void PhyML_XML(char *xml_filename)
           PhyML_Printf("\n== XML file accordingly.");
           Exit("\n");
         }
-      
+
       strcpy(io->in_align_file,alignment);
       io->fp_in_align = Openfile(io->in_align_file,0);
-      strcpy(io->out_tree_file,alignment);
-      strcat(io->out_tree_file,"_phyml_tree");
-      strcpy(io->out_stats_file,alignment);
-      strcat(io->out_stats_file,"_phyml_stats");      
-      io->fp_out_tree  = Openfile(io->out_tree_file,1);
-      io->fp_out_stats = Openfile(io->out_stats_file,1);
 
       /*! Load sequence file
        */
@@ -4456,7 +4474,7 @@ void PhyML_XML(char *xml_filename)
                                   }
                                 else
                                   {
-                                    strcpy(io->mod->custom_mod_string,model_code);
+                                    strcpy(mod->custom_mod_string,model_code);
                                   }
                               }
 
@@ -4518,10 +4536,10 @@ void PhyML_XML(char *xml_filename)
 			    ds = ds->next;
                             ds->obj = (int *)(&mod->ns);
 
-                            /*! Create and connect the data structure n->ds->next to mod->ns */
+                            /*! Create and connect the data structure n->ds->next to mod->modelname */
 			    ds->next      = (t_ds *)mCalloc(1,sizeof(t_ds));
 			    ds = ds->next;
-                            ds->obj = (scalar_dbl *)(mod->user_b_freq);
+                            ds->obj = (char *)(mod->custom_mod_string);
                           }
                         else
                           {
@@ -4530,27 +4548,29 @@ void PhyML_XML(char *xml_filename)
 
                             ds = instance->ds;
                             Free(mod->r_mat);
-                            mod->r_mat            = (t_rmat *)ds->obj;
+                            mod->r_mat             = (t_rmat *)ds->obj;
 
                             ds = ds->next;
                             Free(mod->kappa);
-                            mod->kappa            = (scalar_dbl *)ds->obj;
+                            mod->kappa             = (scalar_dbl *)ds->obj;
 
                             ds = ds->next;
-                            mod->s_opt->opt_kappa = *((int *)ds->obj);
+                            mod->s_opt->opt_kappa  = *((int *)ds->obj);
 
                             ds = ds->next;
-                            mod->s_opt->opt_rr    = *((int *)ds->obj);
+                            mod->s_opt->opt_rr     = *((int *)ds->obj);
 
                             ds = ds->next;
-                            mod->whichmodel       = *((int *)ds->obj);
+                            mod->whichmodel        = *((int *)ds->obj);
 
                             ds = ds->next;
-                            mod->modelname        = (char *)ds->obj;
+                            mod->modelname         = (char *)ds->obj;
 
                             ds = ds->next;
-                            mod->ns               = *((int *)ds->obj);
+                            mod->ns                = *((int *)ds->obj);
 
+                            ds = ds->next;
+                            mod->custom_mod_string = (char *)ds->obj;
                           }
                       }
 
@@ -5366,7 +5386,7 @@ void PhyML_XML(char *xml_filename)
       
       Br_Len_Involving_Invar(mixt_tree);
       Rescale_Br_Len_Multiplier_Tree(mixt_tree);
-
+      
 
       /*! Print the tree estimated using the current random (or BioNJ) starting tree */
       if(io->mod->s_opt->n_rand_starts > 1)
@@ -5380,6 +5400,7 @@ void PhyML_XML(char *xml_filename)
           best_lnL = mixt_tree->c_lnL;
           if(most_likely_tree) Free(most_likely_tree);
           most_likely_tree = Write_Tree(mixt_tree,NO);
+          aLRT(mixt_tree);
         }
 
 
@@ -5394,6 +5415,7 @@ void PhyML_XML(char *xml_filename)
       
       Print_Data_Structure(YES,mixt_tree->io->fp_out_stats,mixt_tree);
     }
+
 
   /*! Print the most likely tree in the output file */
   if(!mixt_tree->io->quiet) PhyML_Printf("\n. Printing the most likely tree in file '%s'...\n", Basename(mixt_tree->io->out_tree_file));

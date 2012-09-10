@@ -3622,10 +3622,10 @@ void Speed_Spr_Loop(t_tree *tree)
 
   if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n\n. Maximizing likelihood (using SPR moves)...\n");
   
-  printf("\n. LK = %f",Lk(NULL,tree));
 
   SPR_Shuffle(tree);
 	  
+
   Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
   tree->best_lnL = tree->c_lnL;
 
@@ -4570,7 +4570,7 @@ void SPR_Shuffle(t_tree *mixt_tree)
       n++;
     }
   while(tree);
-  
+
   /*! Make sure the number of trees in each mixture is at most 2
    */
   tree_list = MIXT_Record_All_Mixtures(mixt_tree);
@@ -4578,14 +4578,14 @@ void SPR_Shuffle(t_tree *mixt_tree)
 
   /*! Set mod->ras->invar to NO for all the trees.
   */
-  orig_tree_list = tree_list;
-  do
-    {
-      (*tree_list)->mod->ras->invar = NO;
-      tree_list++;
-    }
-  while(*tree_list);
-  tree_list = orig_tree_list;
+  /* orig_tree_list = tree_list; */
+  /* do */
+  /*   { */
+  /*     (*tree_list)->mod->ras->invar = NO; */
+  /*     tree_list++; */
+  /*   } */
+  /* while(*tree_list); */
+  /* tree_list = orig_tree_list; */
   
   Set_Both_Sides(YES,mixt_tree);
   Lk(NULL,mixt_tree);
@@ -4666,11 +4666,10 @@ void SPR_Shuffle(t_tree *mixt_tree)
   while(tree);
 
 
-  /*! Reset the mod->invar to their original values 
-   */
-  MIXT_Reset_Has_Invariants(orig_inv,mixt_tree);
-  Free(orig_inv);
-
+  /* /\*! Reset the mod->invar to their original values  */
+  /*  *\/ */
+  /* MIXT_Reset_Has_Invariants(orig_inv,mixt_tree); */
+  /* Free(orig_inv); */
 
 }
 

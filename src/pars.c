@@ -41,7 +41,10 @@ int Pars(t_edge *b, t_tree *tree)
       /* printf("\n. site %d pars: %d",site,tree->c_pars); */
     }
 
-  if(tree->is_mixt_tree) MIXT_Pars(b,tree);
+  if(tree->is_mixt_tree) 
+    {
+      MIXT_Pars(b,tree);
+    }
 
   return tree->c_pars;
 }
@@ -371,7 +374,6 @@ void Update_P_Pars(t_tree *tree, t_edge *b_fcus, t_node *n)
       For(site,n_patterns)
 	{
 	  pars[site] = pars_v1[site] + pars_v2[site];
-
 
 	  ui[site] = ui_v1[site] & ui_v2[site];
 

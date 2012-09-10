@@ -7257,7 +7257,7 @@ void Prepare_Tree_For_Lk(t_tree *tree)
   Connect_CSeqs_To_Nodes(tree->data,tree);
   Fill_Dir_Table(tree);
   Update_Dirs(tree);
-  if(tree->is_mixt_tree) Make_Tree_4_Pars(tree,tree->data,tree->data->init_len);
+  Make_Tree_4_Pars(tree,tree->data,tree->data->init_len);
   Make_Tree_4_Lk(tree,tree->data,tree->data->init_len); 
   tree->triplet_struct = Make_Triplet_Struct(tree->mod);
   Make_Spr_List(tree);
