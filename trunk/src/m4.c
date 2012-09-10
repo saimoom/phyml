@@ -1709,11 +1709,11 @@ m4 *M4_Copy_M4_Model(t_mod *ori_mod, m4 *ori_m4mod)
   int i,j,n_h, n_o;
   m4 *cpy_m4mod;
   
-  if(ori_mod->io->datatype == NT && ori_mod->io->datatype != AA)
+  if(ori_mod->io->datatype != NT && ori_mod->io->datatype != AA)
     {
       PhyML_Printf("\n== Not implemented yet.");
       PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
-      Warn_And_Exit("");
+      Exit("\n");
     }
 
 

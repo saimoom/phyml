@@ -381,14 +381,13 @@ phydbl MIXT_Lk(t_edge *mixt_b, t_tree *mixt_tree)
           tree  = mixt_tree->child;
           b     = mixt_b->child;
           class = 0;
-
           do
             {
-
               if(tree->mod->ras->invar == YES) 
                 {
                   tree = tree->next;
                   b    = b->next;
+                  if(!(tree && tree->is_mixt_tree == NO)) break;
                 }
 
               sum_scale_left_cat[class] =
@@ -442,6 +441,7 @@ phydbl MIXT_Lk(t_edge *mixt_b, t_tree *mixt_tree)
                 {
                   tree = tree->next;
                   b    = b->next;
+                  if(!(tree && tree->is_mixt_tree == NO)) break;
                 }
 
               exponent = -(sum_scale_left_cat[class]+sum_scale_rght_cat[class])+fact_sum_scale;
