@@ -5056,9 +5056,9 @@ void Fast_Br_Len(t_edge *b, t_tree *tree, int approx)
         MIXT_Br_Len_Brent(0.02,50.,b,tree);
       else
         {
-          tree->s_opt->brent_it_max = 5;
+          tree->mod->s_opt->brent_it_max = 5;
           MIXT_Br_Len_Brent(0.02,50.,b,tree);
-          tree->s_opt->brent_it_max = BRENT_IT_MAX;
+          tree->mod->s_opt->brent_it_max = BRENT_IT_MAX;
         }
       return;
     }
@@ -5121,9 +5121,9 @@ void Fast_Br_Len(t_edge *b, t_tree *tree, int approx)
     Br_Len_Brent(0.02,50.,b,tree);
   else
     {
-      tree->s_opt->brent_it_max = 5;
+      tree->mod->s_opt->brent_it_max = 5;
       Br_Len_Brent(0.02,50.,b,tree);
-      tree->s_opt->brent_it_max = BRENT_IT_MAX;
+      tree->mod->s_opt->brent_it_max = BRENT_IT_MAX;
     }
 }
 
