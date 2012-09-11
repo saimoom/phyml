@@ -2701,7 +2701,7 @@ void Print_Fp_Out(FILE *fp_out, time_t t_beg, time_t t_end, t_tree *tree, option
 
   min.quot -= hour.quot*60;
 
-  /* PhyML_Fprintf(fp_out,"\n. Time used:\t\t\t\t%dh%dm%ds (%d seconds)", hour.quot,min.quot,(int)(t_end-t_beg)%60,(int)(t_end-t_beg)); */
+  PhyML_Fprintf(fp_out,"\n. Time used:\t\t\t\t%dh%dm%ds (%d seconds)", hour.quot,min.quot,(int)(t_end-t_beg)%60,(int)(t_end-t_beg));
 
   
   if(add_citation == YES)
@@ -3783,9 +3783,10 @@ void Print_Data_Structure(int final, FILE *fp, t_tree *mixt_tree)
   int n_partition_elem;
   char *s;
   t_tree *tree,*cpy_mixt_tree;
+  int c,cc,cc_efrq,cc_rmat,cc_lens;
+  char *param;
+  int *link_efrq,*link_rmat,*link_lens;
 
-  if(final == NO)
-    PhyML_Fprintf(fp,"\n\n.:: Printing the data structure ::. \n\n");
   
   PhyML_Fprintf(fp,"\n. Starting tree:\t%12s",
 	       mixt_tree->io->in_tree == 2?mixt_tree->io->in_tree_file:"BioNJ");
@@ -3835,64 +3836,65 @@ void Print_Data_Structure(int final, FILE *fp, t_tree *mixt_tree)
       int class = 0;
       
       PhyML_Fprintf(fp,"\n\n");
-      PhyML_Fprintf(fp,"\n# Mixture model for data set %s",mixt_tree->io->in_align_file);
-      PhyML_Fprintf(fp,"\n. Number of rate classes:\t\t\t%12d",mixt_tree->mod->ras->n_catg);
+      PhyML_Fprintf(fp,"\n _______________________________________________________________________ ");
+      PhyML_Fprintf(fp,"\n|                                                                       |");
+      PhyML_Fprintf(fp,"\n| %40s      (partition element %2d)  |",mixt_tree->io->in_align_file,mixt_tree->dp);
+      PhyML_Fprintf(fp,"\n|_______________________________________________________________________|");
+      PhyML_Fprintf(fp,"\n");
+      
+      PhyML_Fprintf(fp,"\n. Number of rate classes:\t\t%12d",mixt_tree->mod->ras->n_catg);
       if(mixt_tree->mod->ras->n_catg > 1)
 	{
-	  PhyML_Fprintf(fp,"\n. Model of rate variation:\t\t\t%12s",
+	  PhyML_Fprintf(fp,"\n. Model of rate variation:\t\t%12s",
 		       mixt_tree->mod->ras->free_mixt_rates?"FreeRates":
 		       mixt_tree->mod->ras->invar?"Gamma+Inv":"Gamma");
 	  if(mixt_tree->mod->ras->free_mixt_rates == NO)
 	    {
-	      PhyML_Fprintf(fp,"\n+ Gamma shape parameter value:\t\t\t%12f",mixt_tree->mod->ras->alpha->v);
-	      PhyML_Fprintf(fp,"\n. Optimize: \t\t\t\t\t%12s",mixt_tree->mod->s_opt->opt_alpha==YES?"yes":"no");
-	      PhyML_Fprintf(fp,"\n. Address:\t\t\t\t\t%12p",mixt_tree->mod->ras->alpha);
+	      PhyML_Fprintf(fp,"\n. Gamma shape parameter value:\t\t%12.2f",mixt_tree->mod->ras->alpha->v);
+	      PhyML_Fprintf(fp,"\n   Optimize: \t\t\t\t%12s",mixt_tree->mod->s_opt->opt_alpha==YES?"yes":"no");
 	    }
 	  if(mixt_tree->mod->ras->invar == YES)
 	    {
-	      PhyML_Fprintf(fp,"\n+ Proportion of invariable sites:\t\t%12f",mixt_tree->mod->ras->pinvar->v);
-	      PhyML_Fprintf(fp,"\n. Optimize: \t\t\t\t\t%12s",mixt_tree->mod->s_opt->opt_pinvar==YES?"yes":"no");
-	      PhyML_Fprintf(fp,"\n. Address:\t\t\t\t\t%12p",mixt_tree->mod->ras->pinvar);
+	      PhyML_Fprintf(fp,"\n. Proportion of invariable sites:\t%12.2f",mixt_tree->mod->ras->pinvar->v);
+	      PhyML_Fprintf(fp,"\n   Optimize: \t\t\t\t%12s",mixt_tree->mod->s_opt->opt_pinvar==YES?"yes":"no");
 	    }
 	}
-      PhyML_Fprintf(fp,"\n. Edge length address:\t\t\t\t%12p",mixt_tree->a_edges[0]->l);
-      
-	  
+      	  
       tree = mixt_tree;
       do
 	{
           if(tree->child) tree = tree->child;
 
           PhyML_Fprintf(fp,"\n");
-	  PhyML_Fprintf(fp,"\n+ Mixture class %d",class+1);
+	  PhyML_Fprintf(fp,"\n. Mixture class %d",class+1);
 
-	  PhyML_Fprintf(fp,"\n.\t\t Substitution model:\t\t%12s",tree->mod->modelname);
+	  PhyML_Fprintf(fp,"\n   Substitution model:\t\t%12s",tree->mod->modelname);
           
           if(tree->mod->whichmodel == CUSTOM)
-            PhyML_Fprintf(fp,"\n.\t\t Substitution model code:\t%12s",tree->mod->custom_mod_string);
+            PhyML_Fprintf(fp,"\n   Substitution model code:\t%12s",tree->mod->custom_mod_string);
 
-	  PhyML_Fprintf(fp,"\n.\t\t Substitution model address:\t%12p ",(void *)tree->mod);
+	  PhyML_Fprintf(fp,"\n   Substitution model address:\t%12p ",(void *)tree->mod);
 	  
 	  if(tree->mod->whichmodel == K80 ||
 	     tree->mod->whichmodel == HKY85 ||
 	     tree->mod->whichmodel == TN93)
 	    {
-	      PhyML_Fprintf(fp,"\n.\t\t Value of the ts/tv ratio:\t%12f",tree->mod->kappa->v);
-	      PhyML_Fprintf(fp,"\n.\t\t Ts/tv ratio address:\t\t%12p",(void *)tree->mod->kappa);
-	      PhyML_Fprintf(fp,"\n.\t\t Optimise ts/tv ratio:\t\t%12s",tree->mod->s_opt->opt_kappa?"yes":"no");
+	      PhyML_Fprintf(fp,"\n   Value of the ts/tv raqtio:\t%12f",tree->mod->kappa->v);
+	      PhyML_Fprintf(fp,"\n   Ts/tv ratio address:\t%12p",(void *)tree->mod->kappa);
+	      PhyML_Fprintf(fp,"\n   Optimise ts/tv ratio:\t%12s",tree->mod->s_opt->opt_kappa?"yes":"no");
 	    }
 	  else if(tree->mod->whichmodel == GTR ||
 		  tree->mod->whichmodel == CUSTOM)	    
 	    {
-              PhyML_Fprintf(fp,"\n.\t\t Optimise subst. rates:\t\t%12s",tree->mod->s_opt->opt_rr?"yes":"no");
+              PhyML_Fprintf(fp,"\n   Optimise subst. rates:\t%12s",tree->mod->s_opt->opt_rr?"yes":"no");
               if(final == YES)
                 {
-                  PhyML_Fprintf(fp,"\n.\t\t Subst. rate A<->C:\t\t%12.2f",tree->mod->r_mat->rr->v[0]);
-                  PhyML_Fprintf(fp,"\n.\t\t Subst. rate A<->G:\t\t%12.2f",tree->mod->r_mat->rr->v[1]);
-                  PhyML_Fprintf(fp,"\n.\t\t Subst. rate A<->T:\t\t%12.2f",tree->mod->r_mat->rr->v[2]);
-                  PhyML_Fprintf(fp,"\n.\t\t Subst. rate C<->G:\t\t%12.2f",tree->mod->r_mat->rr->v[3]);
-                  PhyML_Fprintf(fp,"\n.\t\t Subst. rate C<->T:\t\t%12.2f",tree->mod->r_mat->rr->v[4]);
-                  PhyML_Fprintf(fp,"\n.\t\t Subst. rate G<->T:\t\t%12.2f",tree->mod->r_mat->rr->v[5]);
+                  PhyML_Fprintf(fp,"\n   Subst. rate A<->C:\t\t%12.2f",tree->mod->r_mat->rr->v[0]);
+                  PhyML_Fprintf(fp,"\n   Subst. rate A<->G:\t\t%12.2f",tree->mod->r_mat->rr->v[1]);
+                  PhyML_Fprintf(fp,"\n   Subst. rate A<->T:\t\t%12.2f",tree->mod->r_mat->rr->v[2]);
+                  PhyML_Fprintf(fp,"\n   Subst. rate C<->G:\t\t%12.2f",tree->mod->r_mat->rr->v[3]);
+                  PhyML_Fprintf(fp,"\n   Subst. rate C<->T:\t\t%12.2f",tree->mod->r_mat->rr->v[4]);
+                  PhyML_Fprintf(fp,"\n   Subst. rate G<->T:\t\t%12.2f",tree->mod->r_mat->rr->v[5]);
                 }
             }
 
@@ -3900,13 +3902,13 @@ void Print_Data_Structure(int final, FILE *fp, t_tree *mixt_tree)
              tree->mod->whichmodel != JC69 && 
              tree->mod->whichmodel != K80)
             {
-	      PhyML_Fprintf(fp,"\n.\t\t Optimise nucletide freq.:\t%12s",tree->mod->s_opt->opt_state_freq?"yes":"no");
+	      PhyML_Fprintf(fp,"\n   Optimise nucletide freq.:\t%12s",tree->mod->s_opt->opt_state_freq?"yes":"no");
               if(final == YES)
                 {
-                  PhyML_Fprintf(fp,"\n.\t\t Freq(A):\t\t\t%12.2f",tree->mod->e_frq->pi->v[0]);
-                  PhyML_Fprintf(fp,"\n.\t\t Freq(C):\t\t\t%12.2f",tree->mod->e_frq->pi->v[1]);
-                  PhyML_Fprintf(fp,"\n.\t\t Freq(G):\t\t\t%12.2f",tree->mod->e_frq->pi->v[2]);
-                  PhyML_Fprintf(fp,"\n.\t\t Freq(T):\t\t\t%12.2f",tree->mod->e_frq->pi->v[3]);                  
+                  PhyML_Fprintf(fp,"\n   Freq(A):\t\t\t%12.2f",tree->mod->e_frq->pi->v[0]);
+                  PhyML_Fprintf(fp,"\n   Freq(C):\t\t\t%12.2f",tree->mod->e_frq->pi->v[1]);
+                  PhyML_Fprintf(fp,"\n   Freq(G):\t\t\t%12.2f",tree->mod->e_frq->pi->v[2]);
+                  PhyML_Fprintf(fp,"\n   Freq(T):\t\t\t%12.2f",tree->mod->e_frq->pi->v[3]);                  
                 }
             }
           else if(tree->io->datatype == AA)
@@ -3924,7 +3926,7 @@ void Print_Data_Structure(int final, FILE *fp, t_tree *mixt_tree)
                   strcpy(s,"set by model");
                 }
 
-	      PhyML_Fprintf(fp,"\n.\t\t Amino-acid freq.:\t\t%12s",s);
+	      PhyML_Fprintf(fp,"\n   Amino-acid freq.:\t\t%12s",s);
 
               Free(s);
             }
@@ -3940,6 +3942,228 @@ void Print_Data_Structure(int final, FILE *fp, t_tree *mixt_tree)
     }
   while(1);  
 
+
+  tree = cpy_mixt_tree;
+  c = 0;
+  do
+    {
+      if(tree->is_mixt_tree) tree = tree->child;
+      c++;
+      tree = tree->next;
+    }
+  while(tree);
+
+  link_efrq = (int *)mCalloc(c,sizeof(int));
+  link_lens = (int *)mCalloc(c,sizeof(int));
+  link_rmat = (int *)mCalloc(c,sizeof(int));
+
+  PhyML_Printf("\n");
+  PhyML_Printf("\n");
+  PhyML_Fprintf(fp,"\n _______________________________________________________________________ ");
+  PhyML_Fprintf(fp,"\n|                                                                       |");
+  PhyML_Fprintf(fp,"\n|                        Model summary table                            |");
+  PhyML_Fprintf(fp,"\n|_______________________________________________________________________|");
+  PhyML_Printf("\n");
+  PhyML_Printf("\n");
+  /* PhyML_Fprintf(fp,"                  "); */
+  PhyML_Fprintf(fp,"  ------------------");
+  tree = cpy_mixt_tree;
+  c = 0;
+  do
+    {
+      if(tree->is_mixt_tree) tree = tree->child;
+      PhyML_Fprintf(fp,"---");
+      tree = tree->next;
+    }
+  while(tree);
+
+  param = (char *)mCalloc(30,sizeof(char));
+  PhyML_Fprintf(fp,"\n");
+  strcpy(param,"Partition element ");
+  PhyML_Fprintf(fp,"  %18s",param);
+  tree = cpy_mixt_tree;
+  c = 0;
+  do
+    {
+      if(tree->is_mixt_tree) tree = tree->child;
+      PhyML_Fprintf(fp,"%2d ",tree->parent->dp);
+      tree = tree->next;
+    }
+  while(tree);
+
+
+  PhyML_Fprintf(fp,"\n");
+  PhyML_Fprintf(fp,"  ------------------");
+  tree = cpy_mixt_tree;
+  c = 0;
+  do
+    {
+      if(tree->is_mixt_tree) tree = tree->child;
+      PhyML_Fprintf(fp,"---");
+      tree = tree->next;
+    }
+  while(tree);
+
+  
+  tree = cpy_mixt_tree;
+  c    = 0;
+  do
+    {
+      if(tree->child) tree = tree->child;
+      link_rmat[c] = -1;
+      link_lens[c] = -1;
+      link_efrq[c] = -1;
+      tree = tree->next;
+      c++;
+    }
+  while(tree);
+
+  mixt_tree = cpy_mixt_tree;
+  cc_efrq   = 97; 
+  cc_rmat   = 97; 
+  cc_lens   = 97; 
+  cc        = 0;
+  do
+    {
+      if(mixt_tree->is_mixt_tree) mixt_tree = mixt_tree->child;
+
+      if(link_efrq[cc] < 0)
+        {
+          link_efrq[cc] = cc_efrq;
+          tree = mixt_tree->next;
+          c    = cc_efrq-96;
+          if(tree)
+            {
+              do
+                {
+                  if(tree->is_mixt_tree) tree = tree->child;
+
+                  if(mixt_tree->mod->e_frq == tree->mod->e_frq)       link_efrq[c] = cc_efrq;
+
+                  tree = tree->next;
+                  c++;
+                }
+              while(tree);
+            }
+          cc_efrq++;
+        }
+
+      if(link_lens[cc] < 0)
+        {
+          link_lens[cc] = cc_lens;
+          tree = mixt_tree->next;
+          c    = cc_lens-96;
+          if(tree)
+            {
+              do
+                {
+                  if(tree->is_mixt_tree) tree = tree->child;
+
+                  if(mixt_tree->a_edges[0]->l == tree->a_edges[0]->l) link_lens[c] = cc_lens;
+                  
+                  tree = tree->next;
+                  c++;
+                }
+              while(tree);
+            }
+          cc_lens++;
+        }
+
+      if(link_rmat[cc] < 0)
+        {
+          link_rmat[cc] = cc_rmat;
+          tree = mixt_tree->next;
+          c    = cc_rmat-96;
+          if(tree)
+            {
+              do
+                {
+                  if(tree->is_mixt_tree) tree = tree->child;
+
+                  if(mixt_tree->mod->whichmodel == tree->mod->whichmodel &&
+                     !strcmp(mixt_tree->mod->custom_mod_string,
+                             tree->mod->custom_mod_string))      link_rmat[c] = cc_rmat;
+
+                  tree = tree->next;
+                  c++;
+                }
+              while(tree);
+            }
+          cc_rmat++;
+        }
+      
+      cc++;
+      mixt_tree = mixt_tree->next;
+    }
+  while(mixt_tree);
+    
+  PhyML_Fprintf(fp,"\n");
+  strcpy(param,"State frequencies ");
+  PhyML_Fprintf(fp,"  %18s",param);
+
+  tree = cpy_mixt_tree;
+  c    = 0;
+  do
+    {
+      if(tree->child) tree = tree->child;
+      PhyML_Fprintf(fp,"%2c ",link_efrq[c]);
+      tree = tree->next;
+      c++;
+    }
+  while(tree);
+
+
+  PhyML_Fprintf(fp,"\n");
+  strcpy(param,"Branch lengths ");
+  PhyML_Fprintf(fp,"  %18s",param);
+
+  tree = cpy_mixt_tree;
+  c    = 0;
+  do
+    {
+      if(tree->child) tree = tree->child;
+      PhyML_Fprintf(fp,"%2c ",link_lens[c]);
+      tree = tree->next;
+      c++;
+    }
+  while(tree);
+
+  PhyML_Fprintf(fp,"\n");
+  strcpy(param,"Rate matrix ");
+  PhyML_Fprintf(fp,"  %18s",param);
+
+  tree = cpy_mixt_tree;
+  c    = 0;
+  do
+    {
+      if(tree->child) tree = tree->child;
+      PhyML_Fprintf(fp,"%2c ",link_rmat[c]);
+      tree = tree->next;
+      c++;
+    }
+  while(tree);
+
+  PhyML_Fprintf(fp,"\n");
+  PhyML_Fprintf(fp,"  ------------------");
+  tree = cpy_mixt_tree;
+  c = 0;
+  do
+    {
+      if(tree->is_mixt_tree) tree = tree->child;
+      PhyML_Fprintf(fp,"---");
+      tree = tree->next;
+    }
+  while(tree);
+  PhyML_Fprintf(fp,"\n");
+
+
+
+  Free(param);
+  Free(link_efrq);
+  Free(link_rmat);
+  Free(link_lens);
+
+  
   mixt_tree = cpy_mixt_tree;
 }
 
@@ -4143,6 +4367,7 @@ void PhyML_XML(char *xml_filename)
 	  mixt_tree->next = buff;
 	  mixt_tree->next->prev = mixt_tree;
 	  mixt_tree = mixt_tree->next;
+          mixt_tree->dp = mixt_tree->prev->dp+1;
 	}
       else mixt_tree = buff;
       
@@ -4177,8 +4402,6 @@ void PhyML_XML(char *xml_filename)
       if(mod)  mod->next = iomod;
 
       if(!root_tree) root_tree = mixt_tree;
-
-      printf("\n. read partitionelem %s",XML_Get_Attribute_Value(p_elem,"id"));
 
       /*! Process all the mixtureelem tags in this partition element
        */
@@ -4977,8 +5200,6 @@ void PhyML_XML(char *xml_filename)
 
 			    if(!w) iomod->ras->n_catg = nc;
 
-			    PhyML_Printf("\n. Making RAS model with %d classes of rates.\n",iomod->ras->n_catg);
-
 			    Make_RAS_Complete(iomod->ras);
 
                             ds = parent->ds;
@@ -5351,9 +5572,7 @@ void PhyML_XML(char *xml_filename)
       
       MIXT_Check_Invar_Struct_In_Each_Partition_Elem(mixt_tree);
       MIXT_Check_RAS_Struct_In_Each_Partition_Elem(mixt_tree);
-      
-      PhyML_Printf("\n. Calculating the likelihood now");
-      
+            
       tree = mixt_tree;
       do
         {
@@ -5418,7 +5637,7 @@ void PhyML_XML(char *xml_filename)
 
 
   /*! Print the most likely tree in the output file */
-  if(!mixt_tree->io->quiet) PhyML_Printf("\n. Printing the most likely tree in file '%s'...\n", Basename(mixt_tree->io->out_tree_file));
+  if(!mixt_tree->io->quiet) PhyML_Printf("\n\n. Printing the most likely tree in file '%s'...\n", Basename(mixt_tree->io->out_tree_file));
   PhyML_Fprintf(mixt_tree->io->fp_out_tree,"%s\n",most_likely_tree);
   Free(component);
   XML_Free_XML_Tree(root);

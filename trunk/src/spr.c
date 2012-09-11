@@ -3184,7 +3184,7 @@ void Spr_Subtree(t_edge *b, t_node *link, t_tree *tree)
 	    {
 	      n_moves++;
 	      /* if(n_moves > 15) break; */
-	      if(n_moves > 5) break;
+ 	      if(n_moves > 5) break;
 	      if(tree->spr_list[i]->lnL < tree->best_lnL - 2. * tree->mod->s_opt->max_delta_lnL_spr) break;
 	    }
 
