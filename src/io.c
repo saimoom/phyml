@@ -4156,7 +4156,6 @@ void Print_Data_Structure(int final, FILE *fp, t_tree *mixt_tree)
   while(tree);
   PhyML_Fprintf(fp,"\n");
 
-  Exit("\n");
 
   
   Free(param);
