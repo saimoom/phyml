@@ -5055,7 +5055,8 @@ void Fast_Br_Len(t_edge *b, t_tree *tree, int approx)
       if(approx == NO)
         MIXT_Br_Len_Brent(0.02,50.,b,tree);
       else
-        Lk(b,tree);
+        MIXT_Br_Len_Brent(0.2,5.,b,tree);
+        /* Lk(b,tree); */
       return;
     }
 
@@ -5116,7 +5117,8 @@ void Fast_Br_Len(t_edge *b, t_tree *tree, int approx)
   if(approx == NO)
     Br_Len_Brent(0.02,50.,b,tree);
   else
-    Lk(b,tree);
+    Br_Len_Brent(0.2,5.,b,tree);
+    /* Lk(b,tree); */
 }
 
 //////////////////////////////////////////////////////////////
@@ -5635,7 +5637,8 @@ void Random_Tree(t_tree *tree)
 
   min_edge_len = 1.E-3;
 
-  if(tree->mod->s_opt && tree->mod->s_opt->print == YES) PhyML_Printf("\n. Randomising the tree...\n");
+  if(tree->mod->s_opt && tree->mod->s_opt->print == YES) 
+    PhyML_Printf("\n. Randomising the tree...\n");
 
   is_available  = (int *)mCalloc(2*tree->n_otu-2,sizeof(int));
   list_of_nodes = (int *)mCalloc(tree->n_otu,    sizeof(int));

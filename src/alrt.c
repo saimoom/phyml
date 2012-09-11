@@ -173,7 +173,8 @@ int Check_NNI_Five_Branches(t_tree *tree)
 void aLRT(t_tree *tree)
 {
   int i;
-  
+  char *method;
+
   
   /* aLRT support will label each internal branch */
   tree->print_alrt_val = 1;
@@ -181,6 +182,23 @@ void aLRT(t_tree *tree)
   /* The topology will not be modified when assessing the branch support. We make sure that it will
      not be modified afterwards by locking the topology */
   
+
+  method = (char *)mCalloc(100,sizeof(char));
+
+  switch(tree->io->ratio_test)
+    {
+    case ALRTCHI2: { strcpy(method,"aLRT"); break; }
+    case MINALRTCHI2SH: { strcpy(method,"aLRT"); break; }
+    case ALRTSTAT: { strcpy(method,"aLRT"); break; }
+    case SH: { strcpy(method,"SH"); break; }
+    case ABAYES: { strcpy(method,"aBayes"); break; }
+    default : return;
+    }
+
+  PhyML_Printf("\n");
+  PhyML_Printf("\n. Calculating fast branch support (using '%s')",method);
+  Free(method);
+
   MIXT_Set_Alias_Subpatt(YES,tree);
   Set_Both_Sides(YES,tree);     
   Lk(NULL,tree);

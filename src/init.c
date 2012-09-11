@@ -94,6 +94,7 @@ void Init_Tree(t_tree *tree, int n_otu)
   tree->br_len_recorded           = NO;
   tree->max_spr_depth             = 0;
   tree->apply_lk_scaling          = YES;
+  tree->dp                        = 0;
 }
 
 //////////////////////////////////////////////////////////////
@@ -464,7 +465,7 @@ void Set_Defaults_Input(option* io)
   io->n_data_set_asked           = -1;
   io->print_boot_trees           = 1;
   io->n_part                     = 1;
-  io->ratio_test		 = 4;
+  io->ratio_test		 = ABAYES;
   io->multigene                  = 0;
   io->config_multigene           = 0;
   io->curr_interface             = 0;
