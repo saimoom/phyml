@@ -580,7 +580,7 @@ void Set_Defaults_Optimiz(t_opt *s_opt)
   s_opt->topo_search          = NNI_MOVE;
   s_opt->random_input_tree    = 0;
   s_opt->n_rand_starts        = 5;
-  s_opt->brent_it_max         = 500;
+  s_opt->brent_it_max         = BRENT_IT_MAX;
   s_opt->steph_spr            = YES;
   s_opt->user_state_freq      = NO;
   s_opt->min_diff_lk_local    = 1.E-04;
@@ -593,8 +593,8 @@ void Set_Defaults_Optimiz(t_opt *s_opt)
   s_opt->tree_size_mult       = 1;
   s_opt->opt_five_branch      = YES;
 
-  s_opt->pars_thresh          = 15;
-  /* s_opt->pars_thresh          = 5; */
+  /* s_opt->pars_thresh          = 15; */
+  s_opt->pars_thresh          = 5;
 
   s_opt->hybrid_thresh        = NO;
   s_opt->quickdirty           = NO;
