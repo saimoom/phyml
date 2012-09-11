@@ -186,7 +186,7 @@ phydbl Generic_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
 
   PhyML_Printf("\n. init_lnL = %f a=%f b=%f c=%f\n",init_lnL,ax,bx,cx);
 
-  for(iter=1;iter<=BRENT_ITMAX;iter++) 
+  for(iter=1;iter<=n_iter_max;iter++) 
     {
       xm=0.5*(a+b);
       tol2=2.0*(tol1=tol*FABS(x)+BRENT_ZEPS);
@@ -237,7 +237,7 @@ phydbl Generic_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol,
       (*xmin) = FABS(u);
       fu = -Lk(NULL,tree);
       
-      PhyML_Printf("\n. iter=%d/%d param=%f LOGlk=%f",iter,BRENT_ITMAX,*xmin,tree->c_lnL);
+      PhyML_Printf("\n. iter=%d/%d param=%f LOGlk=%f",iter,BRENT_IT_MAX,*xmin,tree->c_lnL);
 
 /*       if(fu <= fx) */
       if(fu < fx)
@@ -1346,7 +1346,7 @@ phydbl Dist_F_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, int n_iter_max,
   fw = fv = fx = -Lk_Dist(F,FABS(bx),mod);
   curr_lnL = init_lnL = -fw;
 
-  for(iter=1;iter<=BRENT_ITMAX;iter++) 
+  for(iter=1;iter<=BRENT_IT_MAX;iter++) 
     {
       xm=0.5*(a+b);
 
@@ -1543,7 +1543,7 @@ phydbl Missing_Dist_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, int n_ite
   fx=Least_Square_Missing_Dist_XY(x,y,FABS(bx),mat);
   fw=fv=-fx;
   
-  for(iter=1;iter<=BRENT_ITMAX;iter++) 
+  for(iter=1;iter<=BRENT_IT_MAX;iter++) 
     {
       xm=0.5*(a+b);
       tol2=2.0*(tol1=tol*FABS(xx)+BRENT_ZEPS);
@@ -2010,7 +2010,7 @@ phydbl Generic_Brent_Lk(phydbl *param, phydbl ax, phydbl cx, phydbl tol,
 
   /* PhyML_Printf("\n. %p %p %p init_lnL = %f a=%f b=%f c=%f",branch,tree,stree,init_lnL,ax,bx,cx); */
 
-  for(iter=1;iter<=BRENT_ITMAX;iter++) 
+  for(iter=1;iter<=BRENT_IT_MAX;iter++) 
     {
       xm=0.5*(a+b);
       tol2=2.0*(tol1=tol*x+BRENT_ZEPS);
@@ -2066,7 +2066,7 @@ phydbl Generic_Brent_Lk(phydbl *param, phydbl ax, phydbl cx, phydbl tol,
       old_lnL = fu;
       fu = -(*obj_func)(branch,tree,stree);
       
-      /* PhyML_Printf("\n. iter=%d/%d param=%f lnL=%f",iter,BRENT_ITMAX,*param,fu); */
+      /* PhyML_Printf("\n. iter=%d/%d param=%f lnL=%f",iter,BRENT_IT_MAX,*param,fu); */
 
       if(fu <= fx)
 	{
