@@ -4031,14 +4031,14 @@ void Print_Data_Structure(int final, FILE *fp, t_tree *mixt_tree)
         {
           link_efrq[cc] = cc_efrq;
           tree = mixt_tree->next;
-          c    = cc_efrq-96;
+          c    = cc+1;
           if(tree)
             {
               do
                 {
                   if(tree->is_mixt_tree) tree = tree->child;
 
-                  if(mixt_tree->mod->e_frq == tree->mod->e_frq)       link_efrq[c] = cc_efrq;
+                  if(mixt_tree->mod->e_frq == tree->mod->e_frq) link_efrq[c] = cc_efrq;
 
                   tree = tree->next;
                   c++;
@@ -4052,7 +4052,7 @@ void Print_Data_Structure(int final, FILE *fp, t_tree *mixt_tree)
         {
           link_lens[cc] = cc_lens;
           tree = mixt_tree->next;
-          c    = cc_lens-96;
+          c    = cc+1;
           if(tree)
             {
               do
@@ -4073,7 +4073,7 @@ void Print_Data_Structure(int final, FILE *fp, t_tree *mixt_tree)
         {
           link_rmat[cc] = cc_rmat;
           tree = mixt_tree->next;
-          c    = cc_rmat-96;
+          c    = cc+1;
           if(tree)
             {
               do
@@ -4156,8 +4156,9 @@ void Print_Data_Structure(int final, FILE *fp, t_tree *mixt_tree)
   while(tree);
   PhyML_Fprintf(fp,"\n");
 
+  Exit("\n");
 
-
+  
   Free(param);
   Free(link_efrq);
   Free(link_rmat);
