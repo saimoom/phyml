@@ -3624,10 +3624,8 @@ void Speed_Spr_Loop(t_tree *tree)
 
   if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n\n. Maximizing likelihood (using SPR moves)...\n");
   
-
   SPR_Shuffle(tree);
 	  
-
   Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
   tree->best_lnL = tree->c_lnL;
 
@@ -3654,8 +3652,8 @@ void Speed_Spr_Loop(t_tree *tree)
 
 
   /*****************************/
-  /* if(tree->io->datatype == NT) */
-  /*   { */
+  if(tree->io->datatype == NT)
+    {
       lk_old = UNLIKELY;
       tree->mod->s_opt->max_delta_lnL_spr = 20.;
       tree->mod->s_opt->max_depth_path    = 10;
@@ -3668,7 +3666,7 @@ void Speed_Spr_Loop(t_tree *tree)
 	  if((!tree->n_improvements) || (FABS(lk_old-tree->c_lnL) < 1.)) break;
   	}
       while(1);
-    /* } */
+    }
   /*****************************/
 
 
@@ -3694,7 +3692,9 @@ void Speed_Spr_Loop(t_tree *tree)
 /*   if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n"); */
 
 }
-/*********************************************************/
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
 
 void Speed_Spr(t_tree *tree, int max_cycles)
 {
