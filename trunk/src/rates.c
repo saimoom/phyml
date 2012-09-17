@@ -33,9 +33,9 @@ phydbl RATES_Lk_Rates(t_tree *tree)
   RATES_Lk_Rates_Pre(tree->n_root,tree->n_root->v[0],NULL,tree);
   RATES_Lk_Rates_Pre(tree->n_root,tree->n_root->v[1],NULL,tree);
 
-  if(isnan(tree->rates->c_lnL_rates))
+  if(isnan(tree->rates->c_lnL_rates) || isinf(tree->rates->c_lnL_rates))
     {
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
       Exit("\n");
     }
 

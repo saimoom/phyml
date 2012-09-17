@@ -3156,6 +3156,8 @@ void Spr_Subtree(t_edge *b, t_node *link, t_tree *tree)
   tree->n_moves = 0;
   curr_pars     = tree->c_pars;
 
+  MIXT_Set_Pars_Thresh(tree);
+
   if((link != b->left) && (link != b->rght))
     {
       PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);

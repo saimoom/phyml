@@ -43,7 +43,7 @@ t_tree *Read_Tree_File(option *io);
 char *Return_Tree_String_Phylip(FILE *fp_input_tree);
 t_tree *Read_Tree_File_Phylip(FILE *fp_input_tree);
 void Print_Site_Lk(t_tree *tree,FILE *fp);
-void Print_Seq(align **data,int n_otu);
+void Print_Seq(FILE *fp, align **data, int n_otu);
 void Print_CSeq(FILE *fp,int compressed,calign *cdata);
 void Print_CSeq_Select(FILE *fp,int compressed,calign *cdata,t_tree *tree);
 void Print_Dist(matrix *mat);

@@ -1232,16 +1232,16 @@ align **Get_Seq(option *io)
       }
     default:
       {
-	PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-	Warn_And_Exit("");
+	PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+	Exit("\n");
 	break;
       }
     }
 
   if(!io->data)
     {
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-      Warn_And_Exit("");
+      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("\n");
     }
   else
     {
@@ -2133,26 +2133,25 @@ void Print_Site_Lk(t_tree *tree, FILE *fp)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
-void Print_Seq(align **data, int n_otu)
+void Print_Seq(FILE *fp, align **data, int n_otu)
 {
   int i,j;
 
-  PhyML_Printf("%d\t%d\n",n_otu,data[0]->len);
+  PhyML_Fprintf(fp,"%d\t%d\n",n_otu,data[0]->len);
   For(i,n_otu)
     {
       For(j,20)
 	{
 	  if(j<(int)strlen(data[i]->name))
-	     putchar(data[i]->name[j]);
-	  else putchar(' ');
+            fputc(data[i]->name[j],fp);
+	  else fputc(' ',fp);
 	}
 /*       PhyML_Printf("%10d  ",i); */
       For(j,data[i]->len)
 	{
-	  PhyML_Printf("%c",data[i]->state[j]);
+	  PhyML_Fprintf(fp,"%c",data[i]->state[j]);
 	}
-      PhyML_Printf("\n");
+      PhyML_Fprintf(fp,"\n");
     }
 }
 
@@ -4191,7 +4190,7 @@ void PhyML_XML(char *xml_filename)
   fp = fopen(xml_filename,"r");
 
   root = XML_Load_File(fp);  
-
+  
   component = (char *)mCalloc(T_MAX_NAME,sizeof(char));
 
   m_elem       = NULL;
@@ -4330,10 +4329,9 @@ void PhyML_XML(char *xml_filename)
       iomod->s_opt = (t_opt *)Make_Optimiz();
       Set_Defaults_Optimiz(iomod->s_opt);
 
-      iomod->s_opt->opt_kappa  = NO;
-      iomod->s_opt->opt_lambda = NO;
-      iomod->s_opt->opt_rr     = NO;
-
+      iomod->s_opt->opt_kappa   = NO;
+      iomod->s_opt->opt_lambda  = NO;
+      iomod->s_opt->opt_rr      = NO;
 
       /*! Input file
        */
@@ -5402,8 +5400,7 @@ void PhyML_XML(char *xml_filename)
           else           mod = mod->next;
         }
       while(mod);
-      
-      
+            
       Print_Data_Structure(NO,stdout,mixt_tree);
 
       buff = (t_tree *)mixt_tree;
@@ -5412,7 +5409,7 @@ void PhyML_XML(char *xml_filename)
         {
           switch(mixt_tree->io->in_tree)
             {      
-            case 2: // user-defined input tree
+            case 2: /*! user-defined input tree */
               {
                 if(!mixt_tree->io->fp_in_tree)
                   {
@@ -5420,7 +5417,9 @@ void PhyML_XML(char *xml_filename)
                     Exit("\n");
                   }
                 
-                // Copy the user tree to all the tree structures
+                /*!
+                  Copy the user tree to all the tree structures
+                */
                 tree = Read_User_Tree(mixt_tree->io->cdata,
                                       mixt_tree->mod,
                                       mixt_tree->io);
@@ -5431,7 +5430,8 @@ void PhyML_XML(char *xml_filename)
                 if(!bionj_tree)
                   {
                     /*! Build a BioNJ tree from the analysis of
-                      the first partition element */
+                      the first partition element 
+                    */
                     tree = Dist_And_BioNJ(mixt_tree->data,
                                           mixt_tree->mod,
                                           mixt_tree->io);
@@ -5581,9 +5581,7 @@ void PhyML_XML(char *xml_filename)
           else            tree = tree->next;
         }
       while(tree);
-      
-
-      
+            
       if(mixt_tree->mod->s_opt->opt_topo)
         {
           if(mixt_tree->mod->s_opt->topo_search      == NNI_MOVE) Simu_Loop(mixt_tree);

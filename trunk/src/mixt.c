@@ -1290,12 +1290,132 @@ int MIXT_Pars(t_edge *mixt_b, t_tree *mixt_tree)
 
 }
 
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+/* void MIXT_Bootstrap(char *best_tree, xml_node *root) */
+/* { */
+/*   xml_node *n,*p_elem; */
+/*   char *bootstrap; */
+
+/*   n = XML_Search_Node_Name("phyml",NO,root); */
+
+/*   bootstrap = XML_Get_Attribute_Value(n,"bootstrap"); */
+
+/*   if(!bootstrap) return; */
+/*   else */
+/*     { */
+/*       int n_boot,i,j; */
+/*       xml_attr *boot_attr,*seqfile_attr; */
+/*       char *orig_align; */
+/*       FILE *fp_in_align,*xml_boot_file_fp; */
+/*       option *io; */
+/*       calign *boot_data,*orig_data; */
+/*       int position,elem; */
+/*       xml_node *boot_root; */
+/*       int pid; */
+/*       char *s; */
+
+/*       s = (char *)mCalloc(100,sizeof(char)); */
+/*       strcpy(s,"phyml_boot."); */
+/*       pid = (int)getpid(); */
+/*       sprintf(s+strlen(s),"%d",pid); */
+/*       strcat(s,".xml"); */
+
+/*       n_boot = atoi(bootstrap); */
+      
+/*       io = NULL; */
+/*       For(i,n_boot) */
+/*         { */
+/*           boot_root = XML_Copy_XML_Graph(root); */
+
+/*           boot_attr = XML_Search_Attribute(boot_root,"bootstrap"); */
+
+/*           /\*! Set the number of bootstrap repeats to 0 */
+/*             in each generated XML file *\/  */
+/*           strcpy(boot_attr->value,"0"); */
+
+/*           p_elem = boot_root; */
+/*           elem   = 0; */
+/*           do */
+/*             { */
+/*               io = (option *)Make_Input(); */
+/*               Set_Defaults_Input(io); */
+
+/*               p_elem = XML_Search_Node_Name("partitionelem",YES,p_elem); */
+/*               if(!p_elem) break; */
+              
+/*               seqfile_attr    = NULL; */
+/*               seqfile_attr    = XML_Search_Attribute(p_elem,"filename"); */
+/*               orig_align      = seqfile_attr->value; */
+/*               io->fp_in_align = Openfile(orig_align,0); */
+/*               orig_data       = Get_Seq(io); */
+/*               boot_data       = Get_Seq(io); */
+/*               fclose(io->fp_in_align); */
+              
+/*               For(j,boot_data->init_len) */
+/*                 { */
+/*                   position = Rand_Int(0,(int)(boot_data->init_len-1.0)); */
+/*                   For(k,boot_data->n_otu) */
+/*                     { */
+/*                       boot_data->c_seq[k]->state[j] = orig_data->c_seq[k]->state[position]; */
+/*                     } */
+/*                 } */
+              
+/*               sprintf(seqfile_attr->value,"%s_%d_%d",orig_align,elem,i); */
+/*               boot_fp_in_align = Openfile(seqfile_attr->value,1); */
+              
+/*               Print_Seq(boot_fp_in_align,boot_data,boot_data->n_otu); */
+/*               fclose(boot_fp_in_align); */
+
+/*               Free_Input(io); */
+/*               elem++; */
+/*             } */
+/*           while(p_elem); */
+          
+/*           xml_boot_file_fp = Openfile(s,1); */
+/*           XML_Write_XML_Graph(xml_boot_file_fp,boot_root); */
+/*           fclose(xml_boot_file_fp); */
+
+/*           PhyML_XML(s); */
+
+/*           /\*! Remove the bootstrap alignment file *\/ */
+/*           p_elem = boot_root; */
+/*           do */
+/*             { */
+/*               p_elem = XML_Search_Node_Name("partitionelem",YES,p_elem); */
+/*               if(!p_elem) break; */
+/*               seqfile_attr = XML_Search_Attribute(p_elem,"filename"); */
+/*               unlink(seqfile_attr->value); */
+/*             } */
+/*           while(p_elem); */
+
+/*           Free_XML_Graph(boot_root); */
+          
+/*         } */
+
+/*       Free(s); */
+
+/*     } */
+
+/* } */
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
+void MIXT_Set_Pars_Thresh(t_tree *mixt_tree)
+{
+  t_tree *tree;
+
+  tree = mixt_tree;
+  do
+    {
+      tree->mod->s_opt->pars_thresh = (tree->io->datatype == AA)?(15):(5);
+      tree = tree->next;
+    }
+  while(tree);
+}
+
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
