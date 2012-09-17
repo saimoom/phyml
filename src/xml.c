@@ -327,6 +327,24 @@ int XML_Parse_Element(FILE *fp, xml_node *n)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
+xml_attr *XML_Search_Attribute(xml_node *n, char *target_attr_name)
+{
+  xml_attr *attr;
+
+  attr = n->attr;
+  do
+    {
+      if(!strcmp(attr->name,target_attr_name)) return attr;
+      attr = attr->next;
+    }
+  while(attr);
+
+  return(NULL);
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 int XML_Set_Attribute(xml_node *n, char *attr_name, char *attr_value)
 {
   xml_attr *prev;
@@ -778,4 +796,119 @@ void XML_Check_Duplicate_ID(xml_node *n)
   if(n->next) XML_Check_Duplicate_ID(n->next);
 }
 
+//////////////////////////////////////////////////////////////
+
+xml_node *XML_Copy_XML_Graph(xml_node *root)
+{
+  xml_node *cpy_root;
+
+  cpy_root = XML_Make_Node(root->name);
+  XML_Copy_XML_Node(cpy_root,root);
+
+  return(cpy_root);
+}
+
+//////////////////////////////////////////////////////////////
+
+void XML_Copy_XML_Node(xml_node *cpy_root, xml_node *root)
+{
+  xml_attr *attr,*cpy_attr;
+  int i;
+
+  strcpy(cpy_root->id,root->id);
+  strcpy(cpy_root->name,root->name);
+  strcpy(cpy_root->value,root->value);
+  cpy_root->n_attr = root->n_attr;
+
+  cpy_root->attr = XML_Make_Attribute(NULL,root->attr->name,root->attr->value);
+  attr           = root->attr;
+  cpy_attr       = cpy_root->attr;
+  while(attr && attr->next)
+    {
+      cpy_attr->next = XML_Make_Attribute(cpy_attr,attr->next->name,attr->next->value);
+      attr           = attr->next;
+      cpy_attr       = cpy_attr->next;
+    }
+   
+  if(root->child)
+    {
+      cpy_root->child = XML_Make_Node(root->child->name);
+      cpy_root->child->parent = cpy_root;
+      XML_Copy_XML_Node(cpy_root->child,root->child);
+    }
+
+  if(root->next)
+    {
+      cpy_root->next = XML_Make_Node(root->next->name);
+      cpy_root->next->prev = cpy_root;
+      XML_Copy_XML_Node(cpy_root->next,root->next);
+    }
+}
+
+//////////////////////////////////////////////////////////////
+
+void XML_Write_XML_Graph(FILE *fp, xml_node *root)
+{
+  int indent;
+  indent = 0;
+  XML_Write_XML_Node(fp,&indent,root);
+}
+
+//////////////////////////////////////////////////////////////
+
+void XML_Write_XML_Node(FILE *fp, int *indent, xml_node *root)
+{
+  xml_node *n;
+  xml_attr *attr;
+  char *s;
+  int i;
+
+  s = (char *)mCalloc((*indent)+1,sizeof(char));
+  For(i,(*indent)) s[i]=' ';
+  s[i]='\0';
+
+
+  PhyML_Fprintf(fp,"\n%s",s);
+  
+  n = root;
+  
+  PhyML_Fprintf(fp,"<%s",n->name);
+
+  attr = n->attr;  
+  while(attr)
+    {
+      PhyML_Fprintf(fp," %s=\"%s\"",attr->name,attr->value);
+      fflush(NULL);
+      attr = attr->next;
+    }
+
+  
+  if(n->child)
+    {
+      (*indent)++;
+      PhyML_Fprintf(fp,">");
+      XML_Write_XML_Node(fp,indent,n->child);
+      PhyML_Fprintf(fp,"\n%s</%s>",s,n->name);
+      (*indent)--;
+    }
+  else
+    {
+      PhyML_Fprintf(fp,"/>");
+    }
+
+  if(n->next)
+    XML_Write_XML_Node(fp,indent,n->next);
+  
+
+  Free(s);
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////

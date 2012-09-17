@@ -2816,12 +2816,12 @@ void Bootstrap(t_tree *tree)
 	  init_len++;
 	}
       
-      if(init_len != tree->data->init_len) Warn_And_Exit("\n. Pb when copying sequences\n");
+      if(init_len != tree->data->init_len) Exit("\n== Pb when copying sequences\n");
 
       init_len = 0;
       For(j,boot_data->crunch_len) init_len += boot_data->wght[j];
 
-      if(init_len != tree->data->init_len) Warn_And_Exit("\n. Pb when copying sequences\n");
+      if(init_len != tree->data->init_len) Exit("\n== Pb when copying sequences\n");
 
       if(tree->io->datatype == NT)      Get_Base_Freqs(boot_data);
       else if(tree->io->datatype == AA) Get_AA_Freqs(boot_data);
@@ -7163,8 +7163,8 @@ char *Bootstrap_From_String(char *s_tree, calign *cdata, t_mod *mod, option *io)
 
   if(!tree)
     {
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-      Warn_And_Exit("");
+      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+      Exit("");
     }
 
   tree->mod         = mod;
