@@ -35,7 +35,7 @@ void Free_Tree_Pars(t_tree *tree);
 void Free_Edge_Pars(t_edge *b,t_tree *tree);
 void Free_Tree_Lk(t_tree *tree);
 void Free_Node_Lk(t_node *n);
-void Free_Edge_Lk(t_tree *tree,t_edge *b);
+void Free_Edge_Lk(t_edge *b);
 void Free_Model_Complete(t_mod *mod);
 void Free_Model_Basic(t_mod *mod);
 void Free_Custom_Model(t_mod *mod);
@@ -61,5 +61,11 @@ void Free_RAS(t_ras *ras);
 void XML_Free_XML_Tree(xml_node *node);
 void XML_Free_XML_Node(xml_node *node);
 void XML_Free_XML_Attr(xml_attr *attr);
+void XML_Free_XML_Ds(t_ds *ds);
+void Free_String(t_string *ts);
+void Free_Edge_Len(t_edge *b);
+void Free_Vect_Dbl(vect_dbl *v);
+void Free_Scalar_Dbl(scalar_dbl *v);
+void Free_Edge_Core(t_edge *b);
 
 #endif

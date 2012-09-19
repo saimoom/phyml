@@ -14,12 +14,19 @@ the GNU public licence. See http://www.opensource.org for details.
 
 void Init_Eigen_Struct(eigen *this)
 {
+  this->next = NULL;
+  this->prev = NULL;
 }
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
 
 void Init_Scalar_Dbl(scalar_dbl *p)
 {
   p->v     = -1.;
   p->onoff = ON;
+  p->next  = NULL;
+  p->prev  = NULL;
 }
 
 //////////////////////////////////////////////////////////////
@@ -27,7 +34,9 @@ void Init_Scalar_Dbl(scalar_dbl *p)
 
 void Init_Scalar_Int(scalar_int *p)
 {
-  p->v = -1.;
+  p->v    = -1.;
+  p->next = NULL;
+  p->prev = NULL;
 }
 
 //////////////////////////////////////////////////////////////
@@ -35,7 +44,9 @@ void Init_Scalar_Int(scalar_int *p)
 
 void Init_Vect_Dbl(int len, vect_dbl *p)
 {
-  p->len = len;
+  p->len  = len;
+  p->next = NULL;
+  p->prev = NULL;
 }
 
 //////////////////////////////////////////////////////////////
@@ -43,7 +54,37 @@ void Init_Vect_Dbl(int len, vect_dbl *p)
 
 void Init_Vect_Int(int len, vect_int *p)
 {
-  p->len = len;
+  p->len  = len;
+  p->next = NULL;
+  p->prev = NULL;
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void Init_String(t_string *ts)
+{
+  ts->len  = -1.;
+  ts->next = NULL;
+  ts->prev = NULL;
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void Init_Triplet_Struct(triplet *t)
+{
+  t->next = NULL;
+  t->prev = NULL;
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void Init_Efrq(t_efrq *f)
+{
+  f->next = NULL;
+  f->prev = NULL;
 }
 
 //////////////////////////////////////////////////////////////
@@ -118,8 +159,8 @@ void Init_Edge_Light(t_edge *b, int num)
 
   b->next                 = NULL;
   b->prev                 = NULL;
-  b->child                = NULL;
-  b->parent               = NULL;
+  /* b->child                = NULL; */
+  /* b->parent               = NULL; */
 
   b->p_lk_left            = NULL;
   b->p_lk_rght            = NULL;
@@ -152,6 +193,10 @@ void Init_Node_Light(t_node *n, int num)
   n->rank                   = 0;
   n->match_node             = NULL;
   n->id_rank                = 0;
+  n->next                   = NULL;
+  n->prev                   = NULL;
+  /* n->child                  = NULL; */
+  /* n->parent                 = NULL; */
 }
 
 //////////////////////////////////////////////////////////////
@@ -500,8 +545,8 @@ void Set_Defaults_Input(option* io)
 
 void Set_Defaults_Model(t_mod *mod)
 {
-  strcpy(mod->modelname,"HKY85");
-  strcpy(mod->custom_mod_string,"000000");
+  strcpy(mod->modelname->s,"HKY85");
+  strcpy(mod->custom_mod_string->s,"000000");
   mod->next                    = NULL;
   mod->prev                    = NULL;
   mod->child                   = NULL;
@@ -517,11 +562,6 @@ void Set_Defaults_Model(t_mod *mod)
   mod->ras->alpha->v           = 1.0;
   mod->lambda->v               = 1.0;
   mod->ras->pinvar->v               = 0.0;
-
-  mod->kappa_old->v            = 4.0;
-  mod->ras->alpha_old->v       = 1.0;
-  mod->lambda_old->v           = 1.0;
-  mod->ras->pinvar_old->v           = 0.0;
 
   mod->bootstrap               = 0;
   mod->ras->invar              = NO;
@@ -611,6 +651,13 @@ void Set_Defaults_Optimiz(t_opt *s_opt)
   s_opt->wim_n_optim          = -1;
   s_opt->wim_n_best           = -1;
   s_opt->wim_inside_opt       =  0;
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void XML_Init_Attribute(xml_attr *attr)
+{
 }
 
 //////////////////////////////////////////////////////////////
@@ -792,12 +839,12 @@ void Init_Model(calign *data, t_mod *mod, option *io)
              
       if(mod->whichmodel == GTR)
 	{		  
-	  mod->custom_mod_string[0] = '0';
-	  mod->custom_mod_string[1] = '1';
-	  mod->custom_mod_string[2] = '2';
-	  mod->custom_mod_string[3] = '3';
-	  mod->custom_mod_string[4] = '4';
-	  mod->custom_mod_string[5] = '5';
+	  mod->custom_mod_string->s[0] = '0';
+	  mod->custom_mod_string->s[1] = '1';
+	  mod->custom_mod_string->s[2] = '2';
+	  mod->custom_mod_string->s[3] = '3';
+	  mod->custom_mod_string->s[4] = '4';
+	  mod->custom_mod_string->s[5] = '5';
 	  Translate_Custom_Mod_String(mod);
 	}
       
@@ -1008,14 +1055,7 @@ void Init_Model(calign *data, t_mod *mod, option *io)
   
   if(!mod->use_m4mod) Set_Model_Parameters(mod);      
 		  
-  mod->ras->alpha_old->v  = mod->ras->alpha->v;
-  mod->kappa_old->v       = mod->kappa->v;
-  mod->lambda_old->v      = mod->lambda->v;
-  mod->ras->pinvar_old->v = mod->ras->pinvar->v;
-
   Init_Eigen_Struct(mod->eigen);
-
-
 
   free(dr);free(di);free(space);
 }

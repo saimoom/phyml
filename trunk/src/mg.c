@@ -128,6 +128,7 @@ int PART_main(int argc, char **argv)
 	  Make_Tree_4_Lk(treelist->tree[part],cdata[part],cdata[part]->init_len);
 	  Make_Tree_4_Pars(treelist->tree[part],cdata[part],cdata[part]->init_len);
 	  treelist->tree[part]->triplet_struct = Make_Triplet_Struct(treelist->tree[part]->mod);
+          Init_Triplet_Struct(treelist->tree[part]->triplet_struct);
 	}
 
       if(part != io->n_part)

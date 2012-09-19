@@ -830,7 +830,7 @@ void *mCalloc(int nb, size_t size)
       return allocated;
     }
   else
-    Warn_And_Exit("\n. Err: low memory\n");
+    Exit("\n== Err: low memory\n");
 
   return NULL;
 }
@@ -838,13 +838,12 @@ void *mCalloc(int nb, size_t size)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
 void *mRealloc(void *p,int nb, size_t size)
 {
   if((p = realloc(p,(size_t)nb*size)) != NULL)
 	return p;
   else
-    Warn_And_Exit("\n. Err: low memory\n");
+    Exit("\n== Err: low memory\n");
 
   return NULL;
 }
@@ -2078,8 +2077,6 @@ int Filexists(char *filename)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
-
 matrix *K80_dist(calign *data, phydbl g_shape)
 {
   int i,j,k;
@@ -2092,6 +2089,7 @@ matrix *K80_dist(calign *data, phydbl g_shape)
     len[i] = (phydbl *)mCalloc(data->n_otu,sizeof(phydbl));
 
   mat = Make_Mat(data->n_otu);
+  
   Init_Mat(mat,data);
 
   For(i,data->c_seq[0]->len)
@@ -3191,18 +3189,14 @@ void Record_Model(t_mod *ori, t_mod *cpy)
   cpy->ns          = ori->ns;
   cpy->ras->n_catg = ori->ras->n_catg;
   
-  cpy->ras->alpha_old->v    = ori->ras->alpha_old->v;
-  cpy->kappa_old->v         = ori->kappa_old->v;
-  cpy->lambda_old->v        = ori->lambda_old->v;
-  cpy->ras->pinvar_old->v        = ori->ras->pinvar_old->v;
   cpy->kappa->v             = ori->kappa->v;
   cpy->ras->alpha->v        = ori->ras->alpha->v;
   cpy->lambda->v            = ori->lambda->v;
   cpy->ras->pinvar->v            = ori->ras->pinvar->v;
   cpy->br_len_multiplier->v = ori->br_len_multiplier->v;
 
-  strcpy(cpy->modelname,ori->modelname);
-  strcpy(cpy->custom_mod_string,ori->custom_mod_string);
+  strcpy(cpy->modelname->s,ori->modelname->s);
+  strcpy(cpy->custom_mod_string->s,ori->custom_mod_string->s);
   
   cpy->mod_num              = ori->mod_num;
   cpy->whichmodel           = ori->whichmodel;
@@ -5354,11 +5348,6 @@ void Fix_All(t_tree *tree)
 {
   int i;
 
-  tree->mod->ras->pinvar_old->v = tree->mod->ras->pinvar->v;
-  tree->mod->ras->alpha_old->v  = tree->mod->ras->alpha->v;
-  tree->mod->kappa_old->v  = tree->mod->kappa->v;
-  tree->mod->lambda_old->v = tree->mod->lambda->v;
-
   for(i=tree->n_otu;i<2*tree->n_otu-2;i++)
     {
       tree->a_nodes[i]->b[0]->l_old->v = tree->a_nodes[i]->b[0]->l->v;
@@ -7179,6 +7168,7 @@ char *Bootstrap_From_String(char *s_tree, calign *cdata, t_mod *mod, option *io)
   Make_Tree_4_Pars(tree,cdata,cdata->init_len);
   Make_Tree_4_Lk(tree,cdata,cdata->init_len);
   tree->triplet_struct = Make_Triplet_Struct(mod);  
+  Init_Triplet_Struct(tree->triplet_struct);
   Unscale_Br_Len_Multiplier_Tree(tree);
   Br_Len_Not_Involving_Invar(tree);
   Make_Spr_List(tree);
@@ -7234,6 +7224,7 @@ char *aLRT_From_String(char *s_tree, calign *cdata, t_mod *mod, option *io)
   Make_Tree_4_Pars(tree,cdata,cdata->init_len);
   Make_Tree_4_Lk(tree,cdata,cdata->init_len);
   tree->triplet_struct = Make_Triplet_Struct(mod);
+  Init_Triplet_Struct(tree->triplet_struct);
   Unscale_Br_Len_Multiplier_Tree(tree);
   Br_Len_Not_Involving_Invar(tree);
   Make_Spr_List(tree);
@@ -7269,6 +7260,7 @@ void Prepare_Tree_For_Lk(t_tree *tree)
   Make_Tree_4_Pars(tree,tree->data,tree->data->init_len);
   Make_Tree_4_Lk(tree,tree->data,tree->data->init_len); 
   tree->triplet_struct = Make_Triplet_Struct(tree->mod);
+  Init_Triplet_Struct(tree->triplet_struct);
   Make_Spr_List(tree);
   Make_Best_Spr(tree);   
 
@@ -7819,117 +7811,117 @@ void Set_Model_Name(t_mod *mod)
     {
     case JC69:
       {
-	strcpy(mod->modelname, "JC69");
+	strcpy(mod->modelname->s, "JC69");
 	break;
       }
     case K80:
       {
-	strcpy(mod->modelname, "K80");
+	strcpy(mod->modelname->s, "K80");
 	break;
       }
     case F81:
       {
-	strcpy(mod->modelname, "F81");
+	strcpy(mod->modelname->s, "F81");
 	break;
       }
     case HKY85:
       {
-	strcpy(mod->modelname, "HKY85");
+	strcpy(mod->modelname->s, "HKY85");
 	break;
       }
     case F84:
       {
-	strcpy(mod->modelname, "F84");
+	strcpy(mod->modelname->s, "F84");
 	break;
       }
     case TN93:
       {
-	strcpy(mod->modelname, "TN93");
+	strcpy(mod->modelname->s, "TN93");
 	break;
       }
     case GTR:
       {
-	strcpy(mod->modelname, "GTR");
+	strcpy(mod->modelname->s, "GTR");
 	break;
       }
     case CUSTOM:
       {
-	strcpy(mod->modelname, "Custom");
+	strcpy(mod->modelname->s, "Custom");
 	break;
       }
     case DAYHOFF:
       {
-	strcpy(mod->modelname, "Dayhoff");
+	strcpy(mod->modelname->s, "Dayhoff");
 	break;
       }
     case JTT:
       {
-	strcpy(mod->modelname, "JTT");
+	strcpy(mod->modelname->s, "JTT");
 	break;
       }
     case MTREV:
       {
-	strcpy(mod->modelname, "MtREV");
+	strcpy(mod->modelname->s, "MtREV");
 	break;
       }
     case LG:
       {
-	strcpy(mod->modelname, "LG");
+	strcpy(mod->modelname->s, "LG");
 	break;
       }
     case WAG:
       {
-	strcpy(mod->modelname, "WAG");
+	strcpy(mod->modelname->s, "WAG");
 	break;
       }
     case DCMUT:
       {
-	strcpy(mod->modelname, "DCMut");
+	strcpy(mod->modelname->s, "DCMut");
 	break;
       }
     case RTREV:
       {
-	strcpy(mod->modelname, "RtREV");
+	strcpy(mod->modelname->s, "RtREV");
 	break;
       }
     case CPREV:
       {
-	strcpy(mod->modelname, "CpREV");
+	strcpy(mod->modelname->s, "CpREV");
 	break;
       }
     case VT:
       {
-	strcpy(mod->modelname, "VT");
+	strcpy(mod->modelname->s, "VT");
 	break;
       }
     case BLOSUM62:
       {
-	strcpy(mod->modelname, "Blosum62");
+	strcpy(mod->modelname->s, "Blosum62");
 	break;
       }
     case MTMAM:
       {
-	strcpy(mod->modelname, "MtMam");
+	strcpy(mod->modelname->s, "MtMam");
 	break;
       }
     case MTART:
       {
-	strcpy(mod->modelname, "MtArt");
+	strcpy(mod->modelname->s, "MtArt");
 	break;
       }
     case HIVW:
       {
-	strcpy(mod->modelname, "HIVw");
+	strcpy(mod->modelname->s, "HIVw");
 	break;
       }
     case HIVB:
       {
-	strcpy(mod->modelname, "HIVb");
+	strcpy(mod->modelname->s, "HIVb");
 	break;
       }
     case CUSTOMAA:
       {
-	strcpy(mod->modelname, "Custom");
+	strcpy(mod->modelname->s, "Custom");
 	break;
       }
     default:

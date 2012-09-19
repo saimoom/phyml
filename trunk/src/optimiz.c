@@ -1665,17 +1665,16 @@ int Optimiz_Alpha_And_Pinv(t_tree *mixt_tree, int verbose)
   n_alpha  = 0;
   tree     = mixt_tree;
 
-
   do
     {
-
       For(i,n_alpha) if(tree->mod->ras->alpha == alpha[i]) break;
-      
+
       if(i == n_alpha)
 	{
 	  if(!alpha) alpha = (scalar_dbl **)mCalloc(1,sizeof(scalar_dbl *)); 
 	  else       alpha = (scalar_dbl **)mRealloc(alpha,n_alpha+1,sizeof(scalar_dbl *));
-	  alpha[n_alpha] = tree->mod->ras->alpha;
+	  
+          alpha[n_alpha] = tree->mod->ras->alpha;
 	  n_alpha++;
 	  
 	  if((tree->mod->s_opt->opt_pinvar) && (tree->mod->s_opt->opt_alpha) && (tree->mod->ras->n_catg > 1))
@@ -1746,6 +1745,7 @@ int Optimiz_Alpha_And_Pinv(t_tree *mixt_tree, int verbose)
 		}
 	      else if(FABS(lk_a - lk_b) < mixt_tree->mod->s_opt->min_diff_lk_local)
 		{
+                  if(alpha) Free(alpha);
 		  return 1;
 		}
 	      

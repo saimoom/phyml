@@ -16,37 +16,45 @@ the GNU public licence.  See http://www.opensource.org for details.
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
-void Free_All_Nodes_Light(t_tree *tree)
+void Free_All_Nodes_Light(t_tree *mixt_tree)
 {
   int i;
+  t_tree *tree;
 
-  For(i,2*tree->n_otu-1) 
+  For(i,2*mixt_tree->n_otu-1) 
+    Free_Node(mixt_tree->a_nodes[i]);
+
+  tree = mixt_tree;
+  do
     {
-      if(tree->a_nodes[i])
-      	{
-	  Free_Node(tree->a_nodes[i]);
-	}
+      Free(tree->a_nodes);
+      if(tree->child) tree = tree->child;
+      else            tree = tree->next;
     }
+  while(tree);
 
-  Free(tree->a_nodes);
 }
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
-void Free_All_Edges_Light(t_tree *tree)
+void Free_All_Edges_Light(t_tree *mixt_tree)
 {
   int i;
-  For(i,2*tree->n_otu-2) 
-    if(tree->a_edges[i])
-      {
-	Free_Edge(tree->a_edges[i]);
-      }
-  Free(tree->a_edges);
-}
+  t_tree *tree;
 
+  For(i,2*mixt_tree->n_otu-2) 
+    Free_Edge(mixt_tree->a_edges[i]);
+
+  tree = mixt_tree;
+  do
+    {
+      Free(tree->a_edges);
+      if(tree->child) tree = tree->child;
+      else            tree = tree->next;
+    }
+  while(tree);
+}
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
@@ -95,16 +103,36 @@ void Free_Partial_Lk(phydbl *p_lk, int len, int n_catg)
 //////////////////////////////////////////////////////////////
 
 
-void Free_Tree(t_tree *tree)
+void Free_Tree(t_tree *mixt_tree)
 {
-  Free(tree->t_dir);
-  if(tree->short_l) Free(tree->short_l);
-  if(tree->mutmap) Free(tree->mutmap);
-  Free_Bip(tree);
-  Free(tree->curr_path);
-  Free_All_Edges_Light(tree);
-  Free_All_Nodes_Light(tree);
-  Free(tree);
+  t_tree *tree;
+  
+  tree = mixt_tree;
+  do
+    {
+      if(tree->mat) Free_Mat(tree->mat);
+      Free(tree->t_dir);
+      if(tree->short_l) Free(tree->short_l);
+      if(tree->mutmap)  Free(tree->mutmap);
+      Free_Bip(tree);
+      Free(tree->curr_path);
+      if(tree->child) tree = tree->child;
+      else            tree = tree->next;
+    }
+  while(tree);
+  
+  Free_All_Edges_Light(mixt_tree);
+  Free_All_Nodes_Light(mixt_tree);
+
+  tree = mixt_tree;
+  do
+    {
+      if(tree->child)      { tree = tree->child; Free(tree->parent); }
+      else if(tree->next)  { tree = tree->next;  Free(tree->prev);   }
+      else                 { Free(tree); break; }
+    }
+  while(tree);
+
 }
 
 //////////////////////////////////////////////////////////////
@@ -135,6 +163,9 @@ void Free_Edge_Labels(t_edge *b)
 {
   int i;
   
+  if(b->child) Free_Edge_Labels(b->child);
+  if(b->next)  Free_Edge_Labels(b->next);
+
   if(b->labels)
     {
       For(i,b->n_labels-(b->n_labels%BLOCK_LABELS)+BLOCK_LABELS) Free(b->labels[i]);
@@ -146,18 +177,35 @@ void Free_Edge_Labels(t_edge *b)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
 void Free_Edge(t_edge *b)
 {
   Free_Edge_Labels(b);
-  Free(b->l);
-  Free(b->l_old);
+  Free_Edge_Len(b);
+  Free_Edge_Core(b);
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void Free_Edge_Core(t_edge *b)
+{
+  if(b->child) Free_Edge_Core(b->child);
+  if(b->next)  Free_Edge_Core(b->next);
   Free(b);
 }
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
+void Free_Edge_Len(t_edge *b)
+{
+  if(b->l->next) Free_Edge_Len(b);
+  Free(b->l);
+  Free(b->l_old);
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
 
 void Free_Node(t_node *n)
 {
@@ -168,9 +216,14 @@ void Free_Node(t_node *n)
   Free(n->s_ingrp);
   Free(n->s_outgrp);
   if(n->ori_name) { Free(n->ori_name); n->ori_name = NULL; }
+
   /* if(n->name)     { Free(n->name);     n->name     = NULL; }  */
   /* Don't do that: see Copy_Tax_Names_To_Tip_Labels       
-     tree->a_nodes[i]->ori_name = tree->a_nodes[i]->name; */
+     tree->a_nodes[i]->ori_name = tree->a_nodes[i]->name; */  
+
+  if(n->child) Free_Node(n->child);
+  if(n->next)  Free_Node(n->next);
+
   Free(n);
 }
 
@@ -265,15 +318,23 @@ void Free_Tree_Ins_Tar(t_tree *tree)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
-void Free_Tree_Pars(t_tree *tree)
+void Free_Tree_Pars(t_tree *mixt_tree)
 {
   int i;
-  
-  Free(tree->step_mat);
-  Free(tree->site_pars);
-  For(i,2*tree->n_otu-3)
-    Free_Edge_Pars(tree->a_edges[i],tree);
+  t_tree *tree;
+
+  tree = mixt_tree;
+  do
+    {
+      Free(tree->step_mat);
+      Free(tree->site_pars);
+      
+      For(i,2*tree->n_otu-3) Free_Edge_Pars(tree->a_edges[i],tree);           
+
+      if(tree->child) tree = tree->child;
+      else            tree = tree->next;
+    }
+  while(tree);
 }
 
 //////////////////////////////////////////////////////////////
@@ -282,17 +343,8 @@ void Free_Tree_Pars(t_tree *tree)
 
 void Free_Edge_Pars(t_edge *b, t_tree *tree)
 {
-/*   int i; */
-
   Free(b->pars_l);
-  Free(b->pars_r);
-  
-/*   For(i,tree->data->crunch_len)  */
-/*     { */
-/*       Free(b->p_pars_l[i]); */
-/*       Free(b->p_pars_r[i]); */
-/*     } */
-  
+  Free(b->pars_r);    
   Free(b->ui_l);
   Free(b->ui_r);
   Free(b->p_pars_l);
@@ -303,35 +355,35 @@ void Free_Edge_Pars(t_edge *b, t_tree *tree)
 //////////////////////////////////////////////////////////////
 
 
-void Free_Tree_Lk(t_tree *tree)
+void Free_Tree_Lk(t_tree *mixt_tree)
 {
   int i;
-  t_edge *b;
-  
-  b = NULL;
-  
-  For(i,3) Free(tree->log_lks_aLRT[i]);
-  Free(tree->log_lks_aLRT);
+  t_tree *tree;
 
-  Free(tree->c_lnL_sorted);
-  Free(tree->cur_site_lk);
-  Free(tree->old_site_lk);
-  Free(tree->site_lk_cat);
-
-  For(i,tree->mod->ras->n_catg) Free(tree->log_site_lk_cat[i]);
-  Free(tree->log_site_lk_cat);
-				
-  For(i,2*tree->n_otu-3)
+  tree = mixt_tree;
+  do
     {
-      b = tree->a_edges[i];      
-      Free_Edge_Lk(tree,b);
+      Free(tree->c_lnL_sorted);
+      Free(tree->cur_site_lk);
+      Free(tree->old_site_lk);
+      Free(tree->site_lk_cat);
+
+      For(i,3) Free(tree->log_lks_aLRT[i]);
+      Free(tree->log_lks_aLRT);
+            
+      For(i,tree->mod->ras->n_catg) Free(tree->log_site_lk_cat[i]);
+      Free(tree->log_site_lk_cat);
+
+      if(tree->child) tree = tree->child;
+      else            tree = tree->next;
     }
-}
+  while(tree);
 
-
+  For(i,2*mixt_tree->n_otu-3) Free_Edge_Lk(mixt_tree->a_edges[i]);
+}  
+  
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
-
 
 
 void Free_Node_Lk(t_node *n)
@@ -342,9 +394,9 @@ void Free_Node_Lk(t_node *n)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
-void Free_Edge_Lk(t_tree *tree, t_edge *b)
+void Free_Edge_Lk(t_edge *b)
 {
+
   Free(b->nni);
 
   Free(b->div_post_pred_left);
@@ -357,7 +409,6 @@ void Free_Edge_Lk(t_tree *tree, t_edge *b)
     }
 
   if(b->p_lk_tip_l) Free(b->p_lk_tip_l);
-
 
   if(b->p_lk_rght)
     {
@@ -376,61 +427,121 @@ void Free_Edge_Lk(t_tree *tree, t_edge *b)
   Free(b->p_lk_loc_rght);
 
   Free(b->Pij_rr);
+
+  if(b->child) Free_Edge_Lk(b->child);  
+  if(b->next) Free_Edge_Lk(b->next);
 }
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-void Free_RAS(t_ras *ras)
+void Free_Model_Complete(t_mod *mixt_mod)
 {
-  if(ras->gamma_r_proba->v)
+  t_mod *mod;
+
+  Free_Eigen(mixt_mod->eigen);
+  Free_RAS(mixt_mod->ras);      
+  Free_Rmat(mixt_mod->r_mat);
+  Free_Efrq(mixt_mod->e_frq);
+  
+  mod = mixt_mod;
+  do
     {
-      Free(ras->gamma_r_proba->v);
-      Free(ras->gamma_r_proba_unscaled->v);
-      Free(ras->gamma_rr->v);
-      Free(ras->gamma_rr_unscaled->v);
+      if(mod->child) { mod = mod->child; Free(mod->parent); } 
+      else if(mod->next) { mod = mod->next; Free(mod->prev); }
+      else { Free(mod); break; }
     }
-
-  Free(ras->gamma_r_proba);
-  Free(ras->gamma_r_proba_unscaled);
-  Free(ras->gamma_rr);
-  Free(ras->gamma_rr_unscaled);
-  Free(ras->pinvar);
-  Free(ras->pinvar_old);
-  Free(ras->alpha);
-  Free(ras->alpha_old);
-  Free(ras);
+  while(mod);
 }
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-void Free_Model_Complete(t_mod *mod)
+void Free_Model_Basic(t_mod *mixt_mod)
 {
-  Free_RAS(mod->ras);
-  Free(mod->Pij_rr->v);
-  Free_Eigen(mod->eigen);
-  Free_Rmat(mod->r_mat);
-  Free_Efrq(mod->e_frq);
+  t_mod *mod;
+  t_string *ts,*next_ts;
+  
+  mod = mixt_mod;
+  do
+    {
+      /* Free(mod->user_b_freq->v); */
+      /* Free(mod->user_b_freq); */
+      /* Free(mod->kappa); */
+      /* Free(mod->lambda); */
+      /* Free(mod->Pij_rr); */
+      /* Free(mod->mr); */
+      /* Free(mod->br_len_multiplier); */
+
+      if(mod->child) mod = mod->child;
+      else           mod = mod->next;
+    }
+  while(mod);
+
+  Free_Vect_Dbl(mixt_mod->Pij_rr);
+  Free_Vect_Dbl(mixt_mod->user_b_freq);
+  Free_Scalar_Dbl(mixt_mod->mr);
+  Free_Scalar_Dbl(mixt_mod->kappa);
+  Free_Scalar_Dbl(mixt_mod->lambda);
+  Free_Scalar_Dbl(mixt_mod->br_len_multiplier);
+  Free_String(mixt_mod->modelname);
+  Free_String(mixt_mod->custom_mod_string);
 }
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
-void Free_Model_Basic(t_mod *mod)
+void Free_Vect_Dbl(vect_dbl *v)
 {
-  Free(mod->modelname);
-  Free(mod->custom_mod_string);
-  Free(mod->user_b_freq->v);
-  Free(mod->user_b_freq);
-  Free(mod->kappa);
-  Free(mod->lambda);
-  Free(mod->kappa_old);
-  Free(mod->lambda_old);
-  Free(mod->Pij_rr);
-  Free(mod->mr);
-  Free(mod->br_len_multiplier);
+  vect_dbl *next;
+
+  next = v->next;
+  do
+    {
+      Free(v->v);
+      Free(v);
+
+      v = next;
+      if(v) next = v->next;
+    }
+  while(v);
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void Free_Scalar_Dbl(scalar_dbl *v)
+{
+  scalar_dbl *next;
+
+  next = v->next;
+  do
+    {
+      Free(v);
+
+      v = next;
+      if(v) next = v->next;
+    }
+  while(v);
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void Free_String(t_string *ts)
+{
+  t_string *next;
+
+  next = ts->next;
+  do
+    {
+      Free(ts->s);      
+      Free(ts);
+
+      ts = next;
+      if(ts) next = ts->next;
+    }
+  while(ts);
 }
 
 //////////////////////////////////////////////////////////////
@@ -453,19 +564,15 @@ void Free_Custom_Model(t_mod *mod)
 
 void Free_Efrq(t_efrq *e_frq)
 {
-  if(!e_frq)
-    {
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-      Warn_And_Exit("");      
-    }
-
   Free(e_frq->pi->v);
   Free(e_frq->pi);
-
+  
   Free(e_frq->pi_unscaled->v);
   Free(e_frq->pi_unscaled);
+  
+  if(e_frq->next) Free_Efrq(e_frq->next);
 
-  Free(e_frq);  
+  Free(e_frq);
 }
 
 //////////////////////////////////////////////////////////////
@@ -473,33 +580,56 @@ void Free_Efrq(t_efrq *e_frq)
 
 void Free_Rmat(t_rmat *r_mat)
 {
-  if(!r_mat)
-    {
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-      Warn_And_Exit("");
-    }
-  
-  if(r_mat->rr->v)
-    {
-      Free(r_mat->rr_num->v);
-      Free(r_mat->rr->v);
-      Free(r_mat->rr_val->v);
-      Free(r_mat->n_rr_per_cat->v);
-    }
-  
-  Free(r_mat->rr_val);
-  Free(r_mat->n_rr_per_cat);
+  Free(r_mat->rr->v);
   Free(r_mat->rr);
+  
+  Free(r_mat->rr_num->v);
+  
+  Free(r_mat->rr_val->v);
+  Free(r_mat->rr_val);
+  
+  Free(r_mat->n_rr_per_cat->v);      
+  Free(r_mat->n_rr_per_cat);
+  
   Free(r_mat->rr_num);
-
+  
   Free(r_mat->qmat->v);
   Free(r_mat->qmat);
-
+  
   Free(r_mat->qmat_buff->v);
   Free(r_mat->qmat_buff);
+  
+  if(r_mat->next) Free_Rmat(r_mat->next);
 
   Free(r_mat);
 }
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void Free_RAS(t_ras *ras)
+{
+  if(ras->gamma_r_proba->v)
+    {
+      Free(ras->gamma_r_proba->v);
+      Free(ras->gamma_r_proba_unscaled->v);
+      Free(ras->gamma_rr->v);
+      Free(ras->gamma_rr_unscaled->v);
+    }
+  
+  Free(ras->gamma_r_proba);
+  
+  Free(ras->gamma_r_proba_unscaled);
+  Free(ras->gamma_rr);
+  Free(ras->gamma_rr_unscaled);
+  Free(ras->pinvar);
+  Free(ras->alpha);
+  
+  if(ras->next) Free_RAS(ras->next);
+
+  Free(ras);
+}
+
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
@@ -518,8 +648,9 @@ void Free_Model(t_mod *mod)
 
 
 void Free(void *p)
-{
+{  
   free(p);
+  p = NULL;
 }
 
 //////////////////////////////////////////////////////////////
@@ -529,39 +660,54 @@ void Free(void *p)
 void Free_Input(option *io)
 {
   int i;
-  RATES_Free_Rates(io->rates);
-  MCMC_Free_MCMC(io->mcmc);
-  Free(io->in_align_file);
-  Free(io->in_tree_file);
-  Free(io->in_constraint_tree_file);
-  Free(io->out_tree_file);
-  Free(io->out_trees_file);
-  Free(io->out_boot_tree_file);
-  Free(io->out_boot_stats_file);
-  Free(io->out_stats_file);
-  Free(io->out_lk_file); 
-  Free(io->out_ps_file);
-  Free(io->out_trace_file);
-  Free(io->aa_rate_mat_file);
-  Free(io->nt_or_cd);
-  Free(io->run_id_string);
-  Free(io->clade_list_file);
-  For(i,T_MAX_ALPHABET) Free(io->alphabet[i]);
-  Free(io->alphabet);
-  if(io->short_tax_names)
+  
+  do
     {
-      For(i,io->size_tax_names) 
-	{
-	  Free(io->short_tax_names[i]);
-	  Free(io->long_tax_names[i]);
-	}
-      Free(io->long_tax_names);
-      Free(io->short_tax_names);
-    }
-  Free_Tree_List(io->treelist);
-  if(io->lon) Free(io->lon);
-  if(io->lat) Free(io->lat);
-  Free(io);
+      RATES_Free_Rates(io->rates);
+      MCMC_Free_MCMC(io->mcmc);
+      Free(io->in_align_file);
+      Free(io->in_tree_file);
+      Free(io->in_constraint_tree_file);
+      Free(io->out_tree_file);
+      Free(io->out_trees_file);
+      Free(io->out_boot_tree_file);
+      Free(io->out_boot_stats_file);
+      Free(io->out_stats_file);
+      Free(io->out_lk_file); 
+      Free(io->out_ps_file);
+      Free(io->out_trace_file);
+      Free(io->aa_rate_mat_file);
+      Free(io->nt_or_cd);
+      Free(io->run_id_string);
+      Free(io->clade_list_file);
+      For(i,T_MAX_ALPHABET) Free(io->alphabet[i]);
+      Free(io->alphabet);
+      if(io->short_tax_names)
+        {
+          For(i,io->size_tax_names) 
+            {
+              Free(io->short_tax_names[i]);
+              Free(io->long_tax_names[i]);
+            }
+          Free(io->long_tax_names);
+          Free(io->short_tax_names);
+        }
+      Free_Tree_List(io->treelist);
+      if(io->lon) Free(io->lon);
+      if(io->lat) Free(io->lat);
+
+      if(io->next) 
+        {
+          io = io->next;      
+          Free(io->prev);
+        }
+      else
+        {
+          Free(io);
+          break;
+        }
+
+    }while(1);
 }
 
 //////////////////////////////////////////////////////////////
@@ -608,6 +754,9 @@ void Free_Eigen(eigen *eigen_struct)
   Free(eigen_struct->r_e_vect_im);
   Free(eigen_struct->l_e_vect);
   Free(eigen_struct->q);
+
+  if(eigen_struct->next) Free_Eigen(eigen_struct->next);
+
   Free(eigen_struct);
 }
 
@@ -618,26 +767,23 @@ void Free_Eigen(eigen *eigen_struct)
 void Free_One_Spr(t_spr *this_spr)
 {
   Free(this_spr->path);
+  if(this_spr->child) { Free_One_Spr(this_spr->child); }
+  if(this_spr->next)  { Free_One_Spr(this_spr->next); }
   Free(this_spr);
 }
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
 void Free_Spr_List(t_tree *tree)
 {
   int i;
-
   For(i,tree->size_spr_list+1) Free_One_Spr(tree->spr_list[i]);
   Free(tree->spr_list);
-
 }
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
-
-
 
 void Free_Triplet(triplet *t)
 {
@@ -676,6 +822,8 @@ void Free_Triplet(triplet *t)
   Free(t->sum_p_one_site);
 
   Free_Eigen(t->eigen_struct);
+
+  if(t->next) Free_Triplet(t->next);
   
   Free(t);
 }
@@ -725,7 +873,6 @@ void Free_Pnode(pnode *n)
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
-
 
 void Free_Optimiz(t_opt *s_opt)
 {
@@ -794,6 +941,7 @@ void XML_Free_XML_Node(xml_node *node)
   Free(node->id);
   Free(node->name);
   Free(node->value);
+  XML_Free_XML_Ds(node->ds);
   XML_Free_XML_Attr(node->attr);
   Free(node);
 }
@@ -814,6 +962,12 @@ void XML_Free_XML_Attr(xml_attr *attr)
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
+
+void XML_Free_XML_Ds(t_ds *ds)
+{
+  if(ds->next) XML_Free_XML_Ds(ds->next);
+  Free(ds);
+}
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////

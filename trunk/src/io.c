@@ -1143,8 +1143,8 @@ void Detect_Align_File_Format(option *io)
 	  char s[10],t[6]="NEXUS";
 	  if(!fgets(s,6,io->fp_in_align))
 	    {     
-	      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-	      Warn_And_Exit("");
+	      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+	      Exit("\n");
 	    }
 	  if(!strcmp(t,s)) 
 	    {
@@ -1160,7 +1160,6 @@ void Detect_Align_File_Format(option *io)
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
-
 
 void Detect_Tree_File_Format(option *io)
 {
@@ -1205,7 +1204,6 @@ void Detect_Tree_File_Format(option *io)
 align **Get_Seq(option *io)
 {
   io->data = NULL;
-
 
   if(!io->fp_in_align)
     {
@@ -1586,15 +1584,13 @@ int Get_Token(FILE *fp, char *token)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
 align **Get_Seq_Phylip(option *io)
 {
-
   Read_Ntax_Len_Phylip(io->fp_in_align,&io->n_otu,&io->init_len);
 
   if(io->n_otu > N_MAX_OTU)
     {
-      PhyML_Printf("\n. The number of taxa should not exceed %d",N_MAX_OTU);
+      PhyML_Printf("\n== The number of taxa should not exceed %d",N_MAX_OTU);
       Exit("\n");
     }
 
@@ -1606,7 +1602,6 @@ align **Get_Seq_Phylip(option *io)
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
-
 
 void Read_Ntax_Len_Phylip(FILE *fp ,int *n_otu, int *n_tax)
 {
@@ -1621,8 +1616,8 @@ void Read_Ntax_Len_Phylip(FILE *fp ,int *n_otu, int *n_tax)
       if(fscanf(fp,"%s",line) == EOF)
 	{
 	  Free(line); 
-	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-	  Warn_And_Exit("");
+	  PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+          Exit("\n");
 	}
       else
 	{
@@ -1699,7 +1694,6 @@ align **Read_Seq_Sequential(option *io)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
 align **Read_Seq_Interleaved(option *io)
 {
   int i,end,num_block;
@@ -1708,12 +1702,9 @@ align **Read_Seq_Interleaved(option *io)
 /*   char c; */
   char *format;
 
-
-
   line   = (char *)mCalloc(T_MAX_LINE,sizeof(char));
   format = (char *)mCalloc(T_MAX_NAME, sizeof(char));
   data   = (align **)mCalloc(io->n_otu,sizeof(align *));
-
 
 /*   while(((c=fgetc(io->fp_in_align))!='\n') && (c != ' ') && (c != '\r') && (c != '\t')); */
 
@@ -2588,7 +2579,7 @@ void Print_Fp_Out(FILE *fp_out, time_t t_beg, time_t t_end, t_tree *tree, option
     }
   else
     {
-      fprintf(fp_out,"\n. Substitution model: \t\t\t%s",tree->mod->modelname);
+      fprintf(fp_out,"\n. Substitution model: \t\t\t%s",tree->mod->modelname->s);
     }
 
 
@@ -3826,10 +3817,11 @@ void Print_Data_Structure(int final, FILE *fp, t_tree *mixt_tree)
 
   if(final == NO)  PhyML_Fprintf(fp,"\n. Processing %d data %s (%s)",n_partition_elem,n_partition_elem>1?"sets":"set",s);
   if(final == YES) PhyML_Fprintf(fp,"\n. Processed %d data %s (%s)",n_partition_elem,n_partition_elem>1?"sets":"set",s);
+  Free(s);
 
   if(final == YES)
     PhyML_Fprintf(fp,"\n. Final log-likelihood: %12f",mixt_tree->c_lnL);
-  
+
   do
     {
       int class = 0;
@@ -4080,8 +4072,8 @@ void Print_Data_Structure(int final, FILE *fp, t_tree *mixt_tree)
                   if(tree->is_mixt_tree) tree = tree->child;
 
                   if(mixt_tree->mod->whichmodel == tree->mod->whichmodel &&
-                     !strcmp(mixt_tree->mod->custom_mod_string,
-                             tree->mod->custom_mod_string))      link_rmat[c] = cc_rmat;
+                     !strcmp(mixt_tree->mod->custom_mod_string->s,
+                             tree->mod->custom_mod_string->s)) link_rmat[c] = cc_rmat;
 
                   tree = tree->next;
                   c++;
@@ -4182,10 +4174,11 @@ void PhyML_XML(char *xml_filename)
   int i,j,n_components;
   int first_m_elem;
   int class_number;
-  scalar_dbl **lens;
+  scalar_dbl **lens,**ori_lens;
   t_ds *ds;
   char *outputfile;
   char *alignment;
+  int lens_size;
 
   fp = fopen(xml_filename,"r");
 
@@ -4204,6 +4197,7 @@ void PhyML_XML(char *xml_filename)
   select       = -1;
   class_number = -1;
   ds           = NULL;
+  lens_size    = 0;
 
   // Make sure there are no duplicates in node's IDs
   XML_Check_Duplicate_ID(root);
@@ -4298,7 +4292,7 @@ void PhyML_XML(char *xml_filename)
 	    Exit("\n");
 	  }
 	}
-
+      
       char *format = NULL;
       format = XML_Get_Attribute_Value(p_elem,"format");
       if(format)
@@ -4354,6 +4348,10 @@ void PhyML_XML(char *xml_filename)
       /*! Compress alignment
        */
       io->cdata = Compact_Data(io->data,io);
+      
+      /*! Free uncompressed alignment
+       */
+      Free_Seq(io->data,io->n_otu);
 
 
       /*! Create new mixture tree
@@ -4397,7 +4395,7 @@ void PhyML_XML(char *xml_filename)
 
       /*! Do the same for the model
        */
-      if(mod)  mod->next = iomod;
+      if(mod) mod->next = iomod;
 
       if(!root_tree) root_tree = mixt_tree;
 
@@ -4458,8 +4456,7 @@ void PhyML_XML(char *xml_filename)
 
 			/*! Create new tree
                          */
-			this_tree = (t_tree *)Make_Tree_From_Scratch(io->cdata->n_otu,
-								     io->cdata);
+			this_tree = (t_tree *)Make_Tree_From_Scratch(io->cdata->n_otu,io->cdata);
 			
 			if(tree)
 			  {
@@ -4585,7 +4582,6 @@ void PhyML_XML(char *xml_filename)
                                                            "LG");      //25
                             
 
-                            Free(model);
 
                             if(select < 9)
                               {
@@ -4605,7 +4601,7 @@ void PhyML_XML(char *xml_filename)
                                     Exit("\n");
                                   }
                               }
-                            
+                                                        
                             io->mod->ns = mod->ns;
                             
                             mod->r_mat = (t_rmat *)Make_Rmat(mod->ns);
@@ -4695,7 +4691,7 @@ void PhyML_XML(char *xml_filename)
                                   }
                                 else
                                   {
-                                    strcpy(mod->custom_mod_string,model_code);
+                                    strcpy(mod->custom_mod_string->s,model_code);
                                   }
                               }
 
@@ -4723,7 +4719,7 @@ void PhyML_XML(char *xml_filename)
                               }
                             
                             ds = instance->ds;
-                                                     
+
                             /*! Connect the data structure n->ds to mod->r_mat */
                             ds->obj = (t_rmat *)(mod->r_mat);
                             
@@ -4750,7 +4746,7 @@ void PhyML_XML(char *xml_filename)
                             /*! Create and connect the data structure n->ds->next to mod->modelname */
 			    ds->next      = (t_ds *)mCalloc(1,sizeof(t_ds));
 			    ds = ds->next;
-                            ds->obj = (char *)(mod->modelname);
+                            ds->obj = (t_string *)(mod->modelname);
 
                             /*! Create and connect the data structure n->ds->next to mod->ns */
 			    ds->next      = (t_ds *)mCalloc(1,sizeof(t_ds));
@@ -4760,7 +4756,7 @@ void PhyML_XML(char *xml_filename)
                             /*! Create and connect the data structure n->ds->next to mod->modelname */
 			    ds->next      = (t_ds *)mCalloc(1,sizeof(t_ds));
 			    ds = ds->next;
-                            ds->obj = (char *)(mod->custom_mod_string);
+                            ds->obj = (t_string *)(mod->custom_mod_string);
                           }
                         else
                           {
@@ -4772,7 +4768,7 @@ void PhyML_XML(char *xml_filename)
                             mod->r_mat             = (t_rmat *)ds->obj;
 
                             ds = ds->next;
-                            Free(mod->kappa);
+                            Free_Scalar_Dbl(mod->kappa);
                             mod->kappa             = (scalar_dbl *)ds->obj;
 
                             ds = ds->next;
@@ -4785,13 +4781,15 @@ void PhyML_XML(char *xml_filename)
                             mod->whichmodel        = *((int *)ds->obj);
 
                             ds = ds->next;
-                            mod->modelname         = (char *)ds->obj;
+                            Free_String(mod->modelname);
+                            mod->modelname         = (t_string *)ds->obj;
 
                             ds = ds->next;
                             mod->ns                = *((int *)ds->obj);
 
                             ds = ds->next;
-                            mod->custom_mod_string = (char *)ds->obj;
+                            Free_String(mod->custom_mod_string);
+                            mod->custom_mod_string = (t_string *)ds->obj;
                           }
                       }
 
@@ -4809,9 +4807,10 @@ void PhyML_XML(char *xml_filename)
                             char *buff;
                             
                             mod->e_frq = (t_efrq *)Make_Efrq(mod->ns);
+                            Init_Efrq(mod->e_frq);
                             
                             buff = XML_Get_Attribute_Value(instance,"optimise.freq");
-
+                            
                             if(buff)
                               {
                                 if(!strcmp(buff,"yes") || !strcmp(buff,"true"))
@@ -4866,7 +4865,6 @@ void PhyML_XML(char *xml_filename)
                                     mod->s_opt->user_state_freq = YES;
                                     mod->s_opt->opt_state_freq  = NO;
                                   }
-                                Free(buff);
                               }
                             
 
@@ -4901,6 +4899,7 @@ void PhyML_XML(char *xml_filename)
                             mod->s_opt->user_state_freq = *((int *)ds->obj);
 
                             ds = ds->next;
+                            Free_Vect_Dbl(mod->user_b_freq);
                             mod->user_b_freq = (vect_dbl *)ds->obj;
                           }
                       }
@@ -4916,6 +4915,13 @@ void PhyML_XML(char *xml_filename)
 
                         init_tree = XML_Get_Attribute_Value(instance,"init.tree");
                         
+                        if(!init_tree)
+                          {
+                            PhyML_Printf("\n== Attribute 'init.tree=bionj/user/random' is mandatory");
+                            PhyML_Printf("\n== Please amend your XML file accordingly.");
+                            Exit("\n");
+                          }
+
                         if(!strcmp(init_tree,"user") || 
                            !strcmp(init_tree,"User"))
                           {
@@ -5027,7 +5033,9 @@ void PhyML_XML(char *xml_filename)
 		    else if(!strcmp(parent->name,"siterates"))
 		      {
 			char *rate_value = NULL;			
-			scalar_dbl *r;
+			/* scalar_dbl *r; */
+                        phydbl r;
+                        phydbl val;
 
 			/*! First time we process this 'siterates' node, check that its format is valid.
                           and process it afterwards.
@@ -5086,8 +5094,6 @@ void PhyML_XML(char *xml_filename)
 					      iomod->s_opt->opt_alpha = NO;
 					    }
 					}
-
-
 				      
 				      iomod->ras->n_catg = XML_Siterates_Number_Of_Classes(parent);
 				      
@@ -5222,16 +5228,16 @@ void PhyML_XML(char *xml_filename)
 			
 			rate_value = XML_Get_Attribute_Value(instance,"value");
 
+                        val  = String_To_Dbl(rate_value);
+
 			if(instance->ds->obj == NULL) 
 			  {
-			    r = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
-			    Init_Scalar_Dbl(r);
-			    r->v = String_To_Dbl(rate_value);
-			    instance->ds->obj = (scalar_dbl *)r;
+                            r = val;
+			    instance->ds->obj = (phydbl *)(&r);
 			  }
 			else
 			  {
-			    r = (scalar_dbl *)instance->ds->obj;
+			    r = *((phydbl *)instance->ds->obj);
 			  }
 		       
 
@@ -5239,13 +5245,13 @@ void PhyML_XML(char *xml_filename)
                           to connect ras->gamma_rr or ras->p_invar */
 
 			/*! Invariant */
-			if(Are_Equal(r->v,0.0,1E-20)) 
+			if(Are_Equal(val,0.0,1E-20)) 
 			  {
 			    mod->ras->invar = YES;
 			  }
 			else
 			  {
-			    iomod->ras->gamma_rr->v[class_number] = r->v;
+			    iomod->ras->gamma_rr->v[class_number] = r;
 			    mod->ras->parent_class_number = class_number;
 			    class_number++;
 			  }
@@ -5281,12 +5287,33 @@ void PhyML_XML(char *xml_filename)
 			
                         if(instance->ds->obj == NULL)
 			  {
-			    lens = (scalar_dbl **)mCalloc(2*tree->n_otu-3,sizeof(scalar_dbl *));
-			    For(i,2*tree->n_otu-3)
+			    if(!lens) 
+                              {
+                                ori_lens = (scalar_dbl **)mCalloc(2*tree->n_otu-2,sizeof(scalar_dbl *));
+                                lens = ori_lens;
+                                lens_size = 2*tree->n_otu-2;
+                              }
+                            else
+                              {
+                                ori_lens = (scalar_dbl **)mRealloc(ori_lens,2*tree->n_otu-2+lens_size,sizeof(scalar_dbl *));
+                                lens = ori_lens + lens_size;;
+                                lens_size += 2*tree->n_otu-2;
+                              }
+
+                            For(i,2*tree->n_otu-2)
 			      {
 			    	lens[i] = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
 			    	Init_Scalar_Dbl(lens[i]);
                                 Free(tree->a_edges[i]->l);
+
+                                if(tree->prev && tree->prev->a_edges[i]->l == mixt_tree->a_edges[i]->l)
+                                  {
+                                    PhyML_Printf("\n== %p %p",tree->a_edges[i]->l,mixt_tree->a_edges[i]->l);
+                                    PhyML_Printf("\n== Only one set of edge lengths is allowed ");
+                                    PhyML_Printf("\n== in a 'partitionelem'. Please fix your XML file.");
+                                    Exit("\n");
+                                  }
+
                                 Free(mixt_tree->a_edges[i]->l);
 			      }
 			    			    
@@ -5304,8 +5331,8 @@ void PhyML_XML(char *xml_filename)
 			    Exit("\n");
 			  }
 
-			For(i,2*tree->n_otu-3) tree->a_edges[i]->l      = lens[i];
-			For(i,2*tree->n_otu-3) mixt_tree->a_edges[i]->l = lens[i];
+			For(i,2*tree->n_otu-2) tree->a_edges[i]->l      = lens[i];
+			For(i,2*tree->n_otu-2) mixt_tree->a_edges[i]->l = lens[i];
                       }
 
 
@@ -5338,6 +5365,7 @@ void PhyML_XML(char *xml_filename)
     }
   while(1);
 
+  Free(ori_lens);
   while(io->prev != NULL) io = io->prev;
   while(mixt_tree->prev != NULL) mixt_tree = mixt_tree->prev;
 
@@ -5347,17 +5375,16 @@ void PhyML_XML(char *xml_filename)
   bl = XML_Search_Node_Name("branchlengths",YES,root);
   if(!bl)
     {
-      lens = (scalar_dbl **)mCalloc(2*mixt_tree->n_otu-3,sizeof(scalar_dbl *));
-      For(i,2*mixt_tree->n_otu-3)
+      lens = (scalar_dbl **)mCalloc(2*mixt_tree->n_otu-2,sizeof(scalar_dbl *));
+      For(i,2*mixt_tree->n_otu-2)
 	{
 	  lens[i] = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
 	  Init_Scalar_Dbl(lens[i]);
 	}            
-
       tree = mixt_tree;
       do
 	{
-	  For(i,2*tree->n_otu-3) Free(tree->a_edges[i]->l);
+	  For(i,2*tree->n_otu-2) Free(tree->a_edges[i]->l);
 	  if(tree->child) tree = tree->child;
 	  else            tree = tree->next;
 	}while(tree);
@@ -5365,7 +5392,7 @@ void PhyML_XML(char *xml_filename)
       tree = mixt_tree;
       do
 	{
-	  For(i,2*tree->n_otu-3) tree->a_edges[i]->l = lens[i];
+	  For(i,2*tree->n_otu-2) tree->a_edges[i]->l = lens[i];
 	  if(tree->child) tree = tree->child;
 	  else            tree = tree->next;
 	}while(tree);      
@@ -5448,6 +5475,9 @@ void PhyML_XML(char *xml_filename)
             }
           
           Copy_Tree(tree,mixt_tree);
+          Free_Tree(tree);
+          Free_Tree(bionj_tree);
+
           if(io->mod->s_opt->random_input_tree) 
             {
               PhyML_Printf("\n\n. [%3d/%3d]",num_rand_tree+1,io->mod->s_opt->n_rand_starts);
@@ -5480,20 +5510,12 @@ void PhyML_XML(char *xml_filename)
           tree = tree->next;
         }
       while(tree);
-      
-      
+           
+      Prepare_Tree_For_Lk(mixt_tree);
+      Br_Len_Not_Involving_Invar(mixt_tree);
+      Unscale_Br_Len_Multiplier_Tree(mixt_tree);
 
-      /*! Connect edges of every tree to next, prev & child
-        ! edges in the corresponding trees */
-      tree = mixt_tree;
-      do
-        {
-          MIXT_Connect_Edges_To_Next_Prev_Child_Parent(tree);
-          MIXT_Connect_Nodes_To_Next_Prev_Child_Parent(tree);
-          if(tree->child) tree = tree->child;
-          else            tree = tree->next;
-        }
-      while(tree);
+      MIXT_Chain_All(mixt_tree);
       
       /*! Check that all the edges in a mixt_tree at pointing
         to a single set of lengths
@@ -5505,7 +5527,8 @@ void PhyML_XML(char *xml_filename)
           tree = tree->next;
         }
       while(tree);
-      
+                  
+
       /*! Turn all branches to ON state */
       tree = mixt_tree;
       do
@@ -5514,22 +5537,7 @@ void PhyML_XML(char *xml_filename)
           tree = tree->next;
         }
       while(tree);
-            
-      Prepare_Tree_For_Lk(mixt_tree);
-      Br_Len_Not_Involving_Invar(mixt_tree);
-      Unscale_Br_Len_Multiplier_Tree(mixt_tree);
-      
-      /*! Connect SPRs of every tree to next, prev & child
-        ! edges in the corresponding trees */
-      tree = mixt_tree;
-      do
-        {
-          MIXT_Connect_Sprs_To_Next_Prev_Child_Parent(tree);
-          if(tree->child) tree = tree->child;
-          else            tree = tree->next;
-        }
-      while(tree);
-      
+
       /* TO DO
          
          1) REMOVE ROOT
@@ -5582,6 +5590,7 @@ void PhyML_XML(char *xml_filename)
         }
       while(tree);
             
+
       if(mixt_tree->mod->s_opt->opt_topo)
         {
           if(mixt_tree->mod->s_opt->topo_search      == NNI_MOVE) Simu_Loop(mixt_tree);
@@ -5594,7 +5603,7 @@ void PhyML_XML(char *xml_filename)
              mixt_tree->mod->s_opt->opt_bl)                       Round_Optimize(mixt_tree,mixt_tree->data,ROUND_MAX);
           else                                                    Lk(NULL,mixt_tree);
         }
-                  
+
       if((num_rand_tree == io->mod->s_opt->n_rand_starts-1) && (io->mod->s_opt->random_input_tree))
         {
           num_rand_tree--;
@@ -5638,6 +5647,42 @@ void PhyML_XML(char *xml_filename)
   if(!mixt_tree->io->quiet) PhyML_Printf("\n\n. Printing the most likely tree in file '%s'...\n", Basename(mixt_tree->io->out_tree_file));
   PhyML_Fprintf(mixt_tree->io->fp_out_tree,"%s\n",most_likely_tree);
   Free(component);
+
+  /*! Bootstrap analysis */
+  MIXT_Bootstrap(most_likely_tree,root);
+
+  while(io->prev != NULL) io = io->prev;
+
+
+  Free(most_likely_tree);
+
+  tree = mixt_tree;
+  do
+    {
+      Free_Cseq(tree->data);
+      tree = tree->next;
+    }
+  while(tree);
+
+  tree = mixt_tree;
+  do
+    {
+      Free_Optimiz(tree->mod->s_opt);
+      if(tree->child) tree = tree->child;
+      else            tree = tree->next;
+    }
+  while(tree);
+
+  Free_Custom_Model(mixt_tree->mod);
+  Free_Spr_List(mixt_tree);
+  Free_One_Spr(mixt_tree->best_spr);
+  Free_Tree_Pars(mixt_tree);
+  Free_Tree_Lk(mixt_tree);
+  Free_Triplet(mixt_tree->triplet_struct);
+  Free_Model_Basic(mixt_tree->mod);
+  Free_Model_Complete(mixt_tree->mod);
+  Free_Tree(mixt_tree);
+  Free_Input(io);
   XML_Free_XML_Tree(root);
 
   fclose(fp);

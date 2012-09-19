@@ -1882,7 +1882,6 @@ phydbl Return_Abs_Lk(t_tree *tree)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
 matrix *ML_Dist(calign *data, t_mod *mod)
 {
   int i,j,k,l;
@@ -1907,13 +1906,11 @@ matrix *ML_Dist(calign *data, t_mod *mod)
   tmpdata->crunch_len = data->crunch_len;
   tmpdata->init_len   = data->init_len;
 
-
   mat = NULL;
   if(mod->io->datatype == NT) mat = (mod->whichmodel < 10)?(K80_dist(data,1E+6)):(JC69_Dist(data,mod));
   else if(mod->io->datatype == AA) mat = JC69_Dist(data,mod);
   else if(mod->io->datatype == GENERIC) mat = JC69_Dist(data,mod);
    
-
   For(i,mod->ras->n_catg) /* Don't use the discrete gamma distribution */
     {
       mod->ras->gamma_rr->v[i]      = 1.0;

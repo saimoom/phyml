@@ -18,9 +18,8 @@ the GNU public licence. See http://www.opensource.org for details.
 void Make_Tree_4_Pars(t_tree *tree, calign *cdata, int n_site)
 {
   int i;
-  
-  tree->site_pars = (int *)mCalloc(tree->n_pattern, sizeof(int));
-  tree->step_mat = (int *)mCalloc(tree->mod->ns * tree->mod->ns, sizeof(int));
+  tree->site_pars = (int *)mCalloc(tree->n_pattern,sizeof(int));
+  tree->step_mat = (int *)mCalloc(tree->mod->ns * tree->mod->ns,sizeof(int));
   For(i,2*tree->n_otu-3) Make_Edge_Pars(tree->a_edges[i],tree);
   Init_Ui_Tips(tree);
   Init_P_Pars_Tips(tree); /* Must be called after Init_Ui_Tips is called */
@@ -181,7 +180,6 @@ void Make_Edge_Lk(t_edge *b, t_tree *tree)
       b->p_lk_rght = NULL;      
       b->p_lk_tip_r  = (short int *)mCalloc(tree->data->crunch_len*tree->mod->ns,sizeof(short int));
     }
-
   b->patt_id_left  = (int *)mCalloc(tree->data->crunch_len,sizeof(int));
   b->patt_id_rght  = (int *)mCalloc(tree->data->crunch_len,sizeof(int));
   b->p_lk_loc_left = (int *)mCalloc(tree->data->crunch_len,sizeof(int));
@@ -191,7 +189,6 @@ void Make_Edge_Lk(t_edge *b, t_tree *tree)
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
-
 
 void Make_Edge_NNI(t_edge *b)
 {
@@ -213,6 +210,8 @@ nni *Make_NNI()
   return a_nni;
 }
 
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
 
 t_node *Make_Node_Light(int num)
 {
@@ -283,7 +282,7 @@ matrix *Make_Mat(int n_otu)
   int i;
 
   mat = (matrix *)mCalloc(1,sizeof(matrix));
-
+  
   mat->n_otu = n_otu;
 
   mat->P        = (phydbl **)mCalloc(n_otu,sizeof(phydbl *));
@@ -455,15 +454,31 @@ void Make_Custom_Model(t_mod *mod)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
+t_string *Make_String(int len)
+{
+  t_string *ts;
+
+  ts = (t_string *)mCalloc(1,sizeof(t_string));
+  ts->s = (char *)mCalloc(len,sizeof(char));
+
+  return(ts);
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
 
 t_mod *Make_Model_Basic()
 {
   t_mod *mod;
 
   mod                         = (t_mod *)mCalloc(1,sizeof(t_mod));
-  mod->modelname              = (char *)mCalloc(T_MAX_NAME,sizeof(char));
-  mod->custom_mod_string      = (char *)mCalloc(T_MAX_OPTION,sizeof(char));
   
+  mod->modelname = Make_String(T_MAX_NAME);
+  Init_String(mod->modelname);
+
+  mod->custom_mod_string = Make_String(T_MAX_NAME);
+  Init_String(mod->custom_mod_string);
+
   mod->ras = Make_RAS_Basic();
  
   mod->Pij_rr                 = (vect_dbl *)mCalloc(1,sizeof(vect_dbl));
@@ -480,18 +495,6 @@ t_mod *Make_Model_Basic()
 
   mod->ras->pinvar            = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
   Init_Scalar_Dbl(mod->ras->pinvar);
-
-  mod->ras->alpha_old         = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
-  Init_Scalar_Dbl(mod->ras->alpha_old);
-
-  mod->kappa_old              = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
-  Init_Scalar_Dbl(mod->kappa_old);
-
-  mod->lambda_old             = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
-  Init_Scalar_Dbl(mod->lambda_old);
-
-  mod->ras->pinvar_old        = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
-  Init_Scalar_Dbl(mod->ras->pinvar_old);
 
   mod->br_len_multiplier      = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
   Init_Scalar_Dbl(mod->br_len_multiplier);
@@ -572,8 +575,6 @@ t_ras *Make_RAS_Basic()
   Init_Vect_Dbl(0,ras->gamma_rr_unscaled);
   ras->gamma_rr_unscaled->v = NULL;
   
-  ras->next = NULL;
-
   return(ras);
 }
 
@@ -610,7 +611,7 @@ t_efrq *Make_Efrq(int ns)
   e_frq->pi_unscaled->len = ns;
   
   e_frq->mixt_weight = 1.; // Should be in a separate init function...
-  e_frq->next = NULL; // same
+  
   return e_frq;
 }
 
@@ -646,8 +647,6 @@ t_rmat *Make_Rmat(int ns)
 
   r_mat->mixt_weight = 1.;
   
-  r_mat->next = NULL;
-
   return(r_mat);
 }
 
@@ -750,6 +749,7 @@ triplet *Make_Triplet_Struct(t_mod *mod)
       For(j,mod->ns)
 	triplet_struct->sum_p_one_site[i][j] = (phydbl  *)mCalloc(mod->ns,sizeof(phydbl ));
     }
+
   return triplet_struct;
 
 }
@@ -790,7 +790,7 @@ xml_attr *XML_Make_Attribute(xml_attr *prev, char *attr_name, char *attr_value)
 
 void XML_Make_Node_Id(xml_node *n, char *id)
 {
-  n->id = (char *)mCalloc(strlen(id)+1,sizeof(char));
+  if(id) n->id = (char *)mCalloc(strlen(id)+1,sizeof(char));
 }
 
 //////////////////////////////////////////////////////////////
@@ -798,7 +798,7 @@ void XML_Make_Node_Id(xml_node *n, char *id)
 
 void XML_Make_Node_Value(xml_node *n, char *val)
 {
-  n->value = (char *)mCalloc(strlen(val)+1,sizeof(char));
+  if(val) n->value = (char *)mCalloc(strlen(val)+1,sizeof(char));
 }
 
 //////////////////////////////////////////////////////////////
@@ -814,9 +814,9 @@ xml_node *XML_Make_Node(char *name)
     {
       new_node->name = (char *)mCalloc(strlen(name)+1,sizeof(char));
     }
-  
-  new_node->ds = (t_ds *)mCalloc(1,sizeof(t_ds));
 
+  new_node->ds = (t_ds *)mCalloc(1,sizeof(t_ds));
+  
   return new_node;
 }
 
@@ -837,6 +837,7 @@ void Make_Spr_List(t_tree *tree)
   int i;
 
   tree->size_spr_list = 2*tree->n_otu-3;
+  
   tree->spr_list = (t_spr **)mCalloc(2*tree->n_otu-2,sizeof(t_spr *));
 
   For(i,2*tree->n_otu-2)

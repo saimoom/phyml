@@ -719,6 +719,13 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
       else                                    result = 4; //lk2 > lk1 > lk0
     }
 
+
+  Free(len_e1);
+  Free(len_e2);
+  Free(len_e3);
+  Free(len_e4);
+  Free(bl_init);
+
   return result;
 }
 

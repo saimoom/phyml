@@ -286,13 +286,13 @@ void Clean_SPR (t_tree *tree)
   Free_Node (v_tmp->v[1]);
   Free_Node (v_tmp->v[2]);
   v_tmp->b[0]->p_lk_rght = NULL;
-  Free_Edge_Lk (tree, v_tmp->b[0]);
+  Free_Edge_Lk (v_tmp->b[0]);
   Free_Edge (v_tmp->b[0]);
   v_tmp->b[1]->p_lk_rght = NULL;
-  Free_Edge_Lk(tree, v_tmp->b[1]);
+  Free_Edge_Lk(v_tmp->b[1]);
   Free_Edge(v_tmp->b[1]);
   v_tmp->b[2]->p_lk_rght = NULL;
-  Free_Edge_Lk (tree, v_tmp->b[2]);
+  Free_Edge_Lk (v_tmp->b[2]);
   Free_Edge (v_tmp->b[2]);
   Free_Node (v_tmp);
   v_tmp = NULL;
@@ -304,7 +304,7 @@ void Clean_SPR (t_tree *tree)
   Free_Node (e_brent->rght);
   e_brent->p_lk_left = NULL;
   e_brent->p_lk_rght = NULL;
-  Free_Edge_Lk (tree, e_brent);
+  Free_Edge_Lk (e_brent);
   Free_Edge (e_brent);
   e_brent = NULL;
 
@@ -3628,7 +3628,6 @@ void Speed_Spr_Loop(t_tree *tree)
 	  
   Optimiz_All_Free_Param(tree,(tree->io->quiet)?(0):(tree->mod->s_opt->print));
   tree->best_lnL = tree->c_lnL;
-
  
   /*****************************/
   lk_old = UNLIKELY;
@@ -4665,10 +4664,10 @@ void SPR_Shuffle(t_tree *mixt_tree)
   while(tree);
 
 
-  /* /\*! Reset the mod->invar to their original values  */
-  /*  *\/ */
-  /* MIXT_Reset_Has_Invariants(orig_inv,mixt_tree); */
-  /* Free(orig_inv); */
+  /*! Reset the mod->invar to their original values
+   */
+  MIXT_Reset_Has_Invariants(orig_inv,mixt_tree);
+  Free(orig_inv);
 
 }
 
