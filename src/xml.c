@@ -310,7 +310,7 @@ int XML_Parse_Element(FILE *fp, xml_node *n)
 	    }
 	}
 
-      printf("\n. Setting attribute '%s=%s' to node '%s'",name,value,n->name);
+      /* printf("\n. Setting attribute '%s=%s' to node '%s'",name,value,n->name); */
       XML_Set_Attribute(n,name,value);
 
       if(c == '>') break;
@@ -358,6 +358,7 @@ int XML_Set_Attribute(xml_node *n, char *attr_name, char *attr_value)
     }
 
   n->attr = XML_Make_Attribute(prev,attr_name,attr_value);
+  XML_Init_Attribute(n->attr);
   n->n_attr++;
 
   // rewind
@@ -581,7 +582,11 @@ int XML_Validate_Attr_Int(char *target, int num, ...)
     {
       s = va_arg(args, char *); 
       sc_s = To_Lower_String(s);
-      if(!strcmp(sc_s,sc_target)) break;
+      if(!strcmp(sc_s,sc_target)) 
+        {
+          Free(sc_s);
+          break;
+        }
       Free(sc_s);
     }
   va_end(args);
@@ -592,8 +597,6 @@ int XML_Validate_Attr_Int(char *target, int num, ...)
       PhyML_Printf("\n== Attribute value '%s' is not valid",target);
       Exit("\n");
     }
-
-
 
   Free(sc_target);
 
@@ -815,19 +818,30 @@ void XML_Copy_XML_Node(xml_node *cpy_root, xml_node *root)
   xml_attr *attr,*cpy_attr;
   int i;
 
-  strcpy(cpy_root->id,root->id);
   strcpy(cpy_root->name,root->name);
-  strcpy(cpy_root->value,root->value);
+
+  XML_Make_Node_Id(cpy_root,root->id);  
+  if(root->id) strcpy(cpy_root->id,root->id);
+
+  XML_Make_Node_Value(cpy_root,root->value);
+  if(root->value) strcpy(cpy_root->value,root->value);
+
   cpy_root->n_attr = root->n_attr;
 
-  cpy_root->attr = XML_Make_Attribute(NULL,root->attr->name,root->attr->value);
-  attr           = root->attr;
-  cpy_attr       = cpy_root->attr;
-  while(attr && attr->next)
+  if(root->attr)
     {
-      cpy_attr->next = XML_Make_Attribute(cpy_attr,attr->next->name,attr->next->value);
-      attr           = attr->next;
-      cpy_attr       = cpy_attr->next;
+      cpy_root->attr = XML_Make_Attribute(NULL,root->attr->name,root->attr->value);
+      XML_Init_Attribute(cpy_root->attr);
+      attr           = root->attr;
+      cpy_attr       = cpy_root->attr;
+      while(attr->next)
+        {
+          fflush(NULL);
+          cpy_attr->next = XML_Make_Attribute(cpy_attr,attr->next->name,attr->next->value);
+          XML_Init_Attribute(cpy_attr->next);
+          attr           = attr->next;
+          cpy_attr       = cpy_attr->next;
+        }
     }
    
   if(root->child)
@@ -864,7 +878,7 @@ void XML_Write_XML_Node(FILE *fp, int *indent, xml_node *root)
   int i;
 
   s = (char *)mCalloc((*indent)+1,sizeof(char));
-  For(i,(*indent)) s[i]=' ';
+  For(i,(*indent)) s[i]='\t';
   s[i]='\0';
 
 
@@ -888,7 +902,7 @@ void XML_Write_XML_Node(FILE *fp, int *indent, xml_node *root)
       (*indent)++;
       PhyML_Fprintf(fp,">");
       XML_Write_XML_Node(fp,indent,n->child);
-      PhyML_Fprintf(fp,"\n%s</%s>",s,n->name);
+      PhyML_Fprintf(fp,"\n%s</%s>\n",s,n->name);
       (*indent)--;
     }
   else

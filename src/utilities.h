@@ -288,31 +288,48 @@ typedef	double phydbl;
 /*!********************************************************/
 
 typedef struct __Scalar_Int {
-  int v;
+  int                      v;
+  struct __Scalar_Int  *next;
+  struct __Scalar_Int  *prev;
 }scalar_int;
 
 
 /*!********************************************************/
 
 typedef struct __Scalar_Dbl {
-  phydbl v;
-  bool onoff;
+  phydbl                  v;
+  bool                onoff;
+  struct __Scalar_Dbl *next;
+  struct __Scalar_Dbl *prev;
 }scalar_dbl;
 
 /*!********************************************************/
 
 typedef struct __Vect_Int {
-  int *v;
-  int len;
+  int                  *v;
+  int                 len;
+  struct __Vect_Int *next;
+  struct __Vect_Int *prev;
 }vect_int;
 
 
 /*!********************************************************/
 
 typedef struct __Vect_Dbl {
-  phydbl *v;
-  int len;
+  phydbl               *v;
+  int                 len;
+  struct __Vect_Dbl *next;
+  struct __Vect_Dbl *prev;
 }vect_dbl;
+
+/*!********************************************************/
+
+typedef struct __String {
+  char                 *s;
+  int                 len;
+  struct __String   *next;
+  struct __String   *prev;
+}t_string;
 
 /*!********************************************************/
 
@@ -718,7 +735,7 @@ typedef struct __RateMatrix {
   phydbl               mixt_weight;
 
   struct __RateMatrix        *next;
-
+  struct __RateMatrix        *prev;
 }t_rmat;
 
 /*!********************************************************/
@@ -733,14 +750,13 @@ typedef struct __RAS {
   vect_dbl               *gamma_rr; /*! substitution rates defined by the RAS distribution */
   vect_dbl      *gamma_rr_unscaled; /*! substitution rates defined by the RAS distribution (unscaled) */
   scalar_dbl                *alpha; /*! gamma shapa parameter */
-  scalar_dbl            *alpha_old;
   int              free_mixt_rates;  
   phydbl               mixt_weight;
   int          parent_class_number;
   scalar_dbl               *pinvar; /*! proportion of invariable sites */
-  scalar_dbl           *pinvar_old; /*! proportion of invariable sites */
 
   struct __RAS               *next;
+  struct __RAS               *prev;
 
 }t_ras;
 
@@ -752,7 +768,8 @@ typedef struct __EquFreq {
   vect_dbl  *pi_unscaled; /*! states frequencies (unscaled) */
   phydbl     mixt_weight;
 
-  struct __EquFreq *next;
+  struct __EquFreq   *next;
+  struct __EquFreq   *prev;
 
 }t_efrq;
 
@@ -772,8 +789,8 @@ typedef struct __Model {
   struct __RAS                *ras;
 
   vect_dbl            *user_b_freq; /*! user-defined nucleotide frequencies */
-  char                  *modelname;
-  char          *custom_mod_string; /*! string of characters used to define custom models of substitution */
+  t_string              *modelname;
+  t_string      *custom_mod_string; /*! string of characters used to define custom models of substitution */
 
   int                      mod_num; /*! model number */
 
@@ -788,9 +805,6 @@ typedef struct __Model {
 
   scalar_dbl                *kappa; /*! transition/transversion rate */
   scalar_dbl               *lambda; /*! parameter used to define the ts/tv ratios in the F84 and TN93 models */
-  scalar_dbl            *kappa_old;
-  scalar_dbl           *lambda_old;
-  scalar_dbl           *pinvar_old;
   scalar_dbl    *br_len_multiplier;
 
   vect_dbl                 *Pij_rr; /*! matrix of change probabilities */
@@ -815,6 +829,9 @@ typedef struct __Eigen{
   phydbl      *r_e_vect; /*! right eigen vector (matrix), real part */
   phydbl   *r_e_vect_im; /*! right eigen vector (matrix), imaginary part */
   phydbl      *l_e_vect; /*! left eigen vector (matrix), real part */
+
+  struct __Eigen  *prev;
+  struct __Eigen  *next;
 }eigen;
 
 /*!********************************************************/
@@ -1054,6 +1071,9 @@ typedef struct __Triplet{
   phydbl *pi_bd;
   struct __Eigen *eigen_struct;
   struct __Model *mod;
+
+  struct __Triplet *next;
+  struct __Triplet *prev;
 }triplet;
 
 /*!********************************************************/

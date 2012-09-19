@@ -648,7 +648,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		   )
 		  {
 		    io->mod->whichmodel = HKY85;
-		    strcpy(io->mod->modelname, "HKY85\0");
+		    strcpy(io->mod->modelname->s, "HKY85\0");
 		  }
 	      }
 	    else if (!strcmp(optarg,"aa"))
@@ -670,7 +670,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		   )
 		  {
 		    io->mod->whichmodel = LG;
-		    strcpy(io->mod->modelname, "LG\0");
+		    strcpy(io->mod->modelname->s, "LG\0");
 		  }
 	      }
 	    else if ((!strcmp(optarg,"generic")) || (!strcmp(optarg,"gen")))
@@ -696,9 +696,9 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	    
 	    if(!isalpha(optarg[0]))
 	      {
-		strcpy(io->mod->custom_mod_string,optarg);
+		strcpy(io->mod->custom_mod_string->s,optarg);
 		
-		if(strlen(io->mod->custom_mod_string) != 6)
+		if(strlen(io->mod->custom_mod_string->s) != 6)
 		  {
 		    Warn_And_Exit("\n. The string should be of length 6.\n");
 		  }
@@ -710,7 +710,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
 		
 		io->datatype              = NT;
 		io->mod->whichmodel       = CUSTOM;
-		strcpy(io->mod->modelname, "custom");
+		strcpy(io->mod->modelname->s, "custom");
 		io->mod->s_opt->opt_kappa = NO;
 		io->mod->s_opt->opt_rr    = YES;
 	      }

@@ -52,5 +52,25 @@ void MIXT_Check_Single_Edge_Lens(t_tree *mixt_tree);
 void MIXT_Update_Eigen(t_mod *mixt_mod);
 int MIXT_Pars(t_edge *mixt_b, t_tree *mixt_tree);
 void MIXT_Set_Pars_Thresh(t_tree *mixt_tree);
+void MIXT_Bootstrap(char *best_tree, xml_node *root);
+void MIXT_Connect_Rmat_To_Next_Prev_Child_Parent(t_tree *tree);
+void MIXT_Connect_Efrq_To_Next_Prev_Child_Parent(t_tree *tree);
+void MIXT_Connect_RAS_To_Next_Prev_Child_Parent(t_tree *tree);
+void MIXT_Connect_Edge_Lens_To_Next_Prev_Child_Parent(t_tree *tree);
+void MIXT_Connect_Modelname_To_Next_Prev_Child_Parent(t_tree *tree);
+void MIXT_Connect_Custom_Mod_String_To_Next_Prev_Child_Parent(t_tree *tree);
+void MIXT_Chain_All(t_tree *mixt_tree);
+void MIXT_Chain_String(t_string *curr, t_string *next);
+void MIXT_Chain_Scalar_Dbl(scalar_dbl *curr, scalar_dbl *next);
+void MIXT_Chain_Edges(t_edge *curr, t_edge *next, int child);
+void MIXT_Chain_Nodes(t_node *curr, t_node *next, int child);
+void MIXT_Chain_Rmat(t_rmat *curr, t_rmat *next);
+void MIXT_Chain_Rmat(t_rmat *curr, t_rmat *next);
+void MIXT_Chain_Efrq(t_efrq *curr, t_efrq *next);
+void MIXT_Chain_RAS(t_ras *curr, t_ras *next);
+void MIXT_Chain_Spr(t_spr *curr, t_spr *next, int child);
+void MIXT_Chain_Triplet(triplet *curr, triplet *next);
+void MIXT_Chain_Eigen(eigen *curr, eigen *next);
+void MIXT_Chain_Vector_Dbl(vect_dbl *curr, vect_dbl *next);
 
 #endif

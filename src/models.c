@@ -710,7 +710,7 @@ void Translate_Custom_Mod_String(t_mod *mod)
     {
       For(j,i)
 	{
-	  if((mod->custom_mod_string[i] == mod->custom_mod_string[j]))
+	  if((mod->custom_mod_string->s[i] == mod->custom_mod_string->s[j]))
 	    {
 	      break;
 	    }

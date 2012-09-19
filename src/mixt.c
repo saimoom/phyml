@@ -17,55 +17,433 @@ int n_sec1 = 0;
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-void MIXT_Connect_Edges_To_Next_Prev_Child_Parent(t_tree *tree)
+void MIXT_Chain_All(t_tree *mixt_tree)
 {
+  t_tree *curr,*next;
   int i;
-  t_edge *b;
 
-  For(i,2*tree->n_otu-3)
+  curr = mixt_tree;
+  next = mixt_tree->child;
+
+  do
     {
-      b = tree->a_edges[i];
+      MIXT_Chain_String(curr->mod->modelname,next->mod->modelname);      
+      MIXT_Chain_String(curr->mod->custom_mod_string,next->mod->custom_mod_string);            
+      MIXT_Chain_Scalar_Dbl(curr->mod->kappa,next->mod->kappa);            
+      MIXT_Chain_Scalar_Dbl(curr->mod->lambda,next->mod->lambda);
+      MIXT_Chain_Scalar_Dbl(curr->mod->br_len_multiplier,next->mod->br_len_multiplier);            
+      MIXT_Chain_Scalar_Dbl(curr->mod->mr,next->mod->mr);
+      MIXT_Chain_Vector_Dbl(curr->mod->Pij_rr,next->mod->Pij_rr);    
+      MIXT_Chain_Vector_Dbl(curr->mod->user_b_freq,next->mod->user_b_freq);
+      For(i,2*mixt_tree->n_otu-2) MIXT_Chain_Scalar_Dbl(curr->a_edges[i]->l,next->a_edges[i]->l);
+      For(i,2*mixt_tree->n_otu-2) MIXT_Chain_Scalar_Dbl(curr->a_edges[i]->l_old,next->a_edges[i]->l_old);
+      For(i,2*mixt_tree->n_otu-2) MIXT_Chain_Edges(curr->a_edges[i],next->a_edges[i],next == curr->child);
+      For(i,2*mixt_tree->n_otu-1) MIXT_Chain_Nodes(curr->a_nodes[i],next->a_nodes[i],next == curr->child);
+      For(i,2*mixt_tree->n_otu-2) MIXT_Chain_Spr(curr->spr_list[i],next->spr_list[i],next == curr->child);
+      MIXT_Chain_Triplet(curr->triplet_struct,next->triplet_struct);
+      MIXT_Chain_Rmat(curr->mod->r_mat,next->mod->r_mat);            
+      MIXT_Chain_RAS(curr->mod->ras,next->mod->ras);            
+      MIXT_Chain_Efrq(curr->mod->e_frq,next->mod->e_frq);            
+      MIXT_Chain_Eigen(curr->mod->eigen,next->mod->eigen);            
 
-      if(tree->next)   b->next   = tree->next->a_edges[i];
-      if(tree->prev)   b->prev   = tree->prev->a_edges[i];
-      if(tree->child)  b->child  = tree->child->a_edges[i];
-      if(tree->parent) b->parent = tree->parent->a_edges[i];
+      curr = next;
+      next = curr->child ? curr->child : curr->next;
+    }
+  while(next);
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void MIXT_Chain_String(t_string *curr, t_string *next)
+{
+  if(!next)
+    {
+      PhyML_Printf("\n== Err in file %s at line %d\n\n",__FILE__,__LINE__);
+      Exit("\n");
+    }
+  else
+    {
+      t_string *buff;
+
+      curr->next = NULL;
+      if(next) next->prev = NULL;
+
+      buff = curr;
+      while(buff)
+        {
+          if(buff == next) break;
+          buff = buff->prev;
+        }
+      
+      if(!buff) 
+        {
+          curr->next = next;
+          next->prev = curr;
+        }
     }
 }
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-void MIXT_Connect_Nodes_To_Next_Prev_Child_Parent(t_tree *tree)
+void MIXT_Chain_Vector_Dbl(vect_dbl *curr, vect_dbl *next)
 {
-  int i;
-  t_node *n;
-
-  For(i,2*tree->n_otu-2)
+  if(!next)
     {
-      n = tree->a_nodes[i];
+      PhyML_Printf("\n== Err in file %s at line %d\n\n",__FILE__,__LINE__);
+      Exit("\n");
+    }
+  else
+    {
+      vect_dbl *buff;
 
-      if(tree->next)   n->next   = tree->next->a_nodes[i];
-      if(tree->prev)   n->prev   = tree->prev->a_nodes[i];
-      if(tree->child)  n->child  = tree->child->a_nodes[i];
-      if(tree->parent) n->parent = tree->parent->a_nodes[i];
+      curr->next = NULL;
+      if(next) next->prev = NULL;
+
+      buff = curr;
+      while(buff)
+        {
+          if(buff == next) break;
+          buff = buff->prev;
+        }
+      
+      if(!buff) 
+        {
+          curr->next = next;
+          next->prev = curr;
+        }
     }
 }
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-void MIXT_Connect_Sprs_To_Next_Prev_Child_Parent(t_tree *tree)
+void MIXT_Chain_Scalar_Dbl(scalar_dbl *curr, scalar_dbl *next)
 {
-  int i;
-
-  For(i,2*tree->n_otu-2)
+  if(!next)
     {
-      if(tree->next)   tree->spr_list[i]->next   = tree->next->spr_list[i];
-      if(tree->prev)   tree->spr_list[i]->prev   = tree->prev->spr_list[i];
-      if(tree->child)  tree->spr_list[i]->child  = tree->child->spr_list[i];
-      if(tree->parent) tree->spr_list[i]->parent = tree->parent->spr_list[i];
-    }    
+      return;
+    }
+  else
+    {
+      scalar_dbl *buff;
+
+      curr->next = NULL;
+      if(next) next->prev = NULL;
+
+      buff = curr;
+      while(buff)
+        {
+          if(buff == next) break;
+          buff = buff->prev;
+        }
+      
+      if(!buff) 
+        {
+          curr->next = next;
+          next->prev = curr;
+        }
+    }
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void MIXT_Chain_Edges(t_edge *curr, t_edge *next, int child)
+{
+  if(!next)
+    {
+      return;
+    }
+  else
+    {
+      t_edge *buff;
+
+      if(child)
+        {
+          curr->child = NULL;
+          if(next) next->parent = NULL;
+        }
+      else
+        {
+          curr->next = NULL;
+          if(next) next->prev = NULL;
+        }
+
+      buff = curr;
+      while(buff)
+        {
+          if(buff == next) break;
+          if(buff->parent) buff = buff->parent;
+          else             buff = buff->prev;
+        }
+      
+      if(!buff) 
+        {
+          if(child == YES)
+            {
+              curr->child  = next;
+              next->parent = curr;
+            }
+          else
+            {
+              curr->next = next;
+              next->prev = curr;
+            }
+        }
+    }
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void MIXT_Chain_Nodes(t_node *curr, t_node *next, int child)
+{
+  if(!next)
+    {
+      return;
+    }
+  else
+    {
+      t_node *buff;
+
+      if(child)
+        {
+          curr->child = NULL;
+          if(next) next->parent = NULL;
+        }
+      else
+        {
+          curr->next = NULL;
+          if(next) next->prev = NULL;
+        }
+
+      buff = curr;
+      while(buff)
+        {
+          if(buff == next) break;
+          if(buff->parent) buff = buff->parent;
+          else             buff = buff->prev;
+        }
+      
+      if(!buff) 
+        {
+          if(child == YES)
+            {
+              curr->child  = next;
+              next->parent = curr;
+            }
+          else
+            {
+              curr->next = next;
+              next->prev = curr;
+            }
+        }
+    }
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void MIXT_Chain_Triplet(triplet *curr, triplet *next)
+{
+  if(!next)
+    {
+      return;
+    }
+  else
+    {
+      triplet *buff;
+
+      curr->next = NULL;
+      if(next) next->prev = NULL;
+
+      buff = curr;
+      while(buff)
+        {
+          if(buff == next) break;
+          buff = buff->prev;
+        }
+      
+      if(!buff) 
+        {
+          curr->next = next;
+          next->prev = curr;
+        }
+    }
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void MIXT_Chain_Rmat(t_rmat *curr, t_rmat *next)
+{
+  if(!next)
+    {
+      return;
+    }
+  else
+    {
+      t_rmat *buff;
+
+      curr->next = NULL;
+      if(next) next->prev = NULL;
+
+      buff = curr;
+      while(buff)
+        {
+          if(buff == next) break;
+          buff = buff->prev;
+        }
+      
+      if(!buff) 
+        {
+          curr->next = next;
+          next->prev = curr;
+        }
+    }
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void MIXT_Chain_Efrq(t_efrq *curr, t_efrq *next)
+{
+  if(!next)
+    {
+      return;
+    }
+  else
+    {
+      t_efrq *buff;
+
+      curr->next = NULL;
+      if(next) next->prev = NULL;
+
+      buff = curr;
+      while(buff)
+        {
+          if(buff == next) break;
+          buff = buff->prev;
+        }
+      
+      if(!buff) 
+        {
+          curr->next = next;
+          next->prev = curr;
+        }
+    }
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void MIXT_Chain_Eigen(eigen *curr, eigen *next)
+{
+  if(!next)
+    {
+      return;
+    }
+  else
+    {
+      eigen *buff;
+
+      curr->next = NULL;
+      if(next) next->prev = NULL;
+
+      buff = curr;
+      while(buff)
+        {
+          if(buff == next) break;
+          buff = buff->prev;
+        }
+      
+      if(!buff) 
+        {
+          curr->next = next;
+          next->prev = curr;
+        }
+    }
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void MIXT_Chain_RAS(t_ras *curr, t_ras *next)
+{
+  if(!next)
+    {
+      return;
+    }
+  else
+    {
+      t_ras *buff;
+
+      curr->next = NULL;
+      if(next) next->prev = NULL;
+
+      buff = curr;
+      while(buff)
+        {
+          if(buff == next) break;
+          buff = buff->prev;
+        }
+      
+      if(!buff) 
+        {
+          curr->next = next;
+          next->prev = curr;
+        }
+    }
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void MIXT_Chain_Spr(t_spr *curr, t_spr *next, int child)
+{
+  if(!next)
+    {
+      return;
+    }
+  else
+    {
+      t_spr *buff;
+
+      if(child)
+        {
+          curr->child  = NULL;
+          if(next) next->parent = NULL;
+        }
+      else
+        {
+          curr->next = NULL;
+          if(next) next->prev = NULL;
+        }
+
+      buff = curr;
+      while(buff)
+        {
+          if(buff == next) break;
+          if(buff->parent) buff = buff->parent;
+          else             buff = buff->prev;
+        }
+      
+      if(!buff) 
+        {
+          if(child == YES)
+            {
+              curr->child  = next;
+              next->parent = curr;
+            }
+          else
+            {
+              curr->next = next;
+              next->prev = curr;
+            }
+        }
+    }
 }
 
 //////////////////////////////////////////////////////////////
@@ -113,10 +491,8 @@ phydbl *MIXT_Get_Lengths_Of_This_Edge(t_edge *mixt_b)
       else      lens = (phydbl *)realloc(lens,(n_lens+1)*sizeof(phydbl));
 
       lens[n_lens] = b->l->v;
-
       n_lens++;
-
-      if(b->child) b = b->child;
+      if(b->child) b = b->child; 
       else         b = b->next;
     }
   while(b);
@@ -464,17 +840,19 @@ phydbl MIXT_Lk(t_edge *mixt_b, t_tree *mixt_tree)
                 mixt_tree->mod->ras->gamma_r_proba->v[class];
             }
 
+
           /* Scaling for invariants */
           if(mixt_tree->mod->ras->invar == YES)
             {
               num_prec_issue = NO;
 
               tree = mixt_tree->child;
-              while(tree->mod->ras->invar == NO) 
+              while(tree->mod->ras->invar == NO)
                 {
                   tree = tree->next;
                   if(!tree || tree->is_mixt_tree == YES)
                     {
+                      PhyML_Printf("\n== tree: %p",tree);
                       PhyML_Printf("\n== Err in file %s at line %d",__FILE__,__LINE__);
                       Exit("\n");
                     }
@@ -764,18 +1142,9 @@ void MIXT_Reconnect_All_Mixtures(t_tree **tree_list, t_tree *mixt_tree)
     }
   while(tree);
   
-  tree = mixt_tree;
-  do
-    {
-      MIXT_Connect_Edges_To_Next_Prev_Child_Parent(tree);
-      MIXT_Connect_Nodes_To_Next_Prev_Child_Parent(tree);
-      MIXT_Connect_Sprs_To_Next_Prev_Child_Parent(tree);
-      if(tree->child) tree = tree->child;
-      else            tree = tree->next;
-    }
-  while(tree);
-
+  MIXT_Chain_All(mixt_tree);
 }
+
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
@@ -1293,112 +1662,153 @@ int MIXT_Pars(t_edge *mixt_b, t_tree *mixt_tree)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-/* void MIXT_Bootstrap(char *best_tree, xml_node *root) */
-/* { */
-/*   xml_node *n,*p_elem; */
-/*   char *bootstrap; */
+void MIXT_Bootstrap(char *best_tree, xml_node *root)
+{
+  xml_node *n,*p_elem;
+  char *bootstrap;
 
-/*   n = XML_Search_Node_Name("phyml",NO,root); */
+  n = XML_Search_Node_Name("phyml",NO,root);
 
-/*   bootstrap = XML_Get_Attribute_Value(n,"bootstrap"); */
+  bootstrap = XML_Get_Attribute_Value(n,"bootstrap");
 
-/*   if(!bootstrap) return; */
-/*   else */
-/*     { */
-/*       int n_boot,i,j; */
-/*       xml_attr *boot_attr,*seqfile_attr; */
-/*       char *orig_align; */
-/*       FILE *fp_in_align,*xml_boot_file_fp; */
-/*       option *io; */
-/*       calign *boot_data,*orig_data; */
-/*       int position,elem; */
-/*       xml_node *boot_root; */
-/*       int pid; */
-/*       char *s; */
+  if(!bootstrap) return;
+  else
+    {
+      int n_boot,i,j,k;
+      xml_attr *boot_attr,*seqfile_attr,*out_attr,*boot_out_attr;
+      char *orig_align,*boot_out_file_name,*xml_boot_file_name,*buff;
+      FILE *boot_fp_in_align,*xml_boot_file_fp;
+      option *io;
+      align **boot_data,**orig_data;
+      int position,elem;
+      xml_node *boot_root;
+      int pid;
 
-/*       s = (char *)mCalloc(100,sizeof(char)); */
-/*       strcpy(s,"phyml_boot."); */
-/*       pid = (int)getpid(); */
-/*       sprintf(s+strlen(s),"%d",pid); */
-/*       strcat(s,".xml"); */
+      orig_align = (char *)mCalloc(T_MAX_NAME,sizeof(char));
 
-/*       n_boot = atoi(bootstrap); */
+      xml_boot_file_name = (char *)mCalloc(T_MAX_NAME,sizeof(char));
+      strcpy(xml_boot_file_name,"phyml_boot_config.");
+      pid = (int)getpid();
+      sprintf(xml_boot_file_name+strlen(xml_boot_file_name),"%d",pid);
+      strcat(xml_boot_file_name,".xml");
+
+      out_attr = XML_Search_Attribute(root,"outputfile");
+      boot_out_file_name = (char *)mCalloc(T_MAX_NAME,sizeof(char));
+      strcpy(boot_out_file_name,out_attr->value);
+
+      n_boot = atoi(bootstrap);
       
-/*       io = NULL; */
-/*       For(i,n_boot) */
-/*         { */
-/*           boot_root = XML_Copy_XML_Graph(root); */
+      io = NULL;
+      For(i,n_boot)
+        {
+          boot_root = XML_Copy_XML_Graph(root);
 
-/*           boot_attr = XML_Search_Attribute(boot_root,"bootstrap"); */
+          /*! Set the number of bootstrap repeats to 0
+            in each generated XML file */
+          boot_attr = XML_Search_Attribute(boot_root,"bootstrap");
+          strcpy(boot_attr->value,"0");
 
-/*           /\*! Set the number of bootstrap repeats to 0 */
-/*             in each generated XML file *\/  */
-/*           strcpy(boot_attr->value,"0"); */
+          /*! Set the output file name for each bootstrap analysis */
+          boot_out_attr = XML_Search_Attribute(boot_root,"outputfile");          
+          buff = (char *)mCalloc(T_MAX_NAME,sizeof(char));
+          strcpy(buff,boot_out_attr->value);
+          Free(boot_out_attr->value);
+          boot_out_attr->value = buff;
+          sprintf(boot_out_attr->value+strlen(boot_out_attr->value),"_boot.%d",pid);
 
-/*           p_elem = boot_root; */
-/*           elem   = 0; */
-/*           do */
-/*             { */
-/*               io = (option *)Make_Input(); */
-/*               Set_Defaults_Input(io); */
+          p_elem = boot_root;
+          elem   = 0;
+          do
+            {
+              io = (option *)Make_Input();
+              Set_Defaults_Input(io);
 
-/*               p_elem = XML_Search_Node_Name("partitionelem",YES,p_elem); */
-/*               if(!p_elem) break; */
+              p_elem = XML_Search_Node_Name("partitionelem",YES,p_elem);
+              if(!p_elem) break;
               
-/*               seqfile_attr    = NULL; */
-/*               seqfile_attr    = XML_Search_Attribute(p_elem,"filename"); */
-/*               orig_align      = seqfile_attr->value; */
-/*               io->fp_in_align = Openfile(orig_align,0); */
-/*               orig_data       = Get_Seq(io); */
-/*               boot_data       = Get_Seq(io); */
-/*               fclose(io->fp_in_align); */
-              
-/*               For(j,boot_data->init_len) */
-/*                 { */
-/*                   position = Rand_Int(0,(int)(boot_data->init_len-1.0)); */
-/*                   For(k,boot_data->n_otu) */
-/*                     { */
-/*                       boot_data->c_seq[k]->state[j] = orig_data->c_seq[k]->state[position]; */
-/*                     } */
-/*                 } */
-              
-/*               sprintf(seqfile_attr->value,"%s_%d_%d",orig_align,elem,i); */
-/*               boot_fp_in_align = Openfile(seqfile_attr->value,1); */
-              
-/*               Print_Seq(boot_fp_in_align,boot_data,boot_data->n_otu); */
-/*               fclose(boot_fp_in_align); */
+              /*! Get the original sequence file name and the corresponding
+                attribute in the XML graph 
+              */
+              seqfile_attr    = NULL;
+              seqfile_attr    = XML_Search_Attribute(p_elem,"filename");
 
-/*               Free_Input(io); */
-/*               elem++; */
-/*             } */
-/*           while(p_elem); */
+              strcpy(orig_align,seqfile_attr->value);
+
+              /*! Open the original sequence file */
+              io->fp_in_align = Openfile(orig_align,0);
+              
+              /*! Read in the original sequence file */
+              orig_data       = Get_Seq(io);
+              rewind(io->fp_in_align);
+
+
+              /*! Read in the original sequence file and put
+               it in 'boot_data' structure */
+              boot_data       = Get_Seq(io);
+
+              fclose(io->fp_in_align);
+              
+              /*! Bootstrap resampling: sample from original and put in boot */
+              For(j,boot_data[0]->len)
+                {
+                  position = Rand_Int(0,(int)(boot_data[0]->len-1.0));
+                  For(k,io->n_otu)
+                    {
+                      boot_data[k]->state[j] = orig_data[k]->state[position];
+                    }
+                }
+              
+              /*! Modify the sequence file attribute in the original XML 
+                graph */
+              buff = (char *)mCalloc(T_MAX_NAME,sizeof(char));
+              Free(seqfile_attr->value);
+              seqfile_attr->value = buff;
+              sprintf(seqfile_attr->value,"%s_%d_%d",orig_align,elem,i);
+
+              /*! Open a new sequence file with the modified attribute name */
+              boot_fp_in_align = Openfile(seqfile_attr->value,1);
+              
+              /*! Print the bootstrap data set in it */
+              Print_Seq(boot_fp_in_align,boot_data,io->n_otu);
+              fclose(boot_fp_in_align);
+
+              Free_Input(io);
+              elem++;
+            }
+          while(p_elem);
           
-/*           xml_boot_file_fp = Openfile(s,1); */
-/*           XML_Write_XML_Graph(xml_boot_file_fp,boot_root); */
-/*           fclose(xml_boot_file_fp); */
+          /*! Open bootstrap XML file in writing mode */
+          xml_boot_file_fp = Openfile(xml_boot_file_name,1);
 
-/*           PhyML_XML(s); */
+          /*! Write the bootstrap XML graph */
+          XML_Write_XML_Graph(xml_boot_file_fp,boot_root);
+          fclose(xml_boot_file_fp);
 
-/*           /\*! Remove the bootstrap alignment file *\/ */
-/*           p_elem = boot_root; */
-/*           do */
-/*             { */
-/*               p_elem = XML_Search_Node_Name("partitionelem",YES,p_elem); */
-/*               if(!p_elem) break; */
-/*               seqfile_attr = XML_Search_Attribute(p_elem,"filename"); */
-/*               unlink(seqfile_attr->value); */
-/*             } */
-/*           while(p_elem); */
+          /*! Reconstruct the tree */
+          PhyML_XML(xml_boot_file_name);
 
-/*           Free_XML_Graph(boot_root); */
+          /*! Remove the bootstrap alignment files */
+          p_elem = boot_root;
+          do
+            {
+              p_elem = XML_Search_Node_Name("partitionelem",YES,p_elem);
+              if(!p_elem) break;
+              seqfile_attr = XML_Search_Attribute(p_elem,"filename");
+              unlink(seqfile_attr->value);
+            }
+          while(p_elem);
+
           
-/*         } */
 
-/*       Free(s); */
+          XML_Free_XML_Tree(boot_root);         
+        }
 
-/*     } */
+      Free(xml_boot_file_name);
+      Free(orig_align);
+      Free(boot_out_file_name);
+    }
 
-/* } */
+}
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////

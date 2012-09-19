@@ -525,13 +525,13 @@ void Launch_Interface_Data_Type(option *io)
 	    io->mod->ns               = 20;
 	    io->mod->s_opt->opt_kappa = 0;
 	    io->mod->whichmodel       = LG;
-	    strcpy(io->mod->modelname,"LG");
+	    strcpy(io->mod->modelname->s,"LG");
 	  }
 	else if(io->datatype == AA)
 	  {
 	    io->datatype              = GENERIC;
 	    io->mod->whichmodel       = JC69;
-	    strcpy(io->mod->modelname,"JC69");
+	    strcpy(io->mod->modelname->s,"JC69");
 	    strcpy(io->nt_or_cd,"natural numbers");
 	  }
 	else if(io->datatype == GENERIC)
@@ -539,7 +539,7 @@ void Launch_Interface_Data_Type(option *io)
 	    io->datatype              = NT;
 	    io->mod->ns               = 4;
 	    io->mod->whichmodel       = HKY85;
-	    strcpy(io->mod->modelname,"HKY85");
+	    strcpy(io->mod->modelname->s,"HKY85");
 	    strcpy(io->nt_or_cd,"nucleotides");
 	  }
 	break;
@@ -609,7 +609,7 @@ void Launch_Interface_Model(option *io)
 	{
 	  PhyML_Printf("                [M] "
 		 "................. Model of nucleotide substitution "
-		 " %-15s \n", io->mod->modelname);
+		 " %-15s \n", io->mod->modelname->s);
 
 	  if((io->mod->whichmodel == F81)   ||
 	     (io->mod->whichmodel == HKY85) ||
@@ -643,7 +643,7 @@ void Launch_Interface_Model(option *io)
 		}
 	      PhyML_Printf("                [K] "
 		     "............................. Current custom model "
-		     " %-15s \n", io->mod->custom_mod_string);
+		     " %-15s \n", io->mod->custom_mod_string->s);
 
 	      PhyML_Printf("                [O] "
 		     "................ Optimise relative rate parameters "
@@ -655,7 +655,7 @@ void Launch_Interface_Model(option *io)
     {
       PhyML_Printf("                [M] "
 	     "................ Model of amino-acids substitution "
-	     " %-15s \n", io->mod->modelname);
+	     " %-15s \n", io->mod->modelname->s);
 
       PhyML_Printf("                [F] "
 	     ". Amino acid frequencies (empirical/model defined) "
@@ -666,7 +666,7 @@ void Launch_Interface_Model(option *io)
     {
       PhyML_Printf("                [M] "
 		   "................. Model of nucleotide substitution "
-		   " %-15s \n", io->mod->modelname);
+		   " %-15s \n", io->mod->modelname->s);
     }
 
   if ((io->datatype == NT)   &&
@@ -808,17 +808,17 @@ void Launch_Interface_Model(option *io)
 	    do
 	      {
 		PhyML_Printf("\n. Enter a new custom model > ");
-		Getstring_Stdin(io->mod->custom_mod_string);
-		if(strlen(io->mod->custom_mod_string) == 6)
+		Getstring_Stdin(io->mod->custom_mod_string->s);
+		if(strlen(io->mod->custom_mod_string->s) == 6)
 		  {
 		    For(i,6)
 		      {
-			while(!isdigit((int)io->mod->custom_mod_string[i]))
+			while(!isdigit((int)io->mod->custom_mod_string->s[i]))
 			  {
 			    if(++n_trial > 10) Exit("\n== Err : this string is not valid !\n");
 			    PhyML_Printf("\n. This string is not valid\n");
 			    PhyML_Printf("\n. Enter a new model > ");
-			    Getstring_Stdin(io->mod->custom_mod_string);
+			    Getstring_Stdin(io->mod->custom_mod_string->s);
 			  }
 		      }
 		    if(i == 6) break;
