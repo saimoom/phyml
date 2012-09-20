@@ -17,7 +17,7 @@ the GNU public licence. See http://www.opensource.org for details.
 /**
 * Fill the Option fields, with the argc array
 */
-void Read_Command_Line(option *io, int argc, char **argv)
+int Read_Command_Line(option *io, int argc, char **argv)
 {
   int c;
   int idx;
@@ -128,8 +128,14 @@ void Read_Command_Line(option *io, int argc, char **argv)
 	{
 	case 73:
 	  {
+            Free_Optimiz(io->mod->s_opt);
+            M4_Free_M4_Model(io->mod->m4mod);
+            Free_RAS(io->mod->ras);
+            Free_Model_Basic(io->mod);
+            Free(io->mod);
+            Free_Input(io);
             PhyML_XML(optarg);
-            Exit("\n");
+            return 0;
 	  }
 	case 72:
 	  {
@@ -1405,7 +1411,7 @@ void Read_Command_Line(option *io, int argc, char **argv)
       io->mod->s_opt->opt_rr = 1;
     }
   
-  return;
+  return 1;
 }
 
 //////////////////////////////////////////////////////////////

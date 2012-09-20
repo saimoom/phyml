@@ -25,6 +25,6 @@ the GNU public licence.  See http://www.opensource.org for details.
 #include "interface.h"
 
 
-void Read_Command_Line(option *input, int argc, char **argv);
+int Read_Command_Line(option *input, int argc, char **argv);
 
 #endif

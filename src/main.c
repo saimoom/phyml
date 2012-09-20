@@ -68,6 +68,8 @@ int main(int argc, char **argv)
   best_lnL         = UNLIKELY;
 
   io = (option *)Get_Input(argc,argv);
+  if(!io) return(-1);
+
   r_seed = (io->r_seed < 0)?(time(NULL)):(io->r_seed);
   srand(r_seed);
   io->r_seed = r_seed;
@@ -247,7 +249,6 @@ int main(int argc, char **argv)
 		  
  		  if(io->fp_in_constraint_tree != NULL) Free_Tree(io->cstr_tree);
 		  Free_Spr_List(tree);
-		  Free_One_Spr(tree->best_spr);
 		  if(tree->mat) Free_Mat(tree->mat);
 		  Free_Triplet(tree->triplet_struct);
 		  Free_Tree_Pars(tree);

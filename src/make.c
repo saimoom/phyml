@@ -490,12 +490,6 @@ t_mod *Make_Model_Basic()
   mod->lambda                 = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
   Init_Scalar_Dbl(mod->lambda);
 
-  mod->ras->alpha             = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
-  Init_Scalar_Dbl(mod->ras->alpha);
-
-  mod->ras->pinvar            = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
-  Init_Scalar_Dbl(mod->ras->pinvar);
-
   mod->br_len_multiplier      = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
   Init_Scalar_Dbl(mod->br_len_multiplier);
 
@@ -557,6 +551,7 @@ void Make_Model_Complete(t_mod *mod)
 t_ras *Make_RAS_Basic()
 {
   t_ras *ras;
+  
   ras = (t_ras *)mCalloc(1,sizeof(t_ras));
 
   ras->gamma_r_proba          = (vect_dbl *)mCalloc(1,sizeof(vect_dbl));
@@ -575,6 +570,12 @@ t_ras *Make_RAS_Basic()
   Init_Vect_Dbl(0,ras->gamma_rr_unscaled);
   ras->gamma_rr_unscaled->v = NULL;
   
+  ras->alpha             = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
+  Init_Scalar_Dbl(ras->alpha);
+
+  ras->pinvar            = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
+  Init_Scalar_Dbl(ras->pinvar);
+
   return(ras);
 }
 
@@ -650,10 +651,8 @@ t_rmat *Make_Rmat(int ns)
   return(r_mat);
 }
 
-
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
-
 
 option *Make_Input()
 {
@@ -682,6 +681,22 @@ option *Make_Input()
   io->rates                             = (t_rate *)RATES_Make_Rate_Struct(-1);
   return io;
 }
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+t_mcmc *MCMC_Make_MCMC_Struct()
+{
+  t_mcmc *mcmc;
+
+  mcmc               = (t_mcmc *)mCalloc(1,sizeof(t_mcmc));
+  mcmc->out_filename = (char *)mCalloc(T_MAX_FILE,sizeof(char));
+
+  return(mcmc);
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
 
 eigen *Make_Eigen_Struct(int ns)
 {

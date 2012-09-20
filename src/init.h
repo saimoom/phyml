@@ -52,5 +52,6 @@ void XML_Init_Attribute(xml_attr *attr);
 void Init_String(t_string *ts);
 void Init_Triplet_Struct(triplet *triplet);
 void Init_Efrq(t_efrq *f);
+void M4_Init_Model(m4 *m4mod, calign *data, t_mod *mod);
 
 #endif
