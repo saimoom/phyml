@@ -142,5 +142,6 @@ void MCMC_Read_Param_Vals(t_tree *tree);
 void MCMC_Birth_Rate(t_tree *tree);
 void MCMC_Randomize_Birth(t_tree *tree);
 void MCMC_Clock_R(t_tree *mixt_tree);
+void MCMC_Free_MCMC(t_mcmc *mcmc);
 
 #endif

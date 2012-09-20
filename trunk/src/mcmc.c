@@ -1929,8 +1929,8 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
 	  PhyML_Fprintf(mcmc->out_fp_trees,"#NEXUS\n");
 	  PhyML_Fprintf(mcmc->out_fp_trees,"BEGIN TREES;\n");
 	  PhyML_Fprintf(mcmc->out_fp_trees,"\tTRANSLATE\n");
-	  For(i,tree->n_otu-1) PhyML_Fprintf(mcmc->out_fp_trees,"\t%3d\t%s,\n",tree->a_nodes[i]->num,tree->a_nodes[i]->name);
-	  PhyML_Fprintf(mcmc->out_fp_trees,"\t%3d\t%s;\n",tree->a_nodes[i]->num,tree->a_nodes[i]->name);
+	  For(i,tree->n_otu-1) PhyML_Fprintf(mcmc->out_fp_trees,"\t%3d\t%s,\n",tree->a_nodes[i]->num+1,tree->a_nodes[i]->name);
+	  PhyML_Fprintf(mcmc->out_fp_trees,"\t%3d\t%s;\n",tree->a_nodes[i]->num+1,tree->a_nodes[i]->name);
 	  tree->write_tax_names = NO;
 	}
 
@@ -2214,52 +2214,6 @@ void MCMC_Print_Last(t_mcmc *mcmc, t_tree *tree)
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
-
-t_mcmc *MCMC_Make_MCMC_Struct()
-{
-  t_mcmc *mcmc;
-
-  mcmc               = (t_mcmc *)mCalloc(1,sizeof(t_mcmc));
-  mcmc->out_filename = (char *)mCalloc(T_MAX_FILE,sizeof(char));
-
-  return(mcmc);
-}
-
-//////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
-
-
-void MCMC_Free_MCMC(t_mcmc *mcmc)
-{
-  int i;
-  
-  Free(mcmc->move_type);
-  Free(mcmc->adjust_tuning);
-  Free(mcmc->out_filename);
-  Free(mcmc->move_weight);
-  Free(mcmc->acc_move);
-  Free(mcmc->run_move);
-  Free(mcmc->prev_acc_move);
-  Free(mcmc->prev_run_move);
-  Free(mcmc->acc_rate);
-  Free(mcmc->tune_move);
-  For(i,mcmc->n_moves) Free(mcmc->move_name[i]);
-  Free(mcmc->move_name);
-  Free(mcmc->ess_run);
-  Free(mcmc->start_ess);
-  Free(mcmc->ess);
-  Free(mcmc->sum_val);
-  Free(mcmc->sum_valsq);
-  Free(mcmc->sum_curval_nextval);
-  Free(mcmc->first_val);
-  Free(mcmc->old_param_val);
-  Free(mcmc->new_param_val);
-  Free(mcmc);
-}
-
-//////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
-
 
 void MCMC_Pause(t_mcmc *mcmc)
 {

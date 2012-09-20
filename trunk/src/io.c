@@ -635,7 +635,7 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, t_tree *
 	    }
 	  else if(tree->write_tax_names == NO)
 	    {
-	      sprintf(*s_tree+(int)strlen(*s_tree),"%d",fils->num);
+	      sprintf(*s_tree+(int)strlen(*s_tree),"%d",fils->num+1);
 	    }
 	}
       else if(OUTPUT_TREE_FORMAT == NEXUS)
@@ -644,9 +644,9 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, t_tree *
 	}
       else
 	{
-	  PhyML_Printf("\n. Unknown tree format.");
-	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
-	  PhyML_Printf("\n. s=%s\n",*s_tree);
+	  PhyML_Printf("\n== Unknown tree format.");
+	  PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+	  PhyML_Printf("\n== s=%s\n",*s_tree);
 	}
 
       if((fils->b) && (fils->b[0]) && (fils->b[0]->l->v > -1.))
@@ -816,7 +816,6 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, t_tree *
       /* strcat(*s_tree,","); */
       (*s_tree)[(int)strlen(*s_tree)] = ',';
       
-
 #ifndef MPI
       (*available) -= ((int)strlen(*s_tree) - last_len);
       
@@ -825,8 +824,8 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, t_tree *
 
       if(*available < 0)
 	{
-	  PhyML_Printf("\n. available = %d",*available);
-	  PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+	  PhyML_Printf("\n== available = %d",*available);
+	  PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
 	  Warn_And_Exit("");
 	}
 
@@ -3578,12 +3577,14 @@ void Read_Clade_Priors(char *file_name, t_tree *tree)
 
 option *Get_Input(int argc, char **argv)
 {
-
   option *io;
   t_mod *mod;
   t_opt *s_opt;
   m4 *m4mod;
-
+  int rv;
+  
+  rv = 1;
+  
   io    = (option *)Make_Input();
   mod   = (t_mod *)Make_Model_Basic();
   s_opt = (t_opt *)Make_Optimiz();
@@ -3592,18 +3593,15 @@ option *Get_Input(int argc, char **argv)
   Set_Defaults_Input(io);
   Set_Defaults_Model(mod);
   Set_Defaults_Optimiz(s_opt);
-
   io->mod        = mod;
   io->mod->m4mod = m4mod;
-
   mod->io        = io;
   mod->s_opt     = s_opt;
 
-
 #ifdef MPI
-  Read_Command_Line(io,argc,argv);
+  rv = Read_Command_Line(io,argc,argv);
 #elif defined (PHYTIME)
-  Read_Command_Line(io,argc,argv);
+  rv = Read_Command_Line(io,argc,argv);
 #else
   putchar('\n');
 
@@ -3620,11 +3618,12 @@ option *Get_Input(int argc, char **argv)
 	break;
       */
     default:
-      Read_Command_Line(io,argc,argv);
+      rv = Read_Command_Line(io,argc,argv);
     }
 #endif
   
-  return io;
+  if(rv) return io;
+  else   return NULL;
 }
 
 //////////////////////////////////////////////////////////////
@@ -4339,11 +4338,18 @@ void PhyML_XML(char *xml_filename)
         }
 
       strcpy(io->in_align_file,alignment);
+      
+      /*! Open pointer to alignment
+       */
       io->fp_in_align = Openfile(io->in_align_file,0);
 
       /*! Load sequence file
        */
       io->data  = Get_Seq(io);
+
+      /*! Close pointer to alignment
+       */
+      fclose(io->fp_in_align);
 
       /*! Compress alignment
        */
@@ -5304,7 +5310,7 @@ void PhyML_XML(char *xml_filename)
 			      {
 			    	lens[i] = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
 			    	Init_Scalar_Dbl(lens[i]);
-                                Free(tree->a_edges[i]->l);
+                                Free_Scalar_Dbl(tree->a_edges[i]->l);
 
                                 if(tree->prev && tree->prev->a_edges[i]->l == mixt_tree->a_edges[i]->l)
                                   {
@@ -5314,13 +5320,14 @@ void PhyML_XML(char *xml_filename)
                                     Exit("\n");
                                   }
 
-                                Free(mixt_tree->a_edges[i]->l);
+                                Free_Scalar_Dbl(mixt_tree->a_edges[i]->l);
 			      }
 			    			    
 			    instance->ds->obj = (scalar_dbl **)lens;
 			  }
 			else
 			  {
+                            For(i,2*tree->n_otu-2) Free_Scalar_Dbl(tree->a_edges[i]->l);
 			    lens = (scalar_dbl **)instance->ds->obj;
 			  }
 			
@@ -5331,8 +5338,14 @@ void PhyML_XML(char *xml_filename)
 			    Exit("\n");
 			  }
 
-			For(i,2*tree->n_otu-2) tree->a_edges[i]->l      = lens[i];
-			For(i,2*tree->n_otu-2) mixt_tree->a_edges[i]->l = lens[i];
+			For(i,2*tree->n_otu-2) 
+                          {
+                            tree->a_edges[i]->l = lens[i];
+                          }
+			For(i,2*tree->n_otu-2) 
+                          {
+                            mixt_tree->a_edges[i]->l = lens[i];
+                          }
                       }
 
 
@@ -5384,7 +5397,7 @@ void PhyML_XML(char *xml_filename)
       tree = mixt_tree;
       do
 	{
-	  For(i,2*tree->n_otu-2) Free(tree->a_edges[i]->l);
+	  For(i,2*tree->n_otu-2) Free_Scalar_Dbl(tree->a_edges[i]->l);
 	  if(tree->child) tree = tree->child;
 	  else            tree = tree->next;
 	}while(tree);
@@ -5430,77 +5443,67 @@ void PhyML_XML(char *xml_filename)
             
       Print_Data_Structure(NO,stdout,mixt_tree);
 
-      buff = (t_tree *)mixt_tree;
-      t_tree *bionj_tree = NULL;
-      do
-        {
-          switch(mixt_tree->io->in_tree)
-            {      
-            case 2: /*! user-defined input tree */
+      t_tree *bionj_tree = NULL;      
+      switch(mixt_tree->io->in_tree)
+        {      
+        case 2: /*! user-defined input tree */
+          {
+            if(!mixt_tree->io->fp_in_tree)
               {
-                if(!mixt_tree->io->fp_in_tree)
-                  {
-                    PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
-                    Exit("\n");
-                  }
-                
-                /*!
-                  Copy the user tree to all the tree structures
+                PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+                Exit("\n");
+              }
+            
+            /*!
+              Copy the user tree to all the tree structures
+            */
+            tree = Read_User_Tree(mixt_tree->io->cdata,
+                                  mixt_tree->mod,
+                                  mixt_tree->io);
+            break;
+          }
+        case 1: case 0:          
+          {
+            if(!bionj_tree)
+              {
+                /*! Build a BioNJ tree from the analysis of
+                  the first partition element 
                 */
-                tree = Read_User_Tree(mixt_tree->io->cdata,
+                tree = Dist_And_BioNJ(mixt_tree->data,
                                       mixt_tree->mod,
                                       mixt_tree->io);
-                break;
+                bionj_tree = (t_tree *)Make_Tree_From_Scratch(mixt_tree->n_otu,mixt_tree->data);
+                Copy_Tree(tree,bionj_tree); 
               }
-            case 1: case 0:          
+            else
               {
-                if(!bionj_tree)
-                  {
-                    /*! Build a BioNJ tree from the analysis of
-                      the first partition element 
-                    */
-                    tree = Dist_And_BioNJ(mixt_tree->data,
-                                          mixt_tree->mod,
-                                          mixt_tree->io);
-                    bionj_tree = (t_tree *)Make_Tree_From_Scratch(mixt_tree->n_otu,mixt_tree->data);
-                    Copy_Tree(tree,bionj_tree); 
-                  }
-                else
-                  {
-                    tree = (t_tree *)Make_Tree_From_Scratch(mixt_tree->n_otu,mixt_tree->data);
-                    Copy_Tree(bionj_tree,tree); 
-                  }
-                break;
+                tree = (t_tree *)Make_Tree_From_Scratch(mixt_tree->n_otu,mixt_tree->data);
+                Copy_Tree(bionj_tree,tree); 
               }
-            }
-          
-          Copy_Tree(tree,mixt_tree);
-          Free_Tree(tree);
-          Free_Tree(bionj_tree);
-
-          if(io->mod->s_opt->random_input_tree) 
-            {
-              PhyML_Printf("\n\n. [%3d/%3d]",num_rand_tree+1,io->mod->s_opt->n_rand_starts);
-              Random_Tree(mixt_tree);
-            }
-          
-          Connect_CSeqs_To_Nodes(mixt_tree->data,mixt_tree);          
-
-          tree = mixt_tree->child;
-          do
-            {
-              Copy_Tree(mixt_tree,tree);
-              Connect_CSeqs_To_Nodes(mixt_tree->data,tree);
-              if(tree->is_mixt_tree == YES || tree->next == NULL) break;
-              tree = tree->next;
-            }
-          while(1);
-          
-          mixt_tree = mixt_tree->next;
-          
+            break;
+          }
         }
-      while(mixt_tree);      
-      mixt_tree = (t_tree *)buff;
+      
+      Copy_Tree(tree,mixt_tree);
+      Free_Tree(tree);
+      Free_Tree(bionj_tree);
+      
+      if(io->mod->s_opt->random_input_tree) 
+        {
+          PhyML_Printf("\n\n. [%3d/%3d]",num_rand_tree+1,io->mod->s_opt->n_rand_starts);
+          Random_Tree(mixt_tree);
+        }
+           
+      tree = mixt_tree;
+      do
+        {
+          if(tree != mixt_tree) Copy_Tree(mixt_tree,tree);
+          Connect_CSeqs_To_Nodes(tree->data,tree);
+          if(tree->child) tree = tree->child;
+          else            tree = tree->next;
+        }
+      while(tree);
+      
       
       /*! Initialize t_beg in each mixture tree */
       tree = mixt_tree;
@@ -5575,6 +5578,7 @@ void PhyML_XML(char *xml_filename)
          X 24) Set upper and lower bounds on Br_Len_Brent
          25) When only one class per mixture: make sure branch lengths in child point
          to that of father.
+         26) Make PhyTIme work with BEAST 1.7
       */
       
       
@@ -5675,13 +5679,14 @@ void PhyML_XML(char *xml_filename)
 
   Free_Custom_Model(mixt_tree->mod);
   Free_Spr_List(mixt_tree);
-  Free_One_Spr(mixt_tree->best_spr);
   Free_Tree_Pars(mixt_tree);
   Free_Tree_Lk(mixt_tree);
   Free_Triplet(mixt_tree->triplet_struct);
   Free_Model_Basic(mixt_tree->mod);
   Free_Model_Complete(mixt_tree->mod);
   Free_Tree(mixt_tree);
+  fclose(io->fp_out_tree);
+  fclose(io->fp_out_stats);
   Free_Input(io);
   XML_Free_XML_Tree(root);
 

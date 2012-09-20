@@ -21,12 +21,10 @@ void Free_All_Nodes_Light(t_tree *mixt_tree)
   int i;
   t_tree *tree;
 
-  For(i,2*mixt_tree->n_otu-1) 
-    Free_Node(mixt_tree->a_nodes[i]);
-
   tree = mixt_tree;
   do
     {
+      For(i,2*tree->n_otu-1) Free_Node(tree->a_nodes[i]);
       Free(tree->a_nodes);
       if(tree->child) tree = tree->child;
       else            tree = tree->next;
@@ -43,12 +41,17 @@ void Free_All_Edges_Light(t_tree *mixt_tree)
   int i;
   t_tree *tree;
 
-  For(i,2*mixt_tree->n_otu-2) 
-    Free_Edge(mixt_tree->a_edges[i]);
-
   tree = mixt_tree;
+
+  For(i,2*tree->n_otu-2) 
+    {
+      Free_Scalar_Dbl(tree->a_edges[i]->l);
+      Free_Scalar_Dbl(tree->a_edges[i]->l_old);
+    }
+
   do
     {
+      For(i,2*tree->n_otu-2) Free_Edge(tree->a_edges[i]);
       Free(tree->a_edges);
       if(tree->child) tree = tree->child;
       else            tree = tree->next;
@@ -58,6 +61,60 @@ void Free_All_Edges_Light(t_tree *mixt_tree)
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
+
+void Free_Edge_Labels(t_edge *b)
+{
+  int i;
+  
+  if(b->labels)
+    {
+      For(i,b->n_labels-(b->n_labels%BLOCK_LABELS)+BLOCK_LABELS) Free(b->labels[i]);
+      Free(b->labels);
+      b->labels = NULL;
+    }
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void Free_Edge(t_edge *b)
+{
+  Free_Edge_Labels(b);
+  Free_Edge_Core(b);
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void Free_Edge_Core(t_edge *b)
+{
+  Free(b);
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+
+void Free_Node(t_node *n)
+{
+  Free(n->b);
+  Free(n->v);
+  Free(n->l);
+  Free(n->score);
+  Free(n->s_ingrp);
+  Free(n->s_outgrp);
+  if(n->ori_name) { Free(n->ori_name); n->ori_name = NULL; }
+
+  /* if(n->name)     { Free(n->name);     n->name     = NULL; }  */
+  /* Don't do that: see Copy_Tax_Names_To_Tip_Labels       
+     tree->a_nodes[i]->ori_name = tree->a_nodes[i]->name; */  
+
+  Free(n);
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void Free_Mat(matrix *mat)
 {
@@ -106,7 +163,8 @@ void Free_Partial_Lk(phydbl *p_lk, int len, int n_catg)
 void Free_Tree(t_tree *mixt_tree)
 {
   t_tree *tree;
-  
+  t_tree *next;
+
   tree = mixt_tree;
   do
     {
@@ -125,11 +183,14 @@ void Free_Tree(t_tree *mixt_tree)
   Free_All_Nodes_Light(mixt_tree);
 
   tree = mixt_tree;
+  next = mixt_tree->child;
   do
     {
-      if(tree->child)      { tree = tree->child; Free(tree->parent); }
-      else if(tree->next)  { tree = tree->next;  Free(tree->prev);   }
-      else                 { Free(tree); break; }
+      Free(tree);
+      tree = next;
+      if(!tree) break;
+      if(tree->child) next = next->child;
+      else next = next->next;
     }
   while(tree);
 
@@ -153,78 +214,6 @@ void Free_Bip(t_tree *tree)
 	}
     }
   tree->has_bip = NO;
-}
-
-//////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
-
-
-void Free_Edge_Labels(t_edge *b)
-{
-  int i;
-  
-  if(b->child) Free_Edge_Labels(b->child);
-  if(b->next)  Free_Edge_Labels(b->next);
-
-  if(b->labels)
-    {
-      For(i,b->n_labels-(b->n_labels%BLOCK_LABELS)+BLOCK_LABELS) Free(b->labels[i]);
-      Free(b->labels);
-      b->labels = NULL;
-    }
-}
-
-//////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
-
-void Free_Edge(t_edge *b)
-{
-  Free_Edge_Labels(b);
-  Free_Edge_Len(b);
-  Free_Edge_Core(b);
-}
-
-//////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
-
-void Free_Edge_Core(t_edge *b)
-{
-  if(b->child) Free_Edge_Core(b->child);
-  if(b->next)  Free_Edge_Core(b->next);
-  Free(b);
-}
-
-//////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
-
-void Free_Edge_Len(t_edge *b)
-{
-  if(b->l->next) Free_Edge_Len(b);
-  Free(b->l);
-  Free(b->l_old);
-}
-
-//////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
-
-void Free_Node(t_node *n)
-{
-  Free(n->b);
-  Free(n->v);
-  Free(n->l);
-  Free(n->score);
-  Free(n->s_ingrp);
-  Free(n->s_outgrp);
-  if(n->ori_name) { Free(n->ori_name); n->ori_name = NULL; }
-
-  /* if(n->name)     { Free(n->name);     n->name     = NULL; }  */
-  /* Don't do that: see Copy_Tax_Names_To_Tip_Labels       
-     tree->a_nodes[i]->ori_name = tree->a_nodes[i]->name; */  
-
-  if(n->child) Free_Node(n->child);
-  if(n->next)  Free_Node(n->next);
-
-  Free(n);
 }
 
 //////////////////////////////////////////////////////////////
@@ -374,12 +363,13 @@ void Free_Tree_Lk(t_tree *mixt_tree)
       For(i,tree->mod->ras->n_catg) Free(tree->log_site_lk_cat[i]);
       Free(tree->log_site_lk_cat);
 
+      For(i,2*tree->n_otu-3) Free_Edge_Lk(tree->a_edges[i]);
+
       if(tree->child) tree = tree->child;
       else            tree = tree->next;
     }
   while(tree);
 
-  For(i,2*mixt_tree->n_otu-3) Free_Edge_Lk(mixt_tree->a_edges[i]);
 }  
   
 //////////////////////////////////////////////////////////////
@@ -428,8 +418,6 @@ void Free_Edge_Lk(t_edge *b)
 
   Free(b->Pij_rr);
 
-  if(b->child) Free_Edge_Lk(b->child);  
-  if(b->next) Free_Edge_Lk(b->next);
 }
 
 //////////////////////////////////////////////////////////////
@@ -460,28 +448,12 @@ void Free_Model_Complete(t_mod *mixt_mod)
 void Free_Model_Basic(t_mod *mixt_mod)
 {
   t_mod *mod;
-  t_string *ts,*next_ts;
-  
-  mod = mixt_mod;
-  do
-    {
-      /* Free(mod->user_b_freq->v); */
-      /* Free(mod->user_b_freq); */
-      /* Free(mod->kappa); */
-      /* Free(mod->lambda); */
-      /* Free(mod->Pij_rr); */
-      /* Free(mod->mr); */
-      /* Free(mod->br_len_multiplier); */
-
-      if(mod->child) mod = mod->child;
-      else           mod = mod->next;
-    }
-  while(mod);
-
   Free_Vect_Dbl(mixt_mod->Pij_rr);
   Free_Vect_Dbl(mixt_mod->user_b_freq);
   Free_Scalar_Dbl(mixt_mod->mr);
+  printf("\n. BEG kappa");
   Free_Scalar_Dbl(mixt_mod->kappa);
+  printf("\n. END kappa");
   Free_Scalar_Dbl(mixt_mod->lambda);
   Free_Scalar_Dbl(mixt_mod->br_len_multiplier);
   Free_String(mixt_mod->modelname);
@@ -517,6 +489,7 @@ void Free_Scalar_Dbl(scalar_dbl *v)
   next = v->next;
   do
     {
+      printf("\n. Free %p",v);
       Free(v);
 
       v = next;
@@ -693,6 +666,7 @@ void Free_Input(option *io)
           Free(io->short_tax_names);
         }
       Free_Tree_List(io->treelist);
+
       if(io->lon) Free(io->lon);
       if(io->lat) Free(io->lat);
 
@@ -712,7 +686,6 @@ void Free_Input(option *io)
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
-
 
 void Free_Tree_List(t_treelist *list)
 {
@@ -767,19 +740,28 @@ void Free_Eigen(eigen *eigen_struct)
 void Free_One_Spr(t_spr *this_spr)
 {
   Free(this_spr->path);
-  if(this_spr->child) { Free_One_Spr(this_spr->child); }
-  if(this_spr->next)  { Free_One_Spr(this_spr->next); }
   Free(this_spr);
 }
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-void Free_Spr_List(t_tree *tree)
+void Free_Spr_List(t_tree *mixt_tree)
 {
   int i;
-  For(i,tree->size_spr_list+1) Free_One_Spr(tree->spr_list[i]);
-  Free(tree->spr_list);
+  t_tree *tree;
+
+  tree = mixt_tree;
+  do
+    {
+      For(i,tree->size_spr_list+1) Free_One_Spr(tree->spr_list[i]);  
+      Free(tree->spr_list);
+      Free_One_Spr(tree->best_spr);
+      if(tree->child) tree = tree->child;
+      else            tree = tree->next;
+    }
+  while(tree);
+
 }
 
 //////////////////////////////////////////////////////////////
@@ -975,6 +957,61 @@ void XML_Free_XML_Ds(t_ds *ds)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
+void MCMC_Free_MCMC(t_mcmc *mcmc)
+{
+  int i;
+  
+  Free(mcmc->move_type);
+  Free(mcmc->adjust_tuning);
+  Free(mcmc->out_filename);
+  Free(mcmc->move_weight);
+  Free(mcmc->acc_move);
+  Free(mcmc->run_move);
+  Free(mcmc->prev_acc_move);
+  Free(mcmc->prev_run_move);
+  Free(mcmc->acc_rate);
+  Free(mcmc->tune_move);
+  For(i,mcmc->n_moves) Free(mcmc->move_name[i]);
+  Free(mcmc->move_name);
+  Free(mcmc->ess_run);
+  Free(mcmc->start_ess);
+  Free(mcmc->ess);
+  Free(mcmc->sum_val);
+  Free(mcmc->sum_valsq);
+  Free(mcmc->sum_curval_nextval);
+  Free(mcmc->first_val);
+  Free(mcmc->old_param_val);
+  Free(mcmc->new_param_val);
+  Free(mcmc);
+}
+
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void M4_Free_M4_Model(m4 *m4mod)
+{
+  int i;
+  
+  if(m4mod->o_mats)
+    {
+      For(i,m4mod->n_h) Free(m4mod->o_mats[i]);
+      Free(m4mod->o_mats);      
+      Free(m4mod->h_mat);
+      Free(m4mod->o_rr);
+      Free(m4mod->h_rr);
+      Free(m4mod->o_fq);
+      Free(m4mod->h_fq);
+      Free(m4mod->multipl);
+      Free(m4mod->multipl_unscaled);
+      Free(m4mod->h_fq_unscaled);
+    }
+
+  Free(m4mod);
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////

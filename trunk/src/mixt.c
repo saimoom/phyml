@@ -19,7 +19,7 @@ int n_sec1 = 0;
 
 void MIXT_Chain_All(t_tree *mixt_tree)
 {
-  t_tree *curr,*next;
+  t_tree *curr, *next;
   int i;
 
   curr = mixt_tree;
@@ -37,19 +37,102 @@ void MIXT_Chain_All(t_tree *mixt_tree)
       MIXT_Chain_Vector_Dbl(curr->mod->user_b_freq,next->mod->user_b_freq);
       For(i,2*mixt_tree->n_otu-2) MIXT_Chain_Scalar_Dbl(curr->a_edges[i]->l,next->a_edges[i]->l);
       For(i,2*mixt_tree->n_otu-2) MIXT_Chain_Scalar_Dbl(curr->a_edges[i]->l_old,next->a_edges[i]->l_old);
-      For(i,2*mixt_tree->n_otu-2) MIXT_Chain_Edges(curr->a_edges[i],next->a_edges[i],next == curr->child);
-      For(i,2*mixt_tree->n_otu-1) MIXT_Chain_Nodes(curr->a_nodes[i],next->a_nodes[i],next == curr->child);
-      For(i,2*mixt_tree->n_otu-2) MIXT_Chain_Spr(curr->spr_list[i],next->spr_list[i],next == curr->child);
-      MIXT_Chain_Triplet(curr->triplet_struct,next->triplet_struct);
       MIXT_Chain_Rmat(curr->mod->r_mat,next->mod->r_mat);            
       MIXT_Chain_RAS(curr->mod->ras,next->mod->ras);            
       MIXT_Chain_Efrq(curr->mod->e_frq,next->mod->e_frq);            
       MIXT_Chain_Eigen(curr->mod->eigen,next->mod->eigen);            
 
       curr = next;
-      next = curr->child ? curr->child : curr->next;
+      next = next->child ? next->child : next->next;
     }
   while(next);
+
+  Exit("\n");
+
+  curr = mixt_tree;
+  do
+    {
+      MIXT_Chain_Edges(curr);
+      MIXT_Chain_Nodes(curr);
+      MIXT_Chain_Sprs(curr);
+      MIXT_Chain_Triplets(curr);
+      
+      if(curr->child) curr = curr->child;
+      else            curr = curr->next;
+    }
+  while(curr);
+
+
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void MIXT_Chain_Edges(t_tree *tree)
+{
+  int i;
+  t_edge *b;
+
+  For(i,2*tree->n_otu-3)
+    {
+      b = tree->a_edges[i];
+
+      if(tree->next)   b->next   = tree->next->a_edges[i];
+      if(tree->prev)   b->prev   = tree->prev->a_edges[i];
+      if(tree->child)  b->child  = tree->child->a_edges[i];
+      if(tree->parent) b->parent = tree->parent->a_edges[i];
+    }
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void MIXT_Chain_Nodes(t_tree *tree)
+{
+  int i;
+  t_node *n;
+
+  For(i,2*tree->n_otu-2)
+    {
+      n = tree->a_nodes[i];
+
+      if(tree->next)   n->next   = tree->next->a_nodes[i];
+      if(tree->prev)   n->prev   = tree->prev->a_nodes[i];
+      if(tree->child)  n->child  = tree->child->a_nodes[i];
+      if(tree->parent) n->parent = tree->parent->a_nodes[i];
+    }
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void MIXT_Chain_Sprs(t_tree *tree)
+{
+  int i;
+  
+  if(tree->next)   tree->best_spr->next   = tree->next->best_spr;
+  if(tree->prev)   tree->best_spr->prev   = tree->prev->best_spr;
+  if(tree->child)  tree->best_spr->child  = tree->child->best_spr;
+  if(tree->parent) tree->best_spr->parent = tree->parent->best_spr;
+
+  For(i,2*tree->n_otu-2)
+    {
+      if(tree->next)   tree->spr_list[i]->next   = tree->next->spr_list[i];
+      if(tree->prev)   tree->spr_list[i]->prev   = tree->prev->spr_list[i];
+      if(tree->child)  tree->spr_list[i]->child  = tree->child->spr_list[i];
+      if(tree->parent) tree->spr_list[i]->parent = tree->parent->spr_list[i];
+    }    
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void MIXT_Chain_Triplets(t_tree *tree)
+{
+  if(tree->next)   tree->triplet_struct->next   = tree->next->triplet_struct;
+  if(tree->prev)   tree->triplet_struct->prev   = tree->prev->triplet_struct;
+  if(tree->child)  tree->triplet_struct->next   = tree->child->triplet_struct;
+  if(tree->parent) tree->triplet_struct->prev   = tree->parent->triplet_struct;
 }
 
 //////////////////////////////////////////////////////////////
@@ -130,134 +213,7 @@ void MIXT_Chain_Scalar_Dbl(scalar_dbl *curr, scalar_dbl *next)
       scalar_dbl *buff;
 
       curr->next = NULL;
-      if(next) next->prev = NULL;
-
-      buff = curr;
-      while(buff)
-        {
-          if(buff == next) break;
-          buff = buff->prev;
-        }
-      
-      if(!buff) 
-        {
-          curr->next = next;
-          next->prev = curr;
-        }
-    }
-}
-
-//////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
-
-void MIXT_Chain_Edges(t_edge *curr, t_edge *next, int child)
-{
-  if(!next)
-    {
-      return;
-    }
-  else
-    {
-      t_edge *buff;
-
-      if(child)
-        {
-          curr->child = NULL;
-          if(next) next->parent = NULL;
-        }
-      else
-        {
-          curr->next = NULL;
-          if(next) next->prev = NULL;
-        }
-
-      buff = curr;
-      while(buff)
-        {
-          if(buff == next) break;
-          if(buff->parent) buff = buff->parent;
-          else             buff = buff->prev;
-        }
-      
-      if(!buff) 
-        {
-          if(child == YES)
-            {
-              curr->child  = next;
-              next->parent = curr;
-            }
-          else
-            {
-              curr->next = next;
-              next->prev = curr;
-            }
-        }
-    }
-}
-
-//////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
-
-void MIXT_Chain_Nodes(t_node *curr, t_node *next, int child)
-{
-  if(!next)
-    {
-      return;
-    }
-  else
-    {
-      t_node *buff;
-
-      if(child)
-        {
-          curr->child = NULL;
-          if(next) next->parent = NULL;
-        }
-      else
-        {
-          curr->next = NULL;
-          if(next) next->prev = NULL;
-        }
-
-      buff = curr;
-      while(buff)
-        {
-          if(buff == next) break;
-          if(buff->parent) buff = buff->parent;
-          else             buff = buff->prev;
-        }
-      
-      if(!buff) 
-        {
-          if(child == YES)
-            {
-              curr->child  = next;
-              next->parent = curr;
-            }
-          else
-            {
-              curr->next = next;
-              next->prev = curr;
-            }
-        }
-    }
-}
-
-//////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
-
-void MIXT_Chain_Triplet(triplet *curr, triplet *next)
-{
-  if(!next)
-    {
-      return;
-    }
-  else
-    {
-      triplet *buff;
-
-      curr->next = NULL;
-      if(next) next->prev = NULL;
+      next->prev = NULL;
 
       buff = curr;
       while(buff)
@@ -400,51 +356,6 @@ void MIXT_Chain_RAS(t_ras *curr, t_ras *next)
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
-
-void MIXT_Chain_Spr(t_spr *curr, t_spr *next, int child)
-{
-  if(!next)
-    {
-      return;
-    }
-  else
-    {
-      t_spr *buff;
-
-      if(child)
-        {
-          curr->child  = NULL;
-          if(next) next->parent = NULL;
-        }
-      else
-        {
-          curr->next = NULL;
-          if(next) next->prev = NULL;
-        }
-
-      buff = curr;
-      while(buff)
-        {
-          if(buff == next) break;
-          if(buff->parent) buff = buff->parent;
-          else             buff = buff->prev;
-        }
-      
-      if(!buff) 
-        {
-          if(child == YES)
-            {
-              curr->child  = next;
-              next->parent = curr;
-            }
-          else
-            {
-              curr->next = next;
-              next->prev = curr;
-            }
-        }
-    }
-}
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////

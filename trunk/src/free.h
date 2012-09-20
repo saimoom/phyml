@@ -63,9 +63,9 @@ void XML_Free_XML_Node(xml_node *node);
 void XML_Free_XML_Attr(xml_attr *attr);
 void XML_Free_XML_Ds(t_ds *ds);
 void Free_String(t_string *ts);
-void Free_Edge_Len(t_edge *b);
 void Free_Vect_Dbl(vect_dbl *v);
 void Free_Scalar_Dbl(scalar_dbl *v);
 void Free_Edge_Core(t_edge *b);
+void M4_Free_M4_Model(m4 *m4mod);
 
 #endif
