@@ -3831,12 +3831,12 @@ void RATES_Set_Birth_Rate_Boundaries(t_tree *tree)
       p_above_min = 1. - POW(1.-EXP(-lbda*min),tree->n_otu);
       p_below_max = POW(1.-EXP(-lbda*max),tree->n_otu);
  
-      if(p_above_min < 1.E-5) 
+      if(p_above_min < 1.E-8) 
 	{ 
 	  tree->rates->birth_rate_max = lbda;
 	  break;
 	}
-      if(p_below_max > 1.E-5 && assign==YES)
+      if(p_below_max > 1.E-8 && assign==YES)
 	{
 	  assign = NO;
 	  tree->rates->birth_rate_min = lbda;
