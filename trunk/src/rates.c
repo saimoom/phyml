@@ -3824,7 +3824,7 @@ void RATES_Set_Birth_Rate_Boundaries(t_tree *tree)
   int assign = YES;
 
   min = -tree->rates->t_prior_max[tree->n_root->num];
-  max = -tree->rates->t_prior_min[tree->n_root->num];
+  max = -10.*tree->rates->t_prior_min[tree->n_root->num];
 
   for(lbda = 0.0001; lbda < 10; lbda+=0.0001)
     {
