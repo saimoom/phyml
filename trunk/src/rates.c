@@ -949,7 +949,7 @@ void RATES_Init_Rate_Struct(t_rate *rates, t_rate *existing_rates, int n_otu)
   rates->br_r_recorded    = NO;
 
   rates->birth_rate       = 1.E-2;
-  rates->birth_rate_min   = 1.E-3;
+  rates->birth_rate_min   = 1.E-6;
   rates->birth_rate_max   = 1.E+1;
 
   if(rates->model_log_rates == YES)

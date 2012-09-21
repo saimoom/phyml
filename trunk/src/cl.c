@@ -132,7 +132,6 @@ int Read_Command_Line(option *io, int argc, char **argv)
             M4_Free_M4_Model(io->mod->m4mod);
             Free_RAS(io->mod->ras);
             Free_Model_Basic(io->mod);
-            Free(io->mod);
             Free_Input(io);
             PhyML_XML(optarg);
             return 0;

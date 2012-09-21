@@ -41,7 +41,7 @@ void Simu_Loop(t_tree *mixt_tree)
   do
     {
       tree->mod->ras->n_catg = MIN(2,orig_catg[n]);
-      tree = tree->next;
+      tree = tree->next_mixt;
       n++;
     }
   while(tree);
@@ -110,7 +110,7 @@ void Simu_Loop(t_tree *mixt_tree)
   do
     {
       tree->mod->ras->n_catg = orig_catg[n];
-      tree = tree->next;
+      tree = tree->next_mixt;
       n++;
     }
   while(tree);
@@ -127,8 +127,7 @@ void Simu_Loop(t_tree *mixt_tree)
   do
     {
       if(tree != mixt_tree) Copy_Tree(mixt_tree,tree);
-      if(tree->child) tree = tree->child;
-      else            tree = tree->next;
+      tree = tree->next;
     }
   while(tree);
 
@@ -417,7 +416,7 @@ void Update_Bl(t_tree *tree, phydbl fact)
       do
 	{
 	  b->l->v = b->l_old->v + (b->nni->l0 - b->l_old->v)*fact;      
-	  if(b->child) b = b->child;
+	  if(b->next) b = b->next;
 	  else         b = b->next;
 	}
       while(b);
@@ -477,7 +476,7 @@ void Make_N_Swap(t_tree *tree,t_edge **b, int beg, int end)
       do
 	{
 	  b[i]->l->v = b[i]->nni->best_l;
-	  if(b[i]->child) b[i] = b[i]->child;
+	  if(b[i]->next) b[i] = b[i]->next;
 	  else            b[i] = b[i]->next;
 	}
       while(b[i]);
@@ -542,7 +541,7 @@ int Make_Best_Swap(t_tree *tree)
       do
 	{
 	  b->l->v = b->nni->best_l;
-	  if(b->child) b = b->child;
+	  if(b->next) b = b->next;
 	  else         b = b->next;
 	}
       while(b);
@@ -595,7 +594,7 @@ int Mov_Backward_Topo_Bl(t_tree *tree, phydbl lk_old, t_edge **tested_b, int n_t
 	  do
 	    {
 	      b->l->v = b->l_old->v + (1./step) * (l_init[i][j] - b->l_old->v);
-	      if(b->child) b = b->child;
+	      if(b->next) b = b->next;
 	      else         b = b->next;
 	      j++;
 	    }
@@ -632,7 +631,7 @@ int Mov_Backward_Topo_Bl(t_tree *tree, phydbl lk_old, t_edge **tested_b, int n_t
 	  do
 	    {
 	      b->l->v = b->l_old->v;
-	      if(b->child) b = b->child;
+	      if(b->next) b = b->next;
 	      else         b = b->next;
 	    }
 	  while(b);
@@ -767,7 +766,7 @@ void Unswap_N_Branch(t_tree *tree, t_edge **b, int beg, int end)
 	  do
 	    {
 	      b[i]->l->v = b[i]->l_old->v;
-	      if(b[i]->child) b[i] = b[i]->child;
+	      if(b[i]->next) b[i] = b[i]->next;
 	      else            b[i] = b[i]->next;
 	    }
 	  while(b[i]);
@@ -804,7 +803,7 @@ void Unswap_N_Branch(t_tree *tree, t_edge **b, int beg, int end)
 	  do
 	    {
 	      b[i]->l->v = b[i]->l_old->v;
-	      if(b[i]->child) b[i] = b[i]->child;
+	      if(b[i]->next) b[i] = b[i]->next;
 	      else            b[i] = b[i]->next;
 	    }
 	  while(b[i]);
@@ -854,7 +853,7 @@ void Swap_N_Branch(t_tree *tree,t_edge **b, int beg, int end)
 	  do
 	    {
 	      b[i]->l->v = b[i]->nni->best_l;
-	      if(b[i]->child) b[i] = b[i]->child;
+	      if(b[i]->next) b[i] = b[i]->next;
 	      else            b[i] = b[i]->next;
 	    }
 	  while(b[i]);
@@ -890,7 +889,7 @@ void Swap_N_Branch(t_tree *tree,t_edge **b, int beg, int end)
 	  do
 	    {
 	      b[i]->l->v = b[i]->nni->best_l;
-	      if(b[i]->child) b[i] = b[i]->child;
+	      if(b[i]->next) b[i] = b[i]->next;
 	      else            b[i] = b[i]->next;
 	    }
 	  while(b[i]);

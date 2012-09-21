@@ -101,10 +101,11 @@ void Init_Tree(t_tree *tree, int n_otu)
   tree->mutmap                    = NULL;
   tree->next                      = NULL;
   tree->prev                      = NULL;
-  tree->child                     = NULL;
-  tree->parent                    = NULL;
-  tree->is_mixt_tree              = NO;
-  
+  tree->next                      = NULL;
+  tree->prev                      = NULL;
+  tree->mixt_tree                 = NULL;
+
+  tree->is_mixt_tree              = NO;  
   tree->tree_num                  = 0;
   tree->depth_curr_path           = 0;
   tree->has_bip                   = NO;
@@ -159,8 +160,8 @@ void Init_Edge_Light(t_edge *b, int num)
 
   b->next                 = NULL;
   b->prev                 = NULL;
-  /* b->child                = NULL; */
-  /* b->parent               = NULL; */
+  b->next_mixt            = NULL;
+  b->prev_mixt            = NULL;
 
   b->p_lk_left            = NULL;
   b->p_lk_rght            = NULL;
@@ -195,8 +196,8 @@ void Init_Node_Light(t_node *n, int num)
   n->id_rank                = 0;
   n->next                   = NULL;
   n->prev                   = NULL;
-  /* n->child                  = NULL; */
-  /* n->parent                 = NULL; */
+  /* n->next                  = NULL; */
+  /* n->prev                 = NULL; */
 }
 
 //////////////////////////////////////////////////////////////
@@ -549,14 +550,15 @@ void Set_Defaults_Model(t_mod *mod)
   strcpy(mod->custom_mod_string->s,"000000");
   mod->next                    = NULL;
   mod->prev                    = NULL;
-  mod->child                   = NULL;
-  mod->parent                  = NULL;
+  mod->next_mixt               = NULL;
+  mod->prev_mixt               = NULL;
   mod->r_mat                   = NULL;
   mod->e_frq                   = NULL;
   mod->whichmodel              = HKY85;
   mod->ras->n_catg             = 4;
   mod->mod_num                 = 0;
   mod->update_eigen            = NO;
+  mod->is_mixt_mod             = NO;
 
   mod->kappa->v                = 4.0;
   mod->ras->alpha->v           = 1.0;
@@ -673,22 +675,22 @@ void XML_Init_Node(xml_node *parent, xml_node *new_node, char *name)
   new_node->child    = NULL;
   new_node->ds->obj  = NULL;
   new_node->ds->next = NULL;
-
+  
   if(parent)
     { 
       if(!parent->child)
-	{
-	  parent->child = new_node;
-	}
+        {
+          parent->child = new_node;
+        }
       else
-	{
-	  xml_node *node = parent->child;
-	  while(node->next) node = node->next;
-	  node->next = new_node;
-	  new_node->prev = node;
-	}
+        {
+          xml_node *node = parent->child;
+          while(node->next) node = node->next;
+          node->next = new_node;
+          new_node->prev = node;
+        }
     }
-
+  
   new_node->attr = NULL;
 }
 
@@ -712,8 +714,8 @@ void Init_One_Spr(t_spr *a_spr)
   a_spr->b_init_target   = NULL;
   a_spr->next            = NULL;
   a_spr->prev            = NULL;
-  a_spr->child           = NULL;
-  a_spr->parent          = NULL;
+  a_spr->next           = NULL;
+  a_spr->prev          = NULL;
 }
 
 //////////////////////////////////////////////////////////////

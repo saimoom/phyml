@@ -1403,7 +1403,7 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
   t_edge *b;
   int i;
 
-  if(tree->parent)
+  if(tree->prev)
     {
       PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
       Exit("\n");
@@ -1562,8 +1562,7 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
       b->nni->l0 = l0[i];
       b->nni->l1 = l1[i];
       b->nni->l2 = l2[i];
-      if(b->child) b = b->child;
-      else         b = b->next;
+      b = b->next;
       i++;
     }
   while(b);
@@ -1591,8 +1590,7 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
       do
 	{
 	  b->nni->best_l = l0[i];
-	  if(b->child) b = b->child;
-	  else         b = b->next;
+          b = b->next;
 	  i++;
 	}
       while(b);
@@ -1612,8 +1610,7 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
       do
 	{
 	  b->nni->best_l = l1[i];
-	  if(b->child) b = b->child;
-	  else         b = b->next;
+          b = b->next;
 	  i++;
 	}
       while(b);
@@ -1633,8 +1630,7 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
       do
 	{
 	  b->nni->best_l = l2[i];
-	  if(b->child) b = b->child;
-	  else         b = b->next;
+          b = b->next;
 	  i++;
 	}
       while(b);
@@ -1657,8 +1653,7 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
       do
 	{
 	  b->nni->best_l = l0[i];
-	  if(b->child) b = b->child;
-	  else         b = b->next;
+          b = b->next;
 	  i++;
 	}
       while(b);
@@ -1681,8 +1676,7 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
 	  do
 	    {
 	      b->l->v = l1[i];
-	      if(b->child) b = b->child;
-	      else         b = b->next;
+              b = b->next;
 	      i++;
 	    }
 	  while(b);
@@ -1700,8 +1694,7 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
 	  do
 	    {
 	      b->l->v = l2[i];
-	      if(b->child) b = b->child;
-	      else         b = b->next;
+              b = b->next;
 	      i++;
 	    }
 	  while(b);
@@ -1922,9 +1915,7 @@ void Swap(t_node *a, t_node *b, t_node *c, t_node *d, t_tree *tree)
     }
   Update_Dirs(tree);
   
-  if(tree->child) 
-    Swap(a->child,b->child,c->child,d->child,tree->child);
-  else
+  if(tree->next) 
     Swap(a->next,b->next,c->next,d->next,tree->next);
 }
 
@@ -4363,7 +4354,6 @@ void Copy_Tree(t_tree *ori, t_tree *cpy)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
 void Prune_Subtree(t_node *a, t_node *d, t_edge **target, t_edge **residual, t_tree *tree)
 {
   t_node *v1, *v2;
@@ -4765,7 +4755,6 @@ void Graft_Subtree(t_edge *target, t_node *link, t_edge *residual, t_tree *tree)
 
   if(target->l->onoff == ON)   target->l->v /= 2.;
   if(residual->l->onoff == ON) residual->l->v = target->l->v;
-
 
   Make_Edge_Dirs(target,target->left,target->rght,tree);
   Make_Edge_Dirs(residual,residual->left,residual->rght,tree);
@@ -5383,8 +5372,7 @@ void Record_Br_Len(t_tree *mixt_tree)
 	  tree->a_edges[i]->gamma_prior_var_old  = tree->a_edges[i]->gamma_prior_var;
 	}
 
-      if(tree->child) tree = tree->child;
-      else            tree = tree->next;
+      tree = tree->next;
 
     }
   while(tree);
@@ -5412,8 +5400,7 @@ void Restore_Br_Len(t_tree *mixt_tree)
 	  tree->a_edges[i]->gamma_prior_var  = tree->a_edges[i]->gamma_prior_var_old;
 	}
 
-      if(tree->child) tree = tree->child;
-      else            tree = tree->next;
+      tree = tree->next;
 
     }
   while(tree);
@@ -7239,7 +7226,6 @@ char *aLRT_From_String(char *s_tree, calign *cdata, t_mod *mod, option *io)
   s_tree = Write_Tree(tree,NO);
 
   Free_Spr_List(tree);
-  Free_One_Spr(tree->best_spr);
   Free_Triplet(tree->triplet_struct);
   Free_Tree_Pars(tree);
   Free_Tree_Lk(tree);
@@ -7806,7 +7792,6 @@ void Copy_Tree_Topology_With_Labels(t_tree *ori, t_tree *cpy)
 
 void Set_Model_Name(t_mod *mod)
 {
-
   switch(mod->whichmodel)
     {
     case JC69:
@@ -9234,8 +9219,7 @@ void Switch_Eigen(int state, t_mod *mod)
   do
     {
       buff->update_eigen = state;
-      if(buff->child) buff = buff->child;
-      else buff = buff->next;
+      buff = buff->next;
       if(!buff) break;
     }
   while(1);
@@ -9253,8 +9237,7 @@ void Set_Both_Sides(int yesno, t_tree *mixt_tree)
   do
     {
       tree->both_sides = yesno;
-      if(tree->child) tree = tree->child;
-      else            tree = tree->next;
+      tree = tree->next;
     }
   while(tree);
 

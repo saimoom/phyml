@@ -49,7 +49,7 @@
 #  define MXML_IGNORE_CALLBACK	mxml_ignore_cb
 					/* Ignore all non-element content */
 
-#  define MXML_NO_PARENT	0	/* No parent for the node */
+#  define MXML_NO_PARENT	0	/* No prev for the node */
 
 #  define MXML_DESCEND		1	/* Descend when finding/walking */
 #  define MXML_NO_DESCEND	0	/* Don't descend when finding/walking */
@@ -62,7 +62,7 @@
 
 #  define MXML_ADD_BEFORE	0	/* Add node before specified node */
 #  define MXML_ADD_AFTER	1	/* Add node after specified node */
-#  define MXML_ADD_TO_PARENT	NULL	/* Add node relative to parent */
+#  define MXML_ADD_TO_PARENT	NULL	/* Add node relative to prev */
 
 
 /*
@@ -134,11 +134,11 @@ typedef union mxml_value_u		/**** An XML node value. @private@ ****/
 struct mxml_node_s			/**** An XML node. @private@ ****/
 {
   mxml_type_t		type;		/* Node type */
-  struct mxml_node_s	*next;		/* Next node under same parent */
-  struct mxml_node_s	*prev;		/* Previous node under same parent */
-  struct mxml_node_s	*parent;	/* Parent node */
-  struct mxml_node_s	*child;		/* First child node */
-  struct mxml_node_s	*last_child;	/* Last child node */
+  struct mxml_node_s	*next;		/* Next node under same prev */
+  struct mxml_node_s	*prev;		/* Previous node under same prev */
+  struct mxml_node_s	*prev;	/* Parent node */
+  struct mxml_node_s	*next;		/* First next node */
+  struct mxml_node_s	*last_next;	/* Last next node */
   mxml_value_t		value;		/* Node value */
   int			ref_count;	/* Use count */
   void			*user_data;	/* User data */
@@ -189,8 +189,8 @@ extern "C" {
  * Prototypes...
  */
 
-extern void		mxmlAdd(mxml_node_t *parent, int where,
-			        mxml_node_t *child, mxml_node_t *node);
+extern void		mxmlAdd(mxml_node_t *prev, int where,
+			        mxml_node_t *next, mxml_node_t *node);
 extern void		mxmlDelete(mxml_node_t *node);
 extern void		mxmlElementDeleteAttr(mxml_node_t *node,
 			                      const char *name);
@@ -241,16 +241,16 @@ extern mxml_node_t	*mxmlLoadFile(mxml_node_t *top, FILE *fp,
 			              mxml_type_t (*cb)(mxml_node_t *));
 extern mxml_node_t	*mxmlLoadString(mxml_node_t *top, const char *s,
 			                mxml_type_t (*cb)(mxml_node_t *));
-extern mxml_node_t	*mxmlNewCDATA(mxml_node_t *parent, const char *string);
-extern mxml_node_t	*mxmlNewCustom(mxml_node_t *parent, void *data,
+extern mxml_node_t	*mxmlNewCDATA(mxml_node_t *prev, const char *string);
+extern mxml_node_t	*mxmlNewCustom(mxml_node_t *prev, void *data,
 			               mxml_custom_destroy_cb_t destroy);
-extern mxml_node_t	*mxmlNewElement(mxml_node_t *parent, const char *name);
-extern mxml_node_t	*mxmlNewInteger(mxml_node_t *parent, int integer);
-extern mxml_node_t	*mxmlNewOpaque(mxml_node_t *parent, const char *opaque);
-extern mxml_node_t	*mxmlNewReal(mxml_node_t *parent, double real);
-extern mxml_node_t	*mxmlNewText(mxml_node_t *parent, int whitespace,
+extern mxml_node_t	*mxmlNewElement(mxml_node_t *prev, const char *name);
+extern mxml_node_t	*mxmlNewInteger(mxml_node_t *prev, int integer);
+extern mxml_node_t	*mxmlNewOpaque(mxml_node_t *prev, const char *opaque);
+extern mxml_node_t	*mxmlNewReal(mxml_node_t *prev, double real);
+extern mxml_node_t	*mxmlNewText(mxml_node_t *prev, int whitespace,
 			             const char *string);
-extern mxml_node_t	*mxmlNewTextf(mxml_node_t *parent, int whitespace,
+extern mxml_node_t	*mxmlNewTextf(mxml_node_t *prev, int whitespace,
 			              const char *format, ...)
 #    ifdef __GNUC__
 __attribute__ ((__format__ (__printf__, 3, 4)))

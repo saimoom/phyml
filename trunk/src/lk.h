@@ -39,7 +39,6 @@ void Update_P_Lk(t_tree *tree,t_edge *b_fcus,t_node *n);
 void Update_P_Lk_Generic(t_tree *tree,t_edge *b_fcus,t_node *n);
 void Update_P_Lk_AA(t_tree *tree,t_edge *b_fcus,t_node *n);
 void Update_P_Lk_Nucl(t_tree *tree,t_edge *b_fcus,t_node *n);
-void Make_Tree_4_Lk(t_tree *tree,calign *cdata,int n_site);
 void Init_P_Lk_Tips_Double(t_tree *tree);
 void Init_P_Lk_Tips_Int(t_tree *tree);
 void Init_P_Lk_At_One_Node(t_node *a, t_tree *tree);

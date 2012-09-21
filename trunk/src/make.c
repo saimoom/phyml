@@ -13,7 +13,41 @@ the GNU public licence. See http://www.opensource.org for details.
 #include "make.h"
 
 //////////////////////////////////////////////////////////////
+
+void Make_Tree_4_Lk(t_tree *tree, calign *cdata, int n_site)
+{
+  int i;
+
+  tree->c_lnL_sorted  = (phydbl *)mCalloc(tree->n_pattern, sizeof(phydbl));
+  tree->cur_site_lk = (phydbl *)mCalloc(cdata->crunch_len,sizeof(phydbl));
+  tree->old_site_lk = (phydbl *)mCalloc(cdata->crunch_len,sizeof(phydbl));
+  tree->site_lk_cat   = (phydbl *)mCalloc(tree->mod->ras->n_catg,sizeof(phydbl));  
+  tree->log_site_lk_cat  = (phydbl **)mCalloc(tree->mod->ras->n_catg,sizeof(phydbl *));
+  For(i,tree->mod->ras->n_catg)
+    tree->log_site_lk_cat[i] = (phydbl *)mCalloc(cdata->crunch_len,sizeof(phydbl));
+
+  tree->log_lks_aLRT = (phydbl **)mCalloc(3,sizeof(phydbl *));
+  For(i,3) tree->log_lks_aLRT[i] = (phydbl *)mCalloc(tree->data->init_len,sizeof(phydbl));
+
+  For(i,2*tree->n_otu-3) Make_Edge_NNI(tree->a_edges[i]);
+
+  if(tree->is_mixt_tree == NO)
+    {
+      For(i,2*tree->n_otu-3) Make_Edge_Lk(tree->a_edges[i],tree);    
+      For(i,2*tree->n_otu-2) Make_Node_Lk(tree->a_nodes[i]);
+      
+      if(tree->mod->s_opt->greedy) 
+	Init_P_Lk_Tips_Double(tree);
+      else 
+	Init_P_Lk_Tips_Int(tree);
+      
+      Init_P_Lk_Loc(tree);
+    }
+}
+
 //////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 void Make_Tree_4_Pars(t_tree *tree, calign *cdata, int n_site)
 {
@@ -136,12 +170,19 @@ void Make_Edge_Lk(t_edge *b, t_tree *tree)
   
   ns = -1;
 
+  if(tree->is_mixt_tree)
+    {
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+
   ns = tree->mod->ns;
 
   b->l_old->v = b->l->v;
 
   b->div_post_pred_left = (short int *)mCalloc(ns,sizeof(short int));
   b->div_post_pred_rght = (short int *)mCalloc(ns,sizeof(short int));
+
 
   b->Pij_rr = (phydbl *)mCalloc(tree->mod->ras->n_catg*tree->mod->ns*tree->mod->ns,sizeof(phydbl));
   
