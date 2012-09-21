@@ -23,8 +23,8 @@ void MIXT_Chain_All(t_tree *mixt_tree)
   int i;
 
   curr = mixt_tree;
-  next = mixt_tree->child;
-
+  next = mixt_tree->next;
+  
   do
     {
       MIXT_Chain_String(curr->mod->modelname,next->mod->modelname);      
@@ -43,11 +43,9 @@ void MIXT_Chain_All(t_tree *mixt_tree)
       MIXT_Chain_Eigen(curr->mod->eigen,next->mod->eigen);            
 
       curr = next;
-      next = next->child ? next->child : next->next;
+      next = next->next;
     }
   while(next);
-
-  Exit("\n");
 
   curr = mixt_tree;
   do
@@ -57,8 +55,7 @@ void MIXT_Chain_All(t_tree *mixt_tree)
       MIXT_Chain_Sprs(curr);
       MIXT_Chain_Triplets(curr);
       
-      if(curr->child) curr = curr->child;
-      else            curr = curr->next;
+      curr = curr->next;
     }
   while(curr);
 
@@ -77,10 +74,10 @@ void MIXT_Chain_Edges(t_tree *tree)
     {
       b = tree->a_edges[i];
 
-      if(tree->next)   b->next   = tree->next->a_edges[i];
-      if(tree->prev)   b->prev   = tree->prev->a_edges[i];
-      if(tree->child)  b->child  = tree->child->a_edges[i];
-      if(tree->parent) b->parent = tree->parent->a_edges[i];
+      if(tree->next)      b->next       = tree->next->a_edges[i];
+      if(tree->prev)      b->prev       = tree->prev->a_edges[i];
+      if(tree->next_mixt) b->next_mixt  = tree->next_mixt->a_edges[i];
+      if(tree->prev_mixt) b->prev_mixt  = tree->prev_mixt->a_edges[i];
     }
 }
 
@@ -96,10 +93,10 @@ void MIXT_Chain_Nodes(t_tree *tree)
     {
       n = tree->a_nodes[i];
 
-      if(tree->next)   n->next   = tree->next->a_nodes[i];
-      if(tree->prev)   n->prev   = tree->prev->a_nodes[i];
-      if(tree->child)  n->child  = tree->child->a_nodes[i];
-      if(tree->parent) n->parent = tree->parent->a_nodes[i];
+      if(tree->next)      n->next       = tree->next->a_nodes[i];
+      if(tree->prev)      n->prev       = tree->prev->a_nodes[i];
+      if(tree->next_mixt) n->next_mixt  = tree->next_mixt->a_nodes[i];
+      if(tree->prev_mixt) n->prev_mixt  = tree->prev_mixt->a_nodes[i];
     }
 }
 
@@ -110,17 +107,17 @@ void MIXT_Chain_Sprs(t_tree *tree)
 {
   int i;
   
-  if(tree->next)   tree->best_spr->next   = tree->next->best_spr;
-  if(tree->prev)   tree->best_spr->prev   = tree->prev->best_spr;
-  if(tree->child)  tree->best_spr->child  = tree->child->best_spr;
-  if(tree->parent) tree->best_spr->parent = tree->parent->best_spr;
+  if(tree->next)      tree->best_spr->next      = tree->next->best_spr;
+  if(tree->prev)      tree->best_spr->prev      = tree->prev->best_spr;
+  if(tree->next_mixt) tree->best_spr->next_mixt = tree->next_mixt->best_spr;
+  if(tree->prev_mixt) tree->best_spr->prev_mixt = tree->prev_mixt->best_spr;
 
   For(i,2*tree->n_otu-2)
     {
-      if(tree->next)   tree->spr_list[i]->next   = tree->next->spr_list[i];
-      if(tree->prev)   tree->spr_list[i]->prev   = tree->prev->spr_list[i];
-      if(tree->child)  tree->spr_list[i]->child  = tree->child->spr_list[i];
-      if(tree->parent) tree->spr_list[i]->parent = tree->parent->spr_list[i];
+      if(tree->next)      tree->spr_list[i]->next      = tree->next->spr_list[i];
+      if(tree->prev)      tree->spr_list[i]->prev      = tree->prev->spr_list[i];
+      if(tree->next_mixt) tree->spr_list[i]->next_mixt = tree->next_mixt->spr_list[i];
+      if(tree->prev_mixt) tree->spr_list[i]->prev_mixt = tree->prev_mixt->spr_list[i];
     }    
 }
 
@@ -129,10 +126,8 @@ void MIXT_Chain_Sprs(t_tree *tree)
 
 void MIXT_Chain_Triplets(t_tree *tree)
 {
-  if(tree->next)   tree->triplet_struct->next   = tree->next->triplet_struct;
-  if(tree->prev)   tree->triplet_struct->prev   = tree->prev->triplet_struct;
-  if(tree->child)  tree->triplet_struct->next   = tree->child->triplet_struct;
-  if(tree->parent) tree->triplet_struct->prev   = tree->parent->triplet_struct;
+  if(tree->next)      tree->triplet_struct->next      = tree->next->triplet_struct;
+  if(tree->prev)      tree->triplet_struct->prev      = tree->prev->triplet_struct;
 }
 
 //////////////////////////////////////////////////////////////
@@ -142,16 +137,15 @@ void MIXT_Chain_String(t_string *curr, t_string *next)
 {
   if(!next)
     {
-      PhyML_Printf("\n== Err in file %s at line %d\n\n",__FILE__,__LINE__);
-      Exit("\n");
+      return;
     }
   else
     {
-      t_string *buff;
+      t_string *buff,*last;
 
-      curr->next = NULL;
-      if(next) next->prev = NULL;
+      last = NULL;
 
+      /*! Search backward */
       buff = curr;
       while(buff)
         {
@@ -159,10 +153,25 @@ void MIXT_Chain_String(t_string *curr, t_string *next)
           buff = buff->prev;
         }
       
+      /*! Search forward */
+      if(!buff)
+        {
+          buff = curr;
+          while(buff)
+            {
+              if(buff == next) break;
+              buff = buff->next;
+            }
+        }
+
+
       if(!buff) 
         {
-          curr->next = next;
-          next->prev = curr;
+          last = curr;
+          while(last->next) { last = last->next; }
+
+          last->next = next;
+          next->prev = last;
         }
     }
 }
@@ -174,15 +183,13 @@ void MIXT_Chain_Vector_Dbl(vect_dbl *curr, vect_dbl *next)
 {
   if(!next)
     {
-      PhyML_Printf("\n== Err in file %s at line %d\n\n",__FILE__,__LINE__);
-      Exit("\n");
+      return;
     }
   else
     {
-      vect_dbl *buff;
+      vect_dbl *buff,*last;
 
-      curr->next = NULL;
-      if(next) next->prev = NULL;
+      last = NULL;
 
       buff = curr;
       while(buff)
@@ -191,10 +198,24 @@ void MIXT_Chain_Vector_Dbl(vect_dbl *curr, vect_dbl *next)
           buff = buff->prev;
         }
       
+      /*! Search forward */
+      if(!buff)
+        {
+          buff = curr;
+          while(buff)
+            {
+              if(buff == next) break;
+              buff = buff->next;
+            }
+        }
+
       if(!buff) 
         {
-          curr->next = next;
-          next->prev = curr;
+          last = curr;
+          while(last->next) { last = last->next; }
+
+          last->next = next;
+          next->prev = last;
         }
     }
 }
@@ -210,10 +231,9 @@ void MIXT_Chain_Scalar_Dbl(scalar_dbl *curr, scalar_dbl *next)
     }
   else
     {
-      scalar_dbl *buff;
+      scalar_dbl *buff, *last;
 
-      curr->next = NULL;
-      next->prev = NULL;
+      last = NULL;
 
       buff = curr;
       while(buff)
@@ -222,10 +242,24 @@ void MIXT_Chain_Scalar_Dbl(scalar_dbl *curr, scalar_dbl *next)
           buff = buff->prev;
         }
       
+      /*! Search forward */
+      if(!buff)
+        {
+          buff = curr;
+          while(buff)
+            {
+              if(buff == next) break;
+              buff = buff->next;
+            }
+        }
+
       if(!buff) 
         {
-          curr->next = next;
-          next->prev = curr;
+          last = curr;
+          while(last->next) { last = last->next; }
+
+          last->next = next;
+          next->prev = last;
         }
     }
 }
@@ -241,10 +275,9 @@ void MIXT_Chain_Rmat(t_rmat *curr, t_rmat *next)
     }
   else
     {
-      t_rmat *buff;
+      t_rmat *buff, *last;
 
-      curr->next = NULL;
-      if(next) next->prev = NULL;
+      last = NULL;
 
       buff = curr;
       while(buff)
@@ -253,10 +286,24 @@ void MIXT_Chain_Rmat(t_rmat *curr, t_rmat *next)
           buff = buff->prev;
         }
       
+      /*! Search forward */
+      if(!buff)
+        {
+          buff = curr;
+          while(buff)
+            {
+              if(buff == next) break;
+              buff = buff->next;
+            }
+        }
+
       if(!buff) 
         {
-          curr->next = next;
-          next->prev = curr;
+          last = curr;
+          while(last->next) { last = last->next; }
+
+          last->next = next;
+          next->prev = last;
         }
     }
 }
@@ -272,10 +319,9 @@ void MIXT_Chain_Efrq(t_efrq *curr, t_efrq *next)
     }
   else
     {
-      t_efrq *buff;
+      t_efrq *buff,*last;
 
-      curr->next = NULL;
-      if(next) next->prev = NULL;
+      last = NULL;
 
       buff = curr;
       while(buff)
@@ -284,10 +330,24 @@ void MIXT_Chain_Efrq(t_efrq *curr, t_efrq *next)
           buff = buff->prev;
         }
       
+      /*! Search forward */
+      if(!buff)
+        {
+          buff = curr;
+          while(buff)
+            {
+              if(buff == next) break;
+              buff = buff->next;
+            }
+        }
+
       if(!buff) 
         {
-          curr->next = next;
-          next->prev = curr;
+          last = curr;
+          while(last->next) { last = last->next; }
+
+          last->next = next;
+          next->prev = last;
         }
     }
 }
@@ -303,10 +363,9 @@ void MIXT_Chain_Eigen(eigen *curr, eigen *next)
     }
   else
     {
-      eigen *buff;
+      eigen *buff,*last;
 
-      curr->next = NULL;
-      if(next) next->prev = NULL;
+      last = NULL;
 
       buff = curr;
       while(buff)
@@ -315,10 +374,24 @@ void MIXT_Chain_Eigen(eigen *curr, eigen *next)
           buff = buff->prev;
         }
       
+      /*! Search forward */
+      if(!buff)
+        {
+          buff = curr;
+          while(buff)
+            {
+              if(buff == next) break;
+              buff = buff->next;
+            }
+        }
+
       if(!buff) 
         {
-          curr->next = next;
-          next->prev = curr;
+          last = curr;
+          while(last->next) { last = last->next; }
+
+          last->next = next;
+          next->prev = last;
         }
     }
 }
@@ -334,11 +407,10 @@ void MIXT_Chain_RAS(t_ras *curr, t_ras *next)
     }
   else
     {
-      t_ras *buff;
-
-      curr->next = NULL;
-      if(next) next->prev = NULL;
-
+      t_ras *buff,*last;
+      
+      last = NULL;
+      
       buff = curr;
       while(buff)
         {
@@ -346,16 +418,27 @@ void MIXT_Chain_RAS(t_ras *curr, t_ras *next)
           buff = buff->prev;
         }
       
+      /*! Search forward */
+      if(!buff)
+        {
+          buff = curr;
+          while(buff)
+            {
+              if(buff == next) break;
+              buff = buff->next;
+            }
+        }
+
       if(!buff) 
         {
-          curr->next = next;
-          next->prev = curr;
+          last = curr;
+          while(last->next) { last = last->next; }
+
+          last->next = next;
+          next->prev = last;
         }
     }
 }
-
-//////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
@@ -376,8 +459,7 @@ void MIXT_Turn_Branches_OnOff(int onoff, t_tree *mixt_tree)
   do
     {
       For(i,2*tree->n_otu-3) tree->a_edges[i]->l->onoff = onoff;
-      if(tree->child) tree = tree->child;     
-      else            tree = tree->next;
+      tree = tree->next;
     }
   while(tree && tree->is_mixt_tree == NO);
 }
@@ -403,8 +485,7 @@ phydbl *MIXT_Get_Lengths_Of_This_Edge(t_edge *mixt_b)
 
       lens[n_lens] = b->l->v;
       n_lens++;
-      if(b->child) b = b->child; 
-      else         b = b->next;
+      b = b->next;
     }
   while(b);
 
@@ -426,8 +507,7 @@ void MIXT_Set_Lengths_Of_This_Edge(phydbl *lens, t_edge *mixt_b)
     {
       b->l->v = lens[n_lens];
       n_lens++;
-      if(b->child) b = b->child; 
-      else         b = b->next;
+      b = b->next;
     }
   while(b);
 }
@@ -446,11 +526,11 @@ void MIXT_Post_Order_Lk(t_node *mixt_a, t_node *mixt_d, t_tree *mixt_tree)
 
   do
     {
-      if(tree->child)
+      if(tree->is_mixt_tree)
         {
-          tree = tree->child;
-          a    = a->child;
-          d    = d->child;
+          tree = tree->next;
+          a    = a->next;
+          d    = d->next;
         }
 
       if(tree->mod->ras->invar == NO) Post_Order_Lk(a,d,tree);
@@ -477,11 +557,11 @@ void MIXT_Pre_Order_Lk(t_node *mixt_a, t_node *mixt_d, t_tree *mixt_tree)
 
   do
     {
-      if(tree->child)
+      if(tree->is_mixt_tree)
         {
-          tree = tree->child;
-          a    = a->child;
-          d    = d->child;
+          tree = tree->next;
+          a    = a->next;
+          d    = d->next;
         }
       
       if(tree->mod->ras->invar == NO) Pre_Order_Lk(a,d,tree);
@@ -556,8 +636,9 @@ phydbl MIXT_Lk(t_edge *mixt_b, t_tree *mixt_tree)
 
       For(site,mixt_tree->n_pattern)
         {
-          b    = mixt_b->child;          
-          tree = mixt_tree->child;
+          b    = mixt_b->next;          
+          tree = mixt_tree->next;
+
           while(tree->mod->ras->invar == YES) 
             {
               tree = tree->next;
@@ -583,10 +664,10 @@ phydbl MIXT_Lk(t_edge *mixt_b, t_tree *mixt_tree)
           
           do
             {
-              if(tree->child)
+              if(tree->is_mixt_tree)
                 {
-                  tree = tree->child;
-                  b    = b->child;
+                  tree = tree->next;
+                  b    = b->next;
                 }
 
               tree->curr_site        = site;
@@ -660,13 +741,13 @@ phydbl MIXT_Lk(t_edge *mixt_b, t_tree *mixt_tree)
               tree = tree->next;
               b    = b->next;
             }
-          while(tree);
+          while(tree && tree->is_mixt_tree == NO);
 
           max_sum_scale =  (phydbl)BIG;
           min_sum_scale = -(phydbl)BIG;
 
-          tree  = mixt_tree->child;
-          b     = mixt_b->child;
+          tree  = mixt_tree->next;
+          b     = mixt_b->next;
           class = 0;
           do
             {
@@ -718,8 +799,8 @@ phydbl MIXT_Lk(t_edge *mixt_b, t_tree *mixt_tree)
           /*! Populate the mixt_tree->site_lk_cat[class] table after
             scaling */
 
-          tree  = mixt_tree->child;
-          b     = mixt_b->child;
+          tree  = mixt_tree->next;
+          b     = mixt_b->next;
           class = 0;
 
           do
@@ -757,7 +838,7 @@ phydbl MIXT_Lk(t_edge *mixt_b, t_tree *mixt_tree)
             {
               num_prec_issue = NO;
 
-              tree = mixt_tree->child;
+              tree = mixt_tree->next;
               while(tree->mod->ras->invar == NO)
                 {
                   tree = tree->next;
@@ -817,8 +898,8 @@ phydbl MIXT_Lk(t_edge *mixt_b, t_tree *mixt_tree)
       Free(sum_scale_left_cat);
       Free(sum_scale_rght_cat);
       
-      mixt_tree = mixt_tree->next;
-      mixt_b    = mixt_b->next;
+      mixt_tree = mixt_tree->next_mixt;
+      mixt_b    = mixt_b->next_mixt;
     }
   while(mixt_tree);
   
@@ -829,7 +910,7 @@ phydbl MIXT_Lk(t_edge *mixt_b, t_tree *mixt_tree)
   do
     {
       sum_lnL += mixt_tree->c_lnL;
-      mixt_tree = mixt_tree->next;
+      mixt_tree = mixt_tree->next_mixt;
     }
   while(mixt_tree);
 
@@ -837,7 +918,7 @@ phydbl MIXT_Lk(t_edge *mixt_b, t_tree *mixt_tree)
   do
     {
       mixt_tree->c_lnL = sum_lnL;
-      mixt_tree = mixt_tree->next;
+      mixt_tree = mixt_tree->next_mixt;
     }
   while(mixt_tree);
 
@@ -857,7 +938,7 @@ void MIXT_Update_Eigen(t_mod *mixt_mod)
 
   do
     {
-      if(mod->child) mod = mod->child;
+      if(mod->is_mixt_mod) mod = mod->next;
       Update_Eigen(mod);
       mod = mod->next;
     }
@@ -880,11 +961,11 @@ void MIXT_Update_P_Lk(t_tree *mixt_tree, t_edge *mixt_b, t_node *mixt_d)
 
   do
     {
-      if(tree->child) 
+      if(tree->is_mixt_tree) 
         {
-          tree = tree->child;
-          b    = b->child;
-          d    = d->child;
+          tree = tree->next;
+          b    = b->next;
+          d    = d->next;
         }
 
       Update_P_Lk(tree,b,d);
@@ -911,10 +992,10 @@ void MIXT_Update_PMat_At_Given_Edge(t_edge *mixt_b, t_tree *mixt_tree)
 
   do
     {
-      if(tree->child) 
+      if(tree->is_mixt_tree) 
         {
-          tree = tree->child;
-          b    = b->child;
+          tree = tree->next;
+          b    = b->next;
         }
       
       if(tree->mod->ras->invar == NO) Update_PMat_At_Given_Edge(b,tree);
@@ -945,7 +1026,7 @@ int *MIXT_Get_Number_Of_Classes_In_All_Mixtures(t_tree *mixt_tree)
 
       n_catg[class] = tree->mod->ras->n_catg;
       class++;
-      tree = tree->next;
+      tree = tree->next_mixt;
     }
   while(tree);
 
@@ -971,9 +1052,7 @@ t_tree **MIXT_Record_All_Mixtures(t_tree *mixt_tree)
       
       tree_list[n_trees] = tree;
       n_trees++;
-
-      if(tree->child) tree = tree->child;
-      else            tree = tree->next;
+      tree = tree->next;
     }
   while(tree);
 
@@ -993,7 +1072,6 @@ void MIXT_Break_All_Mixtures(int c_max, t_tree *mixt_tree)
   
   if(mixt_tree->is_mixt_tree == NO) return;
 
-  
   c = 0;
   tree = mixt_tree;
   do
@@ -1001,27 +1079,26 @@ void MIXT_Break_All_Mixtures(int c_max, t_tree *mixt_tree)
       if(tree->is_mixt_tree) 
         {
           c = 0;
-          tree = tree->child;
+          tree = tree->next;
         }
 
       if(c == (c_max-1)              && 
-         tree->is_mixt_tree == NO    &&
          tree->next != NULL          && 
          tree->next->is_mixt_tree == NO) 
         {
-          if(tree->parent->next == NULL)
+          if(tree->mixt_tree->next_mixt == NULL)
             {
               tree->next = NULL;
-              For(i,2*tree->n_otu-3) tree->a_edges[i]->next  = NULL;
-              For(i,2*tree->n_otu-2) tree->a_nodes[i]->next  = NULL;
+              For(i,2*tree->n_otu-2) tree->a_edges[i]->next  = NULL;
+              For(i,2*tree->n_otu-1) tree->a_nodes[i]->next  = NULL;
               For(i,2*tree->n_otu-2) tree->spr_list[i]->next = NULL;
             }
           else
             {
-              tree->next = tree->parent->next;
-              For(i,2*tree->n_otu-3) tree->a_edges[i]->next  = tree->parent->next->a_edges[i];
-              For(i,2*tree->n_otu-2) tree->a_nodes[i]->next  = tree->parent->next->a_nodes[i];
-              For(i,2*tree->n_otu-2) tree->spr_list[i]->next = tree->parent->next->spr_list[i];
+              tree->next = tree->mixt_tree->next_mixt;
+              For(i,2*tree->n_otu-2) tree->a_edges[i]->next  = tree->mixt_tree->next_mixt->a_edges[i];
+              For(i,2*tree->n_otu-1) tree->a_nodes[i]->next  = tree->mixt_tree->next_mixt->a_nodes[i];
+              For(i,2*tree->n_otu-2) tree->spr_list[i]->next = tree->mixt_tree->next_mixt->spr_list[i];
             }
         }
 
@@ -1048,8 +1125,7 @@ void MIXT_Reconnect_All_Mixtures(t_tree **tree_list, t_tree *mixt_tree)
       tree = tree_list[n_trees];
       if(tree->is_mixt_tree == NO) tree->next = tree_list[n_trees+1];
       n_trees++;
-      if(tree->child) tree = tree->child;
-      else            tree = tree->next;
+      tree = tree->next;
     }
   while(tree);
   
@@ -1074,8 +1150,7 @@ int *MIXT_Record_Has_Invariants(t_tree *mixt_tree)
       else         has_invariants = (int *)realloc(has_invariants,(n_trees+1)*sizeof(int));
       has_invariants[n_trees] = (tree->mod->ras->invar == YES)?1:0;
       n_trees++;
-      if(tree->child) tree = tree->child;
-      else            tree = tree->next;
+      tree = tree->next;
     }
   while(tree);
 
@@ -1096,8 +1171,7 @@ void MIXT_Reset_Has_Invariants(int *has_invariants, t_tree *mixt_tree)
     {
       tree->mod->ras->invar = has_invariants[n_trees];
       n_trees++;
-      if(tree->child) tree = tree->child;
-      else            tree = tree->next;
+      tree = tree->next;
     }
   while(tree);
 
@@ -1118,9 +1192,9 @@ void MIXT_Check_Invar_Struct_In_Each_Partition_Elem(t_tree *mixt_tree)
       tree = mixt_tree;
       do
         {
-          if(tree->child) 
+          if(tree->is_mixt_tree) 
             {
-              tree  = tree->child;
+              tree  = tree->next;
               n_inv = 0;
             }
 
@@ -1128,15 +1202,16 @@ void MIXT_Check_Invar_Struct_In_Each_Partition_Elem(t_tree *mixt_tree)
 
           if(n_inv > 1)
             {
-              PhyML_Printf("\n== Found %d classes of the mixture for file '%s' set to",n_inv,tree->parent->io->in_align_file);
+              PhyML_Printf("\n== Found %d classes of the mixture for file '%s' set to",n_inv,tree->mixt_tree->io->in_align_file);
               PhyML_Printf("\n== invariable. Only one such class per mixture is allowed.");
               PhyML_Printf("\n== Err in file %s at line %d\n\n",__FILE__,__LINE__);
               Warn_And_Exit("\n");
             }
 
-          if(tree->parent->mod->ras->invar == NO && tree->mod->ras->invar == YES)
+          if(tree->mixt_tree->mod->ras->invar == NO && 
+             tree->mod->ras->invar == YES)
             {
-              PhyML_Printf("\n== Unexpected settings for 'siterates' in a partition element (file '%s')",tree->parent->io->in_align_file);
+              PhyML_Printf("\n== Unexpected settings for 'siterates' in a partition element (file '%s')",tree->mixt_tree->io->in_align_file);
               PhyML_Printf("\n== Err in file %s at line %d\n\n",__FILE__,__LINE__);
               Warn_And_Exit("\n");
             }
@@ -1162,9 +1237,9 @@ void MIXT_Check_RAS_Struct_In_Each_Partition_Elem(t_tree *mixt_tree)
       tree = mixt_tree;
       do
         {
-          if(tree->child) 
+          if(tree->is_mixt_tree) 
             {
-              tree  = tree->child;
+              tree  = tree->next;
               n_classes = 0;
             }
 
@@ -1172,15 +1247,15 @@ void MIXT_Check_RAS_Struct_In_Each_Partition_Elem(t_tree *mixt_tree)
 
           if((tree->next && tree->next->is_mixt_tree == YES) || (!tree->next)) /*! current tree is the last element of this mixture */
             {
-              if(n_classes != tree->parent->mod->ras->n_catg)
+              if(n_classes != tree->mixt_tree->mod->ras->n_catg)
                 {                  
                   PhyML_Printf("\n== %d class%s found in 'partitionelem' for file '%s' while the corresponding",
                                n_classes,
                                (n_classes>1)?"es\0":"\0",
-                               tree->parent->io->in_align_file);
+                               tree->mixt_tree->io->in_align_file);
                   PhyML_Printf("\n== 'siterates' element defined %d class%s.",
-                               tree->parent->mod->ras->n_catg,
-                               (tree->parent->mod->ras->n_catg>1)?"es\0":"\0");
+                               tree->mixt_tree->mod->ras->n_catg,
+                               (tree->mixt_tree->mod->ras->n_catg>1)?"es\0":"\0");
                   PhyML_Printf("\n== Err in file %s at line %d\n\n",__FILE__,__LINE__);
                   Warn_And_Exit("\n");
                 }
@@ -1211,13 +1286,13 @@ void MIXT_Prune_Subtree(t_node *mixt_a, t_node *mixt_d, t_edge **mixt_target, t_
 
   do
     {      
-      if(tree->child) 
+      if(tree->is_mixt_tree) 
         {
-          tree     = tree->child;
-          a        = a->child;
-          d        = d->child;
-          target   = target->child;
-          residual = residual->child;
+          tree     = tree->next;
+          a        = a->next;
+          d        = d->next;
+          target   = target->next;
+          residual = residual->next;
         }
 
       Prune_Subtree(a,d,&target,&residual,tree);
@@ -1258,12 +1333,12 @@ void MIXT_Graft_Subtree(t_edge *mixt_target, t_node *mixt_link, t_edge *mixt_res
   
   do
     {
-      if(tree->child)
+      if(tree->is_mixt_tree)
         {
-          tree     = tree->child;
-          target   = target->child;
-          residual = residual->child;
-          link     = link->child;
+          tree     = tree->next;
+          target   = target->next;
+          residual = residual->next;
+          link     = link->next;
         }
 
       Graft_Subtree(target,link,residual,tree);
@@ -1275,8 +1350,7 @@ void MIXT_Graft_Subtree(t_edge *mixt_target, t_node *mixt_link, t_edge *mixt_res
     }
   while(tree && tree->is_mixt_tree == NO);
 
-  if(tree) 
-    Graft_Subtree(target,link,residual,tree);
+  if(tree) Graft_Subtree(target,link,residual,tree);
 
   /*! Turn branches of this mixt_tree to ON after recursive call
     to Graft_Subtree such that, if branches of mixt_tree->next
@@ -1301,10 +1375,10 @@ void MIXT_Br_Len_Brent(phydbl prop_min,
   
   do
     {
-      if(tree->child)
+      if(tree->is_mixt_tree)
         {
-          tree = tree->child;
-          b    = b->child;
+          tree = tree->next;
+          b    = b->next;
         }
       
       Br_Len_Brent(prop_min,prop_max,b,tree);
@@ -1319,7 +1393,7 @@ void MIXT_Br_Len_Brent(phydbl prop_min,
   do
     {      
       MIXT_Turn_Branches_OnOff(ON,tree);
-      tree = tree->next;
+      tree = tree->next_mixt;
     }
   while(tree);
 }
@@ -1334,7 +1408,7 @@ void MIXT_Prepare_Tree_For_Lk(t_tree *mixt_tree)
   tree = mixt_tree;
   do
     {
-      if(tree->child) tree = tree->child;
+      if(tree->is_mixt_tree) tree = tree->next;
       Prepare_Tree_For_Lk(tree);      
       tree = tree->next;
     }
@@ -1370,9 +1444,9 @@ void MIXT_Br_Len_Involving_Invar(t_tree *mixt_tree)
 
   tree = mixt_tree;
   do
-    {      
+    {
       MIXT_Turn_Branches_OnOff(ON,tree);
-      tree = tree->next;
+      tree = tree->next_mixt;
     }
   while(tree);
 }
@@ -1406,7 +1480,7 @@ void MIXT_Br_Len_Not_Involving_Invar(t_tree *mixt_tree)
   do
     {      
       MIXT_Turn_Branches_OnOff(ON,tree);
-      tree = tree->next;
+      tree = tree->next_mixt;
     }
   while(tree);
 
@@ -1439,9 +1513,9 @@ phydbl MIXT_Unscale_Br_Len_Multiplier_Tree(t_tree *mixt_tree)
 
   tree = mixt_tree;
   do
-    {      
+    {
       MIXT_Turn_Branches_OnOff(ON,tree);
-      tree = tree->next;
+      tree = tree->next_mixt;
     }
   while(tree);
 
@@ -1475,12 +1549,11 @@ phydbl MIXT_Rescale_Br_Len_Multiplier_Tree(t_tree *mixt_tree)
 
   tree = mixt_tree;
   do
-    {      
+    {
       MIXT_Turn_Branches_OnOff(ON,tree);
-      tree = tree->next;
+      tree = tree->next_mixt;
     }
   while(tree);
-
 
   return(-1);
 }
@@ -1496,8 +1569,7 @@ void MIXT_Set_Alias_Subpatt(int onoff, t_tree *mixt_tree)
   do
     {
       tree->update_alias_subpatt = onoff;
-      if(tree->child) tree = tree->child;
-      else            tree = tree->next;
+      tree = tree->next;
     }
   while(tree);
 }
@@ -1510,11 +1582,10 @@ void MIXT_Check_Single_Edge_Lens(t_tree *mixt_tree)
   t_tree *tree;
   int i;
 
-  tree = mixt_tree->child;
-
+  tree = mixt_tree->next;
   do
     {
-      if(tree->next)
+      if(tree->next && tree->next->is_mixt_tree == NO)
         {
           For(i,2*tree->n_otu-3)
             {
@@ -1557,17 +1628,14 @@ int MIXT_Pars(t_edge *mixt_b, t_tree *mixt_tree)
   while(tree);
 
   tree = mixt_tree;
-
   do
     {
       tree->c_pars = mixt_tree->c_pars;      
-      tree = tree->next;
+      tree = tree->next_mixt;
     }
   while(tree);
-
   
   return(mixt_tree->c_pars);
-
 }
 
 //////////////////////////////////////////////////////////////
@@ -1631,12 +1699,12 @@ void MIXT_Bootstrap(char *best_tree, xml_node *root)
           elem   = 0;
           do
             {
-              io = (option *)Make_Input();
-              Set_Defaults_Input(io);
-
               p_elem = XML_Search_Node_Name("partitionelem",YES,p_elem);
               if(!p_elem) break;
               
+              io = (option *)Make_Input();
+              Set_Defaults_Input(io);
+
               /*! Get the original sequence file name and the corresponding
                 attribute in the XML graph 
               */
@@ -1683,6 +1751,11 @@ void MIXT_Bootstrap(char *best_tree, xml_node *root)
               Print_Seq(boot_fp_in_align,boot_data,io->n_otu);
               fclose(boot_fp_in_align);
 
+
+              Free_Seq(orig_data,io->n_otu);
+              Free_Seq(boot_data,io->n_otu);
+
+
               Free_Input(io);
               elem++;
             }
@@ -1705,11 +1778,9 @@ void MIXT_Bootstrap(char *best_tree, xml_node *root)
               p_elem = XML_Search_Node_Name("partitionelem",YES,p_elem);
               if(!p_elem) break;
               seqfile_attr = XML_Search_Attribute(p_elem,"filename");
-              unlink(seqfile_attr->value);
+              /* unlink(seqfile_attr->value); */
             }
           while(p_elem);
-
-          
 
           XML_Free_XML_Tree(boot_root);         
         }
@@ -1732,11 +1803,10 @@ void MIXT_Set_Pars_Thresh(t_tree *mixt_tree)
   do
     {
       tree->mod->s_opt->pars_thresh = (tree->io->datatype == AA)?(15):(5);
-      tree = tree->next;
+      tree = tree->next_mixt;
     }
   while(tree);
 }
-
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////

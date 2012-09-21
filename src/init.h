@@ -31,7 +31,7 @@ void Init_Mat(matrix *mat,calign *data);
 void Set_Defaults_Input(option *io);
 void Set_Defaults_Model(t_mod *mod);
 void Set_Defaults_Optimiz(t_opt *s_opt);
-void XML_Init_Node(xml_node *parent,xml_node *new_node,char *name);
+void XML_Init_Node(xml_node *prev,xml_node *new_node,char *name);
 void Init_One_Spr(t_spr *a_spr);
 void Init_Model(calign *data,t_mod *mod,option *io);
 int Init_Qmat_Dayhoff(phydbl *daa,phydbl *pi);

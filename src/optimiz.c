@@ -500,15 +500,15 @@ phydbl Br_Len_Brent(phydbl prop_min, phydbl prop_max, t_edge *b_fcus, t_tree *tr
   t_tree *loc_tree;
   t_edge *loc_b;
 
-  if(!tree->parent) 
+  if(!tree->prev) 
     {
       loc_tree = tree;
       loc_b    = b_fcus;
     }
   else
     {
-      loc_tree = tree->parent;
-      loc_b    = b_fcus->parent;
+      loc_tree = tree->prev;
+      loc_b    = b_fcus->prev;
 
       while(loc_tree->prev) 
 	{ 
@@ -719,7 +719,7 @@ void Optimiz_Ext_Br(t_tree *tree)
 	      b->nni->l0        = b->l->v;
 	      b->nni->best_conf = 0;
 	      b->l->v              = l_init;
-	      if(b->child) b = b->child;
+	      if(b->next) b = b->next;
 	      else         b = b->next;
 	    }
 	  while(b);
@@ -738,7 +738,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 
   if(!tree) return;
 
-  if(tree->parent && tree->mod->ras->invar == YES) return;
+  if(tree->prev && tree->mod->ras->invar == YES) return;
 
   init_both_sides  = tree->both_sides;
 
@@ -980,7 +980,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 
   if(tree->both_sides == YES) Lk(NULL,tree); /* Needed to update all partial likelihoods */
 
-  /* if(tree->child) Optimiz_All_Free_Param(tree->child,verbose); */
+  /* if(tree->next) Optimiz_All_Free_Param(tree->next,verbose); */
   /* else            Optimiz_All_Free_Param(tree->next,verbose); */
 
   /* if(tree->nextree) Optimiz_All_Free_Param(tree->nextree,verbose); */
@@ -2238,7 +2238,7 @@ void Optimize_RR_Params(t_tree *mixt_tree, int verbose)
 
   do
     {
-      if(tree->child) tree = tree->child;
+      if(tree->next) tree = tree->next;
       
       For(i,n_r_mat) if(tree->mod->r_mat == r_mat[i]) break;
 
@@ -2277,8 +2277,8 @@ void Optimize_RR_Params(t_tree *mixt_tree, int verbose)
 		      }
 		}
 	      
-	      if(verbose) Print_Lk(tree->parent?
-				   tree->parent:
+	      if(verbose) Print_Lk(tree->prev?
+				   tree->prev:
 				   tree,"[GTR parameters     ]");
 	      
 	    }
@@ -2314,7 +2314,7 @@ void Optimize_TsTv(t_tree *mixt_tree, int verbose)
 
   do
     {
-      if(tree->child) tree = tree->child;
+      if(tree->next) tree = tree->next;
       
       For(i,n_tstv) if(tree->mod->kappa == tstv[i]) break;
 
@@ -2486,7 +2486,7 @@ void Optimize_State_Freqs(t_tree *mixt_tree, int verbose)
 
   do
     {
-      if(tree->child) tree = tree->child;
+      if(tree->next) tree = tree->next;
 
       For(i,n_freqs) if(tree->mod->e_frq->pi_unscaled == freqs[i]) break;
 
@@ -2555,7 +2555,7 @@ void Optimize_Lambda(t_tree *mixt_tree, int verbose)
 
   do
     {
-      if(tree->child) tree = tree->child;
+      if(tree->next) tree = tree->next;
       
       For(i,n_lambda) if(tree->mod->lambda == lambda[i]) break;
 

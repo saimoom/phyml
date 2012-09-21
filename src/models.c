@@ -841,7 +841,7 @@ void Update_Eigen(t_mod *mod)
   phydbl scalar;
   int i;
   
-  if(mod->child) 
+  if(mod->is_mixt_mod) 
     {
       MIXT_Update_Eigen(mod);
       return;

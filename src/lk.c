@@ -326,7 +326,7 @@ void Post_Order_Lk(t_node *a, t_node *d, t_tree *tree)
   if(d->tax) return;
   else
     {
-      if(tree->is_mixt_tree == YES)
+      if(tree->is_mixt_tree)
         {
           MIXT_Post_Order_Lk(a,d,tree);
           return;
@@ -352,7 +352,7 @@ void Pre_Order_Lk(t_node *a, t_node *d, t_tree *tree)
   if(d->tax) return;
   else
     {
-      if(tree->is_mixt_tree == YES)
+      if(tree->is_mixt_tree)
         {
           MIXT_Pre_Order_Lk(a,d,tree);
           return;
@@ -377,14 +377,13 @@ phydbl Lk(t_edge *b, t_tree *tree)
   int br;
   int n_patterns,ambiguity_check,state;
 
+  if(tree->is_mixt_tree) return MIXT_Lk(b,tree);
+
   tree->old_lnL = tree->c_lnL;
   
 #ifdef PHYTIME
   if((tree->rates) && (tree->rates->bl_from_rt)) RATES_Update_Cur_Bl(tree);
 #endif
-
-  if(tree->is_mixt_tree) return MIXT_Lk(b,tree);
-
 
   Check_Br_Len_Bounds(tree);
   
@@ -403,14 +402,14 @@ phydbl Lk(t_edge *b, t_tree *tree)
       For(br,2*tree->n_otu-3) Update_PMat_At_Given_Edge(tree->a_edges[br],tree);
       /* printf("\n. L0=%f P0=%f RR=%f", */
       /* 	     tree->a_edges[0]->l->v,tree->a_edges[0]->Pij_rr[0], */
-      /* 	     tree->parent->mod->ras->gamma_rr->v[tree->mod->ras->parent_class_number]); */
+      /* 	     tree->prev->mod->ras->gamma_rr->v[tree->mod->ras->prev_class_number]); */
     }
   else
     {
       Update_PMat_At_Given_Edge(b,tree);
       /* printf("\n. L0=%f P0=%f RR=%f", */
       /* 	     b->l->v,b->Pij_rr[0], */
-      /* 	     tree->parent->mod->ras->gamma_rr->v[tree->mod->ras->parent_class_number]); */
+      /* 	     tree->prev->mod->ras->gamma_rr->v[tree->mod->ras->prev_class_number]); */
     }
 
   if(!b)
@@ -873,7 +872,7 @@ phydbl Invariant_Lk(int *fact_sum_scale, int site, int *num_prec_issue, t_tree *
 void Update_P_Lk(t_tree *tree, t_edge *b, t_node *d)
 {
 
-  if(tree->is_mixt_tree == YES) 
+  if(tree->is_mixt_tree) 
     {
       MIXT_Update_P_Lk(tree,b,d);
       return;
@@ -2143,39 +2142,6 @@ void Unconstraint_Lk(t_tree *tree)
 //////////////////////////////////////////////////////////////
 
 
-void Make_Tree_4_Lk(t_tree *tree, calign *cdata, int n_site)
-{
-  int i;
-
-  tree->c_lnL_sorted  = (phydbl *)mCalloc(tree->n_pattern, sizeof(phydbl));
-  tree->cur_site_lk = (phydbl *)mCalloc(cdata->crunch_len,sizeof(phydbl));
-  tree->old_site_lk = (phydbl *)mCalloc(cdata->crunch_len,sizeof(phydbl));
-  tree->site_lk_cat   = (phydbl *)mCalloc(tree->mod->ras->n_catg,sizeof(phydbl));  
-  tree->log_site_lk_cat  = (phydbl **)mCalloc(tree->mod->ras->n_catg,sizeof(phydbl *));
-  For(i,tree->mod->ras->n_catg)
-    tree->log_site_lk_cat[i] = (phydbl *)mCalloc(cdata->crunch_len,sizeof(phydbl));
-
-  tree->log_lks_aLRT = (phydbl **)mCalloc(3,sizeof(phydbl *));
-  For(i,3) tree->log_lks_aLRT[i] = (phydbl *)mCalloc(tree->data->init_len,sizeof(phydbl));
-
-  For(i,2*tree->n_otu-3) Make_Edge_NNI(tree->a_edges[i]);
-
-  if(tree->is_mixt_tree == NO)
-    {
-      For(i,2*tree->n_otu-3) Make_Edge_Lk(tree->a_edges[i],tree);    
-      For(i,2*tree->n_otu-2) Make_Node_Lk(tree->a_nodes[i]);
-      
-      if(tree->mod->s_opt->greedy) 
-	Init_P_Lk_Tips_Double(tree);
-      else 
-	Init_P_Lk_Tips_Int(tree);
-      
-      Init_P_Lk_Loc(tree);
-    }
-}
-
-//////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
 
 
 void Init_P_Lk_Tips_Double(t_tree *tree)
@@ -2317,7 +2283,7 @@ void Update_PMat_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
   phydbl len;
   phydbl l_min, l_max;
 
-  if(tree->is_mixt_tree == YES)
+  if(tree->is_mixt_tree)
     {
       MIXT_Update_PMat_At_Given_Edge(b_fcus,tree);
       return;
@@ -2361,7 +2327,7 @@ void Update_PMat_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
 	    {
 	      len = b_fcus->l->v*tree->mod->ras->gamma_rr->v[i];	  
 	      len *= tree->mod->br_len_multiplier->v;
-	      if(tree->parent) len *= tree->parent->mod->ras->gamma_rr->v[tree->mod->ras->parent_class_number];
+	      if(tree->is_mixt_tree)  len *= tree->mixt_tree->mod->ras->gamma_rr->v[tree->mod->ras->parent_class_number];
 	      if(len < l_min)      len = l_min;
 	      else if(len > l_max) len = l_max;
 	    }

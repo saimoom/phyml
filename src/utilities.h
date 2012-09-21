@@ -345,9 +345,9 @@ typedef struct __Node {
 
 
   struct __Node                     *next; /*! tree->a_nodes[i]->next <=> tree->next->a_nodes[i] */ 
-  struct __Node                    *child; /*! See above */
-  struct __Node                   *parent; /*! See above */
-  struct __Node                     *prev; /*! See above */
+  struct __Node                   *prev; /*! See above */
+  struct __Node                *next_mixt; /*! Next mixture tree*/
+  struct __Node                *prev_mixt; /*! Parent mixture tree */
 
 
   int                           *bip_size; /*! Size of each of the three lists from bip_node */
@@ -403,9 +403,9 @@ typedef struct __Edge {
 
   struct __NNI                       *nni;
   struct __Edge                     *next;
-  struct __Edge                    *child;
-  struct __Edge                   *parent;
   struct __Edge                     *prev;
+  struct __Edge                *next_mixt;
+  struct __Edge                *prev_mixt;
 
   int                                 num; /*! branch number */
   scalar_dbl                           *l; /*! branch length */
@@ -482,8 +482,9 @@ typedef struct __Tree{
   struct __Calign                   *anc_data; /*! ancestral sequences */
   struct __Tree                         *next; /* set to NULL by default. Used for mixture models */
   struct __Tree                         *prev; /* set to NULL by default. Used for mixture models */
-  struct __Tree                        *child; /* set to NULL by default. Used for mixture models */
-  struct __Tree                       *parent; /* set to NULL by default. Used for mixture models */
+  struct __Tree                    *next_mixt; /* set to NULL by default. Used for mixture models */
+  struct __Tree                    *prev_mixt; /* set to NULL by default. Used for mixture models */
+  struct __Tree                    *mixt_tree; /* set to NULL by default. Used for mixture models */
   struct __Option                         *io; /*! input/output */
   struct __Matrix                        *mat; /*! pairwise distance matrix */
   struct __Node                   **curr_path; /*! list of nodes that form a path in the tree */
@@ -494,7 +495,7 @@ typedef struct __Tree{
   struct __Tmcmc                        *mcmc;
   struct __Triplet            *triplet_struct;
 
-  short int                      is_mixt_tree; /*! YES/NO */
+  int                            is_mixt_tree;
   int                                tree_num; /*! tree number. Used for mixture models */
   int                          ps_page_number; /*! when multiple trees are printed, this variable give the current page number */
   int                         depth_curr_path; /*! depth of the t_node path defined by curr_path */
@@ -782,8 +783,8 @@ typedef struct __Model {
   struct __Option              *io;
   struct __Model             *next;
   struct __Model             *prev;
-  struct __Model            *child;
-  struct __Model           *parent;
+  struct __Model        *next_mixt;
+  struct __Model        *prev_mixt;
   struct __RateMatrix       *r_mat;
   struct __EquFreq          *e_frq;
   struct __RAS                *ras;
@@ -797,6 +798,7 @@ typedef struct __Model {
   int                 update_eigen; /*! update_eigen=1-> eigen values/vectors need to be updated */
 
   int                   whichmodel;
+  int                  is_mixt_mod;
 
   int                           ns; /*! number of states (4 for ADN, 20 for AA) */
 
@@ -1051,8 +1053,8 @@ typedef struct __SPR{
 
   struct __SPR            *next;
   struct __SPR            *prev;
-  struct __SPR           *child;
-  struct __SPR          *parent;
+  struct __SPR       *next_mixt;
+  struct __SPR       *prev_mixt;
 
 }t_spr;
 
@@ -1362,10 +1364,10 @@ typedef struct __XML_node {
 
   struct __XML_attr *attr;   // Pointer to the first element of a list of attributes
   int n_attr;                // Number of attributes
-  struct __XML_node *next;   // Next sibling
-  struct __XML_node *prev;   // Previous sibling
-  struct __XML_node *parent; // Parent of this node
-  struct __XML_node *child;  // Child of this node
+  struct __XML_node      *next;   // Next sibling
+  struct __XML_node      *prev;   // Previous sibling
+  struct __XML_node    *parent; // Parent of this node
+  struct __XML_node     *child;  // Child of this node
   char *id;
   char *name;
   char *value;

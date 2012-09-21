@@ -130,7 +130,6 @@ int main(int argc, char **argv)
 		      io->cstr_tree = Read_Tree_File_Phylip(io->fp_in_constraint_tree);
 		      s = Add_Taxa_To_Constraint_Tree(io->fp_in_constraint_tree,cdata);
 		      fflush(NULL);
-		      if(tree->mat) Free_Mat(tree->mat);
 		      Free_Tree(tree);
 		      tree = Read_Tree(&s);
 		      io->in_tree = 2;
@@ -148,13 +147,12 @@ int main(int argc, char **argv)
 		  time(&t_beg);
 		  time(&(tree->t_beg));
 		  
-		  tree->mod         = mod;
-		  tree->io          = io;
-		  tree->data        = cdata;
-		  tree->n_pattern   = tree->data->crunch_len;
-                  
-                  Set_Both_Sides(YES,tree);     
+		  tree->mod          = mod;
+		  tree->io           = io;
+		  tree->data         = cdata;
+		  tree->n_pattern    = tree->data->crunch_len;
 
+                  Set_Both_Sides(YES,tree);     
                   
 		  if(mod->s_opt->random_input_tree) 
                     {
@@ -249,7 +247,6 @@ int main(int argc, char **argv)
 		  
  		  if(io->fp_in_constraint_tree != NULL) Free_Tree(io->cstr_tree);
 		  Free_Spr_List(tree);
-		  if(tree->mat) Free_Mat(tree->mat);
 		  Free_Triplet(tree->triplet_struct);
 		  Free_Tree_Pars(tree);
 		  Free_Tree_Lk(tree);
@@ -299,10 +296,9 @@ int main(int argc, char **argv)
 
   Free_Optimiz(mod->s_opt);
   Free_Custom_Model(mod);
-  Free_Model_Basic(mod);
   M4_Free_M4_Model(mod->m4mod);
-  Free(mod);
-
+  Free_Model_Basic(mod);
+  
   if(io->fp_in_constraint_tree) fclose(io->fp_in_constraint_tree);
   if(io->fp_in_align)           fclose(io->fp_in_align);
   if(io->fp_in_tree)            fclose(io->fp_in_tree);

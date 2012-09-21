@@ -26,8 +26,7 @@ void Free_All_Nodes_Light(t_tree *mixt_tree)
     {
       For(i,2*tree->n_otu-1) Free_Node(tree->a_nodes[i]);
       Free(tree->a_nodes);
-      if(tree->child) tree = tree->child;
-      else            tree = tree->next;
+      tree = tree->next;
     }
   while(tree);
 
@@ -53,8 +52,7 @@ void Free_All_Edges_Light(t_tree *mixt_tree)
     {
       For(i,2*tree->n_otu-2) Free_Edge(tree->a_edges[i]);
       Free(tree->a_edges);
-      if(tree->child) tree = tree->child;
-      else            tree = tree->next;
+      tree = tree->next;
     }
   while(tree);
 }
@@ -174,8 +172,7 @@ void Free_Tree(t_tree *mixt_tree)
       if(tree->mutmap)  Free(tree->mutmap);
       Free_Bip(tree);
       Free(tree->curr_path);
-      if(tree->child) tree = tree->child;
-      else            tree = tree->next;
+      tree = tree->next;
     }
   while(tree);
   
@@ -183,14 +180,13 @@ void Free_Tree(t_tree *mixt_tree)
   Free_All_Nodes_Light(mixt_tree);
 
   tree = mixt_tree;
-  next = mixt_tree->child;
+  next = mixt_tree->next;
   do
     {
       Free(tree);
       tree = next;
       if(!tree) break;
-      if(tree->child) next = next->child;
-      else next = next->next;
+      next = next->next;
     }
   while(tree);
 
@@ -320,8 +316,7 @@ void Free_Tree_Pars(t_tree *mixt_tree)
       
       For(i,2*tree->n_otu-3) Free_Edge_Pars(tree->a_edges[i],tree);           
 
-      if(tree->child) tree = tree->child;
-      else            tree = tree->next;
+      tree = tree->next;
     }
   while(tree);
 }
@@ -365,8 +360,7 @@ void Free_Tree_Lk(t_tree *mixt_tree)
 
       For(i,2*tree->n_otu-3) Free_Edge_Lk(tree->a_edges[i]);
 
-      if(tree->child) tree = tree->child;
-      else            tree = tree->next;
+      tree = tree->next;
     }
   while(tree);
 
@@ -432,14 +426,6 @@ void Free_Model_Complete(t_mod *mixt_mod)
   Free_Rmat(mixt_mod->r_mat);
   Free_Efrq(mixt_mod->e_frq);
   
-  mod = mixt_mod;
-  do
-    {
-      if(mod->child) { mod = mod->child; Free(mod->parent); } 
-      else if(mod->next) { mod = mod->next; Free(mod->prev); }
-      else { Free(mod); break; }
-    }
-  while(mod);
 }
 
 //////////////////////////////////////////////////////////////
@@ -448,16 +434,32 @@ void Free_Model_Complete(t_mod *mixt_mod)
 void Free_Model_Basic(t_mod *mixt_mod)
 {
   t_mod *mod;
+
   Free_Vect_Dbl(mixt_mod->Pij_rr);
   Free_Vect_Dbl(mixt_mod->user_b_freq);
   Free_Scalar_Dbl(mixt_mod->mr);
-  printf("\n. BEG kappa");
   Free_Scalar_Dbl(mixt_mod->kappa);
-  printf("\n. END kappa");
   Free_Scalar_Dbl(mixt_mod->lambda);
   Free_Scalar_Dbl(mixt_mod->br_len_multiplier);
   Free_String(mixt_mod->modelname);
   Free_String(mixt_mod->custom_mod_string);
+
+  mod = mixt_mod;
+  do
+    {
+      if(mod->next)
+        {
+          mod = mod->next;
+          Free(mod->prev);
+        }
+      else
+        {
+          Free(mod);
+          break;
+        }
+    }
+  while(mod);
+
 }
 
 //////////////////////////////////////////////////////////////
@@ -489,9 +491,7 @@ void Free_Scalar_Dbl(scalar_dbl *v)
   next = v->next;
   do
     {
-      printf("\n. Free %p",v);
       Free(v);
-
       v = next;
       if(v) next = v->next;
     }
@@ -757,8 +757,7 @@ void Free_Spr_List(t_tree *mixt_tree)
       For(i,tree->size_spr_list+1) Free_One_Spr(tree->spr_list[i]);  
       Free(tree->spr_list);
       Free_One_Spr(tree->best_spr);
-      if(tree->child) tree = tree->child;
-      else            tree = tree->next;
+      tree = tree->next;
     }
   while(tree);
 

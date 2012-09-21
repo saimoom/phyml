@@ -442,7 +442,7 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
               counter++;
             }
         }
-      tree = tree->next;
+      tree = tree->next_mixt;
     }
   while(tree);
   tree = (t_tree *)buff;
@@ -544,7 +544,7 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
               counter++;
             }
         }
-      tree = tree->next;
+      tree = tree->next_mixt;
     }
   while(tree);
   tree = (t_tree *)buff;
@@ -645,7 +645,7 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
               counter++;
             }
         }
-      tree = tree->next;
+      tree = tree->next_mixt;
     }
   while(tree);
   tree = (t_tree *)buff;
@@ -1090,7 +1090,7 @@ phydbl Statistics_to_RELL(t_tree *tree)
               lk2+=tree->log_lks_aLRT[2][position];
             }
           if (lk0>=lk1 && lk0>=lk2) nb++;
-          tree = tree->next;
+          tree = tree->next_mixt;
         }
       while(tree);
       tree = buff_tree;
@@ -1137,7 +1137,7 @@ phydbl Statistics_To_SH(t_tree *tree)
           c1+=tree->log_lks_aLRT[1][site];
           c2+=tree->log_lks_aLRT[2][site];
         }
-      tree = tree->next;
+      tree = tree->next_mixt;
     }
   while(tree);
   tree = buff_tree;
@@ -1200,7 +1200,7 @@ phydbl Statistics_To_SH(t_tree *tree)
               lk2+=tree->log_lks_aLRT[2][position];
             }
           
-          tree = tree->next;
+          tree = tree->next_mixt;
         }
       while(tree);
       tree = buff_tree;

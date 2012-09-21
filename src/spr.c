@@ -3122,7 +3122,7 @@ int Spr(phydbl init_lnL, t_tree *tree)
   For(br,2*tree->n_otu-3)
     {
       b = tree->a_edges[br];
-	
+
       old_pars = tree->c_pars;
       Spr_Subtree(b,b->left,tree); 
       new_pars = tree->c_pars;
@@ -3168,6 +3168,7 @@ void Spr_Subtree(t_edge *b, t_node *link, t_tree *tree)
       /* printf("\n. -1"); fflush(NULL); */
       /* if(!Check_Lk_At_Given_Edge(tree)) Exit("\n"); */
 
+
       if(!link->tax) Test_All_Spr_Targets(b,link,tree);
             
       /* printf("\n. 0"); fflush(NULL); */
@@ -3181,6 +3182,7 @@ void Spr_Subtree(t_edge *b, t_node *link, t_tree *tree)
 	  For(i,tree->n_moves)
 	    if(curr_pars - tree->spr_list[i]->pars >= -tree->mod->s_opt->pars_thresh)
 	      n_moves_pars++;
+
 
 	  For(i,tree->n_moves)
 	    {
@@ -3205,6 +3207,7 @@ void Spr_Subtree(t_edge *b, t_node *link, t_tree *tree)
 
 	      min_pars = 1E+8;
 	      best_pars_move = NULL;
+	
 
 	      For(i,n_moves) 
 		if(tree->spr_list[i]->pars < min_pars) 
@@ -3279,17 +3282,19 @@ int Test_All_Spr_Targets(t_edge *b_pulled, t_node *n_link, t_tree *tree)
   int best_found;
   phydbl init_lnL;
 
-  if(tree->parent)
+  if(tree->mixt_tree != NULL)
     {
       PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
       Exit("\n");
     }
+
 
   init_lnL = tree->c_lnL;
   b_target = b_residual = NULL;
   n_opp_to_link  = (n_link == b_pulled->rght)?(b_pulled->left):(b_pulled->rght);
 
   init_len_pulled = MIXT_Get_Lengths_Of_This_Edge(b_pulled);
+
 
   dir1 = dir2 = -1;
   For(i,3)
@@ -3467,7 +3472,7 @@ phydbl Test_One_Spr_Target(t_edge *b_target, t_edge *b_arrow, t_node *n_link, t_
   t_node *orig_link;
   t_spr *orig_move,*move;
 
-  if(tree->parent)
+  if(tree->mixt_tree != NULL)
     {
       PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
       Exit("\n");
@@ -3551,13 +3556,13 @@ phydbl Test_One_Spr_Target(t_edge *b_target, t_edge *b_arrow, t_node *n_link, t_
       move->dist          = b_target->topo_dist_btw_edges;
       move->n_opp_to_link = (n_link==b_arrow->left)?(b_arrow->rght):(b_arrow->left);
 
-      if(tree->child) 
+      if(tree->next) 
 	{
-	  tree     = tree->child;
-	  b_target = b_target->child;
-	  b_arrow  = b_arrow->child;
-	  n_link   = n_link->child;
-	  move     = move->child;
+	  tree     = tree->next;
+	  b_target = b_target->next;
+	  b_arrow  = b_arrow->next;
+	  n_link   = n_link->next;
+	  move     = move->next;
 	}
       else            
 	{
@@ -3806,7 +3811,7 @@ int Evaluate_List_Of_Regraft_Pos_Triple(t_spr **spr_list, int list_size, t_tree 
   int recorded;
   t_tree *orig_tree;
 
-  if(tree->parent)
+  if(tree->mixt_tree != NULL)
     {
       PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
       Exit("\n");
@@ -3870,10 +3875,10 @@ int Evaluate_List_Of_Regraft_Pos_Triple(t_spr **spr_list, int list_size, t_tree 
 		  move->init_target_l = recorded_l[n];
 		  n++;
 
-		  if(tree->child) 
+		  if(tree->next) 
 		    {
-		      move = move->child;
-		      tree = tree->child;
+		      move = move->next;
+		      tree = tree->next;
 		    }
 		  else            
 		    {
@@ -3897,10 +3902,10 @@ int Evaluate_List_Of_Regraft_Pos_Triple(t_spr **spr_list, int list_size, t_tree 
 		  move->init_target_l = recorded_l[n];
 		  n++;
 
-		  if(tree->child) 
+		  if(tree->next) 
 		    {
-		      move = move->child;
-		      tree = tree->child;
+		      move = move->next;
+		      tree = tree->next;
 		    }
 		  else            
 		    {
@@ -3951,10 +3956,10 @@ int Evaluate_List_Of_Regraft_Pos_Triple(t_spr **spr_list, int list_size, t_tree 
 		}
 
 
-	      if(tree->child) 
+	      if(tree->next) 
 		{
-		  move = move->child;
-		  tree = tree->child;
+		  move = move->next;
+		  tree = tree->next;
 		}
 	      else            
 		{
@@ -4002,10 +4007,10 @@ int Evaluate_List_Of_Regraft_Pos_Triple(t_spr **spr_list, int list_size, t_tree 
 		  move->l2 = move->n_link->b[dir_v2]->l->v;
 		}
 	      
-	      if(tree->child) 
+	      if(tree->next) 
 		{
-		  move = move->child;
-		  tree = tree->child;
+		  move = move->next;
+		  tree = tree->next;
 		}
 	      else            
 		{
@@ -4122,7 +4127,7 @@ int Try_One_Spr_Move_Triple(t_spr *move, t_tree *tree)
   t_spr *orig_move;
   t_tree *orig_tree;
 
-  if(tree->parent)
+  if(tree->mixt_tree != NULL)
     {
       PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
       Exit("\n");
@@ -4142,11 +4147,11 @@ int Try_One_Spr_Move_Triple(t_spr *move, t_tree *tree)
   do
     {
       init_target->l->v = move->init_target_l;
-      if(tree->child) 
+      if(tree->next) 
 	{
-	  init_target = init_target->child;
-	  move        = move->child;
-	  tree        = tree->child;
+	  init_target = init_target->next;
+	  move        = move->next;
+	  tree        = tree->next;
 	}
       else                   
 	{
@@ -4187,10 +4192,10 @@ int Try_One_Spr_Move_Triple(t_spr *move, t_tree *tree)
 	  move->n_link->b[dir_v2]->l->v = move->l2;
 	}
 
-      if(tree->child) 
+      if(tree->next) 
 	{
-	  move = move->child;
-	  tree = tree->child;
+	  move = move->next;
+	  tree = tree->next;
 	}
       else            
 	{
@@ -4219,10 +4224,10 @@ int Try_One_Spr_Move_Triple(t_spr *move, t_tree *tree)
 	{
 	  PhyML_Printf("\n== c_lnL = %f move_lnL = %f", tree->c_lnL,move->lnL);
           printf("\n. %f %f  %f %f",
-                 tree->child->c_lnL,
-                 tree->child->next->c_lnL,
-                 tree->next->child->c_lnL,
-                 tree->next->child->next->c_lnL);
+                 tree->next->c_lnL,
+                 tree->next->next->c_lnL,
+                 tree->next->next->c_lnL,
+                 tree->next->next->next->c_lnL);
           PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
 	  Exit("\n");
 	}
@@ -4355,7 +4360,7 @@ void Include_One_Spr_To_List_Of_Spr(t_spr *move, t_tree *tree)
   t_spr *buff_spr,*orig_move, *orig_move_list, *move_list;
   t_tree *orig_tree;
   
-  if(tree->parent)
+  if(tree->mixt_tree != NULL)
     {
       PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
       Exit("\n");
@@ -4385,11 +4390,11 @@ void Include_One_Spr_To_List_Of_Spr(t_spr *move, t_tree *tree)
 	  move_list->b_opp_to_link = move->b_opp_to_link;
 
 
-	  if(tree->child) 
+	  if(tree->next) 
 	    {
-	      move      = move->child;
-	      move_list = move_list->child;
-	      tree      = tree->child;
+	      move      = move->next;
+	      move_list = move_list->next;
+	      tree      = tree->next;
 	    }
 	  else            
 	    {
@@ -4418,7 +4423,7 @@ void Include_One_Spr_To_List_Of_Spr(t_spr *move, t_tree *tree)
 		  tree->spr_list[i-1] = tree->spr_list[i];
 		  tree->spr_list[i]   = buff_spr;
 
-		  if(tree->child) tree = tree->child;
+		  if(tree->next) tree = tree->next;
 		  else            tree = tree->next;
 		}
 	      while(tree);
@@ -4547,11 +4552,11 @@ void SPR_Shuffle(t_tree *mixt_tree)
   int *orig_catg,*orig_inv,n;
   t_tree *tree,**tree_list,**orig_tree_list;
   
-  if(mixt_tree->mod->s_opt->print) 
-    PhyML_Printf("\n. Refining the tree...\n");
+  if(mixt_tree->mod->s_opt->print) PhyML_Printf("\n. Refining the tree...\n");
 
   /*! Get the number of classes in each mixture */
   orig_catg = MIXT_Get_Number_Of_Classes_In_All_Mixtures(mixt_tree);
+
 
   /*! Record values of mod->invar in every tree 
    */
@@ -4565,10 +4570,11 @@ void SPR_Shuffle(t_tree *mixt_tree)
   do
     {
       tree->mod->ras->n_catg = MIN(2,orig_catg[n]);
-      tree = tree->next;
+      tree = tree->next_mixt;
       n++;
     }
   while(tree);
+
 
   /*! Make sure the number of trees in each mixture is at most 2
    */
@@ -4589,7 +4595,6 @@ void SPR_Shuffle(t_tree *mixt_tree)
   Set_Both_Sides(YES,mixt_tree);
   Lk(NULL,mixt_tree);
 
-
   mixt_tree->mod->s_opt->print             = YES;
   mixt_tree->best_pars                     = 1E+8;
   mixt_tree->mod->s_opt->spr_pars          = NO;
@@ -4602,6 +4607,8 @@ void SPR_Shuffle(t_tree *mixt_tree)
 
   do
     {
+
+
       Set_Both_Sides(YES,mixt_tree);
       Lk(NULL,mixt_tree);
       Pars(NULL,mixt_tree);
@@ -4614,13 +4621,14 @@ void SPR_Shuffle(t_tree *mixt_tree)
       
       lk_old = mixt_tree->c_lnL;
       Spr(UNLIKELY,mixt_tree);
-                  
+
       Optimiz_All_Free_Param(mixt_tree,(mixt_tree->io->quiet)?(0):(mixt_tree->mod->s_opt->print));
       Optimize_Br_Len_Serie(mixt_tree->a_nodes[0],
 			    mixt_tree->a_nodes[0]->v[0],
 			    mixt_tree->a_nodes[0]->b[0],
 			    mixt_tree);
       
+
       if(mixt_tree->n_improvements < 20 || mixt_tree->max_spr_depth  < 5 ||
 	 (FABS(lk_old-mixt_tree->c_lnL) < 1.)) break;
     }
@@ -4641,14 +4649,12 @@ void SPR_Shuffle(t_tree *mixt_tree)
   do
     {
       tree->mod->ras->n_catg = orig_catg[n];
-      tree = tree->next;
+      tree = tree->next_mixt;
       n++;
     }
   while(tree);
   
   Free(orig_catg);
-
-
 
   /*! Only the first two trees for each mixture have been modified so
     ! far -> need to update the other trees by copying the modified trees
@@ -4658,8 +4664,7 @@ void SPR_Shuffle(t_tree *mixt_tree)
   do
     {
       if(tree != mixt_tree) Copy_Tree(mixt_tree,tree);
-      if(tree->child) tree = tree->child;
-      else            tree = tree->next;
+      tree = tree->next;
     }
   while(tree);
 
