@@ -607,6 +607,7 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, t_tree *
   int i,p;
   char *format;
   int last_len;
+  phydbl mean_len;
 
   format = (char *)mCalloc(100,sizeof(char));
 
@@ -656,18 +657,21 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, t_tree *
 #ifndef PHYTIME
 	  if(!tree->n_root)
 	    {
-	      sprintf(*s_tree+(int)strlen(*s_tree),format,fils->b[0]->l->v);
+              mean_len = MIXT_Get_Mean_Edge_Len(fils->b[0]);
+	      sprintf(*s_tree+(int)strlen(*s_tree),format,mean_len);
 	    }
 	  else
 	    {
 	      if(pere == tree->n_root)
 		{
 		  phydbl root_pos = (fils == tree->n_root->v[0])?(tree->n_root_pos):(1.-tree->n_root_pos);
+                  mean_len = MIXT_Get_Mean_Edge_Len(tree->e_root);              
 		  sprintf(*s_tree+(int)strlen(*s_tree),format,tree->e_root->l->v * root_pos);
 		}
 	      else
 		{
-		  sprintf(*s_tree+(int)strlen(*s_tree),format,fils->b[0]->l->v);
+                  mean_len = MIXT_Get_Mean_Edge_Len(fils->b[0]);
+                  sprintf(*s_tree+(int)strlen(*s_tree),format,fils->b[0]->l->v);
 		}
 	    }		
 #else
@@ -5630,10 +5634,9 @@ void PhyML_XML(char *xml_filename)
         {
           best_lnL = mixt_tree->c_lnL;
           if(most_likely_tree) Free(most_likely_tree);
-          most_likely_tree = Write_Tree(mixt_tree,NO);
           aLRT(mixt_tree);
+          most_likely_tree = Write_Tree(mixt_tree,NO);
         }
-
 
       /*! Initialize t_end in each mixture tree */
       tree = mixt_tree;

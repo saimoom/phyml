@@ -168,30 +168,27 @@ int Check_NNI_Five_Branches(t_tree *tree)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
 /* Compute aLRT supports */
 void aLRT(t_tree *tree)
 {
   int i;
   char *method;
 
-  
   /* aLRT support will label each internal branch */
-  tree->print_alrt_val = 1;
+  tree->print_alrt_val = YES;
 
   /* The topology will not be modified when assessing the branch support. We make sure that it will
      not be modified afterwards by locking the topology */
-  
 
   method = (char *)mCalloc(100,sizeof(char));
 
   switch(tree->io->ratio_test)
     {
-    case ALRTCHI2: { strcpy(method,"aLRT"); break; }
+    case ALRTCHI2:      { strcpy(method,"aLRT"); break; }
     case MINALRTCHI2SH: { strcpy(method,"aLRT"); break; }
-    case ALRTSTAT: { strcpy(method,"aLRT"); break; }
-    case SH: { strcpy(method,"SH"); break; }
-    case ABAYES: { strcpy(method,"aBayes"); break; }
+    case ALRTSTAT:      { strcpy(method,"aLRT"); break; }
+    case SH:            { strcpy(method,"SH"); break; }
+    case ABAYES:        { strcpy(method,"aBayes"); break; }
     default : return;
     }
 
