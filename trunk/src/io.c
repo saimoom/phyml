@@ -3981,7 +3981,7 @@ void Print_Data_Structure(int final, FILE *fp, t_tree *mixt_tree)
   do
     {
       if(tree->is_mixt_tree) tree = tree->next;
-      PhyML_Fprintf(fp,"%2d ",tree->prev->dp);
+      PhyML_Fprintf(fp,"%2d ",tree->mixt_tree->dp);
       tree = tree->next;
     }
   while(tree);
@@ -4202,6 +4202,8 @@ void PhyML_XML(char *xml_filename)
   class_number = -1;
   ds           = NULL;
   lens_size    = 0;
+  ori_lens     = NULL;
+  ori_lens_old = NULL;
 
   // Make sure there are no duplicates in node's IDs
   XML_Check_Duplicate_ID(root);
@@ -5414,8 +5416,9 @@ void PhyML_XML(char *xml_filename)
     }
   while(1);
 
-  Free(ori_lens);
-  Free(ori_lens_old);
+  if(ori_lens)     Free(ori_lens);
+  if(ori_lens_old) Free(ori_lens_old);
+  
   while(io->prev != NULL) io = io->prev;
   while(mixt_tree->prev != NULL) mixt_tree = mixt_tree->prev;
 

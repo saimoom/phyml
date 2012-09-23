@@ -500,23 +500,17 @@ phydbl Br_Len_Brent(phydbl prop_min, phydbl prop_max, t_edge *b_fcus, t_tree *tr
   t_tree *loc_tree;
   t_edge *loc_b;
 
-  if(!tree->prev) 
-    {
-      loc_tree = tree;
-      loc_b    = b_fcus;
-    }
-  else
-    {
-      loc_tree = tree->prev;
-      loc_b    = b_fcus->prev;
-
-      while(loc_tree->prev) 
-	{ 
-	  loc_tree = loc_tree->prev; 
-	  loc_b    = loc_b->prev;
-	}
-    }
-
+  loc_tree = tree;
+  loc_b    = b_fcus; 
+  
+  /*! Rewind back to the first mixt_tree */
+  while(loc_tree->prev)
+    { 
+      loc_tree = loc_tree->prev; 
+      loc_b    = loc_b->prev;
+    }      
+    
+  
   if(tree->is_mixt_tree)
     {
       MIXT_Br_Len_Brent(prop_min,
@@ -738,7 +732,7 @@ void Optimiz_All_Free_Param(t_tree *tree, int verbose)
 
   if(!tree) return;
 
-  if(tree->prev && tree->mod->ras->invar == YES) return;
+  if(tree->mixt_tree && tree->mod->ras->invar == YES) return;
 
   init_both_sides  = tree->both_sides;
 
@@ -2277,8 +2271,8 @@ void Optimize_RR_Params(t_tree *mixt_tree, int verbose)
 		      }
 		}
 	      
-	      if(verbose) Print_Lk(tree->prev?
-				   tree->prev:
+	      if(verbose) Print_Lk(tree->mixt_tree?
+				   tree->mixt_tree
 				   tree,"[GTR parameters     ]");
 	      
 	    }
