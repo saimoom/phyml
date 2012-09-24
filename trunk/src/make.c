@@ -18,11 +18,11 @@ void Make_Tree_4_Lk(t_tree *tree, calign *cdata, int n_site)
 {
   int i;
 
-  tree->c_lnL_sorted  = (phydbl *)mCalloc(tree->n_pattern, sizeof(phydbl));
-  tree->cur_site_lk = (phydbl *)mCalloc(cdata->crunch_len,sizeof(phydbl));
-  tree->old_site_lk = (phydbl *)mCalloc(cdata->crunch_len,sizeof(phydbl));
-  tree->site_lk_cat   = (phydbl *)mCalloc(tree->mod->ras->n_catg,sizeof(phydbl));  
-  tree->log_site_lk_cat  = (phydbl **)mCalloc(tree->mod->ras->n_catg,sizeof(phydbl *));
+  tree->c_lnL_sorted = (phydbl *)mCalloc(tree->n_pattern, sizeof(phydbl));
+  tree->cur_site_lk  = (phydbl *)mCalloc(cdata->crunch_len,sizeof(phydbl));
+  tree->old_site_lk  = (phydbl *)mCalloc(cdata->crunch_len,sizeof(phydbl));
+  tree->site_lk_cat  = (phydbl *)mCalloc(tree->mod->ras->n_catg,sizeof(phydbl));  
+  tree->log_site_lk_cat = (phydbl **)mCalloc(tree->mod->ras->n_catg,sizeof(phydbl *));
   For(i,tree->mod->ras->n_catg)
     tree->log_site_lk_cat[i] = (phydbl *)mCalloc(cdata->crunch_len,sizeof(phydbl));
 

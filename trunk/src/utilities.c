@@ -2942,7 +2942,7 @@ fflush(stdout);
 
   if(((replicate)%tree->io->boot_prog_every)) PhyML_Printf("] %4d/%4d\n ",replicate,tree->mod->bootstrap);
 
-  tree->lock_topo = 1; /* Topology should not be modified afterwards */
+  tree->lock_topo = YES; /* Topology should not be modified afterwards */
 
   if(tree->io->print_boot_trees)
     {
@@ -5620,7 +5620,7 @@ void Random_Tree(t_tree *tree)
   min_edge_len = 1.E-3;
 
   if(tree->mod->s_opt && tree->mod->s_opt->print == YES) 
-    PhyML_Printf("\n. Randomising the tree...\n");
+    PhyML_Printf("\n\n. Randomising the tree...\n");
 
   is_available  = (int *)mCalloc(2*tree->n_otu-2,sizeof(int));
   list_of_nodes = (int *)mCalloc(tree->n_otu,    sizeof(int));
