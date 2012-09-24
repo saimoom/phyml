@@ -129,6 +129,13 @@ if test "$test" = yes; then
    AC_DEFINE([TEST],[1],[TEST tag on])
 fi
 
+AC_ARG_ENABLE([sergeii],[AS_HELP_STRING([--enable-sergeii],[Compile sergeii])],[sergeii=yes],[sergeii=no])
+AM_CONDITIONAL([WANT_SERGEII], [test "$sergeii" = yes]) 
+if test "$sergeii" = yes; then
+   AC_DEFINE([SERGEII],[1],[SERGEII tag on])
+fi
+
+
 if test "$phytime" = no; then
 if test "$tiporder" = no; then
 if test "$part" = no; then
@@ -136,7 +143,9 @@ if test "$rwrap" = no; then
 if test "$phycont" = no; then
 if test "$m4" = no; then
 if test "$test" = no; then
+if test "$sergeii" = no; then
    AC_DEFINE([PHYML],[1],[PHYML tag on])
+fi
 fi
 fi
 fi
