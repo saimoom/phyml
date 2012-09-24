@@ -132,13 +132,13 @@ void Simu_Loop(t_tree *mixt_tree)
   while(tree);
 
 
-  /* /\*! Reset the mod->invar to their original values  */
-  /*  *\/ */
-  /* MIXT_Reset_Has_Invariants(orig_inv,mixt_tree); */
-  /* Free(orig_inv); */
+  /*! Reset the mod->invar to their original values
+   */
+  MIXT_Reset_Has_Invariants(orig_inv,mixt_tree);
+  Free(orig_inv);
 
   if((mixt_tree->mod->s_opt->print) && (!mixt_tree->io->quiet)) 
-    PhyML_Printf("\n. Maximizing likelihood (using NNI moves)...\n");
+    PhyML_Printf("\n\n. Maximizing likelihood (using NNI moves)...\n");
 
 
   Set_Both_Sides(YES,mixt_tree);
@@ -302,7 +302,7 @@ void Simu_Pars(t_tree *tree, int n_step_max)
   
   Update_Dirs(tree);
   
-  if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n. Starting simultaneous NNI moves (parsimony criterion)...\n");
+  if((tree->mod->s_opt->print) && (!tree->io->quiet)) PhyML_Printf("\n\n. Starting simultaneous NNI moves (parsimony criterion)...\n");
   
   do
     {

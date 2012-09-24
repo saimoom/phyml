@@ -1616,8 +1616,8 @@ int MIXT_Pars(t_edge *mixt_b, t_tree *mixt_tree)
 
   do
     {      
-      b    = b->next;
-      tree = tree->next;
+      b    = b->next_mixt;
+      tree = tree->next_mixt;
       
       if(tree) 
         {

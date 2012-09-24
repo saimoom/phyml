@@ -112,7 +112,7 @@ void Init_Tree(t_tree *tree, int n_otu)
   tree->n_moves                   = 0;
   tree->n_improvements            = 0;
   tree->bl_from_node_stamps       = 0;
-  tree->lock_topo                 = 0;
+  tree->lock_topo                 = NO;
   tree->ps_page_number            = 0;
   tree->init_lnL                  = UNLIKELY;
   tree->best_lnL                  = UNLIKELY;

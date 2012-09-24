@@ -4605,8 +4605,6 @@ void PhyML_XML(char *xml_filename)
                                                            "HIVB",     //23
                                                            "CUSTOMAA", //24
                                                            "LG");      //25
-                            
-
 
                             if(select < 9)
                               {
@@ -4666,9 +4664,6 @@ void PhyML_XML(char *xml_filename)
                                         mod->s_opt->opt_kappa = NO;
                                       }
                                   }
-
-                                Free(tstv);
-                                Free(opt_tstv);
                               }
                             else
                               {
@@ -4927,122 +4922,129 @@ void PhyML_XML(char *xml_filename)
                     
 		    else if(!strcmp(parent->name,"topology"))
 		      {
-			// Starting tree
-                        char *init_tree;
+			if(parent->ds->obj == NULL)
+			  {
 
-                        init_tree = XML_Get_Attribute_Value(instance,"init.tree");
-                        
-                        if(!init_tree)
-                          {
-                            PhyML_Printf("\n== Attribute 'init.tree=bionj/user/random' is mandatory");
-                            PhyML_Printf("\n== Please amend your XML file accordingly.");
-                            Exit("\n");
-                          }
-
-                        if(!strcmp(init_tree,"user") || 
-                           !strcmp(init_tree,"User"))
-                          {
-                            char *starting_tree = NULL;
-                            starting_tree = XML_Get_Attribute_Value(instance,"filename");
+                            // Starting tree
+                            char *init_tree;
                             
-                            if(!Filexists(starting_tree))
+                            init_tree = XML_Get_Attribute_Value(instance,"init.tree");
+                            
+                            if(!init_tree)
                               {
-                                PhyML_Printf("\n== The tree file '%s' could not be found.",starting_tree);
+                                PhyML_Printf("\n== Attribute 'init.tree=bionj/user/random' is mandatory");
+                                PhyML_Printf("\n== Please amend your XML file accordingly.");
                                 Exit("\n");
                               }
-                            else
-                              {
-                                strcpy(io->in_tree_file,starting_tree);
-                                io->in_tree = 2;
-                                io->fp_in_tree = Openfile(io->in_tree_file,0);
-                              }
-                          }
-                        else if(!strcmp(init_tree,"random") || 
-                                !strcmp(init_tree,"Random"))
-                          {
-                            char *n_rand_starts = NULL;
                             
-                            io->mod->s_opt->random_input_tree = YES;
-
-                            n_rand_starts = XML_Get_Attribute_Value(instance,"n.rand.starts");
-
-                            if(n_rand_starts)
+                            if(!strcmp(init_tree,"user") || 
+                               !strcmp(init_tree,"User"))
                               {
-                                iomod->s_opt->n_rand_starts = atoi(n_rand_starts);
-                                if(iomod->s_opt->n_rand_starts < 1) Exit("\n== Number of random starting trees must be > 0.\n\n");
+                                char *starting_tree = NULL;
+                                starting_tree = XML_Get_Attribute_Value(instance,"filename");
+                                
+                                if(!Filexists(starting_tree))
+                                  {
+                                    PhyML_Printf("\n== The tree file '%s' could not be found.",starting_tree);
+                                    Exit("\n");
+                                  }
+                                else
+                                  {
+                                    strcpy(io->in_tree_file,starting_tree);
+                                    io->in_tree = 2;
+                                    io->fp_in_tree = Openfile(io->in_tree_file,0);
+                                  }
                               }
-
-                            strcpy(io->out_trees_file,io->in_align_file);
-                            strcat(io->out_trees_file,"_phyml_rand_trees");
-                            if(io->append_run_ID) { strcat(io->out_trees_file,"_"); strcat(io->out_trees_file,io->run_id_string); }
-                            strcat(io->out_trees_file,".txt");
-                            io->fp_out_trees = Openfile(io->out_trees_file,1);
-                          }
-                        else if(!strcmp(init_tree,"parsimony") || 
-                                !strcmp(init_tree,"Parsimony"))
-                          {
-                            io->in_tree = 1;
-                          }
+                            else if(!strcmp(init_tree,"random") || 
+                                    !strcmp(init_tree,"Random"))
+                              {
+                                char *n_rand_starts = NULL;
+                                
+                                io->mod->s_opt->random_input_tree = YES;
+                                
+                                n_rand_starts = XML_Get_Attribute_Value(instance,"n.rand.starts");
+                                
+                                if(n_rand_starts)
+                                  {
+                                    iomod->s_opt->n_rand_starts = atoi(n_rand_starts);
+                                    if(iomod->s_opt->n_rand_starts < 1) Exit("\n== Number of random starting trees must be > 0.\n\n");
+                                  }
+                                
+                                strcpy(io->out_trees_file,io->in_align_file);
+                                strcat(io->out_trees_file,"_phyml_rand_trees");
+                                if(io->append_run_ID) { strcat(io->out_trees_file,"_"); strcat(io->out_trees_file,io->run_id_string); }
+                                io->fp_out_trees = Openfile(io->out_trees_file,1);
+                              }
+                            else if(!strcmp(init_tree,"parsimony") || 
+                                    !strcmp(init_tree,"Parsimony"))
+                              {
+                                io->in_tree = 1;
+                              }
                         
-
-			// Estimate tree topology
-			char *optimise = NULL;
-			
-			optimise = XML_Get_Attribute_Value(instance,"optimise.tree");
-			
-			if(optimise)
-			  {
-			    int select;
-			    
-			    select = XML_Validate_Attr_Int(optimise,6,
-							   "true","yes","y",
-							   "false","no","n");
-			    
-			    if(select > 2) io->mod->s_opt->opt_topo = NO;
-			    else
-			      {
-				char *search;
-				int select;
+                            // Estimate tree topology
+                            char *optimise = NULL;
+                            
+                            optimise = XML_Get_Attribute_Value(instance,"optimise.tree");
+                            
+                            if(optimise)
+                              {
+                                int select;
+                                
+                                select = XML_Validate_Attr_Int(optimise,6,
+                                                               "true","yes","y",
+                                                               "false","no","n");
+                                
+                                if(select > 2) io->mod->s_opt->opt_topo = NO;
+                                else
+                                  {
+                                    char *search;
+                                    int select;
+                                    
+                                    search = XML_Get_Attribute_Value(instance,"search");				    
+                                    select = XML_Validate_Attr_Int(search,4,"spr","nni","best","none");
 				
-				search = XML_Get_Attribute_Value(instance,"search");				    
-				select = XML_Validate_Attr_Int(search,4,"spr","nni","best","none");
-				
-				switch(select)
-				  {
-				  case 0:
-				    {
-				      io->mod->s_opt->topo_search = SPR_MOVE;
-                                      io->mod->s_opt->opt_topo    = YES;
-				      break;
-				    }
-				  case 1:
-				    {
-				      io->mod->s_opt->topo_search = NNI_MOVE;
-                                      io->mod->s_opt->opt_topo    = YES;
-				      break;
-				    }
-				  case 2:
-				    {
-				      io->mod->s_opt->topo_search = BEST_OF_NNI_AND_SPR;
-                                      io->mod->s_opt->opt_topo    = YES;
-				      break;
-				    }
-				  case 3:
-				    {
-                                      io->mod->s_opt->opt_topo    = NO;
-				      break;
-				    }
-				  default:
-				    {
-				      PhyML_Printf("\n== Topology search option '%s' is not valid.",search);
-				      Exit("\n");
-				      break;
-				    }
-				  }
-			      }
-			  }
-		      }
+                                    switch(select)
+                                      {
+                                      case 0:
+                                        {
+                                          io->mod->s_opt->topo_search = SPR_MOVE;
+                                          io->mod->s_opt->opt_topo    = YES;
+                                          break;
+                                        }
+                                      case 1:
+                                        {
+                                          io->mod->s_opt->topo_search = NNI_MOVE;
+                                          io->mod->s_opt->opt_topo    = YES;
+                                          break;
+                                        }
+                                      case 2:
+                                        {
+                                          io->mod->s_opt->topo_search = BEST_OF_NNI_AND_SPR;
+                                          io->mod->s_opt->opt_topo    = YES;
+                                          break;
+                                        }
+                                      case 3:
+                                        {
+                                          io->mod->s_opt->opt_topo    = NO;
+                                          break;
+                                        }
+                                      default:
+                                        {
+                                          PhyML_Printf("\n== Topology search option '%s' is not valid.",search);
+                                          Exit("\n");
+                                          break;
+                                        }
+                                      }
+                                  }
+                              }
+                          }
 
+
+                        ds = parent->ds;
+                        
+                        int buff;
+                        ds->obj = (int *)(& buff);
+                      }
 		    //////////////////////////////////////////
 		    //                RAS                   //
 		    //////////////////////////////////////////
@@ -5601,8 +5603,6 @@ void PhyML_XML(char *xml_filename)
          X 22) Check that all partition elements have the same set of taxa.
          23) What if ratematrices are not specified ? Default is ok?
          X 24) Set upper and lower bounds on Br_Len_Brent
-         25) When only one class per mixture: make sure branch lengths in next point
-         to that of father.
       */
       
       
@@ -5657,6 +5657,7 @@ void PhyML_XML(char *xml_filename)
           if(most_likely_tree) Free(most_likely_tree);
           aLRT(mixt_tree);
           most_likely_tree = Write_Tree(mixt_tree,NO);
+          mixt_tree->lock_topo = NO;
         }
 
       /*! Initialize t_end in each mixture tree */
@@ -5669,8 +5670,12 @@ void PhyML_XML(char *xml_filename)
       while(tree);
       
       Print_Data_Structure(YES,mixt_tree->io->fp_out_stats,mixt_tree);
+      
+      Free_Spr_List(mixt_tree);
+      Free_Tree_Pars(mixt_tree);
+      Free_Tree_Lk(mixt_tree);
+      Free_Triplet(mixt_tree->triplet_struct);
     }
-
 
   /*! Print the most likely tree in the output file */
   if(!mixt_tree->io->quiet) PhyML_Printf("\n\n. Printing the most likely tree in file '%s'...\n", Basename(mixt_tree->io->out_tree_file));
@@ -5701,15 +5706,12 @@ void PhyML_XML(char *xml_filename)
   while(tree);
 
   Free_Custom_Model(mixt_tree->mod);
-  Free_Spr_List(mixt_tree);
-  Free_Tree_Pars(mixt_tree);
-  Free_Tree_Lk(mixt_tree);
-  Free_Triplet(mixt_tree->triplet_struct);
   Free_Model_Complete(mixt_tree->mod);
   Free_Model_Basic(mixt_tree->mod);
   Free_Tree(mixt_tree);
-  fclose(io->fp_out_tree);
-  fclose(io->fp_out_stats);
+  if(io->fp_out_trees) fclose(io->fp_out_trees);
+  if(io->fp_out_tree)  fclose(io->fp_out_tree);
+  if(io->fp_out_stats) fclose(io->fp_out_stats);
   Free_Input(io);
   XML_Free_XML_Tree(root);
 

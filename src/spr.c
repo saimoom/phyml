@@ -3705,7 +3705,7 @@ void Speed_Spr(t_tree *tree, int max_cycles)
   int step,old_pars;
   phydbl old_lnL;
 
-  if(tree->lock_topo)
+  if(tree->lock_topo == YES)
     {
       PhyML_Printf("\n== The tree topology is locked.");
       PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
