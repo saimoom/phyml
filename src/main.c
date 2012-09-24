@@ -34,8 +34,7 @@ the GNU public licence. See http://www.opensource.org for details.
 #ifdef PHYML
 
 int main(int argc, char **argv)
-{
-  
+{  
   calign *cdata;
   option *io;
   t_tree *tree;
@@ -319,7 +318,6 @@ int main(int argc, char **argv)
   return 0;
 }
 
-
 #elif(M4)
 #include "m4.h"
 int main(int argc, char **argv)
@@ -465,11 +463,17 @@ int main(int argc, char **argv)
   return 1;
 }
 
-
 #elif(TEST)
 #include "xml.h"
 int main(int argc, char **argv)
 {
+}
+
+#elif(SERGEII)
+#include "sergeii.h"
+int main(int argc, char **argv)
+{
+  My_Function(argv[1]);
 }
 
 #endif

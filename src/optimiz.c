@@ -713,8 +713,7 @@ void Optimiz_Ext_Br(t_tree *tree)
 	      b->nni->l0        = b->l->v;
 	      b->nni->best_conf = 0;
 	      b->l->v              = l_init;
-	      if(b->next) b = b->next;
-	      else         b = b->next;
+              b = b->next;
 	    }
 	  while(b);
 	  b = ori;
@@ -1966,7 +1965,7 @@ int Optimiz_Alpha_And_Pinv(t_tree *mixt_tree, int verbose)
 	    }
 	}
       
-      tree = tree->next;
+      tree = tree->next_mixt;
 
     }
   while(tree);
@@ -2272,7 +2271,7 @@ void Optimize_RR_Params(t_tree *mixt_tree, int verbose)
 		}
 	      
 	      if(verbose) Print_Lk(tree->mixt_tree?
-				   tree->mixt_tree
+				   tree->mixt_tree:
 				   tree,"[GTR parameters     ]");
 	      
 	    }
@@ -2452,7 +2451,7 @@ void Optimize_Alpha(t_tree *mixt_tree, int verbose)
             }
 	}
 
-      tree = tree->next;
+      tree = tree->next_mixt;
 
     }
   while(tree);

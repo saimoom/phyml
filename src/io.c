@@ -3845,12 +3845,12 @@ void Print_Data_Structure(int final, FILE *fp, t_tree *mixt_tree)
 	  if(mixt_tree->mod->ras->free_mixt_rates == NO)
 	    {
 	      PhyML_Fprintf(fp,"\n. Gamma shape parameter value:\t\t%12.2f",mixt_tree->mod->ras->alpha->v);
-	      PhyML_Fprintf(fp,"\n   Optimize: \t\t\t\t%12s",mixt_tree->mod->s_opt->opt_alpha==YES?"yes":"no");
+	      PhyML_Fprintf(fp,"\n   Optimise: \t\t\t\t%12s",mixt_tree->mod->s_opt->opt_alpha==YES?"yes":"no");
 	    }
 	  if(mixt_tree->mod->ras->invar == YES)
 	    {
 	      PhyML_Fprintf(fp,"\n. Proportion of invariable sites:\t%12.2f",mixt_tree->mod->ras->pinvar->v);
-	      PhyML_Fprintf(fp,"\n   Optimize: \t\t\t\t%12s",mixt_tree->mod->s_opt->opt_pinvar==YES?"yes":"no");
+	      PhyML_Fprintf(fp,"\n   Optimise: \t\t\t\t%12s",mixt_tree->mod->s_opt->opt_pinvar==YES?"yes":"no");
 	    }
 	}
       	  
@@ -3866,15 +3866,12 @@ void Print_Data_Structure(int final, FILE *fp, t_tree *mixt_tree)
           
           if(tree->mod->whichmodel == CUSTOM)
             PhyML_Fprintf(fp,"\n   Substitution model code:\t%12s",tree->mod->custom_mod_string->s);
-
-	  PhyML_Fprintf(fp,"\n   Substitution model address:\t%12p ",(void *)tree->mod);
 	  
 	  if(tree->mod->whichmodel == K80 ||
 	     tree->mod->whichmodel == HKY85 ||
 	     tree->mod->whichmodel == TN93)
 	    {
 	      PhyML_Fprintf(fp,"\n   Value of the ts/tv raqtio:\t%12f",tree->mod->kappa->v);
-	      PhyML_Fprintf(fp,"\n   Ts/tv ratio address:\t%12p",(void *)tree->mod->kappa);
 	      PhyML_Fprintf(fp,"\n   Optimise ts/tv ratio:\t%12s",tree->mod->s_opt->opt_kappa?"yes":"no");
 	    }
 	  else if(tree->mod->whichmodel == GTR ||
@@ -3952,14 +3949,14 @@ void Print_Data_Structure(int final, FILE *fp, t_tree *mixt_tree)
   link_lens = (int *)mCalloc(c,sizeof(int));
   link_rmat = (int *)mCalloc(c,sizeof(int));
 
-  PhyML_Printf("\n");
-  PhyML_Printf("\n");
+  PhyML_Fprintf(fp,"\n");
+  PhyML_Fprintf(fp,"\n");
   PhyML_Fprintf(fp,"\n _______________________________________________________________________ ");
   PhyML_Fprintf(fp,"\n|                                                                       |");
   PhyML_Fprintf(fp,"\n|                        Model summary table                            |");
   PhyML_Fprintf(fp,"\n|_______________________________________________________________________|");
-  PhyML_Printf("\n");
-  PhyML_Printf("\n");
+  PhyML_Fprintf(fp,"\n");
+  PhyML_Fprintf(fp,"\n");
   /* PhyML_Fprintf(fp,"                  "); */
   PhyML_Fprintf(fp,"  ------------------");
   tree = cpy_mixt_tree;
@@ -4150,15 +4147,12 @@ void Print_Data_Structure(int final, FILE *fp, t_tree *mixt_tree)
     }
   while(tree);
   PhyML_Fprintf(fp,"\n");
-
-
   
   Free(param);
   Free(link_efrq);
   Free(link_rmat);
   Free(link_lens);
 
-  
   mixt_tree = cpy_mixt_tree;
 }
 
@@ -4651,23 +4645,15 @@ void PhyML_XML(char *xml_filename)
                                 
                                 if(tstv)
                                   {
-                                    if(!strcmp(tstv,"estimate") || !strcmp(tstv,"estimated") || 
-                                       !strcmp(tstv,"optimise") || !strcmp(tstv,"optimised"))
-                                      {
-                                        mod->s_opt->opt_kappa = YES;
-                                      }
-                                    else
-                                      {					  
-                                        mod->s_opt->opt_kappa = NO;
-                                        mod->kappa->v = String_To_Dbl(tstv);
-                                      }
+                                    mod->s_opt->opt_kappa = NO;
+                                    mod->kappa->v = String_To_Dbl(tstv);
                                   }
                                 else
                                   {
                                     mod->s_opt->opt_kappa = YES;
                                   }
                                                                 
-                                opt_tstv = XML_Get_Attribute_Value(instance,"optimise.rr");
+                                opt_tstv = XML_Get_Attribute_Value(instance,"optimise.tstv");
                                 
                                 if(opt_tstv)
                                   {
@@ -5357,9 +5343,32 @@ void PhyML_XML(char *xml_filename)
                                   }
 			      }
 			    			    
-			    instance->ds->obj       = (scalar_dbl **)lens;
-			    instance->ds->next      = (t_ds *)mCalloc(1,sizeof(t_ds));
-			    instance->ds->next->obj = (scalar_dbl **)lens_old;
+                            char *opt_bl = NULL;
+                            opt_bl = XML_Get_Attribute_Value(instance,"optimise.lens");
+                            
+                            if(opt_bl)
+                              {
+                                if(!strcmp(opt_bl,"yes") || !strcmp(opt_bl,"true"))
+                                  {
+                                    iomod->s_opt->opt_bl = YES;
+                                  }
+                                else
+                                  {
+                                    iomod->s_opt->opt_bl = NO;
+                                  }
+                              }
+
+                            ds = instance->ds;
+
+			    ds->obj       = (scalar_dbl **)lens;
+
+			    ds->next      = (t_ds *)mCalloc(1,sizeof(t_ds));                            
+                            ds            = ds->next;
+			    ds->obj       = (scalar_dbl **)lens_old;
+
+			    ds->next      = (t_ds *)mCalloc(1,sizeof(t_ds));                            
+                            ds            = ds->next;
+			    ds->obj       = (int *)(&iomod->s_opt->opt_bl);
 			  }
 			else
 			  {
@@ -5369,8 +5378,15 @@ void PhyML_XML(char *xml_filename)
                                 Free_Scalar_Dbl(tree->a_edges[i]->l_old);
                               }
 
-			    lens     = (scalar_dbl **)instance->ds->obj;
+                            ds = instance->ds;
+
+			    lens     = (scalar_dbl **)ds->obj;
+
+                            ds = ds->next;
 			    lens_old = (scalar_dbl **)instance->ds->next->obj;
+
+                            ds = ds->next;
+                            iomod->s_opt->opt_bl = *((int *)ds->obj);
 			  }
 			
 			if(n_otu != tree->n_otu)
@@ -5441,6 +5457,13 @@ void PhyML_XML(char *xml_filename)
   For(num_rand_tree,io->mod->s_opt->n_rand_starts)
     {
       
+      printf("\n. %d %f %f %f %f",
+             mixt_tree->next->mod->whichmodel,
+             mixt_tree->next->data->b_frq[0],
+             mixt_tree->next->data->b_frq[1],
+             mixt_tree->next->data->b_frq[2],
+             mixt_tree->next->data->b_frq[3]);
+
       /*! Initialize the models */
       mod  = mixt_tree->mod;
       do
@@ -5450,6 +5473,15 @@ void PhyML_XML(char *xml_filename)
         }
       while(mod);
             
+      printf("\n. %d %f %f %f %f",
+             mixt_tree->next->mod->whichmodel,
+             mixt_tree->next->mod->e_frq->pi->v[0],
+             mixt_tree->next->mod->e_frq->pi->v[1],
+             mixt_tree->next->mod->e_frq->pi->v[2],
+             mixt_tree->next->mod->e_frq->pi->v[3]);
+      Exit("\n");
+
+
       Print_Data_Structure(NO,stdout,mixt_tree);
 
       t_tree *bionj_tree = NULL;      
@@ -5495,9 +5527,8 @@ void PhyML_XML(char *xml_filename)
       
       Copy_Tree(tree,mixt_tree);
       Free_Tree(tree);
-      Free_Tree(bionj_tree);
+      if(bionj_tree) Free_Tree(bionj_tree);
       
-
       if(io->mod->s_opt->random_input_tree) 
         {
           PhyML_Printf("\n\n. [%3d/%3d]",num_rand_tree+1,io->mod->s_opt->n_rand_starts);
@@ -5603,6 +5634,8 @@ void PhyML_XML(char *xml_filename)
       while(tree);
 
             
+      printf("\n. %s",Write_Tree(mixt_tree,NO));
+
       if(mixt_tree->mod->s_opt->opt_topo)
         {
           if(mixt_tree->mod->s_opt->topo_search      == NNI_MOVE) Simu_Loop(mixt_tree);
@@ -5615,6 +5648,9 @@ void PhyML_XML(char *xml_filename)
              mixt_tree->mod->s_opt->opt_bl)                       Round_Optimize(mixt_tree,mixt_tree->data,ROUND_MAX);
           else                                                    Lk(NULL,mixt_tree);
         }
+
+      
+      PhyML_Printf("\n\n. Log-likelihood = %f",mixt_tree->c_lnL);
 
       if((num_rand_tree == io->mod->s_opt->n_rand_starts-1) && (io->mod->s_opt->random_input_tree))
         {

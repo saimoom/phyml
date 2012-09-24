@@ -2327,7 +2327,7 @@ void Update_PMat_At_Given_Edge(t_edge *b_fcus, t_tree *tree)
 	    {
 	      len = b_fcus->l->v*tree->mod->ras->gamma_rr->v[i];	  
 	      len *= tree->mod->br_len_multiplier->v;
-	      if(tree->is_mixt_tree)  len *= tree->mixt_tree->mod->ras->gamma_rr->v[tree->mod->ras->parent_class_number];
+	      if(tree->mixt_tree)  len *= tree->mixt_tree->mod->ras->gamma_rr->v[tree->mod->ras->parent_class_number];
 	      if(len < l_min)      len = l_min;
 	      else if(len > l_max) len = l_max;
 	    }

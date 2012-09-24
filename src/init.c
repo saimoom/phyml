@@ -753,9 +753,16 @@ void Init_Model(calign *data, t_mod *mod, option *io)
 
   For(i,mod->ns) 
     {
-      mod->e_frq->pi->v[i] = data->b_frq[i];
+      mod->e_frq->pi->v[i] = data->b_frq[i];      
       mod->e_frq->pi_unscaled->v[i] = mod->e_frq->pi->v[i] * 100.;
     }
+  
+  printf("\n. %d %f %f %f %f",
+         mod->whichmodel,
+         mod->e_frq->pi->v[0],
+         mod->e_frq->pi->v[1],
+         mod->e_frq->pi->v[2],
+         mod->e_frq->pi->v[3]);
 
   if(io->datatype == NT)
     {
@@ -782,6 +789,7 @@ void Init_Model(calign *data, t_mod *mod, option *io)
   if(mod->s_opt->opt_alpha)  mod->ras->alpha->v  = 1.0;
   if(mod->s_opt->opt_pinvar) mod->ras->pinvar->v = 0.2;
   
+
   if(io->datatype == NT) /* Nucleotides */
     { 
       /* init for nucleotides */
@@ -850,7 +858,7 @@ void Init_Model(calign *data, t_mod *mod, option *io)
 	  Translate_Custom_Mod_String(mod);
 	}
       
-      if(mod->s_opt->user_state_freq) 
+      if(mod->s_opt->user_state_freq == YES) 
 	{
           For(i,4) 
             {
@@ -859,6 +867,14 @@ void Init_Model(calign *data, t_mod *mod, option *io)
         }
 
 
+
+      printf("\nz %d %d %f %f %f %f",
+             mod->whichmodel,
+             mod->s_opt->user_state_freq,
+             mod->e_frq->pi->v[0],
+             mod->e_frq->pi->v[1],
+             mod->e_frq->pi->v[2],
+             mod->e_frq->pi->v[3]);
 
 
       if((mod->whichmodel == GTR)    || 
