@@ -4552,7 +4552,7 @@ void SPR_Shuffle(t_tree *mixt_tree)
   int *orig_catg,*orig_inv,n;
   t_tree *tree,**tree_list,**orig_tree_list;
   
-  if(mixt_tree->mod->s_opt->print) PhyML_Printf("\n. Refining the tree...\n");
+  if(mixt_tree->mod->s_opt->print) PhyML_Printf("\n\n. Refining the tree...\n");
 
   /*! Get the number of classes in each mixture */
   orig_catg = MIXT_Get_Number_Of_Classes_In_All_Mixtures(mixt_tree);
