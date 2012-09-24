@@ -5457,13 +5457,6 @@ void PhyML_XML(char *xml_filename)
   For(num_rand_tree,io->mod->s_opt->n_rand_starts)
     {
       
-      printf("\n. %d %f %f %f %f",
-             mixt_tree->next->mod->whichmodel,
-             mixt_tree->next->data->b_frq[0],
-             mixt_tree->next->data->b_frq[1],
-             mixt_tree->next->data->b_frq[2],
-             mixt_tree->next->data->b_frq[3]);
-
       /*! Initialize the models */
       mod  = mixt_tree->mod;
       do
@@ -5473,15 +5466,6 @@ void PhyML_XML(char *xml_filename)
         }
       while(mod);
             
-      printf("\n. %d %f %f %f %f",
-             mixt_tree->next->mod->whichmodel,
-             mixt_tree->next->mod->e_frq->pi->v[0],
-             mixt_tree->next->mod->e_frq->pi->v[1],
-             mixt_tree->next->mod->e_frq->pi->v[2],
-             mixt_tree->next->mod->e_frq->pi->v[3]);
-      Exit("\n");
-
-
       Print_Data_Structure(NO,stdout,mixt_tree);
 
       t_tree *bionj_tree = NULL;      
@@ -5634,8 +5618,6 @@ void PhyML_XML(char *xml_filename)
       while(tree);
 
             
-      printf("\n. %s",Write_Tree(mixt_tree,NO));
-
       if(mixt_tree->mod->s_opt->opt_topo)
         {
           if(mixt_tree->mod->s_opt->topo_search      == NNI_MOVE) Simu_Loop(mixt_tree);

@@ -757,13 +757,6 @@ void Init_Model(calign *data, t_mod *mod, option *io)
       mod->e_frq->pi_unscaled->v[i] = mod->e_frq->pi->v[i] * 100.;
     }
   
-  printf("\n. %d %f %f %f %f",
-         mod->whichmodel,
-         mod->e_frq->pi->v[0],
-         mod->e_frq->pi->v[1],
-         mod->e_frq->pi->v[2],
-         mod->e_frq->pi->v[3]);
-
   if(io->datatype == NT)
     {
       /* Set the substitution parameters to their default values
@@ -865,17 +858,6 @@ void Init_Model(calign *data, t_mod *mod, option *io)
               mod->e_frq->pi->v[i] = mod->user_b_freq->v[i];
             }          
         }
-
-
-
-      printf("\nz %d %d %f %f %f %f",
-             mod->whichmodel,
-             mod->s_opt->user_state_freq,
-             mod->e_frq->pi->v[0],
-             mod->e_frq->pi->v[1],
-             mod->e_frq->pi->v[2],
-             mod->e_frq->pi->v[3]);
-
 
       if((mod->whichmodel == GTR)    || 
 	 (mod->whichmodel == CUSTOM) || 

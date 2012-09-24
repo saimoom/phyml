@@ -673,14 +673,6 @@ phydbl MIXT_Lk(t_edge *mixt_b, t_tree *mixt_tree)
               tree->curr_site        = site;
               tree->apply_lk_scaling = NO;
 
-              printf("\n. %f %f %f %f",
-                     tree->mod->e_frq->pi->v[0],
-                     tree->mod->e_frq->pi->v[1],
-                     tree->mod->e_frq->pi->v[2],
-                     tree->mod->e_frq->pi->v[3]);
-
-              Exit("\n");
-
               if(!(tree->mod->ras->invar == YES && mixt_tree->is_mixt_tree == YES) &&
                  (tree->data->wght[tree->curr_site] > SMALL)) 
                 {                  
