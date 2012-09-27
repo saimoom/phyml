@@ -1265,6 +1265,7 @@ typedef struct __Tmcmc {
   int num_move_subtree_rates;
   int num_move_updown_nu_cr;
   int num_move_updown_t_cr;
+  int num_move_updown_t_br;
   int num_move_ras;
   int num_move_cov_rates;
   int num_move_cov_switch;
@@ -1560,7 +1561,7 @@ void Dist_To_Root(t_node *n_root,t_tree *tree);
 char *Basename(char *path);
 t_node *Find_Lca_Pair_Of_Nodes(t_node *n1,t_node *n2,t_tree *tree);
 t_node *Find_Lca_Clade(t_node **node_list,int node_list_size,t_tree *tree);
-void Get_List_Of_Ancestors(t_node *ref_node,t_node **list,int *size,t_tree *tree);
+int Get_List_Of_Ancestors(t_node *ref_node,t_node **list,int *size,t_tree *tree);
 int Edge_Num_To_Node_Num(int edge_num,t_tree *tree);
 void Branch_Lengths_To_Time_Lengths(t_tree *tree);
 void Branch_Lengths_To_Time_Lengths_Pre(t_node *a,t_node *d,t_tree *tree);

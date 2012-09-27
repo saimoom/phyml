@@ -473,7 +473,8 @@ int main(int argc, char **argv)
 #include "sergeii.h"
 int main(int argc, char **argv)
 {
-  My_Function(argv[1]);
+  /* My_Function(argv[1]); */
+  My_main(argc, argv);
 }
 
 #endif
