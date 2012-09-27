@@ -918,6 +918,7 @@ phydbl TIMES_Lk_Yule_Joint(t_tree *tree)
 // statistics 'simplification' as described in Yang and Rannala, 2005. 
 phydbl TIMES_Lk_Yule_Order(t_tree *tree)
 {
+
   int j;
   phydbl *t,*tf;
   t_node *n;
@@ -936,7 +937,11 @@ phydbl TIMES_Lk_Yule_Order(t_tree *tree)
   lbda = tree->rates->birth_rate;
   lower_bound = -1.;
   upper_bound = -1.;
-  
+
+  /*! Adapted from  Equation (6) in T. Stadler's Systematic Biology, 2012 paper with
+      sampling fraction set to 1 and death rate set to 0. Dropped the 1/(n-1) scaling 
+      factor. */
+
   loglk = 0.0;
   For(j,2*tree->n_otu-2)
     {
@@ -945,11 +950,37 @@ phydbl TIMES_Lk_Yule_Order(t_tree *tree)
       upper_bound = MIN(FABS(t[tree->n_root->num]),FABS(tp_min[j]));
 
       if(n->tax == NO)
-	{
-	  loglk  += (loglbda - lbda * FABS(t[j]));
-	  loglk -= LOG(EXP(-lbda*lower_bound) - EXP(-lbda*upper_bound)); // incorporate calibration boundaries here.
-	}
+        {
+          loglk  += (loglbda - lbda * FABS(t[j]));
+          loglk -= LOG(EXP(-lbda*lower_bound) - EXP(-lbda*upper_bound)); // incorporate calibration boundaries here.
+        }
     }
+
+
+  
+  /*! Adapted from  Equation (7) in T. Stadler's Systematic Biology, 2012 paper with
+      sampling fraction set to 1 and death rate set to 0. */
+
+  /* loglk = 0.0; */
+  /* For(j,2*tree->n_otu-1) */
+  /*   { */
+  /*     n = tree->a_nodes[j]; */
+  /*     lower_bound = MAX(FABS(tf[j]),FABS(tp_max[j])); */
+  /*     upper_bound = FABS(tp_min[j]); */
+
+  /*     if(n->tax == NO) */
+  /*       { */
+  /*         loglk  += (loglbda - lbda * FABS(t[j])); */
+
+  /*         if(tree->rates->t_has_prior[n->num] == YES) */
+  /*           { */
+  /*             loglk -= LOG(EXP(-lbda*lower_bound) - EXP(-lbda*upper_bound)); // incorporate calibration boundaries here. */
+  /*           } */
+  /*       } */
+  /*   } */
+
+  /* loglk -= lbda * FABS(t[tree->n_root->num]); */
+
   return(loglk);
 }
 

@@ -7408,18 +7408,23 @@ t_node *Find_Lca_Clade(t_node **node_list, int node_list_size, t_tree *tree)
 
   if(!tree->n_root)
     {
-      PhyML_Printf("\n. The tree must be rooted in this function.");
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n== The tree must be rooted in this function.");
+      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
   list = (t_node ***)mCalloc(node_list_size,sizeof(t_node **));
   For(i,node_list_size) list[i] = (t_node **)mCalloc(2*tree->n_otu-1,sizeof(t_node *));
   size = (int *)mCalloc(node_list_size,sizeof(int));
-      
 
-  For(i,node_list_size) Get_List_Of_Ancestors(node_list[i],list[i],size+i,tree);
-  
+  For(i,node_list_size) 
+    {
+      if(!Get_List_Of_Ancestors(node_list[i],list[i],size+i,tree))
+        {
+          PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+          Exit("\n");
+        }
+    }
   do
     {
       For(i,node_list_size-1) 
@@ -7452,7 +7457,7 @@ t_node *Find_Lca_Clade(t_node **node_list, int node_list_size, t_tree *tree)
 //////////////////////////////////////////////////////////////
 
 /* Returns the list of the ancestors of ref_t_node from ref_t_node to the root included */
-void Get_List_Of_Ancestors(t_node *ref_node, t_node **list, int *size, t_tree *tree)
+int Get_List_Of_Ancestors(t_node *ref_node, t_node **list, int *size, t_tree *tree)
 {
   t_node *n;
 
@@ -7460,9 +7465,20 @@ void Get_List_Of_Ancestors(t_node *ref_node, t_node **list, int *size, t_tree *t
   n = ref_node;
   list[0] = n;
 
+  if(!n)
+    {
+      PhyML_Printf("\n== There seems to be a problem with the calibration file,\n");
+      return 0;
+    }
+  
   while(n != tree->n_root)
     {
       n = n->anc;
+      if(!n)
+        {
+          PhyML_Printf("\n== There seems to be a problem with the calibration file,\n");
+          return 0;
+        }
       *size = *size+1;
       list[*size] = n;
     }
@@ -7574,8 +7590,15 @@ int Find_Clade(char **tax_name_list, int list_size, t_tree *tree)
 	      tax_num_list[i] = tree->a_nodes[j]->num;
 	      tax_node_list[i] = tree->a_nodes[j];
 	      n_matches++;
+              break;
 	    }
 	}
+      if(j == tree->n_otu)
+        {
+          PhyML_Printf("\n== Problem with the calibration file.");
+          PhyML_Printf("\n== Could not find taxon with name '%s' in the sequence or tree file.",tax_name_list[i]);
+          Exit("\n");
+        }
     }
 
   lca = Find_Lca_Clade(tax_node_list,n_matches,tree);
@@ -7711,8 +7734,8 @@ t_edge *Find_Root_Edge(FILE *fp_input_tree, t_tree *tree)
   Clean_Multifurcation(subs,degree,3);
   if(degree != 2) 
     {
-      PhyML_Printf("\n. The tree does not seem to be rooted...");
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n== The tree does not seem to be rooted...");
+      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
@@ -7743,8 +7766,8 @@ t_edge *Find_Root_Edge(FILE *fp_input_tree, t_tree *tree)
 
   if(i == 2*tree->n_otu-3)
     {
-      PhyML_Printf("\n. Could not find the root edge...");
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n== Could not find the root edge...");
+      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
   

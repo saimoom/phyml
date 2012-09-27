@@ -239,6 +239,11 @@ void MCMC(t_tree *tree)
       	  MCMC_Updown_T_Cr(tree);
       	}
 
+      else if(!strcmp(tree->mcmc->move_name[move],"updown_t_br"))
+      	{
+      	  MCMC_Updown_T_Br(tree);
+      	}
+
       /* Ts/tv ratio */
       else if(!strcmp(tree->mcmc->move_name[move],"kappa"))
       	{
@@ -597,7 +602,9 @@ void MCMC_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree)
   phydbl r_min, r_max;
   t_edge *b1,*b2,*b3;
   t_node *v2,*v3;
-  
+  int move_num;
+  phydbl K;
+
   if(tree->rates->model == STRICTCLOCK) return;
 
   b = NULL;
@@ -613,20 +620,22 @@ void MCMC_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree)
   r_min        = tree->rates->min_rate;
   r_max        = tree->rates->max_rate;
   ratio        = 0.0;
-  
+  move_num     = d->num+tree->mcmc->num_move_br_r;
+  K            = tree->mcmc->tune_move[move_num];
+
   Record_Br_Len(tree);
   
   u = Uni();
   
-  /* MCMC_Make_Move(&cur_mu,&new_mu,r_min,r_max,&ratio,K,tree->mcmc->move_type[tree->mcmc->num_move_br_r+d->num]); */
+  MCMC_Make_Move(&cur_mu,&new_mu,r_min,r_max,&ratio,K,tree->mcmc->move_type[tree->mcmc->num_move_br_r+d->num]);
 
-  phydbl dt,sd,mean;
-  int err;
-  dt     = tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num];
-  sd     = SQRT(tree->rates->nu * dt);
-  mean   = tree->rates->br_r[a->num] - 0.5*sd*sd;
-  new_mu = Rnorm_Trunc(mean,sd,r_min,r_max,&err);
-  ratio  = Log_Dnorm_Trunc(cur_mu,mean,sd,r_min,r_max,&err) - Log_Dnorm_Trunc(new_mu,mean,sd,r_min,r_max,&err);
+  /* phydbl dt,sd,mean; */
+  /* int err; */
+  /* dt     = tree->rates->nd_t[d->num] - tree->rates->nd_t[a->num]; */
+  /* sd     = SQRT(tree->rates->nu * dt); */
+  /* mean   = tree->rates->br_r[a->num]; */
+  /* new_mu = Rnorm_Trunc(mean,sd,r_min,r_max,&err); */
+  /* ratio  = Log_Dnorm_Trunc(cur_mu,mean,sd,r_min,r_max,&err) - Log_Dnorm_Trunc(new_mu,mean,sd,r_min,r_max,&err); */
 
   if(new_mu > r_min && new_mu < r_max)
     {      
@@ -693,8 +702,7 @@ void MCMC_One_Rate(t_node *a, t_node *d, int traversal, t_tree *tree)
 
       /* Prior ratio */
       ratio += (new_lnL_rate - cur_lnL_rate);
-      
-      
+            
       ratio = EXP(ratio);
       alpha = MIN(1.,ratio);
       
@@ -812,7 +820,7 @@ void MCMC_One_Time(t_node *a, t_node *d, int traversal, t_tree *tree)
   
   
   if(d->tax) return; /* Won't change time at tip */
-  if(d == tree->n_root) return; /* Won't change time at root. Use tree height move instead */
+  /* if(d == tree->n_root) return; /\* Won't change time at root. Use tree height move instead *\/ */
 
   if(FABS(tree->rates->t_prior_min[d->num] - tree->rates->t_prior_max[d->num]) < 1.E-10) return;
 
@@ -1121,6 +1129,9 @@ void MCMC_Updown_T_Cr(t_tree *tree)
   phydbl floor;
   int n_nodes;
 
+  /*! Check that sequences are isochronous. */
+  For(i,tree->n_otu-1) if(!Are_Equal(tree->rates->nd_t[i+1],tree->rates->nd_t[i],1.E-10)) return; 
+
   if(FABS(tree->rates->t_prior_max[tree->n_root->num] - tree->rates->t_prior_min[tree->n_root->num]) < 1.E-10) return;
 
   RATES_Record_Times(tree);
@@ -1197,6 +1208,12 @@ void MCMC_Updown_T_Cr(t_tree *tree)
   alpha = MIN(1.,ratio);
   u = Uni();
   
+  /* printf("\n. t_old = %f t_new = %f cr_old = %f cr_new = %f", */
+  /*        tree->rates->nd_t[tree->n_root->num]/mult, */
+  /*        tree->rates->nd_t[tree->n_root->num], */
+  /*        tree->rates->clock_r*mult, */
+  /*        tree->rates->clock_r); */
+
   if(u > alpha)
     {
       RATES_Reset_Times(tree);
@@ -1212,6 +1229,124 @@ void MCMC_Updown_T_Cr(t_tree *tree)
     }
 
   tree->mcmc->run_move[tree->mcmc->num_move_updown_t_cr]++;
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+void MCMC_Updown_T_Br(t_tree *tree)
+{
+  
+  int i;
+  phydbl K,mult,u,alpha,ratio;
+  phydbl cur_lnL_data,new_lnL_data;
+  phydbl cur_lnL_rate,new_lnL_rate;
+  phydbl cur_lnL_time,new_lnL_time;
+  phydbl floor;
+  int n_nodes;
+
+  /*! Check that sequences are isochronous. */
+  For(i,tree->n_otu-1) if(!Are_Equal(tree->rates->nd_t[i+1],tree->rates->nd_t[i],1.E-10)) return; 
+
+  if(FABS(tree->rates->t_prior_max[tree->n_root->num] - tree->rates->t_prior_min[tree->n_root->num]) < 1.E-10) return;
+
+  RATES_Record_Times(tree);
+  Record_Br_Len(tree);
+
+  K            = tree->mcmc->tune_move[tree->mcmc->num_move_updown_t_br];
+  cur_lnL_data = tree->c_lnL;
+  new_lnL_data = tree->c_lnL;
+  ratio        = 0.0;
+  cur_lnL_rate = tree->rates->c_lnL_rates;
+  new_lnL_rate = tree->rates->c_lnL_rates;
+  cur_lnL_time = tree->rates->c_lnL_times;
+
+  u = Uni();
+  mult = EXP(K*(u-0.5));
+
+
+  floor = 0.0;
+
+  Scale_Subtree_Height(tree->n_root,mult,floor,&n_nodes,tree);
+
+  For(i,2*tree->n_otu-1)
+    {
+      if(tree->rates->nd_t[i] > tree->rates->t_prior_max[i] ||
+  	 tree->rates->nd_t[i] < tree->rates->t_prior_min[i])
+  	{
+  	  RATES_Reset_Times(tree);
+	  Restore_Br_Len(tree);
+	  tree->mcmc->run_move[tree->mcmc->num_move_updown_t_br]++;
+  	  return;
+  	}
+    }
+
+  if(RATES_Check_Node_Times(tree))
+    {
+      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+
+  tree->rates->birth_rate /= mult;
+
+  if(tree->rates->birth_rate < tree->rates->birth_rate_min || tree->rates->birth_rate > tree->rates->birth_rate_max)
+    {
+      tree->rates->birth_rate *= mult;
+      RATES_Reset_Times(tree);
+      Restore_Br_Len(tree);
+      tree->mcmc->run_move[tree->mcmc->num_move_updown_t_br]++;
+      return;
+    }
+  
+  For(i,2*tree->n_otu-2) tree->rates->br_do_updt[i] = YES;
+  RATES_Update_Cur_Bl(tree);
+  if(tree->mcmc->use_data) new_lnL_data = Lk(NULL,tree);
+
+  new_lnL_rate = RATES_Lk_Rates(tree);
+  new_lnL_time = TIMES_Lk_Times(tree);
+
+  /* The Hastings ratio is actually mult^(n) when changing the absolute
+     node heights. When considering the relative heights, this ratio combined
+     to the Jacobian for the change of variable ends up to being equal to mult. 
+  */
+  ratio += (n_nodes - 1)*LOG(mult);
+  /* ratio += -LOG(mult) + LOG(Dgamma(1./mult,1./K,K)/Dgamma(mult,1./K,K)); */
+
+  /* Likelihood ratio */
+  if(tree->mcmc->use_data) ratio += (new_lnL_data - cur_lnL_data);
+
+  /* Prior ratio */
+  ratio += (new_lnL_rate - cur_lnL_rate);
+  ratio += (new_lnL_time - cur_lnL_time);
+
+  /* !!!!!!!!!!!!1 */
+  /* ratio += LOG(Dexp(FABS(new_height-floor),1./10.) / Dexp(FABS(cur_height-floor),1./10.)); */
+  
+  ratio = EXP(ratio);
+  alpha = MIN(1.,ratio);
+  u = Uni();
+  
+  /* printf("\n. t_old = %f t_new = %f br_old = %f br_new = %f mult = %f K=%f", */
+  /*        tree->rates->nd_t[tree->n_root->num]/mult, */
+  /*        tree->rates->nd_t[tree->n_root->num], */
+  /*        tree->rates->birth_rate*mult, */
+  /*        tree->rates->birth_rate,mult,K); */
+
+  if(u > alpha)
+    {
+      RATES_Reset_Times(tree);
+      tree->rates->birth_rate *= mult;
+      Restore_Br_Len(tree);
+      tree->c_lnL = cur_lnL_data;
+      tree->rates->c_lnL_rates = cur_lnL_rate;
+      tree->rates->c_lnL_times = cur_lnL_time;
+    }
+  else
+    {
+      tree->mcmc->acc_move[tree->mcmc->num_move_updown_t_br]++;
+    }
+
+  tree->mcmc->run_move[tree->mcmc->num_move_updown_t_br]++;
 }
 
 //////////////////////////////////////////////////////////////
@@ -1702,32 +1837,32 @@ void MCMC_Print_Param_Stdin(t_mcmc *mcmc, t_tree *tree)
   if(mcmc->run == 1)
     {
       PhyML_Printf("\n\n");
-      PhyML_Printf("\t%7s","Run");
+      PhyML_Printf("\t%10s","Run");
       PhyML_Printf("\t%5s","Time");
       PhyML_Printf("\t%10s","Likelihood");
       PhyML_Printf("\t%10s","Prior");
-      PhyML_Printf("\t%17s","SubstRate[ESS]");
-      PhyML_Printf("\t%15s","TreeHeight[ESS]");    
-      if(tree->rates->model == THORNE || tree->rates->model == GUINDON) PhyML_Printf("\t%14s","AutoCor[ESS]");    
-      else PhyML_Printf("\t%14s","RateVar[ESS]");
-      PhyML_Printf("\t%13s","BirthR[ESS]");
-      PhyML_Printf("\t%7s","MinESS");    
+      PhyML_Printf("\t%19s","SubstRate[ ESS ]");
+      PhyML_Printf("\t%17s","TreeHeight[ ESS ]");    
+      if(tree->rates->model == THORNE || tree->rates->model == GUINDON) PhyML_Printf("\t%16s","AutoCor[ ESS ]");    
+      else PhyML_Printf("\t%16s","RateVar[ ESS ]");
+      PhyML_Printf("\t%15s","BirthR[ ESS ]");
+      PhyML_Printf("\t%8s","MinESS");    
     }
 
   if((cur_time - mcmc->t_last_print) >  mcmc->print_every)
     {
       mcmc->t_last_print = cur_time;
       PhyML_Printf("\n");
-      PhyML_Printf("\t%7d",tree->mcmc->run);
+      PhyML_Printf("\t%10d",tree->mcmc->run);
       PhyML_Printf("\t%5d",(int)(cur_time-mcmc->t_beg));
       PhyML_Printf("\t%10.2f",tree->c_lnL);
       PhyML_Printf("\t%10.2f",tree->rates->c_lnL_rates+tree->rates->c_lnL_times);
-      PhyML_Printf("\t%12.6f[%3.0f]",RATES_Average_Substitution_Rate(tree),tree->mcmc->ess[tree->mcmc->num_move_clock_r]);
-      /* PhyML_Printf("\t%12.6f[%4.0f]",tree->rates->clock_r,tree->mcmc->ess[tree->mcmc->num_move_clock_r]); */
-      PhyML_Printf("\t%10.1f[%3.0f]",tree->rates->nd_t[tree->n_root->num],tree->mcmc->ess[tree->mcmc->num_move_nd_t+tree->n_root->num-tree->n_otu]);
-      PhyML_Printf("\t%9.4G[%3.0f]",tree->rates->nu,tree->mcmc->ess[tree->mcmc->num_move_nu]);
-      PhyML_Printf("\t%8.4G[%3.0f]",tree->rates->birth_rate,tree->mcmc->ess[tree->mcmc->num_move_birth_rate]);
-      PhyML_Printf("\t%7.0f",min);
+      PhyML_Printf("\t%12.6f[%5.0f]",RATES_Average_Substitution_Rate(tree),tree->mcmc->ess[tree->mcmc->num_move_clock_r]);
+      /* PhyML_Printf("\t%12.6f[%5.0f]",tree->rates->clock_r,tree->mcmc->ess[tree->mcmc->num_move_clock_r]); */
+      PhyML_Printf("\t%10.1f[%5.0f]",tree->rates->nd_t[tree->n_root->num],tree->mcmc->ess[tree->mcmc->num_move_nd_t+tree->n_root->num-tree->n_otu]);
+      PhyML_Printf("\t%9f[%5.0f]",tree->rates->nu,tree->mcmc->ess[tree->mcmc->num_move_nu]);
+      PhyML_Printf("\t%8f[%5.0f]",tree->rates->birth_rate,tree->mcmc->ess[tree->mcmc->num_move_birth_rate]);
+      PhyML_Printf("\t%8.0f",min);
     }
 }
 
@@ -1798,17 +1933,17 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
 	  /* PhyML_Fprintf(fp,"MeanRate\t"); */
 /* 	  PhyML_Fprintf(fp,"NormFact\t"); */
 
-	  /* For(i,mcmc->n_moves) */
-	  /*   { */
-	  /*     strcpy(s,"Acc."); */
-	  /*     PhyML_Fprintf(fp,"%s%d\t",strcat(s,mcmc->move_name[i]),i); */
-	  /*   } */
+	  For(i,mcmc->n_moves)
+	    {
+	      strcpy(s,"Acc.");
+	      PhyML_Fprintf(fp,"%s%d\t",strcat(s,mcmc->move_name[i]),i);
+	    }
 
-	  /* For(i,mcmc->n_moves) */
-	  /*   { */
-	  /*     strcpy(s,"Tune."); */
-	  /*     PhyML_Fprintf(fp,"%s%d\t",strcat(s,mcmc->move_name[i]),i); */
-	  /*   } */
+	  For(i,mcmc->n_moves)
+	    {
+	      strcpy(s,"Tune.");
+	      PhyML_Fprintf(fp,"%s%d\t",strcat(s,mcmc->move_name[i]),i);
+	    }
 
 	  /* For(i,mcmc->n_moves) */
 	  /*   { */
@@ -1945,8 +2080,8 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
 /*       PhyML_Fprintf(fp,"%f\t",RATES_Check_Mean_Rates(tree)); */
 
 /*       PhyML_Fprintf(fp,"%f\t",tree->rates->norm_fact); */
-      /* For(i,tree->mcmc->n_moves) PhyML_Fprintf(fp,"%f\t",tree->mcmc->acc_rate[i]); */
-      /* For(i,tree->mcmc->n_moves) PhyML_Fprintf(fp,"%f\t",(phydbl)(tree->mcmc->tune_move[i])); */
+      For(i,tree->mcmc->n_moves) PhyML_Fprintf(fp,"%f\t",tree->mcmc->acc_rate[i]);
+      For(i,tree->mcmc->n_moves) PhyML_Fprintf(fp,"%f\t",(phydbl)(tree->mcmc->tune_move[i]));
 /*       For(i,tree->mcmc->n_moves) PhyML_Fprintf(fp,"%d\t",(int)(tree->mcmc->run_move[i])); */
 
       orig_approx = tree->io->lk_approx;
@@ -2885,8 +3020,10 @@ void MCMC_Adjust_Tuning_Parameter(int move, t_mcmc *mcmc)
 
       if(!strcmp(mcmc->move_name[move],"tree_height"))
 	{
-	  rate_inf = 0.3;
-	  rate_sup = 0.3;
+	  rate_inf = 0.1;
+	  rate_sup = 0.1;
+	  /* rate_inf = 0.3; */
+	  /* rate_sup = 0.3; */
 	  /* rate_inf = 0.7; */
 	  /* rate_sup = 0.7; */
 	}
@@ -2895,6 +3032,16 @@ void MCMC_Adjust_Tuning_Parameter(int move, t_mcmc *mcmc)
 	  rate_inf = 0.2;
 	  rate_sup = 0.2;
 	}
+      else if(!strcmp(mcmc->move_name[move],"updown_t_cr"))
+	{
+	  rate_inf = 0.1;
+	  rate_sup = 0.1;
+	}
+      else if(!strcmp(mcmc->move_name[move],"clock"))
+	{
+	  rate_inf = 0.1;
+	  rate_sup = 0.1;
+	}
       /* if(!strcmp(mcmc->move_name[move],"tree_rates")) */
       /* 	{ */
       /* 	  rate_inf = 0.05; */
@@ -2902,8 +3049,8 @@ void MCMC_Adjust_Tuning_Parameter(int move, t_mcmc *mcmc)
       /* 	} */
       else
 	{
-	  rate_inf = 0.3;
-	  rate_sup = 0.3;
+	  rate_inf = 0.2;
+	  rate_sup = 0.2;
 	}
 
       /* PhyML_Printf("\n. %s acc=%d run=%d tune=%f", */
@@ -3563,6 +3710,7 @@ void MCMC_Complete_MCMC(t_mcmc *mcmc, t_tree *tree)
   mcmc->num_move_cov_rates      = mcmc->n_moves; mcmc->n_moves += 2*tree->mod->m4mod->n_h;
   mcmc->num_move_cov_switch     = mcmc->n_moves; mcmc->n_moves += 1;
   mcmc->num_move_birth_rate     = mcmc->n_moves; mcmc->n_moves += 1;
+  mcmc->num_move_updown_t_br    = mcmc->n_moves; mcmc->n_moves += 1;
 
   mcmc->run_move           = (int *)mCalloc(mcmc->n_moves,sizeof(int));
   mcmc->acc_move           = (int *)mCalloc(mcmc->n_moves,sizeof(int));
@@ -3608,6 +3756,7 @@ void MCMC_Complete_MCMC(t_mcmc *mcmc, t_tree *tree)
     strcpy(mcmc->move_name[i],"cov_rates");  
   strcpy(mcmc->move_name[mcmc->num_move_cov_switch],"cov_switch");
   strcpy(mcmc->move_name[mcmc->num_move_birth_rate],"birth_rate");
+  strcpy(mcmc->move_name[mcmc->num_move_updown_t_br],"updown_t_br");
   
   if(tree->rates->model_log_rates == YES)
     for(i=mcmc->num_move_br_r;i<mcmc->num_move_br_r+2*tree->n_otu-2;i++) mcmc->move_type[i] = MCMC_MOVE_RANDWALK_NORMAL;  
@@ -3630,6 +3779,7 @@ void MCMC_Complete_MCMC(t_mcmc *mcmc, t_tree *tree)
   for(i=mcmc->num_move_cov_rates;i<mcmc->num_move_cov_rates+2*tree->mod->m4mod->n_h;i++) mcmc->move_type[i] = MCMC_MOVE_SCALE_THORNE;
   mcmc->move_type[mcmc->num_move_cov_switch] = MCMC_MOVE_SCALE_THORNE;
   mcmc->move_type[mcmc->num_move_birth_rate] = MCMC_MOVE_SCALE_THORNE;
+  mcmc->move_type[mcmc->num_move_updown_t_br] = MCMC_MOVE_SCALE_THORNE;
 
   /* We start with small tuning parameter values in order to have inflated ESS
      for clock_r */
@@ -3639,22 +3789,26 @@ void MCMC_Complete_MCMC(t_mcmc *mcmc, t_tree *tree)
 	{
 	case MCMC_MOVE_RANDWALK_NORMAL:
 	  {
-	    mcmc->tune_move[i] = 1.E-1;
+	    /* mcmc->tune_move[i] = 1.E-1; */
+	    mcmc->tune_move[i] = 100.;
 	    break;
 	  }
 	case MCMC_MOVE_RANDWALK_UNIFORM:
 	  {
-	    mcmc->tune_move[i] = 2.0;
+	    /* mcmc->tune_move[i] = 2.0; */
+	    mcmc->tune_move[i] = 20.0;
 	    break;
 	  }
 	case MCMC_MOVE_SCALE_GAMMA:
 	  {
-	    mcmc->tune_move[i] = 1.0;
+	    /* mcmc->tune_move[i] = 1.0; */
+	    mcmc->tune_move[i] = 10.0;
 	    break;
 	  }
 	case MCMC_MOVE_SCALE_THORNE:
 	  {
-	    mcmc->tune_move[i] = 1.0;
+	    /* mcmc->tune_move[i] = 1.0; */
+	    mcmc->tune_move[i] = 10.0;
 	    break;
 	  }
 	}
@@ -3664,7 +3818,7 @@ void MCMC_Complete_MCMC(t_mcmc *mcmc, t_tree *tree)
   for(i=mcmc->num_move_nd_r;i<mcmc->num_move_nd_r+2*tree->n_otu-1;i++) mcmc->move_weight[i] = 0.0; /* Node rates */
   for(i=mcmc->num_move_nd_t;i<mcmc->num_move_nd_t+tree->n_otu-1;i++)   mcmc->move_weight[i] = (phydbl)(1./(tree->n_otu-1));  /* Times */
   mcmc->move_weight[mcmc->num_move_clock_r]         = 1.0;
-  mcmc->move_weight[mcmc->num_move_tree_height]     = 10.0;
+  mcmc->move_weight[mcmc->num_move_tree_height]     = tree->n_otu;
   mcmc->move_weight[mcmc->num_move_subtree_height]  = 0.0;
   mcmc->move_weight[mcmc->num_move_nu]              = 2.0;
   mcmc->move_weight[mcmc->num_move_kappa]           = 0.5;
@@ -3676,7 +3830,8 @@ void MCMC_Complete_MCMC(t_mcmc *mcmc, t_tree *tree)
   							      when sampling from prior) */
   for(i=mcmc->num_move_cov_rates;i<mcmc->num_move_cov_rates+2*tree->mod->m4mod->n_h;i++) mcmc->move_weight[i] = 0.5*(1./(phydbl)tree->mod->m4mod->n_h);
   mcmc->move_weight[mcmc->num_move_cov_switch]      = 1.0;
-  mcmc->move_weight[mcmc->num_move_birth_rate]      = 1.0;
+  mcmc->move_weight[mcmc->num_move_birth_rate]      = tree->n_otu;
+  mcmc->move_weight[mcmc->num_move_updown_t_br]     = 0.0;
 
 
   /* for(i=mcmc->num_move_br_r;i<mcmc->num_move_br_r+2*tree->n_otu-2;i++) mcmc->move_weight[i] = 0.0; /\* Rates *\/ */

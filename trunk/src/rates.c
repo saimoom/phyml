@@ -3823,8 +3823,8 @@ void RATES_Set_Birth_Rate_Boundaries(t_tree *tree)
   phydbl min,max;
   int assign = YES;
 
-  min = -tree->rates->t_prior_max[tree->n_root->num];
-  max = -10.*tree->rates->t_prior_min[tree->n_root->num];
+  min = -0.2*tree->rates->t_prior_max[tree->n_root->num];
+  max = -5.*tree->rates->t_prior_min[tree->n_root->num];
 
   for(lbda = 0.0001; lbda < 10; lbda+=0.0001)
     {
@@ -3843,6 +3843,8 @@ void RATES_Set_Birth_Rate_Boundaries(t_tree *tree)
 	}
     }
   
+  /* tree->rates->birth_rate_min = 1.E-6; */
+  /* tree->rates->birth_rate_max = 1.; */
   PhyML_Printf("\n. Birth rate lower bound set to %f.",tree->rates->birth_rate_min);
   PhyML_Printf("\n. Birth rate upper bound set to %f.",tree->rates->birth_rate_max);
 
