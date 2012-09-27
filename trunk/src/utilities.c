@@ -7483,6 +7483,7 @@ int Get_List_Of_Ancestors(t_node *ref_node, t_node **list, int *size, t_tree *tr
       *size = *size+1;
       list[*size] = n;
     }
+  return 1;
 }
 
 //////////////////////////////////////////////////////////////
