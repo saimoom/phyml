@@ -7421,6 +7421,7 @@ t_node *Find_Lca_Clade(t_node **node_list, int node_list_size, t_tree *tree)
     {
       if(!Get_List_Of_Ancestors(node_list[i],list[i],size+i,tree))
         {
+          PhyML_Printf("\n== %s",node_list[i]->name);
           PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
           Exit("\n");
         }
