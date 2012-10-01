@@ -1818,6 +1818,7 @@ phydbl MIXT_Get_Mean_Edge_Len(t_edge *mixt_b)
   scalar_dbl *l;
 
   l   = mixt_b->l;
+  
   sum = .0;
   n   = 0 ;
   do 

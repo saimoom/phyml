@@ -1971,32 +1971,32 @@ void MCMC_Print_Param_Stdin(t_mcmc *mcmc, t_tree *tree)
   if(mcmc->run == 1)
     {
       PhyML_Printf("\n\n");
-      PhyML_Printf("\t%10s","Run");
-      PhyML_Printf("\t%5s","Time");
-      PhyML_Printf("\t%10s","Likelihood");
-      PhyML_Printf("\t%10s","Prior");
-      PhyML_Printf("\t%19s","SubstRate[ ESS ]");
-      PhyML_Printf("\t%17s","TreeHeight[ ESS ]");    
-      if(tree->rates->model == THORNE || tree->rates->model == GUINDON) PhyML_Printf("\t%16s","AutoCor[ ESS ]");    
-      else PhyML_Printf("\t%16s","RateVar[ ESS ]");
-      PhyML_Printf("\t%15s","BirthR[ ESS ]");
-      PhyML_Printf("\t%8s","MinESS");    
+      PhyML_Printf("%9s","Run");
+      PhyML_Printf("  %5s","Time");
+      PhyML_Printf("  %10s","Likelihood");
+      PhyML_Printf("  %10s","Prior");
+      PhyML_Printf("  %19s","SubstRate[ ESS ]");
+      PhyML_Printf("  %17s","TreeHeight[ ESS ]");    
+      if(tree->rates->model == THORNE || tree->rates->model == GUINDON) PhyML_Printf("  %16s","AutoCor[ ESS ]");    
+      else PhyML_Printf("  %16s","RateVar[ ESS ]");
+      PhyML_Printf("  %15s","BirthR[ ESS ]");
+      PhyML_Printf("  %8s","MinESS");    
     }
 
   if((cur_time - mcmc->t_last_print) >  mcmc->print_every)
     {
       mcmc->t_last_print = cur_time;
       PhyML_Printf("\n");
-      PhyML_Printf("\t%10d",tree->mcmc->run);
-      PhyML_Printf("\t%5d",(int)(cur_time-mcmc->t_beg));
-      PhyML_Printf("\t%10.2f",tree->c_lnL);
-      PhyML_Printf("\t%10.2f",tree->rates->c_lnL_rates+tree->rates->c_lnL_times);
-      PhyML_Printf("\t%12.6f[%5.0f]",RATES_Average_Substitution_Rate(tree),tree->mcmc->ess[tree->mcmc->num_move_clock_r]);
+      PhyML_Printf("%9d",tree->mcmc->run);
+      PhyML_Printf("  %5d",(int)(cur_time-mcmc->t_beg));
+      PhyML_Printf("  %10.2f",tree->c_lnL);
+      PhyML_Printf("  %10.2f",tree->rates->c_lnL_rates+tree->rates->c_lnL_times);
+      PhyML_Printf("  %12.6f[%5.0f]",RATES_Average_Substitution_Rate(tree),tree->mcmc->ess[tree->mcmc->num_move_clock_r]);
       /* PhyML_Printf("\t%12.6f[%5.0f]",tree->rates->clock_r,tree->mcmc->ess[tree->mcmc->num_move_clock_r]); */
-      PhyML_Printf("\t%10.1f[%5.0f]",tree->rates->nd_t[tree->n_root->num],tree->mcmc->ess[tree->mcmc->num_move_nd_t+tree->n_root->num-tree->n_otu]);
-      PhyML_Printf("\t%9f[%5.0f]",tree->rates->nu,tree->mcmc->ess[tree->mcmc->num_move_nu]);
-      PhyML_Printf("\t%8f[%5.0f]",tree->rates->birth_rate,tree->mcmc->ess[tree->mcmc->num_move_birth_rate]);
-      PhyML_Printf("\t%8.0f",min);
+      PhyML_Printf("  %10.1f[%5.0f]",tree->rates->nd_t[tree->n_root->num],tree->mcmc->ess[tree->mcmc->num_move_nd_t+tree->n_root->num-tree->n_otu]);
+      PhyML_Printf("  %9f[%5.0f]",tree->rates->nu,tree->mcmc->ess[tree->mcmc->num_move_nu]);
+      PhyML_Printf("  %8f[%5.0f]",tree->rates->birth_rate,tree->mcmc->ess[tree->mcmc->num_move_birth_rate]);
+      PhyML_Printf("  %8.0f",min);
     }
 }
 

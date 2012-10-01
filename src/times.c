@@ -956,7 +956,10 @@ phydbl TIMES_Lk_Yule_Order(t_tree *tree)
         }
     }
 
-
+  lower_bound = MAX(FABS(tf[tree->n_root->num]),FABS(tp_max[tree->n_root->num]));
+  upper_bound = MIN(FABS(t[tree->n_root->num]),FABS(tp_min[tree->n_root->num]));
+  loglk += loglbda - lbda * FABS(t[tree->n_root->num]);
+  loglk -= LOG(EXP(-lbda*lower_bound) - EXP(-lbda*upper_bound));
   
   /*! Adapted from  Equation (7) in T. Stadler's Systematic Biology, 2012 paper with
       sampling fraction set to 1 and death rate set to 0. */
@@ -966,16 +969,12 @@ phydbl TIMES_Lk_Yule_Order(t_tree *tree)
   /*   { */
   /*     n = tree->a_nodes[j]; */
   /*     lower_bound = MAX(FABS(tf[j]),FABS(tp_max[j])); */
-  /*     upper_bound = FABS(tp_min[j]); */
+  /*     upper_bound = MIN(FABS(t[tree->n_root->num]),FABS(tp_min[j])); */
 
   /*     if(n->tax == NO) */
   /*       { */
   /*         loglk  += (loglbda - lbda * FABS(t[j])); */
-
-  /*         if(tree->rates->t_has_prior[n->num] == YES) */
-  /*           { */
-  /*             loglk -= LOG(EXP(-lbda*lower_bound) - EXP(-lbda*upper_bound)); // incorporate calibration boundaries here. */
-  /*           } */
+  /*         loglk -= LOG(EXP(-lbda*lower_bound) - EXP(-lbda*upper_bound)); // incorporate calibration boundaries here. */
   /*       } */
   /*   } */
 

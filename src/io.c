@@ -657,7 +657,8 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, t_tree *
 #ifndef PHYTIME
 	  if(!tree->n_root)
 	    {
-              mean_len = MIXT_Get_Mean_Edge_Len(fils->b[0]);
+              if(tree->is_mixt_tree == NO) mean_len = fils->b[0]->l->v;
+              else mean_len = MIXT_Get_Mean_Edge_Len(fils->b[0]);
 	      sprintf(*s_tree+(int)strlen(*s_tree),format,mean_len);
 	    }
 	  else
@@ -665,15 +666,19 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, t_tree *
 	      if(pere == tree->n_root)
 		{
 		  phydbl root_pos = (fils == tree->n_root->v[0])?(tree->n_root_pos):(1.-tree->n_root_pos);
+
+                  if(tree->is_mixt_tree == NO) mean_len = tree->e_root->l->v;
+                  else mean_len = MIXT_Get_Mean_Edge_Len(tree->e_root);                  
                   mean_len = MIXT_Get_Mean_Edge_Len(tree->e_root);              
-		  sprintf(*s_tree+(int)strlen(*s_tree),format,tree->e_root->l->v * root_pos);
+		  sprintf(*s_tree+(int)strlen(*s_tree),format,mean_len * root_pos);
 		}
 	      else
 		{
-                  mean_len = MIXT_Get_Mean_Edge_Len(fils->b[0]);
-                  sprintf(*s_tree+(int)strlen(*s_tree),format,fils->b[0]->l->v);
+                  if(tree->is_mixt_tree == NO) mean_len = fils->b[0]->l->v;
+                  else mean_len = MIXT_Get_Mean_Edge_Len(fils->b[0]);
+                  sprintf(*s_tree+(int)strlen(*s_tree),format,mean_len);
 		}
-	    }		
+	    }
 #else
 	  if(!tree->n_root)
 	    {
@@ -2321,7 +2326,7 @@ void Print_Model(t_mod *mod)
 {
   int i,j,k;
 
-  PhyML_Printf("\n. name=%s",mod->modelname);
+  PhyML_Printf("\n. name=%s",mod->modelname->s);
   PhyML_Printf("\n. string=%s",mod->custom_mod_string);
   PhyML_Printf("\n. mod_num=%d",mod->mod_num);
   PhyML_Printf("\n. ns=%d",mod->ns);
@@ -2571,13 +2576,13 @@ void Print_Fp_Out(FILE *fp_out, time_t t_beg, time_t t_end, t_tree *tree, option
 
   if(tree->io->datatype == NT)
     {
-      PhyML_Fprintf(fp_out,"\n. Model of nucleotides substitution: \t%s",tree->mod->modelname);
+      PhyML_Fprintf(fp_out,"\n. Model of nucleotides substitution: \t%s",tree->mod->modelname->s);
       if(io->mod->whichmodel == CUSTOM)
       PhyML_Fprintf(fp_out," (%s)",io->mod->custom_mod_string);
     }
   else if(tree->io->datatype == AA)
     {
-      PhyML_Fprintf(fp_out,"\n. Model of amino acids substitution: \t%s",tree->mod->modelname);
+      PhyML_Fprintf(fp_out,"\n. Model of amino acids substitution: \t%s",tree->mod->modelname->s);
       if(io->mod->whichmodel == CUSTOMAA) PhyML_Fprintf(fp_out," (%s)",tree->io->aa_rate_mat_file);
     }
   else
@@ -2737,8 +2742,8 @@ void Print_Fp_Out_Lines(FILE *fp_out, time_t t_beg, time_t t_end, t_tree *tree, 
 	if((tree->io->datatype == NT) || (tree->io->datatype == AA))
 	  {
 	    (tree->io->datatype == NT)?
-	      (PhyML_Fprintf(fp_out,". Model of nucleotides substitution : %s\n\n",io->mod->modelname)):
-	      (PhyML_Fprintf(fp_out,". Model of amino acids substitution : %s\n\n",io->mod->modelname));
+	      (PhyML_Fprintf(fp_out,". Model of nucleotides substitution : %s\n\n",io->mod->modelname->s)):
+	      (PhyML_Fprintf(fp_out,". Model of amino acids substitution : %s\n\n",io->mod->modelname->s));
 	  }
 
 	s = (char *)mCalloc(100,sizeof(char));
@@ -3009,7 +3014,7 @@ void Print_Settings(option *io)
 	PhyML_Printf("\n                . Compute approximate likelihood ratio test:\t yes (aBayes branch supports)");
     }
 
-  PhyML_Printf("\n                . Model name:\t\t\t\t\t %s", io->mod->modelname);
+  PhyML_Printf("\n                . Model name:\t\t\t\t\t %s", io->mod->modelname->s);
 
   if(io->datatype == AA && io->mod->whichmodel == CUSTOMAA) PhyML_Printf(" (%s)",io->aa_rate_mat_file);
 
@@ -4148,6 +4153,23 @@ void Print_Data_Structure(int final, FILE *fp, t_tree *mixt_tree)
   while(tree);
   PhyML_Fprintf(fp,"\n");
   
+  if(final == YES)
+    {
+      tree = cpy_mixt_tree;
+      c = 0;
+      do
+        {
+          PhyML_Printf("\n. Tree estimated from data partition %d",c++);
+          s = (char *)mCalloc(T_MAX_LINE,sizeof(char));
+          s = Write_Tree(tree->next,NO); /*! tree->next is not a mixt_tree so edge lengths 
+                                           are not averaged over when writing the tree out. */
+          PhyML_Printf("\n %s",s);
+          Free(s);
+          tree = tree->next_mixt;
+        }
+      while(tree);
+    }
+
   Free(param);
   Free(link_efrq);
   Free(link_rmat);
