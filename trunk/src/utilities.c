@@ -7222,6 +7222,9 @@ char *aLRT_From_String(char *s_tree, calign *cdata, t_mod *mod, option *io)
 
   aLRT(tree);
   
+  Br_Len_Involving_Invar(tree);
+  Rescale_Br_Len_Multiplier_Tree(tree);
+
   Free(s_tree);
   s_tree = Write_Tree(tree,NO);
 

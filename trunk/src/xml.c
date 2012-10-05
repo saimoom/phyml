@@ -918,6 +918,18 @@ void XML_Write_XML_Node(FILE *fp, int *indent, xml_node *root)
 }
 
 //////////////////////////////////////////////////////////////
+
+void Check_Mandatory_XML_Node(xml_node *root, char *name)
+{
+  if(!XML_Search_Node_Name(name,NO,root))
+    {
+      PhyML_Printf("\n== Could not find mandatory XML node with name '%s'.",name);
+      PhyML_Printf("\n== Please amend your XML file.");
+      Exit("\n");
+    }
+}
+
+
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////

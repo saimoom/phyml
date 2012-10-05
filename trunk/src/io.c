@@ -4159,11 +4159,12 @@ void Print_Data_Structure(int final, FILE *fp, t_tree *mixt_tree)
       c = 0;
       do
         {
-          PhyML_Printf("\n. Tree estimated from data partition %d",c++);
+          PhyML_Fprintf(fp,"\n");
+          PhyML_Fprintf(fp,"\n. Tree estimated from data partition %d",c++);
           s = (char *)mCalloc(T_MAX_LINE,sizeof(char));
           s = Write_Tree(tree->next,NO); /*! tree->next is not a mixt_tree so edge lengths 
                                            are not averaged over when writing the tree out. */
-          PhyML_Printf("\n %s",s);
+          PhyML_Fprintf(fp,"\n %s",s);
           Free(s);
           tree = tree->next_mixt;
         }
@@ -4860,11 +4861,11 @@ void PhyML_XML(char *xml_filename)
                                 Free(buff);
                               }
 
-                            buff = XML_Get_Attribute_Value(instance,"empirical");
+                            buff = XML_Get_Attribute_Value(instance,"aa.freqs");
                             
                             if(buff)
                               {
-                                if(!strcmp(buff,"yes") || !strcmp(buff,"true"))
+                                if(!strcmp(buff,"empirical"))
                                   {
                                     if(io->datatype == AA)
                                       {
@@ -5472,6 +5473,15 @@ void PhyML_XML(char *xml_filename)
   while(mod);
   
   Check_Taxa_Sets(mixt_tree);
+
+  Check_Mandatory_XML_Node(root,"phyml");
+  Check_Mandatory_XML_Node(root,"topology");
+  Check_Mandatory_XML_Node(root,"branchlengths");
+  Check_Mandatory_XML_Node(root,"ratematrices");
+  Check_Mandatory_XML_Node(root,"equfreqs");
+  Check_Mandatory_XML_Node(root,"siterates");
+  Check_Mandatory_XML_Node(root,"partitionelem");
+  Check_Mandatory_XML_Node(root,"mixtureelem");
 
   if(!io->mod->s_opt->random_input_tree) io->mod->s_opt->n_rand_starts = 1;
 
