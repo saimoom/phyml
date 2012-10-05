@@ -34,5 +34,6 @@ void XML_Write_XML_Node(FILE *fp, int *indent, xml_node *root);
 xml_attr *XML_Search_Attribute(xml_node *n, char *target_attr_name);
 xml_node *XML_Copy_XML_Graph(xml_node *root);
 void XML_Copy_XML_Node(xml_node *cpy_root, xml_node *root);
+void Check_Mandatory_XML_Node(xml_node *root, char *name);
 
 #endif
