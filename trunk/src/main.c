@@ -204,7 +204,7 @@ int main(int argc, char **argv)
 		  Lk(NULL,tree);
 		  Pars(NULL,tree);
 		  Get_Tree_Size(tree);
-		  PhyML_Printf("\n\n. Log likelihood of the current tree: %f.\n",tree->c_lnL);
+		  PhyML_Printf("\n\n. Log likelihood of the current tree: %f.",tree->c_lnL);
 
 		  Br_Len_Involving_Invar(tree);
 		  Rescale_Br_Len_Multiplier_Tree(tree);
@@ -255,11 +255,11 @@ int main(int argc, char **argv)
 	      /* Launch bootstrap analysis */
 	      if(mod->bootstrap) 
 		{
-		  if(!io->quiet) PhyML_Printf("\n. Launch bootstrap analysis on the most likely tree...\n");
+		  if(!io->quiet) PhyML_Printf("\n\n. Launch bootstrap analysis on the most likely tree...");
 
                   #ifdef MPI
 		  MPI_Bcast (most_likely_tree, strlen(most_likely_tree)+1, MPI_CHAR, 0, MPI_COMM_WORLD);
-		  if(!io->quiet)  PhyML_Printf("\n. The bootstrap analysis will use %d CPUs.\n",Global_numTask);
+		  if(!io->quiet)  PhyML_Printf("\n\n. The bootstrap analysis will use %d CPUs.",Global_numTask);
 		  #endif
 
 		  most_likely_tree = Bootstrap_From_String(most_likely_tree,cdata,mod,io);
@@ -267,12 +267,11 @@ int main(int argc, char **argv)
 	      else if(io->ratio_test) 
 		{
 		  /* Launch aLRT */
-		  if(!io->quiet) PhyML_Printf("\n. Compute fast branch supports on the most likely tree...\n");
 		  most_likely_tree = aLRT_From_String(most_likely_tree,cdata,mod,io);
 		}
 
 	      /* Print the most likely tree in the output file */
-	      if(!io->quiet) PhyML_Printf("\n. Printing the most likely tree in file '%s'...\n", Basename(io->out_tree_file));
+	      if(!io->quiet) PhyML_Printf("\n\n. Printing the most likely tree in file '%s'.", Basename(io->out_tree_file));
 	      if(io->n_data_sets == 1) rewind(io->fp_out_tree);
 	      PhyML_Fprintf(io->fp_out_tree,"%s\n",most_likely_tree);
 	      
@@ -294,7 +293,6 @@ int main(int argc, char **argv)
   if(mod->s_opt->n_rand_starts > 1) PhyML_Printf("\n. Best log likelihood: %f\n",best_lnL);
 
   Free_Optimiz(mod->s_opt);
-  Free_Custom_Model(mod);
   M4_Free_M4_Model(mod->m4mod);
   Free_Model_Basic(mod);
   

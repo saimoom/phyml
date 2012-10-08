@@ -174,6 +174,9 @@ void aLRT(t_tree *tree)
   int i;
   char *method;
 
+  Unscale_Br_Len_Multiplier_Tree(tree);
+  Br_Len_Not_Involving_Invar(tree);
+
   /* aLRT support will label each internal branch */
   tree->print_alrt_val = YES;
 
@@ -192,7 +195,7 @@ void aLRT(t_tree *tree)
     default : return;
     }
 
-  PhyML_Printf("\n\n. Calculating fast branch support (using '%s')",method);
+  if(tree->io->quiet == NO) PhyML_Printf("\n\n. Calculating fast branch support (using '%s').",method);
   Free(method);
 
   MIXT_Set_Alias_Subpatt(YES,tree);
@@ -209,7 +212,11 @@ void aLRT(t_tree *tree)
 	Compute_Likelihood_Ratio_Test(tree->a_edges[i],tree);
       }
   
-  tree->lock_topo = 1;
+  tree->lock_topo = YES;
+
+  Br_Len_Involving_Invar(tree);
+  Rescale_Br_Len_Multiplier_Tree(tree);
+
 }
 
 //////////////////////////////////////////////////////////////
@@ -330,7 +337,7 @@ int NNI_Neigh_BL(t_edge *b_fcus, t_tree *tree)
   phydbl *len_e1,*len_e2,*len_e3,*len_e4;
   phydbl lk0, lk1, lk2;
   phydbl *bl_init;
-  phydbl l_infa, l_infb, l_max;
+  phydbl l_infa, l_infb;
   phydbl lk_init, lk_temp;
   int i;
   int result,counter,wei;
@@ -739,7 +746,7 @@ void Make_Target_Swap(t_tree *tree, t_edge *b_fcus, int swaptodo)
 {
   t_node *v1,*v2,*v3,*v4;
   phydbl lktodo;
-  phydbl l_infa, l_infb, l_max;
+  phydbl l_infa, l_infb;
   phydbl lk_init, lk_temp;
   int i;
 

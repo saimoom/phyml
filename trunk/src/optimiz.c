@@ -19,26 +19,20 @@ the GNU public licence.  See http://www.opensource.org for details.
 
 void Optimize_Single_Param_Generic(t_tree *tree, phydbl *param, phydbl lim_inf, phydbl lim_sup, phydbl tol, int n_max_iter, int quickdirty)
 {
-  phydbl ax,bx,cx;
   phydbl lk_init;
   
   lk_init = tree->c_lnL;
 
-  ax =  lim_inf;
-  bx = (*param);
-  cx =  lim_sup;
-  
-  /* Generic_Brent(ax,bx,cx,tol,param,tree,n_max_iter,quickdirty); */
   Generic_Brent_Lk(param,lim_inf,lim_sup,tol,n_max_iter,quickdirty,Wrap_Lk,NULL,tree,NULL);
 
 
   if(tree->c_lnL < lk_init - tree->mod->s_opt->min_diff_lk_global) 
     {
-      PhyML_Printf("\n. %.10f < %.10f --> diff=%.10f param value = %f initial value = %f\n",
+      PhyML_Printf("\n== %.10f < %.10f --> diff=%.10f param value = %f\n",
 	     tree->c_lnL,lk_init,
 	     tree->c_lnL-lk_init,
-	     *param,bx);
-      Exit("\n. Optimisation failed !\n");
+	     *param);
+      Exit("\n== Optimisation failed !\n");
     }
 }
 
@@ -612,7 +606,7 @@ void Round_Optimize(t_tree *tree, calign *data, int n_round_max)
 void Optimize_Br_Len_Serie(t_node *a, t_node *d, t_edge *b_fcus, t_tree *tree)
 {
   int i;
-  phydbl l_infa,l_max,l_infb;
+  phydbl l_infa,l_infb;
   phydbl lk_init;
   
   lk_init = tree->c_lnL;
@@ -685,7 +679,7 @@ void Optimiz_Ext_Br(t_tree *tree)
 {
   int i;
   t_edge *b,*ori;
-  phydbl l_infa,l_max,l_infb;
+  phydbl l_infa,l_infb;
   phydbl lk_init,l_init;
   
   lk_init = tree->c_lnL;

@@ -1013,8 +1013,7 @@ void MCMC_Root_Time(t_tree *tree)
   phydbl cur_lnL_rate, new_lnL_rate;
   phydbl cur_lnL_time, new_lnL_time;
   phydbl ratio,alpha;
-  t_edge *b1,*b2,*b3;
-  int    i;
+  t_edge *b1;
   phydbl t0,t2,t3;
   t_node *v2,*v3;
   phydbl K;

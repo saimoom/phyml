@@ -81,6 +81,12 @@ AS_IF([test "x$enable_mpi" = "xyes"],[CC="mpicc"])
 AS_IF([test "x$enable_mpi" = "xyes"],AC_DEFINE([MPI],[1],[MPI tag on]))
 AM_CONDITIONAL([WANT_MPI], [test "x$enable_mpi" = "xyes"]) 
 
+
+AC_ARG_ENABLE([win],
+              [AS_HELP_STRING([--enable-win],
+                              [Compile with mingw instead of gcc.])])
+AS_IF([test "x$enable_win" = "xyes"],[CC="i586-mingw32msvc-cc"])
+
 AC_ARG_ENABLE([phytime],[AS_HELP_STRING([--enable-phytime],[Compile PhyTime])],[phytime=yes],[phytime=no])
 AM_CONDITIONAL([WANT_PHYTIME], [test "$phytime" = yes]) 
 if test "$phytime" = yes; then

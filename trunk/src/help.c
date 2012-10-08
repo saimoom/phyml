@@ -123,8 +123,8 @@ void Usage()
   PhyML_Printf("\t\t%sint%s = -1: approximate likelihood ratio test returning aLRT statistics.\n",LINE,FLAT);
   PhyML_Printf("\t\t%sint%s = -2: approximate likelihood ratio test returning Chi2-based parametric branch supports.\n",LINE,FLAT);
 /*   PhyML_Printf("\t\t%sint%s = -3 : minimum of Chi2-based parametric and SH-like branch supports.\n",LINE,FLAT); */
-  PhyML_Printf("\t\t%sint%s = -4: (default) SH-like branch supports alone.\n",LINE,FLAT);
-  PhyML_Printf("\t\t%sint%s = -5: approximate Bayes branch supports.\n",LINE,FLAT);
+  PhyML_Printf("\t\t%sint%s = -4: SH-like branch supports alone.\n",LINE,FLAT);
+  PhyML_Printf("\t\t%sint%s = -5: (default) approximate Bayes branch supports.\n",LINE,FLAT);
   PhyML_Printf("\n");
   #endif
 

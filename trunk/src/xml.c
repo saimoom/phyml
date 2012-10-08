@@ -816,8 +816,7 @@ xml_node *XML_Copy_XML_Graph(xml_node *root)
 void XML_Copy_XML_Node(xml_node *cpy_root, xml_node *root)
 {
   xml_attr *attr,*cpy_attr;
-  int i;
-
+  
   strcpy(cpy_root->name,root->name);
 
   XML_Make_Node_Id(cpy_root,root->id);  
