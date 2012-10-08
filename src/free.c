@@ -419,13 +419,10 @@ void Free_Edge_Lk(t_edge *b)
 
 void Free_Model_Complete(t_mod *mixt_mod)
 {
-  t_mod *mod;
-
   Free_Eigen(mixt_mod->eigen);
   Free_RAS(mixt_mod->ras);      
   Free_Rmat(mixt_mod->r_mat);
-  Free_Efrq(mixt_mod->e_frq);
-  
+  Free_Efrq(mixt_mod->e_frq); 
 }
 
 //////////////////////////////////////////////////////////////
@@ -520,16 +517,15 @@ void Free_String(t_string *ts)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
 void Free_Custom_Model(t_mod *mod)
 {
-  /* if(mod->r_mat->rr->v) */
-  /*   { */
-  /*     Free(mod->r_mat->rr_num->v); */
-  /*     Free(mod->r_mat->rr->v); */
-  /*     Free(mod->r_mat->rr_val->v); */
-  /*     Free(mod->r_mat->n_rr_per_cat->v); */
-  /*   } */
+  if(mod->r_mat->rr->v)
+    {
+      Free(mod->r_mat->rr_num->v);
+      Free(mod->r_mat->rr->v);
+      Free(mod->r_mat->rr_val->v);
+      Free(mod->r_mat->n_rr_per_cat->v);
+    }
 }
 
 //////////////////////////////////////////////////////////////

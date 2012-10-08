@@ -297,7 +297,7 @@ void MIXT_Chain_Rmat(t_rmat *curr, t_rmat *next)
             }
         }
 
-      if(!buff) 
+      if(!buff)
         {
           last = curr;
           while(last->next) { last = last->next; }
@@ -1423,32 +1423,18 @@ void MIXT_Prepare_Tree_For_Lk(t_tree *mixt_tree)
 void MIXT_Br_Len_Involving_Invar(t_tree *mixt_tree)
 {
   int i;
-  t_edge *b;
-  t_tree *tree;
+  scalar_dbl *l;
 
   For(i,2*mixt_tree->n_otu-3) 
     {
-      b = mixt_tree->a_edges[i];
-      b->l->onoff = ON;
+      l = mixt_tree->a_edges[i]->l;
       do
 	{
-	  if(b->l->onoff == ON)
-	    {
-	      b->l->v *= (1.-mixt_tree->mod->ras->pinvar->v);
-	      b->l->onoff = OFF;
-	    }
-	  b = b->next;
+          l->v *= (1.-mixt_tree->mod->ras->pinvar->v);
+          l = l->next;
 	}
-      while(b);
+      while(l);
     }
-
-  tree = mixt_tree;
-  do
-    {
-      MIXT_Turn_Branches_OnOff(ON,tree);
-      tree = tree->next_mixt;
-    }
-  while(tree);
 }
 
 //////////////////////////////////////////////////////////////
@@ -1457,33 +1443,18 @@ void MIXT_Br_Len_Involving_Invar(t_tree *mixt_tree)
 void MIXT_Br_Len_Not_Involving_Invar(t_tree *mixt_tree)
 {
   int i;
-  t_edge *b;
-  t_tree *tree;
+  scalar_dbl *l;
 
   For(i,2*mixt_tree->n_otu-3) 
     {
-      b = mixt_tree->a_edges[i];
-      b->l->onoff = ON;
+      l = mixt_tree->a_edges[i]->l;
       do
 	{
-	  if(b->l->onoff == ON)
-	    {
-	      b->l->v /= (1.-mixt_tree->mod->ras->pinvar->v);
-	      b->l->onoff = OFF;
-	    }
-	  b = b->next;
+          l->v /= (1.-mixt_tree->mod->ras->pinvar->v);
+          l = l->next;
 	}
-      while(b);
+      while(l);
     }
-
-  tree = mixt_tree;
-  do
-    {      
-      MIXT_Turn_Branches_OnOff(ON,tree);
-      tree = tree->next_mixt;
-    }
-  while(tree);
-
 }
 
 //////////////////////////////////////////////////////////////
@@ -1492,33 +1463,18 @@ void MIXT_Br_Len_Not_Involving_Invar(t_tree *mixt_tree)
 phydbl MIXT_Unscale_Br_Len_Multiplier_Tree(t_tree *mixt_tree)
 {
   int i;
-  t_edge *b;
-  t_tree *tree;
+  scalar_dbl *l;
 
   For(i,2*mixt_tree->n_otu-3) 
     {
-      b = mixt_tree->a_edges[i];
-      b->l->onoff = ON;
+      l = mixt_tree->a_edges[i]->l;
       do
 	{
-	  if(b->l->onoff == ON)
-	    {
-	      b->l->v /= mixt_tree->mod->br_len_multiplier->v;
-	      b->l->onoff = OFF;
-	    }
-	  b = b->next;
+          l->v /= mixt_tree->mod->br_len_multiplier->v;
+          l = l->next;
 	}
-      while(b);
+      while(l);
     }
-
-  tree = mixt_tree;
-  do
-    {
-      MIXT_Turn_Branches_OnOff(ON,tree);
-      tree = tree->next_mixt;
-    }
-  while(tree);
-
   return(-1);
 }
 
@@ -1528,33 +1484,18 @@ phydbl MIXT_Unscale_Br_Len_Multiplier_Tree(t_tree *mixt_tree)
 phydbl MIXT_Rescale_Br_Len_Multiplier_Tree(t_tree *mixt_tree)
 {
   int i;
-  t_edge *b;
-  t_tree *tree;
+  scalar_dbl *l;
 
   For(i,2*mixt_tree->n_otu-3) 
     {
-      b = mixt_tree->a_edges[i];
-      b->l->onoff = ON;
+      l = mixt_tree->a_edges[i]->l;
       do
 	{
-	  if(b->l->onoff == ON)
-	    {
-	      b->l->v *= mixt_tree->mod->br_len_multiplier->v;
-	      b->l->onoff = OFF;
-	    }
-	  b = b->next;
+          l->v *= mixt_tree->mod->br_len_multiplier->v;
+          l = l->next;
 	}
-      while(b);
+      while(l);
     }
-
-  tree = mixt_tree;
-  do
-    {
-      MIXT_Turn_Branches_OnOff(ON,tree);
-      tree = tree->next_mixt;
-    }
-  while(tree);
-
   return(-1);
 }
 

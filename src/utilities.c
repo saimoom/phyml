@@ -1398,7 +1398,7 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
   phydbl lk0, lk1, lk2;
   phydbl lk0_init, lk1_init, lk2_init;
   phydbl *l0,*l1,*l2;
-  phydbl l_infa, l_infb, l_max;
+  phydbl l_infa, l_infb;
   phydbl lk_init;
   t_edge *b;
   int i;
@@ -1460,7 +1460,7 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
 
   if(lk1 < lk1_init - tree->mod->s_opt->min_diff_lk_local)
     {
-      PhyML_Printf("\n== %f %f %f %G",l_infa,l_max,l_infb,b_fcus->l->v);
+      PhyML_Printf("\n== %f %f %G",l_infa,l_infb,b_fcus->l->v);
       PhyML_Printf("\n== %f -- %f",lk1_init,lk1);
       PhyML_Printf("\n== Err. in NNI (1)");
     }
@@ -1495,7 +1495,7 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
 
   if(lk2 < lk2_init - tree->mod->s_opt->min_diff_lk_local)
     {
-      PhyML_Printf("\n== %f %f %f %G",l_infa,l_max,l_infb,b_fcus->l->v);
+      PhyML_Printf("\n== %f %f %G",l_infa,l_infb,b_fcus->l->v);
       PhyML_Printf("\n== %f -- %f",lk2_init,lk2);
       PhyML_Printf("\n== Err. in NNI (2)");
    }
@@ -1541,7 +1541,7 @@ void NNI(t_tree *tree, t_edge *b_fcus, int do_swap)
   
   if(lk0 < lk_init - tree->mod->s_opt->min_diff_lk_local)
     {
-      PhyML_Printf("\n== %f %f %f %f",l_infa,l_max,l_infb,b_fcus->l->v);
+      PhyML_Printf("\n== %f %f %f",l_infa,l_infb,b_fcus->l->v);
       PhyML_Printf("\n== %f -- %f",lk0_init,lk0);
       PhyML_Printf("\n== Err. in NNI (3)\n");
       Exit("\n");
@@ -2961,7 +2961,11 @@ void Br_Len_Involving_Invar(t_tree *tree)
 {
   int i;
 
-  if(tree->is_mixt_tree) MIXT_Br_Len_Involving_Invar(tree);
+  if(tree->is_mixt_tree) 
+    {
+      MIXT_Br_Len_Involving_Invar(tree);
+      return;
+    }
 
   For(i,2*tree->n_otu-3) tree->a_edges[i]->l->v *= (1.0-tree->mod->ras->pinvar->v);
 }
@@ -5025,13 +5029,13 @@ int Get_Subtree_Size(t_node *a, t_node *d)
 
 void Fast_Br_Len(t_edge *b, t_tree *tree, int approx)
 {
-  phydbl sum;
-  phydbl *prob, *F;
-  int i, j, k, site;
-  phydbl *v_rght;
-  int dim1,dim2,dim3;
-  int n_iter;
-  phydbl scale_rght;
+  /* phydbl sum; */
+  /* phydbl *prob, *F; */
+  /* int i, j, k, site; */
+  /* phydbl *v_rght; */
+  /* int dim1,dim2,dim3; */
+  /* int n_iter; */
+  /* phydbl scale_rght; */
 
   if(tree->is_mixt_tree) 
     {
@@ -7212,8 +7216,6 @@ char *aLRT_From_String(char *s_tree, calign *cdata, t_mod *mod, option *io)
   Make_Tree_4_Lk(tree,cdata,cdata->init_len);
   tree->triplet_struct = Make_Triplet_Struct(mod);
   Init_Triplet_Struct(tree->triplet_struct);
-  Unscale_Br_Len_Multiplier_Tree(tree);
-  Br_Len_Not_Involving_Invar(tree);
   Make_Spr_List(tree);
   Make_Best_Spr(tree);
 
@@ -7222,8 +7224,6 @@ char *aLRT_From_String(char *s_tree, calign *cdata, t_mod *mod, option *io)
 
   aLRT(tree);
   
-  Br_Len_Involving_Invar(tree);
-  Rescale_Br_Len_Multiplier_Tree(tree);
 
   Free(s_tree);
   s_tree = Write_Tree(tree,NO);
@@ -8608,7 +8608,11 @@ phydbl Rescale_Br_Len_Multiplier_Tree(t_tree *tree)
 {
   int i;
 
-  if(tree->is_mixt_tree) return MIXT_Rescale_Br_Len_Multiplier_Tree(tree);
+  if(tree->is_mixt_tree) 
+    {
+      MIXT_Rescale_Br_Len_Multiplier_Tree(tree);
+      return(-1.);
+    }
 
   For(i,2*tree->n_otu-3) tree->a_edges[i]->l->v *= tree->mod->br_len_multiplier->v;
   return(-1.);
@@ -8638,9 +8642,14 @@ phydbl Unscale_Br_Len_Multiplier_Tree(t_tree *tree)
 {
   int i;
   
-  if(tree->is_mixt_tree) return MIXT_Unscale_Br_Len_Multiplier_Tree(tree);
+  if(tree->is_mixt_tree) 
+    {
+      MIXT_Unscale_Br_Len_Multiplier_Tree(tree);
+      return(-1.);
+    }
 
   For(i,2*tree->n_otu-3) tree->a_edges[i]->l->v /= tree->mod->br_len_multiplier->v;
+
   return(-1.);
 }
 

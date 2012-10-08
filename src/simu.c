@@ -21,7 +21,7 @@ void Simu_Loop(t_tree *mixt_tree)
   phydbl lk_old;
   int *orig_catg,*orig_inv;
   int n;
-  t_tree *tree,**tree_list,**orig_tree_list;
+  t_tree *tree,**tree_list;
   
   if((mixt_tree->mod->s_opt->print) && 
      (!mixt_tree->io->quiet)) PhyML_Printf("\n\n. Refining the input tree...\n");

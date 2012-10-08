@@ -482,14 +482,21 @@ void Make_Custom_Model(t_mod *mod)
 {
   if(!mod->r_mat)
     {
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
-  mod->r_mat->rr->v            = (phydbl *)mCalloc(mod->ns*(mod->ns-1)/2,sizeof(phydbl));
-  mod->r_mat->rr_val->v        = (phydbl *)mCalloc(mod->ns*(mod->ns-1)/2,sizeof(phydbl));
-  mod->r_mat->rr_num->v        = (int *)mCalloc(mod->ns*(mod->ns-1)/2,sizeof(int *));
-  mod->r_mat->n_rr_per_cat->v  = (int *)mCalloc(mod->ns*(mod->ns-1)/2,sizeof(int));
+  if(!mod->r_mat->rr->v)
+    mod->r_mat->rr->v = (phydbl *)mCalloc(mod->ns*(mod->ns-1)/2,sizeof(phydbl));
+
+  if(!mod->r_mat->rr_val->v)
+    mod->r_mat->rr_val->v = (phydbl *)mCalloc(mod->ns*(mod->ns-1)/2,sizeof(phydbl));
+
+  if(!mod->r_mat->rr_num->v)
+    mod->r_mat->rr_num->v = (int *)mCalloc(mod->ns*(mod->ns-1)/2,sizeof(int *));
+
+  if(!mod->r_mat->n_rr_per_cat->v)
+    mod->r_mat->n_rr_per_cat->v = (int *)mCalloc(mod->ns*(mod->ns-1)/2,sizeof(int));
 }
 
 //////////////////////////////////////////////////////////////
@@ -561,7 +568,11 @@ void Make_Model_Complete(t_mod *mod)
   mod->eigen     = (eigen *)Make_Eigen_Struct(mod->ns);
   // If r_mat (e_frq) are not NULL, then they have been created elsewhere and affected.
 
-  if(!mod->r_mat) mod->r_mat = (t_rmat *)Make_Rmat(mod->ns);
+  if(!mod->r_mat) 
+    {
+      mod->r_mat = (t_rmat *)Make_Rmat(mod->ns);
+    }
+
   if(!mod->e_frq) mod->e_frq = (t_efrq *)Make_Efrq(mod->ns);
 
   Make_RAS_Complete(mod->ras);
@@ -579,7 +590,6 @@ void Make_Model_Complete(t_mod *mod)
       Make_Custom_Model(mod);
       Translate_Custom_Mod_String(mod);
     }
-
   if(mod->whichmodel == GTR)
     {
       Make_Custom_Model(mod);

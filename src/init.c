@@ -47,6 +47,7 @@ void Init_Vect_Dbl(int len, vect_dbl *p)
   p->len  = len;
   p->next = NULL;
   p->prev = NULL;
+  p->v    = NULL;
 }
 
 //////////////////////////////////////////////////////////////
@@ -57,6 +58,7 @@ void Init_Vect_Int(int len, vect_int *p)
   p->len  = len;
   p->next = NULL;
   p->prev = NULL;
+  p->v    = NULL;
 }
 
 //////////////////////////////////////////////////////////////

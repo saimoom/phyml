@@ -4550,7 +4550,7 @@ void SPR_Shuffle(t_tree *mixt_tree)
 {
   phydbl lk_old;
   int *orig_catg,*orig_inv,n;
-  t_tree *tree,**tree_list,**orig_tree_list;
+  t_tree *tree,**tree_list;
   
   if(mixt_tree->mod->s_opt->print) PhyML_Printf("\n\n. Refining the tree...\n");
 

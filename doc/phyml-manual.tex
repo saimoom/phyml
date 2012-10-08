@@ -99,21 +99,21 @@ the GNU public licence. See http://www.opensource.org for details.
 \section{Overview}
 
 PhyML  \cite{guindon03} is  a  software  package which  primary  task that  is  to estimate  maximum
-likelihood phylogenies  from alignments of nucleotide or  amino acid sequences.  It  provides a wide
+likelihood phylogenies  from alignments of nucleotide or  amino-acid sequences.  It  provides a wide
 range  of  options that  were  designed  to facilitate  standard  phylogenetic  analyses.  The  main
-strengths of  PhyML lies in the  large number of substitution  models coupled to  various options to
+strength of  PhyML lies in the  large number of substitution  models coupled to  various options to
 search the  space of phylogenetic  tree topologies,  going from very  fast and efficient  methods to
 slower but  generally more accurate approaches.  It  also implements two methods  to evaluate branch
 supports  in  a  sound statistical  framework  (the  non-parametric  bootstrap and  the  approximate
-likelihood ratio test,)
+likelihood ratio test).
 
 PhyML was designed to  process moderate to large data sets.  In theory,  alignments with up to 4,000
 sequences 2,000,000 character-long can analyzed.  In practice however, the amount of memory required
 to process  a data set is proportional  of the product of  the number of sequences  by their length.
 Hence, a large number  of sequences can only be processed provided that  they are short. Also, PhyML
 can  handle long  sequences  provided  that they  are  not numerous.   With  most standard  personal
-computers, the  ``comfort zone'' for PhyML generally  lies around 100-200 sequences  less than 2,000
-character  long.   For  larger  data  sets,  we  recommend using  other  software's  such  as  RAxML
+computers, the ``comfort  zone'' for PhyML generally lies around 100-500  sequences less than 10,000
+character  long.   For  larger  data  sets,  we  recommend  using  other  softwares  such  as  RAxML
 \cite{raxml}\index{RAxML}      or       GARLI      \cite{garli}\index{GARLI}      or      Treefinder
 (\href{http://www.treefinder.de}{http://www.treefinder.de}).
 
@@ -133,11 +133,9 @@ and program options you are using.
 
 The sources of the  program are available free of charge by sending  an e-mail to St\'ephane Guindon
 at                      \href{mailto:guindon@lirmm.fr}{\x{guindon@lirmm.fr}}                      or
-\href{mailto:s.guindon@auckland.ac.nz}{\x{s.guindon@auckland.ac.nz}}.
-
-The compilation on UNIX-like systems is fairly  standard. It is described in the `INSTALL' file that
-comes with the sources. In a command-line window,  go to the directory that contains the sources and
-type:
+\href{mailto:s.guindon@auckland.ac.nz}{\x{s.guindon@auckland.ac.nz}}.  The  compilation on UNIX-like
+systems  is  fairly standard.  It  is  described  in the  `\x{INSTALL}'  file  that comes  with  the
+sources. In a command-line window, go to the directory that contains the sources and type:
 
 {\setlength{\baselineskip}{0.5\baselineskip}
 \begin{verbatim}
@@ -178,7 +176,7 @@ contains PhyML binary).
 
 Copy the files \x{phyml.exe} and \x{phyml.bat} in  the same directory. To launch PhyML, click on the
 icon  corresponding to \x{phyml.bat}.   Clicking on  the icon  for \x{phyml.exe}  works too  but the
-dimensions of the window will not fit PhyML interface.
+dimensions of the window will not fit PhyML PHYLIP-like interface.
 
 \subsection{Installing the parallel version of PhyML}\label{sec:MPI}\index{MPI}\index{bootstrap!parallel}
 
@@ -212,20 +210,20 @@ mpirun -n 4 ./phyml-mpi -i myseq -b 100
 \end{verbatim}
 }
 
-
+\noindent Please read section \ref{sec:parallel_bootstrap} of this document for more information.
 
 \section{Program usage.}\label{sec:phyml_new}
 
-PhyML  has two distinct  user-interfaces.  The  first interface  is probably  the most  popular.  It
-corresponds   to  a   PHYLIP-like   text  interface   that   makes  the   choice   of  the   options
-self-explanatory. The command-line interface is well-suited  for people that are familiar with PhyML
-options or for running PhyML in batch mode.
+PhyML has  three distinct user-interfaces.   The first corresponds  to a PHYLIP-like  text interface
+that makes the choice of the options self-explanatory. The command-line interface is well-suited for
+people that are familiar with PhyML options or for running PhyML in batch mode. The XML interface is
+more sophisticated. It allows the user to analyse partitionned data using flexible mixture models of evolution.
 
 \subsection{PHYLIP-like interface}
 
 The default is to use the PHYLIP-like  text interface by simply typing `\x{phyml}' in a command-line
 window or by clicking on the PhyML icon (see Section \ref{sec:install_windows}).  After entering the
-name of the input sequence file, a list of  sub-menus helps the users to set up the analysis.  There
+name of the input sequence file, a list of  sub-menus helps the users set up the analysis.  There
 are currently four distinct sub-menus:
 
 % \begin{figure}
@@ -252,9 +250,8 @@ the model parameters  have been defined, typing `\x{Y}' (or `\x{y}')  launches t
 meaning of  some options may not  be obvious to users  that are not familiar  with phylogenetics. In
 such situation, we strongly recommend to use the default options. As long as the format of the input
 sequence file is  correctly specified (sub-menu {\em Input data}), the  safest option for non-expert
-users is to use the default settings.
-
-The different options provided within each sub-menu are described in what follows.
+users  is to  use the  default settings.  The different  options provided  within each  sub-menu are
+described in what follows.
 
 
 \subsubsection{Input  Data sub-menu}
@@ -318,11 +315,11 @@ program. The format of this file is described in the section \ref{sec:customaa}.
 \begin{center} \framebox{\x{[F]  . Amino  acid frequencies (empirical/model  defined)}} \end{center}
 For  nucleotide  sequences,  optimising  nucleotide  frequencies  means that  the  values  of  these
 parameters  are estimated in  the maximum  likelihood framework.   When the  custom model  option is
-selected, it is also possible to give the program a user-defined nucleotide frequency distribution
-at  equilibrium (option \x{E}).  For protein  sequences, the  stationary amino-acid  frequencies are
+selected, it is  also possible to give the program a  user-defined nucleotide frequency distribution
+at equilibrium  (option \x{E}).   For protein sequences,  the stationary amino-acid  frequencies are
 either  those defined  by  the substitution  model  or those  estimated by  counting  the number  of
-different amino-acids observed  in the data. Hence, users  should be well aware that  the meaning of
-the \x{F} option depends on the type of the data to be processed.
+different amino-acids observed  in the data. Hence, the  meaning of the \x{F} option  depends on the
+type of the data to be processed.
 
 \vspace{0.7cm}
 \begin{center}          \framebox{\x{[T]          ....................          Ts/tv          ratio
@@ -333,7 +330,7 @@ parameter by PhyML  is the same as  PAML's\index{PAML} one.  Therefore, the valu
 does {\it not} correspond  to the ratio between the expected number  of transitions and the expected
 number  of  transversions  during  a unit  of  time.   This  last  definition  is the  one  used  in
 PHYLIP\index{PHYLIP}.   PAML's  manual gives  more  detail about  the  distinction  between the  two
-definitions.
+definitions (\url{http://abacus.gene.ucl.ac.uk/software/paml.html}).
 
 \vspace{0.7cm}
 \begin{center}       \framebox{\x{[V]       .        Proportion      of       invariable       sites
@@ -352,18 +349,17 @@ framework.
 \begin{center} \framebox{\x{[R]  ....... One category  of substitution rate  (yes/no)}} \end{center}
 \begin{center} \framebox{\x{[C] ........... Number of substitution rate categories}} \end{center}
 \begin{center} \framebox{\x{[A] ... Gamma distribution parameter (fixed/estimated)}} \end{center}
-\begin{center} \framebox{\x{[G] .........`Middle' of each rate class (mean/median)}} \end{center}
+\begin{center} \framebox{\x{[G]  .........`Middle' of  each rate class  (mean/median)}} \end{center}
 Rates of evolution often vary from site to site. This heterogeneity can be modelled using a discrete
-gamma distribution. Type \x{R} to switch this option on or off.
-
-The different categories  of this discrete distribution correspond to  different (relative) rates of
-evolution. The number of categories of this distribution is set to 4 by default.  It is probably not
-wise to  go below this  number.  Larger values  are generally preferred. However,  the computational
-burden involved  is proportional to the  number of categories  (i.e., an analysis with  8 categories
-will generally  take twice  the time of  the same analysis  with only  4 categories). Note  that the
-likelihood will not necessarily increase as the number of categories increases. Hence, the number of
-categories should be kept  below a ``reasonable'' number, say 20.  The  default number of categories
-can be changed by typing \x{C}.  
+gamma distribution.  Type \x{R} to switch  this option on or  off. The different  categories of this
+discrete  distribution  correspond  to  different  (relative)  rates of  evolution.  The  number  of
+categories of this  distribution is set to 4 by  default.  It is probably not wise  to go below this
+number.   Larger values  are  generally preferred.  However,  the computational  burden involved  is
+proportional to the  number of categories (i.e.,  an analysis with 8 categories  will generally take
+twice the  time of  the same analysis  with only 4  categories). Note  that the likelihood  will not
+necessarily increase as  the number of categories increases. Hence, the  number of categories should
+be kept below a  ``reasonable'' number, say 20.  The default number of  categories can be changed by
+typing \x{C}.
 
 The middle  of each  discretized substitution rate  class can  be determined using  the mean  or the
 median. PAML,  MrBayes and RAxML  use the  mean.  However, the  median is generally  associated with
@@ -401,7 +397,12 @@ simply estimates the phylogeny using both methods  and returns the best solution
 When the SPR or the BEST options are selected,  is is possible to use random trees rather than BioNJ
 or a user-defined tree,  as starting tree. If this option is turned on  (type \x{R} to change), five
 trees, corresponding to five random starts, will be estimated. The output tree file will contain the
-best tree found among those five. The number of random starts can be modified by typing \x{N}.
+best  tree  found  among  those five.  The  number  of  random  starts  can be  modified  by  typing
+\x{N}.  Setting the  number of  random  starting trees  to $N$  means  that the  analysis will  take
+(slightly more than) $N$ times the time required for a standard analysis where only one (BioNJ)
+starting tree is used.  However, the analysis of real data sets shows  that the best trees estimated
+using the  random start  option almost  systematically have higher  likelihoods than  those inferred
+using a single starting tree.
 
 \vspace{0.7cm}
 \begin{center}      \framebox{\x{[U]     ........       Starting      tree     (BioNJ/parsimony/user
@@ -420,8 +421,8 @@ PhyML. Type \x{U} to choose among these two options.
 The  support  of the  data  for  each  internal branch  of  the  phylogeny  can be  estimated  using
 non-parametric bootstrap.   By default, this option is  switched off.  Typing \x{B}  switches on the
 bootstrap analysis. The user is then prompted for a number of bootstrap replicates. The largest this
-number  the more  precisely  the bootstrap  support are.  However,  for each  bootstrap replicate  a
-phylogeny is  estimated. Hence, the time needed  to analyse $N$ bootstrap  replicates corresponds to
+number the more precise the bootstrap  support estimates are.  However, for each bootstrap replicate
+a phylogeny is estimated. Hence, the time  needed to analyse $N$ bootstrap replicates corresponds to
 $N$-times the time spent  on the analysis of the original data  set. $N=100$ is generally considered
 as a reasonable number of replicates.
 
@@ -429,46 +430,39 @@ as a reasonable number of replicates.
 When the  bootstrap option is switched off  (see above), approximate likelihood  branch supports are
 estimated. This approach is considerably faster than the bootstrap one. However, both methods intend
 to  estimate different quantities  and conducting  a fair  comparison between  both criteria  is not
-straightforward. The estimation of approximate likelihood  branch support comes in two flavours: the
-measured  statistics  is  compared to  a  $\chi^2$  distribution  or a  non-parametric  distribution
-estimated using a RELL approximation.
-
+straightforward.  The  estimation  of  approximate  likelihood  branch  support  comes  in  multiple
+flavours. The default is  set to aBayes, corresponding to the approximate  Bayes method described in
+\cite{anisimova11}.   The    approximate   likelihood   ratio    test   (aLRT)   \cite{anisimova06},
+Shimodaira–Hasegawa aLRT (SH-aLRT) statistics are the other available options.
 
 
 \subsection{Command-line interface}
 
-The alternative to the  PHYLIP-like interface is the command line. Users that  do not need to modify
-the default parameters can launch the  program with the `\x{phyml -i seq\_file\_name}' command.  The
-list of  all command line  arguments and how  to use them  is given in  the `Help' section  which is
-displayed  after entering the  `\x{phyml help}'  command.  The  options are  also described  in what
-follows.
+An alternative to the PHYLIP-like interface is the command-line interface. Users that do not need to
+modify  the default  parameters  can launch  the  program with  the  `\x{phyml -i  seq\_file\_name}'
+command.  The list of all command line arguments and  how to use them is given in the `Help' section
+which is displayed when entering the `\x{phyml --help}' command.  The available command-line options
+are described in what follows.
 
 \begin{itemize}
-\item \x{--xml} \x{xml\_file\_name}\index{command-line options!\x{--xml}} \\
-\x{xml\_file\_name} is the name of the XML file containing the information required to run the
-analysis. More details about this type of file is given in the section \ref{sec:xmlio}.
 
 \item \x{-i} (or \x{--input}) \x{seq\_file\_name}\index{command-line options!\x{--input}} \\
 \x{seq\_file\_name} is the name of the nucleotide or amino-acid sequence file in PHYLIP format.
 
-
 \item \x{-d} (or \x{--datatype}) \x{data\_type}\index{command-line options!\x{--data\_type}}\\
 \x{data\_type} is \x{nt} for nucleotide (default) and \x{aa} for amino-acid sequences.
 
-
 \item \x{-q} (or \x{--sequential})\index{sequence format!interleaved}\index{sequence format!sequential}\index{command-line options!\x{--sequential}} \\
 Changes interleaved format (default) to sequential format.
-
 
 \item \x{-n} (or \x{--multiple}) \x{nb\_data\_sets}\index{multiple data sets}\index{command-line options!\x{--multiple}}\\
 \x{nb\_data\_sets} is an integer giving the number of data sets to analyse.
 
 \item \x{-p} (or \x{--pars})\index{command-line options!\x{--pars}}\\
-Use a minimum parsimony starting tree. This option is taken into account when the '-u' option
+Use a minimum parsimony starting tree. This option is taken into account when the `-u' option
 is absent and when tree topology modifications are to be done.
 
-
-\item \x{-b} (or \x{--bootstrap}) \x{int}\index{bootstrap}\index{command-line options!\x{--bootstrap}} \\
+\item \x{-b} (or \x{--bootstrap}) \x{int}\index{bootstrap}\index{command-line options!\x{--bootstrap}} 
 \begin{itemize}  
 \item \x{int} $>$  0: \x{int} is the number of bootstrap replicates.
 \item \x{int} =  0: neither approximate likelihood ratio test nor bootstrap values are computed.
@@ -476,6 +470,7 @@ is absent and when tree topology modifications are to be done.
 \item \x{int} = -2: approximate likelihood ratio test returning Chi2-based parametric branch supports.
 % \item \x{int} = -3: minimum of Chi2-based parametric and SH-like branch supports.
 \item \x{int} = -4: SH-like branch supports alone.
+\item \x{int} = -5: (default) approximate Bayes branch supports.
 \end{itemize}
 
 \item \x{-m} (or \x{--model}) \x{model\_name}\index{substitution models!DNA}\index{substitution models!amino acids}\index{command-line options!\x{--model}} \\
@@ -490,7 +485,7 @@ the  substitution  parameters  of  the  custom  model  will be  optimised  so  a
 likelihood.  It is  possible  to  specify and  fix  (i.e., avoid  optimisation)  the  values of  the
 substitution rates only through the PHYLIP-like interface.
 
-\item {\it Amino-acid based models}: \x{LG} (default) \x{WAG | JTT | MtREV | Dayhoff | DCMut | RtREV
+\item {\it Amino-acid based models}: \x{LG} (default) \x{| WAG | JTT | MtREV | Dayhoff | DCMut | RtREV
  | CpREV | VT | Blosum62 | MtMam | MtArt | HIVw |  HIVb | custom} \\
 The \x{custom} option is  useful when one wants to use an amino-acid  substitution model that is not
 available by  default in PhyML. The  symmetric part of the  rate matrix, as well  as the equilibrium
@@ -526,8 +521,8 @@ GTR &   \x{-m 123456}\\
 \end{table}
 
 \item \x{--aa\_rate\_file file\_name}\index{command-line options!\x{--aa\_rate\_file}} \\
-This option is compulsory when analysing amino-acid sequences under a `custom' model. \x{file\_name}
-should provide a rate matrix and equilibrium amino acid in PAML format (see Section \label{sec:customaa}).
+This option is compulsory when analysing amino-acid sequences under a `custom' model (see above). \x{file\_name}
+should provide a rate matrix and equilibrium amino acid in PAML format (see Section \ref{sec:customaa}).
 
 \item \x{-f e}, \x{m}, or ``\x{fA,fC,fG,fT}" \index{frequencies!nucleotide}\index{frequencies!amino-acid}\index{stationary frequencies}\index{command-line options!\x{-f}}\\
 Nucleotide or amino-acid frequencies.
@@ -548,7 +543,7 @@ Nucleotide or amino-acid frequencies.
                  the frequencies defined by the substitution model.
 \end{itemize}
 
-\item ``\x{fA,fC,fG,fT}" : only valid for nucleotide-based models. \x{fA}, \x{fC}, \x{fG} and \x{fT} are floating numbers that 
+\item ``\x{fA,fC,fG,fT}": only valid for nucleotide-based models. \x{fA}, \x{fC}, \x{fG} and \x{fT} are floating numbers that 
 correspond to the frequencies of A, C, G and T respectively.
 \end{itemize}  
 
@@ -572,15 +567,17 @@ median. The mean is used by default.
 
 \item \x{--free\_rates} \index{command-line options!\x{--free\_rates}}\\
 As an alternative to the discrete gamma model, it is possible to estimate the (relative) rate in
-each class of the (mixture) model and the corresponding frequencies. This model has more parameters
-than the discrete gamma one but usually provides a significantly better fit to the data.
+each class of the (mixture) model and the corresponding frequencies directly from the data. This model has more parameters
+than the discrete gamma one but usually provides a significantly better fit to the data. See
+\cite{soubrier12} for more information about this model and an illustration of its use.
 
 \item \x{--codpos} \x{1,2 or 3} \index{command-line options!\x{--codpos}}\\
 When analysing an alignment of coding sequences, use this option to consider only the first, second
-or third coding position for the estimation.
+or the third coding position for the estimation.
 
 \item \x{-s} (or \x{--search}) \x{move}\index{NNI}\index{SPR} \index{command-line options!\x{--search}}\\
-Tree topology search operation option. Can be either \x{NNI} (default, fast) or \x{SPR} (a bit slower than \x{NNI}) or \x{BEST} (best of NNI and SPR search).
+Tree topology search operation option. Can be either \x{NNI} (default, fast) or \x{SPR} (usually
+slower than \x{NNI} but more accurate) or \x{BEST} (best of NNI and SPR search).
 
 \item \x{-u} (or \x{--inputtree}) \x{user\_tree\_file}\index{input tree}\index{user tree} \index{command-line options!\x{--inputtree}}\\
 \x{user\_tree\_file}: starting tree filename. The tree must be in Newick format.
@@ -606,10 +603,14 @@ This option sets the initial tree to random. It is only valid if SPR searches ar
 \x{num} is the seed used to initiate the random number generator. Must be an integer.
 
 \item \x{--print\_site\_lnl}\index{likelihood!print site likelihood} \index{command-line options!\x{--print\_site\_lk}}\\
-Print the likelihood for each site in file *\_phyml\_lk.txt.
+Print the likelihood for each site in file *\_phyml\_lk.txt. For $\Gamma$ or $\Gamma$+I or
+\x{freerates} models, this option returns the posterior probability of each relative rate class at
+each site. Such information can then be used to identify fast- and slow-evolving regions of the alignment.
 
 \item \x{--print\_trace}\index{command-line options!\x{--print\_trace}}\\
-Print each phylogeny explored during the tree search process in file *\_phyml\_trace.txt.
+Print each phylogeny explored during the tree search process in file *\_phyml\_trace.txt. This
+option can be useful for monitoring the progress of the analysis for very large data sets and have
+an approximate idea of what the final phylogeny will look like.
 
 \item \x{--run\_id ID\_string}\index{run ID} \index{command-line options!\x{--run\_id}}\\
 Append the string ID\_string at the end of each PhyML output file. This option may be useful when
@@ -622,12 +623,12 @@ she/he wants to continue with the execution of the analysis despite the large am
 required. The \x{--no\_memory\_check}  skips this question. It is especially useful when running
 PhyML in batch mode.
 
-\item \x{--no\_jcolalias} \index{command-line options!\x{--no\_colalias}}\\
+\item \x{--no\_colalias} \index{command-line options!\x{--no\_colalias}}\\
 By default, PhyML preprocesses each alignment by putting together (or aliasing) the columns that are
 identical. Use this option to skip this step but be aware that the analysis might then take more
 time to complete. 
 
-\item \x{--contrained\_lens} \index{command-line options!\x{--constrained\_lens}}\\
+\item \x{--constrained\_lens} \index{command-line options!\x{--constrained\_lens}}\\
 When an input tree with branch lengths is provided, this option will find the branch multiplier that
 maximises the likelihood (i.e., the relative branch lengths remain constant)
 
@@ -642,11 +643,17 @@ exceeds 256MB and will not output the log-likelihood score to the output.
 
 \end{itemize}
 
+\subsection{XML interface}
+\begin{itemize}
+\item \x{--xml=xml\_file\_name}\index{command-line options!\x{--xml}} \\
+\x{xml\_file\_name} is the name of the XML file containing the information required to run the
+analysis. More details about this type of file is given in the section \ref{sec:xmlio}.
+\end{itemize}
   
 \subsection{Parallel  bootstrap}\label{sec:parallel_bootstrap}\index{MPI}\index{bootstrap!parallel}
 
 Bootstrapping is  a highly  parallelizable task. Indeed,  bootstrap replicates are  independent from
-each other.   Hence, each bootstrap sample can  be analysed separately. Modern  computers often have
+one another.   Each bootstrap replicate can then  be analysed separately. Modern  computers often have
 more than one CPU. Each CPU can therefore be used to process a bootstrap sample. Using this parallel
 strategy, performing  $R$ bootstrap replicates  on $C$ CPUs  `costs' the same amount  of computation
 time as processing $R  \times C$ bootstrap replicates on a single CPU.  In  other words, for a given
@@ -679,6 +686,7 @@ PhyML reads data from standard text files,  without the need for any particular 
 \begin{figure}
 \begin{small}
 \begin{Verbatim}[frame=single, label=PHYLIP interleaved, samepage=true, baselinestretch=0.5]
+
 5 80
 seq1  CCATCTCACGGTCGGTACGATACACCKGCTTTTGGCAGGAAATGGTCAATATTACAAGGT
 seq2  CCATCTCACGGTCAG---GATACACCKGCTTTTGGCGGGAAATGGTCAACATTAAAAGAT
@@ -691,14 +699,17 @@ ATCKGCTTTTGGCGGGAAAT
 AGCKGCTGTTG?????????
 ATCTGCTTTTGGCGGGAAAT
 ATCTGCTTTTGGCGGGAAAT
+
 \end{Verbatim}
 \begin{Verbatim}[frame=single, label=PHYLIP sequential, samepage=true, baselinestretch=0.5]
+
 5 40
 seq1  CCATCTCANNNNNNNNACGATACACCKGCTTTTGGCAGG
 seq2  CCATCTCANNNNNNNNGGGATACACCKGCTTTTGGCGGG
 seq3  RCATCTCCCGCTCAGTGAGATACCCCKGCTGTTGXXXXX
 seq4  RCATCTCATGGTCAATG-AATACTCCTGCTTTTGXXXXX
 seq5  RCATCTCACGGTCGGTAAGATACACCTGCTTTTGxxxxx
+
 \end{Verbatim}
 \end{small}
 \label{fig:align_tree}
@@ -710,6 +721,7 @@ seq5  RCATCTCACGGTCGGTAAGATACACCTGCTTTTGxxxxx
 \begin{figure}
 \begin{small}
 \begin{Verbatim}[frame=single, label=Nexus nucleotides, samepage=true, baselinestretch=0.5]
+
 [ This is a comment ]
 #NEXUS
 BEGIN DATA;
@@ -727,11 +739,13 @@ tax8       ????????????????????
 tax9       ???GGATTTCTTCGTAGCGG
 tax10      ???????????????AGCGG;
 END;	                      	                                      	                                      	                  
+
 \end{Verbatim}
 \end{small}
 
 \begin{small}
 \begin{Verbatim}[frame=single, label=Nexus digits, samepage=true, baselinestretch=0.5]
+
 [ This is a comment ]
 #NEXUS
 BEGIN DATA;
@@ -749,11 +763,13 @@ tax8       ????????????????????
 tax9       ???22033313312302122
 tax10      ???????????????02122;
 END;	                      	                                      	                                      	                  
+
 \end{Verbatim}
 \end{small}
 
 \begin{small}
 \begin{Verbatim}[frame=single, label=Nexus digits, samepage=true, baselinestretch=0.5]
+
 [ This is a comment ]
 #NEXUS
 BEGIN DATA;
@@ -771,6 +787,7 @@ tax8       ????????????????????????????????????????
 tax9       ??????0202000303030103030102030002010202
 tax10      ??????????????????????????????0002010202;
 END;	                      	                                      	                                      	                  
+
 \end{Verbatim}
 \end{small}
 \caption{\bf NEXUS formats.}\label{fig:nexus}
@@ -969,6 +986,7 @@ PhyML can perform phylogenetic tree estimation under user-specified topological 
 order to do so, one should use the \x{--constraint\_file}  \x{file\_name} command-line option where 
 \x{file\_name} lists the topological constraints. Such constraints are  straightforward to
 define. For instance, the following constraints: 
+\vspace{0.2cm}
 \begin{Verbatim}
 ((A,B,C),(D,E,F));
 \end{Verbatim} 
@@ -1091,8 +1109,10 @@ straightforward. The first step is to define the different components of each cl
 mixture. Consider for instance that the fitted model will have a Gamma distribution with four
 classes plus a proportion of invariants. The rate component of the mixture can then be specified
 using the following XML code:
-\\
+
+\vspace{0.2cm}
 \begin{Verbatim}[frame=single, label=$\Gamma4$+Inv rates, samepage=true, baselinestretch=0.5]
+
 <siterates id="SiteRates1">
   <instance id="R1" value="1.0"/>
   <instance id="R2" value="1.0"/>
@@ -1103,32 +1123,42 @@ using the following XML code:
   optimise.alpha="yes" pinv="0.4" optimise.pinv="yes">
   </weights>
 </siterates>
+
 \end{Verbatim}
 
 Consider now two rate matrices, the first corresponding to a HKY85 model, the second to a GTR:
-\\
-\begin{Verbatim}[frame=single, label=Rate matrices, samepage=true, baselinestretch=0.5]
+
+\vspace{0.2cm}
+\begin{Verbatim}[frame=single, label=Rate matrices, samepage=true, baselinestretch=1]
+
 <ratematrices id="RateMatrices">
   <instance id="M1" model="HKY85" tstv="4.0" optimise.tstv="no"/>
   <instance id="M2" model="GTR" optimise.rr="yes"/>
 </ratematrices>
+
 \end{Verbatim}
 and two vectors of nucleotide frequencies:
-\\
+
+\vspace{0.2cm}
 \begin{Verbatim}[frame=single, label=Equilibrium frequencies, samepage=true, baselinestretch=0.5]
+
 <equfreqs id="EquFreq">
   <instance id="F1" optimise="yes"/>
   <instance id="F2" optimise="yes"/>
 </equfreqs>
+
 \end{Verbatim}
 Now, the XML code below describes how  the different components defined above are assembled in a mixture model:
-\\
+
+\vspace{0.2cm}
 \begin{Verbatim}[frame=single, label=Mixture model, samepage=true, baselinestretch=0.5]
+
 <partitionelem id="Part1" filename="./nucleic.txt" datatype="nt">
   <mixtureelem list="R1, R2, R3, R4, R5"/>
   <mixtureelem list="M1, M1, M1, M2, M2"/>
   <mixtureelem list="F1, F2, F1, F2, F2"/>
 </partitionelem>
+
 \end{Verbatim}
 This  mixture  model   has  five  classes:  $\mathcal{C}_1  =   \{R_1,M_1,F_1\}$,  $\mathcal{C}_2  =
 \{R_2,M_1,F_2\}$,   $\mathcal{C}_3  =  \{R_3,M_1,F_1\}$,   $\mathcal{C}_4  =   \{R_4,M_2,F_2\}$  and
@@ -1155,11 +1185,14 @@ all the partition elements. PhyML will not proceed otherwise.
 
 The XML code below defines a partition with two elements:
 
+\vspace{0.2cm}
 \begin{Verbatim}[frame=single, label=Partition element, samepage=true, baselinestretch=0.5]
+
 <partitionelem id="Part1" filename="./nucleic.txt" datatype="nt">
 </partitionelem>
 <partitionelem id="Part2" filename="./proteic.txt" datatype="aa">
 </partitionelem>
+
 \end{Verbatim}
 
 The first element, with name {\tt Part1}, points to the sequence file {\tt nucleic.txt}, which is an
@@ -1179,7 +1212,9 @@ partition elements.
 
 Below is a simple example with a data partition made of two elements:
 
+\vspace{0.2cm}
 \begin{Verbatim}[frame=single, label=Two sets of branch lengths (one per partition element), samepage=true, baselinestretch=0.5]
+
 <branchlengths id="BranchLens">
   <instance id="L1"/>
   <instance id="L2"/>
@@ -1194,6 +1229,7 @@ Below is a simple example with a data partition made of two elements:
   <mixtureelem list="R1, R2, R3, R4, R5"/>
   <mixtureelem list="L2, L2, L2, L2, L2"/>
 </partitionelem>
+
 \end{Verbatim}
 
 Mixture elements with names  {\tt R1},$\ldots$, {\tt R5} refer to the  $\Gamma4 + $Inv model defined
@@ -1205,11 +1241,14 @@ examining the two partition elements, it appears  that {\tt L1} is associated wi
 these  two  partition  elements. Note  that  a  given  partition  element  can only  have  one  {\tt
   branchlengths} instance associated to it. For instance, the example given below is not valid:
 
+\vspace{0.2cm}
 \begin{Verbatim}[frame=single, label=Invalid mixture, samepage=true, baselinestretch=0.5]
+
 <partitionelem id="Part1" filename="./nucleic1.txt" datatype="nt">
   <mixtureelem list="R1, R2, R3, R4, R5"/>
   <mixtureelem list="L1, L1, L1, L2, L2"/>
 </partitionelem>
+
 \end{Verbatim}
 
 In other words, mixture of branch lengths are forbidden. One reason for this restriction is that
@@ -1217,11 +1256,14 @@ mixture of edge lengths sometimes lead to non-identifiable models (i.e., models 
 of branch lengths have the same likelihood) \cite{matsen07}. But mostly, combining mixture of branch
 lengths with mixture of rates appears like a deadly combination. Consider for instance the following model:
 
+\vspace{0.2cm}
 \begin{Verbatim}[frame=single, label=Invalid mixture, samepage=true, baselinestretch=0.5]
+
 <partitionelem id="Part1" filename="./nucleic1.txt" datatype="nt">
   <mixtureelem list="R1, R2, R3"/>
   <mixtureelem list="L1, L2, L3"/>
 </partitionelem>
+
 \end{Verbatim}
 
 It is here impossible to tell apart  branch lengths and substitution rates. Such model is strongly
@@ -1233,8 +1275,7 @@ Options:
 \begin{itemize}
 \item \x{outputfile="filename"}. The main output files of PhyML analysis will be named
   \x{filename\_phyml\_tree} and \x{filename\_phyml\_stats}.
-\item \x{outputfile="nrepeats"}. \x{nrepeats} is the number of non-parametric bootstrap
-  replicates set by the user.
+\item \x{bootstrap="nreplicates"}. Run \x{nreplicates} replicates for the non-parametric bootstrap analysis.
 \end{itemize}
 \subsubsection{{\tt topology} tag}\index{XML options!{\tt topology} tag}
 Options:
@@ -1250,10 +1291,12 @@ Options:
 \end{itemize}
 \vspace{0.2cm}
 \begin{Verbatim}[frame=single, label=Example of `topology' tag, samepage=true, baselinestretch=0.5]
+
 <topology>
   <instance id="T1" init.tree="bionj" optimise.tree="true" \
    search="spr"/>
 </topology>
+
 \end{Verbatim}
 
 \subsubsection{{\tt ratematrices} tag}\index{XML options!{\tt ratematrices} tag}
@@ -1275,13 +1318,37 @@ for amino-acid sequences. The default is \x{"LG"}.
 \end{itemize}
 \vspace{0.2cm}
 \begin{Verbatim}[frame=single, label=Example of `ratematrices' tag, samepage=true, baselinestretch=0.5]
+
   <ratematrices id="RM1">
     <instance id="M1" model="custom" model.code="000000"/>
     <instance id="M2" model="GTR" optimise.rr="yes"/>
     <instance id="M3" model="WAG"/>
   </ratematrices>
+
 \end{Verbatim}
+
 \subsubsection{{\tt equfreqs} tag}\index{XML options!{\tt equfreqs} tag}
+Options:
+\begin{itemize}
+\item \x{base.freqs="a,b,c,d"} where \x{a-d} are nucleotide frequencies. Make sure that these
+  frequencies are separated by comas and no space character is inserted.
+\item \x{aa.freq="empirical/model"}. Amino-acid frequencies are derived from counting the number of
+  occurence of each amino-acid in the alignment (\x{aa.freq="empirical"}) or given by the
+  substitution model (\x{aa.freq="model"}).
+\item \x{optimise.freq="true|yes|false|no"}. Nucleotide frequencies can be optimised so as to maximise
+  the likelihood (\x{optimise.freq="yes|true"}).
+\end{itemize}
+\vspace{0.2cm}
+\begin{Verbatim}[frame=single, label=Example of `equfreqs' tag, samepage=true, baselinestretch=0.5]
+
+  <equfreqs id="EF1">
+    <instance id="F1" base.freqs="0.25,0.25,0.25,0.25"/>
+    <instance id="F2" aa.freqs="empirical"/>
+    <instance id="F3" optimise.freq="yes"/>
+  </equfreqs>
+
+\end{Verbatim}
+
 \subsubsection{{\tt branchlengths} tag}\index{XML options!{\tt branchlengths} tag}
 Options:
 \begin{itemize}
@@ -1289,18 +1356,194 @@ Options:
   is set to \x{"yes"}.
 \end{itemize}
 \vspace{0.2cm}
-\begin{Verbatim}[frame=single, label=Example of `branchlengths' tag, samepage=true, baselinestretch=0.5]
+\begin{Verbatim}[frame=single, label=Example of `branchlengths' tag, baselinestretch=0.5]
+
   <branchlengths id="BL1">
     <instance id="L1" optimise.lens="yes"/>
     <instance id="L2"/>
     <instance id="L3" optimise.lens="false"/>
   </branchlengths>
-\end{Verbatim}
-\subsubsection{{\tt siterates} tag}\index{XML options!{\tt siterates} tag}
-\subsubsection{{\tt partitionelem} tag}\index{XML options!{\tt partitionelem} tag}
-\subsubsection{{\tt mixtureelem} tag}\index{XML options!{\tt mixturelem} tag}
 
-\subsection{Examples}
+\end{Verbatim}
+
+\subsubsection{{\tt siterates} tag}\index{XML options!{\tt siterates} tag}
+Options:
+\begin{itemize}
+\item \x{value="val"}, where \x{"val"} is the relative substitution rate for the corresponding class.
+\end{itemize}
+A \x{siterate} tag generally includes a \x{weights} element that specifies the probabilitic
+distribution of the relative rates. The available options for such element are:
+\begin{itemize}
+\item \x{family="gamma|gamma+inv|freerates"}. \x{gamma} indicates that the distribution of the
+  relative rates is set to be a discrete Gamma density. \x{gamma+inv} indicates that the relative rate model
+  is a mixture of Gamma and invariant sites (this is the common $\Gamma+$I model). \x{freerates} is
+  a model that does not use any parametric function to describe the distribution of the relative
+  rates. Under this option, relative rates and the corresponding frequencies of these classes are
+  directly estimated from the data. While such approach is slightly more computationally demanding
+  than the $\Gamma$ (or $\Gamma$+I) model, it often provides a significantly better fit to the data. 
+\item \x{optimise.alpha="yes|true|no|false"}. Optimise the shape of the Gamma distribution of
+  relative rates (or not).
+\item \x{optimise.pinv="yes|true|no|false"}. Optimise the proportion of invariable sites (or not).
+\end{itemize} 
+\vspace{0.2cm}
+\begin{Verbatim}[frame=single, label=Example of `siterates' tag, samepage=true, baselinestretch=0.5]
+
+  <siterates id="SR1">
+    <instance id="R1" value="1.0"/>
+    <instance id="R2" value="1.0"/>
+    <instance id="R3" value="1.0"/>
+    <instance id="R4" value="1.0"/>
+    <weights  id="D1" family="gamma" optimise.alpha="yes" \
+    optimise.pinv="no">
+    </weights>
+  </siterates>
+
+\end{Verbatim}
+
+\subsubsection{{\tt partitionelem} and {\tt mixtureelem} tags}\index{XML options!{\tt partitionelem}
+  tag}\index{XML options!{\tt mixtureelem} tag}
+
+Options:
+\begin{itemize}
+\item \x{filename="inputfilename"}, where \x{inputfilename} is the name of the input sequence file
+  (in PHYLIP format) to be analysed.
+\item \x{datatype="nt|aa"}. Specify the type of sequences to be processed (nucleotide of amino-acid sequences).
+\item \x{interleaved="yes|true|no|false"}. Interleaved (\x{yes|true}) or sequential format
+  (\x{no|false}) for the sequence alignment.
+\end{itemize}
+
+Each \x{partitionelem} element should include exactly four \x{mixtureelem} elem, corresponding to
+branch lengths, equilibrium frequencies, substitution rate model and tree topology. The ordering of
+in which the \x{mixtureelem} elements are given does not matter. The $n$-th element in the \x{list}
+attribute of each \x{mixtureelem} defines the $n$-th class of the mixture model. In the example given
+below, the first class of the mixture is made of the following elements: \x{T1}, \x{F1}, \x{R1} and
+\x{L1}, the second class is made of \x{T2}, \x{F2}, \x{R2} and \x{L2}, etc.
+
+
+
+\vspace{0.2cm}
+\begin{Verbatim}[frame=single, label=Example of `partitionelem' tag, samepage=true, baselinestretch=0.5]
+
+  <partitionelem id="partition1" filename="./small_p1.nxs" \
+   datatype="nt" interleaved="yes">
+    <mixtureelem list="T1, T1, T1, T1"/>
+    <mixtureelem list="F1, F1, F1, F1"/>
+    <mixtureelem list="R1, R2, R3, R4"/>
+    <mixtureelem list="L1, L1, L1, L1"/>
+  </partitionelem>
+
+\end{Verbatim}
+
+\subsection{An example}
+
+The example below gives the complete XML file to specify the analysis of three partition elements,
+corresponding to the nucleotide sequence files \x{small\_p1\_pos1.seq}, \x{small\_p1\_pos2.seq} and
+\x{small\_p1\_pos3.seq} in interleaved PHYLIP format. \x{small\_p1\_pos1.seq} is fitted with the HKY85 model of substitution (with the
+transition/transversion ratio being estimated from the data), combined to a $\Gamma4$ model of rate
+variation across sites (with the gamma shape parameter being estimated from the data).
+\x{small\_p1\_pos2.seq} is fitted to a custom substitution model with the constraint
+$A\leftrightarrow G$=$C\leftrightarrow T$. The nucleotide frequencies are set of $\frac{1}{4}$ here.
+The model does not allow substitution rates to vary across sites. \x{small\_p1\_pos3.seq} is fitted
+using a GTR model conbined to a $\Gamma4+$I model of rate variation across sites. Note that the
+equilibrium nucleotide frequencies for the fourth and fifth class of the mixture are set to be equal
+to that estimated from the first partition element (i.e., \x{F1}) . The initial phylogeny is built 
+using BioNJ and the tree topology is to be estimated using a NNI search algorithm.
+
+\vspace{0.2cm}
+\begin{Verbatim}[frame=single, label=Example of PhyML XML file, samepage=true, baselinestretch=0.5]
+
+<phyml runid="nnisearch" outputfile="small_p1_output">
+
+  <topology>
+    <instance id="T1" init.tree="bionj" optimise.tree="yes" \
+    search="nni"/>
+  </topology>
+  
+  <branchlengths id="BL1">
+    <instance id="L1" optimise.lens="yes"/>
+    <instance id="L2"/>
+    <instance id="L3"/>
+  </branchlengths>
+
+  <ratematrices id="RM1">
+    <instance id="M1" model="HKY85" optimise.tstv="yes"/>
+    <instance id="M2" model="custom" model.code="102304" \
+    optimise.rr="yes"/>
+    <instance id="M3" model="GTR"/>
+  </ratematrices>
+  
+  <equfreqs id="EF1">
+    <instance id="F1"/>
+    <instance id="F2" base.freqs="0.25,0.25,0.25,0.25"/>
+    <instance id="F3"/>
+  </equfreqs>
+
+  <siterates id="SR1">
+    <instance id="R1" value="1.0"/>
+    <instance id="R2" value="1.0"/>
+    <instance id="R3" value="1.0"/>
+    <instance id="R4" value="1.0"/>
+    <weights  id="D1" family="gamma" optimise.alpha="yes" \
+    optimise.pinv="no">
+    </weights>
+  </siterates>
+
+  <siterates id="SR2">
+    <instance id="R8" value="1.0"/>
+    <weights  id="D2" family="gamma" optimise.alpha="yes" \
+    optimise.pinv="yes">
+    </weights>
+  </siterates>
+  
+  <siterates id="SR3">
+    <instance id="R10" value="1.0"/>
+    <instance id="R11" value="1.0"/>
+    <instance id="R12" value="1.0"/>
+    <instance id="R13" value="1.0"/>
+    <instance id="R14" value="1.0"/>
+    <weights  id="D3" family="gamma" optimise.alpha="yes" \
+    optimise.pinv="yes">
+    </weights>
+  </siterates>
+
+\end{Verbatim}
+
+\vspace{0.2cm}
+\begin{Verbatim}[frame=single, label=Example of PhyML XML file (ctnd), samepage=true, baselinestretch=0.5]
+
+  <partitionelem id="partition_elem1" filename=\
+  "./small_p1_pos1.seq" datatype="nt" interleaved="yes">
+    <mixtureelem list="T1, T1, T1, T1"/>
+    <mixtureelem list="M1, M1, M1, M1"/>
+    <mixtureelem list="F1, F1, F1, F1"/>
+    <mixtureelem list="R1, R2, R3, R4"/>
+    <mixtureelem list="L1, L1, L1, L1"/>
+  </partitionelem>
+
+  <partitionelem id="partition_elem2" filename=\
+  "./small_p1_pos2.seq" datatype="nt" interleaved="yes">
+    <mixtureelem list="T1"/>
+    <mixtureelem list="M2"/>
+    <mixtureelem list="R8"/>
+    <mixtureelem list="F2"/>
+    <mixtureelem list="L2"/>
+  </partitionelem>
+
+  <partitionelem id="partition_elem3" filename=\
+  "./small_p1_pos3.seq" datatype="nt" interleaved="yes">
+    <mixtureelem list="T1, T1, T1, T1, T1"/>
+    <mixtureelem list="M3, M3, M3, M3, M3"/>
+    <mixtureelem list="R10, R11, R12, R13, R14"/>
+    <mixtureelem list="F3, F3, F3, F1, F1"/>
+    <mixtureelem list="L3, L3, L3, L3, L3"/>
+  </partitionelem>
+  
+</phyml>
+
+\end{Verbatim}
+
+
+
 
 \section{Citing PhyML}
 The ``default citation'' for PhyML is:

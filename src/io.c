@@ -669,7 +669,6 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, t_tree *
 
                   if(tree->is_mixt_tree == NO) mean_len = tree->e_root->l->v;
                   else mean_len = MIXT_Get_Mean_Edge_Len(tree->e_root);                  
-                  mean_len = MIXT_Get_Mean_Edge_Len(tree->e_root);              
 		  sprintf(*s_tree+(int)strlen(*s_tree),format,mean_len * root_pos);
 		}
 	      else
@@ -796,18 +795,25 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, t_tree *
 #ifndef PHYTIME
 	  if(!tree->n_root)
 	    {
-	      sprintf(*s_tree+(int)strlen(*s_tree),format,fils->b[p]->l->v);
+              if(tree->is_mixt_tree == NO) mean_len = fils->b[p]->l->v;
+              else mean_len = MIXT_Get_Mean_Edge_Len(fils->b[p]);
+	      sprintf(*s_tree+(int)strlen(*s_tree),format,mean_len);
 	    }
 	  else
 	    {
 	      if(pere == tree->n_root)
 		{
 		  phydbl root_pos = (fils == tree->n_root->v[0])?(tree->n_root_pos):(1.-tree->n_root_pos);
-		  sprintf(*s_tree+(int)strlen(*s_tree),format,tree->e_root->l->v * root_pos);
+
+                  if(tree->is_mixt_tree == NO) mean_len = tree->e_root->l->v;
+                  else mean_len = MIXT_Get_Mean_Edge_Len(tree->e_root);                  
+		  sprintf(*s_tree+(int)strlen(*s_tree),format,mean_len * root_pos);
 		}
 	      else
 		{
-		  sprintf(*s_tree+(int)strlen(*s_tree),format,fils->b[p]->l->v);
+                  if(tree->is_mixt_tree == NO) mean_len = fils->b[p]->l->v;
+                  else mean_len = MIXT_Get_Mean_Edge_Len(fils->b[p]);
+                  sprintf(*s_tree+(int)strlen(*s_tree),format,mean_len);
 		}
 	    }
 #else
@@ -3399,7 +3405,7 @@ void Print_Time_Info(time_t t_beg, time_t t_end)
   min  = div(t_end-t_beg,60  );
   min.quot -= hour.quot*60;
 
-  PhyML_Printf("\n. Time used %dh%dm%ds\n", hour.quot,min.quot,(int)(t_end-t_beg)%60);
+  PhyML_Printf("\n\n. Time used %dh%dm%ds\n", hour.quot,min.quot,(int)(t_end-t_beg)%60);
   PhyML_Printf("\noooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo\n");
 }
 
@@ -4161,7 +4167,6 @@ void Print_Data_Structure(int final, FILE *fp, t_tree *mixt_tree)
         {
           PhyML_Fprintf(fp,"\n");
           PhyML_Fprintf(fp,"\n. Tree estimated from data partition %d",c++);
-          s = (char *)mCalloc(T_MAX_LINE,sizeof(char));
           s = Write_Tree(tree->next,NO); /*! tree->next is not a mixt_tree so edge lengths 
                                            are not averaged over when writing the tree out. */
           PhyML_Fprintf(fp,"\n %s",s);
@@ -4706,8 +4711,6 @@ void PhyML_XML(char *xml_filename)
                                         mod->s_opt->opt_rr = YES;
                                       }
                                   }
-
-                                Free(opt_rr);
                               }
                             
                             /*! Custom model for nucleotide sequences. Read the corresponding
@@ -5571,10 +5574,8 @@ void PhyML_XML(char *xml_filename)
           tree = tree->next_mixt;
         }
       while(tree);
-           
+
       Prepare_Tree_For_Lk(mixt_tree);
-      Br_Len_Not_Involving_Invar(mixt_tree);
-      Unscale_Br_Len_Multiplier_Tree(mixt_tree);
 
       MIXT_Chain_All(mixt_tree);
       
@@ -5675,7 +5676,6 @@ void PhyML_XML(char *xml_filename)
       Br_Len_Involving_Invar(mixt_tree);
       Rescale_Br_Len_Multiplier_Tree(mixt_tree);
       
-
       /*! Print the tree estimated using the current random (or BioNJ) starting tree */
       if(io->mod->s_opt->n_rand_starts > 1)
         {
@@ -5737,7 +5737,6 @@ void PhyML_XML(char *xml_filename)
     }
   while(tree);
 
-  Free_Custom_Model(mixt_tree->mod);
   Free_Model_Complete(mixt_tree->mod);
   Free_Model_Basic(mixt_tree->mod);
   Free_Tree(mixt_tree);
