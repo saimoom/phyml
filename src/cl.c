@@ -89,7 +89,7 @@ int Read_Command_Line(option *io, int argc, char **argv)
       {"no_memory_check",     no_argument,NULL,56},
       {"no_colalias",         no_argument,NULL,57},
       {"alias_subpatt",       no_argument,NULL,58},      
-      {"no_data",             no_argument,NULL,59},      
+      {"no_sequences",        no_argument,NULL,59},      
       {"prior",               no_argument,NULL,59},      
       {"fastlk",              no_argument,NULL,60},      
       {"free_rates",          no_argument,NULL,61},
@@ -506,12 +506,12 @@ int Read_Command_Line(option *io, int argc, char **argv)
 	  }
 	case 31 :
 	  {
-	    io->print_site_lnl = 1;
+	    io->print_site_lnl = YES;
 	    break;
 	  }
 	case 30 :
 	  {
-	    io->print_trace = 1;
+	    io->print_trace = YES;
 	    break;
 	  }
 	case 29 :

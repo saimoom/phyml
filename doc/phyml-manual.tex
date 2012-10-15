@@ -1276,6 +1276,11 @@ Options:
 \item \x{outputfile="filename"}. The main output files of PhyML analysis will be named
   \x{filename\_phyml\_tree} and \x{filename\_phyml\_stats}.
 \item \x{bootstrap="nreplicates"}. Run \x{nreplicates} replicates for the non-parametric bootstrap analysis.
+\item \x{run.id="idstring"}. PhyML will append the string \x{idstring} to each output file.
+\item \x{print.trace="yes|true|no|false"}. PhyML will print the estimated trees (and the
+  corresponding loglikelihoods) at multiple stages of the estimation process. This option is useful
+  for monitoring the progress of the analysis when processing large data sets.
+
 \end{itemize}
 \subsubsection{{\tt topology} tag}\index{XML options!{\tt topology} tag}
 Options:
@@ -1412,7 +1417,7 @@ Options:
   (\x{no|false}) for the sequence alignment.
 \end{itemize}
 
-Each \x{partitionelem} element should include exactly four \x{mixtureelem} elem, corresponding to
+Each \x{partitionelem} element should include exactly four \x{mixtureelem} elements, corresponding to
 branch lengths, equilibrium frequencies, substitution rate model and tree topology. The ordering of
 in which the \x{mixtureelem} elements are given does not matter. The $n$-th element in the \x{list}
 attribute of each \x{mixtureelem} defines the $n$-th class of the mixture model. In the example given
@@ -1442,7 +1447,7 @@ corresponding to the nucleotide sequence files \x{small\_p1\_pos1.seq}, \x{small
 transition/transversion ratio being estimated from the data), combined to a $\Gamma4$ model of rate
 variation across sites (with the gamma shape parameter being estimated from the data).
 \x{small\_p1\_pos2.seq} is fitted to a custom substitution model with the constraint
-$A\leftrightarrow G$=$C\leftrightarrow T$. The nucleotide frequencies are set of $\frac{1}{4}$ here.
+$A\leftrightarrow G$=$C\leftrightarrow T$. The nucleotide frequencies are set to $\frac{1}{4}$ here.
 The model does not allow substitution rates to vary across sites. \x{small\_p1\_pos3.seq} is fitted
 using a GTR model conbined to a $\Gamma4+$I model of rate variation across sites. Note that the
 equilibrium nucleotide frequencies for the fourth and fifth class of the mixture are set to be equal
@@ -1731,8 +1736,11 @@ approximation considerably speeds up the calculation. However, it is necessary t
 approximation is appropriate by looking at the correlation between the exact and approximated
 likelihood values that are sampled. Please read Section \ref{sec:recomphytime} for a description of
 the appropriate steps to take.
-\item \x{--no\_data}\index{command-line options!\x{--no\_data}}\\
-Use this option to sample from the priors only (rather from the posterior joint density of the model parameters).
+\item \x{--no\_sequences}\index{command-line options!\x{--no\_sequences}}\\
+Use this option to run the sampler without sequence data. This option can be useful when one wants
+to compare the marginal posterior density of model parameters to those derived when ignoring the
+information conveyed by the sequences. Such comparison should be conducted on a systematic basis  so as to determine whether the
+parameters estimates are mostly determined by the prior of driven by the sequence data.
 \item \x{--rate\_model=gbs/gbd/gamma/clock}\index{command-line options!\x{--rate\_model}}\\
 This option is to select the model of evolution of the rate of evolution. \x{gbs} (default) stands
 for Geometric Brownian + Stochastic. This model considers that rates evolve along the tree

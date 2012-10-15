@@ -190,9 +190,12 @@ int TIMES_main(int argc, char **argv)
 		  /* Count the number of time slices */
 		  TIMES_Get_Number_Of_Time_Slices(tree);
 		  
-
-
-
+                  TIMES_Label_Edges_With_Calibration_Intervals(tree);
+                  tree->write_br_lens = NO;
+                  PhyML_Printf("\n");
+                  PhyML_Printf("\n. Input tree with calibration information (compatible with MCMCtree).\n");
+                  PhyML_Printf("\n%s\n",Write_Tree(tree,YES));
+                  tree->write_br_lens = YES;
 
 		  /* Get_Edge_Binary_Coding_Number(tree); */
 		  /* Exit("\n"); */
@@ -1588,6 +1591,35 @@ void TIMES_Update_Node_Ordering(t_tree *tree)
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
+
+void TIMES_Label_Edges_With_Calibration_Intervals(t_tree *tree)
+{
+  char *s;
+  int i;
+
+  s = (char *)mCalloc(T_MAX_LINE,sizeof(char));
+  
+  tree->write_labels = YES;
+
+  For(i,2*tree->n_otu-2)
+    {
+      if(tree->a_nodes[i]->tax == NO)
+        {
+          if(tree->rates->t_has_prior[i] == YES && tree->a_nodes[i]->b[0] != tree->e_root)
+            {
+              tree->a_nodes[i]->b[0]->n_labels = 1;
+              Make_New_Edge_Label(tree->a_nodes[i]->b[0]);
+              sprintf(s,"'>%f<%f'",FABS(tree->rates->t_prior_max[i])/100.,FABS(tree->rates->t_prior_min[i])/100.);
+              tree->a_nodes[i]->b[0]->labels[0] = (char *)mCalloc(strlen(s)+1,sizeof(char));
+              strcpy(tree->a_nodes[i]->b[0]->labels[0],s);
+            }
+        }
+    }
+  
+  Free(s);
+
+}
+
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////

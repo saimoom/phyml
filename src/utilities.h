@@ -520,7 +520,8 @@ typedef struct __Tree{
   int                                      dp; /*! Data partition */
   int                               s_mod_num; /*! Substitution model number */
   int                               lock_topo; /*! = 1 any subsequent topological modification will be banished */
-  int                            print_labels;
+  int                            write_labels;
+  int                           write_br_lens;
   int                                 *mutmap; /*! Mutational map */
 
   phydbl                              init_lnL;

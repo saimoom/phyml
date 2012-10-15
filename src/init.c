@@ -125,7 +125,8 @@ void Init_Tree(t_tree *tree, int n_otu)
   tree->best_pars                 = 1E+5;
   tree->n_pattern                 = -1;
   tree->n_root_pos                = -1.;
-  tree->print_labels              = 1;
+  tree->write_labels              = YES;
+  tree->write_br_lens             = YES;
   tree->print_boot_val            = 0;
   tree->print_alrt_val            = 0;
   tree->num_curr_branch_available = 0;
