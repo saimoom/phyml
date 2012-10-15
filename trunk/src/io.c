@@ -588,8 +588,27 @@ char *Write_Tree(t_tree *tree, int custom)
     }
   else
     {
-      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
-      Exit("\n");
+      int pos;
+
+      pos = 1;
+
+      if(!tree->n_root)
+	{
+	  i = 0;
+	  while((!tree->a_nodes[tree->n_otu+i]->v[0]) ||
+		(!tree->a_nodes[tree->n_otu+i]->v[1]) ||
+		(!tree->a_nodes[tree->n_otu+i]->v[2])) i++;
+	  
+	  R_wtree_Custom(tree->a_nodes[tree->n_otu+i],tree->a_nodes[tree->n_otu+i]->v[0],&available,&s,&pos,tree);
+	  R_wtree_Custom(tree->a_nodes[tree->n_otu+i],tree->a_nodes[tree->n_otu+i]->v[1],&available,&s,&pos,tree);
+	  R_wtree_Custom(tree->a_nodes[tree->n_otu+i],tree->a_nodes[tree->n_otu+i]->v[2],&available,&s,&pos,tree);
+	}
+      else
+	{
+	  R_wtree_Custom(tree->n_root,tree->n_root->v[0],&available,&s,&pos,tree);
+	  R_wtree_Custom(tree->n_root,tree->n_root->v[1],&available,&s,&pos,tree);
+	}
+
     }
 
   s[(int)strlen(s)-1]=')';
@@ -607,7 +626,9 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, t_tree *
   int i,p;
   char *format;
   int last_len;
+#ifndef PHYTIME
   phydbl mean_len;
+#endif
 
   format = (char *)mCalloc(100,sizeof(char));
 
@@ -650,7 +671,7 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, t_tree *
 	  PhyML_Printf("\n== s=%s\n",*s_tree);
 	}
 
-      if((fils->b) && (fils->b[0]) && (fils->b[0]->l->v > -1.))
+      if((fils->b) && (fils->b[0]) && (tree->write_br_lens == YES))
 	{
 	  (*s_tree)[(int)strlen(*s_tree)] = ':';
 
@@ -777,7 +798,7 @@ void R_wtree(t_node *pere, t_node *fils, int *available, char **s_tree, t_tree *
 
       (*s_tree)[last_len-1] = ')';
 
-      if((fils->b) && (fils->b[p]->l->v > -1.))
+      if((fils->b) && (tree->write_br_lens == YES))
 	{
 	  if(tree->print_boot_val)
 	    {
@@ -914,7 +935,7 @@ void R_wtree_Custom(t_node *pere, t_node *fils, int *available, char **s_tree, i
 	  PhyML_Printf("\n. s=%s\n",*s_tree);
 	}
 
-      if((fils->b) && (fils->b[0]) && (fils->b[0]->l->v > -1.))
+      if((fils->b) && (fils->b[0]) && (tree->write_br_lens == YES))
 	{
 	  /* if(tree->print_labels) */
 	  /*   { */
@@ -959,22 +980,21 @@ void R_wtree_Custom(t_node *pere, t_node *fils, int *available, char **s_tree, i
 	      (*pos) += sprintf(*s_tree+*pos,format,tree->rates->cur_l[fils->num]);
 	    }
 #endif
-
-	  /* !!!!!!!!!!!!!!!!!!!!1 */
-	  if(tree->print_labels)
-	    {
-	      if(fils->b[0]->n_labels < 10)
-		For(i,fils->b[0]->n_labels) 
-		  {
-		    (*pos) += sprintf(*s_tree+*pos,"::%s",fils->b[0]->labels[i]);
-		  }
-	      else
-		{
-		  (*pos) += sprintf(*s_tree+*pos,"::%d_labels",fils->b[0]->n_labels);
-		}
-	    }
-
-	}
+        }
+      
+      if(tree->write_labels)
+        {
+          if(fils->b[0]->n_labels < 10)
+            For(i,fils->b[0]->n_labels) 
+              {
+                (*pos) += sprintf(*s_tree+*pos,"::%s",fils->b[0]->labels[i]);
+              }
+          else
+            {
+              (*pos) += sprintf(*s_tree+*pos,"::%d_labels",fils->b[0]->n_labels);
+            }
+        }
+ 
 
       strcat(*s_tree,",");
       (*pos)++;
@@ -1044,7 +1064,7 @@ void R_wtree_Custom(t_node *pere, t_node *fils, int *available, char **s_tree, i
       (*s_tree)[(*pos)-1] = ')';
       (*s_tree)[(*pos)]   = '\0';
 
-      if((fils->b) && (fils->b[p]->l->v > -1.))
+      if((fils->b) && (tree->write_br_lens == YES))
 	{
 	  if(tree->print_boot_val)
 	    {
@@ -1100,22 +1120,22 @@ void R_wtree_Custom(t_node *pere, t_node *fils, int *available, char **s_tree, i
 	      (*pos) += sprintf(*s_tree+*pos,format,tree->rates->cur_l[fils->num]);
 	    }
 #endif
-
-	  /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!1 */
-	  if((tree->print_labels) && (fils->b[p]->labels != NULL))
-	    {
-	      if(fils->b[p]->n_labels < 10)
-		For(i,fils->b[p]->n_labels) 
-		  {
-		    (*pos) += sprintf(*s_tree+*pos,"::%s",fils->b[p]->labels[i]);
-		  }
-	      else
-		{
-		  (*pos) += sprintf(*s_tree+*pos,"::%d_labels",fils->b[p]->n_labels);
-		}
-	    }
-
+          
 	}
+
+      if((tree->write_labels) && (fils->b[p]->labels != NULL))
+        {
+          if(fils->b[p]->n_labels < 10)
+            For(i,fils->b[p]->n_labels) 
+              {
+                (*pos) += sprintf(*s_tree+*pos,"::%s",fils->b[p]->labels[i]);
+              }
+          else
+            {
+              (*pos) += sprintf(*s_tree+*pos,"::%d_labels",fils->b[p]->n_labels);
+            }
+        }
+
       strcat(*s_tree,",");
       (*pos)++;
       (*available) = (*available) - (*pos - ori_len);
@@ -1867,7 +1887,7 @@ int Read_One_Line_Seq(align ***data, int num_otu, FILE *in)
 	{
 	  c = (*data)[0]->state[(*data)[num_otu]->len];
 	  if(!num_otu)
-	    Warn_And_Exit("\n. Err: Symbol \".\" should not appear in the first sequence\n");
+	    Warn_And_Exit("\n== Err: Symbol \".\" should not appear in the first sequence\n");
 	}
       (*data)[num_otu]->state[(*data)[num_otu]->len]=c;
       (*data)[num_otu]->len++;
@@ -4204,12 +4224,26 @@ void PhyML_XML(char *xml_filename)
   t_ds *ds;
   char *outputfile;
   char *alignment;
+  char *s;
   int lens_size;
+  int first;
 
   fp = fopen(xml_filename,"r");
+  if(!fp)
+    {
+      PhyML_Printf("\n== Could not find the XML file '%s'.\n",xml_filename);
+      Exit("\n");
+    }
+
 
   root = XML_Load_File(fp);  
   
+  if(!root)
+    {
+      PhyML_Printf("\n== Encountered an issue while loading the XML file.\n");
+      Exit("\n");
+    }
+
   component = (char *)mCalloc(T_MAX_NAME,sizeof(char));
 
   m_elem       = NULL;
@@ -4226,6 +4260,7 @@ void PhyML_XML(char *xml_filename)
   lens_size    = 0;
   ori_lens     = NULL;
   ori_lens_old = NULL;
+  first        = YES;
 
   // Make sure there are no duplicates in node's IDs
   XML_Check_Duplicate_ID(root);
@@ -4246,12 +4281,11 @@ void PhyML_XML(char *xml_filename)
       Exit("\n");
     }
   
-
   p_elem = XML_Search_Node_Name("phyml",NO,p_elem);
   
   /*! Input file
    */
-  outputfile = XML_Get_Attribute_Value(p_elem,"outputfile");  
+  outputfile = XML_Get_Attribute_Value(p_elem,"output.file");  
 
   if(!outputfile)
     {
@@ -4260,32 +4294,70 @@ void PhyML_XML(char *xml_filename)
       Exit("\n");
     }
 
+  io = (option *)Make_Input();
+  Set_Defaults_Input(io);
+
+  s = XML_Get_Attribute_Value(p_elem,"run.id");
+  if(s)
+    {
+      io->append_run_ID = YES;
+      strcpy(io->run_id_string,s);
+    }
+
+  strcpy(io->out_tree_file,outputfile);
+  if(io->append_run_ID) { strcat(io->out_tree_file,"_"); strcat(io->out_tree_file,io->run_id_string); }
+  strcat(io->out_tree_file,"_phyml_tree");
+  strcpy(io->out_stats_file,outputfile);
+  if(io->append_run_ID) { strcat(io->out_stats_file,"_"); strcat(io->out_stats_file,io->run_id_string); }
+  strcat(io->out_stats_file,"_phyml_stats");      
+  io->fp_out_tree  = Openfile(io->out_tree_file,1);
+  io->fp_out_stats = Openfile(io->out_stats_file,1);          
+
+  s = XML_Get_Attribute_Value(p_elem,"print.trace");
+  
+  if(s)
+    {
+      select = XML_Validate_Attr_Int(s,6,
+                                     "true","yes","y",
+                                     "false","no","n");
+      
+      if(select < 3) 
+        {
+          io->print_trace = YES;
+          strcpy(io->out_trace_file,outputfile);
+          if(io->append_run_ID) { strcat(io->out_trace_file,"_"); strcat(io->out_trace_file,io->run_id_string); }
+          strcat(io->out_trace_file,"_phyml_trace");
+          io->fp_out_trace = Openfile(io->out_trace_file,1);
+        }
+    }
+
+
+    
+
   /*! Read all partitionelem nodes and mixturelem nodes in each of them
    */
   do
     {
       p_elem = XML_Search_Node_Name("partitionelem",YES,p_elem);
 
-      if(p_elem == NULL) break;           
+      if(p_elem == NULL) 
+        {          
+          break;
+        }
 
       buff = (option *)Make_Input();
       Set_Defaults_Input(buff);
-      if(io) 
-	{
-	  io->next = buff;
-	  io->next->prev = io;
-	  io = io->next;
-	}
-      else 
+      io->next = buff;
+      io->next->prev = io;
+      
+      io = io->next;            
+      if(first == YES) 
         {
-          io = buff;
-          strcpy(io->out_tree_file,outputfile);
-          strcat(io->out_tree_file,"_phyml_tree");
-          strcpy(io->out_stats_file,outputfile);
-          strcat(io->out_stats_file,"_phyml_stats");      
-          io->fp_out_tree  = Openfile(io->out_tree_file,1);
-          io->fp_out_stats = Openfile(io->out_stats_file,1);          
+          io = io->prev;
+          Free_Input(buff);
+          first = NO;
         }
+
 
       /*! Set the datatype (required when compressing data)
        */
@@ -5485,7 +5557,7 @@ void PhyML_XML(char *xml_filename)
   Check_Mandatory_XML_Node(root,"siterates");
   Check_Mandatory_XML_Node(root,"partitionelem");
   Check_Mandatory_XML_Node(root,"mixtureelem");
-
+  
   if(!io->mod->s_opt->random_input_tree) io->mod->s_opt->n_rand_starts = 1;
 
   char *most_likely_tree = NULL;

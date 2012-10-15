@@ -1090,7 +1090,7 @@ phydbl **M4_Site_Branch_Classification(phydbl ***post_probs, t_tree *tree)
   best_probs = (phydbl **)mCalloc(tree->n_pattern,sizeof(phydbl *));
   For(i,tree->n_pattern) best_probs[i] = (phydbl *)mCalloc(2*tree->n_otu-3,sizeof(phydbl));
 
-  tree->print_labels = 1;
+  tree->write_labels = YES;
 
   For(patt,tree->n_pattern) 
     {

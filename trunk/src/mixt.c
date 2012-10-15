@@ -1603,6 +1603,7 @@ void MIXT_Bootstrap(char *best_tree, xml_node *root)
       int position,elem;
       xml_node *boot_root;
       int pid;
+      char *s;
 
       orig_align = (char *)mCalloc(T_MAX_NAME,sizeof(char));
 
@@ -1615,6 +1616,14 @@ void MIXT_Bootstrap(char *best_tree, xml_node *root)
       out_attr = XML_Search_Attribute(root,"outputfile");
       boot_out_file_name = (char *)mCalloc(T_MAX_NAME,sizeof(char));
       strcpy(boot_out_file_name,out_attr->value);
+      s = XML_Get_Attribute_Value(root,"run.id");
+      if(s)
+        {
+          strcat(boot_out_file_name,"_"); 
+          strcat(boot_out_file_name,s); 
+        }
+
+
 
       n_boot = atoi(bootstrap);
       

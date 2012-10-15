@@ -325,9 +325,8 @@ void Usage()
 
 
   #ifdef PHYTIME
-  PhyML_Printf("%s\n\t--no_data%s\n",BOLD,FLAT);
-  PhyML_Printf("\t\tUse this option to sample from the priors only (rather from the posterior joint density\n");
-  PhyML_Printf("\t\tof the model parameters).\n");
+  PhyML_Printf("%s\n\t--no_sequences%s\n",BOLD,FLAT);
+  PhyML_Printf("\t\tUse this option to run the sampler without sequence data.\n");
   PhyML_Printf("\n");  
   #endif
 

@@ -6451,7 +6451,7 @@ void Evolve(calign *data, t_mod *mod, t_tree *tree)
 
   data->n_otu = tree->n_otu;
 
-  if(mod->use_m4mod) tree->print_labels = 1;
+  if(mod->use_m4mod) tree->write_labels = YES;
   
   /* Get the change probability matrices */
   Set_Model_Parameters(mod);
