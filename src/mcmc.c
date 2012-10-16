@@ -2978,7 +2978,7 @@ void MCMC_Randomize_Node_Times(t_tree *tree)
 	    }
 	}
 
-      if(min_dt > .1 * FABS(tree->rates->nd_t[tree->n_root->num])/(phydbl)(tree->n_otu-1)) break;
+      if(min_dt > 0.01 * FABS(tree->rates->nd_t[tree->n_root->num])/(phydbl)(tree->n_otu-1)) break;
 
       RATES_Record_Times(tree);
       For(i,2*tree->n_otu-1) 
