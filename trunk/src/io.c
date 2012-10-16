@@ -3543,7 +3543,7 @@ void Read_Clade_Priors(char *file_name, t_tree *tree)
       
       if(line[pos] != '#' && line[pos] != '\n')
 	{
-	  double val1, val2;
+	  phydbl val1, val2;
 /* 	  sscanf(line+pos,"%lf %lf",&prior_up,&prior_low); */
 	  sscanf(line+pos,"%lf %lf",&val1,&val2);
 	  prior_up = (phydbl)val1;
