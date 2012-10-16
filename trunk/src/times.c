@@ -193,7 +193,7 @@ int TIMES_main(int argc, char **argv)
                   TIMES_Label_Edges_With_Calibration_Intervals(tree);
                   tree->write_br_lens = NO;
                   PhyML_Printf("\n");
-                  PhyML_Printf("\n. Input tree with calibration information (compatible with MCMCtree).\n");
+                  PhyML_Printf("\n. Input tree with calibration information ('almost' compatible with MCMCtree).\n");
                   PhyML_Printf("\n%s\n",Write_Tree(tree,YES));
                   tree->write_br_lens = YES;
 

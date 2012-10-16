@@ -48,11 +48,6 @@ void MCMC(t_tree *tree)
       MCMC_Read_Param_Vals(tree);
     }
 
-
-  tree->rates->birth_rate = 2.0;
-
-
-
   Switch_Eigen(YES,tree->mod);
 
   MCMC_Initialize_Param_Val(tree->mcmc,tree);
@@ -3968,10 +3963,8 @@ void MCMC_Complete_MCMC(t_mcmc *mcmc, t_tree *tree)
   							      when sampling from prior) */
   for(i=mcmc->num_move_cov_rates;i<mcmc->num_move_cov_rates+2*tree->mod->m4mod->n_h;i++) mcmc->move_weight[i] = 0.5*(1./(phydbl)tree->mod->m4mod->n_h);
   mcmc->move_weight[mcmc->num_move_cov_switch]      = 1.0;
-  /* mcmc->move_weight[mcmc->num_move_birth_rate]      = 2.0; */
-  /* mcmc->move_weight[mcmc->num_move_updown_t_br]     = 1.0; */
-  mcmc->move_weight[mcmc->num_move_birth_rate]      = 0.0;
-  mcmc->move_weight[mcmc->num_move_updown_t_br]     = 0.0;
+  mcmc->move_weight[mcmc->num_move_birth_rate]      = 2.0;
+  mcmc->move_weight[mcmc->num_move_updown_t_br]     = 1.0;
 
 
   /* for(i=mcmc->num_move_br_r;i<mcmc->num_move_br_r+2*tree->n_otu-2;i++) mcmc->move_weight[i] = 0.0; /\* Rates *\/ */
