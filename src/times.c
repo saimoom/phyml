@@ -1115,6 +1115,11 @@ phydbl TIMES_Lk_Times(t_tree *tree)
 
   /* printf("\n. loglk=%f %f %f [%f %f]",loglk,tree->rates->c_lnL_times,loglk-tree->rates->c_lnL_times,lbda,t[tree->n_root->num]); */
 
+  if(isinf(tree->rates->c_lnL_times))
+    {
+      tree->rates->c_lnL_times = -INFINITY;
+    }
+
   return(tree->rates->c_lnL_times);
 }
 

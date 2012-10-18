@@ -8177,7 +8177,6 @@ void Get_OutIn_Scores(t_node *a, t_node *d)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
 int Check_Sequence_Name(char *s)
 {
   int i;
@@ -8186,8 +8185,8 @@ int Check_Sequence_Name(char *s)
     {
       if(s[i] == ':')
 	{
-	  PhyML_Printf("\n. Character ':' is not permitted in sequence name (%s).",s);
-	  PhyML_Printf("\n. Err in file %s at line %d",__FILE__,__LINE__);
+	  PhyML_Printf("\n== Character ':' is not permitted in sequence name (%s).",s);
+	  PhyML_Printf("\n== Err in file %s at line %d",__FILE__,__LINE__);
 	  Warn_And_Exit("");
 	}
     }
@@ -8196,8 +8195,8 @@ int Check_Sequence_Name(char *s)
     {
       if(s[i] == ',')
 	{
-	  PhyML_Printf("\n. Character ',' is not permitted in sequence name (%s).",s);
-	  PhyML_Printf("\n. Err in file %s at line %d",__FILE__,__LINE__);
+	  PhyML_Printf("\n== Character ',' is not permitted in sequence name (%s).",s);
+	  PhyML_Printf("\n== Err in file %s at line %d",__FILE__,__LINE__);
 	  Warn_And_Exit("");
 	}
     }
@@ -8206,8 +8205,8 @@ int Check_Sequence_Name(char *s)
     {
       if(s[i] == ' ')
 	{
-	  PhyML_Printf("\n. Character ' ' is not permitted in sequence name (%s).",s);
-	  PhyML_Printf("\n. Err in file %s at line %d",__FILE__,__LINE__);
+	  PhyML_Printf("\n== Character ' ' is not permitted in sequence name (%s).",s);
+	  PhyML_Printf("\n== Err in file %s at line %d",__FILE__,__LINE__);
 	  Warn_And_Exit("");
 	}
     }

@@ -3823,8 +3823,8 @@ void RATES_Set_Birth_Rate_Boundaries(t_tree *tree)
   phydbl min,max;
   int assign = YES;
 
-  min = -0.2*tree->rates->t_prior_max[tree->n_root->num];
-  max = -5.*tree->rates->t_prior_min[tree->n_root->num];
+  min = -0.01*tree->rates->t_prior_max[tree->n_root->num];
+  max = -100.*tree->rates->t_prior_min[tree->n_root->num];
 
   for(lbda = 0.0001; lbda < 10; lbda+=0.0001)
     {
