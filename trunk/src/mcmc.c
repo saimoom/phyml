@@ -2885,10 +2885,12 @@ void MCMC_Randomize_Birth(t_tree *tree)
   phydbl u;
 
   min_b = tree->rates->birth_rate_min;
-  max_b = tree->rates->birth_rate_max;
+  max_b = MIN(0.5,tree->rates->birth_rate_max);
   
   u = Uni();
   tree->rates->birth_rate = (max_b - min_b) * u + min_b;
+
+  printf("\n. BIRTH = %f",tree->rates->birth_rate);
 }
 
 //////////////////////////////////////////////////////////////
