@@ -2889,8 +2889,6 @@ void MCMC_Randomize_Birth(t_tree *tree)
   
   u = Uni();
   tree->rates->birth_rate = (max_b - min_b) * u + min_b;
-
-  printf("\n. BIRTH = %f",tree->rates->birth_rate);
 }
 
 //////////////////////////////////////////////////////////////

@@ -1096,59 +1096,200 @@ $\mathcal{C}_2  = \{R_2,M_1,F_1\}$,  and a  third class  as $\mathcal{C}_3  =  \
 $R_1$, $R_2$  and $R_3$ correspond to  slow, medium and  fast substitution rates, then  this mixture
 model allows the  fast evolving rates to have  their own vector of equilibrium  frequencies and rate
 matrix, distinct from that  found at the medium or slow evolving sites.  The likelihood at any given
-site $D_i$ of the alignment is then:
-\begin{eqnarray*}
-\Pr(D_i) = \sum_{c=1}^{3} \Pr(D_i | \mathcal{C}_i=c) \Pr(\mathcal{C}_i=c),
-\end{eqnarray*}
-where  $\Pr(\mathcal{C}_i=c)$ is  obtained by  multiplying the  probability (density)  of  the three
-components (i.e., rate, matrix, frequencies). We therefore assume here that substitution rates, rate
+site $D_s$ of the alignment is then:
+\begin{eqnarray}\label{equ:mixtlk}
+\Pr(D_s) = \sum_{c=1}^{3} \Pr(D_s | \mathcal{C}_s=c) \Pr(\mathcal{C}_s=c),
+\end{eqnarray}
+where  $\Pr(\mathcal{C}_s=c)$ is  obtained by  multiplying the  probability (density)  of  the three
+components (i.e., rate, matrix, frequencies). For instance, $\Pr(\mathcal{C}_1=\{R_1,M_1,F_1\}) =
+ \Pr(R_1)\times \Pr(M_1) \times \Pr(F_1)$.
+We therefore assume here that substitution rates, rate
 matrices and equilibrium frequencies are independent from one another.
 
-In practice, building a mixture model in a XML file readable by PhyML is relatively
-straightforward. The first step is to define the different components of each class of the
-mixture. Consider for instance that the fitted model will have a Gamma distribution with four
-classes plus a proportion of invariants. The rate component of the mixture can then be specified
+Note that, using the  same substitution rates, rate matrices and  vector of equilibrium frequencies,
+it is  possible to construct  many other mixture  models. For instance,  the mixture model  with the
+largest number of classes would be obtained by considering all the combinations of these three components. We
+would then  obtain a  mixture of $2\times  2 \times 2=8$  classes: $\mathcal{C}_1  = \{R_1,M_1,F_1\}$
+$\mathcal{C}_2   =   \{R_1,M_1,F_2\}$,   $\mathcal{C}_3   =   \{R_1,M_2,F_1\}$,   $\mathcal{C}_4   =
+\{R_1,M_2,F_2\}$,   $\mathcal{C}_5   =    \{R_2,M_1,F_1\}$,   $\mathcal{C}_6   =   \{R_2,M_1,F_2\}$,
+$\mathcal{C}_7 = \{R_2,M_2,F_1\}$ and $\mathcal{C}_8 = \{R_2,M_2,F_2\}$.
+ 
+
+\subsection{Partitions in PhyML}\index{partitionned analysis}\index{data partitions}
+
+We first introduce some terms of vocabulary that have not been presented before. A partitionned data
+set, also referred to as partition, is a  set of partition elements.  Typically, a partitionned data
+set will be made of  a set of distinct gene alignments. A partition  element will then correspond to
+one of  these gene alignments. Note  that the biology litterature  often uses the term  partition to
+refer to an element of a partitionned data.  We thus use here instead the mathematical definition of
+the terms `partition' and `partition element'.
+
+Phylogenetics models usually assume individual columns  of an alignment to evolve independently from
+one  another. Codon-based  models (e.g.,  \cite{yang98,yang00b,yang02,guindon04}) are  exceptions to
+this rule  since the substitution process  applies here to  triplets of consecutive sites  of coding
+sequences.  The non-independence of  the substitution process at the three  coding positions (due to
+the specificities of the genetic code), can  therefore be accounted for.  Assuming that sites evolve
+independently  does not  mean  that a  distinct  model is  fitted  to each  site  of the  alignment.
+Estimating the  parameters of these  models would not  make much sense in  practice due to  the very
+limited amount of phylogenetic signal conveyed by individual sites.  Site independence means instead
+that the columns  of the observed alignment  were sampled randomly from a  ``population of columns''
+which were all generated  using the same phylogenetic model.  The  stochasticity of the substitution
+process running along the tree is deemed responsible to the variability of site patterns.
+
+Some parameters  of the  phylogenetic model  are considered  to be common  to all  the sites  in the
+alignment. The tree topology is typically  one such parameter.  The transition/transversion ratio is
+also generally assumed to be the same for all columns.  Other parameters can vary from site to site.
+The rate at  which substitutions accumulate is  one of these parameters. Hence,  different sites can
+have distinct rates. However,  such rates are all ``drawn'' from  the same probabilitic distribution
+(generally a  discrete Gamma  density).  Hence,  while different  sites may  have distinct  rates of
+evolution, they all share the same {\em distribution} of rates.
+
+This reasonning  also applies on a  larger scale. When  analysing multiple genes, one  can indeed
+assume that the same  mechanism generated the different site patterns observed  for every gene. Here
+again, we can assume that all the genes share the same underlying tree topology (commonly refered to
+as the ``species  tree'').  Other parameters of  the phylogenetic model, such as  branch lengths for
+instance, might  be shared across  genes. However,  due to the  specificities of the  gene evolution
+processes, some  model parameters  need to be  adjusted for  each gene separately.   To sum  up, the
+phylogenetic analysis of partitionned data requires flexible models with parameters, or distribution
+of parameters,  shared across several partition  elements and other parameters  estimated separately
+for each element of the partition.
+
+The likelihood of a  data set made of the concatenation of $n$  sequence alignments noted $D^{(1)}$,
+$D^{(2)}$, and $D^{(n)}$ is then obtained as follow:
+\begin{eqnarray}
+\Pr(D^{(1)},D^{(2)},\ldots,D^{(n)}) &=& \prod_{i=1}^{n}  \Pr(D^{(i)}) \nonumber\\
+&=& \prod_{i=1}^{n}  \prod_{s=1}^{L_i} \Pr(D^{(i)}_s),
+\end{eqnarray} where $L_i$ is the number of site columns in partition element $i$.  $\Pr(D^{(i)}_s)$
+is then obtained using Equation \ref{equ:mixtlk}, i.e., by summing over the different classes of the
+mixture model that  applies to site $s$ for  partition element $i$. Hence, the  joint probability of
+all the partition elements is here broken down into the product of likelihood of every site for each
+partition  element. As  noted just  above, any  given component  of the  mixture model  at at  given
+particular site is shared by the other sites that belong to the same partition element and, for some
+of them, by  sites in other partition  elements (e.g., the same  tree topology is shared  by all the
+sites, throughout all the partition elements).
+
+PhyML implements a wide  variety of partition models.  The only parameter that  is constrained to be
+shared  by all  the  partition elements  is  the tree  topology. This  constraint  makes sense  when
+considering distantly  related taxa, typically inter-species  data. For closely related  taxa, i.e.,
+when  analysing intra-species  or population-level  data,  not all  the  genes might  have the  same
+evolutionary history.   Recombination events combined  to the incomplete lineage  sorting phenomenon
+can  generate  discrepancies   between  the  gene  trees  and  the   underlying  species  tree  (see
+\cite{degnan09}  for  a review).   The  phylogenetic  softwares BEST  \cite{best}\index{BEST},  STEM
+\cite{stem}\index{STEM} and  *BEAST \cite{startbeast}\index{*BEAST} are dedicated  to the estimation
+of species tree phylogenies  from the analysis of multi-gene data and  allow gene-tree topologies to
+vary across genes.
+
+Aside from the tree topology  that is common to all the sites and  all the partition elements, other
+parameters of  the phylogenetic model  can be either shared  across partition elements  or estimated
+separately  for each  of  these. When  analysing  three partition  elements, $A$,  $B$  and $C$  for
+instance, PhyML can  fit a model where the same  set of branch lengths applies to  $A$ and $B$ while
+$C$ has its  own estimated lengths.  The same  goes for the substitution model: the  same GTR model,
+with identical parameter values, can be fitted to $A$  and $C$ and JC69 for instance can be used for
+$B$. The sections below  give more detailed information on the range of  models available and how to
+set up the corresponding XML configuration files to implement them.
+
+
+
+
+\subsection{The XML format and its use in PhyML}\label{sec:XML format}
+
+The few paragraphs below are largely inspired from  the Wikipedia page that describes the XML format
+(\url{http://en.wikipedia.org/wiki/XML}). XML (eXtensible Markup Language) is a markup language that
+defines  a set  of  rules  for encoding  documents  in  a format  that  is  both human-readable  and
+machine-readable.  An  XML document is  divided into  {\em markup} and  {\em content}, which  may be
+distinguished  by the  application of  simple syntactic  rules. Generally,  strings that  constitute
+markup either begin  with the character `\x{<}' and  end with a `\x{>}'. Strings  of characters that
+are not markup are content:
+
+\vspace{0.2cm}
+\begin{Verbatim}[frame=single, label=XML markup and content example, samepage=true, baselinestretch=0.5]
+<markup> 
+ content 
+</markup>
+\end{Verbatim}
+
+A markup construct that begins  with `\x{<}' and ends with `\x{>}' is called  a {\em tag}. Tags come
+in  three  flavors:  (1)  start-tags  (e.g,  \x{<section>}),  end-tags  (e.g.,  \x{</section>})  and
+empty-element tags (e.g., \x{<line-break />}). A {\em  component} either begins with a start-tag and
+ends with a  matching end-tag or consists only  of an empty-element tag. The  characters between the
+start- and  end-tags, if any,  are the  element's content, and  may contain markup,  including other
+elements, which are  called child elements.  In  the following example, the element  \x{img} has two
+{\em  attributes},  \x{src}   and  \x{alt}:  \x{<img  src="madonna.jpg"   alt="Foligno  Madonna,  by
+Raphael"/>}. Another example would be \x{<step number="3">Connect  A to B.</step>} where the name of
+the attribute is ``\x{number}" and the value is ``\x{3}".
+
+In  practice,  building   a  mixture  model  in   a  XML  file  readable  by   PhyML  is  relatively
+straightforward.  The first  step  is  to define  the  different components  of  each  class of  the
+mixture.  Consider for  instance that  the fitted  model will  have a  Gamma distribution  with four
+classes plus  a proportion of invariants.  The rate component of  the mixture can then  be specified
 using the following XML code:
 
 \vspace{0.2cm}
-\begin{Verbatim}[frame=single, label=$\Gamma4$+Inv rates, samepage=true, baselinestretch=0.5]
+\begin{Verbatim}[frame=single, label=$\Gamma4$+I rates, samepage=true, baselinestretch=0.5]
 
 <siterates id="SiteRates1">
-  <instance id="R1" value="1.0"/>
-  <instance id="R2" value="1.0"/>
-  <instance id="R5" value="0.0"/>
-  <instance id="R3" value="1.0"/>
-  <instance id="R4" value="1.0"/>
   <weights  id="Distrib" family="gamma+inv" alpha=".1" \
   optimise.alpha="yes" pinv="0.4" optimise.pinv="yes">
   </weights>
+  <instance id="R1" init.value="1.0"/>
+  <instance id="R2" init.value="1.0"/>
+  <instance id="R5" init.value="0.0"/>
+  <instance id="R3" init.value="1.0"/>
+  <instance id="R4" init.value="1.0"/>
 </siterates>
 
 \end{Verbatim}
 
-Consider now two rate matrices, the first corresponding to a HKY85 model, the second to a GTR:
+In the example above, the \x{<siterates>} component  completely defines a model of substitution rate
+variation across  sites. This component  has a  particular identity, i.e.,  a name associated  to it
+(``\x{SiteRates1}''  here),  which  is  not  mandatory.   This  \x{<siterates>}  component  has  six
+sub-components.   The  first  is  the  \x{<weights>}  component,  followed  by  five  \x{<instance>}
+components. The  \x{<weights>} component  defines the  type of  distribution that  characterizes the
+variation of  rates across sites.  A discrete  Gamma plus invariants  is used here.   Two parameters
+specify this distribution: the gamma shape and the proportion of invariant parameters. Their initial
+values  are set  by using  the corresponding  attributes and  attribute values  (\x{alpha="0.1"} and
+\x{pinv="0.4"}). Also, PhyML can  optimise these parameters so as to maximise  the likelihood of the
+whole phylogenetic model (\x{optimise.pinv="yes"}  and \x{optimise.alpha="yes"}). The following five
+\x{<instance>}  components  define  the  rate  classes themselves.  The  \x{id}  attribute  is  here
+mandatory  and must  be  unique  to each  class.   Note  that one  of  the  initial (relative)  rate
+(\x{init.value} attribute) is set to zero. The  corresponding rate class (the third in this example)
+will then correspond to the invariant site category.
+
+Having specified the  part of the phylogenetic  model that describes that variation  of rates across
+sites,  we can  now move  on  to build  the rest  of the  model.   The component  below defines  two
+substitution models:
 
 \vspace{0.2cm}
-\begin{Verbatim}[frame=single, label=Rate matrices, samepage=true, baselinestretch=1]
+\begin{Verbatim}[frame=single, label=Rate matrices, samepage=true, baselinestretch=0.5]
 
 <ratematrices id="RateMatrices">
   <instance id="M1" model="HKY85" tstv="4.0" optimise.tstv="no"/>
   <instance id="M2" model="GTR" optimise.rr="yes"/>
 </ratematrices>
-
 \end{Verbatim}
-and two vectors of nucleotide frequencies:
+
+This \x{<ratematrices>} component sets out a list  of substitution models (HKY85 and GTR here). Here
+again, the  different elements in  this list correspond  to the \x{<instance>}  sub-components. Each
+instance must  have a unique \x{id}  attribute for a reason  that will become obvious  shortly.  The
+remaining attributes and their functions are described in Section \ref{sec:xmlratematrices}.
+
+The next ``ingredient'' in our phylogenetic model are vectors of nucleotide frequencies. The
+\x{<equfreqs>} component below specifies two of such vectors:
+
 
 \vspace{0.2cm}
 \begin{Verbatim}[frame=single, label=Equilibrium frequencies, samepage=true, baselinestretch=0.5]
 
 <equfreqs id="EquFreq">
-  <instance id="F1" optimise="yes"/>
-  <instance id="F2" optimise="yes"/>
+  <instance id="F1"/>
+  <instance id="F2"/>
 </equfreqs>
 
 \end{Verbatim}
-Now, the XML code below describes how  the different components defined above are assembled in a mixture model:
+
+Now, we need to assemble these three components (rate variation across sites, rate matrices and
+vectors of equilibrium frequencies) into a mixture model. The \x{<partitionelem>} component below
+defines one such model:
 
 \vspace{0.2cm}
 \begin{Verbatim}[frame=single, label=Mixture model, samepage=true, baselinestretch=0.5]
@@ -1160,44 +1301,35 @@ Now, the XML code below describes how  the different components defined above ar
 </partitionelem>
 
 \end{Verbatim}
-This  mixture  model   has  five  classes:  $\mathcal{C}_1  =   \{R_1,M_1,F_1\}$,  $\mathcal{C}_2  =
-\{R_2,M_1,F_2\}$,   $\mathcal{C}_3  =  \{R_3,M_1,F_1\}$,   $\mathcal{C}_4  =   \{R_4,M_2,F_2\}$  and
-$\mathcal{C}_5 = \{R_5,M_2,F_2\}$. 
 
-Going back  to the different components  of this model, the  XML code dealing  with the substitution
-rates defines five  classes with names {\tt R1} to  {\tt R5}. The initial values  of these rates are
-set to 1.0, except for  {\tt R5}, which is set to 0 and will  therefore correspond to the invariable
-site class. The {\tt  <weight>} tag that follows indicate that these  rates define a $\Gamma 4$+Inv
-model, with  initial gamma shape parameter  set to 0.1 and  initial proportion of  invariants set to
-0.4.  These  two parameters  will  be  estimated in  the  analysis  ({\tt  optimise.alpha} and  {\tt
-optimise.pinv} attributes  set to {\tt yes}).   The two rate matrices  have names {\tt  M1} and {\tt
-M2}.  {\tt M1} corresponds  to a HKY85 model, with transition/transversion ratio  set to 4.0 and set
-to be  optimised in the  analysis.  {\tt M2}  is a GTR  model, which parameters  are also set  to be
-optimised. {\tt F1} and {\tt F2} are two vectors of nucleotide frequencies at equilibrium. These two
-sets of frequencies will therefore be estimated during the analysis.
+The  \x{<partitionelem>} component  defines a  particular partition  element. In  this example,  the
+partition element corresponds to the sequence file  called \x{nucleic.txt}, which is an alignment of
+nucleotide  sequences   (see  the   \x{datatype}  attribute   value).   The   \x{<mixtureelem>}  are
+sub-components  of  the  \x{<partitionelem>}  component.   Each  \x{<mixtureelem>}  has  a  \x{list}
+atrribute.   Each such  \x{list} gives  the ID  of components  that have  been defined  before.  For
+instance,  the  first   \x{<mixtureelem>}  refers  to  the  five  classes   of  the  \x{<siterates>}
+component. The  ordering of  the different term  in these list  matters a  lot since it  is directly
+related  to the  elements in  each class  of  the mixture  model. Hence,  the first  element in  the
+\x{<list>} attribute  of the first  \x{<mixtureelem>} added to the  first element in  the \x{<list>}
+attribute of the second \x{<mixtureelem>} plus the  the first element in \x{<list>} attribute of the
+third \x{<mixtureelem>} define  the first class of  the mixture model. Therefore,  the mixture model
+defined   above   has   five   classes:  $\mathcal{C}_1   =   \{R_1,M_1,F_1\}$,   $\mathcal{C}_2   =
+\{R_2,M_1,F_2\}$,  $\mathcal{C}_3   =  \{R_3,M_1,F_1\}$,   $\mathcal{C}_4  =   \{R_4,M_2,F_2\}$  and
+$\mathcal{C}_5 = \{R_5,M_2,F_2\}$.
 
-\subsection{Partitions in PhyML}\index{partitionned analysis}\index{data partitions}
+% Going back  to the different components  of this model, the  XML code dealing  with the substitution
+% rates defines five  classes with names {\tt R1} to  {\tt R5}. The initial values  of these rates are
+% set to 1.0, except for  {\tt R5}, which is set to 0 and will  therefore correspond to the invariable
+% site class. The {\tt  <weight>} tag that follows indicate that these  rates define a $\Gamma 4$+Inv
+% model, with  initial gamma shape parameter  set to 0.1 and  initial proportion of  invariants set to
+% 0.4.  These  two parameters  will  be  estimated in  the  analysis  ({\tt  optimise.alpha} and  {\tt
+% optimise.pinv} attributes  set to {\tt yes}).   The two rate matrices  have names {\tt  M1} and {\tt
+% M2}.  {\tt M1} corresponds  to a HKY85 model, with transition/transversion ratio  set to 4.0 and set
+% to be  optimised in the  analysis.  {\tt M2}  is a GTR  model, which parameters  are also set  to be
+% optimised. {\tt F1} and {\tt F2} are two vectors of nucleotide frequencies at equilibrium. These two
+% sets of frequencies will therefore be estimated during the analysis.
 
-PhyML can handle  partitionned data. A data partition  is made of partition elements.  Each of these
-elements usually corresponds to  the sequence alignment obtained for a given  gene.  A partition can
-combine amino-acid and nucleotide alignments.  It is important  that the set of taxa is the same for
-all the partition elements. PhyML will not proceed otherwise.
 
-The XML code below defines a partition with two elements:
-
-\vspace{0.2cm}
-\begin{Verbatim}[frame=single, label=Partition element, samepage=true, baselinestretch=0.5]
-
-<partitionelem id="Part1" filename="./nucleic.txt" datatype="nt">
-</partitionelem>
-<partitionelem id="Part2" filename="./proteic.txt" datatype="aa">
-</partitionelem>
-
-\end{Verbatim}
-
-The first element, with name {\tt Part1}, points to the sequence file {\tt nucleic.txt}, which is an
-alignment of nucleotide sequences ({\tt datatype="nt"}). The second, {\tt Part2}, points to the file
-{\tt proteic.txt}, which is an alignment of amino-acid sequences ({\tt datatype="aa"}).
 
 \subsection{Combining mixture and partition models in PhyML}\index{mixture
   models}\index{partitionned analysis}\index{data partitions}
@@ -1210,7 +1342,7 @@ region usually have similar  GC contents). As a consequence, some components  of
 to be  estimated separately for each  partition element while  others should be shared  by different
 partition elements.
 
-Below is a simple example with a data partition made of two elements:
+Below is a simple example with a partitionned data set made of two elements:
 
 \vspace{0.2cm}
 \begin{Verbatim}[frame=single, label=Two sets of branch lengths (one per partition element), samepage=true, baselinestretch=0.5]
@@ -1232,14 +1364,16 @@ Below is a simple example with a data partition made of two elements:
 
 \end{Verbatim}
 
-Mixture elements with names  {\tt R1},$\ldots$, {\tt R5} refer to the  $\Gamma4 + $Inv model defined
-previsouly (see Section  \ref{sec:mixtures}). The {\tt branchlengths} tag  defines a mixture element
-that  had not  been introduced  before. It  refers to  vector of  branch lengths  that apply  to the
-estimated  phylogeny. Two  instances of  such lengths  are  defined: {\tt  L1} and  {\tt L2}.   When
-examining the two partition elements, it appears  that {\tt L1} is associated with {\tt Part1} while
-{\tt L2}  is associated with {\tt  Part2}.  Hence, branch  lengths will be estimated  separately for
-these  two  partition  elements. Note  that  a  given  partition  element  can only  have  one  {\tt
-  branchlengths} instance associated to it. For instance, the example given below is not valid:
+Mixture elements with names  \x{R1},$\ldots$, \x{R5} refer to the $\Gamma4+$I model defined
+previsouly  (see Section  \ref{sec:XML format}).   The \x{<branchlengths>}  XML component  defines a
+mixture element  that had not  been introduced  before.  It defined  vectors of branch  lengths that
+apply to the estimated phylogeny. Two instances of  such vectors are defined: \x{L1} and \x{L2}.
+When examining the  two partition elements (\x{<partitionelem>} component), it  appears that \x{L1}
+is associated with \x{Part1} while \x{L2} is associated with \x{Part2}.  Hence, branch lengths
+will be estimated separately for these two partition elements.  
+
+Note that  a given partition element  can only have  one {\tt branchlengths} instance  associated to
+it. For instance, the example given below is not valid:
 
 \vspace{0.2cm}
 \begin{Verbatim}[frame=single, label=Invalid mixture, samepage=true, baselinestretch=0.5]
@@ -1268,6 +1402,54 @@ lengths with mixture of rates appears like a deadly combination. Consider for in
 
 It is here impossible to tell apart  branch lengths and substitution rates. Such model is strongly
 non-identifiable and therefore not relevant.
+
+In the example given above, the same $\Gamma4+$I model (i.e. the same gamma shape parameter and
+proportion of invariant ) applies to the two partition elements. It is possible to use two distinct
+$\Gamma4+$I models instead using the following XML code:
+
+
+
+\vspace{0.2cm}
+\begin{Verbatim}[frame=single, label=Two distinct $\Gamma4+$I models, samepage=true, baselinestretch=0.5]
+
+<siterates id="SiteRates1">
+  <weights  id="Distrib1" family="gamma+inv" alpha=".1" \
+  optimise.alpha="yes" pinv="0.4" optimise.pinv="yes">
+  </weights>
+  <instance id="R1" init.value="1.0"/>
+  <instance id="R2" init.value="1.0"/>
+  <instance id="R5" init.value="0.0"/>
+  <instance id="R3" init.value="1.0"/>
+  <instance id="R4" init.value="1.0"/>
+</siterates>
+
+<siterates id="SiteRates2">
+  <weights  id="Distrib2" family="gamma+inv" alpha=".1" \
+  optimise.alpha="yes" pinv="0.4" optimise.pinv="yes">
+  </weights>
+  <instance id="R6"  init.value="1.0"/>
+  <instance id="R7"  init.value="1.0"/>
+  <instance id="R8"  init.value="0.0"/>
+  <instance id="R9"  init.value="1.0"/>
+  <instance id="R10" init.value="1.0"/>
+</siterates>
+
+<partitionelem id="Part1" filename="./nucleic1.txt" datatype="nt">
+  <mixtureelem list="R1, R2, R3, R4, R5"/>
+  <mixtureelem list="L1, L1, L1, L1, L1"/>
+</partitionelem>
+
+<partitionelem id="Part2" filename="./nucleic2.txt" datatype="nt">
+  <mixtureelem list="R6, R7, R8, R9, R10"/>
+  <mixtureelem list="L2, L2, L2, L2, L2"/>
+</partitionelem>
+
+\end{Verbatim}
+
+\x{SiteRates1} and \x{SiteRates2} here define two distinct $\Gamma4+$I models. Each of these models apply to
+one of the two partition elements (\x{nucleic1.txt} and \x{nucleic2.txt}), allowing them to display
+different patterns of rate variation across sites.
+
 
 \subsection{XML options}
 \subsubsection{{\tt phyml} tag}\index{XML options!{\tt phyml} tag}
@@ -1304,11 +1486,11 @@ Options:
 
 \end{Verbatim}
 
-\subsubsection{{\tt ratematrices} tag}\index{XML options!{\tt ratematrices} tag}
+\subsubsection{{\tt ratematrices} tag}\index{XML options!{\tt ratematrices} tag}\label{sec:xmlratematrices}
 Options:
 \begin{itemize}
 \item \x{model="JC69"|"K80"|"F81"|"F84"|"HKY85"|"TN93"|"GTR"|"custom"} for nucleotide data. The default is \x{"HKY85"}.\\
-\x{model="WAG"|"JTT"|"MtREV"|"Dayhoff"|"DCMut"|"RtREV"|"CpREV"|"VT"}\\\x{|"Blosum62"|"MtMam"|"MtArt"|"HIVw"|"HIVb"|"custom"}
+\x{model="LG"|"WAG"|"JTT"|"MtREV"|"Dayhoff"|"DCMut"|"RtREV"|"CpREV"|"VT"}\\\x{|"Blosum62"|"MtMam"|"MtArt"|"HIVw"|"HIVb"|"custom"}
 for amino-acid sequences. The default is \x{"LG"}.
 \item \x{modelcode="012345"}. For \x{custom} model applied to nucleotide sequences: set the
   string of digits that define a custom substitution model. See Table \ref{tab:modelcode} on page
@@ -1394,10 +1576,10 @@ distribution of the relative rates. The available options for such element are:
 \begin{Verbatim}[frame=single, label=Example of `siterates' tag, samepage=true, baselinestretch=0.5]
 
   <siterates id="SR1">
-    <instance id="R1" value="1.0"/>
-    <instance id="R2" value="1.0"/>
-    <instance id="R3" value="1.0"/>
-    <instance id="R4" value="1.0"/>
+    <instance id="R1" init.value="1.0"/>
+    <instance id="R2" init.value="1.0"/>
+    <instance id="R3" init.value="1.0"/>
+    <instance id="R4" init.value="1.0"/>
     <weights  id="D1" family="gamma" optimise.alpha="yes" \
     optimise.pinv="no">
     </weights>
@@ -1422,8 +1604,7 @@ branch lengths, equilibrium frequencies, substitution rate model and tree topolo
 in which the \x{mixtureelem} elements are given does not matter. The $n$-th element in the \x{list}
 attribute of each \x{mixtureelem} defines the $n$-th class of the mixture model. In the example given
 below, the first class of the mixture is made of the following elements: \x{T1}, \x{F1}, \x{R1} and
-\x{L1}, the second class is made of \x{T2}, \x{F2}, \x{R2} and \x{L2}, etc.
-
+\x{L1}, the second class is made of \x{T1}, \x{F1}, \x{R2} and \x{L1}, etc.
 
 
 \vspace{0.2cm}
@@ -1439,7 +1620,9 @@ below, the first class of the mixture is made of the following elements: \x{T1},
 
 \end{Verbatim}
 
-\subsection{An example}
+\subsection{A simple example}
+
+\subsection{A more complex example}
 
 The example below gives the complete XML file to specify the analysis of three partition elements,
 corresponding to the nucleotide sequence files \x{small\_p1\_pos1.seq}, \x{small\_p1\_pos2.seq} and
@@ -1754,8 +1937,6 @@ corresponds to the one described in \cite{kishino01} and implemented in the prog
 priori according to a gamma distribution. It is analogous to the uncorrelated clock model
 implemented in BEAST\index{BEAST} with a gamma distribution replacing the exponential one. The \x{clock} option
 corresponds to the strict clock model where all the lineages in the tree evolve at the same pace.
-
-
 \end{itemize}
 
 \subsubsection{PhyTime output}
@@ -1809,8 +1990,6 @@ are then confounded,  or non-identifiable, and only  the value of EvolRate can  
 the data.   {\color{red}{Please make sure  that you use  the value of  EvolRate rather than  that of
 ClockRate when referring to the estimate of the substitution rate}}.
 
-
-
 \subsubsection{Effective sample size}\label{sec:ess}
 
 The MCMC technique  generates samples from a  target distribution (in our case,  the joint posterior
@@ -1828,6 +2007,24 @@ r = \frac{1}{(N-k)\sigma_x^2} \sum_{i=1}^{N-k} (X_i - \mu_x)(X_{i+k}-\mu_x),
 respectively and $k$ is the lag. The value of $r$ that is used in PhyTime corresponds to the case where $k=1$,
 which therefore gives a first order  approximation of the `average' autocorrelation value (i.e., the
 autocorrelation averaged over the set of possible values of the lag).
+
+
+\subsubsection{Prior distributions of model parameters}\label{sec:prior}
+
+Any Bayesian analysis requires  specifying a prior distribution of model  parameters. The outcome of
+the data analysis, i.e., the posterior distribution,  is influenced by the priors.  It is especially
+true if the signal conveyed  by the data is weak.  While some have  argued that the specification of
+priors relies more  on arbitrary decisions than sound scientific  reasoning, choosing relevant prior
+distributions  is in  fact fully  integrated in  the process  of building  model that  generates the
+observed data.  In particular, the problem of  estimating divergence times naturally lends itself to
+hierarchical Bayesian modelling.  Based on the hypothesis  that rates of evolution are conserved (to
+some extant)  throughout the  course of  evolution, the hierarchical  Bayesian approach  provides an
+adequate framework for inferring substitution rates  and divergence dates separately. Hence, in this
+situation, it makes good  sense to use what is known about a  relatively well-defined feature of the
+evolution of genetic sequences (the ``molecular  clock'' hypothesis combined to stochastic variations of
+rates across lineages) to build a prior distribution on rates along edges.
+  
+
 
 
 \subsubsection{Citing PhyTime}\label{sec:citephytime}
