@@ -37,8 +37,13 @@ if WANT_TEST
 bin_PROGRAMS = test
 PROG = TEST
 else
+if WANT_SERGEII
+bin_PROGRAMS = sergeii
+PROG = sergeii
+else
 bin_PROGRAMS = phyml
 PROG = PHYML
+endif
 endif
 endif
 endif
@@ -299,6 +304,37 @@ xml.c xml.h\
 mixt.c mixt.h
 test_LDADD = -lm
 else
+serg_SOURCES = main.c \
+utilities.c  utilities.h\
+optimiz.c  optimiz.h\
+lk.c  lk.h\
+bionj.c bionj.h\
+models.c  models.h\
+free.c  free.h\
+help.c  help.h\
+simu.c  simu.h\
+eigen.c  eigen.h\
+pars.c  pars.h\
+alrt.c  alrt.h\
+interface.c  interface.h\
+cl.c  cl.h\
+spr.c spr.h\
+draw.c  draw.h\
+stats.c stats.h\
+rates.c rates.h\
+mcmc.c mcmc.h\
+times.c times.h\
+tiporder.c tiporder.h\
+mg.c mg.h\
+m4.c m4.h\
+io.c io.h\
+make.c make.h\
+nexus.c nexus.h\
+init.c init.h\
+xml.c xml.h\
+mixt.c mixt.h
+serg_LDADD = -lm 
+else
 phyml_SOURCES = main.c \
 utilities.c  utilities.h\
 optimiz.c  optimiz.h\
@@ -337,7 +373,7 @@ endif
 endif
 endif
 endif
-
+endif
 
 all-am:	intro $(bin_PROGRAMS)
 	@echo ""
