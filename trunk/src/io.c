@@ -5343,7 +5343,7 @@ void PhyML_XML(char *xml_filename)
 			    iomod->s_opt->opt_free_mixt_rates = *((int *)parent->ds->next->next->obj);
 			  }
 			
-			rate_value = XML_Get_Attribute_Value(instance,"value");
+			rate_value = XML_Get_Attribute_Value(instance,"init.value");
 
                         val  = String_To_Dbl(rate_value);
 
