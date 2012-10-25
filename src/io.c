@@ -4332,6 +4332,32 @@ void PhyML_XML(char *xml_filename)
     }
 
 
+  s = XML_Get_Attribute_Value(p_elem,"branch.test");
+  if(s)
+    {
+      if(!strcmp(s,"aLRT"))
+        {
+          io->ratio_test = ALRTSTAT;
+        }
+      else if(!strcmp(s,"aBayes"))
+        {
+          io->ratio_test = ABAYES;
+        }
+      else if(!strcmp(s,"SH"))
+        {
+          io->ratio_test = SH;
+        }
+      else
+        {
+          PhyML_Printf("\n== '%s' is not a valid option for 'branch.test'.",s);
+          PhyML_Printf("\n== Please use 'aLRT' or 'aBayes' or 'SH'.");
+          Exit("\n");
+        }
+
+      
+    }
+
+
     
 
   /*! Read all partitionelem nodes and mixturelem nodes in each of them
@@ -5759,7 +5785,7 @@ void PhyML_XML(char *xml_filename)
         {
           best_lnL = mixt_tree->c_lnL;
           if(most_likely_tree) Free(most_likely_tree);
-          aLRT(mixt_tree);
+          if(io->ratio_test) aLRT(mixt_tree);
           most_likely_tree = Write_Tree(mixt_tree,NO);
           mixt_tree->lock_topo = NO;
         }

@@ -867,7 +867,7 @@ int Read_Command_Line(option *io, int argc, char **argv)
 	  }
 	case 'b':case 10:
 	  {
-	    if (atoi(optarg) < -5)
+	    if ((int)String_To_Dbl(optarg) < -5)
 	      {
 		char choix;
 		PhyML_Printf("\n. Branch test value must be a positive integer for bootstrap, or between -1 and -4 for aLRT branch test\n");
@@ -877,7 +877,7 @@ int Read_Command_Line(option *io, int argc, char **argv)
 	      }
 	    else
 	      {
-		if((int)atoi(optarg) > 0)
+		if((int)String_To_Dbl(optarg) > 0)
 		  {
 		    io->ratio_test       = 0;
 		    io->mod->bootstrap   = (int)atoi(optarg);
