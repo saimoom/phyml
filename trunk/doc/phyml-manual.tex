@@ -1452,7 +1452,7 @@ different patterns of rate variation across sites.
 
 
 \subsection{XML options}
-\subsubsection{{\tt phyml} tag}\index{XML options!{\tt phyml} tag}
+\subsubsection{{\tt phyml} component}\index{XML options!{\tt phyml} component}
 Options:
 \begin{itemize}
 \item \x{outputfile="filename"}. The main output files of PhyML analysis will be named
@@ -1462,9 +1462,15 @@ Options:
 \item \x{print.trace="yes|true|no|false"}. PhyML will print the estimated trees (and the
   corresponding loglikelihoods) at multiple stages of the estimation process. This option is useful
   for monitoring the progress of the analysis when processing large data sets.
+\item \x{branch.test="aBayes|aLRT|SH"}. Calculate fast branch support using the aBayes method
+  \cite{anisimova11}, aLRT \cite{anisimova06} or SH \cite{shimodaira99} tests. These branch
+  statistics are much faster to estimate than the bootrap proportions and usually provide good
+  estimates of the probabilities that the corresponding edges are correctly inferred (see Anisimova et
+  al. 2011 for more precision). By default and if no bootstrap analysis is performed, branch supports
+  are estimated using the aBayes approach.
 
 \end{itemize}
-\subsubsection{{\tt topology} tag}\index{XML options!{\tt topology} tag}
+\subsubsection{{\tt topology} component}\index{XML options!{\tt topology} component}
 Options:
 \begin{itemize}
 \item \x{init.tree="bionj"|"user"|"random"}.  Starting tree. Default is \x{bionj}.
@@ -1477,7 +1483,7 @@ Options:
   slower but more accurate) or no moves.
 \end{itemize}
 \vspace{0.2cm}
-\begin{Verbatim}[frame=single, label=Example of `topology' tag, samepage=true, baselinestretch=0.5]
+\begin{Verbatim}[frame=single, label=Example of `topology' component, samepage=true, baselinestretch=0.5]
 
 <topology>
   <instance id="T1" init.tree="bionj" optimise.tree="true" \
@@ -1486,7 +1492,7 @@ Options:
 
 \end{Verbatim}
 
-\subsubsection{{\tt ratematrices} tag}\index{XML options!{\tt ratematrices} tag}\label{sec:xmlratematrices}
+\subsubsection{{\tt ratematrices} component}\index{XML options!{\tt ratematrices} component}\label{sec:xmlratematrices}
 Options:
 \begin{itemize}
 \item \x{model="JC69"|"K80"|"F81"|"F84"|"HKY85"|"TN93"|"GTR"|"custom"} for nucleotide data. The default is \x{"HKY85"}.\\
@@ -1504,7 +1510,7 @@ for amino-acid sequences. The default is \x{"LG"}.
   given value.  
 \end{itemize}
 \vspace{0.2cm}
-\begin{Verbatim}[frame=single, label=Example of `ratematrices' tag, samepage=true, baselinestretch=0.5]
+\begin{Verbatim}[frame=single, label=Example of `ratematrices' component, samepage=true, baselinestretch=0.5]
 
   <ratematrices id="RM1">
     <instance id="M1" model="custom" model.code="000000"/>
@@ -1514,7 +1520,7 @@ for amino-acid sequences. The default is \x{"LG"}.
 
 \end{Verbatim}
 
-\subsubsection{{\tt equfreqs} tag}\index{XML options!{\tt equfreqs} tag}
+\subsubsection{{\tt equfreqs} component}\index{XML options!{\tt equfreqs} component}
 Options:
 \begin{itemize}
 \item \x{base.freqs="a,b,c,d"} where \x{a-d} are nucleotide frequencies. Make sure that these
@@ -1526,7 +1532,7 @@ Options:
   the likelihood (\x{optimise.freq="yes|true"}).
 \end{itemize}
 \vspace{0.2cm}
-\begin{Verbatim}[frame=single, label=Example of `equfreqs' tag, samepage=true, baselinestretch=0.5]
+\begin{Verbatim}[frame=single, label=Example of `equfreqs' component, samepage=true, baselinestretch=0.5]
 
   <equfreqs id="EF1">
     <instance id="F1" base.freqs="0.25,0.25,0.25,0.25"/>
@@ -1536,14 +1542,14 @@ Options:
 
 \end{Verbatim}
 
-\subsubsection{{\tt branchlengths} tag}\index{XML options!{\tt branchlengths} tag}
+\subsubsection{{\tt branchlengths} component}\index{XML options!{\tt branchlengths} component}
 Options:
 \begin{itemize}
 \item \x{optimise.lens="yes"|"true"|"no"|"false"}: branch lengths are optimised or not. The default
   is set to \x{"yes"}.
 \end{itemize}
 \vspace{0.2cm}
-\begin{Verbatim}[frame=single, label=Example of `branchlengths' tag, baselinestretch=0.5]
+\begin{Verbatim}[frame=single, label=Example of `branchlengths' component, baselinestretch=0.5]
 
   <branchlengths id="BL1">
     <instance id="L1" optimise.lens="yes"/>
@@ -1553,12 +1559,12 @@ Options:
 
 \end{Verbatim}
 
-\subsubsection{{\tt siterates} tag}\index{XML options!{\tt siterates} tag}
+\subsubsection{{\tt siterates} component}\index{XML options!{\tt siterates} component}
 Options:
 \begin{itemize}
 \item \x{value="val"}, where \x{"val"} is the relative substitution rate for the corresponding class.
 \end{itemize}
-A \x{siterate} tag generally includes a \x{weights} element that specifies the probabilitic
+A \x{siterate} component generally includes a \x{weights} element that specifies the probabilitic
 distribution of the relative rates. The available options for such element are:
 \begin{itemize}
 \item \x{family="gamma|gamma+inv|freerates"}. \x{gamma} indicates that the distribution of the
@@ -1573,7 +1579,7 @@ distribution of the relative rates. The available options for such element are:
 \item \x{optimise.pinv="yes|true|no|false"}. Optimise the proportion of invariable sites (or not).
 \end{itemize} 
 \vspace{0.2cm}
-\begin{Verbatim}[frame=single, label=Example of `siterates' tag, samepage=true, baselinestretch=0.5]
+\begin{Verbatim}[frame=single, label=Example of `siterates' component, samepage=true, baselinestretch=0.5]
 
   <siterates id="SR1">
     <instance id="R1" init.value="1.0"/>
@@ -1587,8 +1593,8 @@ distribution of the relative rates. The available options for such element are:
 
 \end{Verbatim}
 
-\subsubsection{{\tt partitionelem} and {\tt mixtureelem} tags}\index{XML options!{\tt partitionelem}
-  tag}\index{XML options!{\tt mixtureelem} tag}
+\subsubsection{{\tt partitionelem} and {\tt mixtureelem} components}\index{XML options!{\tt partitionelem}
+  component}\index{XML options!{\tt mixtureelem} component}
 
 Options:
 \begin{itemize}
@@ -1608,7 +1614,7 @@ below, the first class of the mixture is made of the following elements: \x{T1},
 
 
 \vspace{0.2cm}
-\begin{Verbatim}[frame=single, label=Example of `partitionelem' tag, samepage=true, baselinestretch=0.5]
+\begin{Verbatim}[frame=single, label=Example of `partitionelem' component, samepage=true, baselinestretch=0.5]
 
   <partitionelem id="partition1" filename="./small_p1.nxs" \
    datatype="nt" interleaved="yes">
@@ -1622,7 +1628,58 @@ below, the first class of the mixture is made of the following elements: \x{T1},
 
 \subsection{A simple example}
 
-\subsection{A more complex example}
+The example below provides all the required options to fit a $\Gamma$4+I model to a single alignment of
+nucleotide sequences  under the  GTR model  of substitution  using a  SPR search  for the  best tree
+topology.
+
+\vspace{0.2cm}
+\begin{Verbatim}[frame=single, label=Simple PhyML XML example, samepage=true, baselinestretch=0.5]
+
+<phyml runid="simple.example" outputfile="p1.output">
+
+  <topology>
+    <instance id="T1" init.tree="bionj" optimise.tree="yes" \
+    search="spr"/>
+  </topology>
+  
+  <branchlengths id="BL1">
+    <instance id="L1" optimise.lens="yes"/>
+  </branchlengths>
+
+  <ratematrices id="RM1">
+    <instance id="M1" model="GTR"/>
+  </ratematrices>
+  
+  <equfreqs id="EF1">
+    <instance id="F1"/>
+  </equfreqs>
+
+  <siterates id="SR1">
+    <instance id="R1" value="1.0"/>
+    <instance id="R2" value="1.0"/>
+    <instance id="R3" value="1.0"/>
+    <instance id="R4" value="1.0"/>
+    <instance id="R5" value="0.0"/>
+    <weights  id="D1" family="gamma+inv" optimise.alpha="yes" \
+    optimise.pinv="yes">
+    </weights>
+  </siterates>
+
+  <partitionelem id="partition_elem1" filename=\
+  "./p1.seq" datatype="nt" interleaved="yes">
+    <mixtureelem list="T1, T1, T1, T1, T1"/>
+    <mixtureelem list="M1, M1, M1, M1, M1"/>
+    <mixtureelem list="F1, F1, F1, F1, F1"/>
+    <mixtureelem list="R1, R2, R3, R4, R5"/>
+    <mixtureelem list="L1, L1, L1, L1, L1"/>
+  </partitionelem>
+  
+</phyml>
+
+\end{Verbatim}
+
+
+\subsection{A more sophisticated example}
 
 The example below gives the complete XML file to specify the analysis of three partition elements,
 corresponding to the nucleotide sequence files \x{small\_p1\_pos1.seq}, \x{small\_p1\_pos2.seq} and
