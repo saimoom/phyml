@@ -1066,8 +1066,16 @@ void RATES_Free_Rates(t_rate *rates)
       Free(rates->survival_dur);
       Free(rates->calib_prob);
     }
+  Free_Calib(rates->calib);
   Free(rates);
 }
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
+
+void Free_Calib(t_cal *cal)
+{
+  if(!cal) return;
+  else Free_Calib(cal->next);
+  Free(cal);
+}
