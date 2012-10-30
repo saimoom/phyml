@@ -55,5 +55,6 @@ void Make_Tree_4_Pars(t_tree *tree, calign *cdata, int n_site);
 t_string *Make_String(int len);
 t_mcmc *MCMC_Make_MCMC_Struct();
 void Make_Tree_4_Lk(t_tree *tree,calign *cdata,int n_site);
+t_rate *RATES_Make_Rate_Struct(int n_otu);
 
 #endif

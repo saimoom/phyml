@@ -1201,6 +1201,7 @@ typedef struct __T_Rate {
   phydbl     *time_slice_lims;
   phydbl     *survival_rank;
   phydbl     *survival_dur;
+  phydbl     *calib_prob;
 
   int adjust_rates; /*! if = 1, branch rates are adjusted such that a modification of a given t_node time
 		       does not modify any branch lengths */
@@ -1234,6 +1235,8 @@ typedef struct __T_Rate {
   short int br_r_recorded;
 
   int *has_survived;
+
+  struct __Calibration *calib;
 
 }t_rate;
 
@@ -1394,6 +1397,18 @@ typedef struct __XML_attr {
 }xml_attr;
 
 /*!********************************************************/
+
+typedef struct __Calibration {
+  phydbl proba; // Probability of this calibration (set by the user and fixed throughout)
+  int node_number; // Calibration interval applies to this node
+  phydbl lower; // lower bound
+  phydbl upper; // upper bound
+  short int active; // Is this calibration in use or not
+  struct __Calibration *next;
+  struct __Calibration *prev;
+}t_cal;
+
+
 /*!********************************************************/
 /*!********************************************************/
 /*!********************************************************/
