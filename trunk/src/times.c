@@ -606,6 +606,15 @@ void TIMES_Set_All_Node_Priors(t_tree *tree)
       tree->rates->t_prior_min[tree->n_root->num] = 2.0 * min_prior;
       /* tree->rates->t_prior_min[tree->n_root->num] = 10. * min_prior; */
     }
+  
+  if(tree->rates->t_prior_min[tree->n_root->num] > 0.0)
+    {
+      PhyML_Printf("\n== Failed to set the lower bound for the root node.");
+      PhyML_Printf("\n== Make sure at least one of the calibration interval");
+      PhyML_Printf("\n== provides a lower bound.");
+      Exit("\n");
+    }
+
 
   TIMES_Set_All_Node_Priors_Top_Down(tree->n_root,tree->n_root->v[0],tree);
   TIMES_Set_All_Node_Priors_Top_Down(tree->n_root,tree->n_root->v[1],tree);
@@ -1624,6 +1633,34 @@ void TIMES_Label_Edges_With_Calibration_Intervals(t_tree *tree)
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
+
+void TIMES_Set_Calibration(t_tree *tree)
+{
+  t_cal *cal;
+  int i;
+
+  For(i,2*tree->n_otu-1)
+    {
+      tree->rates->t_has_prior[i] = NO;
+      tree->rates->t_prior_min[i] = -BIG;
+      tree->rates->t_prior_max[i] = -BIG; 
+   }
+
+  cal = tree->rates->calib;
+  while(cal)
+    {
+      if(cal->is_active == YES)
+        {
+          tree->rates->t_has_prior[cal->node_num] = YES;
+          tree->rates->t_prior_min[cal->node_num] = cal->lower;
+          tree->rates->t_prior_max[cal->node_num] = cal->upper;
+          cal = cal->next;
+        }
+    }
+
+  TIMES_Set_All_Node_Priors(tree);
+}
+
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////

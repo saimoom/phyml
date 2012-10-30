@@ -4388,12 +4388,12 @@ void PhyML_XML(char *xml_filename)
       /*! Set the datatype (required when compressing data)
        */
       char *dt = NULL;
-      dt = XML_Get_Attribute_Value(p_elem,"datatype");
+      dt = XML_Get_Attribute_Value(p_elem,"data.type");
       if(!dt)
 	{
 	  PhyML_Printf("\n== Please specify the type of data ('aa' or 'nt') for partition element '%s'",
                        XML_Get_Attribute_Value(p_elem,"id"));
-	  PhyML_Printf("\n== Syntax: 'datatype=\"aa\"' or 'datatype=\"nt\"'");
+	  PhyML_Printf("\n== Syntax: 'data.type=\"aa\"' or 'data.type=\"nt\"'");
 	  Exit("\n");	    
 	}
 
@@ -4452,11 +4452,11 @@ void PhyML_XML(char *xml_filename)
 
       /*! Input file
        */
-      alignment = XML_Get_Attribute_Value(p_elem,"filename");  
+      alignment = XML_Get_Attribute_Value(p_elem,"file.name");  
 
       if(!alignment)
         {
-          PhyML_Printf("\n== 'filename' tag is mandatory. Please amend your");
+          PhyML_Printf("\n== 'file.name' tag is mandatory. Please amend your");
           PhyML_Printf("\n== XML file accordingly.");
           Exit("\n");
         }
@@ -5267,7 +5267,6 @@ void PhyML_XML(char *xml_filename)
 					    }
 					}
 				      
-
 				      alpha_opt = XML_Get_Attribute_Value(w,"optimise.alpha");
 				      
 				      if(alpha_opt)
@@ -5371,8 +5370,9 @@ void PhyML_XML(char *xml_filename)
 			
 			rate_value = XML_Get_Attribute_Value(instance,"init.value");
 
-                        val  = String_To_Dbl(rate_value);
-
+                        val = 1.;
+                        if(rate_value) val = String_To_Dbl(rate_value);
+                        
 			if(instance->ds->obj == NULL) 
 			  {
                             r = val;
@@ -5415,6 +5415,7 @@ void PhyML_XML(char *xml_filename)
 				iomod->ras->gamma_r_proba->v[class_number] = String_To_Dbl(weight);
 			      }
     			  }
+
 		      }
 
 		    //////////////////////////////////////////////
@@ -5557,6 +5558,7 @@ void PhyML_XML(char *xml_filename)
       while(1);
     }
   while(1);
+
 
   if(ori_lens)     Free(ori_lens);
   if(ori_lens_old) Free(ori_lens_old);

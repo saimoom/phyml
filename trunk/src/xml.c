@@ -654,7 +654,7 @@ void XML_Check_Siterates_Node(xml_node *parent)
           if(!strcmp(n->name,"instance"))
             {
               rate_value = NULL;
-              rate_value = XML_Get_Attribute_Value(n,"value");  
+              rate_value = XML_Get_Attribute_Value(n,"init.value");  
 
               if(rate_value)
                 {
@@ -664,7 +664,7 @@ void XML_Check_Siterates_Node(xml_node *parent)
                   if(rate_value == endptr || errno == ERANGE)
                     {
                       PhyML_Printf("\n== value: %s",rate_value);
-                      PhyML_Printf("\n== Error in reading attribute 'value' in node 'instance'.");
+                      PhyML_Printf("\n== Error in reading attribute 'init.value' in node 'instance'.");
                       Exit("\n");
                     }
                   

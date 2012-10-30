@@ -1400,10 +1400,10 @@ typedef struct __XML_attr {
 
 typedef struct __Calibration {
   phydbl proba; // Probability of this calibration (set by the user and fixed throughout)
-  int node_number; // Calibration interval applies to this node
+  int node_num; // Calibration interval applies to this node
   phydbl lower; // lower bound
   phydbl upper; // upper bound
-  short int active; // Is this calibration in use or not
+  short int is_active; // Is this calibration in use or not
   struct __Calibration *next;
   struct __Calibration *prev;
 }t_cal;
