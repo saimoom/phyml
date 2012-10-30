@@ -700,6 +700,162 @@ void XML_Init_Node(xml_node *parent, xml_node *new_node, char *name)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
+void RATES_Init_Rate_Struct(t_rate *rates, t_rate *existing_rates, int n_otu)
+{
+  int i;
+
+  if(existing_rates && (existing_rates->model != -1))
+    {
+      rates->model = existing_rates->model;
+    }
+  else
+    {
+      rates->model = NONE;
+    }
+
+  if(rates->model == NONE)
+    rates->model_log_rates = NO;
+  else if(rates->model == THORNE)
+    rates->model_log_rates = YES;
+  else if(rates->model == GUINDON)
+    rates->model_log_rates = YES;
+  else if(rates->model == GAMMA)
+    rates->model_log_rates = NO;
+  else if(rates->model == STRICTCLOCK)
+    rates->model_log_rates = NO;
+  else
+    {
+      PhyML_Printf("\n. Please initialize model properly.");
+      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      Warn_And_Exit("");
+    }
+
+  rates->met_within_gibbs = NO;
+  rates->c_lnL_rates      = UNLIKELY;
+  rates->c_lnL_jps        = UNLIKELY;
+  rates->adjust_rates     = 0;
+  rates->use_rates        = 1;
+  rates->lexp             = 1.E-3;
+  rates->norm_fact        = 1.0;
+  rates->inflate_var      = 1.0;
+  rates->nd_t_recorded    = NO;
+  rates->br_r_recorded    = NO;
+
+  rates->birth_rate       = 1.E-2;
+  rates->birth_rate_min   = 1.E-6;
+  rates->birth_rate_max   = 1.E+1;
+
+  if(rates->model_log_rates == YES)
+    {
+      rates->max_rate  =  LOG(10.);
+      rates->min_rate  = -LOG(10.);
+      /* rates->max_rate  =  MDBL_MAX; */
+      /* rates->min_rate  = -MDBL_MAX; */
+    }
+  else
+    {
+      rates->max_rate  = 10.0;
+      rates->min_rate  = 0.0;
+    }
+  /* rates->max_rate         = 6.0; */
+  /* rates->min_rate         = 0.0; */
+
+
+  rates->clock_r       = 1.E-4;
+  rates->min_clock     = 1.E-8;
+  rates->max_clock     = 1.E-3;
+
+  /* rates->clock_r       = 3.E-4; */
+  /* rates->max_clock     = 1.E-3; */
+  /* rates->min_clock     = 1.E-5; */
+
+  if(rates->model != GAMMA)
+    {
+      rates->nu            = 1.E-3;
+      rates->min_nu        = 0.0;
+      rates->max_nu        = 1.0;
+    }
+  else
+    {
+      rates->nu            = 1.E-1;
+      rates->min_nu        = 1.E-2;
+      rates->max_nu        = 100.0;
+    }
+
+  /* rates->max_nu        = 2.0; */
+
+  /* rates->nu            = 1.E-4; */
+  /* rates->max_nu        = 1.E-1; */
+  /* rates->min_nu        = 1.E-5; */
+
+  rates->min_dt        = 0.0;
+
+  rates->step_rate     = 1.E-4;
+  rates->approx        = 1;
+  rates->bl_from_rt    = 0;
+
+  rates->update_mean_l = NO;
+  rates->update_cov_l  = NO;
+
+  rates->p_max         = 0.01;
+
+  rates->true_tree_size = 0.0;
+
+  if(n_otu > 0)
+    {
+      For(i,(2*n_otu-2)*(2*n_otu-2)) rates->cov_l[i] = 0.0;
+      
+      For(i,2*n_otu-2) 
+	{
+	  rates->n_jps[i]  =  -1;
+	  rates->t_jps[i]  =  -1;
+	  rates->mean_r[i] = 1.0;      
+	  rates->mean_l[i] = 0.0;      
+	}
+      
+      For(i,2*n_otu-1) 
+	{
+	  if(rates->model_log_rates == YES)
+	    {
+	      rates->nd_r[i]   = 0.0;
+	      rates->br_r[i]   = 0.0;
+	    }
+	  else
+	    {
+	      rates->nd_r[i]   = 1.0;
+	      rates->br_r[i]   = 1.0;
+	    }
+
+	  rates->mean_t[i] = 0.0;
+	  rates->nd_t[i]   = 0.0;
+	  rates->true_t[i] = 0.0;
+	  if(i < n_otu)
+	    {
+	      rates->t_has_prior[i] = YES;
+	      rates->t_prior_max[i] = 0.0;
+	      rates->t_prior_min[i] = 0.0;
+	    }
+	  else
+	    {
+	      rates->t_has_prior[i] = NO;
+	      rates->t_prior_max[i] =  BIG;
+	      rates->t_prior_min[i] = -BIG;
+	    }
+
+	  rates->br_do_updt[i] = YES;
+	  rates->has_survived[i] = NO;
+	  
+	  rates->t_ranked[i] = i;
+	}
+    }
+
+  rates->calib = NULL;
+  
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 void Init_One_Spr(t_spr *a_spr)
 {
   a_spr->lnL             = UNLIKELY;

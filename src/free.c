@@ -1010,3 +1010,64 @@ void M4_Free_M4_Model(m4 *m4mod)
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
+
+void RATES_Free_Rates(t_rate *rates)
+{
+  if(rates->is_allocated == YES)
+    {
+      Free(rates->nd_r);
+      Free(rates->br_r);
+      Free(rates->buff_r);
+      Free(rates->true_r);
+      Free(rates->buff_t);
+      Free(rates->nd_t);
+      Free(rates->true_t);
+      Free(rates->t_prior);
+      Free(rates->t_mean);
+      Free(rates->t_prior_min);
+      Free(rates->t_prior_max);
+      Free(rates->t_floor);
+      Free(rates->t_has_prior);
+      Free(rates->t_ranked);
+      Free(rates->dens);   
+      Free(rates->triplet);    
+      Free(rates->n_jps);  
+      Free(rates->t_jps);    
+      Free(rates->cond_var);
+      Free(rates->invcov);   
+      Free(rates->ml_l);
+      Free(rates->cur_l);
+      Free(rates->u_ml_l);
+      Free(rates->u_cur_l);
+      Free(rates->cov_r);
+      Free(rates->lca);
+      Free(rates->trip_cond_cov);
+      Free(rates->trip_reg_coeff);
+      Free(rates->_2n_vect1);
+      Free(rates->_2n_vect2);
+      Free(rates->_2n_vect3);
+      Free(rates->_2n_vect4);
+      Free(rates->_2n_vect5);
+      Free(rates->_2n2n_vect1);
+      Free(rates->_2n2n_vect2);
+      Free(rates->cov_l);
+      Free(rates->mean_l);
+      Free(rates->mean_t);
+      Free(rates->grad_l);
+      Free(rates->br_do_updt);
+      Free(rates->cur_gamma_prior_mean);
+      Free(rates->cur_gamma_prior_var);
+      Free(rates->n_tips_below);
+      Free(rates->time_slice_lims);
+      Free(rates->n_time_slice_spans);
+      Free(rates->curr_slice);
+      Free(rates->has_survived);
+      Free(rates->survival_rank);
+      Free(rates->survival_dur);
+      Free(rates->calib_prob);
+    }
+  Free(rates);
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////

@@ -928,6 +928,88 @@ t_spr *Make_One_Spr(t_tree *tree)
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
+
+t_rate *RATES_Make_Rate_Struct(int n_otu)
+{
+  t_rate *rates;
+  
+  rates = (t_rate  *)mCalloc(1,sizeof(t_rate));
+  rates->is_allocated = NO;
+
+  if(n_otu > 0)
+    {
+      rates->is_allocated         = YES;
+      rates->nd_r                 = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
+      rates->br_r                 = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
+      rates->buff_r               = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
+      rates->true_r               = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
+      rates->nd_t                 = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
+      rates->buff_t               = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
+      rates->true_t               = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
+      rates->t_mean               = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
+      rates->t_prior              = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
+      rates->t_prior_min          = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
+      rates->t_prior_max          = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
+      rates->t_floor              = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
+      rates->t_ranked             = (int *)mCalloc(2*n_otu-1,sizeof(int));
+      rates->t_has_prior          = (short int *)mCalloc(2*n_otu-1,sizeof(short int));
+      rates->dens                 = (phydbl *)mCalloc(2*n_otu-2,sizeof(phydbl));
+      rates->triplet              = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
+      rates->n_jps                = (int    *)mCalloc(2*n_otu-1,sizeof(int));
+      rates->t_jps                = (int    *)mCalloc(2*n_otu-2,sizeof(int));
+      rates->cov_l                = (phydbl *)mCalloc((2*n_otu-2)*(2*n_otu-2),sizeof(phydbl));
+      rates->invcov               = (phydbl *)mCalloc((2*n_otu-2)*(2*n_otu-2),sizeof(phydbl));
+      rates->mean_l               = (phydbl *)mCalloc(2*n_otu-2,sizeof(phydbl));
+      rates->ml_l                 = (phydbl *)mCalloc(2*n_otu-2,sizeof(phydbl));
+      rates->cur_l                = (phydbl *)mCalloc(2*n_otu-2,sizeof(phydbl));
+      rates->u_ml_l               = (phydbl *)mCalloc(2*n_otu-3,sizeof(phydbl));
+      rates->u_cur_l              = (phydbl *)mCalloc(2*n_otu-3,sizeof(phydbl));
+      rates->cov_r                = (phydbl *)mCalloc((2*n_otu-2)*(2*n_otu-2),sizeof(phydbl));
+      rates->cond_var             = (phydbl *)mCalloc(2*n_otu-2,sizeof(phydbl));
+      rates->mean_r               = (phydbl *)mCalloc(2*n_otu-2,sizeof(phydbl));
+      rates->mean_t               = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
+      rates->lca                  = (t_node **)mCalloc((2*n_otu-1)*(2*n_otu-1),sizeof(t_node *));
+      rates->reg_coeff            = (phydbl *)mCalloc((2*n_otu-2)*(2*n_otu-2),sizeof(phydbl));
+      rates->trip_reg_coeff       = (phydbl *)mCalloc((2*n_otu-2)*(6*n_otu-9),sizeof(phydbl));
+      rates->trip_cond_cov        = (phydbl *)mCalloc((2*n_otu-2)*9,sizeof(phydbl));
+      rates->_2n_vect1            = (phydbl *)mCalloc(2*n_otu,sizeof(phydbl));
+      rates->_2n_vect2            = (phydbl *)mCalloc(2*n_otu,sizeof(phydbl));
+      rates->_2n_vect3            = (phydbl *)mCalloc(2*n_otu,sizeof(phydbl));
+      rates->_2n_vect4            = (phydbl *)mCalloc(2*n_otu,sizeof(phydbl));
+      rates->_2n_vect5            = (short int *)mCalloc(2*n_otu,sizeof(short int));
+      rates->_2n2n_vect1          = (phydbl *)mCalloc(4*n_otu*n_otu,sizeof(phydbl));
+      rates->_2n2n_vect2          = (phydbl *)mCalloc(4*n_otu*n_otu,sizeof(phydbl));
+      rates->br_do_updt           = (short int *)mCalloc(2*n_otu-1,sizeof(short int));
+      rates->cur_gamma_prior_mean = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
+      rates->cur_gamma_prior_var  = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
+      rates->n_tips_below         = (int *)mCalloc(2*n_otu-1,sizeof(int));
+      rates->time_slice_lims      = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
+      rates->n_time_slice_spans   = (int *)mCalloc(2*n_otu-1,sizeof(int));
+      rates->curr_slice           = (int *)mCalloc(2*n_otu-1,sizeof(int));
+      rates->has_survived         = (int    *)mCalloc(2*n_otu-1,sizeof(int));
+      rates->survival_rank        = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
+      rates->survival_dur         = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
+      rates->calib_prob           = (phydbl *)mCalloc(2*n_otu-1,sizeof(phydbl));
+    }
+
+  return rates;
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+t_cal *Make_Calib()
+{
+  t_cal *cal;
+  cal = (t_cal *)mCalloc(1,sizeof(t_cal));
+}
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////

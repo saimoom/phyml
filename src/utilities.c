@@ -7471,7 +7471,7 @@ int Get_List_Of_Ancestors(t_node *ref_node, t_node **list, int *size, t_tree *tr
 
   if(!n)
     {
-      PhyML_Printf("\n== There seems to be a problem with the calibration file,\n");
+      PhyML_Printf("\n== There seems to be a problem with the calibration file.\n");
       return 0;
     }
   
@@ -7480,7 +7480,7 @@ int Get_List_Of_Ancestors(t_node *ref_node, t_node **list, int *size, t_tree *tr
       n = n->anc;
       if(!n)
         {
-          PhyML_Printf("\n== There seems to be a problem with the calibration file,\n");
+          PhyML_Printf("\n== n->anc has not been set properly (call Update_Ancestors first...)\n");
           return 0;
         }
       *size = *size+1;
