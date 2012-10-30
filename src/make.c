@@ -1002,6 +1002,7 @@ t_cal *Make_Calib()
 {
   t_cal *cal;
   cal = (t_cal *)mCalloc(1,sizeof(t_cal));
+  return(cal);
 }
 
 

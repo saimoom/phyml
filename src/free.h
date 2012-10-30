@@ -68,5 +68,6 @@ void Free_Scalar_Dbl(scalar_dbl *v);
 void Free_Edge_Core(t_edge *b);
 void M4_Free_M4_Model(m4 *m4mod);
 void RATES_Free_Rates(t_rate *rates);
+void Free_Calib(t_cal *cal);
 
 #endif

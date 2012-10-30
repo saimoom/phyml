@@ -304,7 +304,8 @@ xml.c xml.h\
 mixt.c mixt.h
 test_LDADD = -lm
 else
-serg_SOURCES = main.c \
+if WANT_SERGEII
+sergeii_SOURCES = main.c \
 utilities.c  utilities.h\
 optimiz.c  optimiz.h\
 lk.c  lk.h\
@@ -333,7 +334,7 @@ nexus.c nexus.h\
 init.c init.h\
 xml.c xml.h\
 mixt.c mixt.h
-serg_LDADD = -lm 
+sergeii_LDADD = -lm 
 else
 phyml_SOURCES = main.c \
 utilities.c  utilities.h\
@@ -374,6 +375,7 @@ endif
 endif
 endif
 endif
+
 
 all-am:	intro $(bin_PROGRAMS)
 	@echo ""
