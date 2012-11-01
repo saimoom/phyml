@@ -1642,8 +1642,8 @@ void TIMES_Set_Calibration(t_tree *tree)
   For(i,2*tree->n_otu-1)
     {
       tree->rates->t_has_prior[i] = NO;
-      tree->rates->t_prior_min[i] = -BIG;
-      tree->rates->t_prior_max[i] = -BIG; 
+      tree->rates->t_prior_min[i] = BIG;
+      tree->rates->t_prior_max[i] = BIG; 
    }
 
   cal = tree->rates->calib;
@@ -1653,9 +1653,9 @@ void TIMES_Set_Calibration(t_tree *tree)
         {
           tree->rates->t_has_prior[cal->node_num] = YES;
           tree->rates->t_prior_min[cal->node_num] = cal->lower;
-          tree->rates->t_prior_max[cal->node_num] = cal->upper;
-          cal = cal->next;
+          tree->rates->t_prior_max[cal->node_num] = cal->upper;          
         }
+      cal = cal->next;
     }
 
   TIMES_Set_All_Node_Priors(tree);
