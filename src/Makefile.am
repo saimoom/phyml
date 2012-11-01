@@ -333,6 +333,7 @@ make.c make.h\
 nexus.c nexus.h\
 init.c init.h\
 xml.c xml.h\
+sergeii.c sergeii.h\
 mixt.c mixt.h
 sergeii_LDADD = -lm 
 else
