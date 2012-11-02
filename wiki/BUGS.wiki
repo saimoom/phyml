@@ -1,4 +1,7 @@
-  * _11 July 2012._ A bug in version 20120412 prevented PhyTime to read in calibration information at tip nodes properly. This bug only affects serial sample analyses. To apply this patch, copy the corresponding file in the src/ directory and type 'patch -i 20120711.patch'. Note that this patch incorporate the modifications from the previous patch (20120312.patch), making this last one obsolete.
+  * _02 November 2012._ Minor bug in version 20120412 that prevented PhyML to print out the statistics file properly when processing multiple data sets. To apply the patch, copy the corresponding file 20121102.patch in the src/ directory and type 'patch -i 20121102.patch'.
+
+
+  * _11 July 2012._ A bug in version 20120412 prevented PhyTime to read in calibration information at tip nodes properly. This bug only affects serial sample analyses. To apply the patch, copy the file 20120711.patch in the src/ directory and type 'patch -i 20120711.patch'. Note that this patch incorporate the modifications from the previous patch (20120312.patch), making this last one obsolete.
 
 
   * _15 May 2012._ A bug in version 20120412 prevented constrained tree analysis to proceed. This patch fixes it. It also merges with the previous patch for calculating likelihood scores accurately on very big tree (see just below). To apply it, copy the corresponding file in the src/ directory and type 'patch -i 20120312.patch'.
