@@ -420,9 +420,11 @@ void Free_Edge_Lk(t_edge *b)
 void Free_Model_Complete(t_mod *mixt_mod)
 {
   Free_Eigen(mixt_mod->eigen);
-  Free_RAS(mixt_mod->ras);      
   Free_Rmat(mixt_mod->r_mat);
   Free_Efrq(mixt_mod->e_frq); 
+  Free_Vect_Dbl(mixt_mod->Pij_rr);
+  mixt_mod->r_mat = NULL;
+  mixt_mod->e_frq = NULL;
 }
 
 //////////////////////////////////////////////////////////////
@@ -432,7 +434,7 @@ void Free_Model_Basic(t_mod *mixt_mod)
 {
   t_mod *mod;
 
-  Free_Vect_Dbl(mixt_mod->Pij_rr);
+  Free_RAS(mixt_mod->ras);      
   Free_Vect_Dbl(mixt_mod->user_b_freq);
   Free_Scalar_Dbl(mixt_mod->mr);
   Free_Scalar_Dbl(mixt_mod->kappa);

@@ -92,7 +92,7 @@ int main(int argc, char **argv)
   For(num_data_set,io->n_data_sets)
     {
       best_lnL = UNLIKELY;
-      Get_Seq(io);
+      Get_Seq(io);      
       Make_Model_Complete(io->mod);
       Set_Model_Name(io->mod);
       Print_Settings(io);

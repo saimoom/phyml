@@ -529,9 +529,6 @@ t_mod *Make_Model_Basic()
 
   mod->ras = Make_RAS_Basic();
  
-  mod->Pij_rr                 = (vect_dbl *)mCalloc(1,sizeof(vect_dbl));
-  Init_Vect_Dbl(0,mod->Pij_rr);
-
   mod->kappa                  = (scalar_dbl *)mCalloc(1,sizeof(scalar_dbl));
   Init_Scalar_Dbl(mod->kappa);
 
@@ -564,15 +561,14 @@ void Make_Model_Complete(t_mod *mod)
       mod->ns = mod->m4mod->n_o * mod->m4mod->n_h;
     }
   
+  mod->Pij_rr = (vect_dbl *)mCalloc(1,sizeof(vect_dbl));
+  Init_Vect_Dbl(0,mod->Pij_rr);
   mod->Pij_rr->v = (phydbl *)mCalloc(mod->ras->n_catg*mod->ns*mod->ns,sizeof(phydbl));
+
   mod->eigen     = (eigen *)Make_Eigen_Struct(mod->ns);
+  
   // If r_mat (e_frq) are not NULL, then they have been created elsewhere and affected.
-
-  if(!mod->r_mat) 
-    {
-      mod->r_mat = (t_rmat *)Make_Rmat(mod->ns);
-    }
-
+  if(!mod->r_mat) mod->r_mat = (t_rmat *)Make_Rmat(mod->ns);
   if(!mod->e_frq) mod->e_frq = (t_efrq *)Make_Efrq(mod->ns);
 
   Make_RAS_Complete(mod->ras);
