@@ -730,6 +730,7 @@ option *Make_Input()
   io->treelist                          = (t_treelist *)mCalloc(1,sizeof(t_treelist));
   io->mcmc                              = (t_mcmc *)MCMC_Make_MCMC_Struct();
   io->rates                             = (t_rate *)RATES_Make_Rate_Struct(-1);
+
   return io;
 }
 
