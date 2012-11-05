@@ -23,6 +23,7 @@ the GNU public licence. See http://www.opensource.org for details.
 #include "pars.h"
 #include "alrt.h"
 #include "mixt.h"
+#include "sergeii.h"
 
 #ifdef MPI
 #include "mpi_boot.h"
@@ -471,9 +472,12 @@ int main(int argc, char **argv)
 #include "sergeii.h"
 int main(int argc, char **argv)
 {
-  /* My_Function(argv[1]); */
-  My_main(argc, argv);
+  /*My_Function(argc, argv);*/
+  PhyTime_XML(argc, argv);
+  return 1;
 }
+
+
 
 #endif
 

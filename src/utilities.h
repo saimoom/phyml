@@ -1214,7 +1214,7 @@ typedef struct __T_Rate {
 
   int update_mean_l;
   int update_cov_l;
-
+	
   int *n_jps;
   int *t_jps;
   int n_time_slices;
@@ -1276,6 +1276,9 @@ typedef struct __Tmcmc {
   int num_move_birth_rate;
 
   int         nd_t_digits;
+  int *monitor;
+
+
 
   char *out_filename;
 
