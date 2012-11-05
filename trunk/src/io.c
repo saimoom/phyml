@@ -1674,7 +1674,6 @@ void Read_Ntax_Len_Phylip(FILE *fp ,int *n_otu, int *n_tax)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
 align **Read_Seq_Sequential(option *io)
 {
   int i;
@@ -1709,8 +1708,8 @@ align **Read_Seq_Sequential(option *io)
 
       if(data[i]->len != io->init_len * io->state_len)
 	{
-	  PhyML_Printf("\n. Err: Problem with species %s's sequence (check the format).\n",data[i]->name);
-	  PhyML_Printf("\n. Observed sequence length: %d, expected length: %d\n",data[i]->len, io->init_len * io->state_len);
+	  PhyML_Printf("\n== Err: Problem with species %s's sequence (check the format).\n",data[i]->name);
+	  PhyML_Printf("\n== Observed sequence length: %d, expected length: %d\n",data[i]->len, io->init_len * io->state_len);
 	  Warn_And_Exit("");
 	}
     }
