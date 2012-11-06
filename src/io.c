@@ -3892,6 +3892,11 @@ void Print_Data_Structure(int final, FILE *fp, t_tree *mixt_tree)
           PhyML_Fprintf(fp,"\n");
 	  PhyML_Fprintf(fp,"\n. Mixture class %d",class+1);
 
+          if(mixt_tree->mod->ras->n_catg > 1)
+            {
+              PhyML_Fprintf(fp,"\n. Relative substitution rate:\t%12f",mixt_tree->mod->ras->gamma_rr->v[tree->mod->ras->parent_class_number]);
+            }
+
 	  PhyML_Fprintf(fp,"\n   Substitution model:\t\t%12s",tree->mod->modelname->s);
           
           if(tree->mod->whichmodel == CUSTOM)
@@ -5237,7 +5242,7 @@ void PhyML_XML(char *xml_filename)
 					    }
 					}
 				      
-				      iomod->ras->n_catg = XML_Siterates_Number_Of_Classes(parent);
+				      iomod->ras->n_catg = XML_Get_Number_Of_Classes_Siterates(parent);
 				      
 				      Make_RAS_Complete(iomod->ras);
 
@@ -5311,17 +5316,14 @@ void PhyML_XML(char *xml_filename)
 					    }
 					}
 
-
-				      iomod->ras->n_catg = XML_Siterates_Number_Of_Classes(parent);
-				      iomod->ras->n_catg--;
-
+				      iomod->ras->n_catg = XML_Get_Number_Of_Classes_Siterates(parent);
 				      break;
 				    }
 				  case 2: // FreeRate model
 				    {
 				      iomod->ras->free_mixt_rates = YES;
 				      iomod->s_opt->opt_free_mixt_rates = YES;				      
-				      iomod->ras->n_catg = XML_Siterates_Number_Of_Classes(parent);
+				      iomod->ras->n_catg = XML_Get_Number_Of_Classes_Siterates(parent);
 				      break;
 				    }
 				  default:
@@ -5337,10 +5339,11 @@ void PhyML_XML(char *xml_filename)
 
 			    if(w && nc != iomod->ras->n_catg)
 			      {
-				PhyML_Printf("\n== 'Siterates' node. The number of 'weight' classes");
-				PhyML_Printf("\n== should be the same as that of 'instance' nodes.");
-				PhyML_Printf("\n== Please fix your XML file accordingly.");
-				Exit("\n");
+				PhyML_Printf("\n== <siterates> component '%s'. The number of classes ",parent->id);
+				PhyML_Printf("\n== specified in the <weight> component should be ");
+				PhyML_Printf("\n== the same as that of <instance> nodes. Please fix");
+				PhyML_Printf("\n== your XML file accordingly.");
+                                Exit("\n");
 			      }
 
 			    if(!w) iomod->ras->n_catg = nc;

@@ -1239,6 +1239,16 @@ void MIXT_Check_RAS_Struct_In_Each_Partition_Elem(t_tree *mixt_tree)
         {
           if(tree->is_mixt_tree) 
             {
+              if(tree->mod->ras->invar == YES)
+                {
+                  if(tree->next->mod->ras->invar == NO)
+                    {
+                      PhyML_Printf("\n== The invariant site class has to be the first element in");
+                      PhyML_Printf("\n== each <mixtureelem> component. Please amend you XML");
+                      PhyML_Printf("\n== file accordingly.\n");
+                      Exit("\n.");
+                    }
+                }
               tree  = tree->next;
               n_classes = 0;
             }
@@ -1249,14 +1259,14 @@ void MIXT_Check_RAS_Struct_In_Each_Partition_Elem(t_tree *mixt_tree)
             {
               if(n_classes != tree->mixt_tree->mod->ras->n_catg)
                 {                  
-                  PhyML_Printf("\n== %d class%s found in 'partitionelem' for file '%s' while the corresponding",
+                  PhyML_Printf("\n== %d class%s found in 'partitionelem' for file '%s' while",
                                n_classes,
                                (n_classes>1)?"es\0":"\0",
                                tree->mixt_tree->io->in_align_file);
-                  PhyML_Printf("\n== 'siterates' element defined %d class%s.",
+                  PhyML_Printf("\n== the corresponding 'siterates' element defined %d class%s.",
                                tree->mixt_tree->mod->ras->n_catg,
                                (tree->mixt_tree->mod->ras->n_catg>1)?"es\0":"\0");
-                  PhyML_Printf("\n== Err in file %s at line %d\n\n",__FILE__,__LINE__);
+                  PhyML_Printf("\n== Err. in file %s at line %d\n\n",__FILE__,__LINE__);
                   Warn_And_Exit("\n");
                 }
             }
