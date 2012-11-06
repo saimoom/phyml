@@ -488,6 +488,7 @@ xml_node *XML_Search_Node_ID(char *id, int skip, xml_node *node)
 xml_node *XML_Search_Node_Attribute_Value(char *attr_name, char *value, int skip, xml_node *node)
 {
   xml_node *match;
+
   
   if(!node)
     {
@@ -495,9 +496,15 @@ xml_node *XML_Search_Node_Attribute_Value(char *attr_name, char *value, int skip
       PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
       Exit("\n");         
     }
-
-
+  
   match = NULL;
+
+  if(skip) 
+    {
+      match = XML_Search_Node_Attribute_Value(attr_name, value, NO, node->child);
+      return match;
+    }
+
   if(skip == NO && node->attr)
     {
       xml_attr *attr;
@@ -517,30 +524,24 @@ xml_node *XML_Search_Node_Attribute_Value(char *attr_name, char *value, int skip
       while(1);
     }
 
-  if(!match) 
+  if(match) return(match);
+
+  if(node->child)
     {
-      // If node has a child, node = child, else if node has next, node = next, else if node
-      // has parent, node = parent->next else node = NULL
-      if(node->child)
-        {
-          match = XML_Search_Node_Attribute_Value(attr_name,value,NO,node->child);
-        }
-      if(match == NULL && node->next)
-        {
-          match = XML_Search_Node_Attribute_Value(attr_name,value,NO,node->next);
-        }
-      if(match == NULL && node->parent)
-        {
-          if(node->parent == NULL) // Reached the root
-            {
-              PhyML_Printf("\n== Could not find a node with attribute '%s' and value '%s'.",attr_name,value);
-              Exit("\n");
-            }
-          return NULL;
-        }
+      match = XML_Search_Node_Attribute_Value(attr_name,value,NO,node->child);
+      return match;
     }
-  return match;
+  if(node->next && !match)
+    {
+      match = XML_Search_Node_Attribute_Value(attr_name,value,NO,node->next);
+      return match;
+    }
+  return NULL;
 }
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
@@ -620,9 +621,10 @@ void XML_Check_Siterates_Node(xml_node *parent)
       PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
       Exit("\n");         
     }
+
   if(strcmp(parent->name,"siterates"))
     {
-      PhyML_Printf("\n. Node name '%s' should be 'siterates'",parent->name);
+      PhyML_Printf("\n== Node name '%s' should be 'siterates'",parent->name);
       Exit("\n");
     }
   
@@ -680,6 +682,7 @@ void XML_Check_Siterates_Node(xml_node *parent)
         {
           PhyML_Printf("\n== # of zero-rates: %d",n_zeros);
           PhyML_Printf("\n== Exactly one rate value has to be set to zero when using the 'gamma+inv' model.");
+          PhyML_Printf("\n== Component id: %s",parent->id);
           Exit("\n");
         }
     }
@@ -708,7 +711,8 @@ int XML_Get_Number_Of_Classes_Siterates(xml_node *parent)
       if(!n) break;
     }
   while(1);
-      
+  
+  n = NULL;
   n = XML_Search_Node_Attribute_Value("family","gamma+inv",YES,parent);
 
   if(!n) return n_classes;
@@ -727,31 +731,11 @@ int XML_Siterates_Has_Invariants(xml_node *parent)
       Exit("\n");         
     }
       
+  n = NULL;
   n = XML_Search_Node_Attribute_Value("family","gamma+inv",YES,parent);
 
   if(!n) return NO;
   else return YES;
-}
-
-//////////////////////////////////////////////////////////////
-
-int XML_Siterates_Number_Of_Classes(xml_node *sr_node)
-{
-  xml_node *buff;
-  int n_classes;
-
-  buff = sr_node->child;
-  n_classes = 0;
-
-  do
-    {
-      if(!buff) break;
-      if(!strcmp(buff->name,"instance")) n_classes++;
-      buff = buff->next;
-    }while(1);
-  
-  return n_classes;
-  
 }
 
 //////////////////////////////////////////////////////////////
