@@ -23,6 +23,7 @@ the GNU public licence.  See http://www.opensource.org for details.
 #include "models.h"
 #include "free.h"
 #include "interface.h"
+#include "sergeii.h"
 
 
 int Read_Command_Line(option *input, int argc, char **argv);
