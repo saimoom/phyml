@@ -186,7 +186,6 @@ int TIMES_main(int argc, char **argv)
 		  /* Count the number of time slices */
 		  TIMES_Get_Number_Of_Time_Slices(tree);
 		  
-
                   TIMES_Label_Edges_With_Calibration_Intervals(tree);
                   tree->write_br_lens = NO;
                   PhyML_Printf("\n");

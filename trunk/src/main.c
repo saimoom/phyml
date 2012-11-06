@@ -473,7 +473,8 @@ int main(int argc, char **argv)
 int main(int argc, char **argv)
 {
   /*My_Function(argc, argv);*/
-  PhyTime_XML(argc, argv);
+  /* PhyTime_XML(argc, argv); */
+  Get_Input(argc,argv);
   return 1;
 }
 

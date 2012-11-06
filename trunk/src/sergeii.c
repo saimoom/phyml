@@ -18,14 +18,16 @@
 
 
 
-int PhyTime_XML(int argc, char **argv){
+void PhyTime_XML(char *xml_file)
+{
 
   FILE *f;
   char **clade, *clade_name, **mon_list;
   phydbl low, up;
   int i, j, n_taxa, clade_size, node_num, n_mon;
   xml_node *n_r, *n_t, *n_m, *n_cur;
-  t_cal *last_calib, *cur;
+  t_cal *last_calib;
+  /* t_cal *cur; */
   align **data;
   option *io;
 
@@ -35,11 +37,10 @@ int PhyTime_XML(int argc, char **argv){
   last_calib = NULL;
 
   //file can/cannot be open:
-  if ((f =(FILE *)fopen(argv[1], "r")) == NULL)
+  if ((f =(FILE *)fopen(xml_file, "r")) == NULL)
     {
       PhyML_Printf("\n==File can not be open...\n");
       Exit("\n");
-      return 0;
     }
 
   n_r = XML_Load_File(f);
@@ -255,7 +256,7 @@ int PhyTime_XML(int argc, char **argv){
 
   io -> tree -> rates -> calib = last_calib;
   while(io -> tree -> rates -> calib -> prev) io -> tree -> rates -> calib = io -> tree -> rates -> calib -> prev;
-  cur = io -> tree -> rates -> calib;
+  /* cur = io -> tree -> rates -> calib; */
   /*
   do
     {
@@ -285,6 +286,6 @@ int PhyTime_XML(int argc, char **argv){
 
   fclose(f);
 
-  return 1;   
+  /* return 1;    */
 }
 
