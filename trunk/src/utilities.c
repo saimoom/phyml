@@ -2387,16 +2387,15 @@ int Is_Ambigu(char *state, int datatype, int stepsize)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
 void Check_Ambiguities(calign *data, int datatype, int stepsize)
 {
   int i,j;
 
   For(j,data->crunch_len) 
     {
+      data->ambigu[j] = NO;
       For(i,data->n_otu)
 	{
-	  data->ambigu[j]              = NO;
 	  data->c_seq[i]->is_ambigu[j] = NO;
 	}
 

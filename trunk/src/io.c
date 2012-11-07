@@ -3811,10 +3811,10 @@ void Print_Data_Structure(int final, FILE *fp, t_tree *mixt_tree)
   int *link_efrq,*link_rmat,*link_lens;
 
   
-  PhyML_Fprintf(fp,"\n. Starting tree:\t%12s",
+  PhyML_Fprintf(fp,"\n. Starting tree: %s",
 	       mixt_tree->io->in_tree == 2?mixt_tree->io->in_tree_file:"BioNJ");
 
-  PhyML_Fprintf(fp,"\n. Tree topology search:\t%12s",
+  PhyML_Fprintf(fp,"\n. Tree topology search: %s",
 	       mixt_tree->io->mod->s_opt->opt_topo==YES?
 	       mixt_tree->io->mod->s_opt->topo_search==SPR_MOVE?"spr":
 	       mixt_tree->io->mod->s_opt->topo_search==NNI_MOVE?"nni":
@@ -3853,7 +3853,7 @@ void Print_Data_Structure(int final, FILE *fp, t_tree *mixt_tree)
   Free(s);
 
   if(final == YES)
-    PhyML_Fprintf(fp,"\n. Final log-likelihood: %12f",mixt_tree->c_lnL);
+    PhyML_Fprintf(fp,"\n. Final log-likelihood: %f",mixt_tree->c_lnL);
 
   do
     {
@@ -3895,6 +3895,7 @@ void Print_Data_Structure(int final, FILE *fp, t_tree *mixt_tree)
           if(mixt_tree->mod->ras->n_catg > 1)
             {
               PhyML_Fprintf(fp,"\n. Relative substitution rate:\t%12f",mixt_tree->mod->ras->gamma_rr->v[tree->mod->ras->parent_class_number]);
+              PhyML_Fprintf(fp,"\n. Relative substitution rate:\t%12f",mixt_tree->mod->ras->gamma_r_proba->v[tree->mod->ras->parent_class_number]);
             }
 
 	  PhyML_Fprintf(fp,"\n   Substitution model:\t\t%12s",tree->mod->modelname->s);
@@ -4696,168 +4697,9 @@ void PhyML_XML(char *xml_filename)
                         /* ! First time we process this 'instance' node which has this 'ratematrices' parent */
                         if(instance->ds->obj == NULL)
                           {
-                            /*! Init substitution model here */
-                            char *model = NULL;
-                            
-                            model = XML_Get_Attribute_Value(instance,"model");  
-                            
-                            if(model == NULL)
-                              {
-                                PhyML_Printf("\n== Poorly formated XML file.");
-                                PhyML_Printf("\n== Attribute 'model' is mandatory in a <ratematrix> node.");
-                                Exit("\n");
-                              }
-                            
-                            select = XML_Validate_Attr_Int(model,26,
-                                                           "xxxxx",    //0
-                                                           "JC69",     //1
-                                                           "K80",      //2
-                                                           "F81",      //3
-                                                           "HKY85",    //4
-                                                           "F84",      //5
-                                                           "TN93",     //6
-                                                           "GTR",      //7
-                                                           "CUSTOM",   //8
-                                                           "xxxxx",    //9
-                                                           "xxxxx",    //10
-                                                           "WAG",      //11
-                                                           "DAYHOFF",  //12
-                                                           "JTT",      //13
-                                                           "BLOSUM62", //14
-                                                           "MTREV",    //15
-                                                           "RTREV",    //16
-                                                           "CPREV",    //17
-                                                           "DCMUT",    //18
-                                                           "VT",       //19
-                                                           "MTMAM",    //20
-                                                           "MTART",    //21
-                                                           "HIVW",     //22
-                                                           "HIVB",     //23
-                                                           "CUSTOMAA", //24
-                                                           "LG");      //25
 
-                            if(select < 9)
-                              {
-                                mod->ns = 4;
-                                if(io->datatype != NT)
-                                  {
-                                    PhyML_Printf("\n== Data type and selected model are incompatible");
-                                    Exit("\n");
-                                  }
-                              }
-                            else
-                              {
-                                mod->ns = 20;
-                                if(io->datatype != AA)
-                                  {
-                                    PhyML_Printf("\n== Data type and selected model are incompatible");
-                                    Exit("\n");
-                                  }
-                              }
-                                                        
-                            io->mod->ns = mod->ns;
-                            
-                            mod->r_mat = (t_rmat *)Make_Rmat(mod->ns);
-                              
-                            /*! Set model number & name */
-                            mod->whichmodel = Set_Whichmodel(select);
-                            Set_Model_Name(mod);
+                            Make_Ratematrice_From_XML_Node(instance, io, mod);
 
-                            if(mod->whichmodel == K80   || 
-                               mod->whichmodel == HKY85 || 
-                               mod->whichmodel == TN93)
-                              {
-                                char *tstv,*opt_tstv;
-                                
-                                tstv = XML_Get_Attribute_Value(instance,"tstv");
-                                
-                                if(tstv)
-                                  {
-                                    mod->s_opt->opt_kappa = NO;
-                                    mod->kappa->v = String_To_Dbl(tstv);
-                                  }
-                                else
-                                  {
-                                    mod->s_opt->opt_kappa = YES;
-                                  }
-                                                                
-                                opt_tstv = XML_Get_Attribute_Value(instance,"optimise.tstv");
-                                
-                                if(opt_tstv)
-                                  {
-                                    if(!strcmp(opt_tstv,"true") || !strcmp(opt_tstv,"yes"))
-                                      {
-                                        mod->s_opt->opt_kappa = YES;
-                                      }
-                                    else
-                                      {
-                                        mod->s_opt->opt_kappa = NO;
-                                      }
-                                  }
-                              }
-                            else
-                              {
-                                mod->s_opt->opt_kappa = NO;
-                              }
-                                                        
-                            if(mod->whichmodel == GTR || mod->whichmodel == CUSTOM)
-                              {
-                                char *opt_rr;
-
-                                opt_rr = XML_Get_Attribute_Value(instance,"optimise.rr");
-                                
-                                if(opt_rr)
-                                  {
-                                    if(!strcmp(opt_rr,"yes") || !strcmp(opt_rr,"true"))
-                                      {
-                                        mod->s_opt->opt_rr = YES;
-                                      }
-                                  }
-                              }
-                            
-                            /*! Custom model for nucleotide sequences. Read the corresponding
-                             code. */
-                            if(mod->whichmodel == CUSTOM)
-                              {
-                                char *model_code = NULL;
-                                
-                                model_code = XML_Get_Attribute_Value(instance,"model.code");  
-
-                                if(!model_code)
-                                  {
-                                    PhyML_Printf("\n== No valid 'model.code' attribute could be found.\n");
-                                    PhyML_Printf("\n== Please fix your XML file.\n");
-                                    Exit("\n");                                    
-                                  }
-                                else
-                                  {
-                                    strcpy(mod->custom_mod_string->s,model_code);
-                                  }
-                              }
-
-
-                            /*! Custom model for amino-acids. Read in the rate matrix file */
-                            if(mod->whichmodel == CUSTOMAA)
-                              {
-                                char *r_mat_file;
-                                
-                                r_mat_file = XML_Get_Attribute_Value(instance,"ratematrixfile");  
-                                
-                                if(!r_mat_file)
-                                  {
-                                    PhyML_Printf("\n== No valid 'ratematrixfile' attribute could be found.");
-                                    PhyML_Printf("\n== Please fix your XML file.\n");
-                                    Exit("\n");
-                                  }
-                                else
-                                  {
-                                    io->fp_aa_rate_mat = Openfile(r_mat_file,0);
-                                    strcpy(io->aa_rate_mat_file,r_mat_file);
-                                  }
-                                
-                                Free(r_mat_file);
-                              }
-                            
                             ds = instance->ds;
 
                             /*! Connect the data structure n->ds to mod->r_mat */
@@ -4944,70 +4786,8 @@ void PhyML_XML(char *xml_filename)
 			// been initialized. If not, do nothing.
 			if(instance->ds->obj == NULL)  
                           {
-                            char *buff;
+                            Make_Efrq_From_XML_Node(instance,io,mod);
                             
-                            mod->e_frq = (t_efrq *)Make_Efrq(mod->ns);
-                            Init_Efrq(mod->e_frq);
-                            
-                            buff = XML_Get_Attribute_Value(instance,"optimise.freq");
-                            
-                            if(buff)
-                              {
-                                if(!strcmp(buff,"yes") || !strcmp(buff,"true"))
-                                  {
-                                    if(io->datatype == AA)
-                                      {
-                                        PhyML_Printf("\n== Option 'optimise.freq' set to 'yes' (or 'true')");
-                                        PhyML_Printf("\n== is not allowed with amino-acid data.");
-                                        Exit("\n");
-                                      }
-                                    mod->s_opt->opt_state_freq = YES;
-                                  }
-                                Free(buff);
-                              }
-
-                            buff = XML_Get_Attribute_Value(instance,"aa.freqs");
-                            
-                            if(buff)
-                              {
-                                if(!strcmp(buff,"empirical"))
-                                  {
-                                    if(io->datatype == AA)
-                                      {
-                                        mod->s_opt->opt_state_freq = YES;
-                                      }
-                                    else if(io->datatype == NT)
-                                      {
-                                        mod->s_opt->opt_state_freq = NO;
-                                      }
-                                  }
-                                Free(buff);
-                              }
-                            
-
-                            buff = XML_Get_Attribute_Value(instance,"base.freqs");
-                            
-                            if(buff)
-                              {
-                                if(io->datatype == AA)
-                                  {
-                                    PhyML_Printf("\n== Option 'base.freqs' is not allowed with amino-acid data.");
-                                    Exit("\n");
-                                  }
-                                else
-                                  {
-                                    phydbl A,C,G,T;
-                                    sscanf(buff,"%lf,%lf,%lf,%lf",&A,&C,&G,&T);
-                                    mod->user_b_freq->v[0] = (phydbl)A;
-                                    mod->user_b_freq->v[1] = (phydbl)C;
-                                    mod->user_b_freq->v[2] = (phydbl)G;
-                                    mod->user_b_freq->v[3] = (phydbl)T;
-                                    mod->s_opt->user_state_freq = YES;
-                                    mod->s_opt->opt_state_freq  = NO;
-                                  }
-                              }
-                            
-
                             t_ds *ds;
 
                             ds = instance->ds;
@@ -5050,129 +4830,14 @@ void PhyML_XML(char *xml_filename)
                     
 		    else if(!strcmp(parent->name,"topology"))
 		      {
-			if(parent->ds->obj == NULL)
-			  {
-
-                            // Starting tree
-                            char *init_tree;
-                            
-                            init_tree = XML_Get_Attribute_Value(instance,"init.tree");
-                            
-                            if(!init_tree)
-                              {
-                                PhyML_Printf("\n== Attribute 'init.tree=bionj/user/random' is mandatory");
-                                PhyML_Printf("\n== Please amend your XML file accordingly.");
-                                Exit("\n");
-                              }
-                            
-                            if(!strcmp(init_tree,"user") || 
-                               !strcmp(init_tree,"User"))
-                              {
-                                char *starting_tree = NULL;
-                                starting_tree = XML_Get_Attribute_Value(instance,"filename");
-                                
-                                if(!Filexists(starting_tree))
-                                  {
-                                    PhyML_Printf("\n== The tree file '%s' could not be found.",starting_tree);
-                                    Exit("\n");
-                                  }
-                                else
-                                  {
-                                    strcpy(io->in_tree_file,starting_tree);
-                                    io->in_tree = 2;
-                                    io->fp_in_tree = Openfile(io->in_tree_file,0);
-                                  }
-                              }
-                            else if(!strcmp(init_tree,"random") || 
-                                    !strcmp(init_tree,"Random"))
-                              {
-                                char *n_rand_starts = NULL;
-                                
-                                io->mod->s_opt->random_input_tree = YES;
-                                
-                                n_rand_starts = XML_Get_Attribute_Value(instance,"n.rand.starts");
-                                
-                                if(n_rand_starts)
-                                  {
-                                    iomod->s_opt->n_rand_starts = atoi(n_rand_starts);
-                                    if(iomod->s_opt->n_rand_starts < 1) Exit("\n== Number of random starting trees must be > 0.\n\n");
-                                  }
-                                
-                                strcpy(io->out_trees_file,io->in_align_file);
-                                strcat(io->out_trees_file,"_phyml_rand_trees");
-                                if(io->append_run_ID) { strcat(io->out_trees_file,"_"); strcat(io->out_trees_file,io->run_id_string); }
-                                io->fp_out_trees = Openfile(io->out_trees_file,1);
-                              }
-                            else if(!strcmp(init_tree,"parsimony") || 
-                                    !strcmp(init_tree,"Parsimony"))
-                              {
-                                io->in_tree = 1;
-                              }
-                        
-                            // Estimate tree topology
-                            char *optimise = NULL;
-                            
-                            optimise = XML_Get_Attribute_Value(instance,"optimise.tree");
-                            
-                            if(optimise)
-                              {
-                                int select;
-                                
-                                select = XML_Validate_Attr_Int(optimise,6,
-                                                               "true","yes","y",
-                                                               "false","no","n");
-                                
-                                if(select > 2) io->mod->s_opt->opt_topo = NO;
-                                else
-                                  {
-                                    char *search;
-                                    int select;
-                                    
-                                    search = XML_Get_Attribute_Value(instance,"search");				    
-                                    select = XML_Validate_Attr_Int(search,4,"spr","nni","best","none");
-				
-                                    switch(select)
-                                      {
-                                      case 0:
-                                        {
-                                          io->mod->s_opt->topo_search = SPR_MOVE;
-                                          io->mod->s_opt->opt_topo    = YES;
-                                          break;
-                                        }
-                                      case 1:
-                                        {
-                                          io->mod->s_opt->topo_search = NNI_MOVE;
-                                          io->mod->s_opt->opt_topo    = YES;
-                                          break;
-                                        }
-                                      case 2:
-                                        {
-                                          io->mod->s_opt->topo_search = BEST_OF_NNI_AND_SPR;
-                                          io->mod->s_opt->opt_topo    = YES;
-                                          break;
-                                        }
-                                      case 3:
-                                        {
-                                          io->mod->s_opt->opt_topo    = NO;
-                                          break;
-                                        }
-                                      default:
-                                        {
-                                          PhyML_Printf("\n== Topology search option '%s' is not valid.",search);
-                                          Exit("\n");
-                                          break;
-                                        }
-                                      }
-                                  }
-                              }
-                          }
-
+			if(parent->ds->obj == NULL) Make_Topology_From_XML_Node(instance,io,iomod);
 
                         ds = parent->ds;
                         
                         int buff;
                         ds->obj = (int *)(& buff);
                       }
+
 		    //////////////////////////////////////////
 		    //                RAS                   //
 		    //////////////////////////////////////////
@@ -5189,166 +4854,9 @@ void PhyML_XML(char *xml_filename)
                         */
 			if(parent->ds->obj == NULL)
 			  {
-			    xml_node *w;
-			    char *family;
-			    int select;
-			    
-			    iomod->ras->n_catg = 0;
-			    class_number = 0;
+                            class_number = 0;
 
-			    XML_Check_Siterates_Node(parent);
-			    
-			    w = XML_Search_Node_Name("weights",YES,parent);
-			    if(w)
-			      {
-				family = XML_Get_Attribute_Value(w,"family");
-				select = XML_Validate_Attr_Int(family,3,"gamma","gamma+inv","freerates");
-				switch(select)
-				  {
-				  case 0: // Gamma model
-				    {
-				      char *alpha,*alpha_opt;
-
-				      iomod->s_opt->opt_pinvar = NO;
-				      iomod->ras->invar        = NO;
-
-				      alpha = XML_Get_Attribute_Value(w,"alpha");
-				      
-				      if(alpha)
-					{
-					  if(!strcmp(alpha,"estimate") || !strcmp(alpha,"estimated") || 
-					     !strcmp(alpha,"optimise") || !strcmp(alpha,"optimised"))
-					    {
-					      iomod->s_opt->opt_alpha = YES;
-					    }
-					  else
-					    {					  
-					      iomod->s_opt->opt_alpha = NO;
-					      iomod->ras->alpha->v = String_To_Dbl(alpha);
-					    }
-					}
-
-				      alpha_opt = XML_Get_Attribute_Value(w,"optimise.alpha");
-				      
-				      if(alpha_opt)
-					{
-					  if(!strcmp(alpha_opt,"yes") || !strcmp(alpha_opt,"true"))
-					    {
-					      iomod->s_opt->opt_alpha = YES;
-					    }
-					  else
-					    {					  
-					      iomod->s_opt->opt_alpha = NO;
-					    }
-					}
-				      
-				      iomod->ras->n_catg = XML_Get_Number_Of_Classes_Siterates(parent);
-				      
-				      Make_RAS_Complete(iomod->ras);
-
-				      break;
-				    }
-				  case 1: // Gamma+Inv model
-				    {
-				      char *alpha,*pinv,*alpha_opt,*pinv_opt;
-
-				      iomod->ras->invar        = YES;
-				      iomod->s_opt->opt_pinvar = YES;
-
-				      alpha = XML_Get_Attribute_Value(w,"alpha");
-				      
-				      if(alpha)
-					{
-					  if(!strcmp(alpha,"estimate") || !strcmp(alpha,"estimated") || 
-					     !strcmp(alpha,"optimise") || !strcmp(alpha,"optimised"))
-					    {
-					      iomod->s_opt->opt_alpha = YES;
-					    }
-					  else
-					    {
-					      iomod->s_opt->opt_alpha = NO;
-					      iomod->ras->alpha->v = String_To_Dbl(alpha);;
-					    }
-					}
-				      
-				      alpha_opt = XML_Get_Attribute_Value(w,"optimise.alpha");
-				      
-				      if(alpha_opt)
-					{
-					  if(!strcmp(alpha_opt,"yes") || !strcmp(alpha_opt,"true"))
-					    {
-					      iomod->s_opt->opt_alpha = YES;
-					    }
-					  else
-					    {					  
-					      iomod->s_opt->opt_alpha = NO;
-					    }
-					}
-
-
-				      pinv = XML_Get_Attribute_Value(w,"pinv");
-				      
-				      if(pinv)
-					{
-					  if(!strcmp(pinv,"estimate") || !strcmp(pinv,"estimated") || 
-					     !strcmp(pinv,"optimise.pinv") || !strcmp(pinv,"opt.pinv"))
-					    {
-					      iomod->s_opt->opt_pinvar = YES;
-					    }
-					  else
-					    {
-					      iomod->s_opt->opt_pinvar = NO;
-					      iomod->ras->pinvar->v = String_To_Dbl(pinv);;
-					    }
-					}
-
-				      pinv_opt = XML_Get_Attribute_Value(w,"optimise.pinv");
-				      
-				      if(pinv_opt)
-					{
-					  if(!strcmp(pinv_opt,"yes") || !strcmp(pinv_opt,"true"))
-					    {
-					      iomod->s_opt->opt_pinvar = YES;
-					    }
-					  else
-					    {					  
-					      iomod->s_opt->opt_pinvar = NO;
-					    }
-					}
-
-				      iomod->ras->n_catg = XML_Get_Number_Of_Classes_Siterates(parent);
-				      break;
-				    }
-				  case 2: // FreeRate model
-				    {
-				      iomod->ras->free_mixt_rates = YES;
-				      iomod->s_opt->opt_free_mixt_rates = YES;				      
-				      iomod->ras->n_catg = XML_Get_Number_Of_Classes_Siterates(parent);
-				      break;
-				    }
-				  default:
-				    {
-				      PhyML_Printf("\n== family: %s",family);
-				      PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
-				      Exit("\n");
-				    }
-				  }
-			      }
-			   
-			    int nc = XML_Get_Number_Of_Classes_Siterates(parent);
-
-			    if(w && nc != iomod->ras->n_catg)
-			      {
-				PhyML_Printf("\n== <siterates> component '%s'. The number of classes ",parent->id);
-				PhyML_Printf("\n== specified in the <weight> component should be ");
-				PhyML_Printf("\n== the same as that of <instance> nodes. Please fix");
-				PhyML_Printf("\n== your XML file accordingly.");
-                                Exit("\n");
-			      }
-
-			    if(!w) iomod->ras->n_catg = nc;
-
-			    Make_RAS_Complete(iomod->ras);
+                            Make_RAS_From_XML_Node(parent,iomod);
 
                             ds = parent->ds;
 
@@ -5887,12 +5395,528 @@ void Check_Taxa_Sets(t_tree *mixt_tree)
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
+
+void Make_Ratematrice_From_XML_Node(xml_node *instance, option *io, t_mod *mod)
+{
+  char *model = NULL;
+  int select;
+
+  model = XML_Get_Attribute_Value(instance,"model");  
+  
+  if(model == NULL)
+    {
+      PhyML_Printf("\n== Poorly formated XML file.");
+      PhyML_Printf("\n== Attribute 'model' is mandatory in a <ratematrix> node.");
+      Exit("\n");
+    }
+  
+  select = XML_Validate_Attr_Int(model,26,
+                                 "xxxxx",    //0
+                                 "JC69",     //1
+                                 "K80",      //2
+                                 "F81",      //3
+                                 "HKY85",    //4
+                                 "F84",      //5
+                                 "TN93",     //6
+                                 "GTR",      //7
+                                 "CUSTOM",   //8
+                                 "xxxxx",    //9
+                                 "xxxxx",    //10
+                                 "WAG",      //11
+                                 "DAYHOFF",  //12
+                                 "JTT",      //13
+                                 "BLOSUM62", //14
+                                 "MTREV",    //15
+                                 "RTREV",    //16
+                                 "CPREV",    //17
+                                 "DCMUT",    //18
+                                 "VT",       //19
+                                 "MTMAM",    //20
+                                 "MTART",    //21
+                                 "HIVW",     //22
+                                 "HIVB",     //23
+                                 "CUSTOMAA", //24
+                                 "LG");      //25
+  
+  if(select < 9)
+    {
+      mod->ns = 4;
+      if(io->datatype != NT)
+        {
+          PhyML_Printf("\n== Data type and selected model are incompatible");
+          Exit("\n");
+        }
+    }
+  else
+    {
+      mod->ns = 20;
+      if(io->datatype != AA)
+        {
+          PhyML_Printf("\n== Data type and selected model are incompatible");
+          Exit("\n");
+        }
+    }
+  
+  io->mod->ns = mod->ns;
+  
+  mod->r_mat = (t_rmat *)Make_Rmat(mod->ns);
+  
+  /*! Set model number & name */
+  mod->whichmodel = Set_Whichmodel(select);
+  Set_Model_Name(mod);
+  
+  if(mod->whichmodel == K80   || 
+     mod->whichmodel == HKY85 || 
+     mod->whichmodel == TN93)
+    {
+      char *tstv,*opt_tstv;
+      
+      tstv = XML_Get_Attribute_Value(instance,"tstv");
+      
+      if(tstv)
+        {
+          mod->s_opt->opt_kappa = NO;
+          mod->kappa->v = String_To_Dbl(tstv);
+        }
+      else
+        {
+          mod->s_opt->opt_kappa = YES;
+        }
+      
+      opt_tstv = XML_Get_Attribute_Value(instance,"optimise.tstv");
+      
+      if(opt_tstv)
+        {
+          if(!strcmp(opt_tstv,"true") || !strcmp(opt_tstv,"yes"))
+            {
+              mod->s_opt->opt_kappa = YES;
+            }
+          else
+            {
+              mod->s_opt->opt_kappa = NO;
+            }
+        }
+    }
+  else
+    {
+      mod->s_opt->opt_kappa = NO;
+    }
+  
+  if(mod->whichmodel == GTR || mod->whichmodel == CUSTOM)
+    {
+      char *opt_rr;
+      
+      opt_rr = XML_Get_Attribute_Value(instance,"optimise.rr");
+      
+      if(opt_rr)
+        {
+          if(!strcmp(opt_rr,"yes") || !strcmp(opt_rr,"true"))
+            {
+              mod->s_opt->opt_rr = YES;
+            }
+        }
+    }
+  
+  /*! Custom model for nucleotide sequences. Read the corresponding
+    code. */
+  if(mod->whichmodel == CUSTOM)
+    {
+      char *model_code = NULL;
+      
+      model_code = XML_Get_Attribute_Value(instance,"model.code");  
+      
+      if(!model_code)
+        {
+          PhyML_Printf("\n== No valid 'model.code' attribute could be found.\n");
+          PhyML_Printf("\n== Please fix your XML file.\n");
+          Exit("\n");                                    
+        }
+      else
+        {
+          strcpy(mod->custom_mod_string->s,model_code);
+        }
+    }
+  
+  
+  /*! Custom model for amino-acids. Read in the rate matrix file */
+  if(mod->whichmodel == CUSTOMAA)
+    {
+      char *r_mat_file;
+      
+      r_mat_file = XML_Get_Attribute_Value(instance,"ratematrixfile");  
+      
+      if(!r_mat_file)
+        {
+          PhyML_Printf("\n== No valid 'ratematrixfile' attribute could be found.");
+          PhyML_Printf("\n== Please fix your XML file.\n");
+          Exit("\n");
+        }
+      else
+        {
+          io->fp_aa_rate_mat = Openfile(r_mat_file,0);
+          strcpy(io->aa_rate_mat_file,r_mat_file);
+        }
+      
+      Free(r_mat_file);
+    }  
+}
+
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
+
+void Make_Efrq_From_XML_Node(xml_node *instance, option *io, t_mod *mod)
+{
+  char *buff;
+  
+  mod->e_frq = (t_efrq *)Make_Efrq(mod->ns);
+  Init_Efrq(mod->e_frq);
+  
+  buff = XML_Get_Attribute_Value(instance,"optimise.freq");
+  
+  if(buff)
+    {
+      if(!strcmp(buff,"yes") || !strcmp(buff,"true"))
+        {
+          if(io->datatype == AA)
+            {
+              PhyML_Printf("\n== Option 'optimise.freq' set to 'yes' (or 'true')");
+              PhyML_Printf("\n== is not allowed with amino-acid data.");
+              Exit("\n");
+            }
+          mod->s_opt->opt_state_freq = YES;
+        }
+      Free(buff);
+    }
+  
+  buff = XML_Get_Attribute_Value(instance,"aa.freqs");
+  
+  if(buff)
+    {
+      if(!strcmp(buff,"empirical"))
+        {
+          if(io->datatype == AA)
+            {
+              mod->s_opt->opt_state_freq = YES;
+            }
+          else if(io->datatype == NT)
+            {
+              mod->s_opt->opt_state_freq = NO;
+            }
+        }
+      Free(buff);
+    }
+  
+  
+  buff = XML_Get_Attribute_Value(instance,"base.freqs");
+  
+  if(buff)
+    {
+      if(io->datatype == AA)
+        {
+          PhyML_Printf("\n== Option 'base.freqs' is not allowed with amino-acid data.");
+          Exit("\n");
+        }
+      else
+        {
+          phydbl A,C,G,T;
+          sscanf(buff,"%lf,%lf,%lf,%lf",&A,&C,&G,&T);
+          mod->user_b_freq->v[0] = (phydbl)A;
+          mod->user_b_freq->v[1] = (phydbl)C;
+          mod->user_b_freq->v[2] = (phydbl)G;
+          mod->user_b_freq->v[3] = (phydbl)T;
+          mod->s_opt->user_state_freq = YES;
+          mod->s_opt->opt_state_freq  = NO;
+        }
+    }  
+}
+
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
+
+void Make_Topology_From_XML_Node(xml_node *instance, option *io, t_mod *mod)
+{
+  // Starting tree
+  char *init_tree;
+  
+  init_tree = XML_Get_Attribute_Value(instance,"init.tree");
+  
+  if(!init_tree)
+    {
+      PhyML_Printf("\n== Attribute 'init.tree=bionj|user|random' is mandatory");
+      PhyML_Printf("\n== Please amend your XML file accordingly.");
+      Exit("\n");
+    }
+  
+  if(!strcmp(init_tree,"user") || 
+     !strcmp(init_tree,"User"))
+    {
+      char *starting_tree = NULL;
+      starting_tree = XML_Get_Attribute_Value(instance,"filename");
+      
+      if(!Filexists(starting_tree))
+        {
+          PhyML_Printf("\n== The tree file '%s' could not be found.",starting_tree);
+          Exit("\n");
+        }
+      else
+        {
+          strcpy(io->in_tree_file,starting_tree);
+          io->in_tree = 2;
+          io->fp_in_tree = Openfile(io->in_tree_file,0);
+        }
+    }
+  else if(!strcmp(init_tree,"random") || 
+          !strcmp(init_tree,"Random"))
+    {
+      char *n_rand_starts = NULL;
+      
+      io->mod->s_opt->random_input_tree = YES;
+      
+      n_rand_starts = XML_Get_Attribute_Value(instance,"n.rand.starts");
+      
+      if(n_rand_starts)
+        {
+          mod->s_opt->n_rand_starts = atoi(n_rand_starts);
+          if(mod->s_opt->n_rand_starts < 1) Exit("\n== Number of random starting trees must be > 0.\n\n");
+        }
+      
+      strcpy(io->out_trees_file,io->in_align_file);
+      strcat(io->out_trees_file,"_phyml_rand_trees");
+      if(io->append_run_ID) { strcat(io->out_trees_file,"_"); strcat(io->out_trees_file,io->run_id_string); }
+      io->fp_out_trees = Openfile(io->out_trees_file,1);
+    }
+  else if(!strcmp(init_tree,"parsimony") || 
+          !strcmp(init_tree,"Parsimony"))
+    {
+      io->in_tree = 1;
+    }
+  
+  // Estimate tree topology
+  char *optimise = NULL;
+  
+  optimise = XML_Get_Attribute_Value(instance,"optimise.tree");
+                            
+  if(optimise)
+    {
+      int select;
+      
+      select = XML_Validate_Attr_Int(optimise,6,
+                                     "true","yes","y",
+                                     "false","no","n");
+      
+      if(select > 2) io->mod->s_opt->opt_topo = NO;
+      else
+        {
+          char *search;
+          int select;
+          
+          search = XML_Get_Attribute_Value(instance,"search");				    
+          select = XML_Validate_Attr_Int(search,4,"spr","nni","best","none");
+          
+          switch(select)
+            {
+            case 0:
+              {
+                io->mod->s_opt->topo_search = SPR_MOVE;
+                io->mod->s_opt->opt_topo    = YES;
+                break;
+              }
+            case 1:
+              {
+                io->mod->s_opt->topo_search = NNI_MOVE;
+                io->mod->s_opt->opt_topo    = YES;
+                break;
+              }
+            case 2:
+              {
+                io->mod->s_opt->topo_search = BEST_OF_NNI_AND_SPR;
+                io->mod->s_opt->opt_topo    = YES;
+                break;
+              }
+            case 3:
+              {
+                io->mod->s_opt->opt_topo    = NO;
+                break;
+              }
+            default:
+              {
+                PhyML_Printf("\n== Topology search option '%s' is not valid.",search);
+                Exit("\n");
+                break;
+              }
+            }
+        }
+    } 
+}
+
+
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
+
+void Make_RAS_From_XML_Node(xml_node *parent, t_mod *mod)
+{
+  xml_node *w;
+  char *family;
+  int select;
+
+  mod->ras->n_catg = 0;
+  
+  XML_Check_Siterates_Node(parent);
+			    
+  w = XML_Search_Node_Name("weights",YES,parent);
+  if(w)
+    {
+      family = XML_Get_Attribute_Value(w,"family");
+      select = XML_Validate_Attr_Int(family,3,"gamma","gamma+inv","freerates");
+      switch(select)
+        {
+        case 0: // Gamma model
+          {
+            char *alpha,*alpha_opt;
+            
+            mod->s_opt->opt_pinvar = NO;
+            mod->ras->invar        = NO;
+            
+            alpha = XML_Get_Attribute_Value(w,"alpha");
+            
+            if(alpha)
+              {
+                if(!strcmp(alpha,"estimate") || !strcmp(alpha,"estimated") || 
+                   !strcmp(alpha,"optimise") || !strcmp(alpha,"optimised"))
+                  {
+                    mod->s_opt->opt_alpha = YES;
+                  }
+                else
+                  {					  
+                    mod->s_opt->opt_alpha = NO;
+                    mod->ras->alpha->v = String_To_Dbl(alpha);
+                  }
+              }
+            
+            alpha_opt = XML_Get_Attribute_Value(w,"optimise.alpha");
+            
+            if(alpha_opt)
+              {
+                if(!strcmp(alpha_opt,"yes") || !strcmp(alpha_opt,"true"))
+                  {
+                    mod->s_opt->opt_alpha = YES;
+                  }
+                else
+                  {					  
+                    mod->s_opt->opt_alpha = NO;
+                  }
+              }
+            
+            mod->ras->n_catg = XML_Get_Number_Of_Classes_Siterates(parent);
+            
+            Make_RAS_Complete(mod->ras);
+            
+            break;
+          }
+        case 1: // Gamma+Inv model
+          {
+            char *alpha,*pinv,*alpha_opt,*pinv_opt;
+            
+            mod->ras->invar        = YES;
+            mod->s_opt->opt_pinvar = YES;
+            
+            alpha = XML_Get_Attribute_Value(w,"alpha");
+            
+            if(alpha)
+              {
+                if(!strcmp(alpha,"estimate") || !strcmp(alpha,"estimated") || 
+                   !strcmp(alpha,"optimise") || !strcmp(alpha,"optimised"))
+                  {
+                    mod->s_opt->opt_alpha = YES;
+                  }
+                else
+                  {
+                    mod->s_opt->opt_alpha = NO;
+                    mod->ras->alpha->v = String_To_Dbl(alpha);;
+                  }
+              }
+            
+            alpha_opt = XML_Get_Attribute_Value(w,"optimise.alpha");
+            
+            if(alpha_opt)
+              {
+                if(!strcmp(alpha_opt,"yes") || !strcmp(alpha_opt,"true"))
+                  {
+                    mod->s_opt->opt_alpha = YES;
+                  }
+                else
+                  {					  
+                    mod->s_opt->opt_alpha = NO;
+                  }
+              }
+            
+            
+            pinv = XML_Get_Attribute_Value(w,"pinv");
+            
+            if(pinv)
+              {
+                if(!strcmp(pinv,"estimate") || !strcmp(pinv,"estimated") || 
+                   !strcmp(pinv,"optimise.pinv") || !strcmp(pinv,"opt.pinv"))
+                  {
+                    mod->s_opt->opt_pinvar = YES;
+                  }
+                else
+                  {
+                    mod->s_opt->opt_pinvar = NO;
+                    mod->ras->pinvar->v = String_To_Dbl(pinv);;
+                  }
+              }
+            
+            pinv_opt = XML_Get_Attribute_Value(w,"optimise.pinv");
+            
+            if(pinv_opt)
+              {
+                if(!strcmp(pinv_opt,"yes") || !strcmp(pinv_opt,"true"))
+                  {
+                    mod->s_opt->opt_pinvar = YES;
+                  }
+                else
+                  {					  
+                    mod->s_opt->opt_pinvar = NO;
+                  }
+              }
+            
+            mod->ras->n_catg = XML_Get_Number_Of_Classes_Siterates(parent);
+            break;
+          }
+        case 2: // FreeRate model
+          {
+            mod->ras->free_mixt_rates = YES;
+            mod->s_opt->opt_free_mixt_rates = YES;				      
+            mod->ras->n_catg = XML_Get_Number_Of_Classes_Siterates(parent);
+            break;
+          }
+        default:
+          {
+            PhyML_Printf("\n== family: %s",family);
+            PhyML_Printf("\n== Err in file %s at line %d\n",__FILE__,__LINE__);
+            Exit("\n");
+          }
+        }
+    }
+  
+  int nc = XML_Get_Number_Of_Classes_Siterates(parent);
+  
+  if(w && nc != mod->ras->n_catg)
+    {
+      PhyML_Printf("\n== <siterates> component '%s'. The number of classes ",parent->id);
+      PhyML_Printf("\n== specified in the <weight> component should be ");
+      PhyML_Printf("\n== the same as that of <instance> nodes. Please fix");
+      PhyML_Printf("\n== your XML file accordingly.");
+      Exit("\n");
+    }
+  
+  if(!w) mod->ras->n_catg = nc;
+  
+  Make_RAS_Complete(mod->ras);
+  
+}
+
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
