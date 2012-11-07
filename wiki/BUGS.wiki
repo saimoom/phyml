@@ -1,3 +1,6 @@
+  * _08 November 2012._ Minor bug in version 20120412 in the printing of edge lengths after calculating branch length supports using aLRT, aBayes or SH. To apply the patch, copy the file 20121108.patch in the src/ directory and type 'patch -i 20121108.patch'.
+
+
   * _02 November 2012._ Minor bug in version 20120412 that prevented PhyML to print out the statistics file properly when processing multiple data sets. To apply the patch, copy the file 20121102.patch in the src/ directory and type 'patch -i 20121102.patch'.
 
 
