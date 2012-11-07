@@ -568,8 +568,14 @@ void Make_Model_Complete(t_mod *mod)
   mod->eigen     = (eigen *)Make_Eigen_Struct(mod->ns);
   
   // If r_mat (e_frq) are not NULL, then they have been created elsewhere and affected.
-  if(!mod->r_mat) mod->r_mat = (t_rmat *)Make_Rmat(mod->ns);
-  if(!mod->e_frq) mod->e_frq = (t_efrq *)Make_Efrq(mod->ns);
+  if(!mod->r_mat) 
+    {
+      mod->r_mat = (t_rmat *)Make_Rmat(mod->ns);
+    }
+  if(!mod->e_frq) 
+    {
+      mod->e_frq = (t_efrq *)Make_Efrq(mod->ns);
+    }
 
   Make_RAS_Complete(mod->ras);
   
