@@ -131,8 +131,8 @@ int Check_NNI_Five_Branches(t_tree *tree)
 
       if((tree->c_lnL < init_lnL - tree->mod->s_opt->min_diff_lk_local) || (tree->c_lnL > init_lnL + tree->mod->s_opt->min_diff_lk_local))
 	{
-	  PhyML_Printf("\n\n. tree->c_lnL = %f init_lnL = %f.",tree->c_lnL,init_lnL);
-	  PhyML_Printf("\n. Err in file %s at line %d\n\n.\n",__FILE__,__LINE__);
+	  PhyML_Printf("\n\n== tree->c_lnL = %f init_lnL = %f.",tree->c_lnL,init_lnL);
+	  PhyML_Printf("\n== Err in file %s at line %d\n\n.\n",__FILE__,__LINE__);
 	  Warn_And_Exit("\n");
 	}
 

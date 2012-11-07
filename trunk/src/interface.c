@@ -197,7 +197,7 @@ void Launch_Interface(option *io)
 
   if(io->mod->whichmodel == GTR) 
     {
-      Make_Custom_Model(io->mod);
+      /* Make_Custom_Model(io->mod); */
       io->mod->s_opt->opt_rr = 1;
     }
 }
@@ -335,9 +335,7 @@ void Launch_Interface_Input(option *io)
       else             io->out_stats_file_open_mode = 2;
     }
 
-  printf("\n. MODE = %d",io->out_stats_file_open_mode);
-
-  io->fp_out_stats = Openfile(io->out_stats_file,io->out_stats_file_open_mode);
+  /* io->fp_out_stats = Openfile(io->out_stats_file,io->out_stats_file_open_mode); */
 
 #ifdef WIN32
 #ifdef EVOLVE
@@ -380,7 +378,8 @@ void Launch_Interface_Input(option *io)
       if(choix == 'R') io->out_tree_file_open_mode = 1;
       else             io->out_tree_file_open_mode = 2;
     }
-  io->fp_out_tree = Openfile(io->out_tree_file,io->out_tree_file_open_mode);
+
+  /* io->fp_out_tree = Openfile(io->out_tree_file,io->out_tree_file_open_mode); */
 }
 
 //////////////////////////////////////////////////////////////
@@ -831,9 +830,12 @@ void Launch_Interface_Model(option *io)
 	      }while(n_trial < 10);
 	    if(n_trial == 10) Exit("");
 
-
-	    if(!mod->r_mat->rr->v) Make_Custom_Model(mod);
-	    Translate_Custom_Mod_String(io->mod);
+            if(!mod->r_mat) 
+              {
+                mod->r_mat = (t_rmat *)Make_Rmat(mod->ns);
+                Make_Custom_Model(mod);
+                Translate_Custom_Mod_String(io->mod);
+              }
 
 	    strcpy(rr_param[0],"A<->C");
 	    strcpy(rr_param[1],"A<->G");
@@ -875,7 +877,7 @@ void Launch_Interface_Model(option *io)
 		  }
 	      }
 
-	    For(i,5) Free(rr_param[i]);
+	    For(i,6) Free(rr_param[i]);
 	    Free(rr_param);
 	    Free(rr);
 	  }
