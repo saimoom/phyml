@@ -27,6 +27,7 @@ void MIXT_Chain_All(t_tree *mixt_tree)
   
   do
     {
+      MIXT_Chain_String(curr->mod->aa_rate_mat_file,next->mod->aa_rate_mat_file);      
       MIXT_Chain_String(curr->mod->modelname,next->mod->modelname);      
       MIXT_Chain_String(curr->mod->custom_mod_string,next->mod->custom_mod_string);            
       MIXT_Chain_Scalar_Dbl(curr->mod->kappa,next->mod->kappa);            
@@ -592,6 +593,7 @@ phydbl MIXT_Lk(t_edge *mixt_b, t_tree *mixt_tree)
   int ambiguity_check,state;
   int k,l;
   int dim1,dim2;
+  phydbl sum_probas;
 
   tree            = NULL;
   b               = NULL;
@@ -626,10 +628,31 @@ phydbl MIXT_Lk(t_edge *mixt_b, t_tree *mixt_tree)
 
       if(!cpy_mixt_b) mixt_b = mixt_tree->a_nodes[0]->b[0];
 
-      sum_scale_left_cat = (phydbl *)mCalloc(mixt_tree->mod->ras->n_catg,sizeof(phydbl));
-      sum_scale_rght_cat = (phydbl *)mCalloc(mixt_tree->mod->ras->n_catg,sizeof(phydbl));
+      sum_scale_left_cat = (phydbl *)mCalloc(MAX(mixt_tree->mod->ras->n_catg,mixt_tree->mod->n_mixt_classes),sizeof(phydbl));
+      sum_scale_rght_cat = (phydbl *)mCalloc(MAX(mixt_tree->mod->ras->n_catg,mixt_tree->mod->n_mixt_classes),sizeof(phydbl));
 
       mixt_tree->c_lnL = .0;
+
+      tree    = mixt_tree->next;
+      sum_probas = 0.0;
+      
+      /*! Calculate the sum of the product of proba for each class in the mixture */
+      do
+        {
+          if(tree->mod->ras->invar == YES) 
+            {
+              tree = tree->next;
+              if(!(tree && tree->is_mixt_tree == NO)) break;
+            }
+          
+          sum_probas += 
+            mixt_tree->mod->ras->gamma_r_proba->v[tree->mod->ras->parent_class_number] *
+            tree->mod->r_mat->proba *
+            tree->mod->e_frq->proba ;
+          
+          tree = tree->next;
+        }
+      while(tree && tree->is_mixt_tree == NO);
 
       dim1 = mixt_tree->mod->ns;
       dim2 = mixt_tree->mod->ns;
@@ -639,13 +662,14 @@ phydbl MIXT_Lk(t_edge *mixt_b, t_tree *mixt_tree)
           b    = mixt_b->next;          
           tree = mixt_tree->next;
 
+          /*! Skip calculations if model has zero rate */
           while(tree->mod->ras->invar == YES) 
             {
               tree = tree->next;
               b    = b->next;
               if(!tree || tree->is_mixt_tree == YES)
                 {
-                  PhyML_Printf("\n== Err in file %s at line %d",__FILE__,__LINE__);
+                  PhyML_Printf("\n== Err. in file %s at line %d",__FILE__,__LINE__);
                   Exit("\n");
                 }
             }
@@ -662,6 +686,7 @@ phydbl MIXT_Lk(t_edge *mixt_b, t_tree *mixt_tree)
             }
 
           
+          /*! For all the classes of the mixture */
           do
             {
               if(tree->is_mixt_tree)
@@ -737,7 +762,6 @@ phydbl MIXT_Lk(t_edge *mixt_b, t_tree *mixt_tree)
                     }
                   tree->site_lk_cat[0] = site_lk_cat;
                 }
-
               tree = tree->next;
               b    = b->next;
             }
@@ -824,13 +848,36 @@ phydbl MIXT_Lk(t_edge *mixt_b, t_tree *mixt_tree)
             }
           while(tree && tree->is_mixt_tree == NO);
 
+
+          tree    = mixt_tree->next;
+          b       = mixt_b->next;
+          class   = 0;
           site_lk = .0;
-          For(class,mixt_tree->mod->ras->n_catg) 
+
+          do
             {
+              if(tree->mod->ras->invar == YES) 
+                {
+                  tree = tree->next;
+                  b    = b->next;
+                  if(!(tree && tree->is_mixt_tree == NO)) break;
+                }
+
               site_lk += 
                 mixt_tree->site_lk_cat[class] * 
-                mixt_tree->mod->ras->gamma_r_proba->v[class];
+                mixt_tree->mod->ras->gamma_r_proba->v[tree->mod->ras->parent_class_number] *
+                tree->mod->r_mat->proba *
+                tree->mod->e_frq->proba / 
+                sum_probas;
+
+
+              // TO DO: add correct weights here
+
+              tree = tree->next;
+              b    = b->next;
+              class++;
             }
+          while(tree && tree->is_mixt_tree == NO);
 
 
           /* Scaling for invariants */
@@ -866,11 +913,29 @@ phydbl MIXT_Lk(t_edge *mixt_b, t_tree *mixt_tree)
             }
           
           log_site_lk = LOG(site_lk) - (phydbl)LOG2 * fact_sum_scale;
-                    
-          For(class,mixt_tree->mod->ras->n_catg) 
-            mixt_tree->log_site_lk_cat[class][site] = 
-            LOG(mixt_tree->site_lk_cat[class]) - 
-            (phydbl)LOG2 * fact_sum_scale;
+          
+
+          int mixt_class = 0;
+          int rate_class = 0;
+          For(rate_class,mixt_tree->mod->ras->n_catg) 
+            {
+              mixt_class = 0;
+              tree = mixt_tree->next;
+              do
+                {
+                  if(tree->mod->ras->parent_class_number == rate_class)
+                    {
+                      mixt_tree->log_site_lk_cat[rate_class][site] += 
+                        // TO DO: add correct weight here
+                        LOG(mixt_tree->site_lk_cat[mixt_class]) - 
+                        (phydbl)LOG2 * fact_sum_scale;                                              
+                      break;
+                    }
+                  mixt_class++;
+                  tree = tree->next;
+                }
+              while(tree && tree->is_mixt_tree == NO);
+            }
 
           if(isinf(log_site_lk) || isnan(log_site_lk))
             {
@@ -881,7 +946,7 @@ phydbl MIXT_Lk(t_edge *mixt_b, t_tree *mixt_tree)
               For(class,mixt_tree->mod->ras->n_catg) PhyML_Printf("\n== rr=%f p=%f",mixt_tree->mod->ras->gamma_rr->v[class],mixt_tree->mod->ras->gamma_r_proba->v[class]);
               PhyML_Printf("\n== Pinv = %G",mixt_tree->mod->ras->pinvar->v);
               PhyML_Printf("\n== Bl mult = %G",mixt_tree->mod->br_len_multiplier->v);
-              PhyML_Printf("\n== Err in file %s at line %d",__FILE__,__LINE__);
+              PhyML_Printf("\n== Err. in file %s at line %d",__FILE__,__LINE__);
               Exit("\n");
             }
 
@@ -1257,7 +1322,7 @@ void MIXT_Check_RAS_Struct_In_Each_Partition_Elem(t_tree *mixt_tree)
 
           if((tree->next && tree->next->is_mixt_tree == YES) || (!tree->next)) /*! current tree is the last element of this mixture */
             {
-              if(n_classes != tree->mixt_tree->mod->ras->n_catg)
+              if(n_classes < tree->mixt_tree->mod->ras->n_catg)
                 {                  
                   PhyML_Printf("\n== %d class%s found in 'partitionelem' for file '%s' while",
                                n_classes,

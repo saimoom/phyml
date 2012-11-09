@@ -21,9 +21,9 @@ void Make_Tree_4_Lk(t_tree *tree, calign *cdata, int n_site)
   tree->c_lnL_sorted = (phydbl *)mCalloc(tree->n_pattern, sizeof(phydbl));
   tree->cur_site_lk  = (phydbl *)mCalloc(cdata->crunch_len,sizeof(phydbl));
   tree->old_site_lk  = (phydbl *)mCalloc(cdata->crunch_len,sizeof(phydbl));
-  tree->site_lk_cat  = (phydbl *)mCalloc(tree->mod->ras->n_catg,sizeof(phydbl));  
-  tree->log_site_lk_cat = (phydbl **)mCalloc(tree->mod->ras->n_catg,sizeof(phydbl *));
-  For(i,tree->mod->ras->n_catg)
+  tree->site_lk_cat  = (phydbl *)mCalloc(MAX(tree->mod->ras->n_catg,tree->mod->n_mixt_classes),sizeof(phydbl));  
+  tree->log_site_lk_cat = (phydbl **)mCalloc(MAX(tree->mod->ras->n_catg,tree->mod->n_mixt_classes),sizeof(phydbl *));
+  For(i,MAX(tree->mod->ras->n_catg,tree->mod->n_mixt_classes))
     tree->log_site_lk_cat[i] = (phydbl *)mCalloc(cdata->crunch_len,sizeof(phydbl));
 
   tree->log_lks_aLRT = (phydbl **)mCalloc(3,sizeof(phydbl *));
@@ -186,23 +186,23 @@ void Make_Edge_Lk(t_edge *b, t_tree *tree)
 
   b->Pij_rr = (phydbl *)mCalloc(tree->mod->ras->n_catg*tree->mod->ns*tree->mod->ns,sizeof(phydbl));
   
-  b->sum_scale_left_cat = (int *)mCalloc(tree->mod->ras->n_catg,sizeof(int));  
-  b->sum_scale_rght_cat = (int *)mCalloc(tree->mod->ras->n_catg,sizeof(int));
+  b->sum_scale_left_cat = (int *)mCalloc(MAX(tree->mod->ras->n_catg,tree->mod->n_mixt_classes),sizeof(int));  
+  b->sum_scale_rght_cat = (int *)mCalloc(MAX(tree->mod->ras->n_catg,tree->mod->n_mixt_classes),sizeof(int));
 
   if(!b->left->tax)
-    b->sum_scale_left = (int *)mCalloc(tree->data->crunch_len*tree->mod->ras->n_catg,sizeof(int));
+    b->sum_scale_left = (int *)mCalloc(tree->data->crunch_len*MAX(tree->mod->ras->n_catg,tree->mod->n_mixt_classes),sizeof(int));
   else
     b->sum_scale_left = NULL;
   
   if(!b->rght->tax)
-    b->sum_scale_rght = (int *)mCalloc(tree->data->crunch_len*tree->mod->ras->n_catg,sizeof(int));
+    b->sum_scale_rght = (int *)mCalloc(tree->data->crunch_len*MAX(tree->mod->ras->n_catg,tree->mod->n_mixt_classes),sizeof(int));
   else
     b->sum_scale_rght = NULL;
   
   
   if((!b->left->tax) || (tree->mod->s_opt->greedy))
     {
-      b->p_lk_left = (phydbl *)mCalloc(tree->data->crunch_len*tree->mod->ras->n_catg*tree->mod->ns,sizeof(phydbl));
+      b->p_lk_left = (phydbl *)mCalloc(tree->data->crunch_len*MAX(tree->mod->ras->n_catg,tree->mod->n_mixt_classes)*tree->mod->ns,sizeof(phydbl));
       b->p_lk_tip_l = NULL;
     }
   else if(b->left->tax)
@@ -213,7 +213,7 @@ void Make_Edge_Lk(t_edge *b, t_tree *tree)
   
   if((!b->rght->tax) || (tree->mod->s_opt->greedy))
     {
-      b->p_lk_rght = (phydbl *)mCalloc(tree->data->crunch_len*tree->mod->ras->n_catg*tree->mod->ns,sizeof(phydbl));
+      b->p_lk_rght = (phydbl *)mCalloc(tree->data->crunch_len*MAX(tree->mod->ras->n_catg,tree->mod->n_mixt_classes)*tree->mod->ns,sizeof(phydbl));
       b->p_lk_tip_r = NULL;
     }
   else if(b->rght->tax)
@@ -545,6 +545,8 @@ t_mod *Make_Model_Basic()
   Init_Vect_Dbl(0,mod->user_b_freq);
   mod->user_b_freq->v         = (phydbl *)mCalloc(T_MAX_OPTION,sizeof(phydbl));
 
+  mod->aa_rate_mat_file       = Make_String(T_MAX_FILE);
+  Init_String(mod->aa_rate_mat_file);
   return mod;
 }
 
@@ -571,10 +573,12 @@ void Make_Model_Complete(t_mod *mod)
   if(!mod->r_mat) 
     {
       mod->r_mat = (t_rmat *)Make_Rmat(mod->ns);
+      Init_Rmat(mod->r_mat);
     }
   if(!mod->e_frq) 
     {
       mod->e_frq = (t_efrq *)Make_Efrq(mod->ns);
+      Init_Efrq(mod->e_frq);
     }
 
   Make_RAS_Complete(mod->ras);
@@ -663,9 +667,7 @@ t_efrq *Make_Efrq(int ns)
   e_frq->pi_unscaled      = (vect_dbl *)mCalloc(1,sizeof(vect_dbl));
   e_frq->pi_unscaled->v   = (phydbl *)mCalloc(ns,sizeof(phydbl));
   e_frq->pi_unscaled->len = ns;
-  
-  e_frq->mixt_weight = 1.; // Should be in a separate init function...
-  
+    
   return e_frq;
 }
 
@@ -699,7 +701,6 @@ t_rmat *Make_Rmat(int ns)
   r_mat->qmat->v                = (phydbl *)mCalloc(ns*ns,sizeof(phydbl));
   r_mat->qmat_buff->v           = (phydbl *)mCalloc(ns*ns,sizeof(phydbl));
 
-  r_mat->mixt_weight = 1.;
   
   return(r_mat);
 }
@@ -726,7 +727,6 @@ option *Make_Input()
   io->nt_or_cd                          = (char *)mCalloc(T_MAX_FILE,sizeof(char));
   io->run_id_string                     = (char *)mCalloc(T_MAX_OPTION,sizeof(char));
   io->clade_list_file                   = (char *)mCalloc(T_MAX_FILE,sizeof(char));
-  io->aa_rate_mat_file                  = (char *)mCalloc(T_MAX_FILE,sizeof(char));
   io->alphabet                          = (char **)mCalloc(T_MAX_ALPHABET,sizeof(char *));
   For(i,T_MAX_ALPHABET) io->alphabet[i] = (char *)mCalloc(T_MAX_STATE,sizeof(char ));
   io->treelist                          = (t_treelist *)mCalloc(1,sizeof(t_treelist));

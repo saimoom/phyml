@@ -7099,7 +7099,7 @@ t_tree *Dist_And_BioNJ(calign *cdata, t_mod *mod, option *io)
 
   mat = ML_Dist(cdata,mod);
   Fill_Missing_Dist(mat);
-
+  
   if(!io->quiet) PhyML_Printf("\n\n. Building BioNJ tree...");
 
   mat->tree = Make_Tree_From_Scratch(cdata->n_otu,cdata);

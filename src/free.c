@@ -355,7 +355,8 @@ void Free_Tree_Lk(t_tree *mixt_tree)
       For(i,3) Free(tree->log_lks_aLRT[i]);
       Free(tree->log_lks_aLRT);
             
-      For(i,tree->mod->ras->n_catg) Free(tree->log_site_lk_cat[i]);
+      For(i,MAX(tree->mod->ras->n_catg,tree->mod->n_mixt_classes)) 
+        Free(tree->log_site_lk_cat[i]);
       Free(tree->log_site_lk_cat);
 
       For(i,2*tree->n_otu-3) Free_Edge_Lk(tree->a_edges[i]);
@@ -442,6 +443,7 @@ void Free_Model_Basic(t_mod *mixt_mod)
   Free_Scalar_Dbl(mixt_mod->br_len_multiplier);
   Free_String(mixt_mod->modelname);
   Free_String(mixt_mod->custom_mod_string);
+  Free(mixt_mod->aa_rate_mat_file);
 
   mod = mixt_mod;
   do
@@ -647,7 +649,6 @@ void Free_Input(option *io)
       Free(io->out_lk_file); 
       Free(io->out_ps_file);
       Free(io->out_trace_file);
-      Free(io->aa_rate_mat_file);
       Free(io->nt_or_cd);
       Free(io->run_id_string);
       Free(io->clade_list_file);

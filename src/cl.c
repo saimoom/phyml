@@ -137,7 +137,7 @@ int Read_Command_Line(option *io, int argc, char **argv)
             return 0;
 #endif
 
-#ifdef SERGEII
+#ifdef SERGEII            
             Free_Optimiz(io->mod->s_opt);
             M4_Free_M4_Model(io->mod->m4mod);
             Free_Model_Basic(io->mod);
@@ -334,8 +334,8 @@ int Read_Command_Line(option *io, int argc, char **argv)
 	    char *s;
 	    s = (char *)mCalloc(T_MAX_FILE, sizeof(char));
 	    strcpy(s,optarg);
-	    io->fp_aa_rate_mat = Openfile(s,0);
-	    strcpy(io->aa_rate_mat_file,s);
+	    io->mod->fp_aa_rate_mat = Openfile(s,0);
+	    strcpy(io->mod->aa_rate_mat_file->s,s);
 	    Free(s);
 	    break;
 	  }
@@ -1152,7 +1152,7 @@ int Read_Command_Line(option *io, int argc, char **argv)
 	      {
 		strcpy(io->in_tree_file, optarg);
 		io->in_tree = 2;
-		io->fp_in_tree = Openfile(io->in_tree_file,0);
+		io->fp_in_tree = Openfile(io->in_tree_file,READ);
 	      }
 	    Free(tmp);
 	    break;
@@ -1285,7 +1285,7 @@ int Read_Command_Line(option *io, int argc, char **argv)
     {
       strcpy(io->out_ps_file,io->in_align_file);
       strcat(io->out_ps_file, "_mc_tree.ps");
-      io->fp_out_ps = Openfile(io->out_ps_file,1);
+      io->fp_out_ps = Openfile(io->out_ps_file,WRITE);
     }
 #endif 
   
@@ -1405,7 +1405,7 @@ int Read_Command_Line(option *io, int argc, char **argv)
       io->mod->s_opt->opt_kappa = 0;
     }
   
-  if(io->datatype == AA && io->mod->whichmodel == CUSTOMAA && !io->fp_aa_rate_mat)
+  if(io->datatype == AA && io->mod->whichmodel == CUSTOMAA && !io->mod->fp_aa_rate_mat)
     {
       PhyML_Printf("\n== Custom model option with amino-acid requires you to specify a rate matrix file through the '--aa_rate_file' option.\n");
       Exit("\n");

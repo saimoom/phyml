@@ -54,5 +54,6 @@ void Init_Triplet_Struct(triplet *triplet);
 void Init_Efrq(t_efrq *f);
 void M4_Init_Model(m4 *m4mod, calign *data, t_mod *mod);
 void RATES_Init_Rate_Struct(t_rate *rates, t_rate *existing_rates, int n_otu);
+void Init_Rmat(t_rmat *rmat);
 
 #endif
