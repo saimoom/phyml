@@ -5575,7 +5575,7 @@ void Make_Efrq_From_XML_Node(xml_node *instance, option *io, t_mod *mod)
   mod->e_frq = (t_efrq *)Make_Efrq(mod->ns);
   Init_Efrq(mod->e_frq);
   
-  buff = XML_Get_Attribute_Value(instance,"optimise.freq");
+  buff = XML_Get_Attribute_Value(instance,"optimise.freqs");
   
   if(buff)
     {
@@ -5583,7 +5583,7 @@ void Make_Efrq_From_XML_Node(xml_node *instance, option *io, t_mod *mod)
         {
           if(io->datatype == AA)
             {
-              PhyML_Printf("\n== Option 'optimise.freq' set to 'yes' (or 'true')");
+              PhyML_Printf("\n== Option 'optimise.freqs' set to 'yes' (or 'true')");
               PhyML_Printf("\n== is not allowed with amino-acid data.");
               Exit("\n");
             }
