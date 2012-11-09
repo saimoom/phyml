@@ -754,8 +754,6 @@ void Update_RAS(t_mod *mod)
     {
       Qksort(mod->ras->gamma_r_proba_unscaled->v,NULL,0,mod->ras->n_catg-1); // Unscaled class frequencies sorted in increasing order
 
-
-
       // Update class frequencies
       For(i,mod->ras->n_catg)
       	{

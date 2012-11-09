@@ -41,6 +41,9 @@ extern int n_sec2;
 #define SIGN(a,b)                    ((b) > 0.0 ? fabs(a) : -fabs(a))
 #define SHFT(a,b,c,d)                (a)=(b);(b)=(c);(c)=(d);
 
+#define READ  0
+#define WRITE 1
+
 #ifndef isnan
 # define isnan(x)						 \
   (sizeof (x) == sizeof (long double) ? isnan_ld (x)		 \
@@ -734,7 +737,7 @@ typedef struct __RateMatrix {
   vect_int           *n_rr_per_cat; /*! number of rate parameters in each category */
   vect_dbl                   *qmat;
   vect_dbl              *qmat_buff;
-  phydbl               mixt_weight;
+  phydbl                     proba;
 
   struct __RateMatrix        *next;
   struct __RateMatrix        *prev;
@@ -753,7 +756,7 @@ typedef struct __RAS {
   vect_dbl      *gamma_rr_unscaled; /*! substitution rates defined by the RAS distribution (unscaled) */
   scalar_dbl                *alpha; /*! gamma shapa parameter */
   int              free_mixt_rates;  
-  phydbl               mixt_weight;
+
   int          parent_class_number;
   scalar_dbl               *pinvar; /*! proportion of invariable sites */
 
@@ -768,7 +771,7 @@ typedef struct __EquFreq {
   /*! Equilibrium frequencies */
   vect_dbl           *pi; /*! states frequencies */
   vect_dbl  *pi_unscaled; /*! states frequencies (unscaled) */
-  phydbl     mixt_weight;
+  phydbl           proba;
 
   struct __EquFreq   *next;
   struct __EquFreq   *prev;
@@ -789,6 +792,9 @@ typedef struct __Model {
   struct __RateMatrix       *r_mat;
   struct __EquFreq          *e_frq;
   struct __RAS                *ras;
+
+  t_string       *aa_rate_mat_file;
+  FILE             *fp_aa_rate_mat;
 
   vect_dbl            *user_b_freq; /*! user-defined nucleotide frequencies */
   t_string              *modelname;
@@ -818,6 +824,9 @@ typedef struct __Model {
   phydbl                    l_max; /*! Maximum branch length !*/
 
   int                gamma_mgf_bl; /*! P = \int_0^inf exp(QL) p(L) where L=\int_0^t R(s) ds and p(L) is the gamma density. Set to NO by default !*/
+
+  int              n_mixt_classes; /* Number of classes in the mixture model. */
+
 }t_mod;
 
 /*!********************************************************/
@@ -887,8 +896,6 @@ typedef struct __Option { /*! mostly used in 'help.c' */
   char                  *out_ps_file; /*! name of the file in which tree(s) is(are) written */
   FILE                    *fp_out_ps;
 
-  char             *aa_rate_mat_file;
-  FILE               *fp_aa_rate_mat;
 
   char              *clade_list_file;
   

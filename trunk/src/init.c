@@ -87,6 +87,7 @@ void Init_Efrq(t_efrq *f)
 {
   f->next = NULL;
   f->prev = NULL;
+  f->proba = 1.0;
 }
 
 //////////////////////////////////////////////////////////////
@@ -547,6 +548,15 @@ void Set_Defaults_Input(option* io)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
+void Init_Rmat(t_rmat *rmat)
+{
+  rmat->proba = 1.0;
+  rmat->n_diff_rr = 1;
+}
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
 void Set_Defaults_Model(t_mod *mod)
 {
   strcpy(mod->modelname->s,"HKY85");
@@ -559,6 +569,7 @@ void Set_Defaults_Model(t_mod *mod)
   mod->e_frq                   = NULL;
   mod->whichmodel              = HKY85;
   mod->ras->n_catg             = 4;
+  mod->n_mixt_classes          = 0;
   mod->mod_num                 = 0;
   mod->update_eigen            = NO;
   mod->is_mixt_mod             = NO;
@@ -587,8 +598,6 @@ void Set_Defaults_Model(t_mod *mod)
   mod->br_len_multiplier->v     = 1.0;
   
   mod->ras->parent_class_number = 0;
-
-  mod->ras->mixt_weight         = 1.;
 
 #ifndef PHYTIME
   mod->l_min = 1.E-8;
@@ -1032,6 +1041,7 @@ void Init_Model(calign *data, t_mod *mod, option *io)
     }
   else if(mod->io->datatype == AA)
     { 
+
       /* init for amino-acids */
       /* see comments of PMat_Empirical for details */
       /* read pi and Q from file */
@@ -1144,13 +1154,18 @@ void Init_Model(calign *data, t_mod *mod, option *io)
 	  }
 	case CUSTOMAA :
 	  {
-	    Read_Qmat(mod->r_mat->qmat->v,mod->e_frq->pi->v,io->fp_aa_rate_mat);
+	    Read_Qmat(mod->r_mat->qmat->v,mod->e_frq->pi->v,mod->fp_aa_rate_mat);
 /* 	    Print_Qmat_AA(mod->r_mat->qmat->v,mod->e_frq->pi->v); */
+	    if(mod->s_opt->opt_state_freq) For(i,mod->ns) mod->e_frq->pi->v[i] = data->b_frq[i];	    
+	    break;
+	  }
+	default : 
+          {
+	    Init_Qmat_LG(mod->r_mat->qmat->v,mod->e_frq->pi->v);
 	    if(mod->s_opt->opt_state_freq)
 	      For(i,mod->ns) mod->e_frq->pi->v[i] = data->b_frq[i];	    
 	    break;
-	  }
-	default : break;
+          }
 	}
   
 /*       /\* multiply the nth col of Q by the nth term of pi/100 just as in PAML *\/ */
@@ -1207,8 +1222,8 @@ void Init_Model(calign *data, t_mod *mod, option *io)
     }
   else
     {
-      PhyML_Printf("\n. Not implemented yet.\n");
-      PhyML_Printf("\n. Err in file %s at line %d\n",__FILE__,__LINE__);
+      PhyML_Printf("\n== Datatype not recognized.\n");
+      PhyML_Printf("\n== Err. in file %s at line %d\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
   

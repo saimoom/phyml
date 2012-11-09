@@ -1422,7 +1422,6 @@ phydbl Dist_F_Brent(phydbl ax, phydbl bx, phydbl cx, phydbl tol, int n_iter_max,
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-
 void Opt_Dist_F(phydbl *dist, phydbl *F, t_mod *mod)
 {
   phydbl ax,bx,cx;

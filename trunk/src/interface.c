@@ -74,8 +74,8 @@ void Launch_Interface(option *io)
       PhyML_Printf("\n");
       PhyML_Printf("\n. Enter the rate matrix file name > "); fflush(NULL);
       Getstring_Stdin(filename);
-      io->fp_aa_rate_mat = Openfile(filename,0);
-      strcpy(io->aa_rate_mat_file,filename);
+      io->mod->fp_aa_rate_mat = Openfile(filename,0);
+      strcpy(io->mod->aa_rate_mat_file->s,filename);
       PhyML_Printf("\n");
       Free(filename);
       fflush(NULL);
@@ -833,6 +833,7 @@ void Launch_Interface_Model(option *io)
             if(!mod->r_mat) 
               {
                 mod->r_mat = (t_rmat *)Make_Rmat(mod->ns);
+                Init_Rmat(mod->r_mat);
                 Make_Custom_Model(mod);
                 Translate_Custom_Mod_String(io->mod);
               }

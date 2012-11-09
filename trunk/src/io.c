@@ -2608,7 +2608,7 @@ void Print_Fp_Out(FILE *fp_out, time_t t_beg, time_t t_end, t_tree *tree, option
   else if(tree->io->datatype == AA)
     {
       PhyML_Fprintf(fp_out,"\n. Model of amino acids substitution: \t%s",tree->mod->modelname->s);
-      if(io->mod->whichmodel == CUSTOMAA) PhyML_Fprintf(fp_out," (%s)",tree->io->aa_rate_mat_file);
+      if(io->mod->whichmodel == CUSTOMAA) PhyML_Fprintf(fp_out," (%s)",tree->mod->aa_rate_mat_file->s);
     }
   else
     {
@@ -3041,7 +3041,7 @@ void Print_Settings(option *io)
 
   PhyML_Printf("\n                . Model name:\t\t\t\t\t %s", io->mod->modelname->s);
 
-  if(io->datatype == AA && io->mod->whichmodel == CUSTOMAA) PhyML_Printf(" (%s)",io->aa_rate_mat_file);
+  if(io->datatype == AA && io->mod->whichmodel == CUSTOMAA) PhyML_Printf(" (%s)",io->mod->aa_rate_mat_file->s);
 
   if (io->datatype == NT)
     {
@@ -3273,7 +3273,7 @@ void Read_Qmat(phydbl *daa, phydbl *pi, FILE *fp)
   For(i,20) sum += pi[i];
   if(FABS(sum - 1.) > 1.E-06)
     {
-      PhyML_Printf("\n. Sum=%f",sum);
+      PhyML_Printf("\n. Sum of amino-acid frequencies: %f",sum);
       PhyML_Printf("\n. Scaling amino-acid frequencies...\n");
       For(i,20) pi[i] /= sum;
     }
@@ -3895,7 +3895,7 @@ void Print_Data_Structure(int final, FILE *fp, t_tree *mixt_tree)
           if(mixt_tree->mod->ras->n_catg > 1)
             {
               PhyML_Fprintf(fp,"\n. Relative substitution rate:\t%12f",mixt_tree->mod->ras->gamma_rr->v[tree->mod->ras->parent_class_number]);
-              PhyML_Fprintf(fp,"\n. Relative substitution rate:\t%12f",mixt_tree->mod->ras->gamma_r_proba->v[tree->mod->ras->parent_class_number]);
+              PhyML_Fprintf(fp,"\n. Frequency:\t\t\t%12f",mixt_tree->mod->ras->gamma_r_proba->v[tree->mod->ras->parent_class_number]);
             }
 
 	  PhyML_Fprintf(fp,"\n   Substitution model:\t\t%12s",tree->mod->modelname->s);
@@ -3903,6 +3903,9 @@ void Print_Data_Structure(int final, FILE *fp, t_tree *mixt_tree)
           if(tree->mod->whichmodel == CUSTOM)
             PhyML_Fprintf(fp,"\n   Substitution model code:\t%12s",tree->mod->custom_mod_string->s);
 	  
+          if(tree->mod->whichmodel == CUSTOMAA)
+            PhyML_Fprintf(fp,"\n   Rate matrix file name:\t%12s",tree->mod->aa_rate_mat_file->s);
+
 	  if(tree->mod->whichmodel == K80 ||
 	     tree->mod->whichmodel == HKY85 ||
 	     tree->mod->whichmodel == TN93)
@@ -3946,11 +3949,11 @@ void Print_Data_Structure(int final, FILE *fp, t_tree *mixt_tree)
 
               if(tree->mod->s_opt->opt_state_freq == YES)
                 {
-                  strcpy(s,"empirical");
+                  strcpy(s,"Empirical");
                 }
               else
                 {
-                  strcpy(s,"set by model");
+                  strcpy(s,"Model");
                 }
 
 	      PhyML_Fprintf(fp,"\n   Amino-acid freq.:\t\t%12s",s);
@@ -4110,7 +4113,9 @@ void Print_Data_Structure(int final, FILE *fp, t_tree *mixt_tree)
 
                   if(mixt_tree->mod->whichmodel == tree->mod->whichmodel &&
                      !strcmp(mixt_tree->mod->custom_mod_string->s,
-                             tree->mod->custom_mod_string->s)) link_rmat[c] = cc_rmat;
+                             tree->mod->custom_mod_string->s) && 
+                     !strcmp(mixt_tree->mod->aa_rate_mat_file->s,
+                             tree->mod->aa_rate_mat_file->s)) link_rmat[c] = cc_rmat;
 
                   tree = tree->next;
                   c++;
@@ -4295,7 +4300,7 @@ void PhyML_XML(char *xml_filename)
   if(!outputfile)
     {
       PhyML_Printf("\n== The 'outputfile' attribute in 'phyml' tag is mandatory.");
-      PhyML_Printf("\n==  Please amend your XML file accordingly.");
+      PhyML_Printf("\n== Please amend your XML file accordingly.");
       Exit("\n");
     }
 
@@ -4357,12 +4362,8 @@ void PhyML_XML(char *xml_filename)
           PhyML_Printf("\n== '%s' is not a valid option for 'branch.test'.",s);
           PhyML_Printf("\n== Please use 'aLRT' or 'aBayes' or 'SH'.");
           Exit("\n");
-        }
-
-      
+        }      
     }
-
-
     
 
   /*! Read all partitionelem nodes and mixturelem nodes in each of them
@@ -4371,10 +4372,7 @@ void PhyML_XML(char *xml_filename)
     {
       p_elem = XML_Search_Node_Name("partitionelem",YES,p_elem);
 
-      if(p_elem == NULL) 
-        {          
-          break;
-        }
+      if(p_elem == NULL) break;
 
       buff = (option *)Make_Input();
       Set_Defaults_Input(buff);
@@ -4385,6 +4383,7 @@ void PhyML_XML(char *xml_filename)
       if(first == YES) 
         {
           io = io->prev;
+          io->next = NULL;
           Free_Input(buff);
           first = NO;
         }
@@ -4609,7 +4608,10 @@ void PhyML_XML(char *xml_filename)
 			/*! Create new tree
                          */
 			this_tree = (t_tree *)Make_Tree_From_Scratch(io->cdata->n_otu,io->cdata);
-			
+			                        
+                        /*! Update the number of mixtures */
+                        iomod->n_mixt_classes++;
+
 			if(tree)
 			  {
 			    tree->next = this_tree;
@@ -4630,6 +4632,8 @@ void PhyML_XML(char *xml_filename)
 			this_mod = (t_mod *)Make_Model_Basic();
 			Set_Defaults_Model(this_mod);
 			this_mod->ras->n_catg = 1;
+                        
+                        
 
 			if(mod)
 			  {
@@ -4887,6 +4891,7 @@ void PhyML_XML(char *xml_filename)
 			  {
                             r = val;
 			    instance->ds->obj = (phydbl *)(&r);
+                            if(Are_Equal(val,0.0,1E-20) == NO) class_number++;
 			  }
 			else
 			  {
@@ -4904,9 +4909,8 @@ void PhyML_XML(char *xml_filename)
 			  }
 			else
 			  {
-			    iomod->ras->gamma_rr->v[class_number] = r;
-			    mod->ras->parent_class_number = class_number;
-			    class_number++;
+			    iomod->ras->gamma_rr->v[class_number-1] = r;
+			    mod->ras->parent_class_number = class_number-1;
 			  }
 
 			xml_node *orig_w = NULL;
@@ -5102,13 +5106,12 @@ void PhyML_XML(char *xml_filename)
   phydbl best_lnL = UNLIKELY;
   int num_rand_tree;
   For(num_rand_tree,io->mod->s_opt->n_rand_starts)
-    {
-      
+    {      
       /*! Initialize the models */
       mod  = mixt_tree->mod;
       do
         {
-          Init_Model(mod->io->cdata,mod,mod->io);
+          Init_Model(mod->io->cdata,mod,io);
           mod = mod->next;
         }
       while(mod);
@@ -5156,6 +5159,7 @@ void PhyML_XML(char *xml_filename)
           }
         }
       
+
       Copy_Tree(tree,mixt_tree);
       Free_Tree(tree);
       if(bionj_tree) Free_Tree(bionj_tree);
@@ -5259,7 +5263,6 @@ void PhyML_XML(char *xml_filename)
           tree = tree->next;
         }
       while(tree);
-
             
       if(mixt_tree->mod->s_opt->opt_topo)
         {
@@ -5460,7 +5463,8 @@ void Make_Ratematrice_From_XML_Node(xml_node *instance, option *io, t_mod *mod)
   io->mod->ns = mod->ns;
   
   mod->r_mat = (t_rmat *)Make_Rmat(mod->ns);
-  
+  Init_Rmat(mod->r_mat);
+                  
   /*! Set model number & name */
   mod->whichmodel = Set_Whichmodel(select);
   Set_Model_Name(mod);
@@ -5543,18 +5547,18 @@ void Make_Ratematrice_From_XML_Node(xml_node *instance, option *io, t_mod *mod)
     {
       char *r_mat_file;
       
-      r_mat_file = XML_Get_Attribute_Value(instance,"ratematrixfile");  
+      r_mat_file = XML_Get_Attribute_Value(instance,"ratematrix.file");  
       
       if(!r_mat_file)
         {
-          PhyML_Printf("\n== No valid 'ratematrixfile' attribute could be found.");
+          PhyML_Printf("\n== No valid 'ratematrix.file' attribute could be found.");
           PhyML_Printf("\n== Please fix your XML file.\n");
           Exit("\n");
         }
       else
         {
-          io->fp_aa_rate_mat = Openfile(r_mat_file,0);
-          strcpy(io->aa_rate_mat_file,r_mat_file);
+          mod->fp_aa_rate_mat = Openfile(r_mat_file,0);
+          strcpy(mod->aa_rate_mat_file->s,r_mat_file);
         }
       
       Free(r_mat_file);
