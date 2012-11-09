@@ -1502,12 +1502,16 @@ Options:
 Options:
 \begin{itemize}
 \item \x{model="JC69"|"K80"|"F81"|"F84"|"HKY85"|"TN93"|"GTR"|"custom"} for nucleotide data. The default is \x{"HKY85"}.\\
-\x{model="LG"|"WAG"|"JTT"|"MtREV"|"Dayhoff"|"DCMut"|"RtREV"|"CpREV"|"VT"}\\\x{|"Blosum62"|"MtMam"|"MtArt"|"HIVw"|"HIVb"|"custom"}
+\x{model="LG"|"WAG"|"JTT"|"MtREV"|"Dayhoff"|"DCMut"|"RtREV"|"CpREV"|"VT"}\\\x{|"Blosum62"|"MtMam"|"MtArt"|"HIVw"|"HIVb"|"customaa"}
 for amino-acid sequences. The default is \x{"LG"}.
-\item \x{modelcode="012345"}. For \x{custom} model applied to nucleotide sequences: set the
+\item \x{model.code="012345"}. For \x{custom} model applied to nucleotide sequences: set the
   string of digits that define a custom substitution model. See Table \ref{tab:modelcode} on page
   \pageref{tab:modelcode} for more
   information about the model codes.
+\item \x{ratematrix.code="filename"}. When used in conjunction with \x{model=''customaa''},
+  \x{filename} is the name of the file that gives the rates of substitution between amino-acids as
+  well as their frequences at equilibrium using PAML rate matrix format. An example of such file is
+  provided in {phyml/examples/X1.mat}.
 \item \x{optimise.rr="yes"|"true"|"no"|"false"}. For \x{custom} and \x{GTR} nucleotide models only:
   optimise the substitution rate model parameters. 
 \item \x{optimise.tstv="yes"|"true"|"no"|"false"}. For \x{K80}, \x{F84}, \x{HKY85} and \x{TN93}
@@ -1531,11 +1535,11 @@ Options:
 \begin{itemize}
 \item \x{base.freqs="a,b,c,d"} where \x{a-d} are nucleotide frequencies. Make sure that these
   frequencies are separated by comas and no space character is inserted.
-\item \x{aa.freq="empirical/model"}. Amino-acid frequencies are derived from counting the number of
-  occurence of each amino-acid in the alignment (\x{aa.freq="empirical"}) or given by the
-  substitution model (\x{aa.freq="model"}).
-\item \x{optimise.freq="true|yes|false|no"}. Nucleotide frequencies can be optimised so as to maximise
-  the likelihood (\x{optimise.freq="yes|true"}).
+\item \x{aa.freqs="empirical|model"}. Amino-acid frequencies are derived from counting the number of
+  occurence of each amino-acid in the alignment (\x{aa.freqs="empirical"}) or given by the
+  substitution model (\x{aa.freqs="model"}).
+\item \x{optimise.freqs="true|yes|false|no"}. Nucleotide frequencies can be optimised so as to maximise
+  the likelihood (\x{optimise.freqs="yes|true"}).
 \end{itemize}
 \vspace{0.2cm}
 \begin{Verbatim}[frame=single, label=Example of `equfreqs' component, samepage=true, baselinestretch=0.5]
