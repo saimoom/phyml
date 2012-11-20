@@ -2243,7 +2243,7 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
       if(tree->mod->ras->n_catg > 1)
 	{
 	  if(tree->mod->ras->free_mixt_rates == NO)
-	    PhyML_Fprintf(fp,"%G\t",tree->mod->ras->alpha);
+	    PhyML_Fprintf(fp,"%G\t",tree->mod->ras->alpha->v);
 	  else
 	    {
 	      For(i,tree->mod->ras->n_catg) PhyML_Fprintf(fp,"%G\t",tree->mod->ras->gamma_r_proba->v[i]);
@@ -2558,7 +2558,6 @@ void MCMC_Terminate()
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
-
 
 void MCMC_Init_MCMC_Struct(char *filename, option *io, t_mcmc *mcmc)
 {
