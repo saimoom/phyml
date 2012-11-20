@@ -1230,7 +1230,7 @@ void Init_Model(calign *data, t_mod *mod, option *io)
   if(!mod->use_m4mod) Set_Model_Parameters(mod);      
 		  
   Init_Eigen_Struct(mod->eigen);
-
+  
   free(dr);free(di);free(space);
 }
 

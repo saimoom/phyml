@@ -3510,7 +3510,7 @@ void RATES_Set_Clock_And_Nu_Max(t_tree *tree)
       
       dt = FABS(min_t);
       max_clock = l_max / dt; 
-      
+      PhyML_Printf( "\n.  %f %f \n.", dt, max_clock);
       nu   = 1.E-10;
       step = 1.E-1;
       do
@@ -3532,7 +3532,6 @@ void RATES_Set_Clock_And_Nu_Max(t_tree *tree)
       PhyML_Printf("\n. Clock rate parameter upper bound set to %f expected subst./site/time unit",tree->rates->max_clock);
       PhyML_Printf("\n. Autocorrelation parameter upper bound set to %f",tree->rates->max_nu);
     }
-
 }
 
 //////////////////////////////////////////////////////////////

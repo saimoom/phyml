@@ -201,7 +201,7 @@ calign *Compact_Data(align **data, option *io)
  
   For(i,n_otu) Free(sp_names[i]);
   Free(sp_names);
-
+  
   if(data[0]->len%io->state_len)
     {
       PhyML_Printf("\n. Sequence length is not a multiple of %d\n",io->state_len);
@@ -216,7 +216,7 @@ calign *Compact_Data(align **data, option *io)
     { 
       PhyML_Printf("\n. WARNING: sequences are not compressed !\n");
     }
-
+  
   Fors(site,data[0]->len,io->state_len)
     {
       if(io->rm_ambigu)
@@ -235,6 +235,7 @@ calign *Compact_Data(align **data, option *io)
 	  if(compress)
 	    {
 	      which_patt = -1;
+
 	      Traverse_Prefix_Tree(site,-1,&which_patt,&n_patt,data,io,proot);
 	      if(which_patt == n_patt-1) /* New pattern found */
 		{
@@ -295,7 +296,7 @@ calign *Compact_Data(align **data, option *io)
 	    }
 	}
     }
-  
+ 
   data[0]->len -= n_ambigu;
   
   cdata_tmp->init_len                   = data[0]->len;
@@ -465,9 +466,9 @@ calign *Compact_Cdata(calign *data, option *io)
 
 
 void Traverse_Prefix_Tree(int site, int seqnum, int *patt_num, int *n_patt, align **data, option *io, pnode *n)
-{
+{ 	
   if(seqnum == io->n_otu-1)
-    {
+    { 	
       n->weight++;
       if(n->weight == 1)
 	{
@@ -489,6 +490,7 @@ void Traverse_Prefix_Tree(int site, int seqnum, int *patt_num, int *n_patt, alig
       if(!n->next[next_state]) n->next[next_state] = Create_Pnode(T_MAX_ALPHABET);
       Traverse_Prefix_Tree(site,seqnum+1,patt_num,n_patt,data,io,n->next[next_state]);
     }
+		
 }
 
 //////////////////////////////////////////////////////////////

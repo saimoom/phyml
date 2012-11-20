@@ -2011,13 +2011,13 @@ void MCMC_Print_Param(t_mcmc *mcmc, t_tree *tree)
   int orig_approx;
   phydbl orig_lnL;
   char *s_tree;
-
+  
   if(tree->mcmc->run > mcmc->chain_len) return;
 
   s = (char *)mCalloc(100,sizeof(char));
 
   fp = mcmc->out_fp_stats;
-  
+
 /*   if(tree->mcmc->run == 0) */
 /*     { */
 /*       PhyML_Fprintf(stdout," ["); */
