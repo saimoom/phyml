@@ -23,12 +23,12 @@ public class BranchSupport extends JPanel {
 		CustomGridLayout layout = new CustomGridLayout();
 		setLayout(layout);
 		layout.setDimensions(1, 0.26);
-		add(new Separator("Branch Support", Color.lightGray, null));
+		add(new Separator("Branch Support", Color.lightGray, null,false));
 		layout.setDimensions(1, 0.68);
 		booStrAndAprLikRatTes = new BooStrAndAprLikRatTes();
 		add(booStrAndAprLikRatTes);
 		layout.setDimensions(1, 0.06);
-		add(new Separator());
+		add(new Separator(false));
 	}
 
 	/**

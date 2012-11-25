@@ -1,4 +1,5 @@
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -72,8 +73,10 @@ public class SubModel extends JPanel implements ActionListener {
 		modelBox.addActionListener(this);
 		equiBox = new JComboBox<String>(equiChoices);
 		equiBox.addActionListener(this);
-		String[] optRateChoices = new String[] { "yes", "no" };
+		String[] optRateChoices = new String[] { "yes", "no"};
 		optRateBox = new JComboBox<String>(optRateChoices);
+		setOptimiseRateOff(true);
+		setOptimiseRate("NO");
 		freqPanel = new FreqPanel();
 		sMLab = new JLabel("Substitution Model");
 		cMLab = new JLabel("Current Model");
@@ -83,9 +86,13 @@ public class SubModel extends JPanel implements ActionListener {
 		}
 		CustomGridLayout layout = new CustomGridLayout();
 		setLayout(layout);
-		layout.setDimensions(0.01, 0.33);
+		layout.setDimensions(0.01, 1);
 		add(new JPanel());
-		layout.setDimensions(0.45, 0.33);
+		layout.setDimensions(0.98, 0.04);
+		add(new JPanel());
+		layout.setDimensions(0.01, 1);
+		add(new JPanel());
+		layout.setDimensions(0.45, 0.29);
 		JPanel p1 = new JPanel();
 		add(p1);
 		CustomGridLayout lo1 = new CustomGridLayout();
@@ -94,56 +101,45 @@ public class SubModel extends JPanel implements ActionListener {
 		p1.add(sMLab);
 		lo1.setDimensions(0.3, 1);
 		p1.add(modelBox);
-		layout.setDimensions(0.1, 0.33);
+		layout.setDimensions(0.08, 0.29);
 		add(new JPanel());
-		layout.setDimensions(0.43, 0.33);
+		layout.setDimensions(0.45, 0.29);
 		JPanel p2 = new JPanel();
 		add(p2);
 		CustomGridLayout lo2 = new CustomGridLayout();
 		p2.setLayout(lo2);
-		lo2.setDimensions(0.6, 1);
+		lo2.setDimensions(0.72, 1);
 		p2.add(cMLab);
-		lo2.setDimensions(0.4, 1);
-		JPanel p3 = new JPanel();
-		p3.setLayout(new BoxLayout(p3, BoxLayout.PAGE_AXIS));
-		p3.add(curTextField);
-		p2.add(p3);
-		layout.setDimensions(0.01, 0.33);
+		lo2.setDimensions(0.21, 1);
+		p2.add(curTextField);
+		layout.setDimensions(0.98, 0.04);
 		add(new JPanel());
-		layout.setDimensions(0.01, 0.33);
-		add(new JPanel());
-		layout.setDimensions(0.45, 0.33);
+		layout.setDimensions(0.45, 0.29);
 		JPanel p4 = new JPanel();
 		add(p4);
 		CustomGridLayout lo3 = new CustomGridLayout();
 		p4.setLayout(lo3);
-		lo3.setDimensions(1, 0.1);
-		p4.add(new JPanel());
-		lo3.setDimensions(0.7, 0.9);
+		lo3.setDimensions(0.7, 1);
 		p4.add(eFLab);
-		lo3.setDimensions(0.3, 0.9);
+		lo3.setDimensions(0.3, 1);
 		p4.add(equiBox);
-		layout.setDimensions(0.1, 0.33);
+		layout.setDimensions(0.08, 0.29);
 		add(new JPanel());
-		layout.setDimensions(0.43, 0.33);
+		layout.setDimensions(0.45, 0.29);
 		JPanel p5 = new JPanel();
 		add(p5);
 		CustomGridLayout lo4 = new CustomGridLayout();
 		p5.setLayout(lo4);
 		lo4.setDimensions(1, 0.1);
 		p5.add(new JPanel());
-		lo4.setDimensions(0.7, 0.9);
+		lo4.setDimensions(0.72, 0.9);
 		p5.add(oRPLab);
-		lo4.setDimensions(0.3, 0.9);
+		lo4.setDimensions(0.21, 0.9);
 		p5.add(optRateBox);
-		layout.setDimensions(0.01, 0.33);
+		layout.setDimensions(0.98, 0.04);
 		add(new JPanel());
-		layout.setDimensions(0.01, 0.33);
-		add(new JPanel());
-		layout.setDimensions(0.98, 0.33);
+		layout.setDimensions(0.98, 0.3);
 		add(freqPanel);
-		layout.setDimensions(0.01, 0.33);
-		add(new JPanel());
 		setSelectedCompEnabled(2);
 	}
 
@@ -201,8 +197,8 @@ public class SubModel extends JPanel implements ActionListener {
 			this.addActionListener(this);
 			this.addFocusListener(this);
 			this.setMinimumSize(new Dimension(40, 4));
-			this.setMaximumSize(new Dimension(55, 25));
-			this.setPreferredSize(new Dimension(55, 18));
+			this.setMaximumSize(new Dimension(80, 25));
+			this.setPreferredSize(new Dimension(60, 18));
 		}
 
 		protected Document createDefaultModel() {
@@ -268,13 +264,22 @@ public class SubModel extends JPanel implements ActionListener {
 		if (e.getSource() == modelBox) {
 			if(modelBox.getSelectedItem().toString().equals("JC69")||
 					modelBox.getSelectedItem().toString().equals("K80")){
+				setOptimiseRateOff(true);
+				setOptimiseRate("NO");
+				PhymlPanel.setRatioBoxOff(false);
 				equiBox.setSelectedIndex(2);
 				setFrequencies("0.25","0.25","0.25","0.25");
 				setSelectedCompEnabled(1);
+				
 			}else if (modelBox.getSelectedItem().toString().equals("custom")) {
+				setOptimiseRateOff(true);
+				setOptimiseRate("YES");
+				PhymlPanel.setRatioBoxOff(false);
 				setSelectedCompEnabled(true);
 				setFrequencies("","","","");
 			} else if (modelBox.getSelectedItem().toString().equals("Read from file")) {
+				setOptimiseRateOff(true);
+				setOptimiseRate("NO");
 				JFileChooser fc = new JFileChooser();
 				fc.setCurrentDirectory(new File(System.getProperty("user.dir")));
 				int returnVal = fc.showOpenDialog(this);
@@ -285,7 +290,15 @@ public class SubModel extends JPanel implements ActionListener {
 					modelBox.setSelectedIndex(0);
 				}
 				setFrequencies("","","","");
+			}else if(modelBox.getSelectedItem().toString().equals("GTR")){
+				setOptimiseRateOff(false);
+				setOptimiseRate("NO");
+				PhymlPanel.setRatioBoxOff(true);
+				PhymlPanel.setRatioBoxDefault();
 			}else {
+				setOptimiseRateOff(true);
+				setOptimiseRate("NO");
+				PhymlPanel.setRatioBoxOff(false);
 				modelPath = "";
 				equiBox.setSelectedIndex(0);
 				setSelectedCompEnabled(2);
@@ -299,6 +312,19 @@ public class SubModel extends JPanel implements ActionListener {
 			}
 		}
 	}
+	private void setOptimiseRate(String string) {
+		if(string.equals("YES")){
+			optRateBox.setSelectedIndex(0);
+		}else if(string.equals("NO")){
+			optRateBox.setSelectedIndex(1);
+		}
+	}
+
+	private void setOptimiseRateOff(boolean b) {
+		System.out.println("enabled = " + !b);
+		optRateBox.setEnabled(!b);
+	}
+
 	/**
 	 * Enables or disables components which should only be enabled if a user
 	 * defined model is choosen.
@@ -310,12 +336,10 @@ public class SubModel extends JPanel implements ActionListener {
 		if(i==1){
 			curTextField.setEnabled(false);
 			equiBox.setEnabled(false);
-			optRateBox.setEnabled(true);
 			freqPanel.setCompEnabled(false);
 		}else if(i==2){
 			curTextField.setEnabled(false);
 			equiBox.setEnabled(true);
-			optRateBox.setEnabled(true);
 			freqPanel.setCompEnabled(false);
 		}
 	}
@@ -329,7 +353,6 @@ public class SubModel extends JPanel implements ActionListener {
 	private void setSelectedCompEnabled(boolean b) {
 		curTextField.setEnabled(b);
 		equiBox.setEnabled(b);
-		optRateBox.setEnabled(b);
 	}
 	public void setFrequencies(String freqA, String freqC, String freqG, String freqT) {
 		freqPanel.setFrequencies(freqA, freqC, freqG, freqT);

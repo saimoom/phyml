@@ -352,11 +352,11 @@ void PMat_Gamma(phydbl l, t_mod *mod, int pos, phydbl *Pij)
   
   if(shape < 1.E-10) 
     {
-      PhyML_Printf("\n. Err in file %s at line %d\n\n",__FILE__,__LINE__);
+      PhyML_Printf("\n== Err in file %s at line %d\n\n",__FILE__,__LINE__);
       Warn_And_Exit("");
     }
 
-  /* Formula 13.42, page 220 of Felsenstein's book ``Inferring PhyLOGenies'' */ 
+  /* Formula 13.42, page 220 of Felsenstein's book ``Inferring Phylogenies'' */ 
   For(k,n) expt[k] = POW(shape/(shape-LOG(R[k])*l),shape);
 
   /* multiply Vr*expt*Vi into Pij */

@@ -44,15 +44,15 @@ public class NumDataSets extends JPanel {
 		add(new JPanel());
 		layout.setDimensions(0.01, 0.88);
 		add(new JPanel());
-		layout.setDimensions(0.33, 0.88);
+		layout.setDimensions(0.30, 0.88);
 		add(lab1);
 		layout.setDimensions(0.1, 0.88);
 		add(spinner);
-		layout.setDimensions(0.1, 0.88);
+		layout.setDimensions(0.07, 0.88);
 		add(new JPanel());
-		layout.setDimensions(0.15, 0.88);
+		layout.setDimensions(0.14, 0.88);
 		add(lab2);
-		layout.setDimensions(0.2, 0.88);
+		layout.setDimensions(0.37, 0.88);
 		add(iDTxt);
 	}
 

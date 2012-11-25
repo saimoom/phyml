@@ -44,19 +44,17 @@ public class OptTopologyAndStartingTree extends JPanel implements
 		setLayout(layout);
 		layout.setDimensions(1, 0.1);
 		add(new JPanel());
-		layout.setDimensions(0.01, 0.8);
+		layout.setDimensions(0.01, 0.9);
 		add(new JPanel());
-		layout.setDimensions(0.44, 0.8);
+		layout.setDimensions(0.44, 0.9);
 		JPanel p1 = new JPanel();
 		add(p1);
-		layout.setDimensions(0.1, 0.8);
+		layout.setDimensions(0.1, 0.9);
 		add(new JPanel());
-		layout.setDimensions(0.44, 0.8);
+		layout.setDimensions(0.44, 0.9);
 		JPanel p2 = new JPanel();
 		add(p2);
-		layout.setDimensions(0.01, 0.8);
-		add(new JPanel());
-		layout.setDimensions(1, 0.1);
+		layout.setDimensions(0.01, 0.9);
 		add(new JPanel());
 		CustomGridLayout lO1 = new CustomGridLayout();
 		p1.setLayout(lO1);
@@ -68,11 +66,11 @@ public class OptTopologyAndStartingTree extends JPanel implements
 		p1.add(optTopBox);
 		CustomGridLayout lO2 = new CustomGridLayout();
 		p2.setLayout(lO2);
-		lO2.setDimensions(0.62, 1);
+		lO2.setDimensions(0.61, 1);
 		p2.add(new JLabel("Starting Tree"));
 		lO2.setDimensions(0.1, 1);
 		p2.add(new JLabel());
-		lO2.setDimensions(0.28, 1);
+		lO2.setDimensions(0.23, 1);
 		p2.add(staTreBox);
 	}
 

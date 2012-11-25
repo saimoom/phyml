@@ -1,4 +1,5 @@
 
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JComboBox;
@@ -42,10 +43,10 @@ public class ProportionAndSubrate extends JPanel implements ActionListener {
 		setLayout(layout);
 		layout.setDimensions(1, 0.1);
 		add(new JPanel());
-		layout.setDimensions(0.01, 0.8);
+		layout.setDimensions(0.01, 0.9);
 		add(new JPanel());
 		JPanel p1 = new JPanel();
-		layout.setDimensions(0.53, 0.8);
+		layout.setDimensions(0.45, 0.9);
 		add(p1);
 		CustomGridLayout lO1 = new CustomGridLayout();
 		p1.setLayout(lO1);
@@ -58,21 +59,19 @@ public class ProportionAndSubrate extends JPanel implements ActionListener {
 		lO1.setDimensions(0.1, 1);
 		p1.add(parameter);
 		JPanel p2 = new JPanel();
-		layout.setDimensions(0.01, 0.8);
+		layout.setDimensions(0.04, 0.9);
 		add(new JPanel());
-		layout.setDimensions(0.44, 0.8);
+		layout.setDimensions(0.49, 0.9);
 		add(p2);
 		CustomGridLayout lO2 = new CustomGridLayout();
 		p2.setLayout(lO2);
-		lO2.setDimensions(0.73, 1);
+		lO2.setDimensions(0.74, 1);
 		p2.add(new JLabel("One Sub. Rate Category"));
-		lO2.setDimensions(0.04, 1);
-		p2.add(new JPanel());
-		lO2.setDimensions(0.20, 1);
+		//lO2.setDimensions(0.04, 1);
+		//p2.add(new JPanel());
+		lO2.setDimensions(0.2, 1);
 		p2.add(subRates);
-		layout.setDimensions(0.01, 0.8);
-		add(new JPanel());
-		layout.setDimensions(1, 0.1);
+		layout.setDimensions(0.01, 0.9);
 		add(new JPanel());
 	}
 

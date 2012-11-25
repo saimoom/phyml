@@ -29,24 +29,18 @@ public class SubstitutionModelPhyml extends JPanel {
 	public SubstitutionModelPhyml(String molecularType) {
 		CustomGridLayout layout = new CustomGridLayout();
 		setLayout(layout);
-		layout.setDimensions(1, 0.13);
-		add(new Separator("Substitution Model", Color.lightGray, null));
-		layout.setDimensions(1, 0.36);
+		layout.setDimensions(1, 0.14);
+		add(new Separator("Substitution Model", Color.lightGray, null,false));
+		layout.setDimensions(1, 0.43);
 		sM = new SubModel(molecularType);
 		add(sM);
-		layout.setDimensions(1, 0.04);
-		add(new Separator());
-		layout.setDimensions(1, 0.13);
+		layout.setDimensions(1, 0.14);
 		oFAR = new OptimiseFreqAndRatio("DNA");
 		add(oFAR);
-		layout.setDimensions(1, 0.04);
-		add(new Separator());
-		layout.setDimensions(1, 0.13);
+		layout.setDimensions(1, 0.14);
 		pAS = new ProportionAndSubrate();
 		add(pAS);
-		layout.setDimensions(1, 0.04);
-		add(new Separator());
-		layout.setDimensions(1, 0.13);
+		layout.setDimensions(1, 0.14);
 		nSCGA = new NumSubCatGammaAverage();
 		add(nSCGA);
 	}
@@ -211,5 +205,18 @@ public class SubstitutionModelPhyml extends JPanel {
 	public void setMoleculeType(String string) {
 		oFAR.setMoleculeType(string);
 		sM.setMoleculeType(string);
+	}
+	/**
+	 * Enables or disables the dropdownmenu for changing the Transition/Transversion ratio.
+	 * 
+	 * @param off
+	 * boolean : if true disabled otherwise enabled
+	 */
+	public void setRatioBoxOff(boolean off) {
+		oFAR.setRatioBoxOff(off);
+	}
+
+	public void setRatioBoxDefault() {
+		oFAR.setRatioBoxDefault();
 	}
 }

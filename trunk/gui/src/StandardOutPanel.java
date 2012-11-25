@@ -1,4 +1,7 @@
 
+import java.awt.Font;
+import java.awt.Rectangle;
+
 import javax.swing.DropMode;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -28,13 +31,15 @@ public class StandardOutPanel extends JPanel {
 		setLayout(layout);
 		layout.setDimensions(1, 1);
 		editorPane = new JTextPane();
+		Font font = new Font("Courier", Font.PLAIN, 12);
+		editorPane.setFont(font);
 		editorPane.setEditable(false);
 		editorPane.setDropMode(DropMode.INSERT);
 		JScrollPane editorScrollPane = new JScrollPane(editorPane);
 		editorScrollPane
 				.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 		editorScrollPane
-				.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+				.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		add(editorScrollPane);
 	}
 
@@ -49,5 +54,6 @@ public class StandardOutPanel extends JPanel {
 			System.out.println(line);
 		}
 		editorPane.setText(editorPane.getText() + line + "\n");
+		editorPane.scrollRectToVisible(new Rectangle(0,editorPane.getHeight(),1,1));
 	}
 }
