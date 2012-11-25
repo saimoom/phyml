@@ -73,15 +73,15 @@ public class PhymlPanel extends JPanel implements ActionListener {
 		lO1.setDimensions(1, 0.2);
 		p1.add(new JPanel());
 		lO1.setDimensions(0.35, 0.6);
-		p1.add(new Separator());
+		p1.add(new Separator(false));
 		lO1.setDimensions(0.3, 0.6);
 		p1.add(submit);
 		lO1.setDimensions(0.35, 0.6);
-		p1.add(new Separator());
+		p1.add(new Separator(false));
 		lO1.setDimensions(1, 0.2);
 		p1.add(new JPanel());
 		layout.setDimensions(1, 0.01);
-		mainPan.add(new Separator());
+		mainPan.add(new Separator(false));
 		tabbedPane.addTab("Settings", mainPan);
 		standardOut = new StandardOutPanel();
 		tabbedPane.addTab("Standard output", standardOut);
@@ -325,7 +325,7 @@ public class PhymlPanel extends JPanel implements ActionListener {
 				 * conjunction with -u file name. See Section 7.5 in the
 				 * phyml manual for more information.
 				 */
-				"no"// TODO quiet
+				"yes"// TODO quiet
 			);
 			submit.setEnabled(false);
 		} else if (!iDP.getIsFile()) {
@@ -576,7 +576,6 @@ public class PhymlPanel extends JPanel implements ActionListener {
 					 * phyml manual for more information.
 					 */
 					""// TODO quiet
-					
 				);
 			} catch (ZipException e) {
 				e.printStackTrace();
@@ -711,7 +710,12 @@ public class PhymlPanel extends JPanel implements ActionListener {
 	public static void setInputFile(String inputPath) {
 		iDP.setInputPath(inputPath);
 	}
-
+	/**
+	 * Passes on the right moleculetype to all the subclasses i.e substitutionModel
+	 * 
+	 * @param molType
+	 * String : either "DNA" or "AA"
+	 */
 	public static void setMoleculeType(String molType) {
 		sM.setMoleculeType(molType);
 		if(molType.equals("DNA")){
@@ -719,5 +723,12 @@ public class PhymlPanel extends JPanel implements ActionListener {
 		}else{
 			SetDna(false);
 		}
+	}
+	public static void setRatioBoxOff(boolean off){
+		sM.setRatioBoxOff(off);
+	}
+
+	public static void setRatioBoxDefault() {
+		sM.setRatioBoxDefault();
 	}
 }

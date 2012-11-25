@@ -26,27 +26,27 @@ public class InputDataPanel extends JPanel {
 		CustomGridLayout layout = new CustomGridLayout();
 		setLayout(layout);
 		layout.setDimensions(1, 0.18);
-		add(new Separator("Input Data", Color.LIGHT_GRAY, null));
+		add(new Separator("Input Data", Color.LIGHT_GRAY, null,false));
 		layout.setDimensions(1, 0.18);
 		fU = new FileUpload("");
 		add(fU);
 		layout.setDimensions(1, 0.02);
-		add(new Separator(null, null));
+		add(new Separator(null, null, false));
 		layout.setDimensions(1, 0.18);
 		dT = new DataTypePhyml();
 		add(dT);
 		layout.setDimensions(1, 0.02);
-		add(new Separator(null, null));
+		add(new Separator(null, null, false));
 		layout.setDimensions(1, 0.18);
 		sF = new SeqFile();
 		add(sF);
 		layout.setDimensions(1, 0.02);
-		add(new Separator(null, null));
+		add(new Separator(null, null, false));
 		layout.setDimensions(1, 0.18);
 		nDS = new NumDataSets();
 		add(nDS);
 		layout.setDimensions(1, 0.05);
-		add(new Separator(true));
+		add(new Separator(true, false));
 	}
 
 	/**

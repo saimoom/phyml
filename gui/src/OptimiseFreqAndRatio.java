@@ -65,26 +65,24 @@ public class OptimiseFreqAndRatio extends JPanel implements ActionListener {
 		ratioBox.addActionListener(this);
 		CustomGridLayout layout = new CustomGridLayout();
 		setLayout(layout);
-		layout.setDimensions(1, 0.1);
+		layout.setDimensions(1, 0.04);
 		add(new JPanel());
-		layout.setDimensions(0.01, 0.8);
+		layout.setDimensions(0.01, 0.96);
 		add(new JPanel());
-		layout.setDimensions(0.98, 0.8);
+		layout.setDimensions(0.98, 0.96);
 		JPanel p2 = new JPanel();
 		add(p2);
 		CustomGridLayout l2 = new CustomGridLayout();
 		p2.setLayout(l2);
-		l2.setDimensions(0.46, 1);
+		l2.setDimensions(0.691, 1);
 		p2.add(ratioLab);
-		l2.setDimensions(0.25, 1);
+		l2.setDimensions(0.13, 1);
 		p2.add(ratioBox);
-		l2.setDimensions(0.04, 1);
+		l2.setDimensions(0.05, 1);
 		p2.add(new JPanel());
-		l2.setDimensions(0.25, 1);
+		l2.setDimensions(0.1, 1);
 		p2.add(ratioField);
-		layout.setDimensions(0.01, 0.9);
-		add(new JPanel());
-		layout.setDimensions(1, 0.1);
+		layout.setDimensions(0.01, 0.96);
 		add(new JPanel());
 	}
 
@@ -221,4 +219,20 @@ public class OptimiseFreqAndRatio extends JPanel implements ActionListener {
 		}
 		return "";
 	}
+	/**
+	 * Enables or disables the Transition/Transversion Ratio dropdownmenu.
+	 * 
+	 * @param off
+	 * boolean : if true disabled otherwise enabled;
+	 */
+	public void setRatioBoxOff(boolean off){
+		ratioBox.setEnabled(!off);
+	}
+	/**
+	 * Sets the index of ratioBox to 0.
+	 */
+	public void setRatioBoxDefault() {
+		ratioBox.setSelectedIndex(0);
+	}
+
 }

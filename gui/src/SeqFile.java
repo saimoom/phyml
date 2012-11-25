@@ -40,20 +40,20 @@ public class SeqFile extends JPanel implements ActionListener {
 		setLayout(layout);
 		layout.setDimensions(0.01, 1);
 		add(new JPanel());
-		layout.setDimensions(0.39, 1);
+		layout.setDimensions(0.3, 1);
 		add(lab1);
-		layout.setDimensions(0.20, 1);
+		layout.setDimensions(0.3, 1);
 		add(new JPanel());
-		layout.setDimensions(0.4, 1);
+		layout.setDimensions(0.38, 1);
 		JPanel p = new JPanel();
 		add(p);
 		CustomGridLayout lO1 = new CustomGridLayout();
 		p.setLayout(lO1);
 		lO1.setDimensions(0.02, 1);
 		p.add(new JPanel());
-		lO1.setDimensions(0.48, 1);
+		lO1.setDimensions(0.45, 1);
 		p.add(choice1);
-		lO1.setDimensions(0.50, 1);
+		lO1.setDimensions(0.53, 1);
 		p.add(choice2);
 	}
 
