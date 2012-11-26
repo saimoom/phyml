@@ -61,13 +61,13 @@ public class SubModel extends JPanel implements ActionListener {
 			models = new String[] { "HKY85", "F84", "TN93", "GTR", "custom",
 					"JC69", "K80" };
 			equiChoices = new String[] { "empirical", "optimised" ,"user defined" };
-			eFLab = new JLabel("Equilibrium Frequency");
+			eFLab = new JLabel("Nucleotide frequencies");
 		} else {
 			models = new String[] { "LG", "WAG", "Dayhoff", "JTT", "Blossum62",
 					"Mt Rev", "Rt Rev", "Cp Rev", "DcMut", "VT", "Mt Mam",
 					"Mt Art", "HIVw", "HIVb", "Read from file" };
 			equiChoices = new String[] { "model", "empirical" };
-			eFLab = new JLabel("Amino Acid Frequency");
+			eFLab = new JLabel("Amino-acid frequencies");
 		}
 		modelBox = new JComboBox<String>(new DefaultComboBoxModel<String>(models));
 		modelBox.addActionListener(this);
@@ -78,9 +78,9 @@ public class SubModel extends JPanel implements ActionListener {
 		setOptimiseRateOff(true);
 		setOptimiseRate("NO");
 		freqPanel = new FreqPanel();
-		sMLab = new JLabel("Substitution Model");
-		cMLab = new JLabel("Current Model");
-		oRPLab = new JLabel("Optimise Rate Parameter");
+		sMLab = new JLabel("Substitution model");
+		cMLab = new JLabel("Current model");
+		oRPLab = new JLabel("Optimise rate parameter");
 		if (molecularType.equals("AA")) {
 			setCompVisible(false);
 		}
@@ -172,7 +172,7 @@ public class SubModel extends JPanel implements ActionListener {
 			setCompVisible(true);
 			equiBox.setModel(new DefaultComboBoxModel<String>(new String[] { "empirical", 
 					"optimised" ,"user defined" }));
-			eFLab.setText("Equilibrium Frequency");
+			eFLab.setText("Nucleotide frequencies");
 		} else if (molecularType.equals("AA")) {
 			modelBox.setModel(new DefaultComboBoxModel<String>(new String[] { "LG",
 					"WAG", "Dayhoff", "JTT", "Blossum62", "Mt Rev", "Rt Rev",
@@ -181,7 +181,7 @@ public class SubModel extends JPanel implements ActionListener {
 			setCompVisible(false);
 			equiBox.setModel(new DefaultComboBoxModel<String>(new String[] { "model",
 					"empirical" }));
-			eFLab.setText("Amino Acid Frequency");
+			eFLab.setText("Amino-acid frequencies");
 		}
 	}
 
@@ -307,8 +307,10 @@ public class SubModel extends JPanel implements ActionListener {
 		} else if (e.getSource() == equiBox) {
 			if (equiBox.getSelectedItem().toString().equals("user defined")) {
 				freqPanel.setCompEnabled(true);
+				freqPanel.setCompVisible(true);
 			} else {
 				freqPanel.setCompEnabled(false);
+				freqPanel.setCompVisible(false);
 			}
 		}
 	}
@@ -337,10 +339,11 @@ public class SubModel extends JPanel implements ActionListener {
 			curTextField.setEnabled(false);
 			equiBox.setEnabled(false);
 			freqPanel.setCompEnabled(false);
+			freqPanel.setCompVisible(false);
 		}else if(i==2){
 			curTextField.setEnabled(false);
 			equiBox.setEnabled(true);
-			freqPanel.setCompEnabled(false);
+			freqPanel.setCompVisible(false);
 		}
 	}
 	/**

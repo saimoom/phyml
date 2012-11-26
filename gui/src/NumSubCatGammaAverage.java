@@ -41,15 +41,15 @@ public class NumSubCatGammaAverage extends JPanel implements ActionListener,
 	 * and position of components and adds the components.
 	 */
 	public NumSubCatGammaAverage() {
-		subCat = new CustomTextField("", false);
+		subCat = new CustomTextField("4", false);
 		gammaBox = new JComboBox(new String[] { "estimated", "fixed" });
 		gammaBox.addActionListener(this);
 		alpha = new CustomTextField("", true);
 		alpha.setEnabled(false);
 		alpha.addFocusListener(this);
 		average = new JComboBox(new String[] { "mean", "median" });
-		lab1 = new JLabel("# Of Rate Classes");
-		lab2 = new JLabel("Shape Parameter");
+		lab1 = new JLabel("# of rate classes");
+		lab2 = new JLabel("Shape parameter");
 		lab3 = new JLabel("Value");
 		lab4 = new JLabel("Average");
 		CustomGridLayout layout = new CustomGridLayout();
@@ -59,11 +59,13 @@ public class NumSubCatGammaAverage extends JPanel implements ActionListener,
 		layout.setDimensions(0.01, 0.9);
 		add(new JPanel());
 		layout.setDimensions(0.25, 0.9);
+
 		JPanel p1 = new JPanel();
 		add(p1);
 		//layout.setDimensions(0.01, 0.8);
 		//add(new JPanel());
 		layout.setDimensions(0.5, 0.9);
+
 		JPanel p2 = new JPanel();
 		//p2.setBackground(Color.blue);
 		add(p2);

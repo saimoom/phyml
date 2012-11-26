@@ -45,7 +45,7 @@ public class OptimiseFreqAndRatio extends JPanel implements ActionListener {
 	public OptimiseFreqAndRatio(String moleculeType) {
 		this.moleculeType = moleculeType;
 //		optimiseAray1 = new String[] { "yes", "no" };
-		ratioLab = new JLabel("Transition/Transversion Ratio");
+		ratioLab = new JLabel("Transition/transversion ratio");
 		ratioBox = new JComboBox<String>(new String[] { "estimated", "fixed" });
 		ratioField = new CustomTextField("4.0");
 		ratioField.setEnabled(false);
