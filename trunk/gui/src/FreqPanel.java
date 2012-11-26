@@ -49,10 +49,10 @@ public class FreqPanel extends JPanel {
 		t2 = new CustomTextField();
 		t3 = new CustomTextField();
 		t4 = new CustomTextField();
-		l1 = new JLabel("Freq A");
-		l2 = new JLabel("Freq C");
-		l3 = new JLabel("Freq G");
-		l4 = new JLabel("Freq T");
+		l1 = new JLabel("f(A)");
+		l2 = new JLabel("f(C)");
+		l3 = new JLabel("f(G)");
+		l4 = new JLabel("f(T)");
 		CustomGridLayout layout = new CustomGridLayout();
 		setLayout(layout);
 		layout.setDimensions(1, 0.1);
@@ -110,10 +110,10 @@ public class FreqPanel extends JPanel {
 			t4.setText("" + d1);
 			hasAllValues = true;
 		}
-		l1 = new JLabel("Freq A");
-		l2 = new JLabel("Freq C");
-		l3 = new JLabel("Freq G");
-		l4 = new JLabel("Freq T");
+		l1 = new JLabel("f(A)");
+		l2 = new JLabel("f(C)");
+		l3 = new JLabel("f(G)");
+		l4 = new JLabel("f(T)");
 		CustomGridLayout layout = new CustomGridLayout();
 		setLayout(layout);
 		layout.setDimensions(1, 0.1);

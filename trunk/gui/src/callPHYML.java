@@ -270,8 +270,8 @@ public class callPHYML {
 			command += "--contrained_lens" + contrainedLens + " ";
 		if (!constFile.equals(""))
 			command += "--constraint_file " + constFile + " ";
-		if (!quiet.equals(""))
-			command += "--quiet ";
+		// if (!quiet.equals(""))
+		// 	command += "--quiet ";
 
 		return command;
 	} // end formatCommand

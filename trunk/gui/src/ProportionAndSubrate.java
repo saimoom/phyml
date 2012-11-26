@@ -36,7 +36,7 @@ public class ProportionAndSubrate extends JPanel implements ActionListener {
 		sites = new JComboBox(choices);
 		sites.addActionListener(this);
 		parameter = new CustomTextField("0.00");
-		String[] yesNo = new String[] { "no", "yes" };
+		String[] yesNo = new String[] { "yes", "no" };
 		subRates = new JComboBox(yesNo);
 		subRates.addActionListener(this);
 		CustomGridLayout layout = new CustomGridLayout();
@@ -51,7 +51,7 @@ public class ProportionAndSubrate extends JPanel implements ActionListener {
 		CustomGridLayout lO1 = new CustomGridLayout();
 		p1.setLayout(lO1);
 		lO1.setDimensions(0.66, 1);
-		p1.add(new JLabel("Proportion Invariable Sites"));
+		p1.add(new JLabel("Proportion of Invariable Sites"));
 		lO1.setDimensions(0.22, 1);
 		p1.add(sites);
 		lO1.setDimensions(0.02, 1);
@@ -66,7 +66,8 @@ public class ProportionAndSubrate extends JPanel implements ActionListener {
 		CustomGridLayout lO2 = new CustomGridLayout();
 		p2.setLayout(lO2);
 		lO2.setDimensions(0.74, 1);
-		p2.add(new JLabel("One Sub. Rate Category"));
+		// p2.add(new JLabel("One Sub. Rate Category"));
+		p2.add(new JLabel("Variation of rates across sites"));
 		//lO2.setDimensions(0.04, 1);
 		//p2.add(new JPanel());
 		lO2.setDimensions(0.2, 1);
@@ -157,7 +158,7 @@ public class ProportionAndSubrate extends JPanel implements ActionListener {
 				parameter.setEnabled(false);
 			}
 		} else if (e.getSource() == subRates) {
-			if (subRates.getSelectedItem().toString().equals("no")) {
+			if (subRates.getSelectedItem().toString().equals("yes")) {
 				PhymlPanel.sM.setNumSubCatGammaAverageCompVisible(true);
 			} else {
 				PhymlPanel.sM.setNumSubCatGammaAverageCompVisible(false);
