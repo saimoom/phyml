@@ -1,3 +1,5 @@
+  * _08 December 2012._  When analysing multiple input trees and using one of the fast approximate edge support methods, edge lengths in the output ML tree are incorrect. Thanks again to Lars Jermiin for pointing this out. To apply the corresponding patch, copy the file 20121208.patch in the src/ directory and type 'patch -i 20121208.patch'.
+
   * _07 December 2012._ Changed maximum length of a branch from 100 to 10. Many thanks to Lars Jermiin for running thorough tests on this. To apply the corresponding patch, copy the file 20121207.patch in the src/ directory and type 'patch -i 20121207.patch'.
 
   * _08 November 2012._ Minor bug in version 20120412 in the printing of edge lengths after calculating branch length supports using aLRT, aBayes or SH. To apply the patch, copy the file 20121108.patch in the src/ directory and type 'patch -i 20121108.patch'.
