@@ -1,8 +1,5 @@
   * _19 Fevrier 2013._ The part of the code dealing with reading data in NEXUS format and processing discrete characters was broken. A new patch (20130219.patch) provides a quick fix to this. It has not been tested extensively and might need refinement. Please do not hesitate to post feedback on the forum (https://groups.google.com/forum/?fromgroups#!forum/phyml-forum). To apply this patch, copy the file 20130219.patch in the src/ directory and enter the command 'patch -i 20130219.patch'. You will need to re-compile the program after that.
 
-
-. Please replace it with 20130218.patch and follow the instructions below to apply it.
-
   * _18 Fevrier 2013._ There was an error in the last patch (20130211.patch). Please replace it with 20130218.patch and follow the instructions below to apply it.
 
   * _11 Fevrier 2013._ The optimisation of the FreeRate model parameters sometimes converged to sub-optimal solutions. Adding multi-dimension optimisation routines (instead of sequential optimisation) seems to be helping. To apply the corresponding patch, copy the file 20130211.patch in the src/ directory and type 'patch -i 20130211.patch'. Note that this patch, like all the others listed here, incorporates all the bug fixes mentioned below.
