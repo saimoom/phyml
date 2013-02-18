@@ -1,3 +1,5 @@
+  * _18 Fevrier 2013._ There was an error in the last patch (20130211.patch). Please replace it with 20130218.patch and follow the instructions below to apply it.
+
   * _11 Fevrier 2013._ The optimisation of the FreeRate model parameters sometimes converged to sub-optimal solutions. Adding multi-dimension optimisation routines (instead of sequential optimisation) seems to be helping. To apply the corresponding patch, copy the file 20130211.patch in the src/ directory and type 'patch -i 20130211.patch'. Note that this patch, like all the others listed here, incorporates all the bug fixes mentioned below.
 
   * _08 December 2012._  When analysing multiple input trees and using one of the fast approximate edge support methods, edge lengths in the output ML tree are incorrect. Thanks again to Lars Jermiin for pointing this out. To apply the corresponding patch, copy the file 20121208.patch in the src/ directory and type 'patch -i 20121208.patch'.
