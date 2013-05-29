@@ -1,3 +1,4 @@
+#labels Featured
   * _13 May 2013._ Bugs in bootstrap functions prevent the analysis to proceed normally. Only affect the development version 20130412. Please use version 20130513
 instead.
 
