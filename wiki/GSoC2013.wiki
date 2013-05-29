@@ -1,0 +1,9 @@
+=Extend PhyML to use the BEAGLE library=
+
+Much of the speed in PhyML comes from heuristic search techniques to efficiently search the space of possible trees. Parallelization is limited to MPI-based distribution of bootstrap replicates. Like most such software it uses the Felsenstein Pruning algorithm to compute the likelihood of individual trees using continuous-time Markov models. Recently considerable advances has been made in the fine-scale parallelization of this algorithm, in particular targeting massively parallel hardware such as NVidia GPGPUs (general purpose graphics processing units). There are considerable improvements in overall speed to be gained for PhyML by combining efficient search strategies with high speed likelihood computation.
+
+BEAGLE is a cross-platform library that implements Felsenstein algorithm on a range of parallel and vector hardware including CUDA-based GPGPUs and SSE instructions on Intel chips:
+
+http://code.google.com/p/beagle-lib/
+
+This project involves extending PhyML to make calls to the BEAGLE library in place of the internal likelihood calculations. The project will involve: 1) Becoming familiar with the API of BEAGLE and linking of client software to the library (an example simple client in C is available in the BEAGLE package). 2) Understanding the likelihood calculations in PhyML. 3) Replacing likelihood calculation calls in PhyML with homologous calls to BEAGLE. 4) Testing and validation. 5) Performance testing with different hardware.
