@@ -9,4 +9,4 @@ http://code.google.com/p/beagle-lib/
 
 This project involves extending PhyML to make calls to the BEAGLE library in place of the internal likelihood calculations. The project will involve: 1) Becoming familiar with the API of BEAGLE and linking of client software to the library (an example simple client in C is available in the BEAGLE package). 2) Understanding the likelihood calculations in PhyML. 3) Replacing likelihood calculation calls in PhyML with homologous calls to BEAGLE. 4) Testing and validation. 5) Performance testing with different hardware.
 
-_This project was first proposed by Andrew Rambaut and listed by NESCENT among the list of proposals offered for GSoC2013. Imran Fanaswala's application was successful. Andrew Rambaut, Marc Suchard and Stephane Guindon will supervise Imran's work._
+_This project was first proposed by Andrew Rambaut and listed by NESCENT among the proposals offered to students for GSoC2013. Imran Fanaswala's application was successful. Andrew Rambaut, Marc Suchard and Stephane Guindon will supervise Imran's work._
