@@ -1,9 +1,0 @@
-#!/bin/bash -x
-
-aclocal;
-autoconf -f ./configure_rf.ac > ./configure;
-automake -f ./Makefile_rf;
-chmod u+x ./configure;
-./configure;
-make -f ./Makefile_rf clean;
-make -f ./Makefile_rf;
