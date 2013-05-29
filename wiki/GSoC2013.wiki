@@ -1,3 +1,4 @@
+#labels Featured
 =Extend PhyML to use the BEAGLE library=
 
 Much of the speed in PhyML comes from heuristic search techniques to efficiently search the space of possible trees. Parallelization is limited to MPI-based distribution of bootstrap replicates. Like most such software it uses the Felsenstein Pruning algorithm to compute the likelihood of individual trees using continuous-time Markov models. Recently considerable advances has been made in the fine-scale parallelization of this algorithm, in particular targeting massively parallel hardware such as NVidia GPGPUs (general purpose graphics processing units). There are considerable improvements in overall speed to be gained for PhyML by combining efficient search strategies with high speed likelihood computation.
