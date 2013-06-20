@@ -15,8 +15,9 @@ _This project was first proposed by Andrew Rambaut and listed by NESCENT among t
 ==Report==
 
 ===Week1===
-  *  In PhyML, Replace Update_P_Lk() with homologous BEAGLE call(s)
-
+  *  In PhyML, Replace Update_P_Lk() with homologous BEAGLE call(s). Essentially this means PhyML will use BEAGLE for its partial likelihood calculation.
+  * Figure out why the spr.c is throwing an error
+  * How large (if any) is the performance gain from SetTransitionMatrices() versus SetTransitionMatrix(). The latter is the "first step", but if BEAGLE authors claim the former is faster then maybe its worth juggling the code in order to use it?
 
 ===Week2===
   * Continue and Finish with Week1
@@ -103,8 +104,6 @@ phydbl `*p_lk,*p_lk_v1,*p_lk_v2`;//Partial likelihood vectors of node, child1, a
   *
 ./src/phyml-beagle -i ./datasets/toy.txt -d nt -q -c 4 -v 0 -t 4 -s NNI -m JC69 -f '0.25,0.25,0.25,0.25' -o n
 ./src/phyml-beagle -i ./datasets/toy.txt -d nt -q -c 4 -v e -a e -t 4 -s BEST -m JC69 -f '0.25,0.25,0.25,0.25' -o tlr
-
-
 
 
 
