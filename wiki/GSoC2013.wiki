@@ -10,3 +10,101 @@ http://code.google.com/p/beagle-lib/
 This project involves extending PhyML to make calls to the BEAGLE library in place of the internal likelihood calculations. The project will involve: 1) Becoming familiar with the API of BEAGLE and linking of client software to the library (an example simple client in C is available in the BEAGLE package). 2) Understanding the likelihood calculations in PhyML. 3) Replacing likelihood calculation calls in PhyML with homologous calls to BEAGLE. 4) Testing and validation. 5) Performance testing with different hardware.
 
 _This project was first proposed by Andrew Rambaut and listed by NESCENT among the proposals offered to students for GSoC2013. Imran Fanaswala's application was successful. Andrew Rambaut, Marc Suchard and Stephane Guindon will supervise Imran's work._
+
+
+==Report==
+
+===Week1===
+  *  In PhyML, Replace Update_P_Lk() with homologous BEAGLE call(s)
+
+
+===Week2===
+  * Continue and Finish with Week1
+
+  * Use run_datasets.py to test (not benchmark!) for correctness
+    * AA and DNA datasets
+    * SPR, NNI, BEST
+    * various other parameters
+    * single and double precision 
+    * Ambiguous characters
+    * Mixed Models
+
+===DIRTY DUMP===
+The following is a "dirty" dump of the TODO_GSOC13.txt file found in the repository.
+
+===TODO===
+  * The update_beagle_p_lk() function needs to store the computed likelihoods, and also do scaling. Look in Update_P_Lk() as a reference.
+  * Find out if Pij_rr also holds first and second derivatives. If so, it must be of dimension statecount*statecount*3. If so, you will have to adjust your BEAGLE code that uses the Transition Probability matrices and the padded value in SetTransitionMatrix()
+  * Find a better way to determine nv1 and nv2
+  * Is your ResetScaleFactors() call make sense?
+  * You will need a vector trans_mat_indices[i] gives the *index* to branch i (fourtaxon, line 335)
+  * multiple BEAGLE instances for multiple datasets
+  * If PhyML works with TipPartials, add a command line flag to use it... then based on that flag you will have to calculate num_partials in createBeagleInstance()
+  * it seems unscaled equilibrium freqs are computed even when equilibrium freqs are explicitly user provided ("Freqs" section in Print_Model())
+  * Handle Custom model, M4 model?
+  * Handle ambiguous characters in input MSA
+  * Email Stephane about:
+    * This command's emperical frequencies dont parse correctly (due to the quotes); trivial..
+    ./src/phyml -i ./datasets/toy.txt -d nt -q -c 1 -v 0 -t 4 -s NNI -m JC69 -f \"0.25,0.25,0.25,0.25\" -o n
+
+
+===QUESTIONS===
+  * Currently, I am providing the PMat to BEAGLE (via beagleSetTransitionMatrix()) in the Update_PMat_At_Given_Edge() because thats where the PMat is created. However, there are several other places where the PMat() is also called; for example, in M4_Integral_Term_On_One_Edge() and even Print_Model(). What shall I do there?
+  * Am I using beagleCalculateEdgeLogLikelihoods() correctly? <insert picture>
+  * In beagleCalculateEdgeLogLikelihoods(), what are category weights parameter? do I need it for PhyML?
+  * Is it safe to set to call SetPatternWeights(), SetRates(), etc eventho I am directly setting the Transition Prob matrix with SetTransitionMatrix()
+  * Does Pij_rr hold the probabilities, first, and second derivatives? IOW, it is of dimension statecount*state*count*3 ? correct?
+  * What is compactBufferCount? How can I determine this?
+  * Why does struct __EquFreq have a *next and *prev pointers?
+  * In PhyML, are the substitution rates in ras->gamma_rr->v ? If so, it seems the gamma_rr->len is misleading as it is unused; shall I remove it?
+  * Also on a slightly related note, I ran PhyML with parameters "-m GTR -o tlr"... and noticed (via Print_Model()) that, instead of the default 4 rates, 2 rates were printed? is PhyML overriding the user's preference and modifying mod->ras->n_catg ?
+  * PhyML uses "phydbl" throughout which can either be "float" or "double". However, BEAGLE uses "double" for function arguments -- I suspect I will need to do "float to double" conversion? Any caveats I should be aware of here?
+  * Eventho I only use SetTransitionMatrix(), I cant use eigenBufferCount=0 in createBeagleInstance(). Is this expected behavior? If not, I can attempt a fix?
+  * PhyML; Is io->do_alias_subpatt ever TRUE in main()? IOW, when is the code at line 187 ever executed?
+  * If I understand correctly, each rate category will have *a* corresponding weight, right? I dont understand why beagleSetCategoryWeights() takes an array
+  * PhyML; can PhyML accept Tips with partials?
+  * PhyML also computes the imaginary part of the Eigen decomposition; how is this handled by BEAGLE?
+  * compactBufferCount; when and why is it not the same as tipCount (i.e. number of taxa)?
+  * Not sure what are "scalingBuffers", and how to determine them?
+  * In the example code: int nodeIndices[4] =     { 0, 1, 2, 3 };
+                       double edgeLengths[4] = { 0.1, 0.1, 0.2, 0.1 };
+    Considering there is a 1-to-1 correspondance, can I say that two nodes (maybe 0 and 1) are referring to the *same* branch? (maybe the branch with edgeLength=0.1?)
+  *  For PhyML; should I instantiate Beagle with SINGLE or DOUBLE precision? I believe PhyML uses double everywhere?
+  * It seems the Eigen is only computed *and* updated for the HKY85, GTR, and Custom models. If so, mathematically, how does one compute the Pmatrix for the other models?
+  * Unconstrained log-likelihood?
+  * Recall, the user specifies the number of rate categories and now suppose we estimate an alpha; so now we have a Gamma distribution. But now, how do we actually determine the 4 rates? do we simply randomly sample 4 times from the distribution?
+
+===CODE QUESTIONS===
+  * sdf
+
+===MISC. FACTS & NOTES===
+  *
+    * matrixBufferCount = number of branches (each holds a categoryCount individual matrices)... i.e. 2n-3 branches (unrooted) or 2n-2 (rooted)
+    * SetTipStates() // you are setting the rows(i.e. sequences)
+    * You can either use SetTipStates() or SetTipPartials() (readData() function in fourtaxon)
+    * After updating the branch lengths (or estimating them for the first time) for some branches... you then call beagleSetTransitionMatrices() and beagleUpdatePartials() for those branches only
+    * PhyML updates branch lengths with some algorithm (either all or some of them; fourtaxon updates ALL) --> Update the corresponding Transition Matrixes (SetTransMatrix()) --> Create a BeagleOperation vector for the touched branches --> Re-calculate the partial lks for the touched branches(UpdatePartials()) --> Calculate the lk of a subtree(EdgeLogLikelihoods()) or the whole tree (RootLogLikelihoods)
+    * in createInstance(), the partial buffer count will change depending if you use to SetTipStates() or SetTipPartials(). IOW, if you are setting Partials() then the partialcount will be +num_tips
+    - When BEAGLE gets incorporated into PhyML more "shallowly", in each iteratation (i.e. Set_Model_Parameters()) you will need to update the Eigen Matrixes (SetEigenDecomposition()), substitution rates (SetCategoryRates()/SetCategoryWeights()),
+  * Lk()
+    * `Pre/Post_Order_Lk() --> Get_All_Partial_Lk() --> Update_P_Lk() -->  Lk_Core()`
+phydbl `*p_lk,*p_lk_v1,*p_lk_v2`;//Partial likelihood vectors of node, child1, and child2
+    * Recall this is a vector because at any node, we have a partial likelihoods for each state of each site, under a certain rate category. IOW, this is a vector across all the sites... and at each site we have 4 states with their own likelihoods.. but the likelihood also depends on the rate category
+  * After creating an initial tree topology, we use some algorithm to navigate the tree space (i.e. NNI, SPR, etc). Before you compute the new likelihood on the new tree, you have re-estimate the various parameters AGAIN (i.e. ts/tv ratio, equilibrium freqs, subs rate parameters, alpha). Which parameters are re-estimated in each iteration depends on the user... for ex, in HKY85 model the ts/tv is re-estimated but not the equilibrium freqs; but in GTR/custom models, the ts/tv ratio is irrelevant but the equilibrium freqs AND subs rate parameters are re-estimated.
+  * In each iteration, Lk() --> SetModelParameters() --> Update_Eigen() .. BTW, note that eventho Update_Eigen() is called for all models, the computation only happens for the HKY85, GTR, CUSTOM, M4 models. IOW, you will only update BEAGLE's Eigen matrixes when mod->update_eigen == TRUE
+  * What are the differences between the Update_P_Lk() methods?
+    * Each state has its own variable, so the methods merely differ in terms of they loop through the state space.
+  * When are the probabilities (i.e. the `Pij_rr[]` matrix) and the likelihoods (i.e. `p_lk_left[]/p_lk_right[]`) computed... remember each edge has those..
+    * It seems the `Pij_rr` are computed in the `Update_P_Lk*()` methods,
+  * In PhyML, the -o parameter conflicts with other explicit parameters? For example, what happens when you use the HKY85 model, and provide a ts/tv ratio (i.e. -t 5), but at the same time say "-o n"
+    * Yes, but priority rules apply...
+  * partialsBufferCount; is this the number of internal nodes? cant this be computed from the tip count? for n tips, we have n-2 internal nodes... if so, why does the fourtaxon example use n+2?
+    * You determine the partial buffers depending on the algorithm. Not sure why fourtaxon is n+2
+  *
+./src/phyml-beagle -i ./datasets/toy.txt -d nt -q -c 4 -v 0 -t 4 -s NNI -m JC69 -f '0.25,0.25,0.25,0.25' -o n
+./src/phyml-beagle -i ./datasets/toy.txt -d nt -q -c 4 -v e -a e -t 4 -s BEST -m JC69 -f '0.25,0.25,0.25,0.25' -o tlr
+
+
+
+
+
