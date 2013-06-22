@@ -20,8 +20,13 @@ _This project was first proposed by Andrew Rambaut and listed by NESCENT among t
   * How large (if any) is the performance gain from SetTransitionMatrices() versus SetTransitionMatrix(). The latter is the "first step", but if BEAGLE authors claim the former is faster then maybe its worth juggling the code in order to use it?
 
 ===Week2===
-  * Continue and Finish with Week1
+  * Likelihood calculations for a fixed tree (i.e. no parameter optimization). But...
+  * For the toy.txt dataset... in PhyML, the LEFT subtree of Branch2 and the LEFT subtree of Branch3 both have the same partials? In BEAGLE they have different partials. Yet both final likelihoods match!?
+  * FIXME: Estimating supports crashes
+  * FIXME: Estimating parameter crashes
+  * I think the above are interlated to incorrect partials in Lk_Core(). Which is strange, because that bit of code is oblivious to the "external changes" (or is it?). Could it be that p_lk_left/right are being indexed somewhere else too?
 
+===Week3===
   * Use run_datasets.py to test (not benchmark!) for correctness
     * AA and DNA datasets
     * SPR, NNI, BEST
@@ -104,6 +109,4 @@ phydbl `*p_lk,*p_lk_v1,*p_lk_v2`;//Partial likelihood vectors of node, child1, a
   *
 ./src/phyml-beagle -i ./datasets/toy.txt -d nt -q -c 4 -v 0 -t 4 -s NNI -m JC69 -f '0.25,0.25,0.25,0.25' -o n
 ./src/phyml-beagle -i ./datasets/toy.txt -d nt -q -c 4 -v e -a e -t 4 -s BEST -m JC69 -f '0.25,0.25,0.25,0.25' -o tlr
-
-
 
