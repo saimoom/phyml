@@ -17,7 +17,6 @@ _This project was first proposed by Andrew Rambaut and listed by NESCENT among t
   * How large (if any) is the performance gain from SetTransitionMatrices() versus SetTransitionMatrix(). The latter is the "first step", but if BEAGLE authors claim the former is faster then maybe its worth juggling the code in order to use it?
 
 ===Update===
-For the last three days I have come across several minor, yet time consuming, problems. Some identified, but not resolved. I will explain.
 
   # First of all, keep in mind that the scaling is manually done per Stephane's suggestion (as it is quite subtle from what I've been told). Though in my latest push (PhyML's beagle branch), I have *disabled* the scaling code completely for PhyML (i.e. in `Update_P_Lk()` ) and in the BEAGLE interface (i.e. in `update_partials_beagle()`). Why, you ask?
     * In the BEAGLE interface (i.e. `update_partials_beagle()` ), the `curr_scaler` hits 4294967296 (2^32), but this does NOT happen in the PhyML (i.e. `Update_P_Lk()`)... eventhogh the actual code is the same. ( Of course, I only found this out on a non-trivial dataset while diffing a large memory dump... but anyway )
