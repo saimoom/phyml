@@ -32,7 +32,7 @@ _This project was first proposed by Andrew Rambaut and listed by NESCENT among t
     * Recall that BEAGLE is supplied the P-Matrices (via SetTransitionMatrix()) for each branch. Thus the issue of rates doesn't even arise.
     * So thus, the BEAGLE callchain is SetTransitionMatrix() --> UpdatePartials() --> GetPartials() .. thats it. So... why are the final likelihoods different for the 17.codon.paml dataset? any ideas?
   # Of course, I investigated the above question myself... I compared the P-matrices and the Partials on each edge. What did I find? Remember earlier I told you that the toy dataset gave the exact same final likelihoods? This is true. But, when I PRINT the partials on each edge ... I notice that the partials on "left subtree of Branch 2" are different in PhyML and BEAGLE. In PhyML, the partials at the "left subtree" of Branch2 and Branch3 are the same... but in BEAGLE they are different. Yet... I still get the same final likelihood!
-
+  # Is it possible that I am simply just using BEAGLE incorrectly? [http://codepad.org/ZyOniPkP Here] you can see the PhyML partial likelihood function and its BEAGLE homolog
 
 ==Week2==
   * Likelihood calculations for a fixed tree (i.e. no parameter optimization). But...
