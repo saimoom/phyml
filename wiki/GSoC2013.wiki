@@ -16,7 +16,23 @@ _This project was first proposed by Andrew Rambaut and listed by NESCENT among t
   * Figure out why the spr.c is throwing an error
   * How large (if any) is the performance gain from SetTransitionMatrices() versus SetTransitionMatrix(). The latter is the "first step", but if BEAGLE authors claim the former is faster then maybe its worth juggling the code in order to use it?
 
-===Update/Issues===
+==Week2==
+  * Likelihood calculations for a fixed tree (i.e. no parameter optimization). But...
+  * For the toy.txt dataset... in PhyML, the LEFT subtree of Branch2 and the LEFT subtree of Branch3 both have the same partials? In BEAGLE they have different partials. Yet both final likelihoods match!?
+  * FIXME: Estimating supports crashes
+  * FIXME: Estimating parameter crashes
+  * I think the above are interlated to incorrect partials in Lk_Core(). Which is strange, because that bit of code is oblivious to the "external changes" (or is it?). Could it be that p_lk_left/right are being indexed somewhere else too?
+
+==Week3==
+  * Use run_datasets.py to test (not benchmark!) for correctness
+    * AA and DNA datasets
+    * SPR, NNI, BEST
+    * various other parameters
+    * single and double precision 
+    * Ambiguous characters
+    * Mixed Models
+
+==Update/Issues==
 
   # First of all, keep in mind that the scaling is manually done per Stephane's suggestion (as it is quite subtle from what I've been told). Though in my latest push (PhyML's beagle branch), I have *disabled* the scaling code completely for PhyML (i.e. in `Update_P_Lk()` ) and in the BEAGLE interface (i.e. in `update_partials_beagle()`). Why, you ask?
     * In the BEAGLE interface (i.e. `update_partials_beagle()` ), the `curr_scaler` hits 4294967296 (2^32), but this does NOT happen in the PhyML (i.e. `Update_P_Lk()`)... eventhogh the actual code is the same. ( Of course, I only found this out on a non-trivial dataset while diffing a large memory dump... but anyway )
@@ -34,24 +50,6 @@ _This project was first proposed by Andrew Rambaut and listed by NESCENT among t
   # Of course, I investigated the above question myself... I compared the P-matrices and the Partials on each edge. What did I find? Remember earlier I told you that the toy dataset gave the exact same final likelihoods? This is true. But, when I print the partials on each edge ... I notice that the partials on "left subtree of Branch 2" are different in PhyML and BEAGLE. In PhyML, the partials at the "left subtree" of Branch2 and Branch3 are the same... but in BEAGLE they are different. Yet... I still get the same final likelihood!
   # Is it possible that I am simply just using BEAGLE incorrectly? [http://codepad.org/ZyOniPkP Here] you can see the PhyML partial likelihood function and its BEAGLE homolog. Correct me if I am wrong, PhyML stores partials and P-matrices on the Edges rather than on the Nodes. In other words, each Edge struct has a `edge->p_lk_left/right` vector representing the partials on the left and right subtree respectively and a `edge->Pij` matrix (of dimension rate*state*state). PhyML then calls Update_P_Lk(d,b) which "updates partial likelihood on edge b on the side of b where node d lies". Ok so far so good? Next, I create a homolog BEAGLE function update_partial_pk(d,b) which does the same thing with the operation: `BeagleOperation operations[1] = {{d->num, BEAGLE_OP_NONE, BEAGLE_OP_NONE, n_v1->num, b1->num, n_v2->num, b2->num}};` Observe that the *child partials are indexed by the nodes(i.e. n_v1, n_v2) but the child transition matrixes are indexed by the edges (i.e. b1, b2)*. Does this make sense?
   # A follow up... partials computed in `calcPartialsPartials()` don't match PhyML. Is this a hint?
-
-
-==Week2==
-  * Likelihood calculations for a fixed tree (i.e. no parameter optimization). But...
-  * For the toy.txt dataset... in PhyML, the LEFT subtree of Branch2 and the LEFT subtree of Branch3 both have the same partials? In BEAGLE they have different partials. Yet both final likelihoods match!?
-  * FIXME: Estimating supports crashes
-  * FIXME: Estimating parameter crashes
-  * I think the above are interlated to incorrect partials in Lk_Core(). Which is strange, because that bit of code is oblivious to the "external changes" (or is it?). Could it be that p_lk_left/right are being indexed somewhere else too?
-
-==Week3==
-  * Use run_datasets.py to test (not benchmark!) for correctness
-    * AA and DNA datasets
-    * SPR, NNI, BEST
-    * various other parameters
-    * single and double precision 
-    * Ambiguous characters
-    * Mixed Models
-
 
 ===QUESTIONS===
   * Currently, I am providing the PMat to BEAGLE (via beagleSetTransitionMatrix()) in the Update_PMat_At_Given_Edge() because thats where the PMat is created. However, there are several other places where the PMat() is also called; for example, in M4_Integral_Term_On_One_Edge() and even Print_Model(). What shall I do there?
