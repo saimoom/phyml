@@ -53,27 +53,6 @@ _This project was first proposed by Andrew Rambaut and listed by NESCENT among t
     * Mixed Models
 
 
-
-
-===DIRTY DUMP===
-The following is a "dirty" dump of the TODO_GSOC13.txt file found in the repository.
-
-===TODO===
-  * The update_beagle_p_lk() function needs to store the computed likelihoods, and also do scaling. Look in Update_P_Lk() as a reference.
-  * Find out if Pij_rr also holds first and second derivatives. If so, it must be of dimension statecount*statecount*3. If so, you will have to adjust your BEAGLE code that uses the Transition Probability matrices and the padded value in SetTransitionMatrix()
-  * Find a better way to determine nv1 and nv2
-  * Is your ResetScaleFactors() call make sense?
-  * You will need a vector trans_mat_indices[i] gives the *index* to branch i (fourtaxon, line 335)
-  * multiple BEAGLE instances for multiple datasets
-  * If PhyML works with TipPartials, add a command line flag to use it... then based on that flag you will have to calculate num_partials in createBeagleInstance()
-  * it seems unscaled equilibrium freqs are computed even when equilibrium freqs are explicitly user provided ("Freqs" section in Print_Model())
-  * Handle Custom model, M4 model?
-  * Handle ambiguous characters in input MSA
-  * Email Stephane about:
-    * This command's emperical frequencies dont parse correctly (due to the quotes); trivial..
-    ./src/phyml -i ./datasets/toy.txt -d nt -q -c 1 -v 0 -t 4 -s NNI -m JC69 -f \"0.25,0.25,0.25,0.25\" -o n
-
-
 ===QUESTIONS===
   * Currently, I am providing the PMat to BEAGLE (via beagleSetTransitionMatrix()) in the Update_PMat_At_Given_Edge() because thats where the PMat is created. However, there are several other places where the PMat() is also called; for example, in M4_Integral_Term_On_One_Edge() and even Print_Model(). What shall I do there?
 
@@ -135,35 +114,3 @@ S: that's the likelihood calculated under a multinomial model which does not tak
 
 S: the Gamma distibution is discretized, i.e., cut into pieces of equal probabilities. Relative rates are then chosen as the 'middle' (i.e., the median or the mean) of each such piece. Note however that the probabilities for the different classes may not always be equal (I am currently implementing a model where both rates and frequencies are directly estimated from the data).
  
-
-
-
-===CODE QUESTIONS===
-  * sdf
-
-===MISC. FACTS & NOTES===
-  *
-    * matrixBufferCount = number of branches (each holds a categoryCount individual matrices)... i.e. 2n-3 branches (unrooted) or 2n-2 (rooted)
-    * SetTipStates() // you are setting the rows(i.e. sequences)
-    * You can either use SetTipStates() or SetTipPartials() (readData() function in fourtaxon)
-    * After updating the branch lengths (or estimating them for the first time) for some branches... you then call beagleSetTransitionMatrices() and beagleUpdatePartials() for those branches only
-    * PhyML updates branch lengths with some algorithm (either all or some of them; fourtaxon updates ALL) --> Update the corresponding Transition Matrixes (SetTransMatrix()) --> Create a BeagleOperation vector for the touched branches --> Re-calculate the partial lks for the touched branches(UpdatePartials()) --> Calculate the lk of a subtree(EdgeLogLikelihoods()) or the whole tree (RootLogLikelihoods)
-    * in createInstance(), the partial buffer count will change depending if you use to SetTipStates() or SetTipPartials(). IOW, if you are setting Partials() then the partialcount will be +num_tips
-    - When BEAGLE gets incorporated into PhyML more "shallowly", in each iteratation (i.e. Set_Model_Parameters()) you will need to update the Eigen Matrixes (SetEigenDecomposition()), substitution rates (SetCategoryRates()/SetCategoryWeights()),
-  * Lk()
-    * `Pre/Post_Order_Lk() --> Get_All_Partial_Lk() --> Update_P_Lk() -->  Lk_Core()`
-phydbl `*p_lk,*p_lk_v1,*p_lk_v2`;//Partial likelihood vectors of node, child1, and child2
-    * Recall this is a vector because at any node, we have a partial likelihoods for each state of each site, under a certain rate category. IOW, this is a vector across all the sites... and at each site we have 4 states with their own likelihoods.. but the likelihood also depends on the rate category
-  * After creating an initial tree topology, we use some algorithm to navigate the tree space (i.e. NNI, SPR, etc). Before you compute the new likelihood on the new tree, you have re-estimate the various parameters AGAIN (i.e. ts/tv ratio, equilibrium freqs, subs rate parameters, alpha). Which parameters are re-estimated in each iteration depends on the user... for ex, in HKY85 model the ts/tv is re-estimated but not the equilibrium freqs; but in GTR/custom models, the ts/tv ratio is irrelevant but the equilibrium freqs AND subs rate parameters are re-estimated.
-  * In each iteration, Lk() --> SetModelParameters() --> Update_Eigen() .. BTW, note that eventho Update_Eigen() is called for all models, the computation only happens for the HKY85, GTR, CUSTOM, M4 models. IOW, you will only update BEAGLE's Eigen matrixes when mod->update_eigen == TRUE
-  * What are the differences between the Update_P_Lk() methods?
-    * Each state has its own variable, so the methods merely differ in terms of they loop through the state space.
-  * When are the probabilities (i.e. the `Pij_rr[]` matrix) and the likelihoods (i.e. `p_lk_left[]/p_lk_right[]`) computed... remember each edge has those..
-    * It seems the `Pij_rr` are computed in the `Update_P_Lk*()` methods,
-  * In PhyML, the -o parameter conflicts with other explicit parameters? For example, what happens when you use the HKY85 model, and provide a ts/tv ratio (i.e. -t 5), but at the same time say "-o n"
-    * Yes, but priority rules apply...
-  * partialsBufferCount; is this the number of internal nodes? cant this be computed from the tip count? for n tips, we have n-2 internal nodes... if so, why does the fourtaxon example use n+2?
-    * You determine the partial buffers depending on the algorithm. Not sure why fourtaxon is n+2
-  *
-./src/phyml-beagle -i ./datasets/toy.txt -d nt -q -c 4 -v 0 -t 4 -s NNI -m JC69 -f '0.25,0.25,0.25,0.25' -o n
-./src/phyml-beagle -i ./datasets/toy.txt -d nt -q -c 4 -v e -a e -t 4 -s BEST -m JC69 -f '0.25,0.25,0.25,0.25' -o tlr
