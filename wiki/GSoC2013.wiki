@@ -28,7 +28,7 @@ _This project was first proposed by Andrew Rambaut and listed by NESCENT among t
         Final Lk: -17690.439032
     * I have artificially replaced gaps in the toy dataset and 17.codon.paml datasets (i.e. there are no ambigious characters)
     * Both datasets have a "crunched" sequence
-    * Recall that the scaling code has been disabled, so it cant be that, right? right??
+    * Recall that the scaling code has been disabled, so it cant be that, right?
     * Recall that BEAGLE is supplied the P-Matrices (via SetTransitionMatrix()) for each branch. Thus the issue of rates doesn't even arise.
     * So thus, the BEAGLE callchain is SetTransitionMatrix() --> UpdatePartials() --> GetPartials() .. thats it. So... why are the final likelihoods different for the 17.codon.paml dataset? any ideas?
   # Of course, I investigated the above question myself... I compared the P-matrices and the Partials on each edge. What did I find? Remember earlier I told you that the toy dataset gave the exact same final likelihoods? This is true. But, when I print the partials on each edge ... I notice that the partials on "left subtree of Branch 2" are different in PhyML and BEAGLE. In PhyML, the partials at the "left subtree" of Branch2 and Branch3 are the same... but in BEAGLE they are different. Yet... I still get the same final likelihood!
