@@ -24,8 +24,8 @@ _This project was first proposed by Andrew Rambaut and listed by NESCENT among t
   # For the toy dataset, and a *fixed* tree (i.e. no ratio tests, no parameter optimizations), I get the exact same final likelihoods in PhyML and BEAGLE. Good! However, for a larger dataset, I get slightly different likelihoods. Specifically, the following two commands yield different final likelihoods:
         `./src/phyml-beagle -i ./datasets/17.codon.paml -d nt -q -c 4 -v 0 -t e -m JC69 -f '0.25,0.25,0.25,0.25' -o none -b 0 --r_seed 1999`
         Final Lk: -17709.873912
-        `./src/phyml             -i ./datasets/17.codon.paml -d nt -q -c 4 -v 0 -t e -m JC69 -f '0.25,0.25,0.25,0.25' -o none -b 0 --r_seed 1999
-        Final Lk: -17690.439032`
+        `./src/phyml             -i ./datasets/17.codon.paml -d nt -q -c 4 -v 0 -t e -m JC69 -f '0.25,0.25,0.25,0.25' -o none -b 0 --r_seed 1999`
+        Final Lk: -17690.439032
     * I have artificially replaced gaps in the toy dataset and 17.codon.paml datasets (i.e. there are no ambigious characters)
     * Both datasets have a "crunched" sequence
     * Recall that the scaling code has been disabled, so it cant be that, right? right??
