@@ -42,66 +42,6 @@ _This project was first proposed by Andrew Rambaut and listed by NESCENT among t
     * Mixed Models
 
 
-  # First of all, keep in mind that the scaling is manually done per Stephane's suggestion (as it is quite subtle from what I've been told). Though in my latest push (PhyML's beagle branch), I have *disabled* the scaling code completely for PhyML (i.e. in `Update_P_Lk()` ) and in the BEAGLE interface (i.e. in `update_partials_beagle()`). Why, you ask?
-    * In the BEAGLE interface (i.e. `update_partials_beagle()` ), the `curr_scaler` hits 4294967296 (2^32), but this does NOT happen in the PhyML (i.e. `Update_P_Lk()`)... eventhogh the actual code is the same. ( Of course, I only found this out on a non-trivial dataset while diffing a large memory dump... but anyway )
-    * For the issue I will explain below, disabling the scaling seems to have no effect... so I try to reduce the confounding factors and disable it. So lets proceed, shall we? ok...
-  # For the toy dataset, and a *fixed* tree (i.e. no ratio tests, no parameter optimizations), I get the exact same final likelihoods in PhyML and BEAGLE. Good! However, for a larger dataset, I get slightly different likelihoods. Specifically, the following two commands yield different final likelihoods:
-        `./src/phyml-beagle -i ./datasets/17.codon.paml -d nt -q -c 4 -v 0 -t e -m JC69 -f '0.25,0.25,0.25,0.25' -o none -b 0 --r_seed 1999`
-        Final Lk: -17709.873912
-        `./src/phyml             -i ./datasets/17.codon.paml -d nt -q -c 4 -v 0 -t e -m JC69 -f '0.25,0.25,0.25,0.25' -o none -b 0 --r_seed 1999`
-        Final Lk: -17690.439032
-    * I have artificially replaced gaps in the toy dataset and 17.codon.paml datasets (i.e. there are no ambigious characters)
-    * Both datasets have a "crunched" sequence
-    * Recall that the scaling code has been disabled, so it cant be that, right?
-    * Recall that BEAGLE is supplied the P-Matrices (via SetTransitionMatrix()) for each branch. Thus the issue of rates doesn't even arise.
-    * So thus, the BEAGLE callchain is SetTransitionMatrix() --> UpdatePartials() --> GetPartials() .. thats it. So... why are the final likelihoods different for the 17.codon.paml dataset? any ideas?
-  # Of course, I investigated the above question myself... I compared the P-matrices and the Partials on each edge. What did I find? Remember earlier I told you that the toy dataset gave the exact same final likelihoods? This is true. But, when I print the partials on each edge ... I notice that the partials on "left subtree of Branch 2" are different in PhyML and BEAGLE. In PhyML, the partials at the "left subtree" of Branch2 and Branch3 are the same... but in BEAGLE they are different. Yet... I still get the same final likelihood!
-  # Is it possible that I am simply just using BEAGLE incorrectly? [http://codepad.org/ZyOniPkP Here] you can see the PhyML partial likelihood function and its BEAGLE homolog. Correct me if I am wrong, PhyML stores partials and P-matrices on the Edges rather than on the Nodes. In other words, each Edge struct has a `edge->p_lk_left/right` vector representing the partials on the left and right subtree respectively and a `edge->Pij` matrix (of dimension rate*state*state). PhyML then calls Update_P_Lk(d,b) which "updates partial likelihood on edge b on the side of b where node d lies". Ok so far so good? Next, I create a homolog BEAGLE function update_partial_pk(d,b) which does the same thing with the operation: `BeagleOperation operations[1] = {{d->num, BEAGLE_OP_NONE, BEAGLE_OP_NONE, n_v1->num, b1->num, n_v2->num, b2->num}};` Observe that the *child partials are indexed by the nodes(i.e. n_v1, n_v2) but the child transition matrixes are indexed by the edges (i.e. b1, b2)*. Does this make sense?
-  # A follow up... partials computed in `calcPartialsPartials()` don't match PhyML. Is this a hint?
-
-=Extend PhyML to use the BEAGLE library=
-
-Much of the speed in PhyML comes from heuristic search techniques to efficiently search the space of possible trees. Parallelization is limited to MPI-based distribution of bootstrap replicates. Like most such software it uses the Felsenstein Pruning algorithm to compute the likelihood of individual trees using continuous-time Markov models. Recently considerable advances has been made in the fine-scale parallelization of this algorithm, in particular targeting massively parallel hardware such as NVidia GPGPUs (general purpose graphics processing units). There are considerable improvements in overall speed to be gained for PhyML by combining efficient search strategies with high speed likelihood computation.
-
-BEAGLE is a cross-platform library that implements Felsenstein algorithm on a range of parallel and vector hardware including CUDA-based GPGPUs and SSE instructions on Intel chips:
-
-http://code.google.com/p/beagle-lib/
-
-This project involves extending PhyML to make calls to the BEAGLE library in place of the internal likelihood calculations. The project will involve: 1) Becoming familiar with the API of BEAGLE and linking of client software to the library (an example simple client in C is available in the BEAGLE package). 2) Understanding the likelihood calculations in PhyML. 3) Replacing likelihood calculation calls in PhyML with homologous calls to BEAGLE. 4) Testing and validation. 5) Performance testing with different hardware.
-
-_This project was first proposed by Andrew Rambaut and listed by NESCENT among the proposals offered to students for GSoC2013. Imran Fanaswala's application was successful. Andrew Rambaut, Marc Suchard and Stephane Guindon will supervise Imran's work._
-
-==Update1==
-  *  In PhyML, Replace Update_P_Lk() with homologous BEAGLE call(s). Essentially this means PhyML will use BEAGLE for its partial likelihood calculation.
-  * Figure out why the spr.c is throwing an error
-  * How large (if any) is the performance gain from SetTransitionMatrices() versus SetTransitionMatrix(). The latter is the "first step", but if BEAGLE authors claim the former is faster then maybe its worth juggling the code in order to use it?
-
-==Update2==
-  * Likelihood calculations for a fixed tree (i.e. no parameter optimization). But...
-  * For the toy.txt dataset... in PhyML, the LEFT subtree of Branch2 and the LEFT subtree of Branch3 both have the same partials? In BEAGLE they have different partials. Yet both final likelihoods match!?
-  * I think the above are interlated to incorrect partials in Lk_Core(). Which is strange, because that bit of code is oblivious to the "external changes" (or is it?). Could it be that p_lk_left/right are being indexed somewhere else too?
-
-==Update3==
-  * Use run_datasets.py to test (not benchmark!) for correctness
-    * AA and DNA datasets
-    * SPR, NNI, BEST
-    * various other parameters
-    * single and double precision 
-    * Ambiguous characters
-    * Mixed Models
-
-==TODOs==
-  * FIXME: Estimating supports crashes
-  * FIXME: Estimating parameter crashes
-  * Use run_datasets.py to test (not benchmark!) for correctness
-    * AA and DNA datasets
-    * SPR, NNI, BEST
-    * various other parameters
-    * single and double precision 
-    * Ambiguous characters
-    * Mixed Models
-
-
 ===OLD NOTES===
   # First of all, keep in mind that the scaling is manually done per Stephane's suggestion (as it is quite subtle from what I've been told). Though in my latest push (PhyML's beagle branch), I have *disabled* the scaling code completely for PhyML (i.e. in `Update_P_Lk()` ) and in the BEAGLE interface (i.e. in `update_partials_beagle()`). Why, you ask?
     * In the BEAGLE interface (i.e. `update_partials_beagle()` ), the `curr_scaler` hits 4294967296 (2^32), but this does NOT happen in the PhyML (i.e. `Update_P_Lk()`)... eventhogh the actual code is the same. ( Of course, I only found this out on a non-trivial dataset while diffing a large memory dump... but anyway )
