@@ -28,7 +28,7 @@ _This project was first proposed by Andrew Rambaut and listed by NESCENT among t
 ==Update3==
   * PhyML uses both post and pre order traversals. Handle this.
   * Optimizing branch lengths
-
+  * aBayes branch supports
 
 ==TODOs==
   * FIXME: Estimating supports crashes
