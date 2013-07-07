@@ -18,7 +18,7 @@ _This project was first proposed by Andrew Rambaut and listed by NESCENT among t
 
 ==Update2==
   * Identified and worked on several Issues ( PhyML: http://bit.ly/13ms2JN, BEAGLE: http://bit.ly/12A4wHg )
-  * Initial values of Brent's algorithm were inconsistent across binaries. This resulted in an extra iteration between runs, which then triggered a premature cutoff. The "culprit" was ultimately `fomit-frame-pointer` and `funroll-loops`
+  * Initial values of Brent's algorithm were inconsistent across binaries. This resulted in an extra iteration between runs, which then triggered a premature cutoff. The "culprit" was ultimately the gcc flags `fomit-frame-pointer` and `funroll-loops`
   * Created an overload for aLRT() that (re)uses the existing in memory tree
   * Created project specific Valgrind suppression files and `.gdbinit` files. The latter facilitates invoking functions without touching the binary (since some of the issues were not reproducible). Additionally, PhyML has hierarchy of structs with many pointer fields, which thus requires "deep printing". This was done using gdb's Python scripting
   * Likelihood calculations work now for a user provided tree (w/ branch lengths). This didn't work earlier due to a incorrect tip-numbering (i.imgur.com/Rgwa6yh.png). BTW, PhyML-BEAGLE now uses `SetTipPartials()` instead of `SetTipStates()`
