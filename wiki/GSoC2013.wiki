@@ -32,8 +32,16 @@ _This project was first proposed by Andrew Rambaut and listed by NESCENT among t
 
 
 ==Update4==
-  * Finalize optimizing tree topology
-  * Testing with various datasets and parameters
+  * Previously, while optimizing topology we created two BEAGLE instances (with different rate categories) and discarded the first one after recording the topology. But now, we only use one instance with all but set the weights of the "unnecessary" categories to 0.0
+  * As of now, all partial likelihoods are computed with BEAGLE for all combinations of parameters (i.e. branch length, topology, ts/tv ratio, rates, etc)
+  * Code cleanup and commenting
+
+==Next Steps==
+  * (Re)enable scaling and test
+  * Test with AA datasets, custom model, rooted trees, various hardware
+  * Benchmark
+  * Merge into trunk
+  * Update PhyML documentation
 
 ==TODOs==
   * Use run_datasets.py to test (not benchmark!) for correctness
