@@ -37,13 +37,18 @@ _This project was first proposed by Andrew Rambaut and listed by NESCENT among t
   * Code cleanup and commenting
 
 ==Update5==
-* Enabled rescaling of partials (not so efficient yet; work-in-progress)
-* Merged with SVN trunk
-* Re-read some literature
+  * Enabled rescaling of partials (not so efficient yet; work-in-progress)
+  * Merged with SVN trunk
+  * Re-read some literature
+
+==Update6==
+  * Tested and achieved bit-wise compatability on AA datasets
+  * Update batch test script
+  * Discussion about scaling implementation. Relegated for the time being
 
 ==Next Steps==
+  * Test with various hardware, rooted trees, custom model, various hardware
   * (Re)enable scaling and test
-  * Test with AA datasets, custom model, rooted trees, various hardware
   * Benchmark
   * Merge into trunk
   * Update PhyML documentation
