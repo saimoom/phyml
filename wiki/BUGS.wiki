@@ -1,6 +1,5 @@
 #labels Featured
-  * _13 May 2013._ Bugs in bootstrap functions prevent the analysis to proceed normally. Only affect the development version 20130412. Please use version 20130513
-instead.
+  * _13 May 2013._ Bugs in bootstrap functions prevent the analysis to proceed normally. Only affect the development version 20130412. Please use version 20130513 instead.
 
   * _19 Fevrier 2013._ The part of the code dealing with reading data in NEXUS format and processing discrete characters was broken. A new patch (20130219.patch) provides a quick fix to this. It has not been tested extensively and might need refinement. Please do not hesitate to post feedback on the forum (https://groups.google.com/forum/?fromgroups#!forum/phyml-forum). To apply this patch, copy the file 20130219.patch in the src/ directory and enter the command 'patch -i 20130219.patch'. You will need to re-compile the program after that.
 
