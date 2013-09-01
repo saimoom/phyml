@@ -51,7 +51,7 @@ _This project was first proposed by Andrew Rambaut and listed by NESCENT among t
   * run_datasets.py now extracts and appends execution timings to the same logfile
 
 ==Next Steps==
-  * Matrix Multiplication with Beagle
+  * P-Matrix computation with Beagle
     * Pending lots of cleanup of debugging statements in PhyML and BEAGLE
     * Handle AA models
     * Decide if its better to log() the eigen-values before sending to BEAGLE; or, prevent exp()ing of the eigen-values via a conditional compilation block. The latter sounds better, but there are cases where we want exp()ed eigen-values even with BEAGLE enabled in order to behave well with the rest of the system
