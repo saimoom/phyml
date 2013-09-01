@@ -48,7 +48,7 @@ _This project was first proposed by Andrew Rambaut and listed by NESCENT among t
 
 ==Update 7==
   * On a fixed tree, P-matrix is computed by BEAGLE using UpdateTransitionMatricies()/SetEigenDecomposition()
-
+  * run_datasets.py now extracts and appends execution timings to the same logfile
 
 ==Next Steps==
   * Matrix Multiplication with Beagle
