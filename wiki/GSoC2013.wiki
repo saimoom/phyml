@@ -61,12 +61,14 @@ _This project was first proposed by Andrew Rambaut and listed by NESCENT among t
     * Figure out a way to cleanly(and safely!) Free() the heap allocated vectors in the 3 places in create_beagle_instance()
     * mod->ras->gamma_rr->len still misleading...
     * Test with batch script
+    * May not need to call `update_beagle_ras()` and `update_beagle_eigen()` in `Update_RAS()` and `Update_Eigen()`? Since you are calling them in `Update_PMat_On_Edge()` anyway
   * Test with various hardware, rooted trees, custom model, various hardware
     * AA and DNA datasets
     * SPR, NNI, BEST
     * various other parameters
     * single and double precision 
   * (Re)enable scaling and test
+  * Make run_datasets.py post-process the timings
   * Benchmark
   * Merge into trunk
   * Update PhyML documentation
