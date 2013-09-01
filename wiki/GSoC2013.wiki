@@ -46,21 +46,30 @@ _This project was first proposed by Andrew Rambaut and listed by NESCENT among t
   * Update batch test script
   * Discussion about scaling implementation. Relegated for the time being
 
-==Next Steps==
-  * Test with various hardware, rooted trees, custom model, various hardware
-  * (Re)enable scaling and test
-  * Benchmark
-  * Merge into trunk
-  * Update PhyML documentation
+==Update 7==
+  * On a fixed tree, P-matrix is computed by BEAGLE using UpdateTransitionMatricies()/SetEigenDecomposition()
 
-==TODOs==
-  * Use run_datasets.py to test (not benchmark!) for correctness
+
+==Next Steps==
+  * Matrix Multiplication with Beagle
+    * Pending lots of cleanup of debugging statements in PhyML and BEAGLE
+    * Handle AA models
+    * Decide if its better to log() the eigen-values before sending to BEAGLE; or, prevent exp()ing of the eigen-values via a conditional compilation block. The latter sounds better, but there are cases where we want exp()ed eigen-values even with BEAGLE enabled in order to behave well with the rest of the system
+    * Investigate PMat_Zero_br_Len()
+    * How will capping the rate categories (to 2) behave now? Investigate this
+    * Handle the Warn_And_Exit() cases
+    * Figure out a way to cleanly(and safely!) Free() the heap allocated vectors in the 3 places in create_beagle_instance()
+    * mod->ras->gamma_rr->len still misleading...
+    * Test with batch script
+  * Test with various hardware, rooted trees, custom model, various hardware
     * AA and DNA datasets
     * SPR, NNI, BEST
     * various other parameters
     * single and double precision 
-    * Mixed Models
-
+  * (Re)enable scaling and test
+  * Benchmark
+  * Merge into trunk
+  * Update PhyML documentation
 
 ===OLD NOTES===
   # First of all, keep in mind that the scaling is manually done per Stephane's suggestion (as it is quite subtle from what I've been told). Though in my latest push (PhyML's beagle branch), I have *disabled* the scaling code completely for PhyML (i.e. in `Update_P_Lk()` ) and in the BEAGLE interface (i.e. in `update_partials_beagle()`). Why, you ask?
