@@ -50,6 +50,12 @@ _This project was first proposed by Andrew Rambaut and listed by NESCENT among t
   * On a fixed tree, P-matrix is computed by BEAGLE using UpdateTransitionMatricies()/SetEigenDecomposition()
   * run_datasets.py now extracts and appends execution timings to the same logfile
 
+==Update 8==
+  * While optimizing branch lengths, P-matrix is computed by BEAGLE
+  * Worked on incorporating PhyML's scaling technique into BEAGLE
+  * Worked on create a homolog of Lk_Core() which computes Edge likelihoods using BEAGLE
+
+
 ==Next Steps==
   * P-Matrix computation with Beagle
     * Investigate `Simu_Loop()`, `Round_Optimize()`, and other code paths which optimize branch lengths and rates. Ultimately, we want the P-matrix to be be computed by BEAGLE while optimziing parameters even.
