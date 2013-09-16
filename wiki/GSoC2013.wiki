@@ -55,30 +55,24 @@ _This project was first proposed by Andrew Rambaut and listed by NESCENT among t
   * Worked on incorporating PhyML's scaling technique into BEAGLE
   * Worked on create a homolog of Lk_Core() which computes Edge likelihoods using BEAGLE
 
+==Update 9==
+  * Edgelikelihoods and P-matrices are computed using Beagle for NT and AA datasets (while optimizing all parameters)
+  * Scaling happens at every node
+  * Ran benchmarks
 
 ==Next Steps==
-  * P-Matrix computation with Beagle
-    * Investigate `Simu_Loop()`, `Round_Optimize()`, and other code paths which optimize branch lengths and rates. Ultimately, we want the P-matrix to be be computed by BEAGLE while optimziing parameters even.
-    * Pending cleanup of debugging statements in PhyML and BEAGLE
-    * Handle AA models
-    * Decide if its better to log() the eigen-values before sending to BEAGLE; or, prevent exp()ing of the eigen-values via a conditional compilation block. The latter sounds better, but there are cases where we want exp()ed eigen-values even with BEAGLE enabled in order to behave well with the rest of the system
-    * Investigate PMat_Zero_br_Len()
-    * How will capping the rate categories (to 2) behave now? Investigate this
-    * Handle the Warn_And_Exit() cases
-    * Figure out a way to cleanly(and safely!) Free() the heap allocated vectors in the 3 places in create_beagle_instance()
-    * mod->ras->gamma_rr->len still misleading...
-    * Test with script
-    * May not need to call `update_beagle_ras()` and `update_beagle_eigen()` in `Update_RAS()` and `Update_Eigen()`? Since you are calling them in `Update_PMat_On_Edge()` anyway
-  * Test with various hardware, rooted trees, custom model, various hardware
-    * AA and DNA datasets
-    * SPR, NNI, BEST
-    * various other parameters
-    * single and double precision 
-  * (Re)enable scaling and test
-  * Make run_datasets.py post-process the timings
-  * Benchmark
-  * Merge into trunk
-  * Update PhyML documentation
+  * Incorporate invariant sites (using the rate categories "trick")
+  * why does BEAGLE need the FLOATING_POINT_ERROR check? For the time being that bit of code has been commented out
+  * Currently transition matrices are being updated individually to resemble the original PhyML code. In other words, `UpdateTransitionMatrices()` updates a single matrix. Consider surgically extracting this to the "outer stack" so that all matrices are updated in one go (this also prevents many unnecessary calls to update the rate-across-sites and eigen-decompositions)
+  * Do we need a "local" copy of the transition matrices? That is, do we need to call `GetTransitionMatrix()` since we are computing edgelikelihoods with BEAGLE?
+  * The JC69 and K80 models doesn't allow unequal state frequencies, yet PhyML allows to explicitly specific frequencies using -f. This is conceptually "wrong". Nonetheless, when using these models with unequal state freqs the final lk betwene PhyML and PhyML+BEAGLE doesn't match. Maybe raise an error and exit rather than dig into this discrepency?
+  * Shouldn't need to call `update_ras()` and `update_efrq()` in create_beagle_instance()
+  * Check if `cur_site_lk` is used anywhere other than for computing the Edge lk, if not, then there is no need to call `getSiteLogLikelihood()`
+  * Free(b_fcs->Pij_rr) before calling GetTransitionMatrix()?
+  * Investigate `PMat_Zero_Br_Len()`... mostly likely not needed 
+  * Handle `Warn_and_Exit()` cases
+  * Update `Print_Edge_Pmats()` and `Print_Edge_Likelihoods()`
+  * Can `P_LK_LIM_INF` be represented when phydbl is a float?
 
 ===OLD NOTES===
   # First of all, keep in mind that the scaling is manually done per Stephane's suggestion (as it is quite subtle from what I've been told). Though in my latest push (PhyML's beagle branch), I have *disabled* the scaling code completely for PhyML (i.e. in `Update_P_Lk()` ) and in the BEAGLE interface (i.e. in `update_partials_beagle()`). Why, you ask?
