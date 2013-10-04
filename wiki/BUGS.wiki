@@ -1,4 +1,6 @@
 #labels Featured
+  * _05 October 2013._ Serious bug in bootstrap function prevent the analysis to proceed normally. Affects all development versions. Please upgrade to 20131005 version.
+
   * _27 September 2013._ Bugs in bootstrap functions prevent the analysis to proceed normally when using GTR or custom models of substitution. Affects development 20130708 version. Please upgrade to 20130927 version.
 
   * _13 May 2013._ Bugs in bootstrap functions prevent the analysis to proceed normally. Only affect the development version 20130412. Please use version 20130513 instead.
