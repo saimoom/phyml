@@ -1,4 +1,6 @@
 #labels Featured
+  * _16 October 2013._ Minor bug in bootstrap function prevent the analysis to proceed normally under GTR (and probably Custom model for nucleotide data). Affects all development versions. Please upgrade to 20131016 version.
+
   * _05 October 2013._ Serious bug in bootstrap function prevent the analysis to proceed normally. Affects all development versions. Please upgrade to 20131005 version.
 
   * _27 September 2013._ Bugs in bootstrap functions prevent the analysis to proceed normally when using GTR or custom models of substitution. Affects development 20130708 version. Please upgrade to 20130927 version.
