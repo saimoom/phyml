@@ -1,4 +1,6 @@
 #labels Featured
+  * _12 November 2013._ Bug in the constrained tree option that prevented some constrained tree files to be read properly. Affects development and stable versions. For fixing this issue in the stable version, please re-install version 20120412, and copy the patch file 20131112.patch in the src/ directory. Type 'patch -i 20131112.patch' to apply the changes. You will then need to compile the code as per usual (see manual if required). 
+
   * _16 October 2013._ Minor bug in bootstrap function prevent the analysis to proceed normally under GTR (and probably Custom model for nucleotide data). Affects all development versions. Please upgrade to 20131016 version.
 
   * _05 October 2013._ Serious bug in bootstrap function prevent the analysis to proceed normally. Affects all development versions. Please upgrade to 20131005 version.
